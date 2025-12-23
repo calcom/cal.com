@@ -38,15 +38,15 @@ export const getCalendar = async (
 
   const calendarApp = await calendarAppImportFn;
 
-  const CalendarService = calendarApp.default;
+  const createCalendarService = calendarApp.default;
 
-  if (!CalendarService || typeof CalendarService !== "function") {
+  if (!createCalendarService || typeof createCalendarService !== "function") {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
 
   // eslint-disable-next-line
-  const originalCalendar = new CalendarService(credential as any);
+  const originalCalendar = createCalendarService(credential as any);
   return resolveCalendarServeStrategy(originalCalendar, credential, shouldServeCache);
 };
 

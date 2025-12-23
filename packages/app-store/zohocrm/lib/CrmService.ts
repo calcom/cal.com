@@ -45,7 +45,7 @@ const toISO8601String = (date: Date) => {
     Math.abs(tzo) % 60
   )}`;
 };
-export default class ZohoCrmCrmService implements CRM {
+class ZohoCrmCrmService implements CRM {
   private integrationName = "";
   private auth: Promise<{ getToken: () => Promise<void> }>;
   private log: typeof logger;
@@ -63,7 +63,7 @@ export default class ZohoCrmCrmService implements CRM {
     const auth = await this.auth;
     await auth.getToken();
     const contacts = contactsToCreate.map((contactToCreate) => {
-      const [firstname, lastname] = !!contactToCreate.name
+      const [firstname, lastname] = contactToCreate.name
         ? contactToCreate.name.split(" ")
         : [contactToCreate.email, "-"];
       return {
@@ -297,4 +297,16 @@ export default class ZohoCrmCrmService implements CRM {
   async handleAttendeeNoShow() {
     console.log("Not implemented");
   }
+}
+
+/**
+ * Factory function that creates a Zoho CRM service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export default function BuildCrmService(
+  credential: CredentialPayload,
+  _appOptions?: Record<string, unknown>
+): CRM {
+  return new ZohoCrmCrmService(credential);
 }

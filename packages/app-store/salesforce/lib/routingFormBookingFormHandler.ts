@@ -1,7 +1,7 @@
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 
 import type { AttributeRoutingConfig } from "../../routing-forms/types/types";
-import SalesforceCRMService from "./CrmService";
+import { createSalesforceCrmServiceWithSalesforceType } from "./CrmService";
 import { SalesforceRecordEnum, RoutingReasons } from "./enums";
 import { EventTypeService } from "./eventTypeService";
 
@@ -27,7 +27,7 @@ const routingFormBookingFormHandler = async (
 
   if (!credential) return { email: null, recordType: null, recordId: null };
 
-  const crm = new SalesforceCRMService(credential, {});
+  const crm = createSalesforceCrmServiceWithSalesforceType(credential, {});
 
   const userLookupEmail = await crm.findUserEmailFromLookupField(
     attendeeEmail,

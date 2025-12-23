@@ -7,11 +7,16 @@ import { CalendarAppDelegationCredentialInvalidGrantError } from "@calcom/lib/Ca
 
 import { handleCreateSelectedCalendars, isSameEmail } from "../route";
 
-// Mock GoogleCalendarService
+// Mock GoogleCalendarService factory function
 const getPrimaryCalendarMock = vi.fn();
 vi.mock("@calcom/app-store/googlecalendar/lib/CalendarService", () => {
   return {
-    default: vi.fn().mockImplementation(() => ({
+    __esModule: true,
+    createGoogleCalendarServiceWithGoogleType: vi.fn(() => ({
+      getPrimaryCalendar: getPrimaryCalendarMock,
+    })),
+    // Also mock the default export in case any code path uses it
+    default: vi.fn(() => ({
       getPrimaryCalendar: getPrimaryCalendarMock,
     })),
   };
