@@ -6,8 +6,7 @@
   "license": "UNLICENSED",
   "private": true,
   "scripts": {
-    "build": "yarn dev:build && nest build && yarn postbuild",
-    "postbuild": "mkdir -p dist && rm -rf dist/packages && ln -s ../../../../packages dist/packages",
+    "build": "yarn dev:build && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev:build:watch": "concurrently --names \"libraries,lru-fix,constants,enums,utils,types\" \"yarn _dev:build:watch:libraries\" \"yarn _dev:build:watch:libraries:lru-fix\" \"yarn _dev:build:watch:constants\" \"yarn _dev:build:watch:enums\" \"yarn _dev:build:watch:utils\" \"yarn _dev:build:watch:types\"",

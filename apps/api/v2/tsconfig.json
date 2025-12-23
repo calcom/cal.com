@@ -14,7 +14,7 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
-      "@calcom/prisma/client": ["../../../packages/prisma/generated/prisma/client"]
+      "@calcom/prisma/client": ["../../../packages/prisma/client"]
     },
     "incremental": true,
     "skipLibCheck": true,
