@@ -54,6 +54,7 @@
     "expo-device": "8.0.11-canary-20251216-3f01dbf",
     "expo-glass-effect": "0.2.0-canary-20251216-3f01dbf",
     "expo-linking": "8.0.11-canary-20251216-3f01dbf",
+    "expo-notifications": "1.0.0-canary-20251216-3f01dbf",
     "expo-router": "7.0.0-canary-20251216-3f01dbf",
     "expo-secure-store": "15.0.9-canary-20251216-3f01dbf",
     "expo-status-bar": "3.0.10-canary-20251216-3f01dbf",

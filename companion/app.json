@@ -5,7 +5,7 @@
     "scheme": "expo-wxt-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/cal-icon-transparent.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -30,6 +30,10 @@
       "package": "com.calcom.companion",
       "softwareKeyboardLayoutMode": "pan"
     },
+    "notification": {
+      "icon": "./assets/cal-icon-transparent.png",
+      "color": "#ffffff"
+    },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
@@ -40,6 +44,17 @@
       }
     },
     "owner": "calcoms-organization",
-    "plugins": ["expo-router", "expo-secure-store", "expo-web-browser"]
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/cal-icon-transparent.png",
+          "color": "#ffffff"
+        }
+      ]
+    ]
   }
 }

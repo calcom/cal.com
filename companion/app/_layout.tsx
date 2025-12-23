@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { Platform, View, StatusBar } from "react-native";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import { QueryProvider } from "../contexts/QueryContext";
+import { BookingReminderManager } from "../components/BookingReminderManager";
 import { NetworkStatusBanner } from "../components/NetworkStatusBanner";
 import LoginScreen from "../components/LoginScreen";
 import "../global.css";
@@ -10,9 +11,12 @@ function RootLayoutContent() {
   const { isAuthenticated } = useAuth();
 
   const content = isAuthenticated ? (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <>
+      <BookingReminderManager />
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </>
   ) : (
     <LoginScreen />
   );

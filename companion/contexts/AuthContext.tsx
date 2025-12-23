@@ -6,6 +6,10 @@ import {
   OAuthTokens,
   CalComOAuthService,
 } from "../services/oauthService";
+import {
+  cancelAllBookingReminders,
+  getBookingRemindersUserKey,
+} from "../services/bookingReminders";
 import { secureStorage } from "../utils/storage";
 
 interface AuthContextType {
@@ -308,6 +312,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = async () => {
     try {
+      const remindersUserKey = getBookingRemindersUserKey(userInfo);
+      if (remindersUserKey) {
+        try {
+          await cancelAllBookingReminders(remindersUserKey);
+        } catch (error) {
+          const message = getErrorMessage(error);
+          console.warn("Failed to cancel booking reminders on logout", message);
+          if (__DEV__) {
+            console.debug("[AuthContext] cancel reminders failed", {
+              message,
+              stack: getErrorStack(error),
+            });
+          }
+        }
+      }
+
       await clearAuth();
       resetAuthState();
     } catch (error) {
