@@ -8,10 +8,9 @@
  * - Optimistic updates for mutations
  * - Cache invalidation on create/update/delete
  */
-
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CalComAPIService, EventType, CreateEventTypeInput } from "../services/calcom";
 import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
+import { CalComAPIService, EventType, CreateEventTypeInput } from "../services/calcom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Hook to fetch all event types
