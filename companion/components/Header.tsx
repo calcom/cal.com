@@ -26,24 +26,33 @@ export function Header() {
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
-    fetchUserProfile();
-  }, []);
+    let didCancel = false;
 
-  const fetchUserProfile = async () => {
-    try {
-      const profile = await CalComAPIService.getUserProfile();
-      setUserProfile(profile);
-    } catch (error) {
-      console.error("Failed to fetch user profile");
-      if (__DEV__) {
+    const fetchUserProfile = async () => {
+      try {
+        const profile = await CalComAPIService.getUserProfile();
+        if (didCancel) return;
+        setUserProfile(profile);
+      } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        const stack = error instanceof Error ? error.stack : undefined;
-        console.debug("[Header] fetchUserProfile failed", { message, stack });
+        console.error("Failed to fetch user profile", message);
+        if (__DEV__) {
+          const stack = error instanceof Error ? error.stack : undefined;
+          console.debug("[Header] fetchUserProfile failed", { message, stack });
+        }
+      } finally {
+        if (!didCancel) {
+          setLoading(false);
+        }
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    void fetchUserProfile();
+
+    return () => {
+      didCancel = true;
+    };
+  }, []);
 
   // Build public page URL
   const publicPageUrl = userProfile?.username ? `https://cal.com/${userProfile.username}` : null;
