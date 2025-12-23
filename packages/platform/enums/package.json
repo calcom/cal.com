@@ -1,14 +1,14 @@
 {
   "name": "@calcom/platform-enums",
   "version": "0.0.0",
-  "main": "./dist/index.ts",
-  "types": "./dist/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "private": true,
   "exports": {
     ".": {
       "require": "./dist/index.js",
       "import": "./dist/index.js",
-      "types": "./dist/index.d.ts.map"
+      "types": "./dist/index.d.ts"
     },
     "./monorepo": {
       "import": "./monorepo.ts",

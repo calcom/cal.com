@@ -22,6 +22,8 @@ export const PERMISSIONS = [
   PROFILE_WRITE,
 ] as const;
 
+export type PLATFORM_PERMISSION = (typeof PERMISSIONS)[number];
+
 export const PERMISSION_MAP = {
   EVENT_TYPE_READ,
   EVENT_TYPE_WRITE,

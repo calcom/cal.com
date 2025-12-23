@@ -2,8 +2,15 @@
   "name": "@calcom/platform-types",
   "version": "0.0.0",
   "main": "./dist/index.js",
-  "types": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "private": true,
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "build": "yarn clean && tsc --build --force tsconfig.json",
     "clean": "rm -rf ./dist",

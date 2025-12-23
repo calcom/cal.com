@@ -11,10 +11,10 @@
     "experimentalDecorators": true,
     "baseUrl": ".",
     "paths": {
-      "@calcom/lib/server/i18n": ["./i18n.ts"]
+      "@calcom/lib/server/i18n": ["./src/i18n.ts"]
     }
   },
-  "include": [".", "../../types/*.d.ts"],
+  "include": ["src", "../../types/*.d.ts"],
   "exclude": [
     "dist",
     "build",

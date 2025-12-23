@@ -29,7 +29,7 @@ export class GetSlotsInputPipe implements PipeTransform {
   // note(Lauris): we need empty constructor otherwise v2 can't be started due to error:
   // CreateBookingInputPipe is not a constructor
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+   
   constructor() {}
 
   transform(value: GetSlotsInput_2024_09_04): GetSlotsInput_2024_09_04 {

@@ -7,6 +7,6 @@
     "experimentalDecorators": true,
     "outDir": "dist"
   },
-  "include": [".", "../../types/business-days-plugin.d.ts", "../../types/window.d.ts"],
+  "include": ["src", "index.ts", "../../types/business-days-plugin.d.ts", "../../types/window.d.ts"],
   "exclude": ["dist", "build", "**/node_modules/**"]
 }

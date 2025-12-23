@@ -4,19 +4,24 @@ import { plainToClass } from "class-transformer";
 import type { ValidationError } from "class-validator";
 import { validateSync } from "class-validator";
 
-import { CancelBookingInput_2024_08_13, CancelSeatedBookingInput_2024_08_13 } from "./cancel-booking.input";
+import {
+  RescheduleBookingInput_2024_08_13,
+  RescheduleSeatedBookingInput_2024_08_13,
+} from "./reschedule-booking.input";
 
-export type CancelBookingInput = CancelBookingInput_2024_08_13 | CancelSeatedBookingInput_2024_08_13;
+export type RescheduleBookingInput =
+  | RescheduleBookingInput_2024_08_13
+  | RescheduleSeatedBookingInput_2024_08_13;
 
 @Injectable()
-export class CancelBookingInputPipe implements PipeTransform {
+export class RescheduleBookingInputPipe implements PipeTransform {
   // note(Lauris): we need empty constructor otherwise v2 can't be started due to error:
-  // CancelBookingInputPipe is not a constructor
+  // RescheduleBookingInputPipe is not a constructor
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+   
   constructor() {}
 
-  transform(value: CancelBookingInput): CancelBookingInput {
+  transform(value: RescheduleBookingInput): RescheduleBookingInput {
     if (!value) {
       throw new BadRequestException("Body is required");
     }
@@ -24,15 +29,15 @@ export class CancelBookingInputPipe implements PipeTransform {
       throw new BadRequestException("Body should be an object");
     }
 
-    if (this.isCancelSeatedBookingInput(value)) {
-      return this.validateCancelBookingSeated(value);
+    if (this.isSeatedRescheduleInput(value)) {
+      return this.validateSeatedReschedule(value);
     }
 
-    return this.validateCancelBooking(value);
+    return this.validateReschedule(value);
   }
 
-  validateCancelBooking(value: CancelBookingInput_2024_08_13) {
-    const object = plainToClass(CancelBookingInput_2024_08_13, value);
+  validateReschedule(value: RescheduleBookingInput_2024_08_13) {
+    const object = plainToClass(RescheduleBookingInput_2024_08_13, value);
 
     const errors = validateSync(object, {
       whitelist: true,
@@ -47,8 +52,8 @@ export class CancelBookingInputPipe implements PipeTransform {
     return object;
   }
 
-  validateCancelBookingSeated(value: CancelSeatedBookingInput_2024_08_13) {
-    const object = plainToClass(CancelSeatedBookingInput_2024_08_13, value);
+  validateSeatedReschedule(value: RescheduleSeatedBookingInput_2024_08_13) {
+    const object = plainToClass(RescheduleSeatedBookingInput_2024_08_13, value);
 
     const errors = validateSync(object, {
       whitelist: true,
@@ -74,9 +79,9 @@ export class CancelBookingInputPipe implements PipeTransform {
       .join(", ");
   }
 
-  private isCancelSeatedBookingInput(
-    value: CancelBookingInput
-  ): value is CancelSeatedBookingInput_2024_08_13 {
-    return value.hasOwnProperty("seatUid");
+  private isSeatedRescheduleInput(
+    value: RescheduleBookingInput
+  ): value is RescheduleSeatedBookingInput_2024_08_13 {
+    return "seatUid" in value;
   }
 }
