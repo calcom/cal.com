@@ -32,7 +32,7 @@
     "prisma": "yarn workspace @calcom/prisma prisma",
     "generate-schemas": "yarn prisma generate && yarn prisma format",
     "copy-swagger-module": "ts-node -r tsconfig-paths/register src/swagger/copy-swagger-module.ts",
-    "generate-swagger": "yarn copy-swagger-module && yarn build && node ./dist/apps/api/v2/src/swagger/generate-swagger-script.js",
+    "generate-swagger": "yarn copy-swagger-module && yarn build && echo '=== DEBUG: Checking filesystem state ===' && pwd && ls -la dist/ && ls -la dist/packages 2>/dev/null || echo 'dist/packages does not exist' && readlink dist/packages 2>/dev/null || echo 'dist/packages is not a symlink' && ls -la dist/packages/prisma 2>/dev/null || echo 'dist/packages/prisma does not exist' && ls -la dist/apps/api/v2/src/filters/ 2>/dev/null || echo 'dist/apps/api/v2/src/filters does not exist' && echo '=== END DEBUG ===' && node ./dist/apps/api/v2/src/swagger/generate-swagger-script.js",
     "prepare": "yarn run snyk-protect",
     "snyk-protect": "snyk-protect"
   },
