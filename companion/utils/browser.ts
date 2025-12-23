@@ -4,9 +4,8 @@
  * Centralized utility for opening links in the in-app browser.
  * Configured for session sharing with Safari/Chrome to maintain login state.
  */
-
-import * as WebBrowser from "expo-web-browser";
 import { showErrorAlert } from "./alerts";
+import * as WebBrowser from "expo-web-browser";
 
 /**
  * Configuration options for in-app browser
@@ -57,7 +56,12 @@ export const openInAppBrowser = async (
 
     await WebBrowser.openBrowserAsync(url, browserOptions);
   } catch (error) {
-    console.error(`Failed to open ${url}:`, error);
+    console.error("Failed to open link");
+    if (__DEV__) {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      console.debug("[openInAppBrowser] failed", { message, stack, fallbackMessage });
+    }
     showErrorAlert("Error", `Failed to open ${fallbackMessage || "link"}. Please try again.`);
   }
 };
