@@ -2,30 +2,6 @@
   "name": "@calcom/prisma",
   "version": "0.0.0",
   "private": true,
-  "exports": {
-    ".": "./index.ts",
-    "./client": "./client/index.js",
-    "./enums": "./enums/index.ts",
-    "./zod": "./zod/index.ts",
-    "./zod-utils": "./zod-utils.ts",
-    "./*": "./*"
-  },
-  "typesVersions": {
-    "*": {
-      "client": [
-        "./client/index.d.ts"
-      ],
-      "enums": [
-        "./enums/index.ts"
-      ],
-      "zod": [
-        "./zod/index.ts"
-      ],
-      "zod-utils": [
-        "./zod-utils.ts"
-      ]
-    }
-  },
   "scripts": {
     "clean": "rm -rf .turbo && rm -rf node_modules",
     "build": "ts-node --transpile-only ./auto-migrations.ts",
