@@ -15,26 +15,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@calcom/prisma/client": ["../../../packages/prisma/generated/prisma/client"],
-      "@calcom/prisma/enums": ["../../../packages/prisma/enums"],
-      "@calcom/platform-constants": ["../../../packages/platform/constants/index.ts"],
-      "@calcom/platform-types": ["../../../packages/platform/types/index.ts"],
-      "@calcom/platform-utils": ["../../../packages/platform/utils/index.ts"],
-      "@calcom/platform-enums": ["../../../packages/platform/enums/index.ts"],
-      "@calcom/platform-libraries/event-types": ["../../../packages/platform/libraries/src/event-types.ts"],
-      "@calcom/platform-libraries/slots": ["../../../packages/platform/libraries/src/slots.ts"],
-      "@calcom/platform-libraries/emails": ["../../../packages/platform/libraries/src/emails.ts"],
-      "@calcom/platform-libraries/schedules": ["../../../packages/platform/libraries/src/schedules.ts"],
-      "@calcom/platform-libraries/app-store": ["../../../packages/platform/libraries/src/app-store.ts"],
-      "@calcom/platform-libraries/workflows": ["../../../packages/platform/libraries/src/workflows.ts"],
-      "@calcom/platform-libraries/conferencing": ["../../../packages/platform/libraries/src/conferencing.ts"],
-      "@calcom/platform-libraries/repositories": ["../../../packages/platform/libraries/src/repositories.ts"],
-      "@calcom/platform-libraries/bookings": ["../../../packages/platform/libraries/src/bookings.ts"],
-      "@calcom/platform-libraries/private-links": [
-        "../../../packages/platform/libraries/src/private-links.ts"
-      ],
-      "@calcom/platform-libraries/organizations": [
-        "../../../packages/platform/libraries/src/organizations.ts"
-      ]
+      "@calcom/prisma/enums": ["../../../packages/prisma/enums"]
     },
     "incremental": true,
     "skipLibCheck": true,
