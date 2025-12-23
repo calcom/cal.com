@@ -88,7 +88,6 @@ export function WhatsAppEmbeddedSignup({
     };
 
     window.addEventListener("message", (event) => {
-      console.log("message event received from:", event.origin);
       console.log("message event :", JSON.stringify(event));
       if (!event.origin.endsWith(`facebook.com`)) return;
 
@@ -96,10 +95,8 @@ export function WhatsAppEmbeddedSignup({
         const data = JSON.parse(event.data);
         if (data.type === "WA_EMBEDDED_SIGNUP") {
           if ((data.event = "FINISH")) {
-            console.log("Setting embed flow data");
             setEmbedFlowData(data.data);
           }
-          console.log("message event: ", data);
         }
       } catch {
         console.log("message event: ", event.data);
@@ -138,7 +135,6 @@ export function WhatsAppEmbeddedSignup({
     window.FB.login(
       (response: FBLoginResponse) => {
         if (response.authResponse) {
-          console.log("Processing auth code:");
           setTimeout(() => {
             processAuthCodeRef.current?.(response.authResponse.code);
           }, 3000);
