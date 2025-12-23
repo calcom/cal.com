@@ -672,7 +672,7 @@ async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"
   await page.locator('[data-testid="preview-button"]').click();
   const previewTabPage = await previewTabPromise;
   await previewTabPage.waitForLoadState();
-  await page.waitForURL((url) => {
+  await previewTabPage.waitForURL((url) => {
     return url.searchParams.get("overlayCalendar") === "true";
   });
   await selectFirstAvailableTimeSlotNextMonth(previewTabPage);
