@@ -89,7 +89,7 @@ export type BulkAttributeAssigner =
     };
 
 export type AttributeOptionAssignment = AttributeToUser & {
-  attributeOption: Pick<AttributeOption, "assignedUsers" | "slug"> & {
+  attributeOption: Pick<AttributeOption, "slug"> & {
     label: string;
     attribute: {
       id: string;
