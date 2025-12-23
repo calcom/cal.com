@@ -114,14 +114,14 @@ type EventTypeColorInput = {
 
 /**
  * Booking field type - minimal type definition for fields that need to be accessed.
- * Uses index signature for additional properties to reduce type complexity while
- * still allowing access to known properties like `name`.
+ * Only includes properties that are actually read in server code.
+ * Does NOT use an index signature to maintain compatibility with API v2 DTO classes.
  */
 type BookingFieldInput = {
   name: string;
   hidden?: boolean;
   required?: boolean;
-  [key: string]: unknown;
+  type?: string;
 };
 
 /**
