@@ -1,8 +1,10 @@
 import { z } from "zod";
 
-export const ZGetAuditLogsInputSchema = z.object({
-    bookingUid: z.string(),
-});
+export type TGetAuditLogsInputSchema = {
+  bookingUid: string;
+};
 
-export type TGetAuditLogsInputSchema = z.infer<typeof ZGetAuditLogsInputSchema>;
+export const ZGetAuditLogsInputSchema: z.ZodType<TGetAuditLogsInputSchema> = z.object({
+  bookingUid: z.string(),
+});
 

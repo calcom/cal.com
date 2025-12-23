@@ -22,6 +22,7 @@ import { LoadingSpinner } from "../../../components/LoadingSpinner";
 import { EmptyScreen } from "../../../components/EmptyScreen";
 import { slugify } from "../../../utils/slugify";
 import { showErrorAlert } from "../../../utils/alerts";
+import { shadows } from "../../../utils/shadows";
 import { EventTypeListItem } from "../../../components/event-type-list-item/EventTypeListItem";
 import { offlineAwareRefresh } from "../../../utils/network";
 import { openInAppBrowser } from "../../../utils/browser";
@@ -34,6 +35,7 @@ import {
 } from "../../../hooks";
 import { getEventDuration } from "../../../utils/getEventDuration";
 import { normalizeMarkdown } from "../../../utils/normalizeMarkdown";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 
 export default function EventTypes() {
   const router = useRouter();
@@ -241,7 +243,12 @@ export default function EventTypes() {
         }
       },
       onError: (error) => {
-        console.error("Failed to delete event type:", error);
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("Failed to delete event type", message);
+        if (__DEV__) {
+          const stack = error instanceof Error ? error.stack : undefined;
+          console.debug("[EventTypes] deleteEventType failed", { message, stack });
+        }
         if (Platform.OS === "web") {
           showToastMessage("Failed to delete event type");
         } else {
@@ -281,7 +288,12 @@ export default function EventTypes() {
           });
         },
         onError: (error) => {
-          console.error("Failed to duplicate event type:", error);
+          const message = error instanceof Error ? error.message : String(error);
+          console.error("Failed to duplicate event type", message);
+          if (__DEV__) {
+            const stack = error instanceof Error ? error.stack : undefined;
+            console.debug("[EventTypes] duplicateEventType failed", { message, stack });
+          }
           if (Platform.OS === "web") {
             showToastMessage("Failed to duplicate event type");
           } else {
@@ -303,7 +315,7 @@ export default function EventTypes() {
         await openInAppBrowser(link, "event type preview");
       }
     } catch (error) {
-      console.error("Failed to open preview:", error);
+      console.error("Failed to open preview");
       if (Platform.OS === "web") {
         showToastMessage("Failed to open preview");
       } else {
@@ -371,7 +383,12 @@ export default function EventTypes() {
           });
         },
         onError: (error) => {
-          console.error("Failed to create event type:", error);
+          const message = error instanceof Error ? error.message : String(error);
+          console.error("Failed to create event type", message);
+          if (__DEV__) {
+            const stack = error instanceof Error ? error.stack : undefined;
+            console.debug("[EventTypes] createEventType failed", { message, stack });
+          }
           showErrorAlert("Error", "Failed to create event type. Please try again.");
         },
       }
@@ -468,42 +485,25 @@ export default function EventTypes() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: "Event Types",
-          headerLargeTitleEnabled: true,
-          headerStyle: {
-            backgroundColor: "transparent",
-          },
-          headerSearchBarOptions: {
-            placeholder: "Search event types",
-            barTintColor: "#fff",
-            obscureBackground: false,
-            onChangeText: (e) => {
-              handleSearch(e.nativeEvent.text);
-            },
-          },
-          unstable_headerRightItems: () => [
-            {
-              type: "button",
-              label: "New",
-              labelStyle: {
-                // style if needed
-              },
-              variant: "prominent",
-              tintColor: "#000",
-              // icon: {
-              //   name: "plus",
-              //   type: "sfSymbol",
-              // },
-              onPress: handleCreateNew,
-            },
-          ],
-        }}
-      />
-
-      <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
+      <Stack.Header
+        style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
+        blurEffect={isLiquidGlassAvailable() ? undefined : "light"} // Only looks cool on iOS 18 and below
+        hidden={Platform.OS === "android"}
+      >
+        <Stack.Header.Title large>Event Types</Stack.Header.Title>
+        <Stack.Header.Right>
+          <Stack.Header.Button onPress={handleCreateNew} tintColor="#000" variant="prominent">
+            New
+          </Stack.Header.Button>
+        </Stack.Header.Right>
+        <Stack.Header.SearchBar
+          placeholder="Search event types"
+          onChangeText={(e) => handleSearch(e.nativeEvent.text)}
+          obscureBackground={false}
+          barTintColor="#fff"
+        />
+      </Stack.Header>
+      <Activity mode={Platform.OS === "web" || Platform.OS === "android" ? "visible" : "hidden"}>
         <Header />
         <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
           <TextInput
@@ -570,13 +570,7 @@ export default function EventTypes() {
             className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white"
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 20 },
-              shadowOpacity: 0.25,
-              shadowRadius: 25,
-              elevation: 24,
-            }}
+            style={shadows.xl()}
           >
             {/* Header */}
             <View className="px-8 pb-4 pt-6">
@@ -712,17 +706,17 @@ export default function EventTypes() {
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
           >
-            {selectedEventType && (
+            {selectedEventType ? (
               <>
                 <View className="border-b border-gray-200 p-6">
                   <Text className="mb-2 text-lg font-semibold text-gray-900">
                     {selectedEventType.title}
                   </Text>
-                  {selectedEventType.description && (
+                  {selectedEventType.description ? (
                     <Text className="text-sm text-gray-600">
                       {normalizeMarkdown(selectedEventType.description)}
                     </Text>
-                  )}
+                  ) : null}
                 </View>
 
                 <View className="p-2">
@@ -781,7 +775,7 @@ export default function EventTypes() {
                   </TouchableOpacity>
                 </View>
               </>
-            )}
+            ) : null}
           </TouchableOpacity>
         </TouchableOpacity>
       </FullScreenModal>
@@ -866,12 +860,12 @@ export default function EventTypes() {
                     Delete Event Type
                   </Text>
                   <Text className="text-sm leading-5 text-gray-600">
-                    {eventTypeToDelete && (
+                    {eventTypeToDelete ? (
                       <>
                         This will permanently delete the "{eventTypeToDelete.title}" event type.
                         This action cannot be undone.
                       </>
-                    )}
+                    ) : null}
                   </Text>
                 </View>
               </View>
@@ -903,13 +897,13 @@ export default function EventTypes() {
       </FullScreenModal>
 
       {/* Toast for Web Platform */}
-      {showToast && (
+      {showToast ? (
         <View className="absolute bottom-8 left-1/2 z-50 -translate-x-1/2 transform">
           <View className="rounded-full bg-gray-800 px-6 py-3 shadow-lg">
             <Text className="text-sm font-medium text-white">{toastMessage}</Text>
           </View>
         </View>
-      )}
+      ) : null}
     </>
   );
 }

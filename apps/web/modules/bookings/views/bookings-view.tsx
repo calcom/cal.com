@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useQueryState } from "nuqs";
 import { useMemo } from "react";
 
 import { DataTableProvider, type SystemFilterSegment, ColumnFilterType } from "@calcom/features/data-table";
@@ -11,8 +10,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import { BookingListContainer } from "../components/BookingListContainer";
+import { useBookingsShellHeadingVisibility } from "../hooks/useBookingsShellHeadingVisibility";
+import { useBookingsView } from "../hooks/useBookingsView";
 import type { validStatuses } from "../lib/validStatuses";
-import { viewParser } from "../lib/viewParser";
 
 const BookingCalendarContainer = dynamic(() =>
   import("../components/BookingCalendarContainer").then((mod) => ({
@@ -69,9 +69,9 @@ export default function Bookings(props: BookingsProps) {
 }
 
 function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsProps) {
-  const [_view] = useQueryState("view", viewParser.withDefault("list"));
-  // Force view to be "list" if calendar view is disabled
-  const view = bookingsV3Enabled ? _view : "list";
+  const [view] = useBookingsView({ bookingsV3Enabled });
+
+  useBookingsShellHeadingVisibility({ visible: view === "list" });
 
   return (
     <div className={classNames(view === "calendar" && "-mb-8")}>
@@ -83,7 +83,11 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
         />
       )}
       {bookingsV3Enabled && view === "calendar" && (
-        <BookingCalendarContainer status={status} permissions={permissions} />
+        <BookingCalendarContainer
+          status={status}
+          permissions={permissions}
+          bookingsV3Enabled={bookingsV3Enabled}
+        />
       )}
     </div>
   );
