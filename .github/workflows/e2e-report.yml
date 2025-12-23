@@ -5,35 +5,90 @@ on:
     workflows: ["PR Update"]
     types:
       - completed
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: 'The PR Update workflow run ID to process'
+        required: true
+        type: string
+      source_run_number:
+        description: 'The run number of the source workflow'
+        required: true
+        type: string
+      source_run_attempt:
+        description: 'The run attempt of the source workflow'
+        required: true
+        type: string
+      source_head_sha:
+        description: 'The head SHA of the PR'
+        required: true
+        type: string
+      head_branch:
+        description: 'The head branch name of the PR'
+        required: true
+        type: string
+      pr_number:
+        description: 'The PR number'
+        required: true
+        type: string
 
 jobs:
   get-pr-info:
     name: Get PR Info
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    # For workflow_run: only run if the triggering workflow failed
+    # For workflow_dispatch: always run (inputs are provided manually)
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure' }}
     permissions:
       actions: read
     outputs:
       pr-number: ${{ steps.get-pr.outputs.pr-number }}
       head-branch: ${{ steps.get-pr.outputs.head-branch }}
       has-blob-reports: ${{ steps.check-artifacts.outputs.has-blob-reports }}
+      source-run-id: ${{ steps.get-pr.outputs.source-run-id }}
+      source-run-number: ${{ steps.get-pr.outputs.source-run-number }}
+      source-run-attempt: ${{ steps.get-pr.outputs.source-run-attempt }}
+      source-head-sha: ${{ steps.get-pr.outputs.source-head-sha }}
     steps:
       - name: Get PR number from workflow run
         id: get-pr
         uses: actions/github-script@v7
         with:
           script: |
-            const headSha = context.payload.workflow_run.head_sha;
-            const headBranch = context.payload.workflow_run.head_branch;
+            const isDispatch = context.eventName === 'workflow_dispatch';
+            
+            // For workflow_dispatch, use inputs directly
+            if (isDispatch) {
+              const inputs = context.payload.inputs;
+              console.log('Using workflow_dispatch inputs');
+              core.setOutput('pr-number', inputs.pr_number);
+              core.setOutput('head-branch', inputs.head_branch);
+              core.setOutput('source-run-id', inputs.source_run_id);
+              core.setOutput('source-run-number', inputs.source_run_number);
+              core.setOutput('source-run-attempt', inputs.source_run_attempt);
+              core.setOutput('source-head-sha', inputs.source_head_sha);
+              return;
+            }
+            
+            // For workflow_run, extract from payload
+            const workflowRun = context.payload.workflow_run;
+            const headSha = workflowRun.head_sha;
+            const headBranch = workflowRun.head_branch;
             
             console.log('Head SHA:', headSha);
             console.log('Head Branch:', headBranch);
             
+            // Set source run info
+            core.setOutput('source-run-id', workflowRun.id.toString());
+            core.setOutput('source-run-number', workflowRun.run_number.toString());
+            core.setOutput('source-run-attempt', workflowRun.run_attempt.toString());
+            core.setOutput('source-head-sha', headSha);
+            
             // Try to get PR number from workflow_run payload first
-            if (context.payload.workflow_run.pull_requests && context.payload.workflow_run.pull_requests.length > 0) {
-              const prNumber = context.payload.workflow_run.pull_requests[0].number;
+            if (workflowRun.pull_requests && workflowRun.pull_requests.length > 0) {
+              const prNumber = workflowRun.pull_requests[0].number;
               console.log('PR number from payload:', prNumber);
-              core.setOutput('pr-number', prNumber);
+              core.setOutput('pr-number', prNumber.toString());
               core.setOutput('head-branch', headBranch);
               return;
             }
@@ -56,7 +111,7 @@ jobs:
               // Find open PR or use first one
               const openPr = prs.find(pr => pr.state === 'open') || prs[0];
               console.log('PR number from API:', openPr.number);
-              core.setOutput('pr-number', openPr.number);
+              core.setOutput('pr-number', openPr.number.toString());
               core.setOutput('head-branch', openPr.head.ref);
             } catch (e) {
               console.log('Error fetching PR:', e);
@@ -69,13 +124,18 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const runId = context.payload.workflow_run.id;
+            const isDispatch = context.eventName === 'workflow_dispatch';
+            const runId = isDispatch 
+              ? context.payload.inputs.source_run_id 
+              : context.payload.workflow_run.id;
+            
+            console.log('Checking artifacts for run ID:', runId);
             
             try {
               const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                run_id: runId
+                run_id: parseInt(runId)
               });
               
               const blobReports = artifacts.artifacts.filter(a => a.name.startsWith('blob-report-'));
@@ -93,10 +153,10 @@ jobs:
     if: ${{ needs.get-pr-info.outputs.has-blob-reports == 'true' && needs.get-pr-info.outputs.pr-number != '' }}
     uses: ./.github/workflows/merge-reports.yml
     with:
-      source_run_id: ${{ github.event.workflow_run.id }}
-      source_run_number: ${{ github.event.workflow_run.run_number }}
-      source_run_attempt: ${{ github.event.workflow_run.run_attempt }}
-      source_head_sha: ${{ github.event.workflow_run.head_sha }}
+      source_run_id: ${{ needs.get-pr-info.outputs.source-run-id }}
+      source_run_number: ${{ needs.get-pr-info.outputs.source-run-number }}
+      source_run_attempt: ${{ needs.get-pr-info.outputs.source-run-attempt }}
+      source_head_sha: ${{ needs.get-pr-info.outputs.source-head-sha }}
     secrets: inherit
 
   publish-report:
@@ -106,8 +166,8 @@ jobs:
     uses: ./.github/workflows/publish-report.yml
     with:
       head_branch: ${{ needs.get-pr-info.outputs.head-branch }}
-      source_run_id: ${{ github.event.workflow_run.id }}
-      source_run_number: ${{ github.event.workflow_run.run_number }}
-      source_run_attempt: ${{ github.event.workflow_run.run_attempt }}
+      source_run_id: ${{ needs.get-pr-info.outputs.source-run-id }}
+      source_run_number: ${{ needs.get-pr-info.outputs.source-run-number }}
+      source_run_attempt: ${{ needs.get-pr-info.outputs.source-run-attempt }}
       pr_number: ${{ needs.get-pr-info.outputs.pr-number }}
     secrets: inherit
