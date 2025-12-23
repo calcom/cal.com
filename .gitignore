@@ -81,6 +81,10 @@ lint-results
 
 #Storybook
 apps/storybook/build-storybook.log
+apps/storybook/debug-storybook.log
+storybook-static
+.storybook-cache
+apps/storybook/.storybook-cache
 
 # Snaplet
 .snaplet/snapshots
