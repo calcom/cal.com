@@ -141,7 +141,7 @@ jobs:
 
   build-api-v1:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare, deps, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
