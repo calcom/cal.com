@@ -1,0 +1,13 @@
+{
+  "extends": "@calcom/tsconfig/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "strict": true,
+    "noEmit": true
+  },
+  "include": ["src", ".storybook", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}

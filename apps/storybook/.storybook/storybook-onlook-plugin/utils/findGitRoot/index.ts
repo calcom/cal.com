@@ -1,0 +1,1 @@
+export { findGitRoot } from './findGitRoot';

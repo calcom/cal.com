@@ -1,0 +1,76 @@
+{
+  "stories": {
+    "components-button--primary": {
+      "fileHash": "af5f1ff5ce6a0c3a50e0f0247abc3ac6e8ff8a0f38bb8d3fb5e16854f5388820",
+      "lastGenerated": "2025-12-23T16:21:41.280Z",
+      "sourcePath": "/Users/satyapatel/code/cal.com/apps/storybook/src/stories/Button.stories.tsx",
+      "screenshots": {
+        "light": "screenshots/components-button--primary/light.png",
+        "dark": "screenshots/components-button--primary/dark.png"
+      }
+    },
+    "components-button--secondary": {
+      "fileHash": "af5f1ff5ce6a0c3a50e0f0247abc3ac6e8ff8a0f38bb8d3fb5e16854f5388820",
+      "lastGenerated": "2025-12-23T16:21:41.280Z",
+      "sourcePath": "/Users/satyapatel/code/cal.com/apps/storybook/src/stories/Button.stories.tsx",
+      "screenshots": {
+        "light": "screenshots/components-button--secondary/light.png",
+        "dark": "screenshots/components-button--secondary/dark.png"
+      }
+    },
+    "components-button--minimal": {
+      "fileHash": "af5f1ff5ce6a0c3a50e0f0247abc3ac6e8ff8a0f38bb8d3fb5e16854f5388820",
+      "lastGenerated": "2025-12-23T16:21:41.280Z",
+      "sourcePath": "/Users/satyapatel/code/cal.com/apps/storybook/src/stories/Button.stories.tsx",
+      "screenshots": {
+        "light": "screenshots/components-button--minimal/light.png",
+        "dark": "screenshots/components-button--minimal/dark.png"
+      }
+    },
+    "components-button--destructive": {
+      "fileHash": "af5f1ff5ce6a0c3a50e0f0247abc3ac6e8ff8a0f38bb8d3fb5e16854f5388820",
+      "lastGenerated": "2025-12-23T16:21:41.280Z",
+      "sourcePath": "/Users/satyapatel/code/cal.com/apps/storybook/src/stories/Button.stories.tsx",
+      "screenshots": {
+        "light": "screenshots/components-button--destructive/light.png",
+        "dark": "screenshots/components-button--destructive/dark.png"
+      }
+    },
+    "components-button--loading": {
+      "fileHash": "af5f1ff5ce6a0c3a50e0f0247abc3ac6e8ff8a0f38bb8d3fb5e16854f5388820",
+      "lastGenerated": "2025-12-23T16:21:41.280Z",
+      "sourcePath": "/Users/satyapatel/code/cal.com/apps/storybook/src/stories/Button.stories.tsx",
+      "screenshots": {
+        "light": "screenshots/components-button--loading/light.png",
+        "dark": "screenshots/components-button--loading/dark.png"
+      }
+    },
+    "components-button--disabled": {
+      "fileHash": "af5f1ff5ce6a0c3a50e0f0247abc3ac6e8ff8a0f38bb8d3fb5e16854f5388820",
+      "lastGenerated": "2025-12-23T16:21:41.280Z",
+      "sourcePath": "/Users/satyapatel/code/cal.com/apps/storybook/src/stories/Button.stories.tsx",
+      "screenshots": {
+        "light": "screenshots/components-button--disabled/light.png",
+        "dark": "screenshots/components-button--disabled/dark.png"
+      }
+    },
+    "components-button--with-start-icon": {
+      "fileHash": "af5f1ff5ce6a0c3a50e0f0247abc3ac6e8ff8a0f38bb8d3fb5e16854f5388820",
+      "lastGenerated": "2025-12-23T16:21:41.280Z",
+      "sourcePath": "/Users/satyapatel/code/cal.com/apps/storybook/src/stories/Button.stories.tsx",
+      "screenshots": {
+        "light": "screenshots/components-button--with-start-icon/light.png",
+        "dark": "screenshots/components-button--with-start-icon/dark.png"
+      }
+    },
+    "components-button--with-end-icon": {
+      "fileHash": "af5f1ff5ce6a0c3a50e0f0247abc3ac6e8ff8a0f38bb8d3fb5e16854f5388820",
+      "lastGenerated": "2025-12-23T16:21:41.281Z",
+      "sourcePath": "/Users/satyapatel/code/cal.com/apps/storybook/src/stories/Button.stories.tsx",
+      "screenshots": {
+        "light": "screenshots/components-button--with-end-icon/light.png",
+        "dark": "screenshots/components-button--with-end-icon/dark.png"
+      }
+    }
+  }
+}

@@ -12,7 +12,8 @@
     "packages/app-store/*",
     "packages/platform/*",
     "packages/platform/examples/base",
-    "example-apps/*"
+    "example-apps/*",
+    "tooling/*"
   ],
   "scripts": {
     "app-store-cli": "yarn workspace @calcom/app-store-cli",
@@ -44,6 +45,7 @@
     "dev:trigger": "turbo run dev:trigger --filter=\"@calcom/features\"",
     "deploy:trigger": "turbo run deploy:trigger --filter=\"@calcom/features\"",
     "dev": "turbo run dev --filter=\"@calcom/web\"",
+    "dev:storybook": "turbo run dev --filter=\"@calcom/storybook\"",
     "build-storybook": "turbo run build --filter=\"@calcom/storybook\"",
     "dx": "turbo run dx",
     "i-dev": "infisical run -- turbo run dev --filter=\"@calcom/web\"",
@@ -93,6 +95,7 @@
     "@playwright/test": "^1.45.3",
     "@prisma/internals": "^6.16.2",
     "@snaplet/copycat": "^4.1.0",
+    "@storybook/nextjs-vite": "^10.0.5",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^16.0.1",
     "@vitest/ui": "^2.1.9",

@@ -1,0 +1,20 @@
+{
+  "name": "@calcom/sandbox",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:dev": "npx tsx build.dev.ts",
+    "build:prod": "npx tsx build.prod.ts",
+    "create-sandbox": "npx tsx create-sandbox.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "e2b": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
