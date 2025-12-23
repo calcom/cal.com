@@ -9,6 +9,8 @@ import { availabilityUserSelect } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 
+import { maskBusyTimes, maskOutOfOfficeData } from "~/lib/utils/sanitizeAvailabilityResponse";
+
 /**
  * @swagger
  * /teams/{teamId}/availability:
@@ -91,6 +93,11 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  * /availability:
  *   get:
  *     summary: Find user availability
+ *     description: |
+ *       Returns availability data for a user. When querying your own availability,
+ *       full details including event titles are returned. When querying another user's
+ *       availability, sensitive fields (title, out-of-office reason/notes) are masked
+ *       for privacy.
  *     parameters:
  *       - in: query
  *         name: apiKey
@@ -136,7 +143,7 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  *     - availability
  *     responses:
  *       200:
- *         description: OK
+ *         description: OK. Note that 'title' in busy slots is only returned when querying your own availability.
  *         content:
  *           application/json:
  *             schema:
@@ -145,10 +152,8 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  *                 busy:
  *                   - start: "2023-05-14T10:00:00.000Z"
  *                     end: "2023-05-14T11:00:00.000Z"
- *                     title: "Team meeting between Alice and Bob"
  *                   - start: "2023-05-15T14:00:00.000Z"
  *                     end: "2023-05-15T15:00:00.000Z"
- *                     title: "Project review between Carol and Dave"
  *                   - start: "2023-05-16T09:00:00.000Z"
  *                     end: "2023-05-16T10:00:00.000Z"
  *                   - start: "2023-05-17T13:00:00.000Z"
@@ -192,8 +197,8 @@ async function handler(req: NextApiRequest) {
   const { isSystemWideAdmin, userId: reqUserId } = req;
   const { username, userId, eventTypeId, dateTo, dateFrom, teamId } = availabilitySchema.parse(req.query);
   const userAvailabilityService = getUserAvailabilityService();
-  if (!teamId)
-    return userAvailabilityService.getUserAvailability({
+  if (!teamId) {
+    const availability = await userAvailabilityService.getUserAvailability({
       username,
       dateFrom,
       dateTo,
@@ -202,6 +207,36 @@ async function handler(req: NextApiRequest) {
       returnDateOverrides: true,
       bypassBusyCalendarTimes: false,
     });
+
+    // Check if the requester is the owner of the data or a system admin
+    let isOwner = isSystemWideAdmin;
+
+    if (!isOwner && userId) {
+      isOwner = userId === reqUserId;
+    }
+
+    if (!isOwner && username) {
+      // Look up the user by username to check ownership
+      const targetUser = await prisma.user.findFirst({
+        where: { username },
+        select: { id: true },
+      });
+      isOwner = targetUser?.id === reqUserId;
+    }
+
+    // If not the owner, mask sensitive fields to prevent data leakage
+    if (!isOwner) {
+      return {
+        ...availability,
+        busy: maskBusyTimes(availability.busy),
+        datesOutOfOffice: availability.datesOutOfOffice
+          ? maskOutOfOfficeData(availability.datesOutOfOffice)
+          : availability.datesOutOfOffice,
+      };
+    }
+
+    return availability;
+  }
   const team = await prisma.team.findUnique({
     where: { id: teamId },
     select: { members: true },
