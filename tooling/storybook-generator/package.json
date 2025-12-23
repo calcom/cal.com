@@ -1,0 +1,17 @@
+{
+  "name": "@calcom/storybook-generator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "discover": "npx tsx discover-components.ts",
+    "generate": "npx tsx generate-stories.ts",
+    "generate:dry": "npx tsx generate-stories.ts --dry-run"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "glob": "^10.3.10",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

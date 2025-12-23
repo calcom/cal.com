@@ -1,6 +1,11 @@
+import { dirname, join, resolve } from 'path';
+import { fileURLToPath } from 'url';
 import type { StorybookConfig } from '@storybook/nextjs-vite';
 import { storybookOnlookPlugin } from './storybook-onlook-plugin/index';
 import componentLocPlugin from './vite-plugin-component-loc';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Disable custom plugins for Chromatic/CI static builds
 // eslint-disable-next-line turbo/no-undeclared-env-vars
@@ -12,6 +17,10 @@ const config: StorybookConfig = {
     '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)',
     // Include stories from packages/ui (components directory only, excludes node_modules)
     '../../../packages/ui/components/**/*.stories.@(js|jsx|mjs|ts|tsx)',
+    // Include stories from packages/features
+    '../../../packages/features/**/*.stories.@(js|jsx|mjs|ts|tsx)',
+    // Include stories from apps/web/components
+    '../../../apps/web/components/**/*.stories.@(js|jsx|mjs|ts|tsx)',
   ],
   addons: [
     '@chromatic-com/storybook',
@@ -27,8 +36,20 @@ const config: StorybookConfig = {
   async viteFinal(config) {
     const { mergeConfig } = await import('vite');
 
+    // Path aliases for apps/web components
+    const webAppPath = resolve(__dirname, '../../../apps/web');
+
     const merged = mergeConfig(config, {
       plugins: isStaticBuild ? [] : [storybookOnlookPlugin],
+      resolve: {
+        alias: {
+          '@components': join(webAppPath, 'components'),
+          '@lib': join(webAppPath, 'lib'),
+          '@server': join(webAppPath, 'server'),
+          '@pages': join(webAppPath, 'pages'),
+          '~': join(webAppPath, 'modules'),
+        },
+      },
       server: isStaticBuild
         ? {}
         : {

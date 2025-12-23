@@ -1,0 +1,11 @@
+COMMAND:
+claude -p "Read apps/web/components/auth/TwoFactor.tsx and create a Storybook story at /Users/satyapatel/code/cal.com/apps/web/components/auth/TwoFactor.stories.tsx. Use @storybook/nextjs-vite types, include tags:[\"autodocs\"], layout:\"centered\". Create Default story and relevant variants." --allowedTools "Read,Write,Edit" --permission-mode acceptEdits
+
+STDOUT:
+
+
+STDERR:
+
+
+ERROR:
+Command failed: claude -p "Read apps/web/components/auth/TwoFactor.tsx and create a Storybook story at /Users/satyapatel/code/cal.com/apps/web/components/auth/TwoFactor.stories.tsx. Use @storybook/nextjs-vite types, include tags:[\"autodocs\"], layout:\"centered\". Create Default story and relevant variants." --allowedTools "Read,Write,Edit" --permission-mode acceptEdits
