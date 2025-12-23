@@ -68,7 +68,6 @@ tsconfig.tsbuildinfo
 # Prisma generated files
 packages/prisma/client/*
 !packages/prisma/client/index.ts
-!packages/prisma/client/index.js
 apps/api/v2/generated/prisma/*
 packages/prisma/generated/prisma/*
 packages/prisma/zod/**/*.ts
