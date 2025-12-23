@@ -32,7 +32,7 @@
     "prisma": "yarn workspace @calcom/prisma prisma",
     "generate-schemas": "yarn prisma generate && yarn prisma format",
     "copy-swagger-module": "ts-node -r tsconfig-paths/register src/swagger/copy-swagger-module.ts",
-    "generate-swagger": "yarn copy-swagger-module && yarn build && echo '=== DEBUG ===' && ls -la dist/packages/prisma/client | head -5 && node -e \"process.chdir('dist/apps/api/v2/src/filters'); console.log('Resolved:', require.resolve('../../../../../packages/prisma/client')); require('../../../../../packages/prisma/client'); console.log('Module loaded OK');\" && echo '=== END DEBUG ===' && node ./dist/apps/api/v2/src/swagger/generate-swagger-script.js",
+    "generate-swagger": "yarn copy-swagger-module && yarn build && node ./dist/apps/api/v2/src/swagger/generate-swagger-script.js",
     "prepare": "yarn run snyk-protect",
     "snyk-protect": "snyk-protect"
   },
