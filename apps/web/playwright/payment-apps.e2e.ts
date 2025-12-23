@@ -92,15 +92,15 @@ test.describe("Payment app", () => {
 
     await page.goto(`${user.username}/${paymentEvent?.slug}`);
 
-    // expect 200 sats to be displayed in page
-    expect(await page.locator("text=350").first()).toBeTruthy();
+    // expect $350.00 to be displayed in page (wait for it to be visible)
+    await expect(page.locator("text=$350.00").first()).toBeVisible();
 
     await selectFirstAvailableTimeSlotNextMonth(page);
-    expect(await page.locator("text=350").first()).toBeTruthy();
+    await expect(page.locator("text=$350.00").first()).toBeVisible();
 
-    // go to /event-types and check if the price is 200 sats
+    // go to /event-types and check if the price is $350.00
     await page.goto(`event-types/`);
-    expect(await page.locator("text=350").first()).toBeTruthy();
+    await expect(page.locator("text=$350.00").first()).toBeVisible();
   });
 
   test("Should be able to edit paypal price, currency", async ({ page, users }) => {
@@ -138,16 +138,16 @@ test.describe("Payment app", () => {
 
     await page.goto(`${user.username}/${paymentEvent?.slug}`);
 
-    // expect 150 to be displayed in page
-    expect(await page.locator("text=MX$150.00").first()).toBeTruthy();
+    // expect MX$150.00 to be displayed in page (wait for it to be visible)
+    await expect(page.locator("text=MX$150.00").first()).toBeVisible();
 
     await selectFirstAvailableTimeSlotNextMonth(page);
-    // expect 150 to be displayed in page
-    expect(await page.locator("text=MX$150.00").first()).toBeTruthy();
+    // expect MX$150.00 to be displayed in page
+    await expect(page.locator("text=MX$150.00").first()).toBeVisible();
 
-    // go to /event-types and check if the price is 150
+    // go to /event-types and check if the price is MX$150.00
     await page.goto(`event-types/`);
-    expect(await page.locator("text=MX$150.00").first()).toBeTruthy();
+    await expect(page.locator("text=MX$150.00").first()).toBeVisible();
   });
 
   test("Should display App is not setup already for alby", async ({ page, users }) => {
@@ -168,13 +168,13 @@ test.describe("Payment app", () => {
 
     await page.locator("#event-type-form").getByRole("switch").click();
 
-    // expect text "This app has not been setup yet" to be displayed
-    expect(await page.locator("text=This app has not been setup yet").first()).toBeTruthy();
+    // expect text "This app has not been setup yet" to be displayed (wait for it to be visible)
+    await expect(page.locator("text=This app has not been setup yet").first()).toBeVisible();
 
     await page.getByRole("button", { name: "Setup" }).click();
 
-    // Expect "Connect with Alby" to be displayed
-    expect(await page.locator("text=Connect with Alby").first()).toBeTruthy();
+    // Expect "Connect with Alby" to be displayed (wait for it to be visible)
+    await expect(page.locator("text=Connect with Alby").first()).toBeVisible();
   });
 
   test("Should display App is not setup already for paypal", async ({ page, users }) => {
@@ -195,13 +195,13 @@ test.describe("Payment app", () => {
 
     await page.locator("#event-type-form").getByRole("switch").click();
 
-    // expect text "This app has not been setup yet" to be displayed
-    expect(await page.locator("text=This app has not been setup yet").first()).toBeTruthy();
+    // expect text "This app has not been setup yet" to be displayed (wait for it to be visible)
+    await expect(page.locator("text=This app has not been setup yet").first()).toBeVisible();
 
     await page.getByRole("button", { name: "Setup" }).click();
 
-    // Expect "Getting started with Paypal APP" to be displayed
-    expect(await page.locator("text=Getting started with Paypal APP").first()).toBeTruthy();
+    // Expect "Getting started with Paypal APP" to be displayed (wait for it to be visible)
+    await expect(page.locator("text=Getting started with Paypal APP").first()).toBeVisible();
   });
 
   /**
@@ -229,8 +229,8 @@ test.describe("Payment app", () => {
     await goToAppsTab(page, paymentEvent?.id);
 
     await page.locator("#event-type-form").getByRole("switch").click();
-    // make sure Tracking ID is displayed
-    expect(await page.locator("text=Tracking ID").first()).toBeTruthy();
+    // make sure Tracking ID is displayed (wait for it to be visible)
+    await expect(page.locator("text=Tracking ID").first()).toBeVisible();
     await page.getByLabel("Tracking ID").click();
     await page.getByLabel("Tracking ID").fill("demo");
     await page.getByTestId("update-eventtype").click();

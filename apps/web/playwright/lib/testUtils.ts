@@ -109,10 +109,18 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) 
   // Let current month dates fully render.
   await page.getByTestId("incrementMonth").click();
 
-  // Waiting for full month increment
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+  // Wait for calendar to be ready - ensure at least one enabled day is visible
+  const enabledDayLocator = page.locator('[data-testid="day"][data-disabled="false"]');
+  await enabledDayLocator.first().waitFor({ state: "visible", timeout: 10000 });
 
-  await page.locator('[data-testid="time"]').nth(0).click();
+  // Click the first enabled day
+  await enabledDayLocator.nth(0).click();
+
+  // Wait for time slots to load after selecting a day
+  const timeSlotLocator = page.locator('[data-testid="time"]');
+  await timeSlotLocator.first().waitFor({ state: "visible", timeout: 10000 });
+
+  await timeSlotLocator.nth(0).click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
@@ -515,8 +523,14 @@ export async function submitAndWaitForJsonResponse(
 }
 
 export async function confirmReschedule(page: Page, url = "/api/book/event") {
+  const confirmButton = page.locator('[data-testid="confirm-reschedule-button"]');
+  // Wait for the button to be visible and stable before clicking
+  await confirmButton.waitFor({ state: "visible", timeout: 10000 });
+  // Small delay to ensure button is stable after any re-renders
+  await page.waitForTimeout(500);
+
   await submitAndWaitForResponse(page, url, {
-    action: () => page.locator('[data-testid="confirm-reschedule-button"]').click(),
+    action: () => confirmButton.click(),
   });
 }
 export async function confirmBooking(page: Page, url = "/api/book/event") {
