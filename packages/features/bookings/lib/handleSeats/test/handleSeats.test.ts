@@ -184,7 +184,7 @@ describe("handleSeats", () => {
         },
       });
 
-      const { req } = createMockNextJsRequest({
+      const { req: _req } = createMockNextJsRequest({
         method: "POST",
         body: mockBookingData,
       });
@@ -1371,7 +1371,7 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
+        const { req: _req } = createMockNextJsRequest({
           method: "POST",
           body: mockBookingData,
         });
