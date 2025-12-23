@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isOptInFeature } from "@calcom/features/feature-opt-in/config";
 import { FeatureOptInService } from "@calcom/features/feature-opt-in/services/FeatureOptInService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -16,6 +17,7 @@ const featureStateSchema = z.enum(["enabled", "disabled", "inherit"]);
 
 const featuresRepository = new FeaturesRepository(prisma);
 const featureOptInService = new FeatureOptInService(featuresRepository);
+const teamRepository = new TeamRepository(prisma);
 
 /**
  * Helper to get user's org and team IDs from their memberships.
@@ -63,11 +65,8 @@ export const featureOptInRouter = router({
    */
   listForTeam: createTeamPbacProcedure("team.read").query(async ({ input }) => {
     // Get the team's parent organization ID (if any)
-    const team = await prisma.team.findUnique({
-      where: { id: input.teamId },
-      select: { parentId: true },
-    });
-    const parentOrgId = team?.parentId ?? null;
+    const parentOrg = await teamRepository.findParentOrganizationByTeamId(input.teamId);
+    const parentOrgId = parentOrg?.id ?? null;
 
     return featureOptInService.listFeaturesForTeam({ teamId: input.teamId, parentOrgId });
   }),
