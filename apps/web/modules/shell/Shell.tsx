@@ -13,7 +13,6 @@ import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { DevProfiler, useRenderCount } from "@calcom/ui/components/dev-profiler";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
@@ -28,7 +27,6 @@ import { useAppTheme } from "./useAppTheme";
 
 const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
-  useRenderCount("Layout");
 
   useFormbricks();
 
@@ -113,25 +111,19 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useAppTheme();
-  useRenderCount("Shell");
 
-  return (
-    <DevProfiler>
-      {!props.isPublic ? (
-        <KBarWrapper withKBar>
-          <Layout {...props} />
-        </KBarWrapper>
-      ) : (
-        <PublicShell {...props} />
-      )}
-    </DevProfiler>
+  return !props.isPublic ? (
+    <KBarWrapper withKBar>
+      <Layout {...props} />
+    </KBarWrapper>
+  ) : (
+    <PublicShell {...props} />
   );
 }
 
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
   const { isLocaleReady } = useLocale();
-  useRenderCount("ShellMain");
 
   return (
     <>
@@ -209,7 +201,6 @@ function MainContainer({
   TopNavContainer: TopNavContainerProp = <TopNavContainer />,
   ...props
 }: LayoutProps) {
-  useRenderCount("MainContainer");
   return (
     <main className="bg-default relative z-0 flex-1 pb-8 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}

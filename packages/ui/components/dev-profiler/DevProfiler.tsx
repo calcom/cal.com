@@ -2,7 +2,16 @@
 
 import * as React from "react";
 
-import classNames from "@calcom/ui/classNames";
+import { Badge } from "@coss/ui/components/badge";
+import { Button } from "@coss/ui/components/button";
+import {
+  Popover,
+  PopoverClose,
+  PopoverPopup,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@coss/ui/components/popover";
+import { ScrollArea } from "@coss/ui/components/scroll-area";
 
 interface RenderInfo {
   componentName: string;
@@ -42,99 +51,61 @@ interface DevProfilerProps {
   children: React.ReactNode;
 }
 
-function DevProfilerPanel({
-  isOpen,
-  onClose,
-  renderInfo,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  renderInfo: RenderInfo[];
-}) {
-  if (!isOpen) return null;
+function getRenderCountVariant(count: number): "success" | "warning" | "error" {
+  if (count > 10) return "error";
+  if (count > 5) return "warning";
+  return "success";
+}
 
+function DevProfilerContent({ renderInfo }: { renderInfo: RenderInfo[] }) {
   const sortedInfo = [...renderInfo].sort((a, b) => b.renderCount - a.renderCount);
   const totalRenders = renderInfo.reduce((sum, info) => sum + info.renderCount, 0);
 
   return (
-    <div
-      className={classNames(
-        "bg-default fixed bottom-16 right-4 z-[9999] w-80 rounded-lg border shadow-lg",
-        "max-h-96 overflow-hidden"
-      )}>
-      <div className="border-subtle flex items-center justify-between border-b p-3">
-        <h3 className="text-emphasis text-sm font-semibold">Dev Profiler</h3>
-        <button
-          onClick={onClose}
-          className="text-subtle hover:text-emphasis rounded p-1 text-xs transition-colors"
-          aria-label="Close panel">
-          Close
-        </button>
+    <div className="w-80">
+      <div className="flex items-center justify-between border-b border-border pb-3">
+        <PopoverTitle>Dev Profiler</PopoverTitle>
+        <PopoverClose>
+          <Button variant="ghost" size="xs">
+            Close
+          </Button>
+        </PopoverClose>
       </div>
-      <div className="p-3">
-        <div className="text-subtle mb-3 text-xs">
-          <span className="text-emphasis font-medium">{renderInfo.length}</span> tracked components |{" "}
-          <span className="text-emphasis font-medium">{totalRenders}</span> total renders
+      <div className="pt-3">
+        <div className="mb-3 text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">{renderInfo.length}</span> tracked components |{" "}
+          <span className="font-medium text-foreground">{totalRenders}</span> total renders
         </div>
-        <div className="max-h-64 space-y-2 overflow-y-auto">
-          {sortedInfo.length === 0 ? (
-            <p className="text-subtle text-xs">
-              No components tracked yet. Use <code className="bg-subtle rounded px-1">useRenderCount</code>{" "}
-              hook to track components.
-            </p>
-          ) : (
-            sortedInfo.map((info) => (
-              <div
-                key={info.componentName}
-                className="bg-subtle flex items-center justify-between rounded p-2 text-xs">
-                <span className="text-emphasis truncate font-medium">{info.componentName}</span>
-                <span
-                  className={classNames(
-                    "ml-2 shrink-0 rounded px-2 py-0.5 font-mono",
-                    info.renderCount > 10
-                      ? "bg-error text-error"
-                      : info.renderCount > 5
-                        ? "bg-attention text-attention"
-                        : "bg-success text-success"
-                  )}>
-                  {info.renderCount}
-                </span>
-              </div>
-            ))
-          )}
-        </div>
+        <ScrollArea className="max-h-64">
+          <div className="space-y-2 pr-2">
+            {sortedInfo.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                No components tracked yet. Use <code className="rounded bg-muted px-1">useRenderCount</code>{" "}
+                hook to track components.
+              </p>
+            ) : (
+              sortedInfo.map((info) => (
+                <div
+                  key={info.componentName}
+                  className="flex items-center justify-between rounded bg-muted p-2 text-xs">
+                  <span className="truncate font-medium text-foreground">{info.componentName}</span>
+                  <Badge
+                    variant={getRenderCountVariant(info.renderCount)}
+                    size="sm"
+                    className="ml-2 shrink-0 font-mono tabular-nums">
+                    {info.renderCount}
+                  </Badge>
+                </div>
+              ))
+            )}
+          </div>
+        </ScrollArea>
       </div>
     </div>
   );
 }
 
-function DevProfilerBadge({
-  onClick,
-  totalRenders,
-}: {
-  onClick: () => void;
-  totalRenders: number;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={classNames(
-        "fixed bottom-4 right-4 z-[9999] flex items-center gap-2 rounded-lg px-3 py-2 shadow-lg transition-all",
-        "bg-inverted text-inverted hover:opacity-90",
-        "text-xs font-medium"
-      )}
-      aria-label="Open Dev Profiler">
-      <span className="flex h-2 w-2">
-        <span className="bg-success absolute inline-flex h-2 w-2 animate-ping rounded-full opacity-75" />
-        <span className="bg-success relative inline-flex h-2 w-2 rounded-full" />
-      </span>
-      <span>Renders: {totalRenders}</span>
-    </button>
-  );
-}
-
 function DevProfilerInner({ children }: DevProfilerProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
   const renderInfoRef = React.useRef<Map<string, RenderInfo>>(new Map());
   const [, forceUpdate] = React.useReducer((x) => x + 1, 0);
 
@@ -169,8 +140,22 @@ function DevProfilerInner({ children }: DevProfilerProps) {
   return (
     <DevProfilerContext.Provider value={contextValue}>
       {children}
-      <DevProfilerBadge onClick={() => setIsOpen(true)} totalRenders={totalRenders} />
-      <DevProfilerPanel isOpen={isOpen} onClose={() => setIsOpen(false)} renderInfo={getRenderInfo()} />
+      <div className="fixed bottom-4 right-4 z-[9999]">
+        <Popover>
+          <PopoverTrigger>
+            <Button variant="default" size="sm" className="shadow-lg">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+              </span>
+              <span>Renders: {totalRenders}</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverPopup side="top" align="end" sideOffset={8}>
+            <DevProfilerContent renderInfo={getRenderInfo()} />
+          </PopoverPopup>
+        </Popover>
+      </div>
     </DevProfilerContext.Provider>
   );
 }
