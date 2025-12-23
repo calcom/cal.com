@@ -441,12 +441,8 @@ test.describe("tRPC bookings route smoke tests", () => {
       },
     });
 
-    expect(response.status()).toBe(200);
-    const json = await response.json();
-
-    expect(json).toHaveLength(1);
-    // Should get an unauthorized error
-    expect(json[0].error).toBeDefined();
-    expect(json[0].error.json.code).toBe("UNAUTHORIZED");
+    // The bookingsProcedure middleware returns 401 when user is not authorized
+    // to access the booking (not the booking owner, admin, or team member)
+    expect(response.status()).toBe(401);
   });
 });
