@@ -208,7 +208,7 @@ function preprocess<T extends z.ZodType>({
             const excludedEmails =
               bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
 
-            const match = excludedEmails.find((email) => bookerEmail.includes(email));
+            const match = excludedEmails.find((email) => bookerEmail.endsWith("@" + email));
             if (match) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -220,7 +220,7 @@ function preprocess<T extends z.ZodType>({
                 ?.split(",")
                 .map((domain) => domain.trim())
                 .filter(Boolean) || [];
-            const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.includes(email));
+            const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.endsWith("@" + email));
             if (requiredEmails.length > 0 && !requiredEmailsMatch) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
