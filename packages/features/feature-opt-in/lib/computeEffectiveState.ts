@@ -1,5 +1,18 @@
 import type { FeatureState } from "@calcom/features/flags/config";
 
+export type EffectiveStateReason =
+  | "feature_global_disabled"
+  | "feature_org_disabled"
+  | "feature_all_teams_disabled"
+  | "feature_user_disabled"
+  | "feature_no_explicit_enablement"
+  | "feature_enabled";
+
+export type EffectiveStateResult = {
+  enabled: boolean;
+  reason: EffectiveStateReason;
+};
+
 /**
  * Computes the effective enabled state based on global, org, teams, and user settings.
  *
@@ -8,6 +21,8 @@ import type { FeatureState } from "@calcom/features/flags/config";
  * - User can explicitly opt-in to enable the feature for themselves
  * - "enabled" at org/team level provides enablement that users can inherit from
  * - "inherit" passes through to the level above
+ *
+ * Returns both the enabled state and the reason for that state.
  */
 export function computeEffectiveStateAcrossTeams({
   globalEnabled,
@@ -24,7 +39,7 @@ export function computeEffectiveStateAcrossTeams({
   orgState: FeatureState;
   teamStates: FeatureState[];
   userState: FeatureState;
-}): boolean {
+}): EffectiveStateResult {
   // Derive all conditions upfront
   const orgEnabled = orgState === "enabled";
   const orgDisabled = orgState === "disabled";
@@ -36,13 +51,26 @@ export function computeEffectiveStateAcrossTeams({
   // Explicit enablement exists above user level
   const hasExplicitEnablementAboveUser = orgEnabled || anyTeamEnabled;
 
-  // Define when feature is enabled (whitelist approach)
-  const isEnabled =
-    globalEnabled &&
-    !userDisabled &&
-    !orgDisabled &&
-    !allTeamsDisabled &&
-    (userEnabled || hasExplicitEnablementAboveUser); // User can opt-in directly, or inherit from org/team
+  // Check conditions in order of precedence and return with reason
+  if (!globalEnabled) {
+    return { enabled: false, reason: "feature_global_disabled" };
+  }
 
-  return isEnabled;
+  if (orgDisabled) {
+    return { enabled: false, reason: "feature_org_disabled" };
+  }
+
+  if (allTeamsDisabled) {
+    return { enabled: false, reason: "feature_all_teams_disabled" };
+  }
+
+  if (userDisabled) {
+    return { enabled: false, reason: "feature_user_disabled" };
+  }
+
+  if (!userEnabled && !hasExplicitEnablementAboveUser) {
+    return { enabled: false, reason: "feature_no_explicit_enablement" };
+  }
+
+  return { enabled: true, reason: "feature_enabled" };
 }

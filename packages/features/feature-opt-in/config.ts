@@ -27,9 +27,14 @@ export function getOptInFeatureConfig(slug: string): OptInFeatureConfig | undefi
 }
 
 /**
- * Check if a feature slug is in the opt-in allowlist.
+ * Check if a slug is in the opt-in allowlist.
  * Acts as a type guard, narrowing the slug to FeatureId when true.
  */
 export function isOptInFeature(slug: string): slug is FeatureId {
   return OPT_IN_FEATURES.some((f) => f.slug === slug);
 }
+
+/**
+ * Check if there are any opt-in features available.
+ */
+export const HAS_OPT_IN_FEATURES = OPT_IN_FEATURES.length > 0;
