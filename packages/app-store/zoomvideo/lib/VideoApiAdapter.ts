@@ -364,9 +364,9 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     };
   };
 
-  /**
-   * Zoom is known to return non-JSON (XML/HTML) responses in some cases.
-   * e.g. Validation errors, wrong request, or some special case of invalid token.
+/**
+   * Zoom is known to return xml response in some cases.
+   * e.g. Wrong request or some special case of invalid token
    */
   const handleZoomResponseJsonParseError = async ({
     error,
@@ -375,27 +375,17 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     error: unknown;
     clonedResponse: Response;
   }) => {
-    const responseBody = await clonedResponse.text();
-    const status = clonedResponse.status;
-
-    if (status === 400) {
-      log.warn(
-        "Zoom API returned non-JSON validation error response",
-        safeStringify({
-          responseBody,
-          status,
-        })
-      );
-    } else {
-      log.error(
-        "Error in JSON parsing Zoom API response",
-        safeStringify({
-          error: safeStringify(error),
-          responseBody,
-          status,
-        })
-      );
-    }
+    // In some cases, Zoom responds with xml response, so we log the response for debugging
+    // We need to see why that error occurs exactly and then later we decide if mark the access token and token object unusable or not
+    log.error(
+      "Error in JSON parsing Zoom API response",
+      safeStringify({
+        error: safeStringify(error),
+        // Log Raw response body here.
+        responseBody: await clonedResponse.text(),
+        status: clonedResponse.status,
+      })
+    );
 
     return null;
   };
@@ -559,7 +549,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           method: "DELETE",
         });
         return Promise.resolve();
-      } catch {
+      } catch (err) {
         return Promise.reject(new Error("Failed to delete meeting"));
       }
     },
