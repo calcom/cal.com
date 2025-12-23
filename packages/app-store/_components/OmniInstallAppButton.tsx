@@ -27,7 +27,6 @@ export default function OmniInstallAppButton({
   onAppInstallSuccess,
 }: {
   appId: string;
-  /** Pre-fetched app data. When provided, skips the useApp query to avoid redundant API calls. */
   app?: AppData;
   className: string;
   onAppInstallSuccess: () => void;
@@ -35,7 +34,6 @@ export default function OmniInstallAppButton({
   teamId?: number;
 }) {
   const { t } = useLocale();
-  // Only fetch app data if not provided via props
   const { data: fetchedApp } = useApp(appId, { enabled: !appProp });
   const app = appProp ?? fetchedApp;
 
