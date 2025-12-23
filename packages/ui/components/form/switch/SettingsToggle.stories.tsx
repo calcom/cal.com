@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { useState } from "react";
 
 import { Badge } from "../../badge";
-import { Input } from "../inputs/Input";
+import { Input } from "../inputs/TextField";
 import { SettingsToggle } from "./SettingsToggle";
 
 const meta = {
