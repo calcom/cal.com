@@ -23,8 +23,8 @@ import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan
 import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "~/billing/components/UpgradeTeamsBadgeWebWrapper";
 import { OutOfOfficeTab } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
 
-export type { BookingRedirectForm } from "@calcom/features/settings/outOfOffice/types";
-import type { BookingRedirectForm } from "@calcom/features/settings/outOfOffice/types";
+export type { BookingRedirectForm } from "~/settings/outOfOffice/types";
+import type { BookingRedirectForm } from "~/settings/outOfOffice/types";
 
 type Option = { value: number; label: string };
 
