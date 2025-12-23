@@ -1,36 +1,40 @@
 "use client";
 
-import { memo, useMemo, useCallback } from "react";
+import { memo, useMemo, useCallback, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { OutOfOfficeToggleGroup } from "@calcom/features/settings/outOfOffice/OutOfOfficeToggleGroup";
-import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import { HolidayConflictsDialog } from "@components/dialog/HolidayConflictsDialog";
+import { HolidayEmojiBox } from "@components/holidays/HolidayEmojiBox";
 
 function HolidaysCTA() {
   const { t } = useLocale();
   return (
     <div className="flex gap-2">
       <OutOfOfficeToggleGroup />
-      {/* Invisible placeholder to match OOO button width and prevent layout shift */}
       <Button
         color="primary"
         size="base"
         StartIcon="plus"
-        className="invisible flex items-center justify-between px-2 md:px-4"
-        aria-hidden="true"
-        tabIndex={-1}>
-        <span className="hidden md:inline">{t("add")}</span>
+        className="flex items-center justify-between px-2 md:px-4"
+        disabled>
+        <span className="sr-only md:not-sr-only md:inline">{t("add")}</span>
       </Button>
     </div>
   );
@@ -107,20 +111,19 @@ const HolidayListItem = memo(function HolidayListItem({
   isToggling: boolean;
 }) {
   const formattedDate = holiday.date ? dayjs(holiday.date).format("D MMM, YYYY") : null;
-  const emoji = getHolidayEmoji(holiday.name);
 
   return (
-    <div className="border-subtle flex items-center justify-between border-b px-5 py-4 last:border-b-0">
+    <div className="border-subtle hover:bg-subtle/50 flex items-center justify-between border-b px-5 py-4 transition-colors last:border-b-0">
       <div className="flex items-center gap-3">
-        <div className="bg-subtle flex h-10 w-10 items-center justify-center rounded-lg">
-          <span className="text-xl">{emoji}</span>
-        </div>
+        <HolidayEmojiBox holidayName={holiday.name} />
         <div>
           <p className={holiday.enabled ? "text-emphasis font-medium" : "text-muted font-medium"}>
             {holiday.name}
           </p>
           {formattedDate && (
-            <p className={holiday.enabled ? "text-subtle text-sm" : "text-muted text-sm"}>{formattedDate}</p>
+            <p className={holiday.enabled ? "text-subtle dark:text-default text-sm" : "text-muted text-sm"}>
+              {formattedDate}
+            </p>
           )}
         </div>
       </div>
@@ -133,45 +136,69 @@ const HolidayListItem = memo(function HolidayListItem({
   );
 });
 
-function ConflictWarning({
+const ConflictIndicatorButton = memo(function ConflictIndicatorButton({
   conflicts,
+  hasHolidaysConfigured,
+  onOpenConflicts,
 }: {
-  conflicts: RouterOutputs["viewer"]["holidays"]["checkConflicts"]["conflicts"];
+  conflicts: RouterOutputs["viewer"]["holidays"]["checkConflicts"]["conflicts"] | undefined;
+  hasHolidaysConfigured: boolean;
+  onOpenConflicts: () => void;
 }) {
   const { t } = useLocale();
 
-  if (conflicts.length === 0) return null;
+  if (!hasHolidaysConfigured) return null;
 
-  const totalBookings = conflicts.reduce((sum, c) => sum + c.bookings.length, 0);
+  const hasConflicts = conflicts && conflicts.length > 0;
+  const totalBookings = hasConflicts ? conflicts.reduce((sum, c) => sum + c.bookings.length, 0) : 0;
+
+  const handleClick = () => {
+    if (hasConflicts) {
+      onOpenConflicts();
+    } else {
+      showToast(t("no_holiday_conflicts"), "success");
+    }
+  };
 
   return (
-    <div className="bg-semantic-attention-subtle rounded-md px-3 py-2">
-      <div className="flex items-center gap-2">
-        <Icon name="triangle-alert" className="text-semantic-attention h-4 w-4 shrink-0" />
-        <p className="text-emphasis text-sm font-medium">
-          {t("holiday_booking_conflict_warning", { count: totalBookings })}:
-        </p>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {conflicts.slice(0, 3).map((conflict, idx) => (
-            <span key={conflict.holidayId} className="text-default text-sm">
-              {conflict.holidayName} ({conflict.bookings.length})
-              {idx < Math.min(conflicts.length, 3) - 1 && ","}
-            </span>
-          ))}
-          {conflicts.length > 3 && (
-            <span className="text-subtle text-sm">
-              +{conflicts.length - 3} {t("more")}
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
+    <Tooltip content={hasConflicts ? t("view_holiday_conflicts") : t("no_holiday_conflicts")}>
+      <button
+        type="button"
+        onClick={handleClick}
+        className="border-subtle bg-default hover:bg-subtle dark:border-default dark:bg-subtle dark:hover:bg-emphasis relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border transition-colors"
+        aria-label={hasConflicts ? t("view_holiday_conflicts") : t("no_holiday_conflicts")}>
+        <Icon name="calendar-days" className="text-default h-4 w-4" />
+        {hasConflicts ? (
+          <Badge
+            variant="orange"
+            size="sm"
+            className="min-w-5 absolute -right-1.5 -top-1.5 flex h-5 items-center justify-center rounded-full p-0 text-xs dark:bg-orange-200 dark:text-orange-900">
+            {totalBookings}
+          </Badge>
+        ) : (
+          <Badge
+            variant="green"
+            size="sm"
+            className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full p-0 dark:bg-green-700">
+            <Icon name="check" className="h-3 w-3" />
+          </Badge>
+        )}
+      </button>
+    </Tooltip>
   );
-}
+});
 
 export function HolidaysView() {
   const { t } = useLocale();
   const utils = trpc.useUtils();
+  const { data: user } = useMeQuery();
+
+  const [confirmState, setConfirmState] = useState<{
+    action: "select" | "change" | "clear";
+    countryCode: string;
+  } | null>(null);
+
+  const [conflictsDialogOpen, setConflictsDialogOpen] = useState(false);
 
   const {
     data: countries,
@@ -223,13 +250,26 @@ export function HolidaysView() {
 
   const handleCountryChange = useCallback(
     (countryCode: string) => {
+      if (!settings?.countryCode && countryCode) {
+        setConfirmState({ action: "select", countryCode });
+      } else if (settings?.countryCode && countryCode && countryCode !== settings.countryCode) {
+        setConfirmState({ action: "change", countryCode });
+      } else if (settings?.countryCode && !countryCode) {
+        setConfirmState({ action: "clear", countryCode });
+      }
+    },
+    [settings?.countryCode]
+  );
+
+  const handleConfirmCountryChange = useCallback(() => {
+    if (confirmState) {
       updateSettingsMutation.mutate({
-        countryCode: countryCode || null,
+        countryCode: confirmState.countryCode || null,
         resetDisabledHolidays: true,
       });
-    },
-    [updateSettingsMutation]
-  );
+    }
+    setConfirmState(null);
+  }, [confirmState, updateSettingsMutation]);
 
   const handleToggleHoliday = useCallback(
     (holidayId: string, enabled: boolean) => {
@@ -272,23 +312,26 @@ export function HolidaysView() {
       description={t("out_of_office_description")}
       CTA={<HolidaysCTA />}>
       <div className="space-y-6">
-        {conflictsData?.conflicts && conflictsData.conflicts.length > 0 && (
-          <ConflictWarning conflicts={conflictsData.conflicts} />
-        )}
-
         <div className="border-subtle bg-muted overflow-hidden rounded-lg border p-5">
           {/* Header with title and country selector */}
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-emphasis font-semibold">{t("holidays")}</h3>
               <p className="text-subtle text-sm">{t("holidays_description")}</p>
             </div>
-            <CountrySelector
-              countries={countries || []}
-              value={settings?.countryCode || ""}
-              onChange={handleCountryChange}
-              isLoading={isLoadingCountries}
-            />
+            <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
+              <ConflictIndicatorButton
+                conflicts={conflictsData?.conflicts}
+                hasHolidaysConfigured={!!settings?.countryCode}
+                onOpenConflicts={() => setConflictsDialogOpen(true)}
+              />
+              <CountrySelector
+                countries={countries || []}
+                value={settings?.countryCode || ""}
+                onChange={handleCountryChange}
+                isLoading={isLoadingCountries}
+              />
+            </div>
           </div>
 
           {/* Holidays list - inner container */}
@@ -323,6 +366,45 @@ export function HolidaysView() {
           )}
         </div>
       </div>
+
+      <Dialog open={confirmState !== null} onOpenChange={() => setConfirmState(null)}>
+        <ConfirmationDialogContent
+          title={
+            confirmState?.action === "select"
+              ? t("enable_holiday_blocking")
+              : confirmState?.action === "change"
+              ? t("change_holiday_country")
+              : t("disable_holiday_blocking")
+          }
+          confirmBtnText={
+            confirmState?.action === "select"
+              ? t("yes_enable")
+              : confirmState?.action === "change"
+              ? t("yes_change_country")
+              : t("yes_disable")
+          }
+          cancelBtnText={t("cancel")}
+          onConfirm={handleConfirmCountryChange}
+          isPending={updateSettingsMutation.isPending}>
+          <p className="mt-4">
+            {confirmState?.action === "select"
+              ? t("enable_holiday_blocking_description")
+              : confirmState?.action === "change"
+              ? t("change_holiday_country_description")
+              : t("disable_holiday_blocking_description")}
+          </p>
+        </ConfirmationDialogContent>
+      </Dialog>
+
+      {conflictsData?.conflicts && conflictsData.conflicts.length > 0 && (
+        <HolidayConflictsDialog
+          isOpenDialog={conflictsDialogOpen}
+          setIsOpenDialog={setConflictsDialogOpen}
+          conflicts={conflictsData.conflicts}
+          userTimeZone={user?.timeZone}
+          userTimeFormat={user?.timeFormat}
+        />
+      )}
     </SettingsHeader>
   );
 }

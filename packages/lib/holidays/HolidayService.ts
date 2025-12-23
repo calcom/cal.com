@@ -11,10 +11,14 @@ import type { Country, Holiday, HolidayWithStatus } from "./types";
 
 export interface ConflictingBooking {
   id: number;
+  uid: string;
   title: string;
   startTime: Date;
   endTime: Date;
-  attendeeName: string | null;
+  hostName: string | null;
+  hostEmail: string | null;
+  hostUsername: string | null;
+  attendees: Array<{ name: string | null; email: string }>;
 }
 
 export interface HolidayConflict {
@@ -251,10 +255,14 @@ export class HolidayService {
           date: holidayDate.date,
           bookings: conflictingBookings.map((b) => ({
             id: b.id,
+            uid: b.uid,
             title: b.title,
             startTime: b.startTime,
             endTime: b.endTime,
-            attendeeName: b.attendees[0]?.name || null,
+            hostName: b.user?.name || null,
+            hostEmail: b.user?.email || null,
+            hostUsername: b.user?.username || null,
+            attendees: b.attendees.map((a) => ({ name: a.name, email: a.email })),
           })),
         });
       }
