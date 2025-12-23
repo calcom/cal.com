@@ -12,6 +12,8 @@ import DynamicPostHogPageView from "@calcom/features/ee/event-tracking/lib/posth
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
+import DynamicHelpscoutProvider from "@calcom/web/modules/ee/support/lib/helpscout/providerDynamic";
+import DynamicIntercomProvider from "@calcom/web/modules/ee/support/lib/intercom/providerDynamic";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
@@ -19,9 +21,6 @@ import { useNuqsParams } from "@lib/hooks/useNuqsParams";
 import type { WithLocaleProps } from "@lib/withLocale";
 
 import type { PageWrapperProps } from "@components/PageWrapperAppDir";
-
-import DynamicHelpscoutProvider from "~/ee/support/lib/helpscout/providerDynamic";
-import DynamicIntercomProvider from "~/ee/support/lib/intercom/providerDynamic";
 
 import { getThemeProviderProps } from "./getThemeProviderProps";
 

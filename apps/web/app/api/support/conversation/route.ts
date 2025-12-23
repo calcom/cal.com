@@ -10,11 +10,10 @@ import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
+import type { Contact } from "@calcom/web/modules/ee/support/lib/intercom/intercom";
+import { intercom } from "@calcom/web/modules/ee/support/lib/intercom/intercom";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
-import type { Contact } from "~/ee/support/lib/intercom/intercom";
-import { intercom } from "~/ee/support/lib/intercom/intercom";
 
 const log = logger.getSubLogger({ prefix: [`/api/support/conversation`] });
 

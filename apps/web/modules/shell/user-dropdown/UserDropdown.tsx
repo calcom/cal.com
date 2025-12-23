@@ -20,8 +20,7 @@ import {
 import { Icon } from "@calcom/ui/components/icon";
 // TODO (Platform): we shouldnt be importing from web here
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
-
-import FreshChatProvider from "~/ee/support/lib/freshchat/FreshChatProvider";
+import FreshChatProvider from "@calcom/web/modules/ee/support/lib/freshchat/FreshChatProvider";
 
 declare global {
   interface Window {
