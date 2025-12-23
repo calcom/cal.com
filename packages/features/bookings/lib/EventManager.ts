@@ -1174,7 +1174,7 @@ export default class EventManager {
 
             if (!calendarReference) {
               return {
-                appName: cred.appId || "",
+                appName: cred.appName || "",
                 type: cred.type,
                 success: false,
                 uid: "",
@@ -1267,7 +1267,7 @@ export default class EventManager {
       if (createdEvent) {
         createdEvents.push({
           type: credential.type,
-          appName: credential.appId || "",
+          appName: credential.appName || "",
           uid,
           success,
           createdEvent: {
@@ -1300,7 +1300,7 @@ export default class EventManager {
 
         updatedEvents.push({
           type: credential.type,
-          appName: credential.appId || "",
+          appName: credential.appName || "",
           success,
           uid: updatedEvent?.id || "",
           originalEvent: event,

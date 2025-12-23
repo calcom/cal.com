@@ -1,40 +1,75 @@
-/* eslint-disable */
-require("dotenv").config({ path: "../../.env" });
-const englishTranslation = require("./public/static/locales/en/common.json");
-const { withAxiom } = require("next-axiom");
-const { withBotId } = require("botid/next/config");
-const { version } = require("./package.json");
-const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
-const {
-  i18n: { locales },
-} = require("./next-i18next.config");
-const {
+import { withBotId } from "botid/next/config";
+import { config as dotenvConfig } from "dotenv";
+import type { NextConfig } from "next";
+import type { RouteHas } from "next/dist/lib/load-custom-routes";
+import { withAxiom } from "next-axiom";
+
+import i18nConfig from "./next-i18next.config";
+import packageJson from "./package.json";
+import {
   nextJsOrgRewriteConfig,
   orgUserRoutePath,
   orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
-} = require("./pagesAndRewritePaths");
+} from "./pagesAndRewritePaths";
+
+dotenvConfig({ path: "../../.env" });
+
+const { version } = packageJson;
+const {
+  i18n: { locales },
+} = i18nConfig;
+
+type NextConfigPlugin = (config: NextConfig) => NextConfig;
+
+// Type guard to filter out null/undefined values with proper type narrowing
+function isNotNull<T>(value: T | null | undefined): value is T {
+  return value !== null && value !== undefined;
+}
+
+function adjustEnvVariables(): void {
+  // Type-safe way to modify process.env (which is typed as readonly in environment.d.ts)
+  const envMutable = process.env as Record<string, string | undefined>;
+  if (process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG) {
+    if (process.env.RESERVED_SUBDOMAINS) {
+      console.warn(
+        `⚠️  WARNING: RESERVED_SUBDOMAINS is ignored when SINGLE_ORG_SLUG is set. Single org mode doesn't need to use reserved subdomain validation.`
+      );
+      delete envMutable.RESERVED_SUBDOMAINS;
+    }
+
+    if (!process.env.ORGANIZATIONS_ENABLED) {
+      console.log("Auto-enabling ORGANIZATIONS_ENABLED because SINGLE_ORG_SLUG is set");
+      envMutable.ORGANIZATIONS_ENABLED = "1";
+    }
+  }
+}
 
 adjustEnvVariables();
 
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
+
 const isOrganizationsEnabled =
   process.env.ORGANIZATIONS_ENABLED === "1" || process.env.ORGANIZATIONS_ENABLED === "true";
-// To be able to use the version in the app without having to import package.json
-process.env.NEXT_PUBLIC_CALCOM_VERSION = version;
 
-// So we can test deploy previews preview
+// Type-safe way to assign to process.env (which is typed as readonly in environment.d.ts)
+const env = process.env as Record<string, string | undefined>;
+
+env.NEXT_PUBLIC_CALCOM_VERSION = version;
+
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
-  process.env.NEXT_PUBLIC_WEBAPP_URL = `https://${process.env.VERCEL_URL}`;
+  env.NEXT_PUBLIC_WEBAPP_URL = `https://${process.env.VERCEL_URL}`;
 }
-// Check for configuration of NEXTAUTH_URL before overriding
+
 if (!process.env.NEXTAUTH_URL && process.env.NEXT_PUBLIC_WEBAPP_URL) {
-  process.env.NEXTAUTH_URL = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth`;
+  env.NEXTAUTH_URL = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth`;
 }
+
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
-  process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
+  env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
 }
+
 if (
   process.env.CSP_POLICY === "strict" &&
   (process.env.CALCOM_ENV === "production" || process.env.NODE_ENV === "production")
@@ -54,21 +89,21 @@ if (!process.env.EMAIL_FROM) {
 
 if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
 
-const getHttpsUrl = (url) => {
+function getHttpsUrl(url: string | undefined): string | undefined {
   if (!url) return url;
   if (url.startsWith("http://")) {
     return url.replace("http://", "https://");
   }
   return url;
-};
-
-if (process.argv.includes("--experimental-https")) {
-  process.env.NEXT_PUBLIC_WEBAPP_URL = getHttpsUrl(process.env.NEXT_PUBLIC_WEBAPP_URL);
-  process.env.NEXTAUTH_URL = getHttpsUrl(process.env.NEXTAUTH_URL);
-  process.env.NEXT_PUBLIC_EMBED_LIB_URL = getHttpsUrl(process.env.NEXT_PUBLIC_EMBED_LIB_URL);
 }
 
-const validJson = (jsonString) => {
+if (process.argv.includes("--experimental-https")) {
+  env.NEXT_PUBLIC_WEBAPP_URL = getHttpsUrl(process.env.NEXT_PUBLIC_WEBAPP_URL);
+  env.NEXTAUTH_URL = getHttpsUrl(process.env.NEXTAUTH_URL);
+  env.NEXT_PUBLIC_EMBED_LIB_URL = getHttpsUrl(process.env.NEXT_PUBLIC_EMBED_LIB_URL);
+}
+
+function validJson(jsonString: string): object | false {
   try {
     const o = JSON.parse(jsonString);
     if (o && typeof o === "object") {
@@ -78,7 +113,7 @@ const validJson = (jsonString) => {
     console.error(e);
   }
   return false;
-};
+}
 
 if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CREDENTIALS)) {
   console.warn(
@@ -88,29 +123,10 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
   );
 }
 
-const informAboutDuplicateTranslations = () => {
-  const valueMap = {};
+const plugins: NextConfigPlugin[] = [];
 
-  for (const key in englishTranslation) {
-    const value = englishTranslation[key];
-
-    if (valueMap[value]) {
-      console.warn(
-        "\x1b[33mDuplicate value found in common.json keys:",
-        "\x1b[0m ",
-        key,
-        "and",
-        valueMap[value]
-      );
-    } else {
-      valueMap[value] = key;
-    }
-  }
-};
-
-const plugins = [];
 if (process.env.ANALYZE === "true") {
-  // only load dependency if env `ANALYZE` was set
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const withBundleAnalyzer = require("@next/bundle-analyzer")({
     enabled: true,
   });
@@ -123,7 +139,18 @@ if (process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1") {
   plugins.push(withBotId);
 }
 
-const orgDomainMatcherConfig = {
+interface OrgDomainMatcher {
+  has: RouteHas[];
+  source: string;
+}
+
+const orgDomainMatcherConfig: {
+  root: OrgDomainMatcher | null;
+  rootEmbed: OrgDomainMatcher | null;
+  user: OrgDomainMatcher;
+  userType: OrgDomainMatcher;
+  userTypeEmbed: OrgDomainMatcher;
+} = {
   root: nextJsOrgRewriteConfig.disableRootPathRewrite
     ? null
     : {
@@ -179,10 +206,8 @@ const orgDomainMatcherConfig = {
   },
 };
 
-/** @type {import("next").NextConfig} */
-const nextConfig = (phase) => {
+const nextConfig = (phase: string): NextConfig => {
   if (isOrganizationsEnabled) {
-    // We want to log the phase here because it is important that the rewrite is added during the build phase(phase=phase-production-build)
     console.log(
       `[Phase: ${phase}] Adding rewrite config for organizations - orgHostPath: ${nextJsOrgRewriteConfig.orgHostPath}, orgSlug: ${nextJsOrgRewriteConfig.orgSlug}, disableRootPathRewrite: ${nextJsOrgRewriteConfig.disableRootPathRewrite}`
     );
@@ -191,23 +216,21 @@ const nextConfig = (phase) => {
       `[Phase: ${phase}] Skipping rewrite config for organizations because ORGANIZATIONS_ENABLED is not set`
     );
   }
+
   return {
     output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
     serverExternalPackages: [
       "deasync",
-      "http-cookie-agent", // Dependencies of @ewsjs/xhr
+      "http-cookie-agent",
       "rest-facade",
-      "superagent-proxy", // Dependencies of @tryvital/vital-node
-      "superagent", // Dependencies of akismet
-      "formidable", // Dependencies of akismet
+      "superagent-proxy",
+      "superagent",
+      "formidable",
       "@boxyhq/saml-jackson",
-      "jose", // Dependency of @boxyhq/saml-jackson
+      "jose",
     ],
     experimental: {
-      // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
       optimizePackageImports: ["@calcom/ui"],
-      webpackMemoryOptimizations: true,
-      webpackBuildWorker: true,
     },
     productionBrowserSourceMaps: true,
     transpilePackages: [
@@ -235,55 +258,10 @@ const nextConfig = (phase) => {
       unoptimized: true,
     },
     turbopack: {},
-    webpack: (config, { webpack, buildId, isServer, dev }) => {
-      if (!dev) {
-        if (config.cache) {
-          config.cache = Object.freeze({
-            type: "memory",
-          });
-        }
-      }
-
-      if (isServer) {
-        // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
-        config.plugins.push(
-          new webpack.IgnorePlugin({
-            resourceRegExp:
-              /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^@sap\/hana-client\/extension\/Stream$|^@sap\/hana-client|^@sap\/hana-client$|^aws-crt|^aws4$|^better-sqlite3$|^bson-ext$|^cardinal$|^cloudflare:sockets$|^hdb-pool$|^ioredis$|^kerberos$|^mongodb-client-encryption$|^mysql$|^oracledb$|^pg-native$|^pg-query-stream$|^react-native-sqlite-storage$|^snappy\/package\.json$|^snappy$|^sql.js$|^sqlite3$|^typeorm-aurora-data-api-driver$)/,
-          })
-        );
-
-        config.plugins = [...config.plugins, new PrismaPlugin()];
-
-        config.externals.push("formidable");
-      }
-
-      config.plugins.push(new webpack.DefinePlugin({ "process.env.BUILD_ID": JSON.stringify(buildId) }));
-
-      config.resolve.fallback = {
-        ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
-        // by next.js will be dropped. Doesn't make much sense, but how it is
-        fs: false,
-        // ignore module resolve errors caused by the server component bundler
-        "pg-native": false,
-      };
-
-      /**
-       * TODO: Find more possible barrels for this project.
-       *  @see https://github.com/vercel/next.js/issues/12557#issuecomment-1196931845
-       **/
-      config.module.rules.push({
-        test: [/lib\/.*.tsx?/i],
-        sideEffects: false,
-      });
-
-      return config;
-    },
     async rewrites() {
       const { orgSlug } = nextJsOrgRewriteConfig;
       const beforeFiles = [
         {
-          // This should be the first item in `beforeFiles` to take precedence over other rewrites
           source: `/(${locales.join("|")})/:path*`,
           destination: "/:path*",
         },
@@ -307,7 +285,7 @@ const nextConfig = (phase) => {
           source: "/success/:path*",
           has: [
             {
-              type: "query",
+              type: "query" as const,
               key: "uid",
               value: "(?<uid>.*)",
             },
@@ -319,10 +297,6 @@ const nextConfig = (phase) => {
           destination: "/booking/:path*",
         },
         {
-          /**
-           * Needed due to the introduction of dotted usernames
-           * @see https://github.com/calcom/cal.com/pull/11706
-           */
           source: "/embed.js",
           destination: "/embed/embed.js",
         },
@@ -330,7 +304,6 @@ const nextConfig = (phase) => {
           source: "/login",
           destination: "/auth/login",
         },
-        // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
         ...(isOrganizationsEnabled
           ? [
               orgDomainMatcherConfig.root
@@ -359,9 +332,9 @@ const nextConfig = (phase) => {
               },
             ]
           : []),
-      ].filter(Boolean);
+      ].filter(isNotNull);
 
-      let afterFiles = [
+      const afterFiles = [
         {
           source: "/org/:slug",
           destination: "/team/:slug",
@@ -378,24 +351,14 @@ const nextConfig = (phase) => {
           source: "/icons/sprite.svg",
           destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/icons/sprite.svg`,
         },
-        // for @dub/analytics, @see: https://d.to/reverse-proxy
         {
           source: "/_proxy/dub/track/:path",
           destination: "https://api.dub.co/track/:path",
         },
-
-        // When updating this also update pagesAndRewritePaths.js
-        ...[
-          {
-            source: "/:user/avatar.png",
-            destination: "/api/user/avatar?username=:user",
-          },
-        ],
-
-        /* TODO: have these files being served from another deployment or CDN {
-        source: "/embed/embed.js",
-        destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
-      }, */
+        {
+          source: "/:user/avatar.png",
+          destination: "/api/user/avatar?username=:user",
+        },
       ];
 
       if (process.env.NEXT_PUBLIC_API_V2_URL) {
@@ -412,8 +375,6 @@ const nextConfig = (phase) => {
     },
     async headers() {
       const { orgSlug } = nextJsOrgRewriteConfig;
-      // This header can be set safely as it ensures the browser will load the resources even when COEP is set.
-      // But this header must be set only on those resources that are safe to be loaded in a cross-origin context e.g. all embeddable pages's resources
       const CORP_CROSS_ORIGIN_HEADER = {
         key: "Cross-Origin-Resource-Policy",
         value: "cross-origin",
@@ -462,47 +423,42 @@ const nextConfig = (phase) => {
         },
         {
           source: "/:path*/embed",
-          // COEP require-corp header is set conditionally when flag.coep is set to true
           headers: [CORP_CROSS_ORIGIN_HEADER],
         },
         {
           source: "/:path*",
           has: [
             {
-              type: "host",
+              type: "host" as const,
               value: "cal.com",
             },
           ],
           headers: [
-            // make sure to pass full referer URL for booking pages
             {
               key: "Referrer-Policy",
               value: "no-referrer-when-downgrade",
             },
           ],
         },
-        // These resources loads through embed as well, so they need to have CORP_CROSS_ORIGIN_HEADER
-        ...[
-          {
-            source: "/api/avatar/:path*",
-            headers: [CORP_CROSS_ORIGIN_HEADER],
-          },
-          {
-            source: "/avatar.svg",
-            headers: [CORP_CROSS_ORIGIN_HEADER],
-          },
-          {
-            source: "/icons/sprite.svg(\\?v=[0-9a-zA-Z\\-\\.]+)?",
-            headers: [
-              CORP_CROSS_ORIGIN_HEADER,
-              ACCESS_CONTROL_ALLOW_ORIGIN_HEADER,
-              {
-                key: "Cache-Control",
-                value: "public, max-age=31536000, immutable",
-              },
-            ],
-          },
-        ],
+        {
+          source: "/api/avatar/:path*",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/avatar.svg",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/icons/sprite.svg(\\?v=[0-9a-zA-Z\\-\\.]+)?",
+          headers: [
+            CORP_CROSS_ORIGIN_HEADER,
+            ACCESS_CONTROL_ALLOW_ORIGIN_HEADER,
+            {
+              key: "Cache-Control",
+              value: "public, max-age=31536000, immutable",
+            },
+          ],
+        },
         ...(isOrganizationsEnabled
           ? [
               orgDomainMatcherConfig.root
@@ -545,7 +501,7 @@ const nextConfig = (phase) => {
               },
             ]
           : []),
-      ].filter(Boolean);
+      ].filter(isNotNull);
     },
     async redirects() {
       const redirects = [
@@ -594,7 +550,6 @@ const nextConfig = (phase) => {
           destination: "/settings/admin/flags",
           permanent: true,
         },
-        /* V2 testers get redirected to the new settings */
         {
           source: "/settings/profile",
           destination: "/settings/my-account/profile",
@@ -615,15 +570,13 @@ const nextConfig = (phase) => {
           destination: "/video/:path*",
           permanent: false,
         },
-        /* Attempt to mitigate DDoS attack */
         {
           source: "/api/auth/:path*",
           has: [
             {
-              type: "query",
+              type: "query" as const,
               key: "callbackUrl",
-              // prettier-ignore
-              value: "^(?!https?:\/\/).*$",
+              value: "^(?!https?://).*$",
             },
           ],
           destination: "/404",
@@ -638,7 +591,7 @@ const nextConfig = (phase) => {
           source: "/support",
           missing: [
             {
-              type: "header",
+              type: "header" as const,
               key: "host",
               value: nextJsOrgRewriteConfig.orgHostPath,
             },
@@ -671,17 +624,14 @@ const nextConfig = (phase) => {
           destination: "/settings/admin/apps/calendar",
           permanent: true,
         },
-        // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
         ...(process.env.NODE_ENV === "development" &&
-        // Safer to enable the redirect only when the user is opting to test out organizations
         isOrganizationsEnabled &&
-        // Prevent infinite redirect by checking that we aren't already on localhost
         process.env.NEXT_PUBLIC_WEBAPP_URL !== "http://localhost:3000"
           ? [
               {
                 has: [
                   {
-                    type: "header",
+                    type: "header" as const,
                     key: "host",
                     value: "localhost:3000",
                   },
@@ -719,22 +669,4 @@ const nextConfig = (phase) => {
   };
 };
 
-function adjustEnvVariables() {
-  if (process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG) {
-    if (process.env.RESERVED_SUBDOMAINS) {
-      // It is better to ignore it completely so that accidentally if the org slug is itself in Reserved Subdomain that doesn't cause the booking pages to start giving 404s
-      console.warn(
-        `⚠️  WARNING: RESERVED_SUBDOMAINS is ignored when SINGLE_ORG_SLUG is set. Single org mode doesn't need to use reserved subdomain validation.`
-      );
-      delete process.env.RESERVED_SUBDOMAINS;
-    }
-
-    if (!process.env.ORGANIZATIONS_ENABLED) {
-      // This is basically a consent to add rewrites related to organizations. So, if single org slug mode is there, we have the consent already.
-      console.log("Auto-enabling ORGANIZATIONS_ENABLED because SINGLE_ORG_SLUG is set");
-      process.env.ORGANIZATIONS_ENABLED = "1";
-    }
-  }
-}
-
-module.exports = (phase) => plugins.reduce((acc, next) => next(acc), nextConfig(phase));
+export default (phase: string): NextConfig => plugins.reduce((acc, plugin) => plugin(acc), nextConfig(phase));
