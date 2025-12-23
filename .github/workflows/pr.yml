@@ -228,35 +228,6 @@ jobs:
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
 
-  merge-reports:
-    name: Merge reports
-    if: ${{ !cancelled() && needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' && (needs.e2e.result == 'failure' || needs.e2e-embed.result == 'failure' || needs.e2e-embed-react.result == 'failure' || needs.e2e-app-store.result == 'failure') }}
-    needs: [prepare, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
-    uses: ./.github/workflows/merge-reports.yml
-    secrets: inherit
-
-  publish-report:
-    name: Publish HTML report
-    if: ${{ !cancelled() && needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' && (needs.e2e.result == 'failure' || needs.e2e-embed.result == 'failure' || needs.e2e-embed-react.result == 'failure' || needs.e2e-app-store.result == 'failure') }}
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    needs: [prepare, merge-reports, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
-    uses: ./.github/workflows/publish-report.yml
-    secrets: inherit
-
-  cleanup-report:
-    name: Cleanup HTML report
-    if: ${{ !cancelled() && needs.prepare.outputs.run-e2e == 'true' && (github.event.pull_request.merged == true || github.event.pull_request.state == 'closed') }}
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    needs: [prepare, publish-report]
-    uses: ./.github/workflows/cleanup-report.yml
-    secrets: inherit
-
   required:
     needs:
       [
