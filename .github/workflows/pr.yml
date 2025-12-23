@@ -191,7 +191,7 @@ jobs:
   integration-test:
     name: Tests
     needs: [prepare, build, setup-db]
-   if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
