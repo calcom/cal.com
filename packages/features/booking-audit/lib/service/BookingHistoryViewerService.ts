@@ -1,5 +1,7 @@
 import type { RoutingFormResponseRepositoryInterface } from "@calcom/lib/server/repository/RoutingFormResponseRepository.interface";
-import type { BookingAuditViewerService } from "./BookingAuditViewerService";
+
+import type { BookingAuditViewerService, DisplayBookingAuditLog } from "./BookingAuditViewerService";
+import { getFieldResponseByIdentifier } from "@calcom/features/routing-forms/lib/getFieldResponseByIdentifier";
 
 type GetHistoryForBookingParams = {
     bookingUid: string;
@@ -70,6 +72,11 @@ export class BookingHistoryViewerService {
     }): BookingHistoryLog {
         const timestamp = formResponse.createdAt.toISOString();
 
+        const emailFieldResult = getFieldResponseByIdentifier({ responsePayload: formResponse.response, formFields: formResponse.form.fields, identifier: "email" });
+        const emailFieldValueFromResponse = emailFieldResult.success ? emailFieldResult.data : null;
+        // A valid string can be the email otherwise we assume it is not an email
+        const submitterEmail = typeof emailFieldValueFromResponse === "string" ? emailFieldValueFromResponse : null;
+        const uniqueId = `id: form-submission-${formResponse.id}`;
         return {
             id: `id: ${uniqueId}`,
             bookingUid,
@@ -89,8 +96,8 @@ export class BookingHistoryViewerService {
                 attendeeId: null,
                 name: null,
                 createdAt: formResponse.createdAt,
-                displayName: "Guest",
-                displayEmail: null,
+                displayName: submitterEmail ? `${submitterEmail}` : "Guest",
+                displayEmail: submitterEmail || null,
                 displayAvatar: null,
             },
         };
