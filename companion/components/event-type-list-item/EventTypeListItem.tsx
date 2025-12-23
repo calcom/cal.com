@@ -1,12 +1,12 @@
+import { Tooltip } from "../../components/Tooltip";
+import { formatDuration } from "../../utils/formatters";
+import { getEventDuration } from "../../utils/getEventDuration";
+import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
+import { EventTypeListItemProps } from "./types";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import Svg, { Path } from "react-native-svg";
-
-import { Tooltip } from "../../components/Tooltip";
-import { EventTypeListItemProps } from "./types";
-import { getEventDuration } from "../../utils/getEventDuration";
-import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
 
 export const EventTypeListItem = ({
   item,
@@ -20,18 +20,6 @@ export const EventTypeListItem = ({
 }: EventTypeListItemProps) => {
   const duration = getEventDuration(item);
   const isLast = index === filteredEventTypes.length - 1;
-
-  const formatDuration = (minutes: number | undefined) => {
-    if (!minutes || minutes <= 0) {
-      return "0m";
-    }
-    if (minutes < 60) {
-      return `${minutes}m`;
-    }
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
-  };
 
   return (
     <TouchableOpacity

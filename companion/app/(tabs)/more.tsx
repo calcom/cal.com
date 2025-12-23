@@ -25,7 +25,12 @@ export default function More() {
     try {
       await logout();
     } catch (error) {
-      console.error("Logout error:", error);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Logout error", message);
+      if (__DEV__) {
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[More] logout failed", { message, stack });
+      }
       showErrorAlert("Error", "Failed to sign out. Please try again.");
     }
   };
