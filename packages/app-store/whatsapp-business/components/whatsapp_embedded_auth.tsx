@@ -141,7 +141,7 @@ export function WhatsAppEmbeddedSignup({
           console.log("Processing auth code:");
           setTimeout(() => {
             processAuthCodeRef.current?.(response.authResponse.code);
-          }, 2000);
+          }, 3000);
         } else {
           setIsLoading(false);
           _onError?.("User cancelled login or did not fully authorize");
