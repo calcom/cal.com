@@ -1,10 +1,10 @@
 "use client";
 
+import type { FeatureState } from "@calcom/features/flags/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { FeatureState } from "../../flags/config";
 import type { NormalizedFeature, UseFeatureOptInResult } from "./types";
 
 /**

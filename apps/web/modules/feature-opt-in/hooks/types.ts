@@ -1,6 +1,5 @@
+import type { EffectiveStateReason } from "@calcom/features/feature-opt-in/lib/computeEffectiveState";
 import type { FeatureState } from "@calcom/features/flags/config";
-
-import type { EffectiveStateReason } from "../lib/computeEffectiveState";
 
 /**
  * Normalized feature representation used across all scopes (user, team, org).

@@ -1,9 +1,10 @@
 "use client";
 
 import { FeaturesSettings } from "@calcom/features/feature-opt-in/components/FeaturesSettings";
-import { useOrganizationFeatureOptIn } from "@calcom/features/feature-opt-in/hooks";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import { useOrganizationFeatureOptIn } from "~/feature-opt-in/hooks";
 
 const OrganizationFeaturesView = () => {
   const { t } = useLocale();
