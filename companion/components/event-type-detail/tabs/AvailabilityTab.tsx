@@ -15,11 +15,20 @@ interface AvailabilityTabProps {
   setShowScheduleDropdown: (show: boolean) => void;
   schedulesLoading: boolean;
   scheduleDetailsLoading: boolean;
-  selectedScheduleDetails: any;
+  selectedScheduleDetails: Schedule | null;
   getDaySchedules: () => DaySchedule[];
   formatTime: (time: string) => string;
   selectedTimezone: string;
 }
+
+const sectionDividerStyle = {
+  borderTopWidth: 1,
+  borderTopColor: "#E5E5EA",
+  marginLeft: -20,
+  marginRight: -20,
+  paddingLeft: 20,
+  paddingRight: 20,
+};
 
 export function AvailabilityTab(props: AvailabilityTabProps) {
   return (
@@ -44,17 +53,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
 
       {props.selectedSchedule ? (
         <>
-          <View
-            className="mt-5 pt-5"
-            style={{
-              borderTopWidth: 1,
-              borderTopColor: "#E5E5EA",
-              marginLeft: -20,
-              marginRight: -20,
-              paddingLeft: 20,
-              paddingRight: 20,
-            }}
-          >
+          <View className="mt-5 pt-5" style={sectionDividerStyle}>
             {props.scheduleDetailsLoading ? (
               <View className="items-center py-4">
                 <Text className="text-sm italic text-[#8E8E93]">Loading schedule details...</Text>
@@ -87,17 +86,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
             )}
           </View>
 
-          <View
-            className="mt-5 pt-5"
-            style={{
-              borderTopWidth: 1,
-              borderTopColor: "#E5E5EA",
-              marginLeft: -20,
-              marginRight: -20,
-              paddingLeft: 20,
-              paddingRight: 20,
-            }}
-          >
+          <View className="mt-5 pt-5" style={sectionDividerStyle}>
             <Text className="mb-1.5 text-base font-semibold text-[#333]">Timezone</Text>
             <View className="items-center rounded-lg bg-[#F8F9FA] px-3 py-3">
               <Text className="text-center text-base text-[#666]">

@@ -62,7 +62,7 @@ export function LogoutButton({ className = "" }: LogoutButtonProps) {
     <>
       <TouchableOpacity
         onPress={handleLogoutPress}
-        className={`"px-4 rounded-lg" bg-gray-600 py-2 ${className}`}
+        className={`rounded-lg bg-gray-600 px-4 py-2 ${className}`}
         style={Platform.OS === "web" ? { cursor: "pointer" } : undefined}
         activeOpacity={0.7}
       >

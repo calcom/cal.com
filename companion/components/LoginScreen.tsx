@@ -66,7 +66,7 @@ export function LoginScreen() {
         <TouchableOpacity
           onPress={handleSignUp}
           className="mt-3 items-center justify-center py-1"
-          style={{ cursor: "pointer" } as any}
+          style={Platform.OS === "web" ? { cursor: "pointer" } : undefined}
           activeOpacity={0.7}
         >
           <View>
