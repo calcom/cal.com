@@ -2,13 +2,13 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import type { Feature } from "@calcom/prisma/client";
 
-import type { FeatureId, FeatureState } from "./config";
-import { FeaturesCacheEntries } from "./features-cache-keys";
-import type { IFeaturesRepository } from "./features.repository.interface";
+import type { FeatureId, FeatureState } from "../config";
+import { FeaturesCacheEntries } from "../features-cache-keys";
+import type { IFeaturesRepository } from "../features.repository.interface";
 
-import type { IRedisService } from "../redis/IRedisService";
+import type { IRedisService } from "../../redis/IRedisService";
 
-import { CachedFeaturesRepository } from "./cached-features.repository";
+import { CachedFeaturesRepository } from "../cached-features.repository";
 
 /**
  * In-memory mock Redis service for testing cache behavior.
