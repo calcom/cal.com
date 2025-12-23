@@ -243,7 +243,12 @@ export default function EventTypes() {
         }
       },
       onError: (error) => {
-        console.error("Failed to delete event type:", error);
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("Failed to delete event type", message);
+        if (__DEV__) {
+          const stack = error instanceof Error ? error.stack : undefined;
+          console.debug("[EventTypes] deleteEventType failed", { message, stack });
+        }
         if (Platform.OS === "web") {
           showToastMessage("Failed to delete event type");
         } else {
@@ -283,7 +288,12 @@ export default function EventTypes() {
           });
         },
         onError: (error) => {
-          console.error("Failed to duplicate event type:", error);
+          const message = error instanceof Error ? error.message : String(error);
+          console.error("Failed to duplicate event type", message);
+          if (__DEV__) {
+            const stack = error instanceof Error ? error.stack : undefined;
+            console.debug("[EventTypes] duplicateEventType failed", { message, stack });
+          }
           if (Platform.OS === "web") {
             showToastMessage("Failed to duplicate event type");
           } else {
@@ -305,7 +315,7 @@ export default function EventTypes() {
         await openInAppBrowser(link, "event type preview");
       }
     } catch (error) {
-      console.error("Failed to open preview:", error);
+      console.error("Failed to open preview");
       if (Platform.OS === "web") {
         showToastMessage("Failed to open preview");
       } else {
@@ -373,7 +383,12 @@ export default function EventTypes() {
           });
         },
         onError: (error) => {
-          console.error("Failed to create event type:", error);
+          const message = error instanceof Error ? error.message : String(error);
+          console.error("Failed to create event type", message);
+          if (__DEV__) {
+            const stack = error instanceof Error ? error.stack : undefined;
+            console.debug("[EventTypes] createEventType failed", { message, stack });
+          }
           showErrorAlert("Error", "Failed to create event type. Please try again.");
         },
       }
