@@ -170,7 +170,6 @@ const EventTypeWeb = ({
   const { data: eventTypeApps, isPending: isPendingApps } = trpc.viewer.apps.integrations.useQuery({
     extendsFeature: "EventType",
     teamId: eventType.team?.id || eventType.parent?.teamId,
-    onlyInstalled: true,
   });
 
   // Check workflow permissions
