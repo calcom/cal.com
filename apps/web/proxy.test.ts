@@ -6,10 +6,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { checkPostMethod } from "./middleware";
-// We'll test the wrapped middleware as it would be used in production
-import middleware from "./middleware";
-import { config } from "./middleware";
+import { checkPostMethod } from "./proxy";
+// We'll test the wrapped proxy as it would be used in production
+import proxy from "./proxy";
+import { config } from "./proxy";
 
 // Mock dependencies at module level
 vi.mock("@vercel/edge-config", () => ({
@@ -142,10 +142,10 @@ const expectStatus = (res: Response, status: number) => {
   expect(res.status).toBe(status);
 };
 
-// Wrapper for middleware calls to handle type casting
-const callMiddleware = async (req: NextRequest): Promise<Response> => {
+// Wrapper for proxy calls to handle type casting
+const callProxy = async (req: NextRequest): Promise<Response> => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (await (middleware as any)(req)) as Response;
+  return (await (proxy as any)(req)) as Response;
 };
 
 describe("Middleware - POST requests restriction", () => {
@@ -193,7 +193,7 @@ describe("Middleware Integration Tests", () => {
 
       for (const path of staticPaths) {
         const req = createTestRequest({ url: `${WEBAPP_URL}${path}` });
-        const res = await callMiddleware(req);
+        const res = await callProxy(req);
 
         expect(res).toBeDefined();
         expectStatus(res, 200);
@@ -214,7 +214,7 @@ describe("Middleware Integration Tests", () => {
         url: `${WEBAPP_URL}/team/test`,
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expect(res).toBeDefined();
       expectStatus(res, 200);
     });
@@ -230,7 +230,7 @@ describe("Middleware Integration Tests", () => {
         url: `${WEBAPP_URL}/api/bookings`,
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expect(res).toBeDefined();
       expectStatus(res, 200);
     });
@@ -249,7 +249,7 @@ describe("Middleware Integration Tests", () => {
         method: "POST",
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expectStatus(res, 503);
 
       const body = await res.text();
@@ -268,7 +268,7 @@ describe("Middleware Integration Tests", () => {
         method: "POST",
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expectStatus(res, 200);
     });
   });
@@ -281,7 +281,7 @@ describe("Middleware Integration Tests", () => {
         cookies: { "return-to": returnUrl },
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expectStatus(res, 307);
       expect(getHeader(res, "location")).toContain(returnUrl);
     });
@@ -291,7 +291,7 @@ describe("Middleware Integration Tests", () => {
         url: `${WEBAPP_URL}/apps/installed`,
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expectStatus(res, 200);
     });
 
@@ -300,7 +300,7 @@ describe("Middleware Integration Tests", () => {
         url: `${WEBAPP_URL}/auth/logout`,
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       const setCookie = getHeader(res, "set-cookie");
 
       if (setCookie) {
@@ -315,7 +315,7 @@ describe("Middleware Integration Tests", () => {
         url: `${WEBAPP_URL}/team/test/embed`,
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expect(getHeader(res, "x-isEmbed")).toBe("true");
     });
 
@@ -324,7 +324,7 @@ describe("Middleware Integration Tests", () => {
         url: `${WEBAPP_URL}/team/test/embed?flag.coep=true`,
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expect(getHeader(res, "Cross-Origin-Embedder-Policy")).toBe("require-corp");
     });
 
@@ -333,7 +333,7 @@ describe("Middleware Integration Tests", () => {
         url: `${WEBAPP_URL}/team/test/embed?ui.color-scheme=dark`,
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expect(getHeader(res, "x-embedColorScheme")).toBe("dark");
     });
   });
@@ -352,7 +352,7 @@ describe("Middleware Integration Tests", () => {
         url: `${WEBAPP_URL}/auth/login`,
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       const cspHeader = getHeader(res, "content-security-policy");
 
       expect(cspHeader).toBeTruthy();
@@ -365,7 +365,7 @@ describe("Middleware Integration Tests", () => {
         url: `${WEBAPP_URL}/team/test`,
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       const cspHeader = getHeader(res, "content-security-policy");
 
       expect(cspHeader).toBeNull();
@@ -378,7 +378,7 @@ describe("Middleware Integration Tests", () => {
         url: `${WEBAPP_URL}/auth/login`,
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expect(getHeader(res, "x-csp-status")).toBe("not-opted-in");
     });
   });
@@ -389,7 +389,7 @@ describe("Middleware Integration Tests", () => {
         url: `${WEBAPP_URL}/apps/routing_forms/form-id`,
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expect(res).toBeDefined();
       expectStatus(res, 200);
     });
@@ -407,7 +407,7 @@ describe("Middleware Integration Tests", () => {
         },
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expectStatus(res, 200);
 
       // Assert that middleware forwarded sanitized ASCII-only value
@@ -432,7 +432,7 @@ describe("Middleware Integration Tests", () => {
         },
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expectStatus(res, 200);
 
       const initArg = (spy as unknown as Mock).mock.calls.at(-1)?.[0] as {
@@ -452,7 +452,7 @@ describe("Middleware Integration Tests", () => {
         url: `${WEBAPP_URL}/apps/routing_forms/form/embed?ui.color-scheme=light`,
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expect(getHeader(res, "x-isEmbed")).toBe("true");
       expect(getHeader(res, "x-embedColorScheme")).toBe("light");
     });
@@ -468,7 +468,7 @@ describe("Middleware Integration Tests", () => {
         url: `${WEBAPP_URL}/team/test`,
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expect(res).toBeDefined();
       expectStatus(res, 200);
     });
@@ -478,7 +478,7 @@ describe("Middleware Integration Tests", () => {
         url: `${WEBAPP_URL}//double-slash`,
       });
 
-      const res = await callMiddleware(req);
+      const res = await callProxy(req);
       expect(res).toBeDefined();
     });
   });
