@@ -60,7 +60,7 @@ function mockEventTypeRedirectUrlMatchingRoute() {
 /**
  * fixes the error due to Formbricks
  */
-vi.mock("@calcom/features/shell/Shell", () => ({
+vi.mock("@calcom/web/modules/shell/Shell", () => ({
   ShellMain: vi.fn(),
 }));
 

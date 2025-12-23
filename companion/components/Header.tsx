@@ -1,4 +1,9 @@
+import { CalComAPIService, UserProfile } from "../services/calcom";
+import { openInAppBrowser } from "../utils/browser";
+import { CalComLogo } from "./CalComLogo";
+import { FullScreenModal } from "./FullScreenModal";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
@@ -11,12 +16,7 @@ import {
   ActionSheetIOS,
   Alert,
 } from "react-native";
-import * as Clipboard from "expo-clipboard";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CalComAPIService, UserProfile } from "../services/calcom";
-import { CalComLogo } from "./CalComLogo";
-import { FullScreenModal } from "./FullScreenModal";
-import { openInAppBrowser } from "../utils/browser";
 
 export function Header() {
   const router = useRouter();
