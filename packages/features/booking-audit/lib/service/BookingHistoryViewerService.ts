@@ -9,9 +9,7 @@ type GetHistoryForBookingParams = {
     organizationId: number | null;
 };
 
-type HistoryEntry = Awaited<
-    ReturnType<BookingAuditViewerService["getAuditLogsForBooking"]>
->["auditLogs"][number];
+type BookingHistoryLog = DisplayBookingAuditLog;
 
 interface BookingHistoryViewerServiceDeps {
     bookingAuditViewerService: BookingAuditViewerService;
@@ -27,34 +25,37 @@ export class BookingHistoryViewerService {
         this.routingFormResponseRepository = deps.routingFormResponseRepository;
     }
 
-    async getHistoryForBooking(
-        params: GetHistoryForBookingParams
-    ): Promise<{ bookingUid: string; auditLogs: HistoryEntry[] }> {
-        const { bookingUid } = params;
-
-        const auditLogsResult = await this.bookingAuditViewerService.getAuditLogsForBooking(params);
-
-        const formResponse = await this.routingFormResponseRepository.findByBookingUidIncludeForm(bookingUid);
-
-        const historyEntries: HistoryEntry[] = [...auditLogsResult.auditLogs];
-
-        if (formResponse) {
-            const formSubmissionEntry = this.createFormSubmissionEntry({
-                formResponse,
-                bookingUid,
-            });
-            historyEntries.push(formSubmissionEntry);
-        }
-
-        historyEntries.sort((a, b) => {
+    private sortLogsReverseChronologically(historyLogs: BookingHistoryLog[]): BookingHistoryLog[] {
+        return historyLogs.sort((a, b) => {
             const timestampA = new Date(a.timestamp).getTime();
             const timestampB = new Date(b.timestamp).getTime();
-            return timestampA - timestampB;
+            return timestampB - timestampA;
         });
+    }
+
+    private async getFormAuditLogsForBooking(bookingUid: string): Promise<BookingHistoryLog[]> {
+        // TODO: Form doesn't have its Audit Logs yet, so we replicate them using the Form Response directly for now.
+        const formResponse = await this.routingFormResponseRepository.findByBookingUidIncludeForm(bookingUid);
+        if (!formResponse) {
+            return [];
+        }
+        return [this.createFormSubmissionEntry({ formResponse, bookingUid })];
+    }
+
+    async getHistoryForBooking(
+        params: GetHistoryForBookingParams
+    ): Promise<{ bookingUid: string; auditLogs: BookingHistoryLog[] }> {
+        const { bookingUid } = params;
+
+        const { auditLogs: bookingAuditLogs } = await this.bookingAuditViewerService.getAuditLogsForBooking(params);
+
+        const historyEntries: BookingHistoryLog[] = [...bookingAuditLogs, ...await this.getFormAuditLogsForBooking(bookingUid)];
+
+        const sortedLogs = this.sortLogsReverseChronologically(historyEntries);
 
         return {
             bookingUid,
-            auditLogs: historyEntries,
+            auditLogs: sortedLogs,
         };
     }
 
@@ -66,18 +67,18 @@ export class BookingHistoryViewerService {
             Awaited<ReturnType<RoutingFormResponseRepositoryInterface["findByBookingUidIncludeForm"]>>
         >;
         bookingUid: string;
-    }): HistoryEntry {
+    }): BookingHistoryLog {
         const timestamp = formResponse.createdAt.toISOString();
 
         return {
-            id: `form-submission-${formResponse.id}`,
+            id: `id: ${uniqueId}`,
             bookingUid,
             type: "RECORD_CREATED",
             action: "CREATED",
             timestamp,
             createdAt: timestamp,
             source: "WEBAPP",
-            operationId: `form-submission-${formResponse.id}`,
+            operationId: `operationId: ${uniqueId}`,
             displayJson: null,
             actionDisplayTitle: { key: "form_submitted" },
             displayFields: null,

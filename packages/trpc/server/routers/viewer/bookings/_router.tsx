@@ -108,7 +108,7 @@ export const bookingsRouter = router({
       input,
     });
   }),
-  getAuditLogs: authedProcedure.input(ZGetBookingHistoryInputSchema).query(async ({ input, ctx }) => {
+  getBookingHistory: authedProcedure.input(ZGetBookingHistoryInputSchema).query(async ({ input, ctx }) => {
     const { getBookingHistoryHandler } = await import("./getBookingHistory.handler");
 
     return getBookingHistoryHandler({
