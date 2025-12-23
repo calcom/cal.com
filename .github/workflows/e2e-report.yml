@@ -192,7 +192,7 @@ jobs:
       source_run_number: ${{ needs.get-pr-info.outputs.source-run-number }}
       source_run_attempt: ${{ needs.get-pr-info.outputs.source-run-attempt }}
       source_head_sha: ${{ needs.get-pr-info.outputs.source-head-sha }}
-    secrets: inherit
+    # No secrets: inherit - merge-reports only needs the default GITHUB_TOKEN for artifact download
 
   publish-report:
     name: Publish HTML report

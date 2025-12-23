@@ -31,7 +31,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           run-id: ${{ inputs.source_run_id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           path: all-blob-reports
           pattern: blob-report-*
           merge-multiple: true
