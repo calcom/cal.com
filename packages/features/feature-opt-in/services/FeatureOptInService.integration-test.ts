@@ -19,11 +19,6 @@ afterEach(async () => {
   cleanupFunctions.length = 0;
 });
 
-// Access private clearCache method through type assertion
-const clearFeaturesCache = (repo: FeaturesRepository) => {
-  (repo as unknown as { clearCache: () => void }).clearCache();
-};
-
 interface TestEntities {
   user: { id: number };
   org: { id: number };
@@ -91,8 +86,6 @@ async function setup(): Promise<TestEntities> {
         type: "EXPERIMENT",
       },
     });
-    // Clear cache after creating feature so getAllFeatures() returns fresh data
-    clearFeaturesCache(featuresRepository);
     return featureSlug;
   };
 

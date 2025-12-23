@@ -1,7 +1,13 @@
+import type { Feature } from "@calcom/prisma/client";
+
 import type { FeatureId, FeatureState } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 export class MockFeaturesRepository implements IFeaturesRepository {
+  async getAllFeatures(): Promise<Feature[]> {
+    return [];
+  }
+
   async checkIfUserHasFeature(_userId: number, slug: string) {
     return slug === "mock-feature";
   }
@@ -20,7 +26,7 @@ export class MockFeaturesRepository implements IFeaturesRepository {
   }
 
   async checkIfTeamHasFeature(_teamId: number, slug: FeatureId) {
-    return slug === "mock-feature";
+    return slug === ("mock-feature" as FeatureId);
   }
 
   async checkIfFeatureIsEnabledGlobally(_slug: FeatureId) {

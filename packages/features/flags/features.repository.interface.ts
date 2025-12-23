@@ -1,3 +1,5 @@
+import type { Feature } from "@calcom/prisma/client";
+
 import type { FeatureId, FeatureState } from "./config";
 
 /**
@@ -5,6 +7,10 @@ import type { FeatureId, FeatureState } from "./config";
  * This interface defines methods for checking feature flags and team feature access.
  */
 export interface IFeaturesRepository {
+  /**
+   * Get all features with their enabled status.
+   */
+  getAllFeatures(): Promise<Feature[]>;
   checkIfFeatureIsEnabledGlobally(slug: FeatureId): Promise<boolean>;
   checkIfUserHasFeature(userId: number, slug: string): Promise<boolean>;
   getUserFeaturesStatus(userId: number, slugs: string[]): Promise<Record<string, boolean>>;

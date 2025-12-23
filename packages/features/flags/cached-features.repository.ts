@@ -4,7 +4,7 @@ import type { FeatureId, FeatureState } from "./config";
 import { type CacheEntry, FeaturesCacheEntries as KEYS } from "./features-cache-keys";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
-const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const DEFAULT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
  * Caching proxy for FeaturesRepository using per-entity canonical caches.
@@ -66,17 +66,21 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   /**
    * Get or fetch pattern: check cache, fetch if miss, store result.
    */
-  private async withCache<T>(entry: CacheEntry<T>, fetch: () => Promise<T>): Promise<T> {
+  private async withCache<T>(entry: CacheEntry<T>, fetchData: () => Promise<T>): Promise<T> {
     const cached = await this.getValue(entry);
     if (cached !== null) {
       return cached;
     }
-    const result = await fetch();
+    const result = await fetchData();
     await this.setValue(entry, result);
     return result;
   }
 
   // === TTL-only caches (global data, no explicit invalidation) ===
+
+  async getAllFeatures() {
+    return this.withCache(KEYS.allFeatures(), () => this.featuresRepository.getAllFeatures());
+  }
 
   async checkIfFeatureIsEnabledGlobally(slug: FeatureId): Promise<boolean> {
     return this.withCache(KEYS.globalFeature(slug), () =>

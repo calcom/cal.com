@@ -23,7 +23,6 @@ interface TestEntities {
   team: { id: number };
   testFeature: FeatureId;
   featuresRepository: FeaturesRepository;
-  clearCache: () => void;
 }
 
 /**
@@ -51,11 +50,6 @@ async function setup(): Promise<TestEntities> {
   });
 
   const featuresRepository = new FeaturesRepository(prisma);
-
-  // Access private clearCache method through type assertion
-  const clearCache = () => {
-    (featuresRepository as unknown as { clearCache: () => void }).clearCache();
-  };
 
   // Cleanup function - automatically registered with afterEach
   const cleanup = async () => {
@@ -88,7 +82,6 @@ async function setup(): Promise<TestEntities> {
     team,
     testFeature,
     featuresRepository,
-    clearCache,
   };
 }
 
@@ -103,15 +96,12 @@ describe("FeaturesRepository Integration Tests", () => {
       });
       expect(dbFeature).toBeNull();
 
-      // First call to initialize cache
-      await featuresRepository.checkIfFeatureIsEnabledGlobally(testFeature);
-      // Second call to get actual result
       const result = await featuresRepository.checkIfFeatureIsEnabledGlobally(testFeature);
       expect(result).toBe(false);
     });
 
     it("should return true when feature is enabled globally", async () => {
-      const { testFeature, featuresRepository, clearCache } = await setup();
+      const { testFeature, featuresRepository } = await setup();
 
       // Create the feature with enabled set to true
       await prisma.feature.create({
@@ -122,9 +112,6 @@ describe("FeaturesRepository Integration Tests", () => {
         },
       });
 
-      // Clear the feature flag cache
-      clearCache();
-
       // Verify database state
       const dbFeature = await prisma.feature.findUnique({
         where: { slug: testFeature },
@@ -132,9 +119,6 @@ describe("FeaturesRepository Integration Tests", () => {
       expect(dbFeature).not.toBeNull();
       expect(dbFeature?.enabled).toBe(true);
 
-      // First call to initialize cache
-      await featuresRepository.checkIfFeatureIsEnabledGlobally(testFeature);
-      // Second call to get actual result
       const result = await featuresRepository.checkIfFeatureIsEnabledGlobally(testFeature);
       expect(result).toBe(true);
     });
@@ -336,7 +320,7 @@ describe("FeaturesRepository Integration Tests", () => {
     });
 
     it("should return true when user belongs to team where parent team has feature", async () => {
-      const { user, team, testFeature, featuresRepository, clearCache } = await setup();
+      const { user, team, testFeature, featuresRepository } = await setup();
 
       // Create an organization
       const org = await prisma.team.create({
@@ -361,9 +345,6 @@ describe("FeaturesRepository Integration Tests", () => {
           type: "OPERATIONAL",
         },
       });
-
-      // Clear the feature flag cache
-      clearCache();
 
       // Assign feature to the organization
       await prisma.teamFeatures.create({
@@ -914,7 +895,7 @@ describe("FeaturesRepository Integration Tests", () => {
 
   describe("getTeamsWithFeatureEnabled", () => {
     it("should return empty array when no teams have the feature", async () => {
-      const { testFeature, featuresRepository, clearCache } = await setup();
+      const { testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -924,14 +905,12 @@ describe("FeaturesRepository Integration Tests", () => {
         },
       });
 
-      clearCache();
-
       const result = await featuresRepository.getTeamsWithFeatureEnabled(testFeature);
       expect(result).toEqual([]);
     });
 
     it("should return teams with enabled=true only", async () => {
-      const { team, testFeature, featuresRepository, clearCache } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -969,8 +948,6 @@ describe("FeaturesRepository Integration Tests", () => {
         },
       });
 
-      clearCache();
-
       const result = await featuresRepository.getTeamsWithFeatureEnabled(testFeature);
       expect(result).toContain(team.id);
       expect(result).not.toContain(secondTeam.id);
@@ -985,7 +962,7 @@ describe("FeaturesRepository Integration Tests", () => {
     });
 
     it("should return empty array when feature is not globally enabled", async () => {
-      const { team, testFeature, featuresRepository, clearCache } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -1003,8 +980,6 @@ describe("FeaturesRepository Integration Tests", () => {
           assignedBy: "test",
         },
       });
-
-      clearCache();
 
       const result = await featuresRepository.getTeamsWithFeatureEnabled(testFeature);
       expect(result).toEqual([]);
