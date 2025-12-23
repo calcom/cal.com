@@ -7,10 +7,13 @@ const config: Config = {
   moduleNameMapper: {
     "@/(.*)": "<rootDir>/src/$1",
     "test/(.*)": "<rootDir>/test/$1",
-    "^@calcom/platform-constants$": "<rootDir>/../../../packages/platform/constants/dist/index.js",
-    "^@calcom/platform-enums$": "<rootDir>/../../../packages/platform/enums/dist/index.js",
-    "^@calcom/platform-types$": "<rootDir>/../../../packages/platform/types/dist/index.js",
-    "^@calcom/platform-utils$": "<rootDir>/../../../packages/platform/utils/dist/index.js",
+    // Map platform packages to TypeScript source files so ts-jest can transform them to CJS
+    "^@calcom/platform-constants$": "<rootDir>/../../../packages/platform/constants/index.ts",
+    "^@calcom/platform-enums$": "<rootDir>/../../../packages/platform/enums/index.ts",
+    "^@calcom/platform-types$": "<rootDir>/../../../packages/platform/types/index.ts",
+    "^@calcom/platform-utils$": "<rootDir>/../../../packages/platform/utils/index.ts",
+    "^@calcom/platform-libraries$": "<rootDir>/../../../packages/platform/libraries/src/index.ts",
+    "^@calcom/platform-libraries/(.*)$": "<rootDir>/../../../packages/platform/libraries/src/$1.ts",
   },
   testEnvironment: "node",
   testRegex: ".*\\.spec\\.ts$",
