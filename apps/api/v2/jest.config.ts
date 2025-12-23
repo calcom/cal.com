@@ -7,6 +7,10 @@ const config: Config = {
   moduleNameMapper: {
     "@/(.*)": "<rootDir>/src/$1",
     "test/(.*)": "<rootDir>/test/$1",
+    "^@calcom/platform-constants$": "<rootDir>/../../packages/platform/constants/dist/index.js",
+    "^@calcom/platform-enums$": "<rootDir>/../../packages/platform/enums/dist/index.js",
+    "^@calcom/platform-types$": "<rootDir>/../../packages/platform/types/dist/index.js",
+    "^@calcom/platform-utils$": "<rootDir>/../../packages/platform/utils/dist/index.js",
   },
   testEnvironment: "node",
   testRegex: ".*\\.spec\\.ts$",
