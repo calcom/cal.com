@@ -53,7 +53,6 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
@@ -801,15 +800,14 @@ export default function Success(props: PageProps) {
                           </span>
                           {/* Login button but redirect to here */}
                           <span className="text-default inline">
-                            <span className="underline" data-testid="reschedule-link">
-                              <Link
-                                href={`/auth/login?callbackUrl=${encodeURIComponent(
-                                  `/booking/${bookingInfo?.uid}`
-                                )}`}
-                                legacyBehavior>
-                                {t("login")}
-                              </Link>
-                            </span>
+                            <Link
+                              href={`/auth/login?callbackUrl=${encodeURIComponent(
+                                `/booking/${bookingInfo?.uid}`
+                              )}`}
+                              className="underline"
+                              data-testid="reschedule-link">
+                              {t("login")}
+                            </Link>
                           </span>
                         </div>
                       </>
@@ -839,17 +837,16 @@ export default function Success(props: PageProps) {
                                     canReschedule &&
                                     !isRescheduleDisabled && (
                                       <span className="text-default inline">
-                                        <span className="underline" data-testid="reschedule-link">
-                                          <Link
-                                            href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                              currentUserEmail
-                                                ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                                : ""
-                                            }`}
-                                            legacyBehavior>
-                                            {t("reschedule")}
-                                          </Link>
-                                        </span>
+                                        <Link
+                                          href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+                                            currentUserEmail
+                                              ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                              : ""
+                                          }`}
+                                          className="underline"
+                                          data-testid="reschedule-link">
+                                          {t("reschedule")}
+                                        </Link>
                                         {!isBookingInPast && canCancel && (
                                           <span className="mx-2">{t("or_lowercase")}</span>
                                         )}

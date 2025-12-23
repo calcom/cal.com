@@ -65,6 +65,15 @@ export {
   type UpdateUserProfileInput,
 } from "./useUserProfile";
 
+// UI State Management hooks
+export {
+  useActiveBookingFilter,
+  type BookingFilter,
+  type BookingFilterOption,
+} from "./useActiveBookingFilter";
+
+export { useBookingActions } from "./useBookingActions";
+
 // Re-export query keys for advanced use cases
 export { queryKeys } from "../config/cache.config";
 
