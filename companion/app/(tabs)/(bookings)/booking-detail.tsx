@@ -114,7 +114,7 @@ export default function BookingDetail() {
               ))}
             </Stack.Header.Menu>
 
-            {/* Standalone Actions */}
+            {/* Danger Zone Submenu */}
             <Stack.Header.Menu inline title="Danger Zone">
               {bookingActionsSections.standalone.map((action) => (
                 <Stack.Header.MenuAction
