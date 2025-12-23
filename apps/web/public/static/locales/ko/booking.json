@@ -1,4 +1,5 @@
 {
+  "event_between_users": "{{host}} 와 {{attendeeName}} 사이의 {{eventName}}",
   "nameless_team": "이름 없는 팀",
   "number_member_one": "회원 {{count}}명",
   "number_member_other": "회원 {{count}}명",

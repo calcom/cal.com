@@ -1,4 +1,5 @@
 {
+  "event_between_users": "{{eventName}} រវាង {{host}} និង {{attendeeName}}",
   "nameless_team": "ក្រុមគ្មានឈ្មោះ",
   "number_member_one": "{{count}} សមាជិក",
   "number_member_other": "{{count}} សមាជិក",

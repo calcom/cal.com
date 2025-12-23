@@ -1,4 +1,5 @@
 {
+  "event_between_users": "«{{eventName}}» за участі ведучого {{host}} і учасника {{attendeeName}}",
   "nameless_team": "Команда без назви",
   "number_member_one": "{{count}} учасник",
   "number_member_other": "Учасників: {{count}}",

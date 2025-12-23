@@ -1,4 +1,5 @@
 {
+  "event_between_users": "{{eventName}} între {{host}} și {{attendeeName}}",
   "nameless_team": "Echipă fără nume",
   "number_member_one": "{{count}} membru",
   "number_member_other": "{{count}} (de) membri",

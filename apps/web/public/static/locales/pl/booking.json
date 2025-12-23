@@ -1,4 +1,5 @@
 {
+  "event_between_users": "{{eventName}} między {{host}} a {{attendeeName}}",
   "nameless_team": "Zespół bez nazwy",
   "number_member_one": "{{count}} członek",
   "number_member_other": "{{count}} członków",
