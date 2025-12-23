@@ -33,6 +33,7 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          predicate-quantifier: "every"
           filters: |
             has-files-requiring-all-checks:
               - '**'
