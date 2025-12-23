@@ -38,7 +38,7 @@
     "rollup-plugin-node-builtins": "^2.1.2",
     "ts-jest": "^29.1.2",
     "typescript": "5.9.2",
-    "vite": "5.4.6",
+    "vite": "5.4.21",
     "vite-plugin-dts": "^3.7.3",
     "vite-plugin-inspect": "^0.8.4",
     "vite-plugin-node-polyfills": "^0.22.0"
