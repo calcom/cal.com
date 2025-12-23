@@ -26,6 +26,19 @@
       "types": "./dist/src/api.d.ts"
     }
   },
+  "typesVersions": {
+    "*": {
+      "permissions": [
+        "./dist/src/permissions.d.ts"
+      ],
+      "apps": [
+        "./dist/src/apps.d.ts"
+      ],
+      "api": [
+        "./dist/src/api.d.ts"
+      ]
+    }
+  },
   "scripts": {
     "build": "tsc --build --force tsconfig.json",
     "build:watch": "tsc --build --force ./tsconfig.json --watch",

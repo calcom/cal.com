@@ -26,6 +26,19 @@
       "types": "./dist/src/bookings/2024-08-13/inputs/location.input.d.ts"
     }
   },
+  "typesVersions": {
+    "*": {
+      "event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit": [
+        "./dist/src/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit.d.ts"
+      ],
+      "utils/RequiresOneOfPropertiesWhenNotDisabled": [
+        "./dist/src/utils/RequiresOneOfPropertiesWhenNotDisabled.d.ts"
+      ],
+      "bookings/2024-08-13/inputs/location.input": [
+        "./dist/src/bookings/2024-08-13/inputs/location.input.d.ts"
+      ]
+    }
+  },
   "scripts": {
     "build": "yarn clean && tsc --build --force tsconfig.json",
     "clean": "rm -rf ./dist",
