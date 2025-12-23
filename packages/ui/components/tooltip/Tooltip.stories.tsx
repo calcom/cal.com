@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { Provider as TooltipProvider } from "@radix-ui/react-tooltip";
 
 import { Button } from "../button";
 import { Icon } from "../icon";
@@ -28,11 +27,9 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <TooltipProvider>
-        <div className="p-16">
-          <Story />
-        </div>
-      </TooltipProvider>
+      <div className="p-16">
+        <Story />
+      </div>
     ),
   ],
 } satisfies Meta<typeof Tooltip>;

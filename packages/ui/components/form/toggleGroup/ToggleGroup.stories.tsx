@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { Provider as TooltipProvider } from "@radix-ui/react-tooltip";
 import { fn } from "storybook/test";
 
 import { Icon } from "../../icon";
@@ -14,13 +13,6 @@ const meta = {
   args: {
     onValueChange: fn(),
   },
-  decorators: [
-    (Story) => (
-      <TooltipProvider>
-        <Story />
-      </TooltipProvider>
-    ),
-  ],
 } satisfies Meta<typeof ToggleGroup>;
 
 export default meta;

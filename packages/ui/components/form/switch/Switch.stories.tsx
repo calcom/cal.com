@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { Provider as TooltipProvider } from "@radix-ui/react-tooltip";
 import { fn } from "storybook/test";
 
 import { Switch } from "./Switch";
@@ -36,13 +35,6 @@ const meta = {
   args: {
     onCheckedChange: fn(),
   },
-  decorators: [
-    (Story) => (
-      <TooltipProvider>
-        <Story />
-      </TooltipProvider>
-    ),
-  ],
 } satisfies Meta<typeof Switch>;
 
 export default meta;

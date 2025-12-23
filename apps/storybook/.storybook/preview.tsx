@@ -1,6 +1,7 @@
 import type { Preview } from '@storybook/nextjs-vite';
 import '../src/styles/globals.css';
 import { withThemeByClassName } from '@storybook/addon-themes';
+import { Provider as TooltipProvider } from '@radix-ui/react-tooltip';
 import { ElementInspector } from './components/ElementInspector';
 import { IframeKeyboardRelay } from './components/IframeKeyboardRelay';
 import { IframeReloadListener } from './components/IframeReloadListener';
@@ -25,7 +26,7 @@ const preview: Preview = {
       defaultTheme: 'light',
     }),
     (Story) => (
-      <>
+      <TooltipProvider>
         <IconSprites />
         {!isStaticBuild && <IframeReloadListener />}
         {!isStaticBuild && <IframeKeyboardRelay />}
@@ -33,7 +34,7 @@ const preview: Preview = {
         <div className="font-sans">
           <Story />
         </div>
-      </>
+      </TooltipProvider>
     ),
   ],
   parameters: {
