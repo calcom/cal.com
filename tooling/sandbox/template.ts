@@ -21,14 +21,14 @@ export const template = Template()
   .runCmd('corepack enable && corepack prepare yarn@4.12.0 --activate', { user: 'root' })
   .skipCache()
   .gitClone(
-    `https://${process.env.GIT_ACCESS_TOKEN}@github.com/YOUR_ORG/cal.com.git`,
+    `https://${process.env.GIT_ACCESS_TOKEN}@github.com/onlook-dev/cal.com.git`,
     '/home/user/code',
-    { branch: 'main' },
+    { branch: 'feat/storybook-setup' },
   )
   .setWorkdir('/home/user/code')
   .runCmd('yarn install')
   .runCmd('npx playwright install --with-deps chromium')
   .setStartCmd(
-    'cd /home/user/code; git pull https://$GIT_ACCESS_TOKEN@github.com/YOUR_ORG/cal.com.git main; yarn install; cd apps/storybook; yarn storybook -- --host 0.0.0.0 --disable-telemetry --no-open',
+    'cd /home/user/code; git pull https://$GIT_ACCESS_TOKEN@github.com/onlook-dev/cal.com.git feat/storybook-setup; yarn install; yarn workspace @calcom/storybook storybook --host 0.0.0.0 --disable-telemetry --no-open',
     waitForPort(6006),
   );

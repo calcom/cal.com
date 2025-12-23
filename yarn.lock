@@ -3242,7 +3242,7 @@ __metadata:
   dependencies:
     "@types/node": "npm:^20.0.0"
     dotenv: "npm:^16.4.5"
-    e2b: "npm:^1.0.0"
+    e2b: "npm:^2.2.0"
     tsx: "npm:^4.0.0"
     typescript: "npm:^5.0.0"
   languageName: unknown
@@ -7412,6 +7412,15 @@ __metadata:
     wrap-ansi: "npm:^8.1.0"
     wrap-ansi-cjs: "npm:wrap-ansi@^7.0.0"
   checksum: 10/e9ed5fd27c3aec1095e3a16e0c0cf148d1fee55a38665c35f7b3f86a9b5d00d042ddaabc98e8a1cb7463b9378c15f22a94eb35e99469c201453eb8375191f243
+  languageName: node
+  linkType: hard
+
+"@isaacs/fs-minipass@npm:^4.0.0":
+  version: 4.0.1
+  resolution: "@isaacs/fs-minipass@npm:4.0.1"
+  dependencies:
+    minipass: "npm:^7.0.4"
+  checksum: 10/4412e9e6713c89c1e66d80bb0bb5a2a93192f10477623a27d08f228ba0316bb880affabc5bfe7f838f58a34d26c2c190da726e576cdfc18c49a72e89adabdcf5
   languageName: node
   linkType: hard
 
@@ -21975,6 +21984,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chownr@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "chownr@npm:3.0.0"
+  checksum: 10/b63cb1f73d171d140a2ed8154ee6566c8ab775d3196b0e03a2a94b5f6a0ce7777ee5685ca56849403c8d17bd457a6540672f9a60696a6137c7a409097495b82c
+  languageName: node
+  linkType: hard
+
 "chromatic@npm:^13.3.3":
   version: 13.3.4
   resolution: "chromatic@npm:13.3.4"
@@ -24219,6 +24235,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dockerfile-ast@npm:^0.7.1":
+  version: 0.7.1
+  resolution: "dockerfile-ast@npm:0.7.1"
+  dependencies:
+    vscode-languageserver-textdocument: "npm:^1.0.8"
+    vscode-languageserver-types: "npm:^3.17.3"
+  checksum: 10/6552ae4b1bb0235d8581155b9597e439a5a0dc4b4190162aa94946f929b4acbf90006c2466fdbd745fe20f3077e16cc03931d1b5e5a9b1599a089995888e61fa
+  languageName: node
+  linkType: hard
+
 "doctrine@npm:3.0.0, doctrine@npm:^3.0.0":
   version: 3.0.0
   resolution: "doctrine@npm:3.0.0"
@@ -24544,17 +24570,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"e2b@npm:^1.0.0":
-  version: 1.13.2
-  resolution: "e2b@npm:1.13.2"
+"e2b@npm:^2.2.0":
+  version: 2.9.0
+  resolution: "e2b@npm:2.9.0"
   dependencies:
     "@bufbuild/protobuf": "npm:^2.6.2"
     "@connectrpc/connect": "npm:2.0.0-rc.3"
     "@connectrpc/connect-web": "npm:2.0.0-rc.3"
+    chalk: "npm:^5.3.0"
     compare-versions: "npm:^6.1.0"
-    openapi-fetch: "npm:^0.9.7"
+    dockerfile-ast: "npm:^0.7.1"
+    glob: "npm:^11.1.0"
+    openapi-fetch: "npm:^0.14.1"
     platform: "npm:^1.3.6"
-  checksum: 10/76c44298feedf7d3b74b80a175509f1c836407ff392b56db3f2a1dbe1cf02077cbad4132c00dedcd4860f2bf335edf85b1fb40fd01ffff06dffb755a01d87fca
+    tar: "npm:^7.5.2"
+  checksum: 10/69c731cabba84f4d566334a026fe98d325848a7847b910d5854ea4708ce78817d77dbbca31b69b6670596a4bc16d76a00abced94e617f5b8bfb8bf8d5d04d5c4
   languageName: node
   linkType: hard
 
@@ -34134,7 +34164,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minipass@npm:^5.0.0 || ^6.0.2 || ^7.0.0, minipass@npm:^7.0.2, minipass@npm:^7.0.3, minipass@npm:^7.1.2":
+"minipass@npm:^5.0.0 || ^6.0.2 || ^7.0.0, minipass@npm:^7.0.2, minipass@npm:^7.0.3, minipass@npm:^7.0.4, minipass@npm:^7.1.2":
   version: 7.1.2
   resolution: "minipass@npm:7.1.2"
   checksum: 10/c25f0ee8196d8e6036661104bacd743785b2599a21de5c516b32b3fa2b83113ac89a2358465bc04956baab37ffb956ae43be679b2262bf7be15fce467ccd7950
@@ -34148,6 +34178,15 @@ __metadata:
     minipass: "npm:^3.0.0"
     yallist: "npm:^4.0.0"
   checksum: 10/ae0f45436fb51344dcb87938446a32fbebb540d0e191d63b35e1c773d47512e17307bf54aa88326cc6d176594d00e4423563a091f7266c2f9a6872cdc1e234d1
+  languageName: node
+  linkType: hard
+
+"minizlib@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "minizlib@npm:3.1.0"
+  dependencies:
+    minipass: "npm:^7.1.2"
+  checksum: 10/f47365cc2cb7f078cbe7e046eb52655e2e7e97f8c0a9a674f4da60d94fb0624edfcec9b5db32e8ba5a99a5f036f595680ae6fe02a262beaa73026e505cc52f99
   languageName: node
   linkType: hard
 
@@ -35933,19 +35972,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openapi-fetch@npm:^0.9.7":
-  version: 0.9.8
-  resolution: "openapi-fetch@npm:0.9.8"
+"openapi-fetch@npm:^0.14.1":
+  version: 0.14.1
+  resolution: "openapi-fetch@npm:0.14.1"
   dependencies:
-    openapi-typescript-helpers: "npm:^0.0.8"
-  checksum: 10/97f9dbff46d168d43864b2ac9eb7db3b84d92e7f33368e66b9271f41ea5992e3cce6a2c0f243bf3d7a8468828ed7a677f5bc161f68e1bde50a5370a064a76618
+    openapi-typescript-helpers: "npm:^0.0.15"
+  checksum: 10/557f43f70b08bc6bdbc40b344cd9a82ef26e0ee957b81820ecda4b09f55c9749371cf527efc9a811748aaacc50c75fd72c8001836e9dce542d2836bd65f902df
   languageName: node
   linkType: hard
 
-"openapi-typescript-helpers@npm:^0.0.8":
-  version: 0.0.8
-  resolution: "openapi-typescript-helpers@npm:0.0.8"
-  checksum: 10/e309d7d297cf78308c41c324ffe094c3ef194117bf104b5300e45535d158265f665c69e810a143f1d3db7020575c3041e370d2ee93fc8094f5aabc14a366fc39
+"openapi-typescript-helpers@npm:^0.0.15":
+  version: 0.0.15
+  resolution: "openapi-typescript-helpers@npm:0.0.15"
+  checksum: 10/63f8f0b8464aed3e5c6910428bd14839bd5c1dd6ddf841bcea9d5f536a6e03e942a028202920da1a8b1ed9e4304c6fca14943d01a8adff2942d1254a229b8c70
   languageName: node
   linkType: hard
 
@@ -42627,6 +42666,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tar@npm:^7.5.2":
+  version: 7.5.2
+  resolution: "tar@npm:7.5.2"
+  dependencies:
+    "@isaacs/fs-minipass": "npm:^4.0.0"
+    chownr: "npm:^3.0.0"
+    minipass: "npm:^7.1.2"
+    minizlib: "npm:^3.1.0"
+    yallist: "npm:^5.0.0"
+  checksum: 10/dbad9c9a07863cd1bdf8801d563b3280aa7dd0f4a6cead779ff7516d148dc80b4c04639ba732d47f91f04002f57e8c3c6573a717d649daecaac74ce71daa7ad3
+  languageName: node
+  linkType: hard
+
 "tarn@npm:^3.0.2":
   version: 3.0.2
   resolution: "tarn@npm:3.0.2"
@@ -45329,6 +45381,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vscode-languageserver-textdocument@npm:^1.0.8":
+  version: 1.0.12
+  resolution: "vscode-languageserver-textdocument@npm:1.0.12"
+  checksum: 10/2bc0fde952d40f35a31179623d1491b0fafdee156aaf58557f40f5d394a25fc84826763cdde55fa6ce2ed9cd35a931355ad6dd7fe5db82e7f21e5d865f0af8c6
+  languageName: node
+  linkType: hard
+
+"vscode-languageserver-types@npm:^3.17.3":
+  version: 3.17.5
+  resolution: "vscode-languageserver-types@npm:3.17.5"
+  checksum: 10/900d0b81df5bef8d90933e75be089142f6989cc70fdb2d5a3a5f11fa20feb396aaea23ccffc8fbcc83a2f0e1b13c6ee48ff8151f236cbd6e61a4f856efac1a58
+  languageName: node
+  linkType: hard
+
 "vue-template-compiler@npm:^2.7.14":
   version: 2.7.16
   resolution: "vue-template-compiler@npm:2.7.16"
@@ -46230,6 +46296,13 @@ __metadata:
   version: 3.1.1
   resolution: "yallist@npm:3.1.1"
   checksum: 10/9af0a4329c3c6b779ac4736c69fae4190ac03029fa27c1aef4e6bcc92119b73dea6fe5db5fe881fb0ce2a0e9539a42cdf60c7c21eda04d1a0b8c082e38509efb
+  languageName: node
+  linkType: hard
+
+"yallist@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "yallist@npm:5.0.0"
+  checksum: 10/1884d272d485845ad04759a255c71775db0fac56308764b4c77ea56a20d56679fad340213054c8c9c9c26fcfd4c4b2a90df993b7e0aaf3cdb73c618d1d1a802a
   languageName: node
   linkType: hard
 
