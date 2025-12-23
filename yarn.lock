@@ -3010,7 +3010,6 @@ __metadata:
   resolution: "@calcom/platform-utils@workspace:packages/platform/utils"
   dependencies:
     "@calcom/platform-constants": "workspace:*"
-    "@calcom/platform-types": "workspace:*"
     "@types/jest": "npm:29.5.12"
     jest: "npm:^29.7.0"
     ts-jest: "npm:29.1.4"
