@@ -13,8 +13,7 @@
     "baseUrl": ".",
     "jsx": "react-jsx",
     "paths": {
-      "@/*": ["./src/*"],
-      "@calcom/prisma/client": ["../../../packages/prisma/client"]
+      "@/*": ["./src/*"]
     },
     "incremental": true,
     "skipLibCheck": true,
