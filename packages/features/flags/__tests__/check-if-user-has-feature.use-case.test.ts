@@ -5,7 +5,7 @@ import { expect, it } from "vitest";
 import type { FeatureId } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
-import { checkIfUserHasFeatureUseCase } from "./check-if-user-has-feature.use-case";
+import { checkIfUserHasFeatureUseCase } from "../operations/check-if-user-has-feature.use-case";
 
 // This is identical to the test in the controller since the controller currently
 // doesn't run any authentication checks or input validation.
