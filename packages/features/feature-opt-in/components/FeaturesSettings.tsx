@@ -11,7 +11,7 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { getOptInFeatureConfig } from "../config";
-import type { UseFeatureOptInResult } from "../hooks/types";
+import type { NormalizedFeature, UseFeatureOptInResult } from "../hooks/types";
 
 interface FeaturesSettingsProps {
   /** The hook result - can be from useUserFeatureOptIn, useTeamFeatureOptIn, or useOrganizationFeatureOptIn */
@@ -54,6 +54,12 @@ export function FeaturesSettings({ featureOptIn }: FeaturesSettingsProps) {
     { value: "inherit", label: toggleLabels.inherit },
   ];
 
+  // Check if a feature is effectively enabled via auto opt-in
+  // (feature is set to "inherit" and auto opt-in is enabled)
+  const isEnabledViaAutoOptIn = (feature: NormalizedFeature) => {
+    return feature.currentState === "inherit" && autoOptIn && feature.globalEnabled;
+  };
+
   return (
     <>
       <div className="border-subtle rounded-b-lg border-x border-b px-4 py-8 sm:px-6">
@@ -67,6 +73,7 @@ export function FeaturesSettings({ featureOptIn }: FeaturesSettingsProps) {
                 return null;
               }
               const blockedWarning = getBlockedWarning(feature);
+              const enabledViaAutoOptIn = isEnabledViaAutoOptIn(feature);
 
               return (
                 <div key={feature.slug}>
@@ -80,8 +87,15 @@ export function FeaturesSettings({ featureOptIn }: FeaturesSettingsProps) {
                         {t(config.titleI18nKey)}
                         {blockedWarning && (
                           <Tooltip side="top" content={blockedWarning}>
-                            <span title={blockedWarning}>
-                              <Icon name="info" className="ml-1 h-4 w-4" />
+                            <span>
+                              <Icon name="circle-alert" className="text-error ml-1 h-4 w-4" />
+                            </span>
+                          </Tooltip>
+                        )}
+                        {enabledViaAutoOptIn && (
+                          <Tooltip side="top" content={t("enabled_via_auto_opt_in")}>
+                            <span>
+                              <Icon name="circle-check" className="text-success ml-1 h-4 w-4" />
                             </span>
                           </Tooltip>
                         )}
