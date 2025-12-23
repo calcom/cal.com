@@ -1,3 +1,4 @@
+import logger from "@calomc/lib/logger";
 import { isValidPhoneNumber } from "libphonenumber-js/max";
 import z from "zod";
 
@@ -7,7 +8,6 @@ import { dbReadResponseSchema } from "@calcom/lib/dbReadResponseSchema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
 type TranslationFunction = (key: string, options?: Record<string, unknown>) => string;
@@ -72,6 +72,7 @@ function preprocess<T extends z.ZodType>({
   isPartialSchema: boolean;
   checkOptional?: boolean;
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
+  const log = logger.getSubLogger({ prefix: ["getBookingResponsesSchema"] });
   const preprocessed = z.preprocess(
     (responses) => {
       const parsedResponses = z.record(z.any()).nullable().parse(responses) || {};
@@ -117,7 +118,9 @@ function preprocess<T extends z.ZodType>({
           };
           try {
             parsedValue = JSON.parse(value);
-          } catch (e) {}
+          } catch (e) {
+            log.error(`Failed to parse JSON for field ${field.name}: ${value}`, e);
+          }
           const optionsInputs = field.optionsInputs;
           const optionInputField = optionsInputs?.[parsedValue.value];
           if (optionInputField && optionInputField.type === "phone") {
