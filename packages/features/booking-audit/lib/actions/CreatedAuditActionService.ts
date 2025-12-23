@@ -86,6 +86,7 @@ export class CreatedAuditActionService implements IAuditActionService {
             startTime: AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime, timeZone),
             endTime: AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime, timeZone),
             status: fields.status,
+            ...(fields.seatReferenceUid ? { seatReferenceUid: fields.seatReferenceUid } : {}),
         };
     }
 }
@@ -96,5 +97,6 @@ export type CreatedAuditDisplayData = {
     startTime: string;
     endTime: string;
     status: BookingStatus;
+    seatReferenceUid?: string;
 };
 

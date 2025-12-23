@@ -139,6 +139,7 @@ export const handleNewRecurringBooking = async function (this: RecurringBookingS
       eventTypeId: firstBooking.eventTypeId,
       rescheduleUid: firstBooking.rescheduleUid ?? null,
       actorUserUuid: input.userUuid ?? null,
+      rescheduledBy: firstBooking.rescheduledBy ?? null,
       creationSource,
     });
   }
@@ -157,23 +158,32 @@ export interface IRecurringBookingServiceDependencies {
 export class RecurringBookingService implements IBookingService {
   constructor(private readonly deps: IRecurringBookingServiceDependencies) { }
 
-  async fireBookingEvents({ createdBookings, eventTypeId, rescheduleUid, actorUserUuid, creationSource }: { createdBookings: BookingResponse[], eventTypeId: number, rescheduleUid: string | null, actorUserUuid: string | null, creationSource: CreationSource | undefined }) {
+  async fireBookingEvents({ createdBookings, eventTypeId, rescheduleUid, actorUserUuid, rescheduledBy, creationSource }: { createdBookings: BookingResponse[], eventTypeId: number, rescheduleUid: string | null, actorUserUuid: string | null, rescheduledBy: string | null, creationSource: CreationSource | undefined }) {
     type ValidBooking = BookingResponse & { uid: string; startTime: Date; endTime: Date; status: BookingStatus; userUuid: string | null };
     type ValidRescheduledBooking = ValidBooking & { previousBooking: ValidBooking & { status: BookingStatus } };
 
     const isReschedule = !!rescheduleUid;
     const firstCreatedBooking = createdBookings[0];
     const eventOrganizationId = firstCreatedBooking.organizationId;
-    const booker = firstCreatedBooking.attendees?.[0];
-    const actorAttendeeId = booker?.id;
-    const bookerName = booker?.name || "";
-    const bookerEmail = booker?.email || "";
+    const bookerAttendee = firstCreatedBooking.attendees?.[0];
+    const bookerAttendeeId = bookerAttendee?.id;
+    const bookerName = bookerAttendee?.name || "";
+    const bookerEmail = bookerAttendee?.email || "";
+
+    const rescheduledByAttendeeId = firstCreatedBooking.attendees?.find((attendee) => attendee.email === rescheduledBy)?.id;
+    // TODO: Note that user.email is always null here as RegularBookingService intentionally sets it to null. To fix, we need to separate out external facing .createBooking and one that is used by RecurringBookingService, so that if we expose something there it doesn't get exposed elsewhere
+    const rescheduledByUserUuid = firstCreatedBooking.user?.email === rescheduledBy ? firstCreatedBooking.userUuid : null;
 
     const auditActor = getBookingAuditActorForNewBooking({
-      actorAttendeeId: actorAttendeeId ?? null,
+      bookerAttendeeId: bookerAttendeeId ?? null,
       actorUserUuid,
       bookerEmail,
       bookerName,
+      rescheduledBy: rescheduledBy ? {
+        attendeeId: rescheduledByAttendeeId ?? null,
+        userUuid: rescheduledByUserUuid ?? null,
+        email: rescheduledBy,
+      } : null,
       logger: criticalLogger,
     });
 

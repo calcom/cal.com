@@ -25,6 +25,7 @@ const fireBookingEvents = async ({
   organizationId,
   bookerEmail,
   bookerName,
+  rescheduledBy,
   actionSource,
   actorUserUuid,
   deps
@@ -36,6 +37,7 @@ const fireBookingEvents = async ({
   organizationId: number | null | undefined;
   bookerEmail: string;
   bookerName: string;
+  rescheduledBy: string | undefined;
   actionSource: ActionSource;
   actorUserUuid: string | null;
   deps: {
@@ -43,12 +45,20 @@ const fireBookingEvents = async ({
     logger: ISimpleLogger
   }
 }) => {
-  const actorAttendeeId = newBooking.attendees?.find((attendee) => attendee.email === bookerEmail)?.id;
+  const bookerAttendeeId = newBooking.attendees?.find((attendee) => attendee.email === bookerEmail)?.id;
+  const rescheduledByAttendeeId = newBooking.attendees?.find((attendee) => attendee.email === rescheduledBy)?.id;
+  const rescheduledByUserUuid = newBooking.user?.email === rescheduledBy ? newBooking.user?.uuid : null;
+
   const auditActor = getBookingAuditActorForNewBooking({
-    actorAttendeeId: actorAttendeeId ?? null,
+    bookerAttendeeId: bookerAttendeeId ?? null,
     actorUserUuid,
     bookerEmail,
     bookerName,
+    rescheduledBy: rescheduledBy ? {
+      attendeeId: rescheduledByAttendeeId ?? null,
+      userUuid: rescheduledByUserUuid ?? null,
+      email: rescheduledBy,
+    } : null,
     logger: deps.logger,
   });
 
@@ -213,6 +223,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       organizationId,
       bookerEmail,
       bookerName: fullName,
+      rescheduledBy,
       actionSource,
       actorUserUuid: reqUserUuid ?? null,
       deps: { bookingEventHandler, logger: loggerWithEventDetails },

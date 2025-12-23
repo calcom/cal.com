@@ -2394,7 +2394,10 @@ async function handler(
     : undefined;
 
   await this.fireBookingEvents({
-    booking,
+    booking: {
+      ...booking,
+      userEmail: booking.user?.email ?? null,
+    },
     organizerUser,
     // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
     hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
@@ -2404,6 +2407,7 @@ async function handler(
     bookerName: fullName,
     actorUserUuid: userUuid ?? null,
     originalRescheduledBooking,
+    rescheduledBy: reqBody.rescheduledBy ?? null,
     actionSource,
     isRecurringBooking: !!input.bookingData.allRecurringDates,
     attendeeSeatId: evt.attendeeSeatId ?? null,
@@ -2836,6 +2840,7 @@ export class RegularBookingService implements IBookingService {
     bookerName,
     actorUserUuid,
     originalRescheduledBooking,
+    rescheduledBy,
     actionSource,
     isRecurringBooking,
     attendeeSeatId,
@@ -2850,6 +2855,7 @@ export class RegularBookingService implements IBookingService {
       userId: number | null;
       attendees?: Array<{ id: number; email: string }>;
       userUuid: string | null;
+      userEmail: string | null;
     };
     organizerUser: { id: number; uuid: string };
     hashedLink: string | null;
@@ -2857,6 +2863,7 @@ export class RegularBookingService implements IBookingService {
     eventOrganizationId: number | null;
     bookerEmail: string;
     bookerName: string;
+    rescheduledBy: string | null;
     actorUserUuid: string | null;
     originalRescheduledBooking: BookingType | null;
     actionSource: ActionSource;
@@ -2874,14 +2881,19 @@ export class RegularBookingService implements IBookingService {
     });
 
     const bookingEventHandler = this.deps.bookingEventHandler;
-
-    const actorAttendeeId = booking.attendees?.find((attendee) => attendee.email === bookerEmail)?.id;
-
+    const bookerAttendeeId = booking.attendees?.find((attendee) => attendee.email === bookerEmail)?.id;
+    const rescheduledByAttendeeId = booking.attendees?.find((attendee) => attendee.email === rescheduledBy)?.id;
+    const rescheduledByUserUuid = booking.userEmail === rescheduledBy ? booking.userUuid : null;
     const auditActor = getBookingAuditActorForNewBooking({
-      actorAttendeeId: actorAttendeeId ?? null,
+      bookerAttendeeId: bookerAttendeeId ?? null,
       actorUserUuid,
       bookerEmail,
       bookerName,
+      rescheduledBy: rescheduledBy ? {
+        attendeeId: rescheduledByAttendeeId ?? null,
+        userUuid: rescheduledByUserUuid ?? null,
+        email: rescheduledBy,
+      } : null,
       logger: tracingLogger,
     });
 

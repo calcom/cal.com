@@ -5,24 +5,47 @@ import { safeStringify } from "@calcom/lib/safeStringify";
  * Used to create actor for new booking/reschedule booking scenarios
  */
 export function getBookingAuditActorForNewBooking({
-    actorAttendeeId,
+    bookerAttendeeId,
     actorUserUuid,
+    rescheduledBy,
     bookerEmail,
     logger,
     bookerName,
 }: {
-    actorAttendeeId: number | null;
+    bookerAttendeeId: number | null;
     actorUserUuid: string | null;
     bookerEmail: string;
     bookerName: string;
     logger: ISimpleLogger;
+    rescheduledBy: {
+        attendeeId: number | null;
+        email: string;
+    } | {
+        userUuid: string | null;
+        email: string;
+    } | null;
 }) {
     if (actorUserUuid) {
         return makeUserActor(actorUserUuid);
     }
 
-    if (actorAttendeeId) {
-        return makeAttendeeActor(actorAttendeeId);
+    if (rescheduledBy) {
+        // If rescheduledBy is available we prefer that above considering booker as the actor
+        if ("attendeeId" in rescheduledBy && rescheduledBy.attendeeId) {
+            return makeAttendeeActor(rescheduledBy.attendeeId);
+        }
+
+        if ("userUuid" in rescheduledBy && rescheduledBy.userUuid) {
+            // We consider that a user actor did it without verifying the authorization, so whn taking the action we could record in the context that this action was taken through rescheduledBy contex, similar to how we would do impersonatedBy in context 
+            // as introduced in PR: https://github.com/calcom/cal.com/pull/26014
+            return makeUserActor(rescheduledBy.userUuid);
+        }
+
+        return makeGuestActor({ email: rescheduledBy.email, name: rescheduledBy.email });
+    }
+
+    if (bookerAttendeeId) {
+        return makeAttendeeActor(bookerAttendeeId);
     }
 
     // Ideally we should have attendeeId atleast but for some unforeseen case we don't, we must create a guest actor.
