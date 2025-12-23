@@ -1,0 +1,219 @@
+name: E2E Report
+
+on:
+  workflow_run:
+    workflows: ["PR Update"]
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  get-pr-info:
+    name: Get PR Info
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    outputs:
+      pr-number: ${{ steps.get-pr.outputs.pr-number }}
+      head-branch: ${{ steps.get-pr.outputs.head-branch }}
+      has-blob-reports: ${{ steps.check-artifacts.outputs.has-blob-reports }}
+    steps:
+      - name: Get PR number from workflow run
+        id: get-pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const headSha = context.payload.workflow_run.head_sha;
+            const headBranch = context.payload.workflow_run.head_branch;
+            
+            console.log('Head SHA:', headSha);
+            console.log('Head Branch:', headBranch);
+            
+            // Try to get PR number from workflow_run payload first
+            if (context.payload.workflow_run.pull_requests && context.payload.workflow_run.pull_requests.length > 0) {
+              const prNumber = context.payload.workflow_run.pull_requests[0].number;
+              console.log('PR number from payload:', prNumber);
+              core.setOutput('pr-number', prNumber);
+              core.setOutput('head-branch', headBranch);
+              return;
+            }
+            
+            // Fall back to API lookup
+            try {
+              const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: headSha
+              });
+              
+              if (prs.length === 0) {
+                console.log('No PRs found for commit');
+                core.setOutput('pr-number', '');
+                core.setOutput('head-branch', headBranch);
+                return;
+              }
+              
+              // Find open PR or use first one
+              const openPr = prs.find(pr => pr.state === 'open') || prs[0];
+              console.log('PR number from API:', openPr.number);
+              core.setOutput('pr-number', openPr.number);
+              core.setOutput('head-branch', openPr.head.ref);
+            } catch (e) {
+              console.log('Error fetching PR:', e);
+              core.setOutput('pr-number', '');
+              core.setOutput('head-branch', headBranch);
+            }
+
+      - name: Check for blob report artifacts
+        id: check-artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runId = context.payload.workflow_run.id;
+            
+            try {
+              const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: runId
+              });
+              
+              const blobReports = artifacts.artifacts.filter(a => a.name.startsWith('blob-report-'));
+              console.log('Found blob reports:', blobReports.map(a => a.name));
+              
+              core.setOutput('has-blob-reports', blobReports.length > 0 ? 'true' : 'false');
+            } catch (e) {
+              console.log('Error checking artifacts:', e);
+              core.setOutput('has-blob-reports', 'false');
+            }
+
+  merge-reports:
+    name: Merge reports
+    needs: [get-pr-info]
+    if: ${{ needs.get-pr-info.outputs.has-blob-reports == 'true' && needs.get-pr-info.outputs.pr-number != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: ./.github/actions/yarn-install
+      - uses: ./.github/actions/yarn-playwright-install
+      - name: Download blob reports from GitHub Actions Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+      - name: Merge into HTML Report
+        run: yarn playwright merge-reports --reporter html ./all-blob-reports
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report--attempt-${{ github.event.workflow_run.run_number }}-${{ github.event.workflow_run.run_attempt }}
+          path: playwright-report
+          retention-days: 14
+
+  publish-report:
+    name: Publish HTML report
+    needs: [get-pr-info, merge-reports]
+    if: ${{ needs.get-pr-info.outputs.pr-number != '' }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      HTML_REPORT_URL_PATH: reports/${{ needs.get-pr-info.outputs.head-branch }}/${{ github.event.workflow_run.id }}/${{ github.event.workflow_run.run_attempt }}
+      BRANCH_REPORTS_DIR: reports/${{ needs.get-pr-info.outputs.head-branch }}
+    steps:
+      - name: Generate GitHub App token
+        id: generate-token
+        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94
+        with:
+          app-id: ${{ secrets.CI_CAL_APP_ID }}
+          private-key: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
+          repositories: 'test-results-2'
+
+      - name: Checkout GitHub Pages Branch
+        uses: actions/checkout@v4
+        with:
+          repository: calcom/test-results-2
+          ref: gh-pages
+          token: ${{ steps.generate-token.outputs.token }}
+      - name: Set Git User
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Check for workflow reports
+        run: |
+          if [ -z "$(ls -A $BRANCH_REPORTS_DIR 2>/dev/null)" ]; then
+            echo "BRANCH_REPORTS_EXIST="false"" >> $GITHUB_ENV
+          else
+            echo "BRANCH_REPORTS_EXIST="true"" >> $GITHUB_ENV
+          fi
+      - name: Cleanup old HTML reports
+        if: ${{ env.BRANCH_REPORTS_EXIST == 'true' }}
+        timeout-minutes: 3
+        run: |
+          rm -rf $BRANCH_REPORTS_DIR
+          git add .
+          git commit -m "workflow: remove all reports for branch ${{ needs.get-pr-info.outputs.head-branch }}"
+      - name: Download zipped HTML report
+        uses: actions/download-artifact@v4
+        with:
+          name: html-report--attempt-${{ github.event.workflow_run.run_number }}-${{ github.event.workflow_run.run_attempt }}
+          path: ${{ env.HTML_REPORT_URL_PATH }}
+      - name: Push HTML Report
+        timeout-minutes: 3
+        run: |
+          git add .
+          git commit -m "workflow: add HTML report for run-id ${{ github.event.workflow_run.id }} (attempt:  ${{ github.event.workflow_run.run_attempt }})"
+
+          while true; do
+            git pull --rebase
+            if [ $? -ne 0 ]; then
+              echo "Failed to rebase. Please review manually."
+              exit 1
+            fi
+
+            git push
+            if [ $? -eq 0 ]; then
+              echo "Successfully pushed HTML report to repo."
+              exit 0
+            fi
+          done
+      - name: Output Report URL as Workflow Annotation
+        id: url
+        run: |
+          FULL_HTML_REPORT_URL=https://calcom.github.io/test-results-2/$HTML_REPORT_URL_PATH
+          echo "::notice title=Published Playwright Test Report::$FULL_HTML_REPORT_URL"
+          echo "link=$FULL_HTML_REPORT_URL" >> $GITHUB_OUTPUT
+      - name: Find Comment
+        uses: peter-evans/find-comment@v2
+        id: fc
+        with:
+          issue-number: ${{ needs.get-pr-info.outputs.pr-number }}
+          comment-author: "github-actions[bot]"
+          body-includes: <!-- GENERATED-E2E-RESULTS -->
+      - name: Create comment
+        if: steps.fc.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ needs.get-pr-info.outputs.pr-number }}
+          body: |
+            <!-- GENERATED-E2E-RESULTS -->
+            ## E2E results are ready!
+            - [Workflow #${{ github.event.workflow_run.run_number }}.${{ github.event.workflow_run.run_attempt }} latest results](${{ steps.url.outputs.link }})
+      - name: Update comment
+        if: steps.fc.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          edit-mode: replace
+          body: |
+            <!-- GENERATED-E2E-RESULTS -->
+            ## E2E results are ready!
+            - [Workflow #${{ github.event.workflow_run.run_number }}.${{ github.event.workflow_run.run_attempt }} latest results](${{ steps.url.outputs.link }})
