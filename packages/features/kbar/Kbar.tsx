@@ -11,7 +11,8 @@ import {
   useRegisterActions,
 } from "kbar";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import posthog from "posthog-js";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -24,6 +25,23 @@ import { MintlifyChat } from "../mintlify-chat/MintlifyChat";
 
 type shortcutArrayType = {
   shortcuts?: string[];
+};
+
+const wrapActionWithTracking = (action: Action): Action => {
+  const originalPerform = action.perform;
+  return {
+    ...action,
+    perform: (currentActionImpl) => {
+      posthog.capture("kbar_action_performed", {
+        action_id: action.id,
+        action_name: action.name,
+        action_section: action.section,
+      });
+      if (originalPerform) {
+        originalPerform(currentActionImpl);
+      }
+    },
+  };
 };
 
 const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
@@ -50,13 +68,15 @@ const useEventTypesAction = () => {
   const eventTypeActions: Action[] =
     data?.pages?.flatMap((page) => {
       return (
-        page?.eventTypes?.map((item) => ({
-          id: `event-type-${item.id}`,
-          name: item.title,
-          section: "event_types_page_title",
-          keywords: "event types",
-          perform: () => router.push(`/event-types/${item.id}`),
-        })) ?? []
+        page?.eventTypes?.map((item) =>
+          wrapActionWithTracking({
+            id: `event-type-${item.id}`,
+            name: item.title,
+            section: "event_types_page_title",
+            keywords: "event types",
+            perform: () => router.push(`/event-types/${item.id}`),
+          })
+        ) ?? []
       );
     }) ?? [];
 
@@ -72,11 +92,13 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
   // quick nested actions would be extremely useful
 
   const actions = useMemo(() => {
-    const appStoreActions = getApps.map((item) => ({
-      ...item,
-      perform: () => router.push(`/apps/${item.id}`),
-    }));
-    return [
+    const appStoreActions = getApps.map((item) =>
+      wrapActionWithTracking({
+        ...item,
+        perform: () => router.push(`/apps/${item.id}`),
+      })
+    );
+    const staticActions: Action[] = [
       {
         id: "workflows",
         name: "workflows",
@@ -236,16 +258,33 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
         keywords: "billing view manage",
         perform: () => router.push("/settings/billing"),
       },
-      ...appStoreActions,
     ];
+    return [...staticActions.map(wrapActionWithTracking), ...appStoreActions];
   }, []);
 
   return <KBarProvider actions={actions}>{children}</KBarProvider>;
 };
 
+const useKBarOpenTracking = () => {
+  const { visualState } = useKBar((state) => ({
+    visualState: state.visualState,
+  }));
+  const hasTrackedOpen = useRef(false);
+
+  useEffect(() => {
+    if (visualState === "showing" && !hasTrackedOpen.current) {
+      posthog.capture("kbar_opened");
+      hasTrackedOpen.current = true;
+    } else if (visualState === "hidden") {
+      hasTrackedOpen.current = false;
+    }
+  }, [visualState]);
+};
+
 export const KBarContent = () => {
   const { t } = useLocale();
   useEventTypesAction();
+  useKBarOpenTracking();
   const [inputText, setInputText] = useState("");
   const [aiResponse, setAiResponse] = useState("");
   const showAiChat =
