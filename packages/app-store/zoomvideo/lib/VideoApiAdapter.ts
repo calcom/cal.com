@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -63,6 +65,151 @@ export const zoomMeetingsSchema = z.object({
 
 export type ZoomUserSettings = z.infer<typeof zoomUserSettingsSchema>;
 
+const meetingPasswordRequirementSchema = z
+  .object({
+    length: z.number().optional(),
+    have_letter: z.boolean().optional(),
+    have_number: z.boolean().optional(),
+    have_special_character: z.boolean().optional(),
+    have_upper_and_lower_characters: z.boolean().optional(),
+    only_allow_numeric: z.boolean().optional(),
+    consecutive_characters_length: z.number().optional(),
+    weak_enhance_detection: z.boolean().optional(),
+  })
+  .passthrough()
+  .optional();
+
+export type MeetingPasswordRequirement = z.infer<typeof meetingPasswordRequirementSchema>;
+
+const DIGITS = "0123456789";
+const LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
+const UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const SPECIAL_CHARS = "@_-*";
+
+function validatePasswordAgainstRequirements(
+  password: string,
+  requirements: NonNullable<MeetingPasswordRequirement>
+): boolean {
+  if (requirements.only_allow_numeric) {
+    return /^\d+$/.test(password) && password.length >= (requirements.length ?? 1);
+  }
+
+  if (requirements.length && password.length < requirements.length) {
+    return false;
+  }
+
+  if (requirements.have_letter && !/[a-zA-Z]/.test(password)) {
+    return false;
+  }
+
+  if (requirements.have_number && !/\d/.test(password)) {
+    return false;
+  }
+
+  if (requirements.have_special_character && !/[!@#$%^&*()_\-+=[\]{}|;:,.<>?]/.test(password)) {
+    return false;
+  }
+
+  if (requirements.have_upper_and_lower_characters) {
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password)) {
+      return false;
+    }
+  }
+
+  if (requirements.consecutive_characters_length && requirements.consecutive_characters_length > 0) {
+    const maxConsecutive = requirements.consecutive_characters_length - 1;
+    for (let i = 0; i <= password.length - maxConsecutive - 1; i++) {
+      let isConsecutive = true;
+      for (let j = 0; j < maxConsecutive; j++) {
+        const charCode = password.charCodeAt(i + j);
+        const nextCharCode = password.charCodeAt(i + j + 1);
+        if (nextCharCode !== charCode + 1) {
+          isConsecutive = false;
+          break;
+        }
+      }
+      if (isConsecutive) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+function generateCompliantPassword(requirements: NonNullable<MeetingPasswordRequirement>): string {
+  const minLength = Math.max(requirements.length ?? 6, 6);
+  const chars: string[] = [];
+
+  if (requirements.only_allow_numeric) {
+    for (let i = 0; i < minLength; i++) {
+      chars.push(DIGITS[crypto.randomInt(DIGITS.length)]);
+    }
+    return chars.join("");
+  }
+
+  let allowedChars = "";
+
+  if (requirements.have_letter || requirements.have_upper_and_lower_characters) {
+    chars.push(LOWERCASE[crypto.randomInt(LOWERCASE.length)]);
+    allowedChars += LOWERCASE;
+  }
+
+  if (requirements.have_upper_and_lower_characters) {
+    chars.push(UPPERCASE[crypto.randomInt(UPPERCASE.length)]);
+    allowedChars += UPPERCASE;
+  } else if (requirements.have_letter) {
+    allowedChars += UPPERCASE;
+  }
+
+  if (requirements.have_number) {
+    chars.push(DIGITS[crypto.randomInt(DIGITS.length)]);
+    allowedChars += DIGITS;
+  }
+
+  if (requirements.have_special_character) {
+    chars.push(SPECIAL_CHARS[crypto.randomInt(SPECIAL_CHARS.length)]);
+    allowedChars += SPECIAL_CHARS;
+  }
+
+  if (!allowedChars) {
+    allowedChars = LOWERCASE + UPPERCASE + DIGITS;
+  }
+
+  while (chars.length < minLength) {
+    chars.push(allowedChars[crypto.randomInt(allowedChars.length)]);
+  }
+
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = crypto.randomInt(i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+
+  return chars.join("");
+}
+
+function getCompliantPassword(
+  defaultPassword: string | null | undefined,
+  requirements: MeetingPasswordRequirement
+): string | undefined {
+  if (!requirements) {
+    return undefined;
+  }
+
+  if (defaultPassword && validatePasswordAgainstRequirements(defaultPassword, requirements)) {
+    return defaultPassword;
+  }
+
+  const generatedPassword = generateCompliantPassword(requirements);
+  log.debug("Generated compliant password for Zoom meeting", {
+    usedGeneratedPassword: true,
+    requiresNumericOnly: requirements.only_allow_numeric ?? false,
+    minLength: requirements.length ?? 6,
+  });
+
+  return generatedPassword;
+}
+
 /** @link https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings */
 export const zoomUserSettingsSchema = z.object({
   recording: z
@@ -73,6 +220,7 @@ export const zoomUserSettingsSchema = z.object({
   schedule_meeting: z
     .object({
       default_password_for_scheduled_meetings: z.string().nullish(),
+      meeting_password_requirement: meetingPasswordRequirementSchema,
     })
     .nullish(),
   in_meeting: z
@@ -84,7 +232,8 @@ export const zoomUserSettingsSchema = z.object({
 
 // https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
 // append comma separated settings here, to retrieve only these specific settings
-const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording,waiting_room";
+const settingsApiFilterResp =
+  "default_password_for_scheduled_meetings,meeting_password_requirement,auto_recording,waiting_room";
 
 type ZoomRecurrence = {
   end_date_time?: string;
@@ -176,6 +325,11 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     const userSettings = await getUserSettings();
     const recurrence = getRecurrence(event);
     const waitingRoomEnabled = userSettings?.in_meeting?.waiting_room ?? false;
+
+    const passwordRequirements = userSettings?.schedule_meeting?.meeting_password_requirement;
+    const defaultPassword = userSettings?.schedule_meeting?.default_password_for_scheduled_meetings;
+    const password = getCompliantPassword(defaultPassword, passwordRequirements);
+
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       topic: event.title,
@@ -184,8 +338,8 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
       timezone: event.organizer.timeZone,
-      password: userSettings?.schedule_meeting?.default_password_for_scheduled_meetings ?? undefined,
       agenda: truncateAgenda(event.description),
+      ...(password && { password }),
       settings: {
         host_video: true,
         participant_video: true,
@@ -207,8 +361,8 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
   };
 
   /**
-   * Zoom is known to return xml response in some cases.
-   * e.g. Wrong request or some special case of invalid token
+   * Zoom is known to return non-JSON (XML/HTML) responses in some cases.
+   * e.g. Validation errors, wrong request, or some special case of invalid token.
    */
   const handleZoomResponseJsonParseError = async ({
     error,
@@ -217,17 +371,27 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     error: unknown;
     clonedResponse: Response;
   }) => {
-    // In some cases, Zoom responds with xml response, so we log the response for debugging
-    // We need to see why that error occurs exactly and then later we decide if mark the access token and token object unusable or not
-    log.error(
-      "Error in JSON parsing Zoom API response",
-      safeStringify({
-        error: safeStringify(error),
-        // Log Raw response body here.
-        responseBody: await clonedResponse.text(),
-        status: clonedResponse.status,
-      })
-    );
+    const responseBody = await clonedResponse.text();
+    const status = clonedResponse.status;
+
+    if (status === 400) {
+      log.warn(
+        "Zoom API returned non-JSON validation error response",
+        safeStringify({
+          responseBody,
+          status,
+        })
+      );
+    } else {
+      log.error(
+        "Error in JSON parsing Zoom API response",
+        safeStringify({
+          error: safeStringify(error),
+          responseBody,
+          status,
+        })
+      );
+    }
 
     return null;
   };
@@ -391,7 +555,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           method: "DELETE",
         });
         return Promise.resolve();
-      } catch (err) {
+      } catch {
         return Promise.reject(new Error("Failed to delete meeting"));
       }
     },
