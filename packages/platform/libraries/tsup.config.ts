@@ -117,49 +117,92 @@ const external = [
   "entities",
   "sanitize-html",
   "markdown-it",
+
+  // DOM/Browser (has dynamic requires that can't be bundled)
+  "jsdom",
 ];
 
-export default defineConfig({
-  entry: {
-    index: "./index.ts",
-    schedules: "./schedules.ts",
-    emails: "./emails.ts",
-    "event-types": "./event-types.ts",
-    "app-store": "./app-store.ts",
-    workflows: "./workflows.ts",
-    slots: "./slots.ts",
-    conferencing: "./conferencing.ts",
-    repositories: "./repositories.ts",
-    bookings: "./bookings.ts",
-    organizations: "./organizations.ts",
-    "private-links": "./private-links.ts",
-    pbac: "./pbac.ts",
+const entry = {
+  index: "./index.ts",
+  schedules: "./schedules.ts",
+  emails: "./emails.ts",
+  "event-types": "./event-types.ts",
+  "app-store": "./app-store.ts",
+  workflows: "./workflows.ts",
+  slots: "./slots.ts",
+  conferencing: "./conferencing.ts",
+  repositories: "./repositories.ts",
+  bookings: "./bookings.ts",
+  organizations: "./organizations.ts",
+  "private-links": "./private-links.ts",
+  pbac: "./pbac.ts",
+};
+
+const noExternalPackages = [
+  "@calcom/dayjs",
+  "@calcom/lib",
+  "@calcom/trpc",
+  "@calcom/features",
+  "@calcom/prisma",
+  "@calcom/core",
+  "@calcom/emails",
+  "@calcom/app-store",
+];
+
+const alias = {
+  "@calcom/lib/server/i18n": path.resolve(__dirname, "./i18n.ts"),
+  "@": path.resolve(__dirname, "./src"),
+  "@calcom/lib": path.resolve(__dirname, "../../lib"),
+  "@calcom/trpc": path.resolve(__dirname, "../../trpc"),
+  "@calcom/dayjs": path.resolve(__dirname, "../../dayjs"),
+  "@calcom/prisma/client/runtime/library": path.resolve(__dirname, "../../prisma/client/runtime/library"),
+  "@calcom/prisma/client": path.resolve(__dirname, "../../prisma/client"),
+  "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
+  "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
+  tslog: path.resolve(__dirname, "../../../apps/api/v2/src/lib/logger.bridge.ts"),
+};
+
+export default defineConfig([
+  {
+    entry,
+    format: ["esm"],
+    dts: true,
+    splitting: true,
+    sourcemap: false,
+    clean: true,
+    target: "node18",
+    platform: "node",
+    external,
+    noExternal: noExternalPackages,
+    define: {
+      "process.env.USE_POOL": '"true"',
+    },
+    esbuildPlugins: [relativeAliasPlugin],
+    esbuildOptions(options) {
+      options.alias = alias;
+      options.conditions = ["node", "import", "require", "default"];
+    },
+    treeshake: true,
   },
-  format: ["esm", "cjs"],
-  dts: true,
-  splitting: true,
-  sourcemap: true,
-  clean: true,
-  target: "node18",
-  platform: "node",
-  external,
-  define: {
-    "process.env.USE_POOL": '"true"',
+  {
+    entry,
+    format: ["cjs"],
+    dts: false,
+    splitting: false,
+    sourcemap: false,
+    clean: false,
+    target: "node18",
+    platform: "node",
+    external,
+    noExternal: noExternalPackages,
+    define: {
+      "process.env.USE_POOL": '"true"',
+    },
+    esbuildPlugins: [relativeAliasPlugin],
+    esbuildOptions(options) {
+      options.alias = alias;
+      options.conditions = ["node", "import", "require", "default"];
+    },
+    treeshake: true,
   },
-  esbuildPlugins: [relativeAliasPlugin],
-  esbuildOptions(options) {
-    options.alias = {
-      "@calcom/lib/server/i18n": path.resolve(__dirname, "./i18n.ts"),
-      "@": path.resolve(__dirname, "./src"),
-      "@calcom/lib": path.resolve(__dirname, "../../lib"),
-      "@calcom/trpc": path.resolve(__dirname, "../../trpc"),
-      "@calcom/prisma/client/runtime/library": path.resolve(__dirname, "../../prisma/client/runtime/library"),
-      "@calcom/prisma/client": path.resolve(__dirname, "../../prisma/client"),
-      "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
-      "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
-      tslog: path.resolve(__dirname, "../../../apps/api/v2/src/lib/logger.bridge.ts"),
-    };
-    options.conditions = ["node", "import", "require", "default"];
-  },
-  treeshake: true,
-});
+]);
