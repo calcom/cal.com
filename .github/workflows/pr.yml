@@ -139,9 +139,18 @@ jobs:
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
+  setup-db:
+    name: Setup Database
+    needs: [prepare, deps]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/setup-db.yml
+    with:
+      COMMIT_SHA: ${{ needs.prepare.outputs.commit-sha }}
+    secrets: inherit
+
   build-api-v1:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare, deps, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
@@ -183,42 +192,42 @@ jobs:
 
   integration-test:
     name: Tests
-    needs: [prepare, build, build-api-v1]
-    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, build, setup-db]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
   e2e:
     name: Tests
-    needs: [prepare, build, build-api-v1]
+    needs: [prepare, build, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-api-v2:
     name: Tests
-    needs: [prepare, build-api-v2]
+    needs: [prepare, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-api-v2.yml
     secrets: inherit
 
   e2e-app-store:
     name: Tests
-    needs: [prepare, build]
+    needs: [prepare, build, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
     name: Tests
-    needs: [prepare, build]
+    needs: [prepare, build, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
     name: Tests
-    needs: [prepare, build]
+    needs: [prepare, build, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
@@ -243,6 +252,7 @@ jobs:
         build-atoms,
         build-docs,
         build-companion,
+        setup-db,
         e2e,
         e2e-api-v2,
         e2e-embed,
@@ -266,6 +276,7 @@ jobs:
               needs.build-api-v2.result != 'success' ||
               needs.build-atoms.result != 'success' ||
               needs.build-docs.result != 'success' ||
+              needs.setup-db.result != 'success' ||
               needs.integration-test.result != 'success' ||
               needs.e2e.result != 'success' ||
               needs.e2e-api-v2.result != 'success' ||
