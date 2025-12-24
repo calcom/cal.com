@@ -3295,17 +3295,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/storybook-generator@workspace:tooling/storybook-generator":
-  version: 0.0.0-use.local
-  resolution: "@calcom/storybook-generator@workspace:tooling/storybook-generator"
-  dependencies:
-    "@types/node": "npm:^20.0.0"
-    glob: "npm:^10.3.10"
-    tsx: "npm:^4.0.0"
-    typescript: "npm:^5.0.0"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/storybook@workspace:apps/storybook":
   version: 0.0.0-use.local
   resolution: "@calcom/storybook@workspace:apps/storybook"
