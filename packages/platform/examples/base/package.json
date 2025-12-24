@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@calcom/eslint-config": "workspace:*",
-    "@playwright/test": "^1.45.3",
+    "@playwright/test": "^1.55.1",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^20.3.1",
     "@types/react": "^18",
