@@ -265,6 +265,7 @@ describe("scheduleNoShowTriggers Integration", () => {
         payloadTemplate: null,
         secret: null,
         appId: null,
+        version: "2021-10-20",
       },
     });
 
