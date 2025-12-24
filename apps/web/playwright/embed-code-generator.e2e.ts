@@ -431,23 +431,21 @@ async function expectValidHtmlEmbedSnippet(
 }
 
 function assertThatCodeIsValidVanillaJsCode(code: string) {
-  const lintResult = linter.verify(code, [
-    {
-      languageOptions: {
-        ecmaVersion: 2021,
-        sourceType: "module",
-        parserOptions: { ecmaFeatures: { jsx: true } },
-        globals: {
-          window: "readonly",
-          document: "readonly",
-          navigator: "readonly",
-          Cal: "readonly",
-          console: "readonly",
-        },
-      },
-      rules: eslintRules,
+  const lintResult = linter.verify(code, {
+    parserOptions: {
+      ecmaVersion: 2021,
+      sourceType: "module",
+      ecmaFeatures: { jsx: true },
     },
-  ]);
+    globals: {
+      window: "readonly",
+      document: "readonly",
+      navigator: "readonly",
+      Cal: "readonly",
+      console: "readonly",
+    },
+    rules: eslintRules,
+  });
 
   if (lintResult.length) {
     console.log(
@@ -462,29 +460,25 @@ function assertThatCodeIsValidVanillaJsCode(code: string) {
 }
 
 function assertThatCodeIsValidReactCode(code: string) {
-  const lintResult = linter.verify(code, [
-    {
-      languageOptions: {
-        ecmaVersion: 2021,
-        sourceType: "module",
-        parserOptions: {
-          ecmaFeatures: { jsx: true },
-        },
-        globals: {
-          window: "readonly",
-          document: "readonly",
-          navigator: "readonly",
-          console: "readonly",
-        },
-      },
-      rules: {
-        ...eslintRules,
-        "@typescript-eslint/no-unused-vars": "off",
-        "no-undef": "off",
-        semi: "off",
-      },
+  const lintResult = linter.verify(code, {
+    parserOptions: {
+      ecmaVersion: 2021,
+      sourceType: "module",
+      ecmaFeatures: { jsx: true },
     },
-  ]);
+    globals: {
+      window: "readonly",
+      document: "readonly",
+      navigator: "readonly",
+      console: "readonly",
+    },
+    rules: {
+      ...eslintRules,
+      "@typescript-eslint/no-unused-vars": "off",
+      "no-undef": "off",
+      semi: "off",
+    },
+  });
 
   if (lintResult.length) {
     console.log(
