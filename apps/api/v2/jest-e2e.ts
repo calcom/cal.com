@@ -9,7 +9,7 @@ const getMaxWorkers = () => {
   if (process.env.CI && isSharding) {
     // In CI with sharding: reduce workers to improve test isolation
     // Sharding already provides parallelism across shards (4 parallel jobs)
-    return 4;
+    return 6;
   }
   // Local development or non-sharded: use more workers (similar to Playwright)
   return 8;
@@ -34,7 +34,7 @@ const config: Config = {
   setupFilesAfterEnv: ["<rootDir>/test/jest.setup-e2e.ts"],
   reporters: ["default", "jest-summarizing-reporter"],
   workerIdleMemoryLimit: "512MB",
-  maxWorkers,
+  maxWorkers: 8,
   testPathIgnorePatterns: ["/dist/", "/node_modules/"],
   transformIgnorePatterns: ["/dist/", "/node_modules/"],
 };
