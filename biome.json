@@ -87,6 +87,34 @@
                   {
                     "group": ["../features/**"],
                     "message": "lib package should not import from features to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["../trpc/**"],
+                    "message": "lib package should not import from trpc to avoid circular dependencies."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "packages/lib/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}",
+        "!packages/lib/server/defaultResponder.ts",
+        "!packages/lib/server/defaultResponder.test.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@trpc/server", "@trpc/server/**"],
+                    "message": "packages/lib should not import from @trpc/server to keep it framework-agnostic."
                   }
                 ]
               }
@@ -131,6 +159,29 @@
                   {
                     "group": ["../trpc/**"],
                     "message": "features package should not import from trpc to avoid circular dependencies."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "packages/trpc/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}",
+        "!packages/trpc/types/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["../apps/web/**"],
+                    "message": "trpc package should not import from apps/web to avoid circular dependencies."
                   }
                 ]
               }
