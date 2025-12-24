@@ -25,10 +25,8 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
   const { t } = useLocale();
 
   return (
-    <div className="mt-6 w-full max-w-full space-y-4 pb-6">
-      <h2 className="text-default font-semibold">{t("existing_workflows")}</h2>
-
-      {/* Workflows List */}
+    <div className="mt-10 w-full max-w-full space-y-4 pb-6">
+      <h2 className="text-default mb-4 text-lg font-semibold">{t("existing_workflows")}</h2>
       <div className="space-y-4">
         {workflows.map((workflow) => (
           <WorkflowCard

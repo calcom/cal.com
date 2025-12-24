@@ -81,7 +81,6 @@ export const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* Backdrop */}
       {open && <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" />}
 
       <DialogContent className="bg-default border-default fixed left-[50%] top-[50%] z-50 max-w-2xl translate-x-[-50%] translate-y-[-50%] rounded-lg border shadow-lg ">
