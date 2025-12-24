@@ -28,7 +28,9 @@ export const SvgImage: React.FC<SvgImageProps> = ({ uri, width, height, style })
           source={{ uri }}
           style={{ width, height }}
           resizeMode="contain"
-          onError={() => console.log("Image load error:", uri)}
+          onError={() => {
+            // Image load errors are expected for invalid/missing URLs - silently handled
+          }}
         />
       </View>
     );
@@ -41,8 +43,8 @@ export const SvgImage: React.FC<SvgImageProps> = ({ uri, width, height, style })
         uri={uri}
         width={width}
         height={height}
-        onError={(error) => {
-          console.log("SVG load error, falling back to Image:", error);
+        onError={() => {
+          // SVG load errors trigger fallback to regular Image component
           setUseFallback(true);
         }}
       />

@@ -1,9 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Pressable, Text, View } from "react-native";
 import type { AvailabilityListItemProps } from "./AvailabilityListItem";
 import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
+import { Ionicons } from "@expo/vector-icons";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { Pressable, Text, View } from "react-native";
 
 export const AvailabilityListItem = ({
   item: schedule,
