@@ -143,3 +143,12 @@
     width: 100%;
   }
 }
+/* Fix react-date-picker calendar being clipped */
+.react-date-picker__calendar {
+  z-index: 9999 !important;
+}
+
+.signup-form-container {
+  overflow: visible !important;
+  position: relative;
+}
