@@ -88,7 +88,7 @@ const UserProfile = () => {
 
     telemetry.event(telemetryEventTypes.onboardingFinished);
 
-    await update({ completedOnboarding: true });
+    update({ completedOnboarding: true });
 
     mutation.mutate({
       bio,
