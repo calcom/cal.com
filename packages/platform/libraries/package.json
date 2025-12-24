@@ -9,10 +9,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "yarn vite build",
-    "build:watch": "yarn vite build --watch",
-    "watch-lru-fix": "watch -n 1 'sed -i'' -e \"s/const CACHE = new lruCache\\.LRUCache({ max: 1e3 });/const CACHE = new lruCache({ max: 1e3 });/g\" ./dist/index.cjs'",
-    "build:dev": "yarn vite build && sed -i'' -e 's/const CACHE = new lruCache\\.LRUCache({ max: 1e3 });/const CACHE = new lruCache({ max: 1e3 });/g' ./dist/index.cjs",
+    "build": "yarn tsup",
+    "build:watch": "yarn tsup --watch",
+    "build:dev": "yarn tsup",
     "local": "node scripts/local.js && rm -rf dist && yarn build:dev && cd ../../.. && yarn",
     "publish-npm": "yarn && node scripts/prepublish.js && rm -rf dist && yarn build && npm publish --access public && node scripts/postpublish.js"
   },
@@ -23,6 +22,7 @@
   "devDependencies": {
     "@types/node": "^20.3.1",
     "@vitejs/plugin-react": "^4.2.1",
+    "tsup": "^8.5.1",
     "typescript": "5.9.2",
     "vite": "^5.0.12",
     "vite-plugin-dts": "3.7.3",

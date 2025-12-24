@@ -1,0 +1,165 @@
+import { defineConfig } from "tsup";
+import path from "path";
+import type { Plugin } from "esbuild";
+
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+
+// Plugin to handle relative path aliases that esbuild doesn't support natively
+const relativeAliasPlugin: Plugin = {
+  name: "relative-alias",
+  setup(build) {
+    // Redirect ./server/i18n and ../server/i18n to our local i18n.ts
+    build.onResolve({ filter: /^\.\.?\/server\/i18n$/ }, () => {
+      return { path: path.resolve(__dirname, "./i18n.ts") };
+    });
+  },
+};
+
+// External dependencies that should not be bundled
+const external = [
+  // Node.js built-ins
+  "fs",
+  "path",
+  "os",
+  "crypto",
+  "http",
+  "fs/promises",
+  "perf_hooks",
+  "querystring",
+
+  // React
+  "react",
+  "react-dom",
+  "react/jsx-runtime",
+  "react-i18next",
+
+  // Prisma
+  "@prisma/client",
+  "@prisma/adapter-pg",
+  "@prisma/client/runtime/index-browser.js",
+  "@prisma/extension-accelerate",
+  "pg",
+
+  // Core libraries
+  "lodash",
+  "zod",
+  "dayjs",
+  "uuid",
+  "short-uuid",
+  "axios",
+  "qs",
+  "qs-stringify",
+  "async",
+
+  // dayjs plugins
+  "dayjs/plugin/customParseFormat.js",
+  "dayjs/plugin/duration.js",
+  "dayjs/plugin/isBetween.js",
+  "dayjs/plugin/isToday.js",
+  "dayjs/plugin/localizedFormat.js",
+  "dayjs/plugin/minMax.js",
+  "dayjs/plugin/relativeTime.js",
+  "dayjs/plugin/timezone.js",
+  "dayjs/plugin/toArray.js",
+  "dayjs/plugin/utc.js",
+
+  // i18n
+  "i18next",
+  "next-i18next",
+  "next-i18next/serverSideTranslations",
+
+  // Auth
+  "next-auth/jwt",
+  "jsonwebtoken",
+
+  // Monitoring/Logging
+  "@sentry/nextjs",
+  "tslog",
+
+  // tRPC
+  "@trpc/server",
+
+  // Calendar/Scheduling
+  "ical.js",
+  "ics",
+  "tsdav",
+  "@googleapis/calendar",
+  "rrule",
+  "ews-javascript-api",
+  "@ewsjs/xhr",
+
+  // Communication
+  "@sendgrid/client",
+  "@sendgrid/mail",
+  "twilio",
+  "nodemailer",
+
+  // CRM
+  "@hubspot/api-client",
+  "@jsforce/jsforce-node",
+  "jsforce",
+
+  // Payments
+  "stripe",
+  "@getalby/lightning-tools",
+
+  // Other services
+  "svix",
+  "@tryvital/vital-node",
+
+  // Utilities
+  "libphonenumber-js",
+  "raw-body",
+  "handlebars",
+  "lru-cache",
+  "memory-cache",
+  "queue",
+  "entities",
+  "sanitize-html",
+  "markdown-it",
+];
+
+export default defineConfig({
+  entry: {
+    index: "./index.ts",
+    schedules: "./schedules.ts",
+    emails: "./emails.ts",
+    "event-types": "./event-types.ts",
+    "app-store": "./app-store.ts",
+    workflows: "./workflows.ts",
+    slots: "./slots.ts",
+    conferencing: "./conferencing.ts",
+    repositories: "./repositories.ts",
+    bookings: "./bookings.ts",
+    organizations: "./organizations.ts",
+    "private-links": "./private-links.ts",
+    pbac: "./pbac.ts",
+  },
+  format: ["esm", "cjs"],
+  dts: true,
+  splitting: true,
+  sourcemap: true,
+  clean: true,
+  target: "node18",
+  platform: "node",
+  external,
+  define: {
+    "process.env.USE_POOL": '"true"',
+  },
+  esbuildPlugins: [relativeAliasPlugin],
+  esbuildOptions(options) {
+    options.alias = {
+      "@calcom/lib/server/i18n": path.resolve(__dirname, "./i18n.ts"),
+      "@": path.resolve(__dirname, "./src"),
+      "@calcom/lib": path.resolve(__dirname, "../../lib"),
+      "@calcom/trpc": path.resolve(__dirname, "../../trpc"),
+      "@calcom/prisma/client/runtime/library": path.resolve(__dirname, "../../prisma/client/runtime/library"),
+      "@calcom/prisma/client": path.resolve(__dirname, "../../prisma/client"),
+      "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
+      "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
+      tslog: path.resolve(__dirname, "../../../apps/api/v2/src/lib/logger.bridge.ts"),
+    };
+    options.conditions = ["node", "import", "require", "default"];
+  },
+  treeshake: true,
+});
