@@ -197,7 +197,6 @@
     "glob": "10.4.5",
     "google-auth-library": "^9.15.0",
     "module-alias": "^2.2.2",
-    "msw": "^0.42.3",
     "node-html-parser": "6.1.13",
     "node-mocks-http": "1.16.2",
     "postcss": "8.5.6",
