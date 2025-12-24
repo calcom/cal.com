@@ -1,4 +1,5 @@
 import { sha256Hash, stripApiKey } from "@/lib/api-key";
+import { extractBearerToken } from "@/lib/api-key";
 import { AuthMethods } from "@/lib/enums/auth-methods";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { CreateApiKeyInput } from "@/modules/api-keys/inputs/create-api-key.input";
@@ -23,7 +24,7 @@ export class ApiKeysService {
         "ApiKeysService - This endpoint can only be accessed using an API key by providing 'Authorization: Bearer <apiKey>' header"
       );
     }
-    const apiKey = request.get("Authorization")?.replace("Bearer ", "");
+    const apiKey = extractBearerToken(request.get("Authorization"));
     if (!apiKey) {
       throw new UnauthorizedException("ApiKeysService - No API key provided");
     }

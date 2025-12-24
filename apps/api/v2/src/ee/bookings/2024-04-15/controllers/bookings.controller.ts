@@ -5,7 +5,7 @@ import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/ge
 import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
-import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
+import { sha256Hash, isApiKey, stripApiKey, extractBearerToken } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
 import { InstantBookingCreateService } from "@/lib/services/instant-booking-create.service";
 import { RecurringBookingService } from "@/lib/services/recurring-booking.service";
@@ -390,7 +390,7 @@ export class BookingsController_2024_04_15 {
 
   private async getOwnerId(req: Request): Promise<number | undefined> {
     try {
-      const bearerToken = req.get("Authorization")?.replace("Bearer ", "");
+      const bearerToken = extractBearerToken(req.get("Authorization"));
       if (bearerToken) {
         if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
           const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));

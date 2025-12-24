@@ -1,3 +1,4 @@
+import { extractBearerToken } from "@/lib/api-key";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -102,7 +103,7 @@ export class ConferencingController {
     @Query("onErrorReturnTo") onErrorReturnTo?: string
   ): Promise<GetConferencingAppsOauthUrlResponseDto> {
     const origin = req.headers.origin;
-    const accessToken = authorization.replace("Bearer ", "");
+    const accessToken = extractBearerToken(authorization);
 
     const state: OAuthCallbackState = {
       returnTo: returnTo ?? origin,
