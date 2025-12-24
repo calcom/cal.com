@@ -9,16 +9,19 @@ permissions:
 env:
   API_KEY_PREFIX: ${{ secrets.CI_API_KEY_PREFIX }}
   API_PORT: ${{ vars.CI_API_V2_PORT }}
+  API_URL: "http://localhost"
   CALCOM_LICENSE_KEY: ${{ secrets.CI_CALCOM_LICENSE_KEY }}
   DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
   DATABASE_READ_URL: ${{ secrets.CI_DATABASE_URL }}
   DATABASE_WRITE_URL: ${{ secrets.CI_DATABASE_URL }}
   JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
   NEXTAUTH_SECRET: ${{ secrets.CI_NEXTAUTH_SECRET }}
+  NODE_ENV: ${{ vars.CI_NODE_ENV }}
   NODE_OPTIONS: --max-old-space-size=4096
   REDIS_URL: "redis://localhost:6379"
   STRIPE_API_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
   STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
+  WEB_APP_URL: "https://app.cal.com"
 
 jobs:
   check-api-v2-breaking-changes:

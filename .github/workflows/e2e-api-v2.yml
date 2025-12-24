@@ -75,10 +75,28 @@ jobs:
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
 
+      - name: Cache platform-libraries build
+        uses: buildjet/cache@v4
+        id: cache-platform-libraries
+        env:
+          cache-name: platform-libraries-build
+          key-1: ${{ hashFiles('yarn.lock') }}
+          key-2: ${{ hashFiles('packages/platform/libraries/**.[jt]s', 'packages/platform/libraries/**.[jt]sx', '!**/node_modules') }}
+          key-3: ${{ github.event.pull_request.number || github.ref }}
+          key-4: ${{ github.sha }}
+        with:
+          path: |
+            packages/platform/libraries/dist/**
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
+
+      - name: Build platform-libraries
+        if: steps.cache-platform-libraries.outputs.cache-hit != 'true'
+        run: yarn workspace @calcom/platform-libraries build
+
       - name: Run Tests
         working-directory: apps/api/v2
         run: |
-          yarn workspace @calcom/platform-libraries build && yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+          yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
           EXIT_CODE=$?
           echo "yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }} command exit code: $EXIT_CODE"
           exit $EXIT_CODE
