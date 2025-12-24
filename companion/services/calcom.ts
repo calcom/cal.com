@@ -314,7 +314,8 @@ export class CalComAPIService {
         throw new Error("Authentication failed. Please check your credentials.");
       }
 
-      throw new Error(`API Error: ${errorMessage}`);
+      // Include status code in error message for graceful error handling downstream
+      throw new Error(`API Error: ${response.status} ${errorMessage}`);
     }
 
     return response.json();

@@ -178,6 +178,18 @@ export const useBookingActions = ({
     const dateTimeStr = `${date}T${time}:00`;
     const newDateTime = new Date(dateTimeStr);
 
+    // Validate the date
+    if (isNaN(newDateTime.getTime())) {
+      throw new Error(
+        "Invalid date or time format. Please use YYYY-MM-DD for date and HH:MM for time."
+      );
+    }
+
+    // Check if the new time is in the future
+    if (newDateTime <= new Date()) {
+      throw new Error("Please select a future date and time");
+    }
+
     // Convert to UTC ISO string
     const startUtc = newDateTime.toISOString();
 

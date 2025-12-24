@@ -27,6 +27,11 @@ export default function AddGuests() {
           router.back();
         })
         .finally(() => setIsLoading(false));
+    } else {
+      // If uid is missing, navigate back to prevent infinite loading state
+      setIsLoading(false);
+      Alert.alert("Error", "Booking ID is missing");
+      router.back();
     }
   }, [uid, router]);
 

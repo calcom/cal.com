@@ -1,5 +1,5 @@
 import ViewRecordingsScreen from "../../../components/screens/ViewRecordingsScreen";
-import { CalComAPIService, type Booking } from "../../../services/calcom";
+import { CalComAPIService } from "../../../services/calcom";
 import type { BookingRecording } from "../../../services/types/bookings.types";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
@@ -8,30 +8,26 @@ import { Alert, ActivityIndicator, View, Platform } from "react-native";
 export default function ViewRecordings() {
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const router = useRouter();
-  const [booking, setBooking] = useState<Booking | null>(null);
   const [recordings, setRecordings] = useState<BookingRecording[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch booking data and recordings
+  // Fetch recordings only (booking data not needed for this screen)
   useEffect(() => {
     if (uid) {
       setIsLoading(true);
-      Promise.all([
-        CalComAPIService.getBookingByUid(uid),
-        CalComAPIService.getRecordings(uid).catch((error) => {
+      CalComAPIService.getRecordings(uid)
+        .then(setRecordings)
+        .catch((error) => {
           console.error("Failed to load recordings:", error);
-          return [];
-        }),
-      ])
-        .then(([bookingData, recordingsData]) => {
-          setBooking(bookingData);
-          setRecordings(recordingsData);
-        })
-        .catch(() => {
-          Alert.alert("Error", "Failed to load booking details");
+          Alert.alert("Error", "Failed to load recordings");
           router.back();
         })
         .finally(() => setIsLoading(false));
+    } else {
+      // If uid is missing, navigate back to prevent infinite loading state
+      setIsLoading(false);
+      Alert.alert("Error", "Booking ID is missing");
+      router.back();
     }
   }, [uid, router]);
 

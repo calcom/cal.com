@@ -36,6 +36,16 @@ const getInitials = (name: string): string => {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 };
 
+// Mask email for logging (shows only first 2 chars and domain)
+const maskEmail = (email: string): string => {
+  if (!email || !email.includes("@")) return "***";
+  const [localPart, domain] = email.split("@");
+  if (localPart.length <= 2) {
+    return `${localPart[0]}***@${domain}`;
+  }
+  return `${localPart.substring(0, 2)}***@${domain}`;
+};
+
 export function MarkNoShowScreen({
   booking,
   attendees,
@@ -108,7 +118,7 @@ export function MarkNoShowScreen({
                 console.debug("[MarkNoShowScreen] Error details:", {
                   message,
                   stack,
-                  attendeeEmail: attendee.email,
+                  attendeeEmail: maskEmail(attendee.email), // Masked to avoid logging PII
                   bookingUid: booking.uid,
                   absent: !isCurrentlyNoShow,
                 });
