@@ -58,7 +58,7 @@ jobs:
 
   e2e:
     timeout-minutes: 20
-    name: E2E API v2 (${{ matrix.shard }}/${{ strategy.job-total }})
+    name: E2E API v2 (${{ matrix.shard }}/4)
     needs: check-api-v2-breaking-changes
     runs-on: buildjet-16vcpu-ubuntu-2204
     services:
@@ -107,9 +107,9 @@ jobs:
       - name: Run Tests
         working-directory: apps/api/v2
         run: |
-          yarn workspace @calcom/platform-libraries build && yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+          yarn workspace @calcom/platform-libraries build && yarn test:e2e --shard=${{ matrix.shard }}/4
           EXIT_CODE=$?
-          echo "yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }} command exit code: $EXIT_CODE"
+          echo "yarn test:e2e --shard=${{ matrix.shard }}/4 command exit code: $EXIT_CODE"
           exit $EXIT_CODE
 
       - name: Upload Test Results
