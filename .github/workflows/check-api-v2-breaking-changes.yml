@@ -7,7 +7,18 @@ permissions:
   contents: read
 
 env:
-  NODE_OPTIONS: --max-old-space-size=29000
+  API_KEY_PREFIX: ${{ secrets.CI_API_KEY_PREFIX }}
+  API_PORT: ${{ vars.CI_API_V2_PORT }}
+  CALCOM_LICENSE_KEY: ${{ secrets.CI_CALCOM_LICENSE_KEY }}
+  DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+  DATABASE_READ_URL: ${{ secrets.CI_DATABASE_URL }}
+  DATABASE_WRITE_URL: ${{ secrets.CI_DATABASE_URL }}
+  JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
+  NEXTAUTH_SECRET: ${{ secrets.CI_NEXTAUTH_SECRET }}
+  NODE_OPTIONS: --max-old-space-size=4096
+  REDIS_URL: "redis://localhost:6379"
+  STRIPE_API_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
+  STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
 
 jobs:
   check-api-v2-breaking-changes:

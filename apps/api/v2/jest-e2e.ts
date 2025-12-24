@@ -9,7 +9,7 @@ const getMaxWorkers = () => {
   if (process.env.CI && isSharding) {
     // In CI with sharding: reduce workers to improve test isolation
     // Sharding already provides parallelism across shards (4 parallel jobs)
-    return 2;
+    return 4;
   }
   // Local development or non-sharded: use more workers (similar to Playwright)
   return 8;
