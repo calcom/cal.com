@@ -23,7 +23,6 @@ import {
   getCalIdEmailTemplateText,
 } from "../util.calid";
 import type { TCalIdUpdateInputSchema } from "./update.schema";
-import { Prisma } from "@prisma/client";
 
 type CalIdUpdateOptions = {
   ctx: {
