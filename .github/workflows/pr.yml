@@ -139,6 +139,13 @@ jobs:
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
+  setup-db:
+    name: Setup Database
+    needs: [prepare, deps]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/setup-db.yml
+    secrets: inherit
+
   build-api-v1:
     name: Production builds
     needs: [prepare, deps, setup-db]
@@ -179,13 +186,6 @@ jobs:
     needs: [prepare, deps]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/production-build-without-database.yml
-    secrets: inherit
-
-  setup-db:
-    name: Setup Database
-    needs: [prepare, deps]
-    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/setup-db.yml
     secrets: inherit
 
   integration-test:
