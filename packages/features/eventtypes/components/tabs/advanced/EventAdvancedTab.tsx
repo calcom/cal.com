@@ -692,30 +692,25 @@ export const EventAdvancedTab = ({
 
       {!isPlatform && (
         <>
-          <Controller
-            name="disableCancelling"
-            render={({ field: { onChange } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_cancelling")}
-                data-testid="disable-cancelling-toggle"
-                {...disableCancellingLocked}
-                description={
-                  <LearnMoreLink
-                    t={t}
-                    i18nKey="description_disable_cancelling"
-                    href="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-cancelling"
-                  />
-                }
-                checked={disableCancelling}
-                onCheckedChange={(val) => {
-                  setDisableCancelling(val);
-                  onChange(val);
-                }}
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            title={t("disable_cancelling")}
+            data-testid="disable-cancelling-toggle"
+            {...disableCancellingLocked}
+            description={
+              <LearnMoreLink
+                t={t}
+                i18nKey="description_disable_cancelling"
+                href="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-cancelling"
               />
-            )}
+            }
+            checked={disableCancelling}
+            onCheckedChange={(val) => {
+              formMethods.setValue("disabledCancelling", val, { shouldDirty: true });
+              setDisableCancelling(val);
+            }}
           />
 
           <DisableReschedulingController
@@ -729,7 +724,7 @@ export const EventAdvancedTab = ({
 
       <Controller
         name="canSendCalVideoTranscriptionEmails"
-        render={({ field: { value, onChange } }) => (
+        render={({ field: { value } }) => (
           <SettingsToggle
             labelClassName={classNames(
               "text-sm",
@@ -746,19 +741,23 @@ export const EventAdvancedTab = ({
             description={t("description_send_cal_video_transcription_emails")}
             descriptionClassName={customClassNames?.canSendCalVideoTranscriptionEmails?.description}
             checked={value}
-            onCheckedChange={(e) => onChange(e)}
+            onCheckedChange={(e) =>
+              formMethods.setValue("canSendCalVideoTranscriptionEmails", e, { shouldDirty: true })
+            }
           />
         )}
       />
       {!isPlatform && (
         <Controller
           name="autoTranslateDescriptionEnabled"
-          render={({ field: { value, onChange } }) => (
+          render={({ field: { value } }) => (
             <SettingsToggle
               labelClassName="text-sm"
               title={t("translate_description_button")}
               checked={value}
-              onCheckedChange={(e) => onChange(e)}
+              onCheckedChange={(e) =>
+                formMethods.setValue("autoTranslateDescriptionEnabled", e, { shouldDirty: true })
+              }
               disabled={!orgId}
               tooltip={!orgId ? t("orgs_upgrade_to_enable_feature") : undefined}
               data-testid="ai_translation_toggle"
@@ -773,8 +772,7 @@ export const EventAdvancedTab = ({
         <Controller
           name="interfaceLanguage"
           control={formMethods.control}
-          defaultValue={eventType.interfaceLanguage ?? null}
-          render={({ field: { value, onChange } }) => (
+          render={({ field: { value } }) => (
             <SettingsToggle
               labelClassName="text-sm"
               toggleSwitchAtTheEnd={true}
@@ -791,8 +789,8 @@ export const EventAdvancedTab = ({
               onCheckedChange={(e) => {
                 setInterfaceLanguageVisible(e);
                 if (!e) {
-                  // disables the setting
-                  formMethods.setValue("interfaceLanguage", null, { shouldDirty: true });
+                  // Reset to original default value to properly clear dirty state
+                  formMethods.resetField("interfaceLanguage");
                 } else {
                   // "" is default value which means visitors browser language
                   formMethods.setValue("interfaceLanguage", "", { shouldDirty: true });
@@ -804,7 +802,8 @@ export const EventAdvancedTab = ({
                   className="capitalize"
                   options={interfaceLanguageOptions}
                   onChange={(option) => {
-                    onChange(option?.value);
+                    const newValue = option?.value;
+                    formMethods.setValue("interfaceLanguage", newValue, { shouldDirty: true });
                   }}
                   value={interfaceLanguageOptions.find((option) => option.value === value) || undefined}
                 />
@@ -815,7 +814,7 @@ export const EventAdvancedTab = ({
       )}
       <Controller
         name="requiresBookerEmailVerification"
-        render={({ field: { value, onChange } }) => (
+        render={({ field: { value } }) => (
           <SettingsToggle
             labelClassName={classNames("text-sm", customClassNames?.bookerEmailVerification?.label)}
             toggleSwitchAtTheEnd={true}
@@ -829,13 +828,15 @@ export const EventAdvancedTab = ({
             description={t("description_requires_booker_email_verification")}
             descriptionClassName={customClassNames?.bookerEmailVerification?.description}
             checked={value}
-            onCheckedChange={(e) => onChange(e)}
+            onCheckedChange={(e) =>
+              formMethods.setValue("requiresBookerEmailVerification", e, { shouldDirty: true })
+            }
           />
         )}
       />
       <Controller
         name="hideCalendarNotes"
-        render={({ field: { value, onChange } }) => (
+        render={({ field: { value } }) => (
           <SettingsToggle
             labelClassName={classNames("text-sm", customClassNames?.calendarNotes?.label)}
             toggleSwitchAtTheEnd={true}
@@ -855,13 +856,13 @@ export const EventAdvancedTab = ({
               />
             }
             checked={value}
-            onCheckedChange={(e) => onChange(e)}
+            onCheckedChange={(e) => formMethods.setValue("hideCalendarNotes", e, { shouldDirty: true })}
           />
         )}
       />
       <Controller
         name="hideCalendarEventDetails"
-        render={({ field: { value, onChange } }) => (
+        render={({ field: { value } }) => (
           <SettingsToggle
             labelClassName={classNames("text-sm", customClassNames?.eventDetailsVisibility?.label)}
             toggleSwitchAtTheEnd={true}
@@ -874,7 +875,9 @@ export const EventAdvancedTab = ({
             {...hideCalendarEventDetailsLocked}
             description={t("description_hide_calendar_event_details")}
             checked={value}
-            onCheckedChange={(e) => onChange(e)}
+            onCheckedChange={(e) =>
+              formMethods.setValue("hideCalendarEventDetails", e, { shouldDirty: true })
+            }
           />
         )}
       />
@@ -926,7 +929,7 @@ export const EventAdvancedTab = ({
                   )}>
                   <Controller
                     name="forwardParamsSuccessRedirect"
-                    render={({ field: { value, onChange } }) => (
+                    render={({ field: { value } }) => (
                       <CheckboxField
                         description={t("forward_params_redirect")}
                         disabled={successRedirectUrlLocked.disabled}
@@ -934,7 +937,9 @@ export const EventAdvancedTab = ({
                         descriptionClassName={
                           customClassNames?.bookingRedirect?.forwardParamsCheckbox?.description
                         }
-                        onChange={(e) => onChange(e)}
+                        onChange={(e) =>
+                          formMethods.setValue("forwardParamsSuccessRedirect", e, { shouldDirty: true })
+                        }
                         checked={value}
                       />
                     )}
@@ -1096,7 +1101,7 @@ export const EventAdvancedTab = ({
                         )}>
                         <Controller
                           name="seatsShowAttendees"
-                          render={({ field: { value, onChange } }) => (
+                          render={({ field: { value } }) => (
                             <CheckboxField
                               data-testid="show-attendees"
                               description={t("show_attendees")}
@@ -1105,7 +1110,9 @@ export const EventAdvancedTab = ({
                                 customClassNames?.seatsOptions?.showAttendeesCheckbox?.description
                               }
                               disabled={seatsLocked.disabled}
-                              onChange={(e) => onChange(e)}
+                              onChange={(e) =>
+                                formMethods.setValue("seatsShowAttendees", e, { shouldDirty: true })
+                              }
                               checked={value}
                             />
                           )}
@@ -1118,11 +1125,13 @@ export const EventAdvancedTab = ({
                         )}>
                         <Controller
                           name="seatsShowAvailabilityCount"
-                          render={({ field: { value, onChange } }) => (
+                          render={({ field: { value } }) => (
                             <CheckboxField
                               description={t("show_available_seats_count")}
                               disabled={seatsLocked.disabled}
-                              onChange={(e) => onChange(e)}
+                              onChange={(e) =>
+                                formMethods.setValue("seatsShowAvailabilityCount", e, { shouldDirty: true })
+                              }
                               checked={value}
                               className={
                                 customClassNames?.seatsOptions?.showAvalableSeatCountCheckbox?.checkbox
@@ -1145,7 +1154,7 @@ export const EventAdvancedTab = ({
       />
       <Controller
         name="hideOrganizerEmail"
-        render={({ field: { value, onChange } }) => (
+        render={({ field: { value } }) => (
           <SettingsToggle
             labelClassName={classNames("text-sm", customClassNames?.hideOrganizerEmail?.label)}
             toggleSwitchAtTheEnd={true}
@@ -1164,7 +1173,7 @@ export const EventAdvancedTab = ({
             }
             descriptionClassName={customClassNames?.hideOrganizerEmail?.description}
             checked={value}
-            onCheckedChange={(e) => onChange(e)}
+            onCheckedChange={(e) => formMethods.setValue("hideOrganizerEmail", e, { shouldDirty: true })}
             data-testid="hide-organizer-email"
           />
         )}
@@ -1200,7 +1209,7 @@ export const EventAdvancedTab = ({
               }
               checked={value}
               onCheckedChange={(e) => {
-                onChange(e);
+                formMethods.setValue("lockTimeZoneToggleOnBookingPage", e, { shouldDirty: true });
                 const lockedTimeZone = e ? eventType.lockedTimeZone ?? "Europe/London" : null;
                 formMethods.setValue("lockedTimeZone", lockedTimeZone, { shouldDirty: true });
               }}
@@ -1237,7 +1246,7 @@ export const EventAdvancedTab = ({
       />
       <Controller
         name="allowReschedulingPastBookings"
-        render={({ field: { value, onChange } }) => (
+        render={({ field: { value } }) => (
           <SettingsToggle
             labelClassName={classNames("text-sm")}
             toggleSwitchAtTheEnd={true}
@@ -1252,29 +1261,26 @@ export const EventAdvancedTab = ({
               />
             }
             checked={value}
-            onCheckedChange={(e) => onChange(e)}
+            onCheckedChange={(e) =>
+              formMethods.setValue("allowReschedulingPastBookings", e, { shouldDirty: true })
+            }
           />
         )}
       />
 
-      <Controller
-        name="allowReschedulingCancelledBookings"
-        render={({ field: { onChange } }) => (
-          <SettingsToggle
-            labelClassName="text-sm"
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-            title={t("allow_rescheduling_cancelled_bookings")}
-            data-testid="allow-rescheduling-cancelled-bookings-toggle"
-            {...allowReschedulingCancelledBookingsLocked}
-            description={t("description_allow_rescheduling_cancelled_bookings")}
-            checked={allowReschedulingCancelledBookings}
-            onCheckedChange={(val) => {
-              setallowReschedulingCancelledBookings(val);
-              onChange(val);
-            }}
-          />
-        )}
+      <SettingsToggle
+        labelClassName="text-sm"
+        toggleSwitchAtTheEnd={true}
+        switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+        title={t("allow_rescheduling_cancelled_bookings")}
+        data-testid="allow-rescheduling-cancelled-bookings-toggle"
+        {...allowReschedulingCancelledBookingsLocked}
+        description={t("description_allow_rescheduling_cancelled_bookings")}
+        checked={allowReschedulingCancelledBookings}
+        onCheckedChange={(val) => {
+          formMethods.setValue("allowReschedulingCancelledBookings", val, { shouldDirty: true });
+          setallowReschedulingCancelledBookings(val);
+        }}
       />
       <>
         <Controller
@@ -1411,7 +1417,7 @@ export const EventAdvancedTab = ({
       />
       <Controller
         name="showOptimizedSlots"
-        render={({ field: { onChange, value } }) => {
+        render={({ field: { value } }) => {
           const isChecked = value;
           return (
             <SettingsToggle
@@ -1428,7 +1434,7 @@ export const EventAdvancedTab = ({
               checked={isChecked}
               {...showOptimizedSlotsLocked}
               onCheckedChange={(active) => {
-                onChange(active ?? false);
+                formMethods.setValue("showOptimizedSlots", active ?? false, { shouldDirty: true });
               }}
               switchContainerClassName={classNames(
                 "border-subtle rounded-lg border py-6 px-4 sm:px-6",
@@ -1441,7 +1447,7 @@ export const EventAdvancedTab = ({
       {isRoundRobinEventType && (
         <Controller
           name="rescheduleWithSameRoundRobinHost"
-          render={({ field: { value, onChange } }) => (
+          render={({ field: { value } }) => (
             <SettingsToggle
               labelClassName={classNames("text-sm", customClassNames?.roundRobinReschedule?.label)}
               toggleSwitchAtTheEnd={true}
@@ -1453,7 +1459,9 @@ export const EventAdvancedTab = ({
               description={t("reschedule_with_same_round_robin_host_description")}
               descriptionClassName={customClassNames?.roundRobinReschedule?.description}
               checked={value}
-              onCheckedChange={(e) => onChange(e)}
+              onCheckedChange={(e) =>
+                formMethods.setValue("rescheduleWithSameRoundRobinHost", e, { shouldDirty: true })
+              }
             />
           )}
         />
@@ -1461,7 +1469,7 @@ export const EventAdvancedTab = ({
       {allowDisablingAttendeeConfirmationEmails(workflows) && (
         <Controller
           name="metadata.disableStandardEmails.confirmation.attendee"
-          render={({ field: { value, onChange } }) => (
+          render={({ field: { value } }) => (
             <>
               <SettingsToggle
                 labelClassName={classNames("text-sm", customClassNames?.emailNotifications?.label)}
@@ -1474,7 +1482,11 @@ export const EventAdvancedTab = ({
                 description={t("disable_attendees_confirmation_emails_description")}
                 descriptionClassName={customClassNames?.emailNotifications?.description}
                 checked={value}
-                onCheckedChange={(e) => onChange(e)}
+                onCheckedChange={(e) =>
+                  formMethods.setValue("metadata.disableStandardEmails.confirmation.attendee", e, {
+                    shouldDirty: true,
+                  })
+                }
               />
             </>
           )}
@@ -1484,7 +1496,7 @@ export const EventAdvancedTab = ({
         <Controller
           name="metadata.disableStandardEmails.confirmation.host"
           defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
-          render={({ field: { value, onChange } }) => (
+          render={({ field: { value } }) => (
             <>
               <SettingsToggle
                 labelClassName={classNames("text-sm", customClassNames?.emailNotifications?.label)}
@@ -1497,7 +1509,11 @@ export const EventAdvancedTab = ({
                 title={t("disable_host_confirmation_emails")}
                 description={t("disable_host_confirmation_emails_description")}
                 checked={value}
-                onCheckedChange={(e) => onChange(e)}
+                onCheckedChange={(e) =>
+                  formMethods.setValue("metadata.disableStandardEmails.confirmation.host", e, {
+                    shouldDirty: true,
+                  })
+                }
               />
             </>
           )}
