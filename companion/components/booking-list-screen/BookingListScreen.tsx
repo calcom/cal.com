@@ -463,7 +463,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         onClose={closeMarkNoShowModal}
         onSubmit={handleMarkNoShow}
         isLoading={isMarkingNoShow}
-        attendees={actionModalBooking?.attendees}
+        attendees={actionModalBooking?.attendees ?? []}
       />
     </>
   );

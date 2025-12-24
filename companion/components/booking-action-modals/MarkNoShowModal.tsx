@@ -31,6 +31,8 @@ export function MarkNoShowModal({
   attendees,
   isLoading = false,
 }: MarkNoShowModalProps) {
+  // Normalize attendees to always be an array (defensive against undefined/null)
+  const safeAttendees = Array.isArray(attendees) ? attendees : [];
   const [processingEmail, setProcessingEmail] = useState<string | null>(null);
 
   // Reset state when modal opens - currently no selection state needed
@@ -148,7 +150,7 @@ export function MarkNoShowModal({
               <ActivityIndicator size="large" color="#000" />
               <Text className="mt-2 text-gray-500">Loading attendees...</Text>
             </View>
-          ) : attendees.length === 0 ? (
+          ) : safeAttendees.length === 0 ? (
             <View className="flex-1 items-center justify-center">
               <Ionicons name="people" size={48} color="#9CA3AF" />
               <Text className="mt-2 text-base text-gray-500">No attendees found</Text>
@@ -159,10 +161,10 @@ export function MarkNoShowModal({
           ) : (
             <>
               <Text className="mb-2 text-sm font-medium text-gray-700">
-                Attendees ({attendees.length})
+                Attendees ({safeAttendees.length})
               </Text>
               <FlatList
-                data={attendees}
+                data={safeAttendees}
                 renderItem={renderAttendee}
                 keyExtractor={(item) => item.email}
                 showsVerticalScrollIndicator={false}
