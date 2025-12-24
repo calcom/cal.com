@@ -340,7 +340,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
     const formHasChanges = useMemo(() => {
       if (!initialValuesRef.current) return false;
       try {
-        return (JSON.stringify(form.watch("schedule")) !== JSON.stringify(initialValuesRef.current.availability) && JSON.stringify(watchedValues) !== JSON.stringify(initialValuesRef.current));
+        return (JSON.stringify(form.watch("schedule")) !== JSON.stringify(initialValuesRef.current.availability) || JSON.stringify(watchedValues) !== JSON.stringify(initialValuesRef.current));
       } catch {
         return form.formState.isDirty;
       }
