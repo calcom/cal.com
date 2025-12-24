@@ -658,7 +658,7 @@ export async function scheduleNoShowTaskForBooking(
     triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
       ? "triggerHostNoShowWebhook"
       : "triggerGuestNoShowWebhook";
-  const version: WebhookVersion = webhook.version ?? DEFAULT_WEBHOOK_VERSION;
+  const version = (webhook.version as WebhookVersion) ?? DEFAULT_WEBHOOK_VERSION;
   await tasker.create(
     taskType,
     {
