@@ -10,7 +10,7 @@ beforeAll(() => {
   Element.prototype.scrollIntoView = vi.fn();
 });
 
-vi.mock("@calcom/trpc", () => ({
+vi.mock("@calcom/trpc/react", () => ({
   trpc: {
     viewer: {
       bookings: {

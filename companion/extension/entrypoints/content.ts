@@ -1536,8 +1536,8 @@ export default defineContentScript({
             ${datesHTML}
             <div style="margin-top: 13px;">
               <a href="https://cal.com/${username}/${eventType.slug}?cal.tz=${encodeURIComponent(
-                timezone
-              )}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
+          timezone
+        )}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
                 See all available times →
               </a>
             </div>
@@ -2458,8 +2458,8 @@ export default defineContentScript({
             <div style="font-size: 13px; color: #666; margin-top: 4px;">${
               parsedData.slots.length
             } time slot${parsedData.slots.length > 1 ? "s" : ""} • ${
-              parsedData.detectedDuration
-            }min each</div>
+          parsedData.detectedDuration
+        }min each</div>
           </div>
           <button class="close-menu" style="background: none; border: none; cursor: pointer; font-size: 28px; color: #666; line-height: 1; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">×</button>
         `;
