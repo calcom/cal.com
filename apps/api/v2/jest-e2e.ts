@@ -34,7 +34,7 @@ const config: Config = {
   setupFilesAfterEnv: ["<rootDir>/test/jest.setup-e2e.ts"],
   reporters: ["default", "jest-summarizing-reporter"],
   workerIdleMemoryLimit: "512MB",
-  maxWorkers: 8,
+  maxWorkers: 6,
   testPathIgnorePatterns: ["/dist/", "/node_modules/"],
   transformIgnorePatterns: ["/dist/", "/node_modules/"],
 };
