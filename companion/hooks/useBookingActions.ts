@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { Alert } from "react-native";
-import type { useRouter } from "expo-router";
 import type { Booking } from "../services/calcom";
 import { showErrorAlert } from "../utils/alerts";
+import type { useRouter } from "expo-router";
+import { useState } from "react";
+import { Alert } from "react-native";
 
 interface UseBookingActionsParams {
   router: ReturnType<typeof useRouter>;
@@ -69,7 +69,7 @@ export const useBookingActions = ({
    */
   const handleBookingPress = (booking: Booking) => {
     router.push({
-      pathname: "/booking-detail",
+      pathname: "/(tabs)/(bookings)/booking-detail",
       params: { uid: booking.uid },
     });
   };
@@ -176,7 +176,7 @@ export const useBookingActions = ({
                         Alert.alert("Success", "Event cancelled successfully");
                       },
                       onError: (error) => {
-                        console.error("Failed to cancel booking:", error);
+                        console.error("Failed to cancel booking");
                         showErrorAlert("Error", "Failed to cancel event. Please try again.");
                       },
                     }
