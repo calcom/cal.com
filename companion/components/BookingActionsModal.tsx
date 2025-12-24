@@ -3,25 +3,24 @@
  *
  * A reusable modal component for booking actions that can be used in both
  * the bookings list screen and the booking detail screen.
+ *
+ * This component uses the centralized action gating utility for consistent
+ * action visibility and enabled state across the app.
  */
-
+import type { Booking } from "../services/calcom";
+import type { BookingActionsResult } from "../utils/booking-actions";
+import { FullScreenModal } from "./FullScreenModal";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { View, Text, TouchableOpacity, Alert } from "react-native";
-
-import { FullScreenModal } from "./FullScreenModal";
-import type { Booking } from "../services/calcom";
+import { View, Text, TouchableOpacity } from "react-native";
 
 export interface BookingActionsModalProps {
   visible: boolean;
   onClose: () => void;
   booking: Booking | null;
-  hasLocationUrl?: boolean;
-  isUpcoming?: boolean; // When true, disables "after event" actions (View Recordings, Session Details, Mark No-Show)
-  isPast?: boolean; // When true, disables "edit event" actions (Reschedule, Edit Location, Add Guests) and Cancel Booking
-  isCancelled?: boolean; // When true, only Report Booking and Mark as No-Show are enabled
-  isUnconfirmed?: boolean; // When true, disables Reschedule, Edit Location, Add Guests
+  actions: BookingActionsResult;
   onReschedule: () => void;
+  onRequestReschedule?: () => void;
   onEditLocation: () => void;
   onAddGuests: () => void;
   onViewRecordings: () => void;
@@ -41,16 +40,55 @@ const TEXT_COLOR_CLASS = "text-gray-900";
 const TEXT_COLOR_DANGER_CLASS = "text-[#800000]"; // Maroon
 const DISABLED_TEXT_COLOR_CLASS = "text-gray-300";
 
+interface ActionButtonProps {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+  visible: boolean;
+  enabled: boolean;
+  isDanger?: boolean;
+}
+
+function ActionButton({
+  icon,
+  label,
+  onPress,
+  visible,
+  enabled,
+  isDanger = false,
+}: ActionButtonProps) {
+  if (!visible) return null;
+
+  const iconColor = !enabled ? DISABLED_ICON_COLOR : isDanger ? ICON_COLOR_DANGER : ICON_COLOR;
+
+  const textColorClass = !enabled
+    ? DISABLED_TEXT_COLOR_CLASS
+    : isDanger
+    ? TEXT_COLOR_DANGER_CLASS
+    : TEXT_COLOR_CLASS;
+
+  return (
+    <TouchableOpacity
+      onPress={() => {
+        if (!enabled) return;
+        onPress();
+      }}
+      disabled={!enabled}
+      className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+    >
+      <Ionicons name={icon} size={ICON_SIZE} color={iconColor} />
+      <Text className={`ml-3 ${TEXT_CLASS} ${textColorClass}`}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
 export function BookingActionsModal({
   visible,
   onClose,
   booking,
-  hasLocationUrl = false,
-  isUpcoming = false,
-  isPast = false,
-  isCancelled = false,
-  isUnconfirmed = false,
+  actions,
   onReschedule,
+  onRequestReschedule,
   onEditLocation,
   onAddGuests,
   onViewRecordings,
@@ -61,13 +99,23 @@ export function BookingActionsModal({
 }: BookingActionsModalProps) {
   if (!booking) return null;
 
-  // For cancelled bookings, only Report Booking and Mark as No-Show are enabled
-  // "After event" actions (except Mark as No-Show) are disabled for upcoming, cancelled, or unconfirmed bookings
-  const afterEventActionsDisabled = isUpcoming || isCancelled || isUnconfirmed;
-  // "Edit event" actions (Reschedule, Edit Location, Add Guests) are disabled for past, cancelled, or unconfirmed bookings
-  const editEventActionsDisabled = isPast || isCancelled || isUnconfirmed;
-  // Cancel booking is disabled for past or cancelled bookings (but NOT for unconfirmed - user can still cancel/decline)
-  const cancelBookingDisabled = isPast || isCancelled;
+  const handleAction = (action: () => void) => {
+    onClose();
+    action();
+  };
+
+  // Check if any edit event actions are visible
+  const hasEditEventActions =
+    actions.reschedule.visible ||
+    actions.rescheduleRequest.visible ||
+    actions.changeLocation.visible ||
+    actions.addGuests.visible;
+
+  // Check if any after event actions are visible
+  const hasAfterEventActions =
+    actions.viewRecordings.visible ||
+    actions.meetingSessionDetails.visible ||
+    actions.markNoShow.visible;
 
   return (
     <FullScreenModal visible={visible} animationType="fade" onRequestClose={onClose}>
@@ -83,196 +131,117 @@ export function BookingActionsModal({
         >
           {/* Actions List */}
           <View className="p-2">
-            {/* Edit event label */}
-            <View className="px-4 py-1">
-              <Text className="text-xs font-medium text-gray-500">Edit event</Text>
-            </View>
+            {/* Edit event section */}
+            {hasEditEventActions && (
+              <>
+                <View className="px-4 py-1">
+                  <Text className="text-xs font-medium text-gray-500">Edit event</Text>
+                </View>
 
-            {/* Reschedule Booking */}
-            <TouchableOpacity
-              onPress={() => {
-                if (editEventActionsDisabled) return;
-                onClose();
-                onReschedule();
-              }}
-              disabled={editEventActionsDisabled}
-              className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-            >
-              <Ionicons
-                name="calendar-outline"
-                size={ICON_SIZE}
-                color={editEventActionsDisabled ? DISABLED_ICON_COLOR : ICON_COLOR}
-              />
-              <Text
-                className={`ml-3 ${TEXT_CLASS} ${editEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS}`}
-              >
-                Reschedule Booking
-              </Text>
-            </TouchableOpacity>
-
-            {/* Edit Location */}
-            <TouchableOpacity
-              onPress={() => {
-                if (editEventActionsDisabled) return;
-                onClose();
-                onEditLocation();
-              }}
-              disabled={editEventActionsDisabled}
-              className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-            >
-              <Ionicons
-                name="location-outline"
-                size={ICON_SIZE}
-                color={editEventActionsDisabled ? DISABLED_ICON_COLOR : ICON_COLOR}
-              />
-              <Text
-                className={`ml-3 ${TEXT_CLASS} ${editEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS}`}
-              >
-                Edit Location
-              </Text>
-            </TouchableOpacity>
-
-            {/* Add Guests */}
-            <TouchableOpacity
-              onPress={() => {
-                if (editEventActionsDisabled) return;
-                onClose();
-                onAddGuests();
-              }}
-              disabled={editEventActionsDisabled}
-              className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-            >
-              <Ionicons
-                name="person-add-outline"
-                size={ICON_SIZE}
-                color={editEventActionsDisabled ? DISABLED_ICON_COLOR : ICON_COLOR}
-              />
-              <Text
-                className={`ml-3 ${TEXT_CLASS} ${editEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS}`}
-              >
-                Add Guests
-              </Text>
-            </TouchableOpacity>
-
-            {/* Separator */}
-            <View className="mx-4 my-2 h-px bg-gray-200" />
-
-            {/* After event label */}
-            <View className="px-4 py-1">
-              <Text className="text-xs font-medium text-gray-500">After event</Text>
-            </View>
-
-            {/* View Recordings */}
-            {hasLocationUrl ? (
-              <TouchableOpacity
-                onPress={() => {
-                  if (afterEventActionsDisabled) return;
-                  onClose();
-                  onViewRecordings();
-                }}
-                disabled={afterEventActionsDisabled}
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-              >
-                <Ionicons
-                  name="videocam-outline"
-                  size={ICON_SIZE}
-                  color={afterEventActionsDisabled ? DISABLED_ICON_COLOR : ICON_COLOR}
+                {/* Reschedule Booking */}
+                <ActionButton
+                  icon="calendar-outline"
+                  label="Reschedule Booking"
+                  onPress={() => handleAction(onReschedule)}
+                  visible={actions.reschedule.visible}
+                  enabled={actions.reschedule.enabled}
                 />
-                <Text
-                  className={`ml-3 ${TEXT_CLASS} ${afterEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS}`}
-                >
-                  View Recordings
-                </Text>
-              </TouchableOpacity>
-            ) : null}
 
-            {/* Meeting Session Details */}
-            {hasLocationUrl ? (
-              <TouchableOpacity
-                onPress={() => {
-                  if (afterEventActionsDisabled) return;
-                  onClose();
-                  onMeetingSessionDetails();
-                }}
-                disabled={afterEventActionsDisabled}
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-              >
-                <Ionicons
-                  name="information-circle-outline"
-                  size={ICON_SIZE}
-                  color={afterEventActionsDisabled ? DISABLED_ICON_COLOR : ICON_COLOR}
+                {/* Request Reschedule (for organizers) */}
+                {onRequestReschedule && (
+                  <ActionButton
+                    icon="send-outline"
+                    label="Request Reschedule"
+                    onPress={() => handleAction(onRequestReschedule)}
+                    visible={actions.rescheduleRequest.visible}
+                    enabled={actions.rescheduleRequest.enabled}
+                  />
+                )}
+
+                {/* Edit Location */}
+                <ActionButton
+                  icon="location-outline"
+                  label="Edit Location"
+                  onPress={() => handleAction(onEditLocation)}
+                  visible={actions.changeLocation.visible}
+                  enabled={actions.changeLocation.enabled}
                 />
-                <Text
-                  className={`ml-3 ${TEXT_CLASS} ${afterEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS}`}
-                >
-                  Meeting Session Details
-                </Text>
-              </TouchableOpacity>
-            ) : null}
 
-            {/* Mark as No-Show - disabled for upcoming and unconfirmed bookings */}
-            <TouchableOpacity
-              onPress={() => {
-                if (isUpcoming || isUnconfirmed) return;
-                onClose();
-                onMarkNoShow();
-              }}
-              disabled={isUpcoming || isUnconfirmed}
-              className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-            >
-              <Ionicons
-                name="eye-off-outline"
-                size={ICON_SIZE}
-                color={isUpcoming || isUnconfirmed ? DISABLED_ICON_COLOR : ICON_COLOR}
-              />
-              <Text
-                className={`ml-3 ${TEXT_CLASS} ${isUpcoming || isUnconfirmed ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS}`}
-              >
-                Mark as No-Show
-              </Text>
-            </TouchableOpacity>
+                {/* Add Guests */}
+                <ActionButton
+                  icon="person-add-outline"
+                  label="Add Guests"
+                  onPress={() => handleAction(onAddGuests)}
+                  visible={actions.addGuests.visible}
+                  enabled={actions.addGuests.enabled}
+                />
 
-            {/* Separator */}
-            <View className="mx-4 my-2 h-px bg-gray-200" />
+                {/* Separator */}
+                <View className="mx-4 my-2 h-px bg-gray-200" />
+              </>
+            )}
 
-            {/* Report Booking */}
-            <TouchableOpacity
-              onPress={() => {
-                onClose();
-                onReportBooking();
-              }}
-              className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-            >
-              <Ionicons name="flag-outline" size={ICON_SIZE} color={ICON_COLOR_DANGER} />
-              <Text className={`ml-3 ${TEXT_CLASS} ${TEXT_COLOR_DANGER_CLASS}`}>
-                Report Booking
-              </Text>
-            </TouchableOpacity>
+            {/* After event section */}
+            {hasAfterEventActions && (
+              <>
+                <View className="px-4 py-1">
+                  <Text className="text-xs font-medium text-gray-500">After event</Text>
+                </View>
+
+                {/* View Recordings */}
+                <ActionButton
+                  icon="videocam-outline"
+                  label="View Recordings"
+                  onPress={() => handleAction(onViewRecordings)}
+                  visible={actions.viewRecordings.visible}
+                  enabled={actions.viewRecordings.enabled}
+                />
+
+                {/* Meeting Session Details */}
+                <ActionButton
+                  icon="information-circle-outline"
+                  label="Meeting Session Details"
+                  onPress={() => handleAction(onMeetingSessionDetails)}
+                  visible={actions.meetingSessionDetails.visible}
+                  enabled={actions.meetingSessionDetails.enabled}
+                />
+
+                {/* Mark as No-Show */}
+                <ActionButton
+                  icon="eye-off-outline"
+                  label="Mark as No-Show"
+                  onPress={() => handleAction(onMarkNoShow)}
+                  visible={actions.markNoShow.visible}
+                  enabled={actions.markNoShow.enabled}
+                />
+
+                {/* Separator */}
+                <View className="mx-4 my-2 h-px bg-gray-200" />
+              </>
+            )}
+
+            {/* Report Booking - always visible */}
+            <ActionButton
+              icon="flag-outline"
+              label="Report Booking"
+              onPress={() => handleAction(onReportBooking)}
+              visible={true}
+              enabled={true}
+              isDanger
+            />
 
             {/* Separator */}
             <View className="mx-4 my-2 h-px bg-gray-200" />
 
             {/* Cancel Booking */}
-            <TouchableOpacity
-              onPress={() => {
-                if (cancelBookingDisabled) return;
-                onClose();
-                onCancelBooking();
-              }}
-              disabled={cancelBookingDisabled}
-              className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-            >
-              <Ionicons
-                name="close-circle-outline"
-                size={ICON_SIZE}
-                color={cancelBookingDisabled ? DISABLED_ICON_COLOR : ICON_COLOR_DANGER}
-              />
-              <Text
-                className={`ml-3 ${TEXT_CLASS} ${cancelBookingDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_DANGER_CLASS}`}
-              >
-                Cancel Event
-              </Text>
-            </TouchableOpacity>
+            <ActionButton
+              icon="close-circle-outline"
+              label="Cancel Event"
+              onPress={() => handleAction(onCancelBooking)}
+              visible={actions.cancel.visible}
+              enabled={actions.cancel.enabled}
+              isDanger
+            />
           </View>
 
           {/* Cancel button */}

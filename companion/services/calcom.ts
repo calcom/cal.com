@@ -18,6 +18,15 @@ import type {
   UpdatePrivateLinkInput,
   MarkAbsentRequest,
   MarkAbsentResponse,
+  AddGuestInput,
+  AddGuestsResponse,
+  UpdateLocationResponse,
+  BookingRecording,
+  GetRecordingsResponse,
+  ConferencingSession,
+  GetConferencingSessionsResponse,
+  BookingTranscript,
+  GetTranscriptsResponse,
 } from "./types";
 
 const API_BASE_URL = "https://api.cal.com/v2";
@@ -503,6 +512,198 @@ export class CalComAPIService {
       throw new Error("Invalid response from mark absent API");
     } catch (error) {
       console.error("markAbsent error");
+      throw error;
+    }
+  }
+
+  // ============================================================================
+  // Booking Action API Methods (API v2 2024-08-13)
+  // ============================================================================
+
+  /**
+   * Add guests to a booking
+   * @param bookingUid - The unique identifier of the booking
+   * @param guests - Array of guests to add (email required, name optional)
+   * @returns Updated booking with new guests
+   */
+  static async addGuests(bookingUid: string, guests: AddGuestInput[]): Promise<Booking> {
+    try {
+      const response = await this.makeRequest<AddGuestsResponse>(
+        `/bookings/${bookingUid}/guests`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "cal-api-version": "2024-08-13",
+          },
+          body: JSON.stringify({ guests }),
+        },
+        "2024-08-13"
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      throw new Error("Invalid response from add guests API");
+    } catch (error) {
+      console.error("addGuests error");
+      throw error;
+    }
+  }
+
+  /**
+   * Update the location of a booking
+   * Note: This updates the booking location but may not update the calendar event
+   * @param bookingUid - The unique identifier of the booking
+   * @param location - The new location string
+   * @returns Updated booking with new location
+   */
+  static async updateLocation(bookingUid: string, location: string): Promise<Booking> {
+    try {
+      const response = await this.makeRequest<UpdateLocationResponse>(
+        `/bookings/${bookingUid}/location`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "cal-api-version": "2024-08-13",
+          },
+          body: JSON.stringify({ location }),
+        },
+        "2024-08-13"
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      throw new Error("Invalid response from update location API");
+    } catch (error) {
+      console.error("updateLocation error");
+      throw error;
+    }
+  }
+
+  /**
+   * Get recordings for a booking (Cal Video only)
+   * Note: Only available for past Cal Video bookings
+   * @param bookingUid - The unique identifier of the booking
+   * @returns Array of recording objects with download URLs
+   */
+  static async getRecordings(bookingUid: string): Promise<BookingRecording[]> {
+    try {
+      const response = await this.makeRequest<GetRecordingsResponse>(
+        `/bookings/${bookingUid}/recordings`,
+        {
+          headers: {
+            "cal-api-version": "2024-08-13",
+          },
+        },
+        "2024-08-13"
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      return [];
+    } catch (error) {
+      // Handle 401/403 gracefully - endpoint may require auth in future
+      if (error instanceof Error) {
+        const statusMatch = error.message.match(/API Error: (\d+)/);
+        if (statusMatch && (statusMatch[1] === "401" || statusMatch[1] === "403")) {
+          console.warn(`Recordings access denied for booking ${bookingUid}`);
+          return [];
+        }
+        if (statusMatch && statusMatch[1] === "404") {
+          console.warn(`No recordings found for booking ${bookingUid}`);
+          return [];
+        }
+      }
+      console.error("getRecordings error");
+      throw error;
+    }
+  }
+
+  /**
+   * Get conferencing session details for a booking (Cal Video only)
+   * Note: This endpoint is PBAC-guarded and requires booking.readRecordings permission
+   * @param bookingUid - The unique identifier of the booking
+   * @returns Array of conferencing session objects with participant info
+   */
+  static async getConferencingSessions(bookingUid: string): Promise<ConferencingSession[]> {
+    try {
+      const response = await this.makeRequest<GetConferencingSessionsResponse>(
+        `/bookings/${bookingUid}/conferencing-sessions`,
+        {
+          headers: {
+            "cal-api-version": "2024-08-13",
+          },
+        },
+        "2024-08-13"
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      return [];
+    } catch (error) {
+      // Handle 401/403 gracefully - endpoint is PBAC-guarded
+      if (error instanceof Error) {
+        const statusMatch = error.message.match(/API Error: (\d+)/);
+        if (statusMatch && (statusMatch[1] === "401" || statusMatch[1] === "403")) {
+          console.warn(`Conferencing sessions access denied for booking ${bookingUid}`);
+          return [];
+        }
+        if (statusMatch && statusMatch[1] === "404") {
+          console.warn(`No conferencing sessions found for booking ${bookingUid}`);
+          return [];
+        }
+      }
+      console.error("getConferencingSessions error");
+      throw error;
+    }
+  }
+
+  /**
+   * Get transcripts for a booking (Cal Video only)
+   * Note: This endpoint may require authentication in future releases
+   * @param bookingUid - The unique identifier of the booking
+   * @returns Array of transcript objects with download URLs
+   */
+  static async getTranscripts(bookingUid: string): Promise<BookingTranscript[]> {
+    try {
+      const response = await this.makeRequest<GetTranscriptsResponse>(
+        `/bookings/${bookingUid}/transcripts`,
+        {
+          headers: {
+            "cal-api-version": "2024-08-13",
+          },
+        },
+        "2024-08-13"
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      return [];
+    } catch (error) {
+      // Handle 401/403 gracefully - endpoint may require auth in future
+      if (error instanceof Error) {
+        const statusMatch = error.message.match(/API Error: (\d+)/);
+        if (statusMatch && (statusMatch[1] === "401" || statusMatch[1] === "403")) {
+          console.warn(`Transcripts access denied for booking ${bookingUid}`);
+          return [];
+        }
+        if (statusMatch && statusMatch[1] === "404") {
+          console.warn(`No transcripts found for booking ${bookingUid}`);
+          return [];
+        }
+      }
+      console.error("getTranscripts error");
       throw error;
     }
   }
