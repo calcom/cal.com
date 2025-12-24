@@ -28,7 +28,7 @@ const IS_EMBED_REACT_TEST = process.argv.some((a) => a.startsWith("--project=@ca
 const webServer: PlaywrightTestConfig["webServer"] = [
   {
     command:
-      "NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first' yarn workspace @calcom/web start -p 3000",
+      "yarn workspace @calcom/web copy-app-store-static && NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first' yarn workspace @calcom/web start -p 3000",
     port: 3000,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
@@ -81,12 +81,26 @@ const DEFAULT_CHROMIUM: NonNullable<PlaywrightTestConfig["projects"]>[number]["u
   },
 };
 
+// Optimize workers for CI: Playwright tests are I/O-bound (network, database, page loads)
+// Using 1.5x CPUs in CI helps with I/O-bound tasks while avoiding resource exhaustion
+const getWorkers = () => {
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  if (process.env.PWDEBUG) {
+    return 1;
+  }
+  if (process.env.CI) {
+    // In CI: use 1.5x CPUs for I/O-bound browser tests (8 CPUs → 12 workers)
+    return Math.ceil(os.cpus().length * 1.5);
+  }
+  // Local: use all CPUs
+  return os.cpus().length;
+};
+
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   // While debugging it should be focussed mode
-  // eslint-disable-next-line turbo/no-undeclared-env-vars
-  workers: process.env.PWDEBUG ? 1 : os.cpus().length,
+  workers: getWorkers(),
   timeout: DEFAULT_TEST_TIMEOUT,
   maxFailures: headless ? 10 : undefined,
   fullyParallel: true,
