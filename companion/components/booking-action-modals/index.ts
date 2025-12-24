@@ -9,3 +9,4 @@ export { EditLocationModal } from "./EditLocationModal";
 export { ViewRecordingsModal } from "./ViewRecordingsModal";
 export { MeetingSessionDetailsModal } from "./MeetingSessionDetailsModal";
 export { MarkNoShowModal } from "./MarkNoShowModal";
+export { RescheduleModal } from "./RescheduleModal";

@@ -7,7 +7,18 @@
 import { FullScreenModal } from "../FullScreenModal";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface AddGuestsModalProps {
   visible: boolean;
@@ -27,6 +38,7 @@ export function AddGuestsModal({
   onSubmit,
   isLoading = false,
 }: AddGuestsModalProps) {
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [guests, setGuests] = useState<Array<{ email: string; name?: string }>>([]);
@@ -81,23 +93,30 @@ export function AddGuestsModal({
     onClose();
   };
 
+  const canSave = guests.length > 0 && !isLoading;
+
   return (
     <FullScreenModal visible={visible} animationType="slide" onRequestClose={handleClose}>
-      <View className="flex-1 bg-white">
+      <View className="flex-1 bg-[#F2F2F7]" style={{ paddingTop: insets.top }}>
         {/* Header */}
-        <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
-          <TouchableOpacity onPress={handleClose}>
-            <Text className="text-base text-gray-600">Cancel</Text>
+        <View className="flex-row items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
+          <TouchableOpacity
+            onPress={handleClose}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text className="text-base text-[#007AFF]">Cancel</Text>
           </TouchableOpacity>
-          <Text className="text-lg font-semibold">Add Guests</Text>
-          <TouchableOpacity onPress={handleSubmit} disabled={isLoading || guests.length === 0}>
+          <Text className="text-[17px] font-semibold text-[#000]">Add Guests</Text>
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={!canSave}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
             {isLoading ? (
-              <ActivityIndicator size="small" color="#000" />
+              <ActivityIndicator size="small" color="#007AFF" />
             ) : (
               <Text
-                className={`text-base font-medium ${
-                  guests.length === 0 ? "text-gray-400" : "text-black"
-                }`}
+                className={`text-base font-semibold ${canSave ? "text-[#007AFF]" : "text-gray-300"}`}
               >
                 Save
               </Text>
@@ -105,73 +124,101 @@ export function AddGuestsModal({
           </TouchableOpacity>
         </View>
 
-        {/* Content */}
-        <View className="flex-1 p-4">
-          {/* Info note */}
-          <View className="mb-4 flex-row items-start rounded-lg bg-blue-50 p-3">
-            <Ionicons name="information-circle" size={20} color="#3B82F6" />
-            <Text className="ml-2 flex-1 text-sm text-blue-700">
-              Guests will receive an email notification about this booking.
-            </Text>
-          </View>
-
-          {/* Email input */}
-          <View className="mb-3">
-            <Text className="mb-1 text-sm font-medium text-gray-700">Email *</Text>
-            <TextInput
-              className="rounded-lg border border-gray-300 px-3 py-2"
-              placeholder="guest@example.com"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-
-          {/* Name input */}
-          <View className="mb-3">
-            <Text className="mb-1 text-sm font-medium text-gray-700">Name (optional)</Text>
-            <TextInput
-              className="rounded-lg border border-gray-300 px-3 py-2"
-              placeholder="Guest Name"
-              value={name}
-              onChangeText={setName}
-            />
-          </View>
-
-          {/* Add button */}
-          <TouchableOpacity
-            className="mb-4 flex-row items-center justify-center rounded-lg bg-gray-100 py-2"
-            onPress={handleAddGuest}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1"
+        >
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16 }}
+            keyboardShouldPersistTaps="handled"
           >
-            <Ionicons name="add" size={20} color="#374151" />
-            <Text className="ml-1 text-base font-medium text-gray-700">Add Guest</Text>
-          </TouchableOpacity>
-
-          {/* Guest list */}
-          {guests.length > 0 && (
-            <View>
-              <Text className="mb-2 text-sm font-medium text-gray-700">
-                Guests to add ({guests.length})
+            {/* Info note */}
+            <View className="mb-4 flex-row items-start rounded-xl bg-[#E3F2FD] p-4">
+              <Ionicons name="information-circle" size={20} color="#1976D2" />
+              <Text className="ml-3 flex-1 text-[15px] leading-5 text-[#1565C0]">
+                Guests will receive an email notification about this booking.
               </Text>
-              {guests.map((guest, index) => (
-                <View
-                  key={index}
-                  className="mb-2 flex-row items-center justify-between rounded-lg bg-gray-50 p-3"
-                >
-                  <View className="flex-1">
-                    <Text className="text-base text-gray-900">{guest.email}</Text>
-                    {guest.name && <Text className="text-sm text-gray-500">{guest.name}</Text>}
-                  </View>
-                  <TouchableOpacity onPress={() => handleRemoveGuest(index)}>
-                    <Ionicons name="close-circle" size={24} color="#9CA3AF" />
-                  </TouchableOpacity>
-                </View>
-              ))}
             </View>
-          )}
-        </View>
+
+            {/* Form Card */}
+            <View className="mb-4 overflow-hidden rounded-xl bg-white">
+              {/* Email input */}
+              <View className="border-b border-gray-100 px-4 py-3">
+                <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Email *</Text>
+                <TextInput
+                  className="h-10 text-[17px] text-[#000]"
+                  placeholder="guest@example.com"
+                  placeholderTextColor="#9CA3AF"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
+
+              {/* Name input */}
+              <View className="px-4 py-3">
+                <Text className="mb-1.5 text-[13px] font-medium text-gray-500">
+                  Name (optional)
+                </Text>
+                <TextInput
+                  className="h-10 text-[17px] text-[#000]"
+                  placeholder="Guest Name"
+                  placeholderTextColor="#9CA3AF"
+                  value={name}
+                  onChangeText={setName}
+                />
+              </View>
+            </View>
+
+            {/* Add button */}
+            <TouchableOpacity
+              className="mb-6 flex-row items-center justify-center rounded-xl bg-white py-3"
+              onPress={handleAddGuest}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="add-circle" size={22} color="#007AFF" />
+              <Text className="ml-2 text-[17px] font-medium text-[#007AFF]">Add Guest</Text>
+            </TouchableOpacity>
+
+            {/* Guest list */}
+            {guests.length > 0 && (
+              <View>
+                <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
+                  Guests to add ({guests.length})
+                </Text>
+                <View className="overflow-hidden rounded-xl bg-white">
+                  {guests.map((guest, index) => (
+                    <View
+                      key={index}
+                      className={`flex-row items-center px-4 py-3 ${
+                        index < guests.length - 1 ? "border-b border-gray-100" : ""
+                      }`}
+                    >
+                      <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
+                        <Ionicons name="person" size={20} color="#6B7280" />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-[17px] text-[#000]">{guest.email}</Text>
+                        {guest.name && (
+                          <Text className="mt-0.5 text-[15px] text-gray-500">{guest.name}</Text>
+                        )}
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => handleRemoveGuest(index)}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <Ionicons name="close-circle-outline" size={24} color="#FF3B30" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
       </View>
     </FullScreenModal>
   );

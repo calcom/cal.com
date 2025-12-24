@@ -64,8 +64,8 @@ function ActionButton({
   const textColorClass = !enabled
     ? DISABLED_TEXT_COLOR_CLASS
     : isDanger
-    ? TEXT_COLOR_DANGER_CLASS
-    : TEXT_COLOR_CLASS;
+      ? TEXT_COLOR_DANGER_CLASS
+      : TEXT_COLOR_CLASS;
 
   return (
     <TouchableOpacity
@@ -230,18 +230,20 @@ export function BookingActionsModal({
               isDanger
             />
 
-            {/* Separator */}
-            <View className="mx-4 my-2 h-px bg-gray-200" />
-
-            {/* Cancel Booking */}
-            <ActionButton
-              icon="close-circle-outline"
-              label="Cancel Event"
-              onPress={() => handleAction(onCancelBooking)}
-              visible={actions.cancel.visible}
-              enabled={actions.cancel.enabled}
-              isDanger
-            />
+            {/* Cancel Booking (with separator if visible) */}
+            {actions.cancel.visible && (
+              <>
+                <View className="mx-4 my-2 h-px bg-gray-200" />
+                <ActionButton
+                  icon="close-circle-outline"
+                  label="Cancel Event"
+                  onPress={() => handleAction(onCancelBooking)}
+                  visible={actions.cancel.visible}
+                  enabled={actions.cancel.enabled}
+                  isDanger
+                />
+              </>
+            )}
           </View>
 
           {/* Cancel button */}

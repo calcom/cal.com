@@ -6,14 +6,15 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  ScrollView,
   Alert,
+  ScrollView,
 } from "react-native";
 
 import type { Booking, EventType } from "../../services/calcom";
 import { getBookingActions, type BookingActionsResult } from "../../utils/booking-actions";
 import { FullScreenModal } from "../FullScreenModal";
 import { BookingActionsModal } from "../BookingActionsModal";
+import { RescheduleModal } from "../booking-action-modals";
 
 // Empty actions result for when no booking is selected
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -31,15 +32,9 @@ interface BookingModalsProps {
   // Reschedule modal props
   showRescheduleModal: boolean;
   rescheduleBooking: Booking | null;
-  rescheduleDate: string;
-  rescheduleTime: string;
-  rescheduleReason: string;
   isRescheduling: boolean;
   onRescheduleClose: () => void;
-  onRescheduleSubmit: () => void;
-  onRescheduleDateChange: (date: string) => void;
-  onRescheduleTimeChange: (time: string) => void;
-  onRescheduleReasonChange: (reason: string) => void;
+  onRescheduleSubmit: (date: string, time: string, reason?: string) => Promise<void>;
 
   // Reject modal props
   showRejectModal: boolean;
@@ -64,6 +59,9 @@ interface BookingModalsProps {
   onReschedule: () => void;
   onCancel: () => void;
 
+  // User info for action gating (optional)
+  currentUserEmail?: string;
+
   // Action modal handlers (optional - if not provided, actions will be disabled)
   onEditLocation?: (booking: Booking) => void;
   onAddGuests?: (booking: Booking) => void;
@@ -75,15 +73,9 @@ interface BookingModalsProps {
 export const BookingModals: React.FC<BookingModalsProps> = ({
   showRescheduleModal,
   rescheduleBooking,
-  rescheduleDate,
-  rescheduleTime,
-  rescheduleReason,
   isRescheduling,
   onRescheduleClose,
   onRescheduleSubmit,
-  onRescheduleDateChange,
-  onRescheduleTimeChange,
-  onRescheduleReasonChange,
   showRejectModal,
   rejectReason,
   isDeclining,
@@ -101,6 +93,7 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
   onActionsClose,
   onReschedule,
   onCancel,
+  currentUserEmail,
   onEditLocation,
   onAddGuests,
   onViewRecordings,
@@ -114,10 +107,10 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
       booking: selectedBooking,
       eventType: undefined, // EventType not available in this context
       currentUserId: undefined,
-      currentUserEmail: undefined,
+      currentUserEmail: currentUserEmail,
       isOnline: true, // Assume online for now
     });
-  }, [selectedBooking]);
+  }, [selectedBooking, currentUserEmail]);
 
   return (
     <>
@@ -219,86 +212,14 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
       />
 
       {/* Reschedule Modal */}
-      <FullScreenModal visible={showRescheduleModal} onRequestClose={onRescheduleClose}>
-        <ScrollView className="flex-1 p-4">
-          {rescheduleBooking ? (
-            <>
-              <Text className="mb-4 text-base text-gray-600">
-                Reschedule "{rescheduleBooking.title}"
-              </Text>
-
-              {/* Date Input */}
-              <View className="mb-4">
-                <Text className="mb-2 text-sm font-medium text-gray-700">
-                  New Date (YYYY-MM-DD)
-                </Text>
-                <TextInput
-                  className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-base"
-                  value={rescheduleDate}
-                  onChangeText={onRescheduleDateChange}
-                  placeholder="2024-12-25"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="default"
-                />
-              </View>
-
-              {/* Time Input */}
-              <View className="mb-4">
-                <Text className="mb-2 text-sm font-medium text-gray-700">
-                  New Time (HH:MM, 24-hour format)
-                </Text>
-                <TextInput
-                  className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-base"
-                  value={rescheduleTime}
-                  onChangeText={onRescheduleTimeChange}
-                  placeholder="14:30"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="default"
-                />
-              </View>
-
-              {/* Reason Input */}
-              <View className="mb-6">
-                <Text className="mb-2 text-sm font-medium text-gray-700">Reason (optional)</Text>
-                <TextInput
-                  className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-base"
-                  value={rescheduleReason}
-                  onChangeText={onRescheduleReasonChange}
-                  placeholder="Enter reason for rescheduling..."
-                  placeholderTextColor="#9CA3AF"
-                  multiline
-                  numberOfLines={3}
-                  textAlignVertical="top"
-                  style={{ minHeight: 80 }}
-                />
-              </View>
-
-              {/* Submit Button */}
-              <TouchableOpacity
-                className={`rounded-lg p-4 ${isRescheduling ? "bg-gray-400" : "bg-black"}`}
-                onPress={onRescheduleSubmit}
-                disabled={isRescheduling}
-              >
-                {isRescheduling ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <Text className="text-center text-base font-semibold text-white">
-                    Reschedule Booking
-                  </Text>
-                )}
-              </TouchableOpacity>
-
-              {/* Cancel Button */}
-              <TouchableOpacity
-                className="mt-3 rounded-lg bg-gray-100 p-4"
-                onPress={onRescheduleClose}
-              >
-                <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
-              </TouchableOpacity>
-            </>
-          ) : null}
-        </ScrollView>
-      </FullScreenModal>
+      <RescheduleModal
+        visible={showRescheduleModal}
+        onClose={onRescheduleClose}
+        onSubmit={onRescheduleSubmit}
+        bookingTitle={rescheduleBooking?.title}
+        currentStartTime={rescheduleBooking?.start || rescheduleBooking?.startTime}
+        isLoading={isRescheduling}
+      />
 
       {/* Reject Booking Modal */}
       <FullScreenModal

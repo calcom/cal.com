@@ -126,6 +126,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     handleBookingPress,
     handleRescheduleBooking,
     handleSubmitReschedule,
+    handleRescheduleWithValues,
     handleCloseRescheduleModal,
     handleCancelBooking,
     handleInlineConfirm,
@@ -395,19 +396,14 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
       <BookingModals
         showRescheduleModal={showRescheduleModal}
         rescheduleBooking={rescheduleBooking}
-        rescheduleDate={rescheduleDate}
-        rescheduleTime={rescheduleTime}
-        rescheduleReason={rescheduleReason}
         isRescheduling={isRescheduling}
         onRescheduleClose={handleCloseRescheduleModal}
-        onRescheduleSubmit={handleSubmitReschedule}
-        onRescheduleDateChange={setRescheduleDate}
-        onRescheduleTimeChange={setRescheduleTime}
-        onRescheduleReasonChange={setRescheduleReason}
+        onRescheduleSubmit={handleRescheduleWithValues}
         showRejectModal={showRejectModal}
         rejectReason={rejectReason}
         isDeclining={isDeclining}
         onRejectClose={handleCloseRejectModal}
+        currentUserEmail={userInfo?.email}
         onRejectSubmit={handleSubmitReject}
         onRejectReasonChange={setRejectReason}
         showFilterModal={showFilterModal}

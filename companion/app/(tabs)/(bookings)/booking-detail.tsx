@@ -6,6 +6,7 @@ import {
   MarkNoShowModal,
 } from "../../../components/booking-action-modals";
 import { BookingDetailScreen } from "../../../components/screens/BookingDetailScreen";
+import { useAuth } from "../../../contexts/AuthContext";
 import { useBookingActionModals } from "../../../hooks";
 import { CalComAPIService, type Booking } from "../../../services/calcom";
 import { getBookingActions, type BookingActionsResult } from "../../../utils/booking-actions";
@@ -33,10 +34,12 @@ type ActionHandlers = {
   openViewRecordingsModal: (booking: Booking) => void;
   openMeetingSessionDetailsModal: (booking: Booking) => void;
   openMarkNoShowModal: (booking: Booking) => void;
+  handleCancelBooking: () => void;
 };
 
 export default function BookingDetail() {
   const { uid } = useLocalSearchParams<{ uid: string }>();
+  const { userInfo } = useAuth();
   const [booking, setBooking] = useState<Booking | null>(null);
 
   // Ref to store action handlers from BookingDetailScreen
@@ -94,11 +97,11 @@ export default function BookingDetail() {
     return getBookingActions({
       booking,
       eventType: undefined, // EventType not available in this context
-      currentUserId: undefined,
-      currentUserEmail: undefined,
+      currentUserId: userInfo?.id,
+      currentUserEmail: userInfo?.email,
       isOnline: true, // Assume online for now
     });
-  }, [booking]);
+  }, [booking, userInfo?.id, userInfo?.email]);
 
   // Action handlers that use the booking data
   const handleReschedule = useCallback(() => {
@@ -145,7 +148,12 @@ export default function BookingDetail() {
   }, []);
 
   const handleCancel = useCallback(() => {
-    Alert.alert("Cancel Event", "Please use the actions menu in the booking details to cancel.");
+    // Use the action handler from BookingDetailScreen if available
+    if (actionHandlersRef.current?.handleCancelBooking) {
+      actionHandlersRef.current.handleCancelBooking();
+    } else {
+      Alert.alert("Error", "Unable to cancel. Please try again.");
+    }
   }, []);
 
   // Define booking actions organized by sections

@@ -1,4 +1,5 @@
 import { CalComAPIService, Booking } from "../../services/calcom";
+import { useAuth } from "../../contexts/AuthContext";
 import { useBookingActionModals } from "../../hooks";
 import { showErrorAlert } from "../../utils/alerts";
 import { getBookingActions, type BookingActionsResult } from "../../utils/booking-actions";
@@ -6,7 +7,6 @@ import { openInAppBrowser } from "../../utils/browser";
 import { getDefaultLocationIconUrl, defaultLocations } from "../../utils/defaultLocations";
 import { formatAppIdToDisplayName } from "../../utils/formatters";
 import { getAppIconUrl } from "../../utils/getAppIconUrl";
-import { shadows } from "../../utils/shadows";
 import { AppPressable } from "../AppPressable";
 import { BookingActionsModal } from "../BookingActionsModal";
 import {
@@ -15,22 +15,13 @@ import {
   ViewRecordingsModal,
   MeetingSessionDetailsModal,
   MarkNoShowModal,
+  RescheduleModal,
 } from "../booking-action-modals";
-import { FullScreenModal } from "../FullScreenModal";
 import { SvgImage } from "../SvgImage";
 import { Ionicons } from "@expo/vector-icons";
-import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
-import React, { useState, useEffect, useMemo } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-  TextInput,
-  Platform,
-} from "react-native";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { View, Text, ScrollView, Alert, ActivityIndicator, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Empty actions result for when no booking is loaded
@@ -201,22 +192,22 @@ export interface BookingDetailScreenProps {
     openViewRecordingsModal: (booking: Booking) => void;
     openMeetingSessionDetailsModal: (booking: Booking) => void;
     openMarkNoShowModal: (booking: Booking) => void;
+    handleCancelBooking: () => void;
   }) => void;
 }
 
 export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreenProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { userInfo } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState<Booking | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showActionsModal, setShowActionsModal] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
-  const [rescheduleDate, setRescheduleDate] = useState("");
-  const [rescheduleTime, setRescheduleTime] = useState("");
-  const [rescheduleReason, setRescheduleReason] = useState("");
-  const [rescheduling, setRescheduling] = useState(false);
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Compute actions using centralized gating
   const actions = useMemo(() => {
@@ -224,11 +215,11 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
     return getBookingActions({
       booking,
       eventType: undefined, // EventType not available in this context
-      currentUserId: undefined,
-      currentUserEmail: undefined,
+      currentUserId: userInfo?.id,
+      currentUserEmail: userInfo?.email,
       isOnline: true, // Assume online for now
     });
-  }, [booking]);
+  }, [booking, userInfo?.id, userInfo?.email]);
 
   // Booking action modals hook (for add guests, edit location, recordings, etc.)
   const {
@@ -259,6 +250,73 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
     handleMarkNoShow,
   } = useBookingActionModals();
 
+  // Cancel booking handler (needs to be defined before useEffect that exposes it)
+  const performCancelBooking = useCallback(
+    async (reason: string) => {
+      if (!booking) return;
+
+      setIsCancelling(true);
+      setShowActionsModal(false);
+
+      try {
+        await CalComAPIService.cancelBooking(booking.uid, reason);
+        Alert.alert("Success", "Booking cancelled successfully", [
+          {
+            text: "OK",
+            onPress: () => router.back(),
+          },
+        ]);
+      } catch (error) {
+        console.error("Failed to cancel booking");
+        if (__DEV__) {
+          const message = error instanceof Error ? error.message : String(error);
+          console.debug("[BookingDetailScreen] cancelBooking failed", { message });
+        }
+        showErrorAlert("Error", "Failed to cancel booking. Please try again.");
+      } finally {
+        setIsCancelling(false);
+      }
+    },
+    [booking, router]
+  );
+
+  const handleCancelBooking = useCallback(() => {
+    if (!booking) return;
+
+    Alert.alert("Cancel Booking", `Are you sure you want to cancel "${booking.title}"?`, [
+      { text: "No", style: "cancel" },
+      {
+        text: "Yes, Cancel",
+        style: "destructive",
+        onPress: () => {
+          // Prompt for cancellation reason (iOS only supports Alert.prompt)
+          if (Platform.OS === "ios") {
+            Alert.prompt(
+              "Cancellation Reason",
+              "Please provide a reason for cancelling this booking:",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Cancel Booking",
+                  style: "destructive",
+                  onPress: (reason) => {
+                    performCancelBooking(reason?.trim() || "Cancelled by host");
+                  },
+                },
+              ],
+              "plain-text",
+              "",
+              "default"
+            );
+          } else {
+            // For Android, just cancel with default reason
+            performCancelBooking("Cancelled by host");
+          }
+        },
+      },
+    ]);
+  }, [booking, performCancelBooking]);
+
   useEffect(() => {
     if (uid) {
       fetchBooking();
@@ -275,6 +333,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
         openViewRecordingsModal: () => openViewRecordingsModal(booking),
         openMeetingSessionDetailsModal: () => openMeetingSessionDetailsModal(booking),
         openMarkNoShowModal: () => openMarkNoShowModal(booking),
+        handleCancelBooking,
       });
     }
   }, [
@@ -284,6 +343,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
     openAddGuestsModal,
     openViewRecordingsModal,
     openMeetingSessionDetailsModal,
+    handleCancelBooking,
     openMarkNoShowModal,
   ]);
 
@@ -334,63 +394,30 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
 
   const openRescheduleModal = () => {
     if (!booking) return;
-
-    // Pre-fill with the current booking date/time (using local timezone consistently)
-    const currentDate = new Date(booking.startTime);
-    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}-${String(currentDate.getDate()).padStart(2, "0")}`;
-    const timeStr = `${String(currentDate.getHours()).padStart(2, "0")}:${String(
-      currentDate.getMinutes()
-    ).padStart(2, "0")}`;
-
-    setRescheduleDate(dateStr);
-    setRescheduleTime(timeStr);
-    setRescheduleReason("");
     setShowRescheduleModal(true);
   };
 
-  const handleReschedule = async () => {
-    if (!booking || !rescheduleDate || !rescheduleTime) {
-      showErrorAlert("Error", "Please enter both date and time");
-      return;
+  const handleReschedule = async (date: string, time: string, reason?: string) => {
+    if (!booking) {
+      throw new Error("No booking selected");
     }
 
     // Parse the date and time
-    const dateTimeStr = `${rescheduleDate}T${rescheduleTime}:00`;
+    const dateTimeStr = `${date}T${time}:00`;
     const newDateTime = new Date(dateTimeStr);
-
-    // Validate the date
-    if (isNaN(newDateTime.getTime())) {
-      showErrorAlert(
-        "Error",
-        "Invalid date or time format. Please use YYYY-MM-DD for date and HH:MM for time."
-      );
-      return;
-    }
-
-    // Check if the new time is in the future
-    if (newDateTime <= new Date()) {
-      showErrorAlert("Error", "Please select a future date and time");
-      return;
-    }
 
     // Convert to UTC ISO string
     const startUtc = newDateTime.toISOString();
 
-    setRescheduling(true);
+    setIsRescheduling(true);
     try {
       await CalComAPIService.rescheduleBooking(booking.uid, {
         start: startUtc,
-        reschedulingReason: rescheduleReason.trim() || undefined,
+        reschedulingReason: reason || undefined,
       });
 
       Alert.alert("Success", "Booking rescheduled successfully");
       setShowRescheduleModal(false);
-      setRescheduleDate("");
-      setRescheduleTime("");
-      setRescheduleReason("");
 
       // Refresh booking data
       await fetchBooking();
@@ -401,9 +428,9 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
         const stack = error instanceof Error ? error.stack : undefined;
         console.debug("[BookingDetailScreen] rescheduleBooking failed", { message, stack });
       }
-      showErrorAlert("Error", "Failed to reschedule booking. Please try again.");
+      throw new Error("Failed to reschedule booking. Please try again.");
     } finally {
-      setRescheduling(false);
+      setIsRescheduling(false);
     }
   };
 
@@ -648,145 +675,18 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
           onReportBooking={() => {
             Alert.alert("Report Booking", "Report booking functionality is not yet available");
           }}
-          onCancelBooking={() => {
-            Alert.alert("Cancel Booking", "Are you sure you want to cancel this booking?", [
-              { text: "No", style: "cancel" },
-              {
-                text: "Yes, Cancel",
-                style: "destructive",
-                onPress: () => {
-                  // TODO: Implement cancel booking
-                  if (__DEV__)
-                    console.debug("[BookingDetailScreen] cancel booking (not implemented yet)");
-                },
-              },
-            ]);
-          }}
+          onCancelBooking={handleCancelBooking}
         />
 
-        {/* Reschedule Modal */}
-        <FullScreenModal
-          visible={showRescheduleModal}
-          animationType="fade"
-          onRequestClose={() => setShowRescheduleModal(false)}
-        >
-          <AppPressable
-            className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
-            onPress={() => setShowRescheduleModal(false)}
-          >
-            <AppPressable
-              className="w-[90%] max-w-[500px] rounded-2xl bg-white"
-              onPress={(e) => e.stopPropagation()}
-              style={shadows.xl()}
-            >
-              {/* Header */}
-              <View className="px-8 pb-4 pt-6">
-                <View className="flex-row items-start space-x-3">
-                  <View className="h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#F3F4F6]">
-                    <Ionicons name="calendar-outline" size={24} color="#111827" />
-                  </View>
-                  <View className="flex-1 pt-1">
-                    <Text className="mb-2 text-2xl font-semibold text-[#111827]">
-                      Reschedule Booking
-                    </Text>
-                    <Text className="text-sm text-[#6B7280]">
-                      Select a new date and time for this booking.
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Content */}
-              <ScrollView className="max-h-[400px] px-8 pb-6">
-                {/* Date Input */}
-                <View className="mb-4">
-                  <Text className="mb-2 text-sm font-bold text-[#111827]">
-                    New Date
-                    <Text className="font-normal text-[#6B7280]"> (YYYY-MM-DD)</Text>
-                  </Text>
-                  <TextInput
-                    className="rounded-md border border-[#D1D5DB] bg-white px-3 py-3 text-base text-[#111827]"
-                    placeholder="2024-12-25"
-                    placeholderTextColor="#9CA3AF"
-                    value={rescheduleDate}
-                    onChangeText={setRescheduleDate}
-                    editable={!rescheduling}
-                    keyboardType="default"
-                  />
-                </View>
-
-                {/* Time Input */}
-                <View className="mb-4">
-                  <Text className="mb-2 text-sm font-bold text-[#111827]">
-                    New Time
-                    <Text className="font-normal text-[#6B7280]"> (HH:MM, 24-hour)</Text>
-                  </Text>
-                  <TextInput
-                    className="rounded-md border border-[#D1D5DB] bg-white px-3 py-3 text-base text-[#111827]"
-                    placeholder="14:30"
-                    placeholderTextColor="#9CA3AF"
-                    value={rescheduleTime}
-                    onChangeText={setRescheduleTime}
-                    editable={!rescheduling}
-                    keyboardType="default"
-                  />
-                </View>
-
-                {/* Reason Input */}
-                <View className="mb-2">
-                  <Text className="mb-2 text-sm font-bold text-[#111827]">
-                    Reason
-                    <Text className="font-normal text-[#6B7280]"> (Optional)</Text>
-                  </Text>
-                  <TextInput
-                    className="min-h-[80px] rounded-md border border-[#D1D5DB] bg-white px-3 py-3 text-base text-[#111827]"
-                    placeholder="Enter reason for rescheduling..."
-                    placeholderTextColor="#9CA3AF"
-                    value={rescheduleReason}
-                    onChangeText={setRescheduleReason}
-                    multiline
-                    numberOfLines={3}
-                    textAlignVertical="top"
-                    editable={!rescheduling}
-                  />
-                </View>
-              </ScrollView>
-
-              {/* Footer */}
-              <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4">
-                <View className="flex-row justify-end gap-2 space-x-2">
-                  <AppPressable
-                    className="rounded-xl border border-[#D1D5DB] bg-white px-2 py-2 md:px-4"
-                    onPress={() => {
-                      setShowRescheduleModal(false);
-                      setRescheduleDate("");
-                      setRescheduleTime("");
-                      setRescheduleReason("");
-                    }}
-                    disabled={rescheduling}
-                  >
-                    <Text className="text-base font-medium text-[#374151]">Cancel</Text>
-                  </AppPressable>
-                  <AppPressable
-                    className={`rounded-xl bg-[#111827] px-2 py-2 md:px-4 ${
-                      rescheduling ? "opacity-60" : ""
-                    }`}
-                    onPress={handleReschedule}
-                    disabled={rescheduling}
-                  >
-                    {rescheduling ? (
-                      <ActivityIndicator size="small" color="white" />
-                    ) : (
-                      <Text className="text-base font-medium text-white">Reschedule</Text>
-                    )}
-                  </AppPressable>
-                </View>
-              </View>
-            </AppPressable>
-          </AppPressable>
-        </FullScreenModal>
-
         {/* Action Modals */}
+        <RescheduleModal
+          visible={showRescheduleModal}
+          onClose={() => setShowRescheduleModal(false)}
+          onSubmit={handleReschedule}
+          bookingTitle={booking?.title}
+          currentStartTime={booking?.start || booking?.startTime}
+          isLoading={isRescheduling}
+        />
         <AddGuestsModal
           visible={showAddGuestsModal}
           onClose={closeAddGuestsModal}
@@ -818,6 +718,18 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
           isLoading={isMarkingNoShow}
           attendees={booking?.attendees ?? []}
         />
+
+        {/* Cancelling overlay */}
+        {isCancelling && (
+          <View className="absolute inset-0 items-center justify-center bg-black/50">
+            <View className="rounded-2xl bg-white px-8 py-6">
+              <ActivityIndicator size="large" color="#000" />
+              <Text className="mt-3 text-base font-medium text-gray-700">
+                Cancelling booking...
+              </Text>
+            </View>
+          </View>
+        )}
       </View>
     </>
   );

@@ -113,7 +113,7 @@ export const useBookingActions = ({
   };
 
   /**
-   * Validate and submit reschedule request
+   * Validate and submit reschedule request (uses internal state)
    */
   const handleSubmitReschedule = () => {
     if (!rescheduleBooking || !rescheduleDate || !rescheduleTime) {
@@ -160,6 +160,47 @@ export const useBookingActions = ({
         },
       }
     );
+  };
+
+  /**
+   * Submit reschedule with provided values (used by RescheduleModal component)
+   */
+  const handleRescheduleWithValues = async (
+    date: string,
+    time: string,
+    reason?: string
+  ): Promise<void> => {
+    if (!rescheduleBooking) {
+      throw new Error("No booking selected");
+    }
+
+    // Parse the date and time
+    const dateTimeStr = `${date}T${time}:00`;
+    const newDateTime = new Date(dateTimeStr);
+
+    // Convert to UTC ISO string
+    const startUtc = newDateTime.toISOString();
+
+    return new Promise((resolve, reject) => {
+      rescheduleMutation(
+        {
+          uid: rescheduleBooking.uid,
+          start: startUtc,
+          reschedulingReason: reason || undefined,
+        },
+        {
+          onSuccess: () => {
+            setShowRescheduleModal(false);
+            setRescheduleBooking(null);
+            Alert.alert("Success", "Booking rescheduled successfully");
+            resolve();
+          },
+          onError: (error) => {
+            reject(new Error(error.message || "Failed to reschedule booking"));
+          },
+        }
+      );
+    });
   };
 
   /**
@@ -366,6 +407,7 @@ export const useBookingActions = ({
     handleBookingPress,
     handleRescheduleBooking,
     handleSubmitReschedule,
+    handleRescheduleWithValues,
     handleCloseRescheduleModal,
     handleCancelBooking,
     handleConfirmBooking,

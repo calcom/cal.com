@@ -374,10 +374,18 @@ export function getBookingActions(context: BookingActionContext): BookingActions
 
   // ============================================================================
   // Reschedule Action
+  // Visible for upcoming, non-cancelled, non-pending bookings
   // ============================================================================
+  const isUpcoming = !isPast;
+  const canReschedule =
+    (isUpcoming || allowReschedulingPastBookings) &&
+    !isCancelled &&
+    !isRejected &&
+    !isPending &&
+    !disableRescheduling;
   const reschedule: BookingActionResult = {
-    visible: true,
-    enabled: true,
+    visible: isUpcoming || allowReschedulingPastBookings,
+    enabled: canReschedule,
     needsData: eventType ? undefined : ["eventType"],
   };
 
@@ -385,15 +393,19 @@ export function getBookingActions(context: BookingActionContext): BookingActions
     reschedule.enabled = false;
     reschedule.disabledReason = "OFFLINE";
   } else if (isCancelled) {
+    reschedule.visible = false;
     reschedule.enabled = false;
     reschedule.disabledReason = "BOOKING_CANCELLED";
   } else if (isRejected) {
+    reschedule.visible = false;
     reschedule.enabled = false;
     reschedule.disabledReason = "BOOKING_REJECTED";
   } else if (isPending) {
+    reschedule.visible = false;
     reschedule.enabled = false;
     reschedule.disabledReason = "BOOKING_PENDING";
   } else if (isPast && !allowReschedulingPastBookings) {
+    reschedule.visible = false;
     reschedule.enabled = false;
     reschedule.disabledReason = "BOOKING_IN_PAST";
   } else if (disableRescheduling) {
@@ -406,30 +418,43 @@ export function getBookingActions(context: BookingActionContext): BookingActions
 
   // ============================================================================
   // Reschedule Request Action (for organizers to request attendee to reschedule)
+  // Visible only for organizers/hosts with upcoming, non-cancelled, non-pending bookings
   // ============================================================================
+  const canRequestReschedule =
+    isOrganizerOrHost &&
+    (isUpcoming || allowReschedulingPastBookings) &&
+    !isCancelled &&
+    !isRejected &&
+    !isPending &&
+    !disableRescheduling &&
+    !isSeated;
   const rescheduleRequest: BookingActionResult = {
-    visible: isOrganizerOrHost,
-    enabled: isOrganizerOrHost,
+    visible: isOrganizerOrHost && (isUpcoming || allowReschedulingPastBookings),
+    enabled: canRequestReschedule,
     needsData: eventType ? undefined : ["eventType"],
   };
 
-  if (!isOnline) {
-    rescheduleRequest.enabled = false;
-    rescheduleRequest.disabledReason = "OFFLINE";
-  } else if (!isOrganizerOrHost) {
+  if (!isOrganizerOrHost) {
     rescheduleRequest.visible = false;
     rescheduleRequest.enabled = false;
     rescheduleRequest.disabledReason = "NOT_ORGANIZER";
+  } else if (!isOnline) {
+    rescheduleRequest.enabled = false;
+    rescheduleRequest.disabledReason = "OFFLINE";
   } else if (isCancelled) {
+    rescheduleRequest.visible = false;
     rescheduleRequest.enabled = false;
     rescheduleRequest.disabledReason = "BOOKING_CANCELLED";
   } else if (isRejected) {
+    rescheduleRequest.visible = false;
     rescheduleRequest.enabled = false;
     rescheduleRequest.disabledReason = "BOOKING_REJECTED";
   } else if (isPending) {
+    rescheduleRequest.visible = false;
     rescheduleRequest.enabled = false;
     rescheduleRequest.disabledReason = "BOOKING_PENDING";
   } else if (isPast && !allowReschedulingPastBookings) {
+    rescheduleRequest.visible = false;
     rescheduleRequest.enabled = false;
     rescheduleRequest.disabledReason = "BOOKING_IN_PAST";
   } else if (disableRescheduling) {
@@ -443,90 +468,103 @@ export function getBookingActions(context: BookingActionContext): BookingActions
 
   // ============================================================================
   // Cancel Action
+  // Visible for upcoming, non-cancelled bookings
   // ============================================================================
+  const canCancel = isUpcoming && !isCancelled && !isRejected && !disableCancelling;
   const cancel: BookingActionResult = {
-    visible: true,
-    enabled: true,
+    visible: canCancel,
+    enabled: canCancel,
   };
 
-  if (!isOnline) {
+  if (!canCancel) {
+    if (isCancelled) {
+      cancel.visible = false;
+      cancel.enabled = false;
+      cancel.disabledReason = "BOOKING_CANCELLED";
+    } else if (isRejected) {
+      cancel.visible = false;
+      cancel.enabled = false;
+      cancel.disabledReason = "BOOKING_REJECTED";
+    } else if (isPast) {
+      cancel.visible = false;
+      cancel.enabled = false;
+      cancel.disabledReason = "BOOKING_IN_PAST";
+    } else if (disableCancelling) {
+      cancel.enabled = false;
+      cancel.disabledReason = "CANCELLING_DISABLED";
+    }
+  } else if (!isOnline) {
     cancel.enabled = false;
     cancel.disabledReason = "OFFLINE";
-  } else if (isCancelled) {
-    cancel.enabled = false;
-    cancel.disabledReason = "BOOKING_CANCELLED";
-  } else if (isRejected) {
-    cancel.enabled = false;
-    cancel.disabledReason = "BOOKING_REJECTED";
-  } else if (isPast) {
-    cancel.enabled = false;
-    cancel.disabledReason = "BOOKING_IN_PAST";
-  } else if (disableCancelling) {
-    cancel.enabled = false;
-    cancel.disabledReason = "CANCELLING_DISABLED";
   }
 
   // ============================================================================
   // Change Location Action
+  // Visible for upcoming, non-cancelled, non-pending bookings
   // ============================================================================
+  const canChangeLocation = isUpcoming && !isCancelled && !isRejected && !isPending;
   const changeLocation: BookingActionResult = {
-    visible: true,
-    enabled: true,
+    visible: canChangeLocation,
+    enabled: canChangeLocation,
   };
 
-  if (!isOnline) {
+  if (!canChangeLocation) {
+    changeLocation.visible = false;
+    changeLocation.enabled = false;
+    if (isCancelled) {
+      changeLocation.disabledReason = "BOOKING_CANCELLED";
+    } else if (isRejected) {
+      changeLocation.disabledReason = "BOOKING_REJECTED";
+    } else if (isPending) {
+      changeLocation.disabledReason = "BOOKING_PENDING";
+    } else if (isPast) {
+      changeLocation.disabledReason = "BOOKING_IN_PAST";
+    }
+  } else if (!isOnline) {
     changeLocation.enabled = false;
     changeLocation.disabledReason = "OFFLINE";
-  } else if (isCancelled) {
-    changeLocation.enabled = false;
-    changeLocation.disabledReason = "BOOKING_CANCELLED";
-  } else if (isRejected) {
-    changeLocation.enabled = false;
-    changeLocation.disabledReason = "BOOKING_REJECTED";
-  } else if (isPending) {
-    changeLocation.enabled = false;
-    changeLocation.disabledReason = "BOOKING_PENDING";
-  } else if (isPast) {
-    changeLocation.enabled = false;
-    changeLocation.disabledReason = "BOOKING_IN_PAST";
   }
 
   // ============================================================================
   // Add Guests Action
+  // Visible for upcoming, non-cancelled, non-pending bookings (if guests enabled)
   // ============================================================================
+  const canAddGuests = isUpcoming && !isCancelled && !isRejected && !isPending && !disableGuests;
   const addGuests: BookingActionResult = {
-    visible: !disableGuests,
-    enabled: !disableGuests,
+    visible: canAddGuests,
+    enabled: canAddGuests,
     needsData: eventType ? undefined : ["eventType"],
   };
 
-  if (!isOnline) {
-    addGuests.enabled = false;
-    addGuests.disabledReason = "OFFLINE";
-  } else if (disableGuests) {
+  if (disableGuests) {
     addGuests.visible = false;
     addGuests.enabled = false;
     addGuests.disabledReason = "GUESTS_DISABLED";
-  } else if (isCancelled) {
+  } else if (!canAddGuests) {
+    addGuests.visible = false;
     addGuests.enabled = false;
-    addGuests.disabledReason = "BOOKING_CANCELLED";
-  } else if (isRejected) {
+    if (isCancelled) {
+      addGuests.disabledReason = "BOOKING_CANCELLED";
+    } else if (isRejected) {
+      addGuests.disabledReason = "BOOKING_REJECTED";
+    } else if (isPending) {
+      addGuests.disabledReason = "BOOKING_PENDING";
+    } else if (isPast) {
+      addGuests.disabledReason = "BOOKING_IN_PAST";
+    }
+  } else if (!isOnline) {
     addGuests.enabled = false;
-    addGuests.disabledReason = "BOOKING_REJECTED";
-  } else if (isPending) {
-    addGuests.enabled = false;
-    addGuests.disabledReason = "BOOKING_PENDING";
-  } else if (isPast) {
-    addGuests.enabled = false;
-    addGuests.disabledReason = "BOOKING_IN_PAST";
+    addGuests.disabledReason = "OFFLINE";
   }
 
   // ============================================================================
   // View Recordings Action
+  // Only visible for past Cal Video bookings that have recordings
   // ============================================================================
+  const canViewRecordings = isCalVideo && isPast && isConfirmed && !isCancelled && !isRejected;
   const viewRecordings: BookingActionResult = {
-    visible: isCalVideo,
-    enabled: isCalVideo && isPast && isConfirmed && Boolean(booking.isRecorded),
+    visible: canViewRecordings && Boolean(booking.isRecorded),
+    enabled: canViewRecordings && Boolean(booking.isRecorded),
   };
 
   if (!isCalVideo) {
@@ -534,22 +572,31 @@ export function getBookingActions(context: BookingActionContext): BookingActions
     viewRecordings.enabled = false;
     viewRecordings.disabledReason = "NOT_CAL_VIDEO";
   } else if (!isPast) {
+    viewRecordings.visible = false;
     viewRecordings.enabled = false;
     viewRecordings.disabledReason = "BOOKING_IN_PAST";
-  } else if (!isConfirmed) {
+  } else if (!isConfirmed || isCancelled || isRejected) {
+    viewRecordings.visible = false;
     viewRecordings.enabled = false;
-    viewRecordings.disabledReason = "BOOKING_PENDING";
+    viewRecordings.disabledReason = isCancelled
+      ? "BOOKING_CANCELLED"
+      : isRejected
+        ? "BOOKING_REJECTED"
+        : "BOOKING_PENDING";
   } else if (!booking.isRecorded) {
+    viewRecordings.visible = false;
     viewRecordings.enabled = false;
     viewRecordings.disabledReason = "NO_RECORDINGS";
   }
 
   // ============================================================================
   // Meeting Session Details Action
+  // Only visible for past Cal Video bookings
   // ============================================================================
+  const canViewSessionDetails = isCalVideo && isPast && isConfirmed && !isCancelled && !isRejected;
   const meetingSessionDetails: BookingActionResult = {
-    visible: isCalVideo,
-    enabled: isCalVideo && isPast && isConfirmed,
+    visible: canViewSessionDetails,
+    enabled: canViewSessionDetails,
   };
 
   if (!isCalVideo) {
@@ -557,30 +604,45 @@ export function getBookingActions(context: BookingActionContext): BookingActions
     meetingSessionDetails.enabled = false;
     meetingSessionDetails.disabledReason = "NOT_CAL_VIDEO";
   } else if (!isPast) {
+    meetingSessionDetails.visible = false;
     meetingSessionDetails.enabled = false;
     meetingSessionDetails.disabledReason = "BOOKING_IN_PAST";
-  } else if (!isConfirmed) {
+  } else if (!isConfirmed || isCancelled || isRejected) {
+    meetingSessionDetails.visible = false;
     meetingSessionDetails.enabled = false;
-    meetingSessionDetails.disabledReason = "BOOKING_PENDING";
+    meetingSessionDetails.disabledReason = isCancelled
+      ? "BOOKING_CANCELLED"
+      : isRejected
+        ? "BOOKING_REJECTED"
+        : "BOOKING_PENDING";
   }
 
   // ============================================================================
   // Mark No-Show Action
+  // Visible only for past or ongoing bookings (not for future/upcoming bookings)
+  // This matches the booking list behavior where Mark No-Show is not shown for upcoming
   // ============================================================================
+  const canMarkNoShow = (isPast || isOngoing) && !isPending && !isCancelled && !isRejected;
   const markNoShow: BookingActionResult = {
-    visible: true,
-    enabled: (isPast || isOngoing) && !isPending,
+    visible: canMarkNoShow,
+    enabled: canMarkNoShow,
   };
 
-  if (!isOnline) {
+  if (!canMarkNoShow) {
+    markNoShow.visible = false;
+    markNoShow.enabled = false;
+    if (isPending) {
+      markNoShow.disabledReason = "BOOKING_PENDING";
+    } else if (isCancelled) {
+      markNoShow.disabledReason = "BOOKING_CANCELLED";
+    } else if (isRejected) {
+      markNoShow.disabledReason = "BOOKING_REJECTED";
+    } else {
+      markNoShow.disabledReason = "BOOKING_IN_PAST"; // Actually means booking is in future
+    }
+  } else if (!isOnline) {
     markNoShow.enabled = false;
     markNoShow.disabledReason = "OFFLINE";
-  } else if (isPending) {
-    markNoShow.enabled = false;
-    markNoShow.disabledReason = "BOOKING_PENDING";
-  } else if (!isPast && !isOngoing) {
-    markNoShow.enabled = false;
-    markNoShow.disabledReason = "BOOKING_IN_PAST";
   } else if (!booking.attendees || booking.attendees.length === 0) {
     markNoShow.enabled = false;
     markNoShow.disabledReason = "NO_ATTENDEE_DATA";
