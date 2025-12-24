@@ -29,7 +29,6 @@ import {
 // reduces type-checking time by giving TypeScript the answer directly.
 // ============================================================================
 
-/** Hashed link input for private links */
 type HashedLinkInput = {
   link: string;
   expiresAt?: Date | null;
@@ -37,7 +36,6 @@ type HashedLinkInput = {
   usageCount?: number | null;
 };
 
-/** AI phone call configuration */
 type AiPhoneCallConfig = {
   generalPrompt: string;
   enabled: boolean;
@@ -50,7 +48,6 @@ type AiPhoneCallConfig = {
   templateType: TemplateType;
 };
 
-/** Cal Video settings */
 type CalVideoSettings = {
   disableRecordingForGuests?: boolean | null;
   disableRecordingForOrganizer?: boolean | null;
@@ -62,7 +59,6 @@ type CalVideoSettings = {
   requireEmailForGuests?: boolean | null;
 } | null;
 
-/** Host configuration */
 type HostInput = {
   userId: number;
   profileId?: number | null;
@@ -73,13 +69,11 @@ type HostInput = {
   groupId?: string | null;
 };
 
-/** Host group configuration */
 type HostGroupInput = {
   id: string;
   name: string;
 };
 
-/** Child event type owner */
 type ChildInput = {
   owner: {
     id: number;
@@ -90,13 +84,11 @@ type ChildInput = {
   hidden: boolean;
 };
 
-/** Destination calendar input (subset of full schema) */
 type DestinationCalendarInput = {
   integration: string;
   externalId: string;
 } | null;
 
-/** Recurring event configuration */
 type RecurringEventInput = {
   dtstart?: Date;
   interval: number;
@@ -106,7 +98,6 @@ type RecurringEventInput = {
   tzid?: string;
 } | null;
 
-/** Event type color configuration */
 type EventTypeColorInput = {
   lightEventTypeColor: string;
   darkEventTypeColor: string;
