@@ -22,74 +22,6 @@ vi.mock("@calcom/lib/crypto", () => ({
 const mockedSymmetricDecrypt = vi.mocked(symmetricDecrypt);
 
 vi.mock("@calcom/app-store/calendar.services.generated", () => {
-  class MockGoogleCalendarService {
-    constructor(credential: any) {
-      this.credential = credential;
-    }
-
-    getCredentialId() {
-      return this.credential.id;
-    }
-
-    async createEvent() {
-      return {};
-    }
-
-    async updateEvent() {
-      return {};
-    }
-
-    async deleteEvent() {
-      return {};
-    }
-
-    async getAvailability() {
-      return [];
-    }
-
-    async getAvailabilityWithTimeZones() {
-      return [];
-    }
-
-    async listCalendars() {
-      return [];
-    }
-  }
-
-  class MockOfficeCalendarService {
-    constructor(credential: any) {
-      this.credential = credential;
-    }
-
-    getCredentialId() {
-      return this.credential.id;
-    }
-
-    async createEvent() {
-      return {};
-    }
-
-    async updateEvent() {
-      return {};
-    }
-
-    async deleteEvent() {
-      return {};
-    }
-
-    async getAvailability() {
-      return [];
-    }
-
-    async getAvailabilityWithTimeZones() {
-      return [];
-    }
-
-    async listCalendars() {
-      return [];
-    }
-  }
-
   return {
     CalendarServiceMap: {
       googlecalendar: vi.importActual("@calcom/app-store/googlecalendar/lib/CalendarService"),
@@ -328,6 +260,7 @@ describe("getCalendarsEvents", () => {
           }),
           buildRegularCredential({
             ...credential,
+            id: 304, // Different ID to ensure separate grouping
             type: "office365_calendar",
             key: {
               access_token: "access",
@@ -382,6 +315,118 @@ describe("getCalendarsEvents", () => {
       expect(getAvailabilitySpy).not.toHaveBeenCalled();
       expect(result).toEqual([[]]);
     });
+
+    it("should handle different calendar providers (google, office365) independently without breaking batching", async () => {
+      const startDate = "2010-12-01";
+      const endDate = "2010-12-04";
+
+      const googleAvailability: EventBusyDate[] = [
+        { start: new Date(2010, 11, 2), end: new Date(2010, 11, 3) },
+      ];
+      const officeAvailability: EventBusyDate[] = [
+        { start: new Date(2010, 11, 3, 14), end: new Date(2010, 11, 3, 15) },
+      ];
+
+      const getGoogleAvailabilitySpy = vi
+        .spyOn(GoogleCalendarService.prototype, "getAvailability")
+        .mockReturnValue(Promise.resolve(googleAvailability));
+      const getOfficeAvailabilitySpy = vi
+        .spyOn(OfficeCalendarService.prototype, "getAvailability")
+        .mockReturnValue(Promise.resolve(officeAvailability));
+
+      const googleCredential1: CredentialForCalendarService = buildRegularCredential({
+        ...credential,
+        id: 601,
+        userId: 201,
+        type: "google_calendar",
+        appId: "google-calendar",
+      });
+      const googleCredential2: CredentialForCalendarService = buildRegularCredential({
+        ...credential,
+        id: 602,
+        userId: 202,
+        type: "google_calendar",
+        appId: "google-calendar",
+      });
+      const officeCredential: CredentialForCalendarService = buildRegularCredential({
+        ...credential,
+        id: 603,
+        userId: 203,
+        type: "office365_calendar",
+        appId: "office365-calendar",
+        key: {
+          access_token: "access",
+          refresh_token: "refresh",
+          expires_in: Date.now() + 86400,
+        },
+      });
+
+      const googleCal1: SelectedCalendar = buildSelectedCalendar({
+        credentialId: 601,
+        externalId: "google1@example.com",
+        integration: "google_calendar",
+        userId: 201,
+        id: "gcal1",
+      });
+      const googleCal2: SelectedCalendar = buildSelectedCalendar({
+        credentialId: 602,
+        externalId: "google2@example.com",
+        integration: "google_calendar",
+        userId: 202,
+        id: "gcal2",
+      });
+      const officeCal: SelectedCalendar = buildSelectedCalendar({
+        credentialId: 603,
+        externalId: "office@example.com",
+        integration: "office365_calendar",
+        userId: 203,
+        id: "ocal",
+      });
+
+      const result = await getCalendarsEvents(
+        [googleCredential1, googleCredential2, officeCredential],
+        startDate,
+        endDate,
+        [googleCal1, googleCal2, officeCal]
+      );
+
+      expect(getGoogleAvailabilitySpy).toHaveBeenCalledTimes(2);
+      expect(getOfficeAvailabilitySpy).toHaveBeenCalledTimes(1);
+
+      expect(getGoogleAvailabilitySpy).toHaveBeenCalledWith(
+        startDate,
+        endDate,
+        expect.arrayContaining([expect.objectContaining({ externalId: "google1@example.com" })]),
+        undefined,
+        false
+      );
+      expect(getGoogleAvailabilitySpy).toHaveBeenCalledWith(
+        startDate,
+        endDate,
+        expect.arrayContaining([expect.objectContaining({ externalId: "google2@example.com" })]),
+        undefined,
+        false
+      );
+
+      expect(getOfficeAvailabilitySpy).toHaveBeenCalledWith(
+        startDate,
+        endDate,
+        expect.arrayContaining([expect.objectContaining({ externalId: "office@example.com" })]),
+        undefined,
+        false
+      );
+
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual(
+        googleAvailability.map((av) => ({ ...av, source: "google-calendar" }))
+      );
+      expect(result[1]).toEqual(
+        googleAvailability.map((av) => ({ ...av, source: "google-calendar" }))
+      );
+      expect(result[2]).toEqual(
+        officeAvailability.map((av) => ({ ...av, source: "office365-calendar" }))
+      );
+    });
   });
 
   describe("Delegation Credentials", () => {
@@ -398,6 +443,165 @@ describe("getCalendarsEvents", () => {
 
       expect(getAvailabilitySpy).toHaveBeenCalledWith(startDate, endDate, [], undefined, true);
       expect(result).toEqual([[]]);
+    });
+
+    it("should batch freebusy calls for multiple users with same delegation credential into a single call", async () => {
+      const startDate = "2010-12-01";
+      const endDate = "2010-12-04";
+      const delegationCredentialId = 999;
+
+      const availability: EventBusyDate[] = [
+        { start: new Date(2010, 11, 2), end: new Date(2010, 11, 3) },
+      ];
+
+      const getAvailabilitySpy = vi
+        .spyOn(GoogleCalendarService.prototype, "getAvailability")
+        .mockReturnValue(Promise.resolve(availability));
+
+      const user1Credential: CredentialForCalendarService = {
+        ...buildDelegationCredential(credential),
+        id: -1,
+        userId: 101,
+        delegatedToId: delegationCredentialId,
+      };
+      const user2Credential: CredentialForCalendarService = {
+        ...buildDelegationCredential(credential),
+        id: -2,
+        userId: 102,
+        delegatedToId: delegationCredentialId,
+      };
+
+      const user1Calendar: SelectedCalendar = buildSelectedCalendar({
+        credentialId: -1,
+        externalId: "user1@example.com",
+        integration: "google_calendar",
+        userId: 101,
+        id: "cal1",
+      });
+      const user2Calendar: SelectedCalendar = buildSelectedCalendar({
+        credentialId: -2,
+        externalId: "user2@example.com",
+        integration: "google_calendar",
+        userId: 102,
+        id: "cal2",
+      });
+
+      const result = await getCalendarsEvents(
+        [user1Credential, user2Credential],
+        startDate,
+        endDate,
+        [user1Calendar, user2Calendar]
+      );
+
+      expect(getAvailabilitySpy).toHaveBeenCalledTimes(1);
+      expect(getAvailabilitySpy).toHaveBeenCalledWith(
+        startDate,
+        endDate,
+        expect.arrayContaining([
+          expect.objectContaining({ externalId: "user1@example.com" }),
+          expect.objectContaining({ externalId: "user2@example.com" }),
+        ]),
+        undefined,
+        true
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual(
+        availability.map((av) => ({ ...av, source: "exampleApp" }))
+      );
+    });
+
+    it("should make separate calls for delegation credentials and own credentials", async () => {
+      const startDate = "2010-12-01";
+      const endDate = "2010-12-04";
+      const delegationCredentialId = 999;
+
+      const delegationAvailability: EventBusyDate[] = [
+        { start: new Date(2010, 11, 2), end: new Date(2010, 11, 3) },
+      ];
+      const ownAvailability: EventBusyDate[] = [
+        { start: new Date(2010, 11, 3, 10), end: new Date(2010, 11, 3, 11) },
+      ];
+
+      const getAvailabilitySpy = vi
+        .spyOn(GoogleCalendarService.prototype, "getAvailability")
+        .mockImplementation(async (from, to, calendars, cache, allowFallback) => {
+          if (allowFallback) {
+            return delegationAvailability;
+          }
+          return ownAvailability;
+        });
+
+      const delegationUser1: CredentialForCalendarService = {
+        ...buildDelegationCredential(credential),
+        id: -1,
+        userId: 101,
+        delegatedToId: delegationCredentialId,
+      };
+      const delegationUser2: CredentialForCalendarService = {
+        ...buildDelegationCredential(credential),
+        id: -2,
+        userId: 102,
+        delegatedToId: delegationCredentialId,
+      };
+
+      const ownCredential: CredentialForCalendarService = buildRegularCredential({
+        ...credential,
+        id: 500,
+        userId: 103,
+      });
+
+      const delegationCal1: SelectedCalendar = buildSelectedCalendar({
+        credentialId: -1,
+        externalId: "delegation1@example.com",
+        integration: "google_calendar",
+        userId: 101,
+        id: "dcal1",
+      });
+      const delegationCal2: SelectedCalendar = buildSelectedCalendar({
+        credentialId: -2,
+        externalId: "delegation2@example.com",
+        integration: "google_calendar",
+        userId: 102,
+        id: "dcal2",
+      });
+      const ownCal: SelectedCalendar = buildSelectedCalendar({
+        credentialId: 500,
+        externalId: "own@example.com",
+        integration: "google_calendar",
+        userId: 103,
+        id: "ocal",
+      });
+
+      const result = await getCalendarsEvents(
+        [delegationUser1, delegationUser2, ownCredential],
+        startDate,
+        endDate,
+        [delegationCal1, delegationCal2, ownCal]
+      );
+
+      expect(getAvailabilitySpy).toHaveBeenCalledTimes(2);
+
+      expect(getAvailabilitySpy).toHaveBeenCalledWith(
+        startDate,
+        endDate,
+        expect.arrayContaining([
+          expect.objectContaining({ externalId: "delegation1@example.com" }),
+          expect.objectContaining({ externalId: "delegation2@example.com" }),
+        ]),
+        undefined,
+        true
+      );
+
+      expect(getAvailabilitySpy).toHaveBeenCalledWith(
+        startDate,
+        endDate,
+        expect.arrayContaining([expect.objectContaining({ externalId: "own@example.com" })]),
+        undefined,
+        false
+      );
+
+      expect(result).toHaveLength(2);
     });
   });
 });
