@@ -6,6 +6,9 @@ on:
 permissions:
   contents: read
 
+env:
+  NODE_OPTIONS: --max-old-space-size=29000
+
 jobs:
   check-api-v2-breaking-changes:
     name: Check API v2 breaking changes
