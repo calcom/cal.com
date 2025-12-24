@@ -1,8 +1,7 @@
 /**
- * AddGuestsModal Component
+ * AddGuestsModal Component - iOS Implementation
  *
- * Modal for adding guests to a booking.
- * Includes email validation and shows a note that guests will be emailed.
+ * iOS-specific modal for adding guests to a booking with Glass UI header.
  */
 import { FullScreenModal } from "../FullScreenModal";
 import { GlassModalHeader } from "../GlassModalHeader";
@@ -16,7 +15,6 @@ import {
   Alert,
   ScrollView,
   KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -32,7 +30,6 @@ function isValidEmail(email: string): boolean {
   return emailRegex.test(email.trim());
 }
 
-// Default export for Android/Web
 export default function AddGuestsModal(props: AddGuestsModalProps) {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
@@ -105,10 +102,7 @@ export default function AddGuestsModal(props: AddGuestsModalProps) {
         />
 
         {/* Content */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1"
-        >
+        <KeyboardAvoidingView behavior="padding" className="flex-1">
           <ScrollView
             className="flex-1"
             contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16 }}
@@ -136,6 +130,7 @@ export default function AddGuestsModal(props: AddGuestsModalProps) {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  autoComplete="email"
                 />
               </View>
 
@@ -150,48 +145,50 @@ export default function AddGuestsModal(props: AddGuestsModalProps) {
                   placeholderTextColor="#9CA3AF"
                   value={name}
                   onChangeText={setName}
+                  autoCapitalize="words"
+                  autoComplete="name"
                 />
               </View>
             </View>
 
-            {/* Add button */}
+            {/* Add Guest Button */}
             <TouchableOpacity
-              className="mb-6 flex-row items-center justify-center rounded-xl bg-white py-3"
+              className="mb-4 flex-row items-center justify-center rounded-xl bg-[#007AFF] py-3"
               onPress={handleAddGuest}
-              activeOpacity={0.7}
             >
-              <Ionicons name="add-circle" size={22} color="#007AFF" />
-              <Text className="ml-2 text-[17px] font-medium text-[#007AFF]">Add Guest</Text>
+              <Ionicons name="add-circle-outline" size={20} color="#FFF" />
+              <Text className="ml-2 text-[17px] font-semibold text-white">Add Guest</Text>
             </TouchableOpacity>
 
-            {/* Guest list */}
+            {/* Guests List */}
             {guests.length > 0 && (
-              <View>
+              <View className="mb-4">
                 <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
-                  Guests to add ({guests.length})
+                  Added Guests ({guests.length})
                 </Text>
                 <View className="overflow-hidden rounded-xl bg-white">
                   {guests.map((guest, index) => (
                     <View
                       key={index}
-                      className={`flex-row items-center px-4 py-3 ${
+                      className={`flex-row items-center justify-between px-4 py-3 ${
                         index < guests.length - 1 ? "border-b border-gray-100" : ""
                       }`}
                     >
-                      <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
-                        <Ionicons name="person" size={20} color="#6B7280" />
-                      </View>
                       <View className="flex-1">
-                        <Text className="text-[17px] text-[#000]">{guest.email}</Text>
                         {guest.name && (
-                          <Text className="mt-0.5 text-[15px] text-gray-500">{guest.name}</Text>
+                          <Text className="text-[17px] font-medium text-[#000]">{guest.name}</Text>
                         )}
+                        <Text
+                          className={`text-[15px] ${guest.name ? "text-gray-600" : "text-[#000]"}`}
+                        >
+                          {guest.email}
+                        </Text>
                       </View>
                       <TouchableOpacity
                         onPress={() => handleRemoveGuest(index)}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       >
-                        <Ionicons name="close-circle-outline" size={24} color="#FF3B30" />
+                        <Ionicons name="close-circle" size={24} color="#EF4444" />
                       </TouchableOpacity>
                     </View>
                   ))}

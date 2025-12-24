@@ -1,22 +1,13 @@
 /**
- * EditLocationModal Component
+ * EditLocationModal Component - iOS Implementation
  *
- * Modal for editing the location of a booking.
- * Shows a note that calendar events may not be updated.
+ * iOS-specific modal for editing the location of a booking with Glass UI header.
  */
 import { FullScreenModal } from "../FullScreenModal";
 import { GlassModalHeader } from "../GlassModalHeader";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Alert,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { View, Text, TextInput, Alert, ScrollView, KeyboardAvoidingView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export interface EditLocationModalProps {
@@ -27,7 +18,6 @@ export interface EditLocationModalProps {
   isLoading?: boolean;
 }
 
-// Default export for Android/Web
 export default function EditLocationModal(props: EditLocationModalProps) {
   const insets = useSafeAreaInsets();
   const [location, setLocation] = useState(props.currentLocation || "");
@@ -75,10 +65,7 @@ export default function EditLocationModal(props: EditLocationModalProps) {
         />
 
         {/* Content */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1"
-        >
+        <KeyboardAvoidingView behavior="padding" className="flex-1">
           <ScrollView
             className="flex-1"
             contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16 }}
@@ -93,49 +80,29 @@ export default function EditLocationModal(props: EditLocationModalProps) {
               </Text>
             </View>
 
-            {/* Location input Card */}
-            <View className="mb-4 overflow-hidden rounded-xl bg-white">
+            {/* Form Card */}
+            <View className="overflow-hidden rounded-xl bg-white">
               <View className="px-4 py-3">
-                <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Location</Text>
+                <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Location</Text>
                 <TextInput
-                  className="min-h-[80px] text-[17px] text-[#000]"
-                  placeholder="Enter location (URL, address, or phone number)"
+                  className="min-h-[100px] text-[17px] text-[#000]"
+                  placeholder="Enter location (URL, address, or meeting details)..."
                   placeholderTextColor="#9CA3AF"
                   value={location}
                   onChangeText={setLocation}
                   multiline
                   textAlignVertical="top"
+                  autoFocus
                 />
               </View>
             </View>
 
-            {/* Location type suggestions */}
-            <View className="px-1">
-              <Text className="mb-3 text-[13px] font-medium uppercase tracking-wide text-gray-500">
-                Supported formats:
+            {/* Info note */}
+            <View className="mt-4 flex-row items-start rounded-xl bg-[#E3F2FD] p-4">
+              <Ionicons name="information-circle" size={20} color="#1976D2" />
+              <Text className="ml-3 flex-1 text-[15px] leading-5 text-[#1565C0]">
+                You can enter a physical address, video conference link, or phone number.
               </Text>
-              <View className="space-y-3">
-                <View className="flex-row items-center">
-                  <View className="mr-3 h-8 w-8 items-center justify-center rounded-full bg-[#E8E8ED]">
-                    <Ionicons name="link" size={16} color="#6B7280" />
-                  </View>
-                  <Text className="text-[15px] text-gray-700">
-                    Meeting link (e.g., Zoom, Google Meet)
-                  </Text>
-                </View>
-                <View className="flex-row items-center">
-                  <View className="mr-3 h-8 w-8 items-center justify-center rounded-full bg-[#E8E8ED]">
-                    <Ionicons name="location" size={16} color="#6B7280" />
-                  </View>
-                  <Text className="text-[15px] text-gray-700">Physical address</Text>
-                </View>
-                <View className="flex-row items-center">
-                  <View className="mr-3 h-8 w-8 items-center justify-center rounded-full bg-[#E8E8ED]">
-                    <Ionicons name="call" size={16} color="#6B7280" />
-                  </View>
-                  <Text className="text-[15px] text-gray-700">Phone number</Text>
-                </View>
-              </View>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>

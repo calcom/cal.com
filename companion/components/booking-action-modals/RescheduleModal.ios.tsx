@@ -1,22 +1,13 @@
 /**
- * RescheduleModal Component
+ * RescheduleModal Component - iOS Implementation
  *
- * Modal for rescheduling a booking.
- * Provides date and time inputs with optional reason.
+ * iOS-specific modal for rescheduling a booking with Glass UI header.
  */
 import { FullScreenModal } from "../FullScreenModal";
 import { GlassModalHeader } from "../GlassModalHeader";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Alert,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { View, Text, TextInput, Alert, ScrollView, KeyboardAvoidingView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export interface RescheduleModalProps {
@@ -61,7 +52,6 @@ function formatTimeForInput(dateString: string | undefined): string {
   }
 }
 
-// Default export for Android/Web
 export default function RescheduleModal(props: RescheduleModalProps) {
   const insets = useSafeAreaInsets();
   const [date, setDate] = useState("");
@@ -145,10 +135,7 @@ export default function RescheduleModal(props: RescheduleModalProps) {
         />
 
         {/* Content */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1"
-        >
+        <KeyboardAvoidingView behavior="padding" className="flex-1">
           <ScrollView
             className="flex-1"
             contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16 }}

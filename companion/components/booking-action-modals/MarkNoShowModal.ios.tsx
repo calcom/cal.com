@@ -1,8 +1,7 @@
 /**
- * MarkNoShowModal Component
+ * MarkNoShowModal Component - iOS Implementation
  *
- * Modal for marking attendees as no-show for a booking.
- * Allows selecting multiple attendees and supports undo (marking as present).
+ * iOS-specific modal for marking attendees as no-show with Glass UI header.
  */
 import { FullScreenModal } from "../FullScreenModal";
 import { GlassModalHeader } from "../GlassModalHeader";
@@ -37,7 +36,6 @@ const getInitials = (name: string): string => {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 };
 
-// Default export for Android/Web
 export default function MarkNoShowModal(props: MarkNoShowModalProps) {
   const insets = useSafeAreaInsets();
   const safeAttendees = Array.isArray(props.attendees) ? props.attendees : [];

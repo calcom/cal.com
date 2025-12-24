@@ -1,8 +1,7 @@
 /**
- * ViewRecordingsModal Component
+ * ViewRecordingsModal Component - iOS Implementation
  *
- * Modal for viewing recordings of a Cal Video booking.
- * Opens download links in an in-app browser.
+ * iOS-specific modal for viewing recordings of a Cal Video booking with Glass UI header.
  */
 import type { BookingRecording } from "../../services/types/bookings.types";
 import { FullScreenModal } from "../FullScreenModal";
@@ -39,7 +38,6 @@ function formatDate(dateString: string): string {
   });
 }
 
-// Default export for Android/Web
 export default function ViewRecordingsModal(props: ViewRecordingsModalProps) {
   const insets = useSafeAreaInsets();
 
@@ -88,27 +86,27 @@ export default function ViewRecordingsModal(props: ViewRecordingsModalProps) {
           {props.isLoading ? (
             <View className="flex-1 items-center justify-center">
               <ActivityIndicator size="large" color="#007AFF" />
-              <Text className="mt-3 text-[15px] text-gray-500">Loading recordings...</Text>
+              <Text className="mt-4 text-[15px] text-gray-500">Loading recordings...</Text>
             </View>
           ) : props.recordings.length === 0 ? (
             <View className="flex-1 items-center justify-center px-8">
               <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-[#E8E8ED]">
-                <Ionicons name="videocam-off" size={32} color="#8E8E93" />
+                <Ionicons name="videocam-off" size={32} color="#6B7280" />
               </View>
-              <Text className="text-center text-[17px] font-semibold text-[#000]">
-                No recordings available
+              <Text className="mb-2 text-center text-[17px] font-medium text-[#000]">
+                No Recordings Available
               </Text>
-              <Text className="mt-2 text-center text-[15px] leading-5 text-gray-500">
-                Recordings may take some time to process after the meeting ends.
+              <Text className="text-center text-[15px] text-gray-500">
+                Recordings will appear here after the meeting has ended.
               </Text>
             </View>
           ) : (
             <FlatList
               data={props.recordings}
               renderItem={renderRecording}
-              keyExtractor={(item) => item.id}
-              showsVerticalScrollIndicator={false}
+              keyExtractor={(item, index) => `${item.id || index}`}
               contentContainerStyle={{ paddingBottom: 16 }}
+              showsVerticalScrollIndicator={false}
             />
           )}
         </View>
