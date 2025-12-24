@@ -63,7 +63,7 @@
     "body-parser": "^1.20.2",
     "bull": "^4.12.4",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.0",
+    "class-validator": "^0.14.3",
     "cookie-parser": "^1.4.6",
     "dotenv": "16.6.1",
     "fs-extra": "^11.2.0",
