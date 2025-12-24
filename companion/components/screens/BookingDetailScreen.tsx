@@ -190,9 +190,21 @@ const getLocationProvider = (location: string | undefined, metadata?: Record<str
 
 export interface BookingDetailScreenProps {
   uid: string;
+  /**
+   * Callback to expose internal action handlers to parent component.
+   * Used by iOS header menu to trigger actions like reschedule.
+   */
+  onActionsReady?: (handlers: {
+    openRescheduleModal: () => void;
+    openEditLocationModal: (booking: Booking) => void;
+    openAddGuestsModal: (booking: Booking) => void;
+    openViewRecordingsModal: (booking: Booking) => void;
+    openMeetingSessionDetailsModal: (booking: Booking) => void;
+    openMarkNoShowModal: (booking: Booking) => void;
+  }) => void;
 }
 
-export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
+export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreenProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -252,6 +264,28 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
       fetchBooking();
     }
   }, [uid]);
+
+  // Expose action handlers to parent component (for iOS header menu)
+  useEffect(() => {
+    if (booking && onActionsReady) {
+      onActionsReady({
+        openRescheduleModal,
+        openEditLocationModal: () => openEditLocationModal(booking),
+        openAddGuestsModal: () => openAddGuestsModal(booking),
+        openViewRecordingsModal: () => openViewRecordingsModal(booking),
+        openMeetingSessionDetailsModal: () => openMeetingSessionDetailsModal(booking),
+        openMarkNoShowModal: () => openMarkNoShowModal(booking),
+      });
+    }
+  }, [
+    booking,
+    onActionsReady,
+    openEditLocationModal,
+    openAddGuestsModal,
+    openViewRecordingsModal,
+    openMeetingSessionDetailsModal,
+    openMarkNoShowModal,
+  ]);
 
   const fetchBooking = async () => {
     try {
