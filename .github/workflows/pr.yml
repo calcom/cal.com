@@ -1,4 +1,4 @@
-name: PR Update
+name: PR Updatee
 
 on:
   pull_request:
