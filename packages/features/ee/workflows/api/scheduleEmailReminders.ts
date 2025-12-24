@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -121,6 +122,18 @@ export async function handler(req: NextRequest) {
     }
     const referenceUid = reminder.uuid ?? uuidv4();
 
+    // For seated events, get the correct attendee based on seatReferenceId
+    let targetAttendee = reminder.booking?.attendees[0];
+    if (reminder.seatReferenceId) {
+          const bookingSeatRepository = new BookingSeatRepository(prisma);
+      const seatAttendeeData = await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
+        reminder.seatReferenceId
+      );
+      if (seatAttendeeData?.attendee) {
+        targetAttendee = seatAttendeeData.attendee;
+      }
+    }
+
     if (!reminder.isMandatoryReminder && reminder.workflowStep) {
       try {
         let sendTo;
@@ -143,7 +156,7 @@ export async function handler(req: NextRequest) {
             }
             break;
           case WorkflowActions.EMAIL_ATTENDEE:
-            sendTo = reminder.booking.attendees[0].email;
+            sendTo = targetAttendee?.email;
             break;
           case WorkflowActions.EMAIL_ADDRESS:
             sendTo = reminder.workflowStep.sendTo;
@@ -151,23 +164,23 @@ export async function handler(req: NextRequest) {
 
         const name =
           reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
-            ? reminder.booking.attendees[0].name
+            ? targetAttendee?.name
             : reminder.booking.user?.name;
 
         const attendeeName =
           reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
             ? reminder.booking.user?.name
-            : reminder.booking.attendees[0].name;
+            : targetAttendee?.name;
 
         const timeZone =
           reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
-            ? reminder.booking.attendees[0].timeZone
+            ? targetAttendee?.timeZone
             : reminder.booking.user?.timeZone;
 
         const locale =
           reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE ||
           reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
-            ? reminder.booking.attendees[0].locale
+            ? targetAttendee?.locale
             : reminder.booking.user?.locale;
 
         let emailContent = {
@@ -199,7 +212,7 @@ export async function handler(req: NextRequest) {
 
           const recipientEmail = getWorkflowRecipientEmail({
             action: reminder.workflowStep.action || WorkflowActions.EMAIL_ADDRESS,
-            attendeeEmail: reminder.booking.attendees[0].email,
+            attendeeEmail: targetAttendee?.email,
             organizerEmail: reminder.booking.user?.email,
             sendToEmail: reminder.workflowStep.sendTo,
           });
@@ -207,8 +220,8 @@ export async function handler(req: NextRequest) {
           const variables: VariablesType = {
             eventName: reminder.booking.eventType?.title || "",
             organizerName: reminder.booking.user?.name || "",
-            attendeeName: reminder.booking.attendees[0].name,
-            attendeeEmail: reminder.booking.attendees[0].email,
+            attendeeName: targetAttendee?.name || "",
+            attendeeEmail: targetAttendee?.email || "",
             eventDate: dayjs(reminder.booking.startTime).tz(timeZone),
             eventEndTime: dayjs(reminder.booking?.endTime).tz(timeZone),
             timeZone: timeZone,
@@ -224,13 +237,9 @@ export async function handler(req: NextRequest) {
             }`,
             ratingUrl: `${bookerUrl}/booking/${reminder.booking.uid}?rating`,
             noShowUrl: `${bookerUrl}/booking/${reminder.booking.uid}?noShow=true`,
-            attendeeTimezone: reminder.booking.attendees[0].timeZone,
-            eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(
-              reminder.booking.attendees[0].timeZone
-            ),
-            eventEndTimeInAttendeeTimezone: dayjs(reminder.booking?.endTime).tz(
-              reminder.booking.attendees[0].timeZone
-            ),
+            attendeeTimezone: targetAttendee?.timeZone,
+            eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(targetAttendee?.timeZone),
+            eventEndTimeInAttendeeTimezone: dayjs(reminder.booking?.endTime).tz(targetAttendee?.timeZone),
           };
           const emailLocale = locale || "en";
           const brandingDisabled = reminder.booking.eventType?.team
@@ -408,10 +417,10 @@ export async function handler(req: NextRequest) {
       }
     } else if (reminder.isMandatoryReminder) {
       try {
-        const sendTo = reminder.booking.attendees[0].email;
-        const name = reminder.booking.attendees[0].name;
+        const sendTo = targetAttendee?.email;
+        const name = targetAttendee?.name;
         const attendeeName = reminder.booking.user?.name;
-        const timeZone = reminder.booking.attendees[0].timeZone;
+        const timeZone = targetAttendee?.timeZone;
 
         let emailContent = {
           emailSubject: "",
