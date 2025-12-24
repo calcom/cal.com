@@ -13,16 +13,16 @@ import {
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-export default function InsightsRoutingFormResponsesPage() {
+export default function InsightsRoutingFormResponsesPage({ timeZone }: { timeZone: string }) {
   const { t } = useLocale();
   const pathname = usePathname();
 
   if (!pathname) return null;
 
   return (
-    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments}>
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} timeZone={timeZone}>
       <InsightsOrgTeamsProvider>
-        <div className="mb-4 space-y-4">
+        <div className="mb-4 stack-y-4">
           <RoutingFormResponsesTable />
 
           <RoutingFunnel />

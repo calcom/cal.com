@@ -84,7 +84,7 @@ export const ResultsView = ({
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -20 }}
         transition={{ duration: 0.2 }}
-        className="space-y-4">
+        className="stack-y-4">
         <div className="bg-default border-muted mb-0.5 flex flex-col gap-0.5 rounded-2xl border p-1">
           <div className="flex items-center gap-2 px-2 py-1">
             <div className="border-subtle rounded-lg border p-1">
@@ -112,7 +112,7 @@ export const ResultsView = ({
                 <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
               </div>
               <div className="border-subtle rounded-xl border px-3 py-2">
-                <div className="space-y-3">
+                <div className="stack-y-3">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="flex items-center justify-between">
                       <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
@@ -134,7 +134,7 @@ export const ResultsView = ({
                 <div className="divide-subtle divide-y">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-                      <div className="space-y-2">
+                      <div className="stack-y-2">
                         <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
                         <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
                       </div>
@@ -158,7 +158,7 @@ export const ResultsView = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.2 }}
-      className="space-y-4">
+      className="stack-y-4">
       {chosenRoute.action.type === "externalRedirectUrl" && (
         <ResultsSection title={chosenRoute.name ?? "External Redirect"} icon="zap">
           <div className="flex items-center gap-2">
@@ -211,7 +211,7 @@ export const ResultsView = ({
             <ResultsSection title="Matching" icon="atom">
               <div className="relative flex flex-col gap-3">
                 {/* Seperator */}
-                <div className="absolute bottom-3 left-[0.75rem] top-3 w-[1px] bg-gray-200" />
+                <div className="absolute bottom-3 left-3 top-3 w-px bg-gray-200" />
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1">
@@ -296,7 +296,7 @@ export const ResultsView = ({
 
             {membersMatchResult.mainWarnings && membersMatchResult.mainWarnings.length > 0 && (
               <ResultsSection title="Warnings" icon="triangle-alert">
-                <div className="space-y-2">
+                <div className="stack-y-2">
                   {membersMatchResult.mainWarnings.map((warning, index) => (
                     <div data-testid="alert" key={index} className="text-warning">
                       {warning}
@@ -308,7 +308,7 @@ export const ResultsView = ({
 
             {membersMatchResult.fallbackWarnings && membersMatchResult.fallbackWarnings.length > 0 && (
               <ResultsSection title="Fallback Warnings" icon="triangle-alert">
-                <div className="space-y-2">
+                <div className="stack-y-2">
                   {membersMatchResult.fallbackWarnings.map((warning, index) => (
                     <div data-testid="alert" key={index} className="text-warning">
                       {warning}

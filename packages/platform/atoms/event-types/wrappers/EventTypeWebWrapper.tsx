@@ -13,10 +13,8 @@ import { EventPermissionProvider } from "@calcom/features/pbac/client/context/Ev
 import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -54,9 +52,11 @@ const AssignmentWarningDialog = dynamic(
   () => import("@calcom/features/eventtypes/components/dialogs/AssignmentWarningDialog")
 );
 
-const EventSetupTab = dynamic(() =>
-  // import web wrapper when it's ready
-  import("./EventSetupTabWebWrapper").then((mod) => mod)
+const EventSetupTab = dynamic(
+  () =>
+    // import web wrapper when it's ready
+    import("./EventSetupTabWebWrapper").then((mod) => mod),
+  { loading: () => null }
 );
 
 const EventAvailabilityTab = dynamic(() =>
@@ -77,7 +77,7 @@ const EventAdvancedTab = dynamic(() =>
 );
 
 const EventInstantTab = dynamic(() =>
-  import("@calcom/features/eventtypes/components/tabs/instant/EventInstantTab").then(
+  import("@calcom/web/modules/event-types/components/tabs/instant/EventInstantTab").then(
     (mod) => mod.EventInstantTab
   )
 );
@@ -88,21 +88,21 @@ const EventRecurringTab = dynamic(() =>
 );
 
 const EventAppsTab = dynamic(() =>
-  import("@calcom/features/eventtypes/components/tabs/apps/EventAppsTab").then((mod) => mod.EventAppsTab)
+  import("@calcom/web/modules/event-types/components/tabs/apps/EventAppsTab").then((mod) => mod.EventAppsTab)
 );
 
 const EventWorkflowsTab = dynamic(
-  () => import("@calcom/features/eventtypes/components/tabs/workflows/EventWorkfowsTab")
+  () => import("@calcom/web/modules/event-types/components/tabs/workflows/EventWorkflowsTab")
 );
 
 const EventWebhooksTab = dynamic(() =>
-  import("@calcom/features/eventtypes/components/tabs/webhooks/EventWebhooksTab").then(
+  import("@calcom/web/modules/event-types/components/tabs/webhooks/EventWebhooksTab").then(
     (mod) => mod.EventWebhooksTab
   )
 );
 
 const EventAITab = dynamic(() =>
-  import("@calcom/features/eventtypes/components/tabs/ai/EventAITab").then((mod) => mod.EventAITab)
+  import("@calcom/web/modules/event-types/components/tabs/ai/EventAITab").then((mod) => mod.EventAITab)
 );
 
 export type EventTypeWebWrapperProps = {
@@ -164,7 +164,6 @@ const EventTypeWeb = ({
   const { data: user, isPending: isLoggedInUserPending } = useMeQuery();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
-  const telemetry = useTelemetry();
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
@@ -172,7 +171,6 @@ const EventTypeWeb = ({
   const { data: eventTypeApps, isPending: isPendingApps } = trpc.viewer.apps.integrations.useQuery({
     extendsFeature: "EventType",
     teamId: eventType.team?.id || eventType.parent?.teamId,
-    onlyInstalled: true,
   });
 
   // Check workflow permissions
@@ -444,7 +442,7 @@ const EventTypeWeb = ({
             onConfirm={(e: { preventDefault: () => void }) => {
               e.preventDefault();
               handleSubmit(form.getValues());
-              telemetry.event(telemetryEventTypes.slugReplacementAction);
+              // telemetry.event(telemetryEventTypes.slugReplacementAction);
               setSlugExistsChildrenDialogOpen([]);
             }}
           />

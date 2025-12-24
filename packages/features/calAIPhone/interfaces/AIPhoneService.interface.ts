@@ -1,5 +1,7 @@
 import type { Logger } from "tslog";
 
+import type { TrackingData } from "@calcom/lib/tracking";
+
 import type { RetellAIPhoneServiceProviderTypeMap } from "../providers/retellAI";
 
 /**
@@ -243,6 +245,7 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
     teamId?: number;
     agentId?: string | null;
     workflowId?: string;
+    tracking?: TrackingData;
   }): Promise<{ url: string; message: string }>;
 
   /**
@@ -331,6 +334,8 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
     generalTools?: AIPhoneServiceTools<T>;
     voiceId?: string;
     language?: string;
+    outboundEventTypeId?: number;
+    timeZone?: string;
   }): Promise<{ message: string }>;
 
   /**

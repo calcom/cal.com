@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 import { useState } from "react";
 
-import type { RouterOutputs } from "@calcom/trpc";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { TextField } from "@calcom/ui/components/form";
 import { Avatar } from "@calcom/ui/components/avatar";
 import classNames from "@calcom/ui/classNames";
@@ -29,12 +29,12 @@ export default function TeamInviteFromOrg({
   });
 
   return (
-    <div className="bg-muted border-subtle flex flex-col rounded-md border p-4">
+    <div className="bg-cal-muted border-subtle flex flex-col rounded-md border p-4">
       <div className="-my-1">
         <TextField placeholder="Search..." onChange={(e) => setSearchQuery(e.target.value)} />
       </div>
       <hr className="border-subtle -mx-4 mt-2" />
-      <div className="scrollbar min-h-48 flex max-h-48 flex-col space-y-0.5 overflow-y-scroll pt-2">
+      <div className="scrollbar min-h-48 flex max-h-48 flex-col stack-y-0.5 overflow-y-scroll pt-2">
         <>
           {filteredMembers &&
             filteredMembers.map((member) => {

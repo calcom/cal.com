@@ -91,6 +91,7 @@ describe("buildCalEventFromBooking", () => {
       organizer,
       location,
       conferenceCredentialId,
+      organizationId: null,
     });
 
     expect(result).toEqual({
@@ -127,6 +128,7 @@ describe("buildCalEventFromBooking", () => {
       hideOrganizerEmail: undefined,
       iCalSequence: 0,
       iCalUID: booking.iCalUID,
+      organizationId: null,
     });
 
     expect(parseRecurringEvent).toHaveBeenCalledWith(booking.eventType?.recurringEvent);
@@ -154,6 +156,7 @@ describe("buildCalEventFromBooking", () => {
       organizer,
       location,
       conferenceCredentialId,
+      organizationId: null,
     });
 
     expect(result).toEqual({
@@ -182,6 +185,7 @@ describe("buildCalEventFromBooking", () => {
       hideOrganizerEmail: undefined,
       iCalSequence: 0,
       iCalUID: "icaluid",
+      organizationId: null,
     });
 
     // @ts-expect-error - locale is set in mock

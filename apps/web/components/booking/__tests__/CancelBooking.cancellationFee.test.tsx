@@ -10,7 +10,7 @@ beforeAll(() => {
   Element.prototype.scrollIntoView = vi.fn();
 });
 
-vi.mock("@calcom/trpc", () => ({
+vi.mock("@calcom/trpc/react", () => ({
   trpc: {
     viewer: {
       bookings: {
@@ -56,12 +56,6 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
       }
       return key;
     },
-  }),
-}));
-
-vi.mock("@calcom/lib/hooks/useTelemetry", () => ({
-  useTelemetry: () => ({
-    event: vi.fn(),
   }),
 }));
 
@@ -131,6 +125,7 @@ const mockProps = {
     eventType: {},
   },
   internalNotePresets: [],
+  renderContext: "booking-single-view" as const,
 };
 
 const mockBookingWithoutCancellationFee = {

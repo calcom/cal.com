@@ -58,7 +58,7 @@ type RemoveAppParams = { callback: () => void; app?: App["slug"] };
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
+      <div className="divide-subtle border-subtle stack-y-6 rounded-b-lg border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
       </div>

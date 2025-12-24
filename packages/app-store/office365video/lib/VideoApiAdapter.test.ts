@@ -60,7 +60,6 @@ const testCredential = {
 
 describe("createMeeting", () => {
   test("Successful `createMeeting` call", async () => {
-    prismaMock.calendarCache.findUnique;
 
     const videoApi = VideoApiAdapter(testCredential);
 
@@ -109,7 +108,6 @@ describe("createMeeting", () => {
   });
 
   test(" `createMeeting` when there is no joinWebUrl and only joinUrl", async () => {
-    prismaMock.calendarCache.findUnique;
 
     const videoApi = VideoApiAdapter(testCredential);
 

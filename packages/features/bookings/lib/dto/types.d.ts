@@ -4,6 +4,7 @@
  */
 import type getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import type getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
+import type { TraceContext } from "@calcom/lib/tracing";
 import type { SchedulingType } from "@calcom/prisma/enums";
 
 import type { ExtendedBookingCreateBody } from "../bookingCreateBodySchema";
@@ -37,6 +38,7 @@ export type CreateBookingMeta = {
   hostname?: string;
   forcedSlug?: string;
   noEmail?: boolean;
+  traceContext?: TraceContext;
 } & PlatformParams;
 
 export type BookingHandlerInput = {

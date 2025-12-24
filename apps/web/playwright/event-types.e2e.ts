@@ -182,6 +182,9 @@ test.describe("Event Types tests", () => {
        * Verify first organizer address
        */
       await page.goto(previewLink ?? "");
+      await page.waitForURL((url) => {
+        return url.searchParams.get("overlayCalendar") === "true";
+      });
       await selectFirstAvailableTimeSlotNextMonth(page);
       await page.locator(`span:has-text("${locationData[0]}")`).click();
       await bookTimeSlot(page);
@@ -212,7 +215,9 @@ test.describe("Event Types tests", () => {
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-        await expect(page.locator("text=+19199999999")).toBeVisible();
+        await expect(page.locator("text=+19199999999")).toHaveCount(2);
+        await expect(page.locator("text=+19199999999").first()).toBeVisible();
+        await expect(page.locator("text=+19199999999").nth(1)).toBeVisible();
       });
 
       test("Can add Organzer Phone Number location and book with it", async ({ page }) => {
@@ -274,7 +279,6 @@ test.describe("Event Types tests", () => {
       });
 
       // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
-      // eslint-disable-next-line playwright/no-skipped-test
       test.skip("Can remove location from multiple locations that are saved", async ({ page }) => {
         await gotoFirstEventType(page);
 
@@ -419,7 +423,6 @@ test.describe("Event Types tests", () => {
     });
     test("should enable timezone lock in event advanced settings and verify disabled timezone selector on booking page", async ({
       page,
-      users,
     }) => {
       await gotoFirstEventType(page);
       await expect(page.locator("[data-testid=event-title]")).toBeVisible();

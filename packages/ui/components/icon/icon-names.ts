@@ -19,6 +19,7 @@ export type IconName =
   | "book-open-check"
   | "book-open"
   | "book-user"
+  | "book"
   | "bookmark"
   | "building"
   | "calendar-check-2"

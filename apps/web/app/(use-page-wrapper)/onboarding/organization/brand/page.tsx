@@ -1,4 +1,3 @@
-import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -33,3 +32,4 @@ const ServerPage = async () => {
 };
 
 export default ServerPage;
+

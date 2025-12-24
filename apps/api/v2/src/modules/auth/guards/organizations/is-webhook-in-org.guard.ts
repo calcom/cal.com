@@ -43,7 +43,7 @@ export class IsWebhookInOrg implements CanActivate {
       }
     }
 
-    const org = await this.organizationsRepository.findById(Number(organizationId));
+    const org = await this.organizationsRepository.findById({ id: Number(organizationId) });
 
     if (org?.isOrganization) {
       const isWebhookInOrg = await this.organizationsWebhooksRepository.findWebhook(

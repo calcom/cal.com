@@ -1,5 +1,5 @@
 import db from "@calcom/prisma";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { RoleType as DomainRoleType } from "../domain/models/Role";
 import type { CreateRoleData, UpdateRolePermissionsData } from "../domain/models/Role";
@@ -36,12 +36,23 @@ export class RoleService {
     return DEFAULT_ROLE_IDS[role];
   }
 
+  private getMembershipRoleFromRoleId(roleId: string): MembershipRole | null {
+    const entry = Object.entries(DEFAULT_ROLE_IDS).find(([, id]) => id === roleId);
+    return entry ? (entry[0] as MembershipRole) : null;
+  }
+
   async assignRoleToMember(roleId: string, membershipId: number) {
     const role = await this.repository.findById(roleId);
     if (!role) throw new Error("Role not found");
+    
+    const membershipRole = this.getMembershipRoleFromRoleId(roleId);
+    
     await db.membership.update({
       where: { id: membershipId },
-      data: { customRoleId: roleId },
+      data: {
+        customRoleId: roleId,
+        ...(membershipRole ? { role: membershipRole } : {}),
+      },
     });
     return role;
   }
@@ -91,19 +102,32 @@ export class RoleService {
     if (role.type === DomainRoleType.SYSTEM) {
       throw new Error("Cannot update default roles");
     }
-    // Validate permissions
+
+    const permissionChanges = await this.getUpdatePermissionChanges(data);
+
+    return this.repository.update(data.roleId, permissionChanges, {
+      color: data.updates?.color,
+      name: data.updates?.name,
+    });
+  }
+
+  private async getUpdatePermissionChanges(data: UpdateRolePermissionsData) {
+    if (!data.permissions) {
+      return {
+        toAdd: [],
+        toRemove: [],
+      };
+    }
+
     const validationResult = this.permissionService.validatePermissions(data.permissions);
+
     if (!validationResult.isValid) {
       throw new Error(validationResult.error || "Invalid permissions provided");
     }
 
     const existingPermissions = await this.repository.getPermissions(data.roleId);
     const permissionChanges = this.permissionDiffService.calculateDiff(data.permissions, existingPermissions);
-
-    return this.repository.update(data.roleId, permissionChanges, {
-      color: data.updates?.color,
-      name: data.updates?.name,
-    });
+    return permissionChanges;
   }
 
   async roleBelongsToTeam(roleId: string, teamId: number) {

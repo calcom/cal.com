@@ -13,9 +13,20 @@ vi.mock("@calcom/features/tasker");
 const mockScheduleWorkflowReminders = vi.mocked(scheduleWorkflowReminders);
 const mockTasker = vi.mocked(tasker);
 
-// Mock the getHideBranding function to return false
 vi.mock("@calcom/features/profile/lib/hideBranding", () => ({
   getHideBranding: vi.fn().mockResolvedValue(false),
+}));
+
+const mockWorkflowReminderCreate = vi.fn();
+vi.mock("@calcom/features/ee/workflows/repositories/WorkflowReminderRepository", () => ({
+  WorkflowReminderRepository: vi.fn().mockImplementation(() => ({
+    create: mockWorkflowReminderCreate,
+  })),
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  prisma: {},
+  default: {},
 }));
 
 describe("WorkflowService.scheduleFormWorkflows", () => {
@@ -76,10 +87,15 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
       },
     ];
 
+    const mockCreditCheckFn = vi.fn().mockResolvedValue(true);
+
     await WorkflowService.scheduleFormWorkflows({
       workflows,
       responses: mockResponses,
       form: mockForm,
+      responseId: 123,
+      routedEventTypeId: null,
+      creditCheckFn: mockCreditCheckFn,
     });
 
     expect(mockScheduleWorkflowReminders).toHaveBeenCalledWith({
@@ -87,9 +103,11 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
       formData: {
         responses: mockResponses,
         user: { email: "formowner@example.com", timeFormat: 12, locale: "en" },
+        routedEventTypeId: null,
       },
       hideBranding: false,
       workflows: [workflows[0]],
+      creditCheckFn: mockCreditCheckFn,
     });
   });
 
@@ -123,11 +141,15 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
 
     mockTasker.create.mockResolvedValue({ id: "task-123" });
 
+    const mockCreditCheckFn = vi.fn().mockResolvedValue(true);
+
     await WorkflowService.scheduleFormWorkflows({
       workflows,
       responses: mockResponses,
       responseId: 123,
       form: mockForm,
+      routedEventTypeId: null,
+      creditCheckFn: mockCreditCheckFn,
     });
 
     expect(mockTasker.create).toHaveBeenCalledWith(
@@ -137,6 +159,7 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
         responses: mockResponses,
         smsReminderNumber: "+1234567890",
         hideBranding: false,
+        routedEventTypeId: null,
         submittedAt: expect.any(Date),
         form: {
           id: "form-123",
@@ -190,10 +213,15 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
       },
     ];
 
+    const mockCreditCheckFn = vi.fn().mockResolvedValue(true);
+
     await WorkflowService.scheduleFormWorkflows({
       workflows,
       responses: mockResponses,
       form: formWithoutPhone,
+      responseId: 123,
+      routedEventTypeId: null,
+      creditCheckFn: mockCreditCheckFn,
     });
 
     expect(mockScheduleWorkflowReminders).toHaveBeenCalledWith({
@@ -201,9 +229,446 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
       formData: {
         responses: mockResponses,
         user: { email: "formowner@example.com", timeFormat: 12, locale: "en" },
+        routedEventTypeId: null,
       },
       hideBranding: false,
       workflows: [workflows[0]],
+      creditCheckFn: mockCreditCheckFn,
+    });
+  });
+});
+
+describe("WorkflowService.scheduleLazyEmailWorkflow", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("should schedule lazy email workflow for BEFORE_EVENT trigger", async () => {
+    const mockWorkflow = {
+      time: 24,
+      timeUnit: TimeUnit.HOUR,
+    };
+
+    const mockEvt = {
+      uid: "booking-123",
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+    };
+
+    const mockWorkflowReminder = {
+      id: 1,
+      uuid: "reminder-uuid-123",
+    };
+
+    mockWorkflowReminderCreate.mockResolvedValue(mockWorkflowReminder);
+    mockTasker.create.mockResolvedValue({ id: "task-123" });
+
+    await WorkflowService.scheduleLazyEmailWorkflow({
+      workflowTriggerEvent: "BEFORE_EVENT",
+      workflowStepId: 1,
+      workflow: mockWorkflow,
+      evt: mockEvt,
+    });
+
+    expect(mockWorkflowReminderCreate).toHaveBeenCalledWith({
+      bookingUid: "booking-123",
+      workflowStepId: 1,
+      method: "EMAIL",
+      scheduledDate: expect.any(Date),
+      scheduled: true,
+    });
+
+    expect(mockTasker.create).toHaveBeenCalledWith(
+      "sendWorkflowEmails",
+      {
+        bookingUid: "booking-123",
+        workflowReminderId: 1,
+      },
+      {
+        scheduledAt: expect.any(Date),
+        referenceUid: "reminder-uuid-123",
+      }
+    );
+  });
+
+  test("should schedule lazy email workflow for AFTER_EVENT trigger", async () => {
+    const mockWorkflow = {
+      time: 1,
+      timeUnit: TimeUnit.HOUR,
+    };
+
+    const mockEvt = {
+      uid: "booking-456",
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+    };
+
+    const mockWorkflowReminder = {
+      id: 2,
+      uuid: "reminder-uuid-456",
+    };
+
+    mockWorkflowReminderCreate.mockResolvedValue(mockWorkflowReminder);
+    mockTasker.create.mockResolvedValue({ id: "task-456" });
+
+    await WorkflowService.scheduleLazyEmailWorkflow({
+      workflowTriggerEvent: "AFTER_EVENT",
+      workflowStepId: 2,
+      workflow: mockWorkflow,
+      evt: mockEvt,
+    });
+
+    expect(mockTasker.create).toHaveBeenCalledWith(
+      "sendWorkflowEmails",
+      {
+        bookingUid: "booking-456",
+        workflowReminderId: 2,
+      },
+      {
+        scheduledAt: expect.any(Date),
+        referenceUid: "reminder-uuid-456",
+      }
+    );
+  });
+
+  test("should handle seated events with seatReferenceId", async () => {
+    const mockWorkflow = {
+      time: 24,
+      timeUnit: TimeUnit.HOUR,
+    };
+
+    const mockEvt = {
+      uid: "booking-789",
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+    };
+
+    const mockWorkflowReminder = {
+      id: 3,
+      uuid: "reminder-uuid-789",
+    };
+
+    mockWorkflowReminderCreate.mockResolvedValue(mockWorkflowReminder);
+    mockTasker.create.mockResolvedValue({ id: "task-789" });
+
+    await WorkflowService.scheduleLazyEmailWorkflow({
+      workflowTriggerEvent: "BEFORE_EVENT",
+      workflowStepId: 3,
+      workflow: mockWorkflow,
+      evt: mockEvt,
+      seatReferenceId: "seat-123",
+    });
+
+    expect(mockTasker.create).toHaveBeenCalled();
+  });
+
+  test("should not schedule if bookingUid is missing", async () => {
+    const mockWorkflow = {
+      time: 24,
+      timeUnit: TimeUnit.HOUR,
+    };
+
+    const mockEvt = {
+      uid: "",
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+    };
+
+    await WorkflowService.scheduleLazyEmailWorkflow({
+      workflowTriggerEvent: "BEFORE_EVENT",
+      workflowStepId: 1,
+      workflow: mockWorkflow,
+      evt: mockEvt,
+    });
+
+    expect(mockWorkflowReminderCreate).not.toHaveBeenCalled();
+    expect(mockTasker.create).not.toHaveBeenCalled();
+  });
+
+  test("should not schedule if time is null", async () => {
+    const mockWorkflow = {
+      time: null,
+      timeUnit: TimeUnit.HOUR,
+    };
+
+    const mockEvt = {
+      uid: "booking-123",
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+    };
+
+    await WorkflowService.scheduleLazyEmailWorkflow({
+      workflowTriggerEvent: "BEFORE_EVENT",
+      workflowStepId: 1,
+      workflow: mockWorkflow,
+      evt: mockEvt,
+    });
+
+    expect(mockWorkflowReminderCreate).not.toHaveBeenCalled();
+    expect(mockTasker.create).not.toHaveBeenCalled();
+  });
+});
+
+describe("WorkflowService.processWorkflowScheduledDate", () => {
+  test("should calculate scheduled date for BEFORE_EVENT trigger", () => {
+    const evt = {
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+    };
+
+    const result = WorkflowService.processWorkflowScheduledDate({
+      workflowTriggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      time: 24,
+      timeUnit: TimeUnit.HOUR,
+      evt,
+    });
+
+    expect(result).toBeDefined();
+    expect(result?.toISOString()).toBe("2024-11-30T10:00:00.000Z");
+  });
+
+  test("should calculate scheduled date for AFTER_EVENT trigger", () => {
+    const evt = {
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+    };
+
+    const result = WorkflowService.processWorkflowScheduledDate({
+      workflowTriggerEvent: WorkflowTriggerEvents.AFTER_EVENT,
+      time: 1,
+      timeUnit: TimeUnit.HOUR,
+      evt,
+    });
+
+    expect(result).toBeDefined();
+    expect(result?.toISOString()).toBe("2024-12-01T12:00:00.000Z");
+  });
+
+  test("should return null if time is null", () => {
+    const evt = {
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+    };
+
+    const result = WorkflowService.processWorkflowScheduledDate({
+      workflowTriggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      time: null,
+      timeUnit: TimeUnit.HOUR,
+      evt,
+    });
+
+    expect(result).toBeNull();
+  });
+
+  test("should return null if timeUnit is null", () => {
+    const evt = {
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+    };
+
+    const result = WorkflowService.processWorkflowScheduledDate({
+      workflowTriggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      time: 24,
+      timeUnit: null,
+      evt,
+    });
+
+    expect(result).toBeNull();
+  });
+
+  test("should calculate scheduled date with MINUTE time unit", () => {
+    const evt = {
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+    };
+
+    const result = WorkflowService.processWorkflowScheduledDate({
+      workflowTriggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      time: 30,
+      timeUnit: TimeUnit.MINUTE,
+      evt,
+    });
+
+    expect(result).toBeDefined();
+    expect(result?.toISOString()).toBe("2024-12-01T09:30:00.000Z");
+  });
+});
+
+describe("WorkflowService.generateCommonScheduleFunctionParams", () => {
+  test("should generate common parameters correctly", () => {
+    const verifiedAt = new Date("2024-01-01T00:00:00Z");
+    const mockWorkflow = {
+      id: 1,
+      name: "Test Workflow",
+      trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+      time: 24,
+      timeUnit: TimeUnit.HOUR,
+      userId: 1,
+      teamId: null,
+    };
+
+    const mockWorkflowStep = {
+      id: 1,
+      action: WorkflowActions.EMAIL_ATTENDEE,
+      sendTo: null,
+      template: WorkflowTemplates.REMINDER,
+      reminderBody: null,
+      emailSubject: null,
+      sender: null,
+      includeCalendarEvent: false,
+      verifiedAt,
+      numberVerificationPending: false,
+      numberRequired: false,
+    };
+
+    const mockCreditCheckFn = vi.fn();
+
+    const result = WorkflowService.generateCommonScheduleFunctionParams({
+      workflow: mockWorkflow,
+      workflowStep: mockWorkflowStep,
+      seatReferenceUid: undefined,
+      creditCheckFn: mockCreditCheckFn,
+    });
+
+    expect(result).toEqual({
+      triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      timeSpan: {
+        time: 24,
+        timeUnit: TimeUnit.HOUR,
+      },
+      workflowStepId: 1,
+      template: WorkflowTemplates.REMINDER,
+      userId: 1,
+      teamId: null,
+      seatReferenceUid: undefined,
+      verifiedAt,
+      creditCheckFn: mockCreditCheckFn,
+    });
+  });
+
+  test("should handle seated events with seatReferenceUid", () => {
+    const verifiedAt = new Date("2024-01-01T00:00:00Z");
+    const mockWorkflow = {
+      id: 1,
+      name: "Test Workflow",
+      trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+      time: 24,
+      timeUnit: TimeUnit.HOUR,
+      userId: 1,
+      teamId: null,
+    };
+
+    const mockWorkflowStep = {
+      id: 1,
+      action: WorkflowActions.EMAIL_ATTENDEE,
+      sendTo: null,
+      template: WorkflowTemplates.REMINDER,
+      reminderBody: null,
+      emailSubject: null,
+      sender: null,
+      includeCalendarEvent: false,
+      verifiedAt,
+      numberVerificationPending: false,
+      numberRequired: false,
+    };
+
+    const mockCreditCheckFn = vi.fn();
+
+    const result = WorkflowService.generateCommonScheduleFunctionParams({
+      workflow: mockWorkflow,
+      workflowStep: mockWorkflowStep,
+      seatReferenceUid: "seat-123",
+      creditCheckFn: mockCreditCheckFn,
+    });
+
+    expect(result.seatReferenceUid).toBe("seat-123");
+  });
+
+  test("should handle null verifiedAt", () => {
+    const mockWorkflow = {
+      id: 1,
+      name: "Test Workflow",
+      trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+      time: 24,
+      timeUnit: TimeUnit.HOUR,
+      userId: 1,
+      teamId: null,
+    };
+
+    const mockWorkflowStep = {
+      id: 1,
+      action: WorkflowActions.EMAIL_ATTENDEE,
+      sendTo: null,
+      template: WorkflowTemplates.REMINDER,
+      reminderBody: null,
+      emailSubject: null,
+      sender: null,
+      includeCalendarEvent: false,
+      verifiedAt: null,
+      numberVerificationPending: false,
+      numberRequired: false,
+    };
+
+    const mockCreditCheckFn = vi.fn();
+
+    const result = WorkflowService.generateCommonScheduleFunctionParams({
+      workflow: mockWorkflow,
+      workflowStep: mockWorkflowStep,
+      seatReferenceUid: undefined,
+      creditCheckFn: mockCreditCheckFn,
+    });
+
+    expect(result.verifiedAt).toBeNull();
+  });
+
+  test("should handle team workflows", () => {
+    const verifiedAt = new Date("2024-01-01T00:00:00Z");
+    const mockWorkflow = {
+      id: 1,
+      name: "Team Workflow",
+      trigger: WorkflowTriggerEvents.AFTER_EVENT,
+      time: 1,
+      timeUnit: TimeUnit.HOUR,
+      userId: null,
+      teamId: 123,
+    };
+
+    const mockWorkflowStep = {
+      id: 2,
+      action: WorkflowActions.EMAIL_HOST,
+      sendTo: null,
+      template: WorkflowTemplates.CUSTOM,
+      reminderBody: "Custom body",
+      emailSubject: "Custom subject",
+      sender: "Team",
+      includeCalendarEvent: true,
+      verifiedAt,
+      numberVerificationPending: false,
+      numberRequired: false,
+    };
+
+    const mockCreditCheckFn = vi.fn();
+
+    const result = WorkflowService.generateCommonScheduleFunctionParams({
+      workflow: mockWorkflow,
+      workflowStep: mockWorkflowStep,
+      seatReferenceUid: undefined,
+      creditCheckFn: mockCreditCheckFn,
+    });
+
+    expect(result).toEqual({
+      triggerEvent: WorkflowTriggerEvents.AFTER_EVENT,
+      timeSpan: {
+        time: 1,
+        timeUnit: TimeUnit.HOUR,
+      },
+      workflowStepId: 2,
+      template: WorkflowTemplates.CUSTOM,
+      userId: null,
+      teamId: 123,
+      seatReferenceUid: undefined,
+      verifiedAt,
+      creditCheckFn: mockCreditCheckFn,
     });
   });
 });
