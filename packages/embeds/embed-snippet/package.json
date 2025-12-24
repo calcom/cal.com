@@ -27,7 +27,7 @@
   "devDependencies": {
     "@calcom/eslint-config": "workspace:*",
     "typescript": "5.9.2",
-    "vite": "4.5.3"
+    "vite": "4.5.14"
   },
   "dependencies": {
     "@calcom/embed-core": "workspace:*"
