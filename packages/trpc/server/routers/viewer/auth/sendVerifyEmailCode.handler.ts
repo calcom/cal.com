@@ -27,7 +27,7 @@ export const sendVerifyEmailCode = async ({
 }) => {
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: `emailVerifyByCode.${identifier}`,
+    identifier: `sendVerifyEmailCode:${identifier}`,
   });
 
   return await sendEmailVerificationByCode({

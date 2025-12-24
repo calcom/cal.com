@@ -1,6 +1,14 @@
 import { z } from "zod";
 
-const ZGuestSchema = z.object({
+type TGuestSchema = {
+  email: string;
+  name?: string;
+  timeZone?: string;
+  phoneNumber?: string;
+  language?: string;
+};
+
+const ZGuestSchema: z.ZodType<TGuestSchema> = z.object({
   email: z.string().email(),
   name: z.string().optional(),
   timeZone: z.string().optional(),
@@ -8,9 +16,12 @@ const ZGuestSchema = z.object({
   language: z.string().optional(),
 });
 
-export const ZAddGuestsInputSchema = z.object({
+export type TAddGuestsInputSchema = {
+  bookingId: number;
+  guests: TGuestSchema[];
+};
+
+export const ZAddGuestsInputSchema: z.ZodType<TAddGuestsInputSchema> = z.object({
   bookingId: z.number(),
   guests: z.array(ZGuestSchema),
 });
-
-export type TAddGuestsInputSchema = z.infer<typeof ZAddGuestsInputSchema>;

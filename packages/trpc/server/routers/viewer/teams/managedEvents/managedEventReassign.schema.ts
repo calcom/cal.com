@@ -1,8 +1,10 @@
 import { z } from "zod";
 
-export const ZManagedEventReassignInputSchema = z.object({
+export type TManagedEventReassignInputSchema = {
+  bookingId: number;
+};
+
+export const ZManagedEventReassignInputSchema: z.ZodType<TManagedEventReassignInputSchema> = z.object({
   bookingId: z.number().int(),
 });
-
-export type TManagedEventReassignInputSchema = z.infer<typeof ZManagedEventReassignInputSchema>;
 

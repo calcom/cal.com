@@ -20,7 +20,7 @@ export class TaskProcessor {
       if (!taskHandlerGetter) throw new Error(`Task handler not found for type ${task.type}`);
       const taskConfig = tasksConfig[task.type as keyof typeof tasksConfig];
       const taskHandler = await taskHandlerGetter();
-      return taskHandler(task.payload)
+      return taskHandler(task.payload, task.id)
         .then(async () => {
           await Task.succeed(task.id);
         })

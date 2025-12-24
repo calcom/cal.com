@@ -15,7 +15,6 @@ import {
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
-import { usePrefetch } from "@calcom/features/bookings/Booker/components/hooks/usePrefetch";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { ConnectedDestinationCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
@@ -71,12 +70,13 @@ const BookerPlatformWrapperComponent = (
     silentlyHandleCalendarFailures = false,
     hideEventMetadata = false,
     defaultPhoneCountry,
+    rrHostSubsetIds,
   } = props;
   const layout = BookerLayouts[view];
 
   const { clientId } = useAtomsContext();
   const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
-  const [bookerState, setBookerState] = useBookerStoreContext(
+  const [_bookerState, setBookerState] = useBookerStoreContext(
     (state) => [state.state, state.setState],
     shallow
   );
@@ -236,22 +236,14 @@ const BookerPlatformWrapperComponent = (
   const extraOptions = useMemo(() => {
     return restFormValues;
   }, [restFormValues]);
-  const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
-  const { prefetchNextMonth, monthCount } = usePrefetch({
-    date,
-    month,
-    bookerLayout,
-    bookerState,
-  });
   const { timezone } = useTimePreferences();
 
   const [calculatedStartTime, calculatedEndTime] = useTimesForSchedule({
     month,
-    monthCount,
     dayCount,
-    prefetchNextMonth,
     selectedDate,
+    bookerLayout,
   });
 
   const startTime =
@@ -296,6 +288,7 @@ const BookerPlatformWrapperComponent = (
       ? {
           isTeamEvent: props.isTeamEvent,
           teamId: teamId,
+          rrHostSubsetIds: rrHostSubsetIds,
         }
       : {}),
     enabled:
@@ -444,6 +437,11 @@ const BookerPlatformWrapperComponent = (
     locationUrl: props.locationUrl,
     routingFormSearchParams,
     isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,
+    ...(props.isTeamEvent
+      ? {
+          rrHostSubsetIds: rrHostSubsetIds,
+        }
+      : {}),
   });
 
   const onOverlaySwitchStateChange = useCallback(

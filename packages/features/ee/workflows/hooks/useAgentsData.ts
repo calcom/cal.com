@@ -2,10 +2,9 @@ import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { useWatch } from "react-hook-form";
 
+import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-
-import type { FormValues } from "../pages/workflow";
 
 type AgentData = RouterOutputs["viewer"]["aiVoiceAgent"]["get"];
 

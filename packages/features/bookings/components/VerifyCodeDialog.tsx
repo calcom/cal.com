@@ -78,7 +78,6 @@ export const VerifyCodeDialog = ({
     if (hasVerified || error || isPending || !/^\d{6}$/.test(value.trim())) return;
 
     verifyCode();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error, isPending, value, hasVerified]);
 
   useEffect(() => setValue(""), [isOpenDialog]);
@@ -89,7 +88,6 @@ export const VerifyCodeDialog = ({
     <Dialog
       open={isOpenDialog}
       onOpenChange={() => {
-        setValue("");
         resetErrors();
       }}>
       <DialogContent className="sm:max-w-md">

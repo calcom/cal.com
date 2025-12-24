@@ -1486,6 +1486,7 @@ describe("Event types Endpoints", () => {
         locations: [],
         schedulingType: "COLLECTIVE",
         team: { connect: { id: team.id } },
+        rrHostSubsetEnabled: true,
       });
 
       return request(app.getHttpServer())
@@ -1498,6 +1499,7 @@ describe("Event types Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.id).toEqual(teamEventType.id);
           expect(responseBody.data.teamId).toEqual(team.id);
+          expect(responseBody.data.rrHostSubsetEnabled).toEqual(true);
           await teamRepositoryFixture.delete(team.id);
         });
     });

@@ -1,8 +1,11 @@
 import { z } from "zod";
 
-export const ZGetUserConnectedAppsInputSchema = z.object({
+export type TGetUserConnectedAppsInputSchema = {
+  userIds: number[];
+  teamId: number;
+};
+
+export const ZGetUserConnectedAppsInputSchema: z.ZodType<TGetUserConnectedAppsInputSchema> = z.object({
   userIds: z.array(z.number()),
   teamId: z.number(),
 });
-
-export type TGetUserConnectedAppsInputSchema = z.infer<typeof ZGetUserConnectedAppsInputSchema>;

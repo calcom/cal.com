@@ -48,7 +48,7 @@ export const verifyCode = async ({
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: hashEmail(email),
+    identifier: `verifyCode:${hashEmail(email)}`,
   });
 
   const secret = createHash("md5")

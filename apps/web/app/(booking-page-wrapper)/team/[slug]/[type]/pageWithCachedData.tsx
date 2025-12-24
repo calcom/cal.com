@@ -91,15 +91,20 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const profileName = enrichedEventType.profile.name ?? "";
   const profileImage = enrichedEventType.profile.image;
 
+  const teamIsPrivate = teamData.isPrivate;
+
   const meeting = {
     title,
     profile: { name: profileName, image: profileImage },
-    users: [
-      ...(enrichedEventType?.subsetOfUsers || []).map((user) => ({
-        name: `${user.name}`,
-        username: `${user.username}`,
-      })),
-    ],
+    // Hide team member names in preview if team is private
+    users: teamIsPrivate
+      ? []
+      : [
+          ...(enrichedEventType?.subsetOfUsers || []).map((user) => ({
+            name: `${user.name}`,
+            username: `${user.username}`,
+          })),
+        ],
   };
 
   const { hideBranding, isSEOIndexable } = _getTeamMetadataForBooking(teamData, enrichedEventType.id);

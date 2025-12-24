@@ -1,8 +1,8 @@
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import logger from "@calcom/lib/logger";
-import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -556,7 +556,7 @@ export class TeamRepository {
       FROM "Membership" m
       INNER JOIN "User" u ON m."userId" = u.id
       LEFT JOIN "Role" r ON m."customRoleId" = r.id
-      LEFT JOIN "TeamFeatures" f ON m."teamId" = f."teamId" AND f."featureId" = 'pbac'
+      LEFT JOIN "TeamFeatures" f ON m."teamId" = f."teamId" AND f."featureId" = 'pbac' AND f.enabled = true
       WHERE m."teamId" = ${teamId}
         AND m."accepted" = true
         AND (
@@ -587,5 +587,16 @@ export class TeamRepository {
     const resource = permission.substring(0, lastDotIndex);
     const action = permission.substring(lastDotIndex + 1);
     return { resource, action };
+  }
+
+  async findTeamsNotBelongingToOrgByIds({ teamIds, orgId }: { teamIds: number[]; orgId: number }) {
+    return await this.prismaClient.team.findMany({
+      where: {
+        id: { in: teamIds },
+        NOT: {
+          parentId: orgId, // Finds any team whose orgId is NOT the target ID
+        },
+      },
+    });
   }
 }

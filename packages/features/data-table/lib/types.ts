@@ -118,7 +118,7 @@ export const ZFilterValue = z.union([
 ]);
 
 export type DateRangeFilterOptions = {
-  range?: "past" | "custom";
+  range?: "past" | "future" | "any" | "customOnly";
   convertToTimeZone?: boolean;
 };
 

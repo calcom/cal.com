@@ -114,7 +114,7 @@ const buildDelegationCredential = (overrides = {}) => ({
   id: -1,
   delegatedToId: mockDelegationCredential.id,
   userId: mockUser.id,
-  user: { email: mockUser.email },
+  user: { email: mockUser.email, name: null },
   key: { access_token: "NOOP_UNUSED_DELEGATION_TOKEN" },
   invalid: false,
   teamId: null,

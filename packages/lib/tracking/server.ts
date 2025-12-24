@@ -24,14 +24,14 @@ export function getTrackingFromCookies(cookies?: NextApiRequest["cookies"]): Tra
   if (process.env.GOOGLE_ADS_ENABLED === "1" && cookies.gclid) {
     tracking.googleAds = {
       gclid: cookies.gclid,
-      ...(cookies.gad_campaignid && { campaignId: cookies.gad_campaignid }),
+      ...(cookies.gad_campaignId && { campaignId: cookies.gad_campaignId }),
     };
   }
 
   if (process.env.LINKEDIN_ADS_ENABLED === "1" && cookies.li_fat_id) {
     tracking.linkedInAds = {
       liFatId: cookies.li_fat_id,
-      ...(cookies.li_campaignid && { campaignId: cookies.li_campaignid }),
+      ...(cookies.li_campaignId && { campaignId: cookies.li_campaignId }),
     };
   }
 

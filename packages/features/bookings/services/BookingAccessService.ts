@@ -64,8 +64,8 @@ export class BookingAccessService {
     const booking = bookingUid
       ? await bookingRepo.findByUidIncludeEventType({ bookingUid })
       : bookingId
-        ? await bookingRepo.findByIdIncludeEventType({ bookingId })
-        : null;
+      ? await bookingRepo.findByIdIncludeEventType({ bookingId })
+      : null;
 
     if (!booking) return false;
 
@@ -130,5 +130,63 @@ export class BookingAccessService {
     }
 
     return false;
+  }
+
+  /**
+   * Checks if a user has access to view booking details using:
+   * 1. Owner/host check
+   * 2. PBAC permission check for team bookings
+   */
+  async checkBookingAccessWithPBAC({
+    userId,
+    bookingUid,
+  }: {
+    userId: number;
+    bookingUid: string;
+  }): Promise<boolean> {
+    const bookingRepo = new BookingRepository(this.prismaClient);
+
+    const booking = await bookingRepo.findByUidForAuthorizationCheck({ bookingUid });
+
+    if (!booking) {
+      return false;
+    }
+
+    // Check 1: User is the owner of the booking
+    const isOwner = booking.userId === userId;
+    if (isOwner) {
+      return true;
+    }
+
+    // Check 2: User is a host (checking eventType.users and eventType.hosts)
+    const attendeeEmails = new Set(booking.attendees?.map((attendee) => attendee.email) || []);
+
+    const isHostViaEventTypeUsers = booking.eventType?.users?.some(
+      (user) => user.id === userId && attendeeEmails.has(user.email)
+    );
+
+    const isHostViaEventTypeHosts = booking.eventType?.hosts?.some(
+      (host) => host.user?.id === userId && attendeeEmails.has(host.user.email)
+    );
+
+    if (isHostViaEventTypeUsers || isHostViaEventTypeHosts) {
+      return true;
+    }
+
+    // Check 3: PBAC permission check for team bookings
+    if (!booking.eventType?.teamId) {
+      // No team associated with booking and user is not owner/host
+      return false;
+    }
+
+    const permissionCheckService = new PermissionCheckService();
+    const hasPermission = await permissionCheckService.checkPermission({
+      userId,
+      teamId: booking.eventType.teamId,
+      permission: "booking.read",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    return hasPermission;
   }
 }

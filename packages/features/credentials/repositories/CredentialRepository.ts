@@ -25,7 +25,14 @@ type CredentialUpdateInput = {
 };
 
 export class CredentialRepository {
-  constructor(private primaClient: PrismaClient) {}
+  constructor(private primaClient: PrismaClient) { }
+
+  async findByCredentialId(id: number) {
+    return this.primaClient.credential.findUnique({
+      where: { id },
+      select: safeCredentialSelect,
+    });
+  }
 
   async findByIdWithDelegationCredential(id: number) {
     return this.primaClient.credential.findUnique({

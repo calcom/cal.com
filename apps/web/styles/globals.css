@@ -1,7 +1,7 @@
 @import "tailwindcss";
-@import "../../../packages/coss-ui/styles.css";
 @import "../../../packages/config/theme/shared-sources.css";
 @import "../../../packages/config/theme/tokens.css";
+@import "../../../packages/coss-ui/src/styles/globals.css";
 @import "./raqb.css";
 
 ::-moz-selection {

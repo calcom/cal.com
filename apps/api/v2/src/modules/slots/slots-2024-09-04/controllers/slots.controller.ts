@@ -64,7 +64,7 @@ export class SlotsController_2024_09_04 {
     description: `
       There are 4 ways to get available slots for event type of an individual user:
 
-      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
+      1. By event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
 
       2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'
 
@@ -74,7 +74,10 @@ export class SlotsController_2024_09_04 {
 
       And 3 ways to get available slots for team event type:
 
-      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
+      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'.
+         **Note for managed event types**: Managed event types are templates that create individual child event types for each team member. You cannot fetch slots for the parent managed event type directly. Instead, you must:
+         - Find the child event type IDs (the ones assigned to specific users)
+         - Use those child event type IDs to fetch slots as individual user event types using as described in the individual user section above.
 
       2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'
 

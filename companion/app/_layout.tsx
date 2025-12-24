@@ -1,6 +1,8 @@
 import { Stack } from "expo-router";
 import { Platform, View, StatusBar } from "react-native";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
+import { QueryProvider } from "../contexts/QueryContext";
+import { NetworkStatusBanner } from "../components/NetworkStatusBanner";
 import LoginScreen from "../components/LoginScreen";
 import "../global.css";
 
@@ -25,24 +27,29 @@ function RootLayoutContent() {
       ? {
           width: 400,
           flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          pointerEvents: "auto",
+          display: "flex" as const,
+          flexDirection: "column" as const,
         }
       : { flex: 1 };
 
   return (
-    <View style={containerStyle} className={containerClass}>
+    <View
+      style={[containerStyle, Platform.OS === "web" && { pointerEvents: "auto" as const }]}
+      className={containerClass}
+    >
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {content}
+      <NetworkStatusBanner />
     </View>
   );
 }
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootLayoutContent />
-    </AuthProvider>
+    <QueryProvider>
+      <AuthProvider>
+        <RootLayoutContent />
+      </AuthProvider>
+    </QueryProvider>
   );
 }

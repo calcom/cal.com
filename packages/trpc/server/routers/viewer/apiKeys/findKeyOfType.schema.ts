@@ -1,8 +1,11 @@
 import { z } from "zod";
 
-export const ZFindKeyOfTypeInputSchema = z.object({
+export type TFindKeyOfTypeInputSchema = {
+  appId?: string;
+  teamId?: number;
+};
+
+export const ZFindKeyOfTypeInputSchema: z.ZodType<TFindKeyOfTypeInputSchema> = z.object({
   appId: z.string().optional(),
   teamId: z.number().optional(),
 });
-
-export type TFindKeyOfTypeInputSchema = z.infer<typeof ZFindKeyOfTypeInputSchema>;

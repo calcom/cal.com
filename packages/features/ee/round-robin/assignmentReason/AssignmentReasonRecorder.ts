@@ -1,4 +1,4 @@
-import { acrossQueryValueCompatiblity } from "@calcom/app-store/_utils/raqb/raqbUtils";
+import { acrossQueryValueCompatiblity } from "@calcom/app-store/_utils/raqb/raqbUtils.server";
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -102,7 +102,7 @@ export default class AssignmentReasonRecorder {
 
       const attributeValue = attributeToFilter.value;
 
-      if (!userAttribute || !attributeValue || typeof attributeValue[0] === null) continue;
+      if (!userAttribute || !attributeValue || attributeValue[0] === null) continue;
 
       if (attributeValue && attributeValue[0]) {
         const attributeValueString = (() => {

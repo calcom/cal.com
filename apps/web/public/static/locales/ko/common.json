@@ -2892,6 +2892,7 @@
   "ooo_slots_returning": "<0>{{displayName}}</0>은 외출 중에도 회의를 진행할 수 있습니다.",
   "ooo_slots_book_with": "{{displayName}} 예약",
   "ooo_select_reason": "사유 선택",
+  "show_note_publicly_description": "공개 예약 페이지에 메모 표시",
   "create_an_out_of_office": "부재중 설정",
   "edit_an_out_of_office": "부재중 항목 수정",
   "submit_feedback": "피드백 제출",

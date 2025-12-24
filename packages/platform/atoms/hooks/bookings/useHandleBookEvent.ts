@@ -31,6 +31,7 @@ type UseHandleBookingProps = {
   locationUrl?: string;
   routingFormSearchParams?: RoutingFormSearchParams;
   isBookingDryRun?: boolean;
+  rrHostSubsetIds?: number[];
 };
 
 export const useHandleBookEvent = ({
@@ -44,6 +45,7 @@ export const useHandleBookEvent = ({
   locationUrl,
   routingFormSearchParams,
   isBookingDryRun,
+  rrHostSubsetIds,
 }: UseHandleBookingProps) => {
   const isPlatform = useIsPlatform();
   const setFormValues = useBookerStoreContext((state) => state.setFormValues);
@@ -115,6 +117,7 @@ export const useHandleBookEvent = ({
         routingFormSearchParams,
         isDryRunProp: isBookingDryRun,
         verificationCode: verificationCode || undefined,
+        rrHostSubsetIds,
       };
 
       const tracking = getUtmTrackingParameters(searchParams);

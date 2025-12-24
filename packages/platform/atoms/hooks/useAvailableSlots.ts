@@ -29,6 +29,7 @@ export const useAvailableSlots = ({
       rest.routedTeamMemberIds,
       rest.skipContactOwner,
       rest.teamMemberEmail,
+      rest.rrHostSubsetIds,
     ],
     queryFn: () => {
       return http

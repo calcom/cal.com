@@ -10,6 +10,7 @@ import {
   doOnOrgDomain,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
+  cancelBookingFromBookingsList,
 } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
@@ -57,18 +58,11 @@ test("dynamic booking", async ({ page, users }) => {
 
   await test.step("Can cancel the recently created booking", async () => {
     await page.goto("/bookings/upcoming");
-    // Click the ellipsis menu button to open the dropdown
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
-    // Click the cancel option in the dropdown
-    await page.locator('[data-testid="cancel"]').click();
-    await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
+    await cancelBookingFromBookingsList({
+      page,
+      nth: 0,
+      reason: "Test reason",
     });
-    await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
-    await page.locator('[data-testid="confirm_cancel"]').click();
-
-    const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
-    await expect(cancelledHeadline).toBeVisible();
   });
 });
 

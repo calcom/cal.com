@@ -560,4 +560,29 @@ export class MembershipRepository {
       },
     });
   }
+
+  // Two indexed lookups instead of JOIN with ILIKE (which bypasses index)
+  async hasAcceptedMembershipByEmail({
+    email,
+    teamId,
+  }: {
+    email: string;
+    teamId: number;
+  }): Promise<boolean> {
+    const user = await this.prismaClient.user.findUnique({
+      where: { email: email.toLowerCase() },
+      select: { id: true },
+    });
+
+    if (!user) return false;
+
+    const membership = await this.prismaClient.membership.findUnique({
+      where: {
+        userId_teamId: { userId: user.id, teamId },
+      },
+      select: { accepted: true },
+    });
+
+    return membership?.accepted ?? false;
+  }
 }

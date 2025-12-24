@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { useLayoutEffect } from "react";
 
 import "@calcom/embed-core/src/embed-iframe";
 import { HttpError } from "@calcom/lib/http-error";
@@ -59,6 +59,14 @@ export const ErrorPage: React.FC<Props> = (props) => {
     window.location.reload();
     props.reset?.();
   };
+
+  // useLayoutEffect runs synchronously before browser paint, ensuring it's set early
+  useLayoutEffect(() => {
+    if (statusCode && typeof window !== "undefined") {
+      window.CalComPageStatus = statusCode.toString();
+    }
+  }, [statusCode]);
+
   return (
     <>
       <div className="bg-subtle flex h-screen">

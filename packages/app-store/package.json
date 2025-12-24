@@ -22,7 +22,7 @@
     "@calcom/office365video": "workspace:*",
     "@calcom/ui": "workspace:*",
     "@calcom/zoomvideo": "workspace:*",
-    "lodash": "^4.17.21",
+    "lodash": "4.17.21",
     "qs-stringify": "^1.2.1",
     "react-i18next": "^12.2.0",
     "stripe": "^9.16.0"

@@ -18,6 +18,7 @@ export const getClientHandler = async ({ input }: GetClientOptions) => {
       redirectUri: true,
       name: true,
       logo: true,
+      isTrusted: true,
     },
   });
   return client;

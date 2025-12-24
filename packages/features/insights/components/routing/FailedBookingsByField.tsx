@@ -13,7 +13,7 @@ import {
 } from "recharts";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import { ToggleGroup } from "@calcom/ui/components/form";
 
 import { useInsightsRoutingParameters } from "../../hooks/useInsightsRoutingParameters";

@@ -4,6 +4,26 @@ import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 
 import { routingFormAppDataSchemas } from "./appDataSchemas";
 
+export type FieldOption = {
+  label: string;
+  id: string | null;
+};
+
+export type TNonRouterField = {
+  id: string;
+  label: string;
+  identifier?: string;
+  placeholder?: string;
+  type: string;
+  /** @deprecated in favour of `options` */
+  selectText?: string;
+  required?: boolean;
+  deleted?: boolean;
+  options?: FieldOption[];
+};
+
+// Note: zodNonRouterField is NOT annotated with z.ZodType because it uses .extend() below
+// which requires the full ZodObject type to be preserved
 export const zodNonRouterField = z.object({
   id: z.string(),
   label: z.string(),
@@ -29,13 +49,21 @@ export const zodNonRouterField = z.object({
     .optional(),
 });
 
+export type TRouterField = TNonRouterField & {
+  routerId: string;
+};
+
+// Note: zodRouterField is NOT annotated with z.ZodType because it uses .extend() below
 export const zodRouterField = zodNonRouterField.extend({
   routerId: z.string(),
 });
 
+export type TField = TNonRouterField | TRouterField;
+export type TFields = TField[] | undefined;
+
 // This ordering is important - If routerId is present then it should be in the parsed object. Moving zodNonRouterField to first position doesn't do that
-export const zodField = z.union([zodRouterField, zodNonRouterField]);
-export const zodFields = z.array(zodField).optional();
+export const zodField: z.ZodType<TField> = z.union([zodRouterField, zodNonRouterField]);
+export const zodFields: z.ZodType<TFields> = z.array(zodField).optional();
 
 export const zodNonRouterFieldView = zodNonRouterField;
 export const zodRouterFieldView = zodRouterField.extend({

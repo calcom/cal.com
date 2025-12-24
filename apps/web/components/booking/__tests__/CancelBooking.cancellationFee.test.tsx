@@ -10,7 +10,7 @@ beforeAll(() => {
   Element.prototype.scrollIntoView = vi.fn();
 });
 
-vi.mock("@calcom/trpc", () => ({
+vi.mock("@calcom/trpc/react", () => ({
   trpc: {
     viewer: {
       bookings: {
@@ -125,6 +125,7 @@ const mockProps = {
     eventType: {},
   },
   internalNotePresets: [],
+  renderContext: "booking-single-view" as const,
 };
 
 const mockBookingWithoutCancellationFee = {

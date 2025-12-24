@@ -2,11 +2,12 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { ProfileRepository, LookupTarget } from "./ProfileRepository";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
-vi.mock("@calcom/lib/server/repository/teamUtils", () => ({
+import { ProfileRepository, LookupTarget } from "./ProfileRepository";
+
+vi.mock("@calcom/features/ee/teams/lib/getParsedTeam", () => ({
   getParsedTeam: <T>(org: T) => org,
 }));
 
@@ -478,4 +479,3 @@ describe("ProfileRepository.findByUpIdWithAuth - IDOR Security Fix", () => {
     });
   });
 });
-

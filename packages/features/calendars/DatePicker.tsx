@@ -4,9 +4,9 @@ import { shallow } from "zustand/shallow";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
-import type { IFromUser, IToUser } from "@calcom/features/availability/lib/getUserAvailability";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
+import type { Slots } from "@calcom/features/calendars/lib/types";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
@@ -44,18 +44,7 @@ export type DatePickerProps = {
   /** used to query the multiple selected dates */
   eventSlug?: string;
   /** To identify days that are not available and should display OOO and redirect if toUser exists */
-  slots?: Record<
-    string,
-    {
-      time: string;
-      userIds?: number[];
-      away?: boolean;
-      fromUser?: IFromUser;
-      toUser?: IToUser;
-      reason?: string;
-      emoji?: string;
-    }[]
-  >;
+  slots?: Slots;
   periodData?: PeriodData;
   // Whether this is a compact sidebar view or main monthly view
   isCompact?: boolean;
@@ -271,7 +260,9 @@ const Days = ({
     const isOOOAllDay = daySlots.length > 0 && daySlots.every((slot) => slot.away);
     const away = isOOOAllDay;
 
-    const disabled = away ? !oooInfo?.toUser : isNextMonth ? !hasAvailableSlots : !included || excluded;
+    // OOO dates are selectable only if there's a redirect user OR the note is public
+    const oooIsSelectable = oooInfo?.toUser || oooInfo?.showNotePublicly;
+    const disabled = away ? !oooIsSelectable : isNextMonth ? !hasAvailableSlots : !included || excluded;
 
     return {
       day,

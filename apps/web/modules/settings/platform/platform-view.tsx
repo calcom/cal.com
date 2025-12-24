@@ -4,7 +4,6 @@ import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 
-import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -17,6 +16,8 @@ import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPl
 import { OAuthClientsList } from "@components/settings/platform/dashboard/oauth-clients-list";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@components/settings/platform/pricing/platform-pricing";
+
+import Shell from "~/shell/Shell";
 
 const queryClient = new QueryClient();
 

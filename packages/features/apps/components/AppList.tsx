@@ -15,7 +15,7 @@ import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/compo
 import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
-import { type RouterOutputs } from "@calcom/trpc";
+import { type RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";

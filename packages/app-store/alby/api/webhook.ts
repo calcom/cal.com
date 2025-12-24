@@ -3,6 +3,7 @@ import getRawBody from "raw-body";
 import { z } from "zod";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { albyCredentialKeysSchema } from "@calcom/app-store/alby/lib";
 import parseInvoice from "@calcom/app-store/alby/lib/parseInvoice";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
@@ -88,7 +89,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new HttpCode({ statusCode: 400, message: "invoice amount does not match payment amount" });
     }
 
-    return await handlePaymentSuccess(payment.id, payment.bookingId);
+    const traceContext = distributedTracing.createTrace("alby_webhook", {
+      meta: { paymentId: payment.id, bookingId: payment.bookingId },
+    });
+    return await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);

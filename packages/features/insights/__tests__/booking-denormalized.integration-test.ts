@@ -170,7 +170,7 @@ describe("BookingDenormalized", () => {
       expect(eventTypeDeletedDenormalizedBooking.eventLength).toBeNull();
 
       // Clean up the additional booking
-      await prisma.booking.delete({
+      await prisma.booking.deleteMany({
         where: { id: booking2.id },
       });
     });

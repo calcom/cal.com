@@ -7,7 +7,7 @@ import {
 } from "@calcom/features/filters/components/TeamsFilter";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Divider } from "@calcom/ui/components/divider";
 import { FilterSearchField } from "@calcom/ui/components/form";

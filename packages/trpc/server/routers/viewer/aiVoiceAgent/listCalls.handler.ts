@@ -1,7 +1,7 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { CalAiPhoneNumberRepository } from "@calcom/features/calAIPhone/repositories/CalAiPhoneNumberRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import logger from "@calcom/lib/logger";
-import { CalAiPhoneNumberRepository } from "@calcom/lib/server/repository/calAiPhoneNumber";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";

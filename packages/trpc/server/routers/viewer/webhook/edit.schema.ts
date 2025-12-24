@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { TIME_UNIT } from "@calcom/features/ee/workflows/lib/constants";
 import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
+import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 
 import { webhookIdAndEventTypeIdSchema } from "./types";
 
@@ -16,6 +17,7 @@ export const ZEditInputSchema = webhookIdAndEventTypeIdSchema.extend({
   secret: z.string().optional().nullable(),
   time: z.number().nullable().optional(),
   timeUnit: z.enum(TIME_UNIT).nullable().optional(),
+  version: z.nativeEnum(WebhookVersion).optional(),
 });
 
 export type TEditInputSchema = z.infer<typeof ZEditInputSchema>;

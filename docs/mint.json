@@ -225,6 +225,7 @@
             "platform/atoms/create-schedule",
             "platform/atoms/event-type",
             "platform/atoms/google-calendar-connect",
+            "platform/atoms/list-event-types",
             "platform/atoms/list-schedules",
             "platform/atoms/outlook-calendar-connect",
             "platform/atoms/payment-form",
@@ -248,6 +249,7 @@
             "platform/guides/replacing-toasts",
             "platform/guides/booking-fields",
             "platform/guides/booking-redirects",
+            "platform/guides/managed-orgs",
             "platform/guides/teams-setup",
             "platform/guides/global-event-types",
             "platform/guides/custom-booking-flow"

@@ -1,15 +1,12 @@
-/// <reference types="chrome" />
-
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import * as SecureStore from "expo-secure-store";
-import { Platform } from "react-native";
-import { WebAuthService } from "../services/webAuth";
 import { CalComAPIService } from "../services/calcom";
 import {
   createCalComOAuthService,
   OAuthTokens,
   CalComOAuthService,
 } from "../services/oauthService";
+import { WebAuthService } from "../services/webAuth";
+import { secureStorage } from "../utils/storage";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -36,98 +33,12 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Check if chrome.storage is available (browser extension context)
-const isChromeStorageAvailable = (): boolean => {
-  return (
-    Platform.OS === "web" &&
-    typeof chrome !== "undefined" &&
-    chrome.storage !== undefined &&
-    chrome.storage.local !== undefined
-  );
-};
+// Use the shared secure storage adapter
+const storage = secureStorage;
 
-// Unified storage helper to abstract web/mobile/extension differences
-const storage = {
-  get: async (key: string): Promise<string | null> => {
-    // Use chrome.storage in browser extension context (most secure)
-    if (isChromeStorageAvailable()) {
-      return new Promise((resolve) => {
-        chrome.storage.local.get([key], (result) => {
-          resolve(result[key] || null);
-        });
-      });
-    }
-    // Fall back to localStorage for regular web apps
-    if (Platform.OS === "web") {
-      return localStorage.getItem(key);
-    }
-    // Use SecureStore for mobile
-    return await SecureStore.getItemAsync(key);
-  },
-  set: async (key: string, value: string): Promise<void> => {
-    // Use chrome.storage in browser extension context (most secure)
-    if (isChromeStorageAvailable()) {
-      return new Promise((resolve, reject) => {
-        chrome.storage.local.set({ [key]: value }, () => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else {
-            resolve();
-          }
-        });
-      });
-    }
-    // Fall back to localStorage for regular web apps
-    if (Platform.OS === "web") {
-      localStorage.setItem(key, value);
-      return;
-    }
-    // Use SecureStore for mobile
-    await SecureStore.setItemAsync(key, value);
-  },
-  remove: async (key: string): Promise<void> => {
-    // Use chrome.storage in browser extension context (most secure)
-    if (isChromeStorageAvailable()) {
-      return new Promise((resolve, reject) => {
-        chrome.storage.local.remove(key, () => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else {
-            resolve();
-          }
-        });
-      });
-    }
-    // Fall back to localStorage for regular web apps
-    if (Platform.OS === "web") {
-      localStorage.removeItem(key);
-      return;
-    }
-    // Use SecureStore for mobile
-    await SecureStore.deleteItemAsync(key);
-  },
-  removeAll: async (keys: string[]): Promise<void> => {
-    // Use chrome.storage in browser extension context (most secure)
-    if (isChromeStorageAvailable()) {
-      return new Promise((resolve, reject) => {
-        chrome.storage.local.remove(keys, () => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else {
-            resolve();
-          }
-        });
-      });
-    }
-    // Fall back to localStorage for regular web apps
-    if (Platform.OS === "web") {
-      keys.forEach((key) => localStorage.removeItem(key));
-      return;
-    }
-    // Use SecureStore for mobile
-    await Promise.all(keys.map((key) => SecureStore.deleteItemAsync(key)));
-  },
-};
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : String(error);
+const getErrorStack = (error: unknown) => (error instanceof Error ? error.stack : undefined);
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -161,22 +72,45 @@ export function AuthProvider({ children }: AuthProviderProps) {
     CalComAPIService.setAccessToken(token, refreshToken);
 
     try {
-      await CalComAPIService.getUserProfile();
+      const profile = await CalComAPIService.getUserProfile();
+      // Store user info for use in the app (e.g., to display "You" in bookings)
+      if (profile) {
+        setUserInfo({
+          email: profile.email,
+          name: profile.name,
+          id: profile.id,
+          username: profile.username,
+        });
+      }
     } catch (profileError) {
       console.error("Failed to fetch user profile:", profileError);
       // Don't fail login if profile fetch fails
     }
   };
 
-  // Save OAuth tokens to storage
   const saveOAuthTokens = async (tokens: OAuthTokens) => {
     await storage.set(OAUTH_TOKENS_KEY, JSON.stringify(tokens));
     await storage.set(AUTH_TYPE_KEY, "oauth");
+
+    if (oauthService) {
+      try {
+        await oauthService.syncTokensToExtension(tokens);
+      } catch (error) {
+        console.warn("Failed to sync tokens to extension:", error);
+      }
+    }
   };
 
-  // Clear all auth data from storage
   const clearAuth = async () => {
     await storage.removeAll([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, OAUTH_TOKENS_KEY, AUTH_TYPE_KEY]);
+
+    if (oauthService) {
+      try {
+        await oauthService.clearTokensFromExtension();
+      } catch (error) {
+        console.warn("Failed to clear tokens from extension:", error);
+      }
+    }
   };
 
   // Reset all auth state
@@ -213,7 +147,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           newRefreshToken || refreshToken || undefined
         );
       } catch (error) {
-        console.error("Failed to handle token refresh:", error);
+        const message = getErrorMessage(error);
+        console.error("Failed to handle token refresh", message);
+        if (__DEV__) {
+          console.debug("[AuthContext] token refresh handler failed", {
+            message,
+            stack: getErrorStack(error),
+          });
+        }
         await logout();
       }
     };
@@ -231,11 +172,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Refresh token if expired
     let tokens = storedTokens;
+    let tokensWereRefreshed = false;
     if (oauthService.isTokenExpired(storedTokens) && storedTokens.refreshToken) {
       try {
         console.log("Access token expired, refreshing...");
         tokens = await oauthService.refreshAccessToken(storedTokens.refreshToken);
         await saveOAuthTokens(tokens);
+        tokensWereRefreshed = true;
       } catch (refreshError) {
         console.error("Failed to refresh token:", refreshError);
         await clearAuth();
@@ -253,6 +196,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
     if (tokens.refreshToken) {
       setupRefreshTokenFunction(oauthService);
+    }
+
+    if (!tokensWereRefreshed) {
+      try {
+        await oauthService.syncTokensToExtension(tokens);
+      } catch (error) {
+        console.warn("Failed to sync tokens to extension on init:", error);
+      }
     }
   };
 
@@ -273,7 +224,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         handleWebSessionAuth();
       }
     } catch (error) {
-      console.error("Failed to check auth state:", error);
+      const message = getErrorMessage(error);
+      console.error("Failed to check auth state", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] checkAuthState failed", {
+          message,
+          stack: getErrorStack(error),
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -294,7 +252,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
       }
     } catch (error) {
-      console.error("Failed to login from web session:", error);
+      const message = getErrorMessage(error);
+      console.error("Failed to login from web session", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] loginFromWebSession failed", {
+          message,
+          stack: getErrorStack(error),
+        });
+      }
       throw error;
     }
   };
@@ -327,7 +292,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Clear PKCE parameters
       oauthService.clearPKCEParams();
     } catch (error) {
-      console.error("OAuth login failed:", error);
+      const message = getErrorMessage(error);
+      console.error("OAuth login failed", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] loginWithOAuth failed", {
+          message,
+          stack: getErrorStack(error),
+        });
+      }
       throw error;
     } finally {
       setLoading(false);
@@ -339,7 +311,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await clearAuth();
       resetAuthState();
     } catch (error) {
-      console.error("Failed to logout:", error);
+      const message = getErrorMessage(error);
+      console.error("Failed to logout", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] logout failed", { message, stack: getErrorStack(error) });
+      }
     }
   };
 

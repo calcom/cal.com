@@ -8,7 +8,7 @@ import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscrip
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
+import { SelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository";
 import { prisma } from "@calcom/prisma";
 import { defaultResponderForAppDir } from "@calcom/web/app/api/defaultResponderForAppDir";
 

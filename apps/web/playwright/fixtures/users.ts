@@ -6,6 +6,7 @@ import { v4 } from "uuid";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import type { AppFlags } from "@calcom/features/flags/config";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -26,6 +27,18 @@ export function hashPassword(password: string) {
   const hashedPassword = hash(password, 12);
   return hashedPassword;
 }
+
+/**
+ * Default feature flags enabled for all teams and organizations created in E2E tests.
+ * These flags represent the most common production features that should be tested by default.
+ */
+const DEFAULT_TEAM_FEATURE_FLAGS: Array<keyof AppFlags> = [];
+
+/**
+ * Default feature flags enabled for individual users created in E2E tests.
+ * Empty by default - users don't typically have feature flags unless explicitly needed.
+ */
+const DEFAULT_USER_FEATURE_FLAGS: Array<keyof AppFlags> = ["bookings-v3"];
 
 type UserFixture = ReturnType<typeof createUserFixture>;
 
@@ -155,6 +168,7 @@ const createTeamAndAddUser = async (
     schedulingType,
     assignAllTeamMembersForSubTeamEvents,
     teamSlug,
+    teamFeatureFlags,
   }: {
     user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
@@ -168,6 +182,7 @@ const createTeamAndAddUser = async (
     schedulingType?: SchedulingType;
     assignAllTeamMembersForSubTeamEvents?: boolean;
     teamSlug?: string;
+    teamFeatureFlags?: Array<keyof AppFlags>;
   },
   workerInfo: WorkerInfo
 ) => {
@@ -196,13 +211,14 @@ const createTeamAndAddUser = async (
 
   data.slug = !isUnpublished ? slug : undefined;
   if (isOrg && hasSubteam) {
-    const team = await createTeamAndAddUser({ user }, workerInfo);
-    await createTeamEventType(user, team, {
+    const subteam = await createTeamAndAddUser({ user, teamFeatureFlags }, workerInfo);
+
+    await createTeamEventType(user, subteam, {
       schedulingType: schedulingType,
       assignAllTeamMembers: assignAllTeamMembersForSubTeamEvents,
     });
-    await createTeamWorkflow(user, team);
-    data.children = { connect: [{ id: team.id }] };
+    await createTeamWorkflow(user, subteam);
+    data.children = { connect: [{ id: subteam.id }] };
   }
   data.orgProfiles = isOrg
     ? {
@@ -234,6 +250,19 @@ const createTeamAndAddUser = async (
       accepted: true,
     },
   });
+
+  // Enable feature flags for the team if specified
+  if (teamFeatureFlags && teamFeatureFlags.length > 0) {
+    await prisma.teamFeatures.createMany({
+      data: teamFeatureFlags.map((featureFlag) => ({
+        teamId: team.id,
+        featureId: featureFlag,
+        assignedBy: "e2e-fixture",
+        assignedAt: new Date(),
+        enabled: true,
+      })),
+    });
+  }
 
   return team;
 };
@@ -270,6 +299,23 @@ export const createUsersFixture = (
         | (CustomUserOpts & {
             organizationId?: number | null;
             overrideDefaultEventTypes?: boolean;
+            /**
+             * Feature flags to enable for this individual user.
+             * Defaults to DEFAULT_USER_FEATURE_FLAGS.
+             * Pass specific flags to enable user-level features.
+             * @default DEFAULT_USER_FEATURE_FLAGS
+             * @example
+             * ```typescript
+             * // Default feature flags
+             * const user = await users.create();
+             *
+             * // Specific feature flags
+             * const user = await users.create({
+             *   userFeatureFlags: ["bookings-v3"]
+             * });
+             * ```
+             */
+            userFeatureFlags?: Array<keyof AppFlags>;
           })
         | null,
       scenario: {
@@ -295,6 +341,31 @@ export const createUsersFixture = (
         orgRequestedSlug?: string;
         assignAllTeamMembers?: boolean;
         assignAllTeamMembersForSubTeamEvents?: boolean;
+        /**
+         * Feature flags to enable for the created team(s) and organization(s).
+         * Defaults to DEFAULT_TEAM_FEATURE_FLAGS when hasTeam is true.
+         * Pass an empty array to disable default flags, or pass specific flags to override.
+         * Applies to both regular teams and organizations (when isOrg: true).
+         * @default DEFAULT_TEAM_FEATURE_FLAGS
+         * @example
+         * ```typescript
+         * // Default feature flags
+         * const user = await users.create({}, { hasTeam: true });
+         *
+         * // Specific feature flags
+         * const user = await users.create({}, {
+         *   hasTeam: true,
+         *   teamFeatureFlags: ["pbac"]
+         * });
+         *
+         * // Organizations also get the flags by default
+         * const user = await users.create({}, {
+         *   hasTeam: true,
+         *   isOrg: true
+         * }); // Org gets DEFAULT_TEAM_FEATURE_FLAGS
+         * ```
+         */
+        teamFeatureFlags?: Array<keyof AppFlags>;
       } = {}
     ) => {
       const _user = await prisma.user.create({
@@ -347,9 +418,28 @@ export const createUsersFixture = (
         where: { id: _user.id },
         include: userIncludes,
       });
+
+      // Enable feature flags for the user if specified
+      // Default to DEFAULT_USER_FEATURE_FLAGS if not specified
+      const userFeatureFlags = opts?.userFeatureFlags ?? DEFAULT_USER_FEATURE_FLAGS;
+      if (userFeatureFlags.length > 0) {
+        await prisma.userFeatures.createMany({
+          data: userFeatureFlags.map((featureFlag) => ({
+            userId: user.id,
+            featureId: featureFlag,
+            assignedBy: "e2e-fixture",
+            assignedAt: new Date(),
+            enabled: true,
+          })),
+        });
+      }
+
       if (scenario.hasTeam) {
         const numberOfTeams = scenario.numberOfTeams || 1;
         for (let i = 0; i < numberOfTeams; i++) {
+          // Determine feature flags to use
+          const featureFlags = scenario.teamFeatureFlags ?? DEFAULT_TEAM_FEATURE_FLAGS;
+
           const team = await createTeamAndAddUser(
             {
               user: {
@@ -368,10 +458,12 @@ export const createUsersFixture = (
               schedulingType: scenario.schedulingType,
               assignAllTeamMembersForSubTeamEvents: scenario.assignAllTeamMembersForSubTeamEvents,
               teamSlug: scenario?.teamSlug,
+              teamFeatureFlags: featureFlags,
             },
             workerInfo
           );
           store.teams.push(team);
+
           const teamEvent = await createTeamEventType(user, team, scenario);
           if (scenario.teammates) {
             // Create Teammate users
@@ -592,6 +684,9 @@ export const createUsersFixture = (
     },
     deleteAll: async () => {
       const ids = store.users.map((u) => u.id);
+      const trackedEmails = store.trackedEmails.map((e) => e.email);
+      const teamIds = store.teams.map((org) => org.id);
+
       if (emails) {
         const emailMessageIds: string[] = [];
         for (const user of store.trackedEmails.concat(store.users.map((u) => ({ email: u.email })))) {
@@ -607,11 +702,22 @@ export const createUsersFixture = (
         }
       }
 
-      await prisma.user.deleteMany({ where: { id: { in: ids } } });
-      // Delete all users that were tracked by email(if they were created)
-      await prisma.user.deleteMany({ where: { email: { in: store.trackedEmails.map((e) => e.email) } } });
-      await prisma.team.deleteMany({ where: { id: { in: store.teams.map((org) => org.id) } } });
-      await prisma.secondaryEmail.deleteMany({ where: { userId: { in: ids } } });
+      // Run clean-up in a single transaction to avoid lock ordering deadlocks
+      await prisma.$transaction(async (tx) => {
+        if (ids.length > 0) {
+          await tx.secondaryEmail.deleteMany({ where: { userId: { in: ids } } });
+          await tx.user.deleteMany({ where: { id: { in: ids } } });
+        }
+
+        if (trackedEmails.length > 0) {
+          await tx.user.deleteMany({ where: { email: { in: trackedEmails } } });
+        }
+
+        if (teamIds.length > 0) {
+          await tx.team.deleteMany({ where: { id: { in: teamIds } } });
+        }
+      });
+
       store.users = [];
       store.teams = [];
       store.trackedEmails = [];

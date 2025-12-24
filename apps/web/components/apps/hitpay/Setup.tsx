@@ -13,7 +13,7 @@ import { hitpayCredentialKeysSchema } from "@calcom/app-store/hitpay/lib/hitpayC
 import type { IHitPaySetupProps } from "@calcom/app-store/hitpay/pages/setup/_getServerSideProps";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";

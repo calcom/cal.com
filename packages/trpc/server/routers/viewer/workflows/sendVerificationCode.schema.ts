@@ -1,7 +1,9 @@
 import { z } from "zod";
 
-export const ZSendVerificationCodeInputSchema = z.object({
+export type TSendVerificationCodeInputSchema = {
+  phoneNumber: string;
+};
+
+export const ZSendVerificationCodeInputSchema: z.ZodType<TSendVerificationCodeInputSchema> = z.object({
   phoneNumber: z.string(),
 });
-
-export type TSendVerificationCodeInputSchema = z.infer<typeof ZSendVerificationCodeInputSchema>;

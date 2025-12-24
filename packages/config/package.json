@@ -14,6 +14,6 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.4",
-    "typescript": "^5.9.0-beta"
+    "typescript": "5.9.2"
   }
 }

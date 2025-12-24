@@ -5,7 +5,9 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
+import { getTimeShiftFlags, getFirstShiftFlags } from "@calcom/lib/timeShift";
 import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
 import { Input } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -14,13 +16,17 @@ import { useBookerTime } from "../../Booker/components/hooks/useBookerTime";
 export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurringEvent"> }) => {
   const maxOccurences = event.recurringEvent?.count || null;
   const { t, i18n } = useLocale();
-  const [setRecurringEventCount, recurringEventCount, setRecurringEventCountQueryParam, recurringEventCountQueryParam] =
-    useBookerStoreContext((state) => [
-      state.setRecurringEventCount,
-      state.recurringEventCount,
-      state.setRecurringEventCountQueryParam,
-      state.recurringEventCountQueryParam,
-    ]);
+  const [
+    setRecurringEventCount,
+    recurringEventCount,
+    setRecurringEventCountQueryParam,
+    recurringEventCountQueryParam,
+  ] = useBookerStoreContext((state) => [
+    state.setRecurringEventCount,
+    state.recurringEventCount,
+    state.setRecurringEventCountQueryParam,
+    state.recurringEventCountQueryParam,
+  ]);
   const selectedTimeslot = useBookerStoreContext((state) => state.selectedTimeslot);
   const bookerState = useBookerStoreContext((state) => state.state);
   const { timezone, timeFormat } = useBookerTime();
@@ -53,7 +59,7 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
   if (!event.recurringEvent) return null;
 
   if (bookerState === "booking" && recurringEventCount && selectedTimeslot) {
-    const [recurringStrings] = parseRecurringDates(
+    const [recurringStrings, recurringDates] = parseRecurringDates(
       {
         startDate: selectedTimeslot,
         timeZone: timezone,
@@ -63,15 +69,37 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
       },
       i18n.language
     );
+    const shiftFlags = getTimeShiftFlags({ dates: recurringDates, timezone });
+    const displayFlags = getFirstShiftFlags(shiftFlags);
     return (
       <div data-testid="recurring-dates">
         {recurringStrings.slice(0, 5).map((timeFormatted, key) => (
-          <p key={key}>{timeFormatted}</p>
+          <p key={key}>
+            {timeFormatted}
+            {displayFlags[key] && (
+              <>
+                {" "}
+                <Badge variant="orange" size="sm">
+                  {t("time_shift")}
+                </Badge>
+              </>
+            )}
+          </p>
         ))}
         {recurringStrings.length > 5 && (
           <Tooltip
             content={recurringStrings.slice(5).map((timeFormatted, key) => (
-              <p key={key}>{timeFormatted}</p>
+              <p key={key}>
+                {timeFormatted}
+                {displayFlags[key + 5] && (
+                  <>
+                    {" "}
+                    <Badge variant="orange" size="sm">
+                      {t("time_shift")}
+                    </Badge>
+                  </>
+                )}
+              </p>
             ))}>
             <p className=" text-sm">+ {t("plus_more", { count: recurringStrings.length - 5 })}</p>
           </Tooltip>

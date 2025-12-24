@@ -1,12 +1,12 @@
 import { CreateAvailabilityInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-availability.input";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesRepository_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.repository";
+import { PrismaScheduleRepository } from "@/lib/repositories/prisma-schedule.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { updateSchedule } from "@calcom/platform-libraries/schedules";
-import { ScheduleRepository } from "@calcom/platform-libraries/schedules";
 import type { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Schedule } from "@calcom/prisma/client";
@@ -16,7 +16,8 @@ export class SchedulesService_2024_04_15 {
   constructor(
     private readonly schedulesRepository: SchedulesRepository_2024_04_15,
     private readonly usersRepository: UsersRepository,
-    private readonly dbWrite: PrismaWriteService
+    private readonly dbWrite: PrismaWriteService,
+    private readonly prismaScheduleRepository: PrismaScheduleRepository
   ) {}
 
   async createUserDefaultSchedule(userId: number, timeZone: string) {
@@ -53,8 +54,7 @@ export class SchedulesService_2024_04_15 {
     const user = await this.usersRepository.findById(userId);
 
     if (!user?.defaultScheduleId) return null;
-
-    return await ScheduleRepository.findDetailedScheduleById({
+    return await this.prismaScheduleRepository.findDetailedScheduleById({
       scheduleId: user.defaultScheduleId,
       isManagedEventType: undefined,
       userId,
@@ -70,7 +70,7 @@ export class SchedulesService_2024_04_15 {
       throw new NotFoundException(`User with ID=${userId} does not exist.`);
     }
 
-    const existingSchedule = await ScheduleRepository.findDetailedScheduleById({
+    const existingSchedule = await this.prismaScheduleRepository.findDetailedScheduleById({
       scheduleId: scheduleId,
       isManagedEventType: undefined,
       userId,
@@ -88,7 +88,11 @@ export class SchedulesService_2024_04_15 {
   }
 
   async getUserSchedules(userId: number, timeZone: string, defaultScheduleId: number | null) {
-    return ScheduleRepository.findManyDetailedScheduleByUserId({ userId, timeZone, defaultScheduleId });
+    return this.prismaScheduleRepository.findManyDetailedScheduleByUserId({
+      userId,
+      timeZone,
+      defaultScheduleId,
+    });
   }
 
   async updateUserSchedule(

@@ -1,7 +1,9 @@
 import { z } from "zod";
 
-export const ZHasEditPermissionForUserSchema = z.object({
+export type THasEditPermissionForUserSchema = {
+  memberId: number;
+};
+
+export const ZHasEditPermissionForUserSchema: z.ZodType<THasEditPermissionForUserSchema> = z.object({
   memberId: z.number(),
 });
-
-export type THasEditPermissionForUserSchema = z.infer<typeof ZHasEditPermissionForUserSchema>;

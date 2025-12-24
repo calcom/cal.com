@@ -202,7 +202,7 @@ export async function expectSegmentCleared(page: Page) {
   // Check that no segment is selected (button shows default text)
   const segmentSelect = page.getByTestId("filter-segment-select");
   const buttonText = await segmentSelect.textContent();
-  expect(buttonText?.trim()).toEqual("Saved filters");
+  expect(["Saved filters", "Saved"]).toContain(buttonText?.trim());
 }
 
 /**

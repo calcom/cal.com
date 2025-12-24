@@ -11,7 +11,7 @@ const assignmentReasonBadgeTitleMap = (assignmentReason: AssignmentReasonEnum) =
     case AssignmentReasonEnum.REROUTED:
       return "rerouted";
     case AssignmentReasonEnum.SALESFORCE_ASSIGNMENT:
-      return "salesforce_assignment";
+      return "salesforce_assigned";
     default:
       return "routed";
   }

@@ -4,9 +4,13 @@ import { useEffect, useState } from "react";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 
-import OutOfOfficeEntriesList from "@calcom/features/settings/outOfOffice/OutOfOfficeEntriesList";
-import { CreateOrEditOutOfOfficeEntryModal } from "@calcom/features/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
-import type { BookingRedirectForm } from "@calcom/features/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
+import type { BookingRedirectForm } from "~/settings/outOfOffice/types";
+
+import { CreateOrEditOutOfOfficeEntryModal } from "~/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
+import OutOfOfficeEntriesList from "~/settings/outOfOffice/OutOfOfficeEntriesList";
+import { OutOfOfficeTab } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
+
+import { HolidaysView } from "./holidays-view";
 
 export default function OutOfOfficeView() {
   const [openModal, setOpenModal] = useState(false);
@@ -15,6 +19,7 @@ export default function OutOfOfficeView() {
 
   const params = useCompatSearchParams();
   const openModalOnStart = !!params?.get("om");
+  const selectedTab = params?.get("type") ?? OutOfOfficeTab.MINE;
 
   useEffect(() => {
     if (openModalOnStart) {
@@ -36,6 +41,11 @@ export default function OutOfOfficeView() {
     setOpenModal(false);
     setCurrentlyEditingOutOfOfficeEntry(null);
   };
+
+  // Show HolidaysView when holidays tab is selected
+  if (selectedTab === OutOfOfficeTab.HOLIDAYS) {
+    return <HolidaysView />;
+  }
 
   return (
     <>

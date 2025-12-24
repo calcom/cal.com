@@ -28,8 +28,8 @@
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",
     "@types/react": "18.0.26",
-    "chokidar": "^3.5.3",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.9.0-beta"
+    "chokidar": "3.6.0",
+    "ts-node": "10.9.2",
+    "typescript": "5.9.2"
   }
 }

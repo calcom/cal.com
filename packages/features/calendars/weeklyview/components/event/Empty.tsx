@@ -78,7 +78,7 @@ export function AvailableCellsForDay({ timezone, availableSlots, day, startHour 
       const lastSlot = slotsForToday[lastSlotIndex];
       startEndTimeDuration = dayjs(lastSlot.end).diff(dayjs(firstSlot.start), "minutes");
 
-      if (firstSlot.toUser == null) {
+      if (firstSlot.toUser == null && !firstSlot.showNotePublicly) {
         return null;
       }
 
@@ -108,6 +108,8 @@ export function AvailableCellsForDay({ timezone, availableSlots, day, startHour 
           toUser={firstSlot?.toUser}
           reason={firstSlot?.reason}
           emoji={firstSlot?.emoji}
+          notes={firstSlot?.notes}
+          showNotePublicly={firstSlot?.showNotePublicly}
           borderDashed={false}
           date={dateFormatted}
           className="pb-0"

@@ -54,11 +54,7 @@ export function JoinMeetingButton({
       onClick={handleClick}>
       {provider?.iconUrl && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={provider.iconUrl}
-          className="h-4 w-4 flex-shrink-0 rounded-sm"
-          alt={`${provider.label} logo`}
-        />
+        <img src={provider.iconUrl} className="h-4 w-4 shrink-0 rounded-sm" alt={`${provider.label} logo`} />
       )}
       {provider?.label ? t("join_event_location", { eventLocationType: provider.label }) : t("join_meeting")}
     </Button>

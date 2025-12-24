@@ -3,6 +3,7 @@ import getRawBody from "raw-body";
 import { z } from "zod";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { paypalCredentialKeysSchema } from "@calcom/app-store/paypal/lib";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
@@ -62,7 +63,10 @@ export async function handlePaypalPaymentSuccess(
     },
   });
 
-  return await handlePaymentSuccess(payment.id, payment.bookingId);
+  const traceContext = distributedTracing.createTrace("paypal_webhook", {
+    meta: { paymentId: payment.id, bookingId: payment.bookingId },
+  });
+  return await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

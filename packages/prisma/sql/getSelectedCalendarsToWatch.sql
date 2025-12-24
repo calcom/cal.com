@@ -10,6 +10,7 @@ FROM
 WHERE
   -- Only get calendars for teams where cache is enabled
   tf."featureId" = 'calendar-cache'
+  AND tf.enabled = true
   -- We currently only support google watchers
   AND sc."integration" = 'google_calendar'
   AND (

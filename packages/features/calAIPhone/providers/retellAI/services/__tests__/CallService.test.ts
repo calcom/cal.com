@@ -207,7 +207,7 @@ describe("CallService", () => {
 
       expect(checkRateLimitAndThrowError).toHaveBeenCalledWith({
         rateLimitingType: "core",
-        identifier: "test-call:1",
+        identifier: "createTestCall:1",
       });
     });
 
@@ -224,7 +224,7 @@ describe("CallService", () => {
 
       expect(checkRateLimitAndThrowError).toHaveBeenCalledWith({
         rateLimitingType: "core",
-        identifier: "test-call:42",
+        identifier: "createTestCall:42",
       });
     });
 

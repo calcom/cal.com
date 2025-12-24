@@ -40,6 +40,7 @@ jobs:
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
           push-image: "true"
+          use-as-latest: "true"
 
       - name: Notify Slack on Success
         if: success()

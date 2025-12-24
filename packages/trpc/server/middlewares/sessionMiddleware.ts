@@ -45,10 +45,10 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     safeStringify({ user, userFromDb, upId })
   );
 
-  const { email, username, id } = user;
-  if (!email || !id) {
-    return null; // should we return null here?
-  }
+    const { email, username, id, uuid } = user;
+    if (!email || !id) {
+      return null; // should we return null here?
+    }
 
   const userMetaData = userMetadata.parse(user.metadata || {});
   const orgMetadata = teamMetadataSchema.parse(user.profile?.organization?.metadata || {});
@@ -71,19 +71,20 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     requestedSlug: orgMetadata?.requestedSlug ?? null,
   };
 
-  return {
-    ...user,
-    avatar: `${WEBAPP_URL}/${user.username}/avatar.png${organization.id ? `?orgId=${organization.id}` : ""}`,
-    // TODO: OrgNewSchema - later -  We could consolidate the props in user.profile?.organization as organization is a profile thing now.
-    organization,
-    organizationId: organization.id,
-    id,
-    email,
-    username,
-    locale,
-    defaultBookerLayouts: userMetaData?.defaultBookerLayouts || null,
-    requiresBookerEmailVerification: user.requiresBookerEmailVerification,
-  };
+    return {
+      ...user,
+      avatar: `${WEBAPP_URL}/${user.username}/avatar.png${organization.id ? `?orgId=${organization.id}` : ""}`,
+      // TODO: OrgNewSchema - later -  We could consolidate the props in user.profile?.organization as organization is a profile thing now.
+      organization,
+      organizationId: organization.id,
+      id,
+      uuid,
+      email,
+      username,
+      locale,
+      defaultBookerLayouts: userMetaData?.defaultBookerLayouts || null,
+      requiresBookerEmailVerification: user.requiresBookerEmailVerification,
+    };
 }
 
 export type UserFromSession = Awaited<ReturnType<typeof getUserFromSession>>;

@@ -1,5 +1,5 @@
 import { isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
-import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
+import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import { prisma } from "@calcom/prisma";
 import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";

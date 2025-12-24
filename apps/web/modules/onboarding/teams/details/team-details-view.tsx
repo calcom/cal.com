@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -72,6 +73,11 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
       return;
     }
 
+    posthog.capture("onboarding_team_details_continue_clicked", {
+      has_logo: !!teamLogo,
+      has_bio: !!teamBio,
+    });
+
     setTeamDetails({
       name: teamName,
       slug: teamSlug,
@@ -102,7 +108,10 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
                     type="button"
                     color="minimal"
                     className="rounded-[10px]"
-                    onClick={() => router.push("/onboarding/getting-started")}>
+                    onClick={() => {
+                      posthog.capture("onboarding_team_details_back_clicked");
+                      router.push("/onboarding/getting-started");
+                    }}>
                     {t("back")}
                   </Button>
                   <Button

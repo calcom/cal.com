@@ -55,6 +55,8 @@ export const DI_TOKENS = {
   LUCKY_USER_SERVICE_MODULE: Symbol("LuckyUserServiceModule"),
   HOST_REPOSITORY: Symbol("HostRepository"),
   HOST_REPOSITORY_MODULE: Symbol("HostRepositoryModule"),
+  HOLIDAY_REPOSITORY: Symbol("HolidayRepository"),
+  HOLIDAY_REPOSITORY_MODULE: Symbol("HolidayRepositoryModule"),
   ATTRIBUTE_REPOSITORY: Symbol("AttributeRepository"),
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
   MEMBERSHIP_SERVICE: Symbol("MembershipService"),

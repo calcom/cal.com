@@ -3,7 +3,11 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Booking } from "@calcom/prisma/client";
 import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
-import { bookingMinimalSelect } from "@calcom/prisma/selects/booking";
+import {
+  bookingMinimalSelect,
+  bookingAuthorizationCheckSelect,
+  bookingDetailsSelect,
+} from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 type ManagedEventReassignmentCreateParams = {
@@ -135,8 +139,8 @@ const buildWhereClauseForActiveBookings = ({
       },
       ...(!includeNoShowInRRCalculation
         ? {
-            OR: [{ noShowHost: false }, { noShowHost: null }],
-          }
+          OR: [{ noShowHost: false }, { noShowHost: null }],
+        }
         : {}),
     },
     {
@@ -155,24 +159,24 @@ const buildWhereClauseForActiveBookings = ({
   ...(startDate || endDate
     ? rrTimestampBasis === RRTimestampBasis.CREATED_AT
       ? {
-          createdAt: {
-            ...(startDate ? { gte: startDate } : {}),
-            ...(endDate ? { lte: endDate } : {}),
-          },
-        }
+        createdAt: {
+          ...(startDate ? { gte: startDate } : {}),
+          ...(endDate ? { lte: endDate } : {}),
+        },
+      }
       : {
-          startTime: {
-            ...(startDate ? { gte: startDate } : {}),
-            ...(endDate ? { lte: endDate } : {}),
-          },
-        }
+        startTime: {
+          ...(startDate ? { gte: startDate } : {}),
+          ...(endDate ? { lte: endDate } : {}),
+        },
+      }
     : {}),
   ...(virtualQueuesData
     ? {
-        routedFromRoutingFormReponse: {
-          chosenRouteId: virtualQueuesData.chosenRouteId,
-        },
-      }
+      routedFromRoutingFormReponse: {
+        chosenRouteId: virtualQueuesData.chosenRouteId,
+      },
+    }
     : {}),
 });
 
@@ -321,7 +325,21 @@ const selectStatementToGetBookingForCalEventBuilder = {
 };
 
 export class BookingRepository {
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(private prismaClient: PrismaClient) { }
+
+  /**
+   * Gets the fromReschedule field for a booking by UID
+   * Used to identify if this booking was created from a reschedule
+   * @param bookingUid - The unique identifier of the booking
+   * @returns The fromReschedule UID or null if not found/not a rescheduled booking
+   */
+  async getFromRescheduleUid(bookingUid: string): Promise<string | null> {
+    const booking = await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: { fromReschedule: true },
+    });
+    return booking?.fromReschedule ?? null;
+  }
 
   async getBookingAttendees(bookingId: number) {
     return await this.prismaClient.attendee.findMany({
@@ -501,6 +519,48 @@ export class BookingRepository {
     });
   }
 
+  async findByUidForAuthorizationCheck({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: bookingAuthorizationCheckSelect,
+    });
+  }
+
+  async findByUidForDetails({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: bookingDetailsSelect,
+    });
+  }
+
+  async findRescheduledToBooking({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findFirst({
+      where: {
+        fromReschedule: bookingUid,
+      },
+      select: {
+        uid: true,
+      },
+    });
+  }
+
+  async findPreviousBooking({ fromReschedule }: { fromReschedule: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: fromReschedule,
+      },
+      select: {
+        uid: true,
+        startTime: true,
+        endTime: true,
+      },
+    });
+  }
+
   async getActiveRecurringBookingsFromDate({
     recurringEventId,
     fromDate,
@@ -596,20 +656,20 @@ export class BookingRepository {
 
     const currentBookingsAllUsersQueryThree = eventTypeId
       ? this.prismaClient.booking.findMany({
-          where: {
-            startTime: { lte: endDate },
-            endTime: { gte: startDate },
-            eventType: {
-              id: eventTypeId,
-              requiresConfirmation: true,
-              requiresConfirmationWillBlockSlot: true,
-            },
-            status: {
-              in: [BookingStatus.PENDING],
-            },
+        where: {
+          startTime: { lte: endDate },
+          endTime: { gte: startDate },
+          eventType: {
+            id: eventTypeId,
+            requiresConfirmation: true,
+            requiresConfirmationWillBlockSlot: true,
           },
-          select: bookingsSelect,
-        })
+          status: {
+            in: [BookingStatus.PENDING],
+          },
+        },
+        select: bookingsSelect,
+      })
       : [];
 
     const [resultOne, resultTwo, resultThree] = await Promise.all([
@@ -1085,6 +1145,14 @@ export class BookingRepository {
             credentials: {
               select: credentialForCalendarServiceSelect,
             },
+          },
+        },
+        eventType: {
+          select: {
+            id: true,
+            minimumRescheduleNotice: true,
+            disableRescheduling: true,
+            userId: true,
           },
         },
         destinationCalendar: true,
@@ -1563,7 +1631,7 @@ export class BookingRepository {
       },
     });
   }
-  
+
   findByUidIncludeEventTypeAndReferences({ bookingUid }: { bookingUid: string }) {
     return this.prismaClient.booking.findUniqueOrThrow({
       where: {
@@ -1618,7 +1686,7 @@ export class BookingRepository {
       },
     });
   }
-  
+
   async updateBookingStatus({
     bookingId,
     status,
@@ -1648,7 +1716,6 @@ export class BookingRepository {
       },
     });
   }
-
 
   /**
    * Cancels a booking as part of the Managed Event reassignment flow.
@@ -1724,8 +1791,8 @@ export class BookingRepository {
         location,
         smsReminderNumber,
         responses: responses ?? undefined,
-        customInputs: customInputs as unknown as Prisma.InputJsonValue ?? undefined,
-        metadata: metadata as unknown as Prisma.InputJsonValue ?? undefined,
+        customInputs: (customInputs as unknown as Prisma.InputJsonValue) ?? undefined,
+        metadata: (metadata as unknown as Prisma.InputJsonValue) ?? undefined,
         idempotencyKey,
         iCalUID,
         iCalSequence,
