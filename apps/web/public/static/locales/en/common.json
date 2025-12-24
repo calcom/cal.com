@@ -4166,7 +4166,9 @@
     "seat_rescheduled": "Seat Rescheduled {{oldDate}} -> <0>{{newDate}}</0>",
     "assignment_type": "Assignment",
     "assignment_type_manual": "Manual",
-    "assignment_type_round_robin": "Round Robin"
+    "assignment_type_round_robin": "Round Robin",
+    "actor_impersonated_by": "Impersonated by",
+    "source": "Source"
   },
   "error_loading_booking_logs": "Error loading booking logs",
   "no_audit_logs_found": "No audit logs found",
