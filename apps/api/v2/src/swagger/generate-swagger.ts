@@ -11,10 +11,10 @@ import "dotenv/config";
 import * as fs from "fs";
 import type { Server } from "http";
 import { spawnSync } from "node:child_process";
-import { createRequire } from "module";
+import { createRequire } from "node:module";
 
-const require = createRequire(__filename);
-const biomeBin = require.resolve("@biomejs/biome/bin/biome");
+const nodeRequire = createRequire(__filename);
+const biomeBin = nodeRequire.resolve("@biomejs/biome/bin/biome");
 
 const HttpMethods: (keyof PathItemObject)[] = ["get", "post", "put", "delete", "patch", "options", "head"];
 
