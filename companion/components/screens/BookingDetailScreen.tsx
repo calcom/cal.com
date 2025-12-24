@@ -278,6 +278,60 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
     ]);
   }, [booking, performCancelBooking]);
 
+  // Navigate to reschedule screen (same pattern as senior's - navigate to screen in same folder)
+  const openRescheduleModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/reschedule",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to edit location screen (same pattern as senior's - navigate to screen in same folder)
+  const openEditLocationModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/edit-location",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to add guests screen (same pattern as senior's - navigate to screen in same folder)
+  const openAddGuestsModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/add-guests",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to mark no show screen (same pattern as senior's - navigate to screen in same folder)
+  const openMarkNoShowModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/mark-no-show",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to view recordings screen (same pattern as senior's - navigate to screen in same folder)
+  const openViewRecordingsModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/view-recordings",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to meeting session details screen (same pattern as senior's - navigate to screen in same folder)
+  const openMeetingSessionDetailsModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/meeting-session-details",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
   useEffect(() => {
     if (uid) {
       fetchBooking();
@@ -353,60 +407,6 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
       openInAppBrowser(provider.url, "meeting link");
     }
   };
-
-  // Navigate to reschedule screen (same pattern as senior's - navigate to screen in same folder)
-  const openRescheduleModal = useCallback(() => {
-    if (!booking) return;
-    router.push({
-      pathname: "/(tabs)/(bookings)/reschedule",
-      params: { uid: booking.uid },
-    });
-  }, [booking, router]);
-
-  // Navigate to edit location screen (same pattern as senior's - navigate to screen in same folder)
-  const openEditLocationModal = useCallback(() => {
-    if (!booking) return;
-    router.push({
-      pathname: "/(tabs)/(bookings)/edit-location",
-      params: { uid: booking.uid },
-    });
-  }, [booking, router]);
-
-  // Navigate to add guests screen (same pattern as senior's - navigate to screen in same folder)
-  const openAddGuestsModal = useCallback(() => {
-    if (!booking) return;
-    router.push({
-      pathname: "/(tabs)/(bookings)/add-guests",
-      params: { uid: booking.uid },
-    });
-  }, [booking, router]);
-
-  // Navigate to mark no show screen (same pattern as senior's - navigate to screen in same folder)
-  const openMarkNoShowModal = useCallback(() => {
-    if (!booking) return;
-    router.push({
-      pathname: "/(tabs)/(bookings)/mark-no-show",
-      params: { uid: booking.uid },
-    });
-  }, [booking, router]);
-
-  // Navigate to view recordings screen (same pattern as senior's - navigate to screen in same folder)
-  const openViewRecordingsModal = useCallback(() => {
-    if (!booking) return;
-    router.push({
-      pathname: "/(tabs)/(bookings)/view-recordings",
-      params: { uid: booking.uid },
-    });
-  }, [booking, router]);
-
-  // Navigate to meeting session details screen (same pattern as senior's - navigate to screen in same folder)
-  const openMeetingSessionDetailsModal = useCallback(() => {
-    if (!booking) return;
-    router.push({
-      pathname: "/(tabs)/(bookings)/meeting-session-details",
-      params: { uid: booking.uid },
-    });
-  }, [booking, router]);
 
   if (loading) {
     return (
