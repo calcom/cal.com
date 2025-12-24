@@ -239,25 +239,17 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     ...passThroughProps
   } = props;
   // Buttons are **always** disabled if we're in a `loading` state
-  const disabled = props.disabled || loading;
-  // If pass an `href`-attr is passed it's `<a>`, otherwise it's a `<button />`
+  const disabled = props.disabled || loading || false;
+  // If pass an `href`-attr is passed it's Link, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
-  const elementType = isLink ? "a" : "button";
-  const element = React.createElement(
-    elementType,
-    {
-      ...passThroughProps,
-      disabled,
-      type: !isLink ? type : undefined,
-      ref: forwardedRef,
-      className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
-      // if we click a disabled button, we prevent going through the click handler
-      onClick: disabled
-        ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-            e.preventDefault();
-          }
-        : props.onClick,
-    },
+  const buttonClassName = classNames(buttonClasses({ color, size, loading, variant }), props.className);
+  const handleClick = disabled
+    ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        e.preventDefault();
+      }
+    : props.onClick;
+
+  const buttonContent = (
     <>
       {CustomStartIcon ||
         (StartIcon && (
@@ -334,18 +326,36 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     </>
   );
 
-  return props.href ? (
-    <Link data-testid="link-component" passHref href={props.href} shallow={shallow && shallow} legacyBehavior>
-      {element}
-    </Link>
-  ) : (
+  // Render Link or button separately to avoid type conflicts
+  // Link manages its own anchor element, so we don't pass ref to it
+  if (isLink) {
+    return (
+      <Link
+        {...(passThroughProps as Omit<JSX.IntrinsicElements["a"], "href" | "onClick" | "ref"> & LinkProps)}
+        shallow={shallow && shallow}
+        className={buttonClassName}
+        onClick={handleClick}>
+        {buttonContent}
+      </Link>
+    );
+  }
+
+  return (
     <Wrapper
       data-testid="wrapper"
       tooltip={props.tooltip}
       tooltipSide={tooltipSide}
       tooltipOffset={tooltipOffset}
       tooltipClassName={tooltipClassName}>
-      {element}
+      <button
+        {...(passThroughProps as Omit<JSX.IntrinsicElements["button"], "onClick" | "ref">)}
+        ref={forwardedRef as React.Ref<HTMLButtonElement>}
+        disabled={disabled}
+        type={type as "button" | "submit" | "reset"}
+        className={buttonClassName}
+        onClick={handleClick}>
+        {buttonContent}
+      </button>
     </Wrapper>
   );
 });
