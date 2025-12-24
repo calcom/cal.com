@@ -625,6 +625,8 @@ export const EventSetup = (props: EventSetupTabProps) => {
           render={() => (
             <Locations
               showAppStoreLink={true}
+              isManagedEventType={isManagedEventType}
+              isChildrenManagedEventType={isManagedEventType}
               disableLocationProp={fieldPermissions.getFieldState("locations").isDisabled}
               getValues={formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>}
               setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
