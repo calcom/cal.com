@@ -1,13 +1,13 @@
-import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { View, Text, Pressable } from "react-native";
-import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
-
-import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
-import { EventTypeListItemProps } from "./types";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { formatDuration } from "../../utils/formatters";
 import { getEventDuration } from "../../utils/getEventDuration";
 import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
+import { EventTypeListItemProps } from "./types";
+import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
+import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
+import { Ionicons } from "@expo/vector-icons";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
+import React from "react";
+import { View, Text, Pressable } from "react-native";
 
 export const EventTypeListItem = ({
   item,
@@ -25,9 +25,12 @@ export const EventTypeListItem = ({
   const duration = getEventDuration(item);
   const isLast = index === filteredEventTypes.length - 1;
 
+  type ButtonSystemImage = React.ComponentProps<typeof Button>["systemImage"];
+  type EventTypeIcon = Exclude<ButtonSystemImage, undefined>;
+
   const eventTypes: {
     label: string;
-    icon: any;
+    icon: EventTypeIcon;
     onPress: () => void;
     role: "default" | "destructive";
   }[] = [
@@ -62,18 +65,6 @@ export const EventTypeListItem = ({
       role: "destructive",
     },
   ];
-
-  const formatDuration = (minutes: number | undefined) => {
-    if (!minutes || minutes <= 0) {
-      return "0m";
-    }
-    if (minutes < 60) {
-      return `${minutes}m`;
-    }
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
-  };
 
   return (
     <View className={`bg-white active:bg-[#F8F9FA] ${!isLast ? "border-b border-[#E5E5EA]" : ""}`}>

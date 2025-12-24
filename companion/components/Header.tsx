@@ -1,4 +1,10 @@
+import { CalComAPIService, UserProfile } from "../services/calcom";
+import { openInAppBrowser } from "../utils/browser";
+import { getAvatarUrl } from "../utils/getAvatarUrl";
+import { CalComLogo } from "./CalComLogo";
+import { FullScreenModal } from "./FullScreenModal";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
@@ -11,12 +17,7 @@ import {
   ActionSheetIOS,
   Alert,
 } from "react-native";
-import * as Clipboard from "expo-clipboard";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CalComAPIService, UserProfile } from "../services/calcom";
-import { CalComLogo } from "./CalComLogo";
-import { FullScreenModal } from "./FullScreenModal";
-import { openInAppBrowser } from "../utils/browser";
 
 export function Header() {
   const router = useRouter();
@@ -34,7 +35,12 @@ export function Header() {
       const profile = await CalComAPIService.getUserProfile();
       setUserProfile(profile);
     } catch (error) {
-      console.error("Failed to fetch user profile:", error);
+      console.error("Failed to fetch user profile");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[Header] fetchUserProfile failed", { message, stack });
+      }
     } finally {
       setLoading(false);
     }
@@ -55,7 +61,12 @@ export function Header() {
       await Clipboard.setStringAsync(publicPageUrl);
       Alert.alert("Link Copied!", "Your public page link has been copied to clipboard.");
     } catch (error) {
-      console.error("Failed to copy public page link:", error);
+      console.error("Failed to copy public page link");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[Header] copyPublicPageLink failed", { message, stack });
+      }
       Alert.alert("Error", "Failed to copy link. Please try again.");
     }
   };
@@ -154,7 +165,7 @@ export function Header() {
               <ActivityIndicator size="small" color="#666" />
             ) : userProfile?.avatarUrl ? (
               <Image
-                source={{ uri: userProfile.avatarUrl }}
+                source={{ uri: getAvatarUrl(userProfile.avatarUrl) }}
                 className="h-8 w-8 rounded-full"
                 style={{ width: 32, height: 32, borderRadius: 16 }}
               />
@@ -193,7 +204,7 @@ export function Header() {
                 <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-black">
                   {userProfile?.avatarUrl ? (
                     <Image
-                      source={{ uri: userProfile.avatarUrl }}
+                      source={{ uri: getAvatarUrl(userProfile.avatarUrl) }}
                       className="h-12 w-12 rounded-full"
                       style={{ width: 48, height: 48, borderRadius: 24 }}
                     />
