@@ -10,6 +10,7 @@ import { SvgImage } from "../SvgImage";
 import { getMeetingInfo } from "../../utils/meetings-utils";
 import { formatTime, formatDate, getHostAndAttendeesDisplay } from "../../utils/bookings-utils";
 import { showErrorAlert } from "../../utils/alerts";
+import { getBookingActions } from "../../utils/booking-actions";
 
 export const BookingListItem: React.FC<BookingListItemProps> = ({
   booking,
@@ -40,6 +41,17 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
 
   const hostAndAttendeesDisplay = getHostAndAttendeesDisplay(booking, userEmail);
   const meetingInfo = getMeetingInfo(booking.location);
+
+  // Use centralized action gating for consistency
+  const actions = React.useMemo(() => {
+    return getBookingActions({
+      booking,
+      eventType: undefined,
+      currentUserId: undefined, // Not available in this context
+      currentUserEmail: userEmail,
+      isOnline: true, // Assume online
+    });
+  }, [booking, userEmail]);
 
   // Define context menu actions based on booking state
   type ContextMenuAction = {
@@ -78,7 +90,8 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
       icon: "video",
       onPress: () => onViewRecordings?.(booking),
       role: "default",
-      visible: hasLocationUrl && !isUpcoming && !isCancelled && !isPending && !!onViewRecordings,
+      visible:
+        actions.viewRecordings.visible && actions.viewRecordings.enabled && !!onViewRecordings,
     },
     {
       label: "Meeting Session Details",
@@ -86,14 +99,16 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
       onPress: () => onMeetingSessionDetails?.(booking),
       role: "default",
       visible:
-        hasLocationUrl && !isUpcoming && !isCancelled && !isPending && !!onMeetingSessionDetails,
+        actions.meetingSessionDetails.visible &&
+        actions.meetingSessionDetails.enabled &&
+        !!onMeetingSessionDetails,
     },
     {
       label: "Mark as No-Show",
       icon: "eye.slash",
       onPress: () => onMarkNoShow?.(booking),
       role: "default",
-      visible: !isUpcoming && !isPending && !!onMarkNoShow,
+      visible: actions.markNoShow.visible && actions.markNoShow.enabled && !!onMarkNoShow,
     },
     // Other Actions
     {

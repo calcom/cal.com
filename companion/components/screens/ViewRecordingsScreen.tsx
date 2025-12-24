@@ -1,22 +1,18 @@
 /**
- * ViewRecordingsModal Component - iOS Implementation
+ * ViewRecordingsScreen Component
  *
- * iOS-specific modal for viewing recordings of a Cal Video booking with Glass UI header.
+ * Screen content for viewing recordings of a Cal Video booking.
+ * Used with the view-recordings route that has native Stack.Header.
  */
 import type { BookingRecording } from "../../services/types/bookings.types";
-import { FullScreenModal } from "../FullScreenModal";
-import { GlassModalHeader } from "../GlassModalHeader";
 import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import React from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator, FlatList } from "react-native";
+import { View, Text, TouchableOpacity, FlatList } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-export interface ViewRecordingsModalProps {
-  visible: boolean;
-  onClose: () => void;
+export interface ViewRecordingsScreenProps {
   recordings: BookingRecording[];
-  isLoading?: boolean;
 }
 
 function formatDuration(seconds?: number): string {
@@ -38,7 +34,7 @@ function formatDate(dateString: string): string {
   });
 }
 
-export default function ViewRecordingsModal(props: ViewRecordingsModalProps) {
+export function ViewRecordingsScreen({ recordings }: ViewRecordingsScreenProps) {
   const insets = useSafeAreaInsets();
 
   const handleOpenRecording = async (recording: BookingRecording) => {
@@ -75,42 +71,36 @@ export default function ViewRecordingsModal(props: ViewRecordingsModalProps) {
     </TouchableOpacity>
   );
 
-  return (
-    <FullScreenModal visible={props.visible} animationType="slide" onRequestClose={props.onClose}>
-      <View className="flex-1 bg-[#F2F2F7]">
-        {/* Header */}
-        <GlassModalHeader title="Recordings" onClose={props.onClose} />
-
-        {/* Content */}
-        <View className="flex-1 p-4" style={{ paddingBottom: insets.bottom }}>
-          {props.isLoading ? (
-            <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="large" color="#007AFF" />
-              <Text className="mt-4 text-[15px] text-gray-500">Loading recordings...</Text>
-            </View>
-          ) : props.recordings.length === 0 ? (
-            <View className="flex-1 items-center justify-center px-8">
-              <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-[#E8E8ED]">
-                <Ionicons name="videocam-off" size={32} color="#6B7280" />
-              </View>
-              <Text className="mb-2 text-center text-[17px] font-medium text-[#000]">
-                No Recordings Available
-              </Text>
-              <Text className="text-center text-[15px] text-gray-500">
-                Recordings will appear here after the meeting has ended.
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              data={props.recordings}
-              renderItem={renderRecording}
-              keyExtractor={(item, index) => `${item.id || index}`}
-              contentContainerStyle={{ paddingBottom: 16 }}
-              showsVerticalScrollIndicator={false}
-            />
-          )}
+  if (recordings.length === 0) {
+    return (
+      <View className="flex-1 items-center justify-center bg-[#F2F2F7] px-8">
+        <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-[#E8E8ED]">
+          <Ionicons name="videocam-off" size={32} color="#8E8E93" />
         </View>
+        <Text className="text-center text-[17px] font-semibold text-[#000]">
+          No recordings available
+        </Text>
+        <Text className="mt-2 text-center text-[15px] leading-5 text-gray-500">
+          Recordings may take some time to process after the meeting ends.
+        </Text>
       </View>
-    </FullScreenModal>
+    );
+  }
+
+  return (
+    <View className="flex-1 bg-[#F2F2F7]">
+      <View className="flex-1 p-4" style={{ paddingBottom: insets.bottom }}>
+        <FlatList
+          data={recordings}
+          renderItem={renderRecording}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 16 }}
+        />
+      </View>
+    </View>
   );
 }
+
+// Default export for React Native compatibility
+export default ViewRecordingsScreen;

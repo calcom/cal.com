@@ -14,7 +14,6 @@ import type { Booking, EventType } from "../../services/calcom";
 import { getBookingActions, type BookingActionsResult } from "../../utils/booking-actions";
 import { FullScreenModal } from "../FullScreenModal";
 import { BookingActionsModal } from "../BookingActionsModal";
-import { RescheduleModal } from "../booking-action-modals";
 
 // Empty actions result for when no booking is selected
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -209,16 +208,6 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
           Alert.alert("Report Booking", "Report booking functionality is not yet available");
         }}
         onCancelBooking={onCancel}
-      />
-
-      {/* Reschedule Modal */}
-      <RescheduleModal
-        visible={showRescheduleModal}
-        onClose={onRescheduleClose}
-        onSubmit={onRescheduleSubmit}
-        bookingTitle={rescheduleBooking?.title}
-        currentStartTime={rescheduleBooking?.start || rescheduleBooking?.startTime}
-        isLoading={isRescheduling}
       />
 
       {/* Reject Booking Modal */}

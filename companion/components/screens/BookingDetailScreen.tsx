@@ -9,14 +9,6 @@ import { formatAppIdToDisplayName } from "../../utils/formatters";
 import { getAppIconUrl } from "../../utils/getAppIconUrl";
 import { AppPressable } from "../AppPressable";
 import { BookingActionsModal } from "../BookingActionsModal";
-import {
-  AddGuestsModal,
-  EditLocationModal,
-  ViewRecordingsModal,
-  MeetingSessionDetailsModal,
-  MarkNoShowModal,
-  RescheduleModal,
-} from "../booking-action-modals";
 import { SvgImage } from "../SvgImage";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
@@ -187,11 +179,11 @@ export interface BookingDetailScreenProps {
    */
   onActionsReady?: (handlers: {
     openRescheduleModal: () => void;
-    openEditLocationModal: (booking: Booking) => void;
-    openAddGuestsModal: (booking: Booking) => void;
-    openViewRecordingsModal: (booking: Booking) => void;
-    openMeetingSessionDetailsModal: (booking: Booking) => void;
-    openMarkNoShowModal: (booking: Booking) => void;
+    openEditLocationModal: () => void;
+    openAddGuestsModal: () => void;
+    openViewRecordingsModal: () => void;
+    openMeetingSessionDetailsModal: () => void;
+    openMarkNoShowModal: () => void;
     handleCancelBooking: () => void;
   }) => void;
 }
@@ -205,8 +197,6 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const [booking, setBooking] = useState<Booking | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showActionsModal, setShowActionsModal] = useState(false);
-  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
-  const [isRescheduling, setIsRescheduling] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
 
   // Compute actions using centralized gating
@@ -220,35 +210,6 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
       isOnline: true, // Assume online for now
     });
   }, [booking, userInfo?.id, userInfo?.email]);
-
-  // Booking action modals hook (for add guests, edit location, recordings, etc.)
-  const {
-    showAddGuestsModal,
-    isAddingGuests,
-    openAddGuestsModal,
-    closeAddGuestsModal,
-    handleAddGuests,
-    showEditLocationModal,
-    isUpdatingLocation,
-    openEditLocationModal,
-    closeEditLocationModal,
-    handleUpdateLocation,
-    showViewRecordingsModal,
-    isLoadingRecordings,
-    recordings,
-    openViewRecordingsModal,
-    closeViewRecordingsModal,
-    showMeetingSessionDetailsModal,
-    isLoadingSessions,
-    sessions,
-    openMeetingSessionDetailsModal,
-    closeMeetingSessionDetailsModal,
-    showMarkNoShowModal,
-    isMarkingNoShow,
-    openMarkNoShowModal,
-    closeMarkNoShowModal,
-    handleMarkNoShow,
-  } = useBookingActionModals();
 
   // Cancel booking handler (needs to be defined before useEffect that exposes it)
   const performCancelBooking = useCallback(
@@ -328,17 +289,18 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
     if (booking && onActionsReady) {
       onActionsReady({
         openRescheduleModal,
-        openEditLocationModal: () => openEditLocationModal(booking),
-        openAddGuestsModal: () => openAddGuestsModal(booking),
-        openViewRecordingsModal: () => openViewRecordingsModal(booking),
-        openMeetingSessionDetailsModal: () => openMeetingSessionDetailsModal(booking),
-        openMarkNoShowModal: () => openMarkNoShowModal(booking),
+        openEditLocationModal,
+        openAddGuestsModal,
+        openViewRecordingsModal,
+        openMeetingSessionDetailsModal,
+        openMarkNoShowModal,
         handleCancelBooking,
       });
     }
   }, [
     booking,
     onActionsReady,
+    openRescheduleModal,
     openEditLocationModal,
     openAddGuestsModal,
     openViewRecordingsModal,
@@ -392,47 +354,59 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
     }
   };
 
-  const openRescheduleModal = () => {
+  // Navigate to reschedule screen (same pattern as senior's - navigate to screen in same folder)
+  const openRescheduleModal = useCallback(() => {
     if (!booking) return;
-    setShowRescheduleModal(true);
-  };
+    router.push({
+      pathname: "/(tabs)/(bookings)/reschedule",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
 
-  const handleReschedule = async (date: string, time: string, reason?: string) => {
-    if (!booking) {
-      throw new Error("No booking selected");
-    }
+  // Navigate to edit location screen (same pattern as senior's - navigate to screen in same folder)
+  const openEditLocationModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/edit-location",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
 
-    // Parse the date and time
-    const dateTimeStr = `${date}T${time}:00`;
-    const newDateTime = new Date(dateTimeStr);
+  // Navigate to add guests screen (same pattern as senior's - navigate to screen in same folder)
+  const openAddGuestsModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/add-guests",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
 
-    // Convert to UTC ISO string
-    const startUtc = newDateTime.toISOString();
+  // Navigate to mark no show screen (same pattern as senior's - navigate to screen in same folder)
+  const openMarkNoShowModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/mark-no-show",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
 
-    setIsRescheduling(true);
-    try {
-      await CalComAPIService.rescheduleBooking(booking.uid, {
-        start: startUtc,
-        reschedulingReason: reason || undefined,
-      });
+  // Navigate to view recordings screen (same pattern as senior's - navigate to screen in same folder)
+  const openViewRecordingsModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/view-recordings",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
 
-      Alert.alert("Success", "Booking rescheduled successfully");
-      setShowRescheduleModal(false);
-
-      // Refresh booking data
-      await fetchBooking();
-    } catch (error) {
-      console.error("Failed to reschedule booking");
-      if (__DEV__) {
-        const message = error instanceof Error ? error.message : String(error);
-        const stack = error instanceof Error ? error.stack : undefined;
-        console.debug("[BookingDetailScreen] rescheduleBooking failed", { message, stack });
-      }
-      throw new Error("Failed to reschedule booking. Please try again.");
-    } finally {
-      setIsRescheduling(false);
-    }
-  };
+  // Navigate to meeting session details screen (same pattern as senior's - navigate to screen in same folder)
+  const openMeetingSessionDetailsModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/meeting-session-details",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
 
   if (loading) {
     return (
@@ -647,76 +621,15 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
           booking={booking}
           actions={actions}
           onReschedule={openRescheduleModal}
-          onEditLocation={() => {
-            if (booking) {
-              openEditLocationModal(booking);
-            }
-          }}
-          onAddGuests={() => {
-            if (booking) {
-              openAddGuestsModal(booking);
-            }
-          }}
-          onViewRecordings={() => {
-            if (booking) {
-              openViewRecordingsModal(booking);
-            }
-          }}
-          onMeetingSessionDetails={() => {
-            if (booking) {
-              openMeetingSessionDetailsModal(booking);
-            }
-          }}
-          onMarkNoShow={() => {
-            if (booking) {
-              openMarkNoShowModal(booking);
-            }
-          }}
+          onEditLocation={openEditLocationModal}
+          onAddGuests={openAddGuestsModal}
+          onViewRecordings={openViewRecordingsModal}
+          onMeetingSessionDetails={openMeetingSessionDetailsModal}
+          onMarkNoShow={openMarkNoShowModal}
           onReportBooking={() => {
             Alert.alert("Report Booking", "Report booking functionality is not yet available");
           }}
           onCancelBooking={handleCancelBooking}
-        />
-
-        {/* Action Modals */}
-        <RescheduleModal
-          visible={showRescheduleModal}
-          onClose={() => setShowRescheduleModal(false)}
-          onSubmit={handleReschedule}
-          bookingTitle={booking?.title}
-          currentStartTime={booking?.start || booking?.startTime}
-          isLoading={isRescheduling}
-        />
-        <AddGuestsModal
-          visible={showAddGuestsModal}
-          onClose={closeAddGuestsModal}
-          onSubmit={handleAddGuests}
-          isLoading={isAddingGuests}
-        />
-        <EditLocationModal
-          visible={showEditLocationModal}
-          onClose={closeEditLocationModal}
-          onSubmit={handleUpdateLocation}
-          isLoading={isUpdatingLocation}
-        />
-        <ViewRecordingsModal
-          visible={showViewRecordingsModal}
-          onClose={closeViewRecordingsModal}
-          recordings={recordings}
-          isLoading={isLoadingRecordings}
-        />
-        <MeetingSessionDetailsModal
-          visible={showMeetingSessionDetailsModal}
-          onClose={closeMeetingSessionDetailsModal}
-          sessions={sessions}
-          isLoading={isLoadingSessions}
-        />
-        <MarkNoShowModal
-          visible={showMarkNoShowModal}
-          onClose={closeMarkNoShowModal}
-          onSubmit={handleMarkNoShow}
-          isLoading={isMarkingNoShow}
-          attendees={booking?.attendees ?? []}
         />
 
         {/* Cancelling overlay */}

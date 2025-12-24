@@ -1,13 +1,13 @@
 /**
- * MarkNoShowModal Component
+ * MarkNoShowScreen Component
  *
- * Modal for marking attendees as no-show for a booking.
- * Allows selecting multiple attendees and supports undo (marking as present).
+ * Screen content for marking attendees as no-show for a booking.
+ * Used with the mark-no-show route that has native Stack.Header.
  */
-import { FullScreenModal } from "../FullScreenModal";
-import { GlassModalHeader } from "../GlassModalHeader";
+import type { Booking } from "../../services/calcom";
+import { CalComAPIService } from "../../services/calcom";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator, FlatList, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -18,12 +18,10 @@ interface Attendee {
   noShow?: boolean;
 }
 
-export interface MarkNoShowModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onSubmit: (attendeeEmail: string, absent: boolean) => Promise<void>;
+export interface MarkNoShowScreenProps {
+  booking: Booking | null;
   attendees: Attendee[];
-  isLoading?: boolean;
+  onUpdate: (attendees: Attendee[]) => void;
 }
 
 // Get initials from a name
@@ -37,20 +35,14 @@ const getInitials = (name: string): string => {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 };
 
-// Default export for Android/Web
-export default function MarkNoShowModal(props: MarkNoShowModalProps) {
+export function MarkNoShowScreen({ booking, attendees, onUpdate }: MarkNoShowScreenProps) {
   const insets = useSafeAreaInsets();
-  const safeAttendees = Array.isArray(props.attendees) ? props.attendees : [];
+  const safeAttendees = Array.isArray(attendees) ? attendees : [];
   const [processingEmail, setProcessingEmail] = useState<string | null>(null);
 
-  // Reset state when modal opens
-  useEffect(() => {
-    if (props.visible) {
-      setProcessingEmail(null);
-    }
-  }, [props.visible]);
-
   const handleMarkNoShow = async (attendee: Attendee) => {
+    if (!booking) return;
+
     const isCurrentlyNoShow = attendee.noShow === true;
     const action = isCurrentlyNoShow ? "mark as present" : "mark as no-show";
 
@@ -65,7 +57,14 @@ export default function MarkNoShowModal(props: MarkNoShowModalProps) {
           onPress: async () => {
             try {
               setProcessingEmail(attendee.email);
-              await props.onSubmit(attendee.email, !isCurrentlyNoShow);
+              await CalComAPIService.markNoShow(booking.uid, attendee.email, !isCurrentlyNoShow);
+
+              // Update local state
+              const updatedAttendees = safeAttendees.map((att) =>
+                att.email === attendee.email ? { ...att, noShow: !isCurrentlyNoShow } : att
+              );
+              onUpdate(updatedAttendees);
+
               Alert.alert(
                 "Success",
                 `${attendee.name || attendee.email} has been ${
@@ -94,7 +93,7 @@ export default function MarkNoShowModal(props: MarkNoShowModalProps) {
           isNoShow ? "bg-[#FEF2F2]" : "bg-white"
         }`}
         onPress={() => handleMarkNoShow(item)}
-        disabled={isProcessing || props.isLoading}
+        disabled={isProcessing}
         activeOpacity={0.7}
       >
         <View
@@ -145,55 +144,55 @@ export default function MarkNoShowModal(props: MarkNoShowModalProps) {
     );
   };
 
-  return (
-    <FullScreenModal visible={props.visible} animationType="slide" onRequestClose={props.onClose}>
-      <View className="flex-1 bg-[#F2F2F7]">
-        {/* Header */}
-        <GlassModalHeader title="Mark No-Show" onClose={props.onClose} />
+  if (!booking) {
+    return (
+      <View className="flex-1 items-center justify-center bg-[#F2F2F7]">
+        <Text className="text-gray-500">No booking data</Text>
+      </View>
+    );
+  }
 
-        {/* Content */}
-        <View className="flex-1 p-4">
-          {/* Info note */}
-          <View className="mb-4 flex-row items-start rounded-xl bg-[#E3F2FD] p-4">
-            <Ionicons name="information-circle" size={20} color="#1976D2" />
-            <Text className="ml-3 flex-1 text-[15px] leading-5 text-[#1565C0]">
-              Tap an attendee to mark them as no-show or to undo a previous no-show marking.
+  return (
+    <View className="flex-1 bg-[#F2F2F7]">
+      <View className="flex-1 p-4">
+        {/* Info note */}
+        <View className="mb-4 flex-row items-start rounded-xl bg-[#E3F2FD] p-4">
+          <Ionicons name="information-circle" size={20} color="#1976D2" />
+          <Text className="ml-3 flex-1 text-[15px] leading-5 text-[#1565C0]">
+            Tap an attendee to mark them as no-show or to undo a previous no-show marking.
+          </Text>
+        </View>
+
+        {safeAttendees.length === 0 ? (
+          <View className="flex-1 items-center justify-center">
+            <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-[#E8E8ED]">
+              <Ionicons name="people" size={40} color="#9CA3AF" />
+            </View>
+            <Text className="text-[17px] font-medium text-gray-700">No attendees found</Text>
+            <Text className="mt-2 max-w-[280px] text-center text-[15px] text-gray-500">
+              Attendee information is not available for this booking.
             </Text>
           </View>
-
-          {props.isLoading ? (
-            <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="large" color="#007AFF" />
-              <Text className="mt-3 text-[15px] text-gray-500">Loading attendees...</Text>
+        ) : (
+          <>
+            <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
+              Attendees ({safeAttendees.length})
+            </Text>
+            <View className="overflow-hidden rounded-xl">
+              <FlatList
+                data={safeAttendees}
+                renderItem={renderAttendee}
+                keyExtractor={(item) => item.email}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+              />
             </View>
-          ) : safeAttendees.length === 0 ? (
-            <View className="flex-1 items-center justify-center">
-              <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-[#E8E8ED]">
-                <Ionicons name="people" size={40} color="#9CA3AF" />
-              </View>
-              <Text className="text-[17px] font-medium text-gray-700">No attendees found</Text>
-              <Text className="mt-2 max-w-[280px] text-center text-[15px] text-gray-500">
-                Attendee information is not available for this booking.
-              </Text>
-            </View>
-          ) : (
-            <>
-              <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
-                Attendees ({safeAttendees.length})
-              </Text>
-              <View className="overflow-hidden rounded-xl">
-                <FlatList
-                  data={safeAttendees}
-                  renderItem={renderAttendee}
-                  keyExtractor={(item) => item.email}
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
-                />
-              </View>
-            </>
-          )}
-        </View>
+          </>
+        )}
       </View>
-    </FullScreenModal>
+    </View>
   );
 }
+
+// Default export for React Native compatibility
+export default MarkNoShowScreen;

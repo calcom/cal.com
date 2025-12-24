@@ -559,12 +559,15 @@ export function getBookingActions(context: BookingActionContext): BookingActions
 
   // ============================================================================
   // View Recordings Action
-  // Only visible for past Cal Video bookings that have recordings
+  // Only visible for past Cal Video bookings
+  // Note: We show this for all past Cal Video bookings, not just those with isRecorded=true,
+  // because the isRecorded field may not always be reliable. The view-recordings screen
+  // will handle showing an empty state if there are no recordings.
   // ============================================================================
   const canViewRecordings = isCalVideo && isPast && isConfirmed && !isCancelled && !isRejected;
   const viewRecordings: BookingActionResult = {
-    visible: canViewRecordings && Boolean(booking.isRecorded),
-    enabled: canViewRecordings && Boolean(booking.isRecorded),
+    visible: canViewRecordings,
+    enabled: canViewRecordings,
   };
 
   if (!isCalVideo) {
@@ -583,10 +586,6 @@ export function getBookingActions(context: BookingActionContext): BookingActions
       : isRejected
         ? "BOOKING_REJECTED"
         : "BOOKING_PENDING";
-  } else if (!booking.isRecorded) {
-    viewRecordings.visible = false;
-    viewRecordings.enabled = false;
-    viewRecordings.disabledReason = "NO_RECORDINGS";
   }
 
   // ============================================================================

@@ -8,13 +8,6 @@ import { LoadingSpinner } from "../LoadingSpinner";
 import { EmptyScreen } from "../EmptyScreen";
 import { BookingListItem } from "../booking-list-item/BookingListItem";
 import { BookingModals } from "../booking-modals/BookingModals";
-import {
-  AddGuestsModal,
-  EditLocationModal,
-  ViewRecordingsModal,
-  MeetingSessionDetailsModal,
-  MarkNoShowModal,
-} from "../booking-action-modals";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   useBookings,
@@ -110,24 +103,12 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
 
   // Booking actions hook
   const {
-    showRescheduleModal,
-    rescheduleBooking,
-    rescheduleDate,
-    setRescheduleDate,
-    rescheduleTime,
-    setRescheduleTime,
-    rescheduleReason,
-    setRescheduleReason,
     showRejectModal,
     rejectReason,
     setRejectReason,
     selectedBooking,
     setSelectedBooking,
     handleBookingPress,
-    handleRescheduleBooking,
-    handleSubmitReschedule,
-    handleRescheduleWithValues,
-    handleCloseRescheduleModal,
     handleCancelBooking,
     handleInlineConfirm,
     handleOpenRejectModal,
@@ -144,35 +125,74 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     isRescheduling,
   });
 
-  // Booking action modals hook (for add guests, edit location, recordings, etc.)
-  const {
-    showAddGuestsModal,
-    isAddingGuests,
-    openAddGuestsModal,
-    closeAddGuestsModal,
-    handleAddGuests,
-    showEditLocationModal,
-    isUpdatingLocation,
-    openEditLocationModal,
-    closeEditLocationModal,
-    handleUpdateLocation,
-    showViewRecordingsModal,
-    isLoadingRecordings,
-    recordings,
-    openViewRecordingsModal,
-    closeViewRecordingsModal,
-    showMeetingSessionDetailsModal,
-    isLoadingSessions,
-    sessions,
-    openMeetingSessionDetailsModal,
-    closeMeetingSessionDetailsModal,
-    showMarkNoShowModal,
-    isMarkingNoShow,
-    openMarkNoShowModal,
-    closeMarkNoShowModal,
-    handleMarkNoShow,
-    selectedBooking: actionModalBooking,
-  } = useBookingActionModals();
+  // Booking action modals hook
+  const { selectedBooking: actionModalBooking } = useBookingActionModals();
+
+  // Navigate to reschedule screen (same pattern as booking detail)
+  const handleNavigateToReschedule = React.useCallback(
+    (booking: Booking) => {
+      router.push({
+        pathname: "/(tabs)/(bookings)/reschedule",
+        params: { uid: booking.uid },
+      });
+    },
+    [router]
+  );
+
+  // Navigate to edit location screen (same pattern as booking detail)
+  const handleNavigateToEditLocation = React.useCallback(
+    (booking: Booking) => {
+      router.push({
+        pathname: "/(tabs)/(bookings)/edit-location",
+        params: { uid: booking.uid },
+      });
+    },
+    [router]
+  );
+
+  // Navigate to add guests screen (same pattern as booking detail)
+  const handleNavigateToAddGuests = React.useCallback(
+    (booking: Booking) => {
+      router.push({
+        pathname: "/(tabs)/(bookings)/add-guests",
+        params: { uid: booking.uid },
+      });
+    },
+    [router]
+  );
+
+  // Navigate to mark no show screen (same pattern as booking detail)
+  const handleNavigateToMarkNoShow = React.useCallback(
+    (booking: Booking) => {
+      router.push({
+        pathname: "/(tabs)/(bookings)/mark-no-show",
+        params: { uid: booking.uid },
+      });
+    },
+    [router]
+  );
+
+  // Navigate to view recordings screen (same pattern as booking detail)
+  const handleNavigateToViewRecordings = React.useCallback(
+    (booking: Booking) => {
+      router.push({
+        pathname: "/(tabs)/(bookings)/view-recordings",
+        params: { uid: booking.uid },
+      });
+    },
+    [router]
+  );
+
+  // Navigate to meeting session details screen (same pattern as booking detail)
+  const handleNavigateToMeetingSessionDetails = React.useCallback(
+    (booking: Booking) => {
+      router.push({
+        pathname: "/(tabs)/(bookings)/meeting-session-details",
+        params: { uid: booking.uid },
+      });
+    },
+    [router]
+  );
 
   // Sort bookings based on active filter
   const bookings = useMemo(() => {
@@ -247,13 +267,13 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
           setSelectedBooking(booking);
           setShowBookingActionsModal(true);
         }}
-        // iOS context menu action handlers
-        onReschedule={handleRescheduleBooking}
-        onEditLocation={openEditLocationModal}
-        onAddGuests={openAddGuestsModal}
-        onViewRecordings={openViewRecordingsModal}
-        onMeetingSessionDetails={openMeetingSessionDetailsModal}
-        onMarkNoShow={openMarkNoShowModal}
+        // iOS context menu action handlers - now use screen navigation
+        onReschedule={handleNavigateToReschedule}
+        onEditLocation={handleNavigateToEditLocation}
+        onAddGuests={handleNavigateToAddGuests}
+        onViewRecordings={handleNavigateToViewRecordings}
+        onMeetingSessionDetails={handleNavigateToMeetingSessionDetails}
+        onMarkNoShow={handleNavigateToMarkNoShow}
         onReportBooking={() => {
           Alert.alert("Report Booking", "Report booking functionality is not yet available");
         }}
@@ -394,11 +414,11 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
 
       {/* Modals */}
       <BookingModals
-        showRescheduleModal={showRescheduleModal}
-        rescheduleBooking={rescheduleBooking}
+        showRescheduleModal={false}
+        rescheduleBooking={null}
         isRescheduling={isRescheduling}
-        onRescheduleClose={handleCloseRescheduleModal}
-        onRescheduleSubmit={handleRescheduleWithValues}
+        onRescheduleClose={() => {}}
+        onRescheduleSubmit={async () => {}}
         showRejectModal={showRejectModal}
         rejectReason={rejectReason}
         isDeclining={isDeclining}
@@ -416,51 +436,43 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         selectedBooking={selectedBooking}
         onActionsClose={() => setShowBookingActionsModal(false)}
         onReschedule={() => {
-          if (selectedBooking) handleRescheduleBooking(selectedBooking);
+          // Navigate to reschedule screen instead of opening modal
+          if (selectedBooking) {
+            setShowBookingActionsModal(false);
+            handleNavigateToReschedule(selectedBooking);
+          }
         }}
         onCancel={() => {
           if (selectedBooking) handleCancelBooking(selectedBooking);
         }}
-        onEditLocation={openEditLocationModal}
-        onAddGuests={openAddGuestsModal}
-        onViewRecordings={openViewRecordingsModal}
-        onMeetingSessionDetails={openMeetingSessionDetailsModal}
-        onMarkNoShow={openMarkNoShowModal}
+        onEditLocation={(booking) => {
+          // Navigate to edit location screen instead of opening modal
+          setShowBookingActionsModal(false);
+          handleNavigateToEditLocation(booking);
+        }}
+        onAddGuests={(booking) => {
+          // Navigate to add guests screen instead of opening modal
+          setShowBookingActionsModal(false);
+          handleNavigateToAddGuests(booking);
+        }}
+        onViewRecordings={(booking) => {
+          // Navigate to view recordings screen instead of opening modal
+          setShowBookingActionsModal(false);
+          handleNavigateToViewRecordings(booking);
+        }}
+        onMeetingSessionDetails={(booking) => {
+          // Navigate to meeting session details screen instead of opening modal
+          setShowBookingActionsModal(false);
+          handleNavigateToMeetingSessionDetails(booking);
+        }}
+        onMarkNoShow={(booking) => {
+          // Navigate to mark no show screen instead of opening modal
+          setShowBookingActionsModal(false);
+          handleNavigateToMarkNoShow(booking);
+        }}
       />
 
       {/* Action Modals */}
-      <AddGuestsModal
-        visible={showAddGuestsModal}
-        onClose={closeAddGuestsModal}
-        onSubmit={handleAddGuests}
-        isLoading={isAddingGuests}
-      />
-      <EditLocationModal
-        visible={showEditLocationModal}
-        onClose={closeEditLocationModal}
-        onSubmit={handleUpdateLocation}
-        isLoading={isUpdatingLocation}
-        currentLocation={actionModalBooking?.location}
-      />
-      <ViewRecordingsModal
-        visible={showViewRecordingsModal}
-        onClose={closeViewRecordingsModal}
-        recordings={recordings}
-        isLoading={isLoadingRecordings}
-      />
-      <MeetingSessionDetailsModal
-        visible={showMeetingSessionDetailsModal}
-        onClose={closeMeetingSessionDetailsModal}
-        sessions={sessions}
-        isLoading={isLoadingSessions}
-      />
-      <MarkNoShowModal
-        visible={showMarkNoShowModal}
-        onClose={closeMarkNoShowModal}
-        onSubmit={handleMarkNoShow}
-        isLoading={isMarkingNoShow}
-        attendees={actionModalBooking?.attendees ?? []}
-      />
     </>
   );
 };

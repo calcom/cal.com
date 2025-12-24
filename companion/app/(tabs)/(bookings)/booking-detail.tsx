@@ -1,10 +1,3 @@
-import {
-  AddGuestsModal,
-  EditLocationModal,
-  ViewRecordingsModal,
-  MeetingSessionDetailsModal,
-  MarkNoShowModal,
-} from "../../../components/booking-action-modals";
 import { BookingDetailScreen } from "../../../components/screens/BookingDetailScreen";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useBookingActionModals } from "../../../hooks";
@@ -29,11 +22,11 @@ const EMPTY_ACTIONS: BookingActionsResult = {
 // Type for action handlers exposed by BookingDetailScreen
 type ActionHandlers = {
   openRescheduleModal: () => void;
-  openEditLocationModal: (booking: Booking) => void;
-  openAddGuestsModal: (booking: Booking) => void;
-  openViewRecordingsModal: (booking: Booking) => void;
-  openMeetingSessionDetailsModal: (booking: Booking) => void;
-  openMarkNoShowModal: (booking: Booking) => void;
+  openEditLocationModal: () => void;
+  openAddGuestsModal: () => void;
+  openViewRecordingsModal: () => void;
+  openMeetingSessionDetailsModal: () => void;
+  openMarkNoShowModal: () => void;
   handleCancelBooking: () => void;
 };
 
@@ -62,34 +55,7 @@ export default function BookingDetail() {
   }, [uid]);
 
   // Booking action modals hook
-  const {
-    showAddGuestsModal,
-    isAddingGuests,
-    openAddGuestsModal,
-    closeAddGuestsModal,
-    handleAddGuests: submitAddGuests,
-    showEditLocationModal,
-    isUpdatingLocation,
-    openEditLocationModal,
-    closeEditLocationModal,
-    handleUpdateLocation,
-    showViewRecordingsModal,
-    isLoadingRecordings,
-    recordings,
-    openViewRecordingsModal,
-    closeViewRecordingsModal,
-    showMeetingSessionDetailsModal,
-    isLoadingSessions,
-    sessions,
-    openMeetingSessionDetailsModal,
-    closeMeetingSessionDetailsModal,
-    showMarkNoShowModal,
-    isMarkingNoShow,
-    openMarkNoShowModal,
-    closeMarkNoShowModal,
-    handleMarkNoShow: submitMarkNoShow,
-    selectedBooking: actionModalBooking,
-  } = useBookingActionModals();
+  const { selectedBooking: actionModalBooking } = useBookingActionModals();
 
   // Compute actions using centralized gating (same as BookingDetailScreen)
   const actions = useMemo(() => {
@@ -114,34 +80,49 @@ export default function BookingDetail() {
   }, []);
 
   const handleEditLocation = useCallback(() => {
-    if (booking) {
-      openEditLocationModal(booking);
+    // Use the action handler from BookingDetailScreen if available
+    if (actionHandlersRef.current?.openEditLocationModal) {
+      actionHandlersRef.current.openEditLocationModal();
+    } else {
+      Alert.alert("Error", "Unable to edit location. Please try again.");
     }
-  }, [booking, openEditLocationModal]);
+  }, []);
 
   const handleAddGuests = useCallback(() => {
-    if (booking) {
-      openAddGuestsModal(booking);
+    // Use the action handler from BookingDetailScreen if available
+    if (actionHandlersRef.current?.openAddGuestsModal) {
+      actionHandlersRef.current.openAddGuestsModal();
+    } else {
+      Alert.alert("Error", "Unable to add guests. Please try again.");
     }
-  }, [booking, openAddGuestsModal]);
+  }, []);
 
   const handleViewRecordings = useCallback(() => {
-    if (booking) {
-      openViewRecordingsModal(booking);
+    // Use the action handler from BookingDetailScreen if available
+    if (actionHandlersRef.current?.openViewRecordingsModal) {
+      actionHandlersRef.current.openViewRecordingsModal();
+    } else {
+      Alert.alert("Error", "Unable to view recordings. Please try again.");
     }
-  }, [booking, openViewRecordingsModal]);
+  }, []);
 
   const handleSessionDetails = useCallback(() => {
-    if (booking) {
-      openMeetingSessionDetailsModal(booking);
+    // Use the action handler from BookingDetailScreen if available
+    if (actionHandlersRef.current?.openMeetingSessionDetailsModal) {
+      actionHandlersRef.current.openMeetingSessionDetailsModal();
+    } else {
+      Alert.alert("Error", "Unable to view session details. Please try again.");
     }
-  }, [booking, openMeetingSessionDetailsModal]);
+  }, []);
 
   const handleMarkNoShow = useCallback(() => {
-    if (booking) {
-      openMarkNoShowModal(booking);
+    // Use the action handler from BookingDetailScreen if available
+    if (actionHandlersRef.current?.openMarkNoShowModal) {
+      actionHandlersRef.current.openMarkNoShowModal();
+    } else {
+      Alert.alert("Error", "Unable to mark no-show. Please try again.");
     }
-  }, [booking, openMarkNoShowModal]);
+  }, []);
 
   const handleReport = useCallback(() => {
     Alert.alert("Report Booking", "Report booking functionality is not yet available");
@@ -316,37 +297,6 @@ export default function BookingDetail() {
       <BookingDetailScreen uid={uid} onActionsReady={handleActionsReady} />
 
       {/* Action Modals for iOS header menu */}
-      <AddGuestsModal
-        visible={showAddGuestsModal}
-        onClose={closeAddGuestsModal}
-        onSubmit={submitAddGuests}
-        isLoading={isAddingGuests}
-      />
-      <EditLocationModal
-        visible={showEditLocationModal}
-        onClose={closeEditLocationModal}
-        onSubmit={handleUpdateLocation}
-        isLoading={isUpdatingLocation}
-      />
-      <ViewRecordingsModal
-        visible={showViewRecordingsModal}
-        onClose={closeViewRecordingsModal}
-        recordings={recordings}
-        isLoading={isLoadingRecordings}
-      />
-      <MeetingSessionDetailsModal
-        visible={showMeetingSessionDetailsModal}
-        onClose={closeMeetingSessionDetailsModal}
-        sessions={sessions}
-        isLoading={isLoadingSessions}
-      />
-      <MarkNoShowModal
-        visible={showMarkNoShowModal}
-        onClose={closeMarkNoShowModal}
-        onSubmit={submitMarkNoShow}
-        isLoading={isMarkingNoShow}
-        attendees={actionModalBooking?.attendees ?? []}
-      />
     </>
   );
 }

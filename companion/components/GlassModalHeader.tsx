@@ -11,6 +11,8 @@ interface GlassModalHeaderProps {
   actionLabel?: string;
   actionDisabled?: boolean;
   actionLoading?: boolean;
+  /** Use icon button style (like three-dot menu) instead of text */
+  actionIcon?: keyof typeof Ionicons.glyphMap;
 }
 
 export function GlassModalHeader({
@@ -20,54 +22,59 @@ export function GlassModalHeader({
   actionLabel = "Done",
   actionDisabled = false,
   actionLoading = false,
+  actionIcon,
 }: GlassModalHeaderProps) {
   const insets = useSafeAreaInsets();
+
+  const isDisabled = actionDisabled || actionLoading;
 
   return (
     <View
       style={{
         paddingTop: insets.top,
         backgroundColor: "#FFFFFF",
-        borderBottomWidth: 0.5,
-        borderBottomColor: "#E5E5EA",
       }}
     >
       <View className="min-h-[44px] flex-row items-center justify-between px-4">
-        {/* Back Button */}
+        {/* Back Button - matching native iOS style */}
         <AppPressable
-          className="h-10 w-10 items-start justify-center"
+          className="h-11 w-11 items-center justify-center"
           onPress={onClose}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <Ionicons name="chevron-back" size={28} color="#000" />
         </AppPressable>
 
-        {/* Title */}
-        <Text
-          className="mx-2.5 flex-1 text-center text-[17px] font-semibold text-black"
-          numberOfLines={1}
-        >
+        {/* Title - centered */}
+        <Text className="flex-1 text-center text-[17px] font-semibold text-black" numberOfLines={1}>
           {title}
         </Text>
 
-        {/* Action Button or Spacer */}
+        {/* Action Button - matching senior's Stack.Header.Menu style */}
         {onAction ? (
           <AppPressable
-            className={`min-w-[60px] items-center rounded-[10px] bg-black px-3 py-2 ${
-              actionDisabled || actionLoading ? "opacity-40" : ""
-            }`}
+            className={`h-11 min-w-[44px] items-center justify-center rounded-full ${
+              actionIcon ? "bg-[#F2F2F7]" : ""
+            } ${isDisabled ? "opacity-40" : ""}`}
             onPress={onAction}
-            disabled={actionDisabled || actionLoading}
+            disabled={isDisabled}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={actionIcon ? { width: 44, height: 44 } : undefined}
           >
             {actionLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color="#000" />
+            ) : actionIcon ? (
+              // Icon button style (like the three-dot menu)
+              <Ionicons name={actionIcon} size={22} color="#000" />
             ) : (
-              <Text className="text-[15px] font-semibold text-white">{actionLabel}</Text>
+              // Text button style (like "Save", "Done")
+              <View className="items-center rounded-full bg-black px-4 py-2">
+                <Text className="text-[15px] font-semibold text-white">{actionLabel}</Text>
+              </View>
             )}
           </AppPressable>
         ) : (
-          <View style={{ width: 60 }} />
+          <View style={{ width: 44 }} />
         )}
       </View>
     </View>

@@ -2,11 +2,6 @@
  * Booking Action Modals
  *
  * This module exports all the booking action modals for easy importing.
+ * Note: RescheduleModal and EditLocationModal have been replaced with screen navigation.
+ * See: app/(tabs)/(bookings)/reschedule.tsx and app/(tabs)/(bookings)/edit-location.tsx
  */
-
-export { default as AddGuestsModal } from "./AddGuestsModal";
-export { default as EditLocationModal } from "./EditLocationModal";
-export { default as ViewRecordingsModal } from "./ViewRecordingsModal";
-export { default as MeetingSessionDetailsModal } from "./MeetingSessionDetailsModal";
-export { default as MarkNoShowModal } from "./MarkNoShowModal";
-export { default as RescheduleModal } from "./RescheduleModal";
