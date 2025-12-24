@@ -77,6 +77,7 @@ type StepObj = Record<
 
 export type TTeams = (Pick<Team, "id" | "name" | "logoUrl" | "isOrganization"> & {
   alreadyInstalled: boolean;
+  allowedMultipleInstalls?: boolean;
 })[];
 
 export type OnboardingPageProps = {
