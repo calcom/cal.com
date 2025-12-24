@@ -52,6 +52,15 @@ export const getCalendar = async (
 
 /**
  * Resolve best calendar strategy for current calendar and credential
+ *
+ * The wrapper composition is:
+ * - If cache is enabled AND batch is supported: CalendarCacheWrapper(CalendarBatchWrapper(originalCalendar))
+ * - If cache is enabled but batch is not supported: CalendarCacheWrapper(originalCalendar)
+ * - If cache is not enabled but batch is supported: CalendarBatchWrapper(originalCalendar)
+ * - Otherwise: originalCalendar
+ *
+ * This ensures that when CalendarCacheWrapper passes uncached calendars to its underlying calendar,
+ * they are still properly batched by delegationCredentialId via CalendarBatchWrapper.
  */
 const resolveCalendarServeStrategy = async (
   originalCalendar: Calendar,
@@ -74,26 +83,38 @@ const resolveCalendarServeStrategy = async (
     );
     shouldServeCache = isCalendarSubscriptionCacheEnabled && isCalendarSubscriptionCacheEnabledForUser;
   }
-  if (CalendarCacheEventService.isCalendarTypeSupported(credential.type) && shouldServeCache) {
-    log.info("Calendar Cache is enabled, using CalendarCacheService for credential", {
+
+  const isCacheSupported = CalendarCacheEventService.isCalendarTypeSupported(credential.type) && shouldServeCache;
+  const isBatchSupported = CalendarBatchService.isSupported(credential);
+
+  // Determine the base calendar (with or without batch wrapper)
+  let baseCalendar: Calendar = originalCalendar;
+  if (isBatchSupported) {
+    log.info("Calendar Batch is supported, wrapping with CalendarBatchWrapper", {
       credentialId: credential.id,
+    });
+    baseCalendar = new CalendarBatchWrapper({ originalCalendar: originalCalendar as unknown as Calendar });
+  }
+
+  // Apply cache wrapper on top if supported
+  if (isCacheSupported) {
+    log.info("Calendar Cache is enabled, wrapping with CalendarCacheWrapper", {
+      credentialId: credential.id,
+      hasBatchWrapper: isBatchSupported,
     });
     const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
     return new CalendarCacheWrapper({
-      originalCalendar: originalCalendar as unknown as Calendar,
+      originalCalendar: baseCalendar as unknown as Calendar,
       calendarCacheEventRepository,
     });
-  } else if (CalendarBatchService.isSupported(credential)) {
-    // If calendar cache isn't supported, we try calendar batch as the second layer of optimization
-    log.info("Calendar Batch is supported, using CalendarBatchService for credential", {
-      credentialId: credential.id,
-    });
-    return new CalendarBatchWrapper({ originalCalendar: originalCalendar as unknown as Calendar });
   }
 
-  // Ended up returning unoptimized original calendar
-  log.info("Calendar Cache and Batch aren't supported, serving regular calendar for credential", {
-    credentialId: credential.id,
-  });
-  return originalCalendar;
+  if (!isBatchSupported) {
+    // Ended up returning unoptimized original calendar
+    log.info("Calendar Cache and Batch aren't supported, serving regular calendar for credential", {
+      credentialId: credential.id,
+    });
+  }
+
+  return baseCalendar;
 };

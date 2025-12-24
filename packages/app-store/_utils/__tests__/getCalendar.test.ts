@@ -205,7 +205,7 @@ describe("getCalendar", () => {
       expect(result.__isBatchWrapper).toBeUndefined();
     });
 
-    test("should prioritize cache wrapper over batch wrapper when both are supported", async () => {
+    test("should compose cache wrapper over batch wrapper when both are supported", async () => {
       const mockCredential = createMockCredential({
         type: "google_calendar",
         delegatedTo: {
@@ -221,9 +221,10 @@ describe("getCalendar", () => {
       const result = (await getCalendar(mockCredential, true)) as TestCalendarResult;
 
       expect(result).toBeDefined();
-      // Cache should take precedence
+      // Cache wrapper should wrap batch wrapper, so both markers should be present
+      // The composition is: CalendarCacheWrapper(CalendarBatchWrapper(originalCalendar))
       expect(result.__isCacheWrapper).toBe(true);
-      expect(result.__isBatchWrapper).toBeUndefined();
+      expect(result.__isBatchWrapper).toBe(true);
     });
 
     test("should determine shouldServeCache from feature flags when not provided", async () => {
