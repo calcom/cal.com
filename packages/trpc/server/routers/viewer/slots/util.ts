@@ -1038,7 +1038,6 @@ export class AvailableSlotsService {
       logger.settings.minLevel = 2;
     }
 
-    const disableRollingWindowAdjustment = input.disableRollingWindowAdjustment;
     const isRollingWindowPeriodType = eventType.periodType === PeriodType.ROLLING_WINDOW;
     const startTimeAsIsoString = input.startTime;
     const isStartTimeInPast = dayjs(startTimeAsIsoString).isBefore(dayjs().subtract(1, "day").startOf("day"));
