@@ -1895,7 +1895,7 @@ __metadata:
     body-parser: "npm:^1.20.2"
     bull: "npm:^4.12.4"
     class-transformer: "npm:^0.5.1"
-    class-validator: "npm:^0.14.0"
+    class-validator: "npm:^0.14.3"
     concurrently: "npm:^9.1.2"
     cookie-parser: "npm:^1.4.6"
     dotenv: "npm:16.6.1"
@@ -2049,7 +2049,7 @@ __metadata:
     tailwindcss: "npm:4.1.17"
     ts-jest: "npm:^29.1.2"
     typescript: "npm:5.9.2"
-    vite: "npm:5.4.6"
+    vite: "npm:5.4.21"
     vite-plugin-dts: "npm:^3.7.3"
     vite-plugin-inspect: "npm:^0.8.4"
   peerDependencies:
@@ -2092,7 +2092,7 @@ __metadata:
   dependencies:
     "@calcom/atoms": "workspace:*"
     "@calcom/eslint-config": "workspace:*"
-    "@playwright/test": "npm:^1.45.3"
+    "@playwright/test": "npm:^1.55.1"
     "@prisma/client": "npm:6.7.0"
     "@tailwindcss/postcss": "npm:^4.0.0"
     "@types/node": "npm:^20.3.1"
@@ -2360,7 +2360,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/embed-core@workspace:packages/embeds/embed-core"
   dependencies:
-    "@playwright/test": "npm:^1.45.3"
+    "@playwright/test": "npm:^1.55.1"
     "@tailwindcss/cli": "npm:^4.0.0"
     "@tailwindcss/postcss": "npm:^4.0.0"
     "@vitejs/plugin-basic-ssl": "npm:^1.1.0"
@@ -2369,7 +2369,7 @@ __metadata:
     postcss: "npm:8.5.6"
     tailwindcss: "npm:4.1.17"
     typescript: "npm:5.9.2"
-    vite: "npm:4.5.3"
+    vite: "npm:4.5.14"
     vite-plugin-environment: "npm:^1.1.3"
   languageName: unknown
   linkType: soft
@@ -2381,13 +2381,13 @@ __metadata:
     "@calcom/embed-core": "workspace:*"
     "@calcom/embed-snippet": "workspace:*"
     "@calcom/eslint-config": "workspace:*"
-    "@playwright/test": "npm:^1.45.3"
+    "@playwright/test": "npm:^1.55.1"
     "@types/react": "npm:18.0.26"
     "@types/react-dom": "npm:^18.0.9"
     "@vitejs/plugin-react": "npm:^2.2.0"
     npm-run-all: "npm:^4.1.5"
     typescript: "npm:5.9.2"
-    vite: "npm:^4.5.2"
+    vite: "npm:^4.5.14"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
@@ -2401,7 +2401,7 @@ __metadata:
     "@calcom/embed-core": "workspace:*"
     "@calcom/eslint-config": "workspace:*"
     typescript: "npm:5.9.2"
-    vite: "npm:4.5.3"
+    vite: "npm:4.5.14"
   languageName: unknown
   linkType: soft
 
@@ -2531,8 +2531,8 @@ __metadata:
     handlebars: "npm:^4.7.7"
     jose: "npm:^4.13.1"
     lru-cache: "npm:^9.0.3"
-    next-auth: "npm:^4.22.1"
-    nodemailer: "npm:^6.7.8"
+    next-auth: "npm:^4.24.13"
+    nodemailer: "npm:^7.0.11"
     otplib: "npm:^12.0.1"
   languageName: unknown
   linkType: soft
@@ -2984,7 +2984,7 @@ __metadata:
     "@types/node": "npm:^20.3.1"
     "@vitejs/plugin-react": "npm:^4.2.1"
     typescript: "npm:5.9.2"
-    vite: "npm:^5.0.12"
+    vite: "npm:^5.4.21"
     vite-plugin-dts: "npm:3.7.3"
     vite-plugin-environment: "npm:^1.1.3"
   languageName: unknown
@@ -2998,7 +2998,7 @@ __metadata:
     "@calcom/platform-enums": "workspace:*"
     "@types/express": "npm:4.17.21"
     class-transformer: "npm:^0.5.1"
-    class-validator: "npm:^0.14.0"
+    class-validator: "npm:^0.14.3"
   languageName: unknown
   linkType: soft
 
@@ -3421,7 +3421,7 @@ __metadata:
     "@next-auth/prisma-adapter": "npm:^1.0.4"
     "@next/bundle-analyzer": "npm:^16.1.0"
     "@next/third-parties": "npm:^14.2.5"
-    "@playwright/test": "npm:^1.45.3"
+    "@playwright/test": "npm:^1.55.1"
     "@prisma/nextjs-monorepo-workaround-plugin": "npm:^6.16.1"
     "@radix-ui/react-avatar": "npm:1.1.3"
     "@radix-ui/react-collapsible": "npm:^1.0.0"
@@ -3478,7 +3478,7 @@ __metadata:
     classnames: "npm:^2.3.1"
     cron: "npm:^3.1.7"
     detect-port: "npm:^1.3.0"
-    dompurify: "npm:3.2.3"
+    dompurify: "npm:3.3.1"
     dotenv-cli: "npm:^6.0.0"
     entities: "npm:4.5.0"
     env-cmd: "npm:^10.1.0"
@@ -3504,14 +3504,14 @@ __metadata:
     mime-types: "npm:2.1.35"
     module-alias: "npm:^2.2.2"
     next: "npm:16.1.0"
-    next-auth: "npm:^4.22.1"
+    next-auth: "npm:^4.24.13"
     next-axiom: "npm:^0.17.0"
     next-i18next: "npm:^15.4.2"
     next-seo: "npm:^6.0.0"
     next-themes: "npm:^0.2.0"
     node-html-parser: "npm:6.1.13"
     node-mocks-http: "npm:1.16.2"
-    nodemailer: "npm:^6.7.8"
+    nodemailer: "npm:^7.0.11"
     nuqs: "npm:^2.8.2"
     openid-client: "npm:6.5.0"
     otplib: "npm:^12.0.1"
@@ -10415,14 +10415,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:^1.45.3":
-  version: 1.45.3
-  resolution: "@playwright/test@npm:1.45.3"
+"@playwright/test@npm:^1.55.1":
+  version: 1.57.0
+  resolution: "@playwright/test@npm:1.57.0"
   dependencies:
-    playwright: "npm:1.45.3"
+    playwright: "npm:1.57.0"
   bin:
     playwright: cli.js
-  checksum: 10/50b53fdaa495f734ce0dc21a9947513fd40b76672e7d8e4947124bb87bfa9cefdbb5da1ac53054802961dc82a408c5291aa3f7655732cfe8cf9d102dc8b1a501
+  checksum: 10/07f5ba4841b2db1dea70d821004c5156b692488e13523c096ce3487d30f95f34ccf30ba6467ece60c86faac27ae382213b7eacab48a695550981b2e811e5e579
   languageName: node
   linkType: hard
 
@@ -16923,10 +16923,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/validator@npm:^13.11.8":
-  version: 13.11.9
-  resolution: "@types/validator@npm:13.11.9"
-  checksum: 10/2d397c69293cc726e0cf1b4c74c563ca4e459b00f216f3ff0ac184c9648103be27169e8c67f85be9c6e7a3fcbb149c6add66a2547b185a1b25aa79e4b61261bd
+"@types/validator@npm:^13.15.3":
+  version: 13.15.10
+  resolution: "@types/validator@npm:13.15.10"
+  checksum: 10/63117a776ced4d066d7fb63130d90ba487d38209dd45c25641ca1a6f5040e8394cc9a855750b919b72a923c5ffb51f8474f213b10b5aaa27d9db108bef07ad10
   languageName: node
   linkType: hard
 
@@ -19928,7 +19928,7 @@ __metadata:
     "@evyweb/ioctopus": "npm:^1.2.0"
     "@faker-js/faker": "npm:9.2.0"
     "@jetstreamapp/soql-parser-js": "npm:^6.1.0"
-    "@playwright/test": "npm:^1.45.3"
+    "@playwright/test": "npm:^1.55.1"
     "@prisma/internals": "npm:^6.16.2"
     "@snaplet/copycat": "npm:^4.1.0"
     "@testing-library/jest-dom": "npm:^5.16.5"
@@ -20453,14 +20453,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"class-validator@npm:^0.14.0":
-  version: 0.14.1
-  resolution: "class-validator@npm:0.14.1"
+"class-validator@npm:^0.14.3":
+  version: 0.14.3
+  resolution: "class-validator@npm:0.14.3"
   dependencies:
-    "@types/validator": "npm:^13.11.8"
-    libphonenumber-js: "npm:^1.10.53"
-    validator: "npm:^13.9.0"
-  checksum: 10/0c34592a1cbdd5e9c35cd02f4babd94120339e875fc7627aa2bf5dffb45ecc373275e854389c6ff3d39781cddb85a18193b4e9e8f4d77d6d90e445fd0b8b8e11
+    "@types/validator": "npm:^13.15.3"
+    libphonenumber-js: "npm:^1.11.1"
+    validator: "npm:^13.15.20"
+  checksum: 10/492a3d3bf6db896a10bb473298b9e51cf3384a2810e32c549f1f82050786835aacc8c887b6d2f4a90aa82c4359f88252ef707f75295971db58532a73c40fffdf
   languageName: node
   linkType: hard
 
@@ -21267,14 +21267,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookie@npm:0.5.0, cookie@npm:^0.5.0":
+"cookie@npm:0.5.0":
   version: 0.5.0
   resolution: "cookie@npm:0.5.0"
   checksum: 10/aae7911ddc5f444a9025fbd979ad1b5d60191011339bce48e555cb83343d0f98b865ff5c4d71fecdfb8555a5cafdc65632f6fce172f32aaf6936830a883a0380
   languageName: node
   linkType: hard
 
-"cookie@npm:^0.7.1, cookie@npm:^0.7.2":
+"cookie@npm:^0.7.0, cookie@npm:^0.7.1, cookie@npm:^0.7.2":
   version: 0.7.2
   resolution: "cookie@npm:0.7.2"
   checksum: 10/24b286c556420d4ba4e9bc09120c9d3db7d28ace2bd0f8ccee82422ce42322f73c8312441271e5eefafbead725980e5996cc02766dbb89a90ac7f5636ede608f
@@ -22531,7 +22531,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:3.2.3, dompurify@npm:^3.2.3":
+"dompurify@npm:3.3.1":
+  version: 3.3.1
+  resolution: "dompurify@npm:3.3.1"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10/f71cca489e628591165d16e8cf4fa4f0d3e2ee48db4d73e9d2c5bedc6f915c92f9e9f101f8c4ba790bec0cdffe7f4e1747f5e31c69dc53ce7ae20a81ff6b0022
+  languageName: node
+  linkType: hard
+
+"dompurify@npm:^3.2.3":
   version: 3.2.3
   resolution: "dompurify@npm:3.2.3"
   dependencies:
@@ -28718,10 +28730,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:^4.10.0, jose@npm:^4.11.4, jose@npm:^4.13.1":
+"jose@npm:^4.10.0, jose@npm:^4.13.1":
   version: 4.13.1
   resolution: "jose@npm:4.13.1"
   checksum: 10/021020d77c097038be5ee2c23d8769f72f33053d3bae0ffc8e091bb7886a61ce74201b65c94aa16be01b00fdcb0e39c0321da8a6a656d3be09484ba8fbb6a883
+  languageName: node
+  linkType: hard
+
+"jose@npm:^4.15.5":
+  version: 4.15.9
+  resolution: "jose@npm:4.15.9"
+  checksum: 10/256234b6f85cdc080b1331f2d475bd58c8ccf459cb20f70ac5e4200b271bce10002b1c2f8e5b96dd975d83065ae5a586d52cdf89d28471d56de5d297992f9905
   languageName: node
   linkType: hard
 
@@ -32226,28 +32245,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next-auth@npm:^4.22.1":
-  version: 4.22.1
-  resolution: "next-auth@npm:4.22.1"
+"next-auth@npm:^4.24.13":
+  version: 4.24.13
+  resolution: "next-auth@npm:4.24.13"
   dependencies:
     "@babel/runtime": "npm:^7.20.13"
     "@panva/hkdf": "npm:^1.0.2"
-    cookie: "npm:^0.5.0"
-    jose: "npm:^4.11.4"
+    cookie: "npm:^0.7.0"
+    jose: "npm:^4.15.5"
     oauth: "npm:^0.9.15"
     openid-client: "npm:^5.4.0"
     preact: "npm:^10.6.3"
     preact-render-to-string: "npm:^5.1.19"
     uuid: "npm:^8.3.2"
   peerDependencies:
-    next: ^12.2.5 || ^13
-    nodemailer: ^6.6.5
-    react: ^17.0.2 || ^18
-    react-dom: ^17.0.2 || ^18
+    "@auth/core": 0.34.3
+    next: ^12.2.5 || ^13 || ^14 || ^15 || ^16
+    nodemailer: ^7.0.7
+    react: ^17.0.2 || ^18 || ^19
+    react-dom: ^17.0.2 || ^18 || ^19
   peerDependenciesMeta:
+    "@auth/core":
+      optional: true
     nodemailer:
       optional: true
-  checksum: 10/2f3422f0c8b6b78593799654174386ed1df8943214f686062971139bc71bef3e43529b42089f6f670927d3feed35118ac5cea0c8a0c52947ba5611e9dee0b9bf
+  checksum: 10/019ad687c41c4ef5fa86a1b7e5df89f85350e801eec4d818c997336279430afa85eafc0ac7ec262c4d044f4b07d1aeddf7a8f981c5619f73a0d216f5fea05763
   languageName: node
   linkType: hard
 
@@ -32739,10 +32761,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemailer@npm:^6.7.8":
-  version: 6.7.8
-  resolution: "nodemailer@npm:6.7.8"
-  checksum: 10/ebcd079bffc08035cb10a452f9d6a11051eb052d784f3be53596288f0fb8a8900241037026783ee708af9c883b3532c5f50ce1510106577c5aa94a4e82ec5ab6
+"nodemailer@npm:^7.0.11":
+  version: 7.0.12
+  resolution: "nodemailer@npm:7.0.12"
+  checksum: 10/31a2713be588fb6849d05698cb355a88902a64e17e63b1a5c8a10db3acc4349c329c3bbd83bc5bdefda92f8df5e0297364502f93042c0bae87c48e5652b663b7
   languageName: node
   linkType: hard
 
@@ -34297,27 +34319,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.45.3":
-  version: 1.45.3
-  resolution: "playwright-core@npm:1.45.3"
+"playwright-core@npm:1.57.0":
+  version: 1.57.0
+  resolution: "playwright-core@npm:1.57.0"
   bin:
     playwright-core: cli.js
-  checksum: 10/6540ae149a8deaceb3dc6f60ea7a7052894aebb651b8c187c97c5532b50ee6c812e7f9644a15ecbfb146d5e7880dbb23010df2bac012493bd75b5624710df6bd
+  checksum: 10/ec066602f0196f036006caee14a30d0a57533a76673bb9a0c609ef56e21decf018f0e8d402ba2fb18251393be6a1c9e193c83266f1670fe50838c5340e220de0
   languageName: node
   linkType: hard
 
-"playwright@npm:1.45.3":
-  version: 1.45.3
-  resolution: "playwright@npm:1.45.3"
+"playwright@npm:1.57.0":
+  version: 1.57.0
+  resolution: "playwright@npm:1.57.0"
   dependencies:
     fsevents: "npm:2.3.2"
-    playwright-core: "npm:1.45.3"
+    playwright-core: "npm:1.57.0"
   dependenciesMeta:
     fsevents:
       optional: true
   bin:
     playwright: cli.js
-  checksum: 10/86959666c68f53b984df3d4a4aa3a7806fff95d5735dc4c16f5cef0889ab07180e1600792f0e66f9b84250931f5971077774cd8f2f077d8b02171f89a33ab588
+  checksum: 10/241559210f98ef11b6bd6413f2d29da7ef67c7865b72053192f0d164fab9e0d3bd47913b3351d5de6433a8aff2d8424d4b8bd668df420bf4dda7ae9fcd37b942
   languageName: node
   linkType: hard
 
@@ -41621,7 +41643,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"validator@npm:^13.6.0, validator@npm:^13.7.0, validator@npm:^13.9.0":
+"validator@npm:^13.15.20":
+  version: 13.15.26
+  resolution: "validator@npm:13.15.26"
+  checksum: 10/22488ae718ca724eda81b7c8bf505005d4d70cb6ff9a319f48fd897a31d40fd9a2971af4a3288667a04c56b4f95912555495519d54a5d8d63c2572bf4970081a
+  languageName: node
+  linkType: hard
+
+"validator@npm:^13.6.0, validator@npm:^13.7.0":
   version: 13.11.0
   resolution: "validator@npm:13.11.0"
   checksum: 10/4bf094641eb71729c06a42d669840e7189597ba655a8264adabac9bf03f95cd6fde5fbc894b0a13ee861bd4a852f56d2afdc9391aeaeb3fc0f9633a974140e12
@@ -41743,9 +41772,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:4.5.3, vite@npm:^4.5.2":
-  version: 4.5.3
-  resolution: "vite@npm:4.5.3"
+"vite@npm:4.5.14, vite@npm:^4.5.14":
+  version: 4.5.14
+  resolution: "vite@npm:4.5.14"
   dependencies:
     esbuild: "npm:^0.18.10"
     fsevents: "npm:~2.3.2"
@@ -41779,7 +41808,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10/82efe1bc6d6848f8c97b71f1dc5b2fba2c3f30b2207ef2451c8df1a0ed5903c55714d7cd8ecb75879b488661d97f6e01a4ad758b5ef6a50a14338f916233bfa4
+  checksum: 10/316a02f0d310511241fae15e6085c9f7285e87b7a75b7b04216925e72ec17107ae6f666181c79c711f6008fdaa8a0b4510280c68ce0bfab436ebea2470783d0a
   languageName: node
   linkType: hard
 
@@ -41823,7 +41852,50 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:5.4.6, vite@npm:^5.0.0, vite@npm:^5.0.12":
+"vite@npm:5.4.21, vite@npm:^5.4.21":
+  version: 5.4.21
+  resolution: "vite@npm:5.4.21"
+  dependencies:
+    esbuild: "npm:^0.21.3"
+    fsevents: "npm:~2.3.3"
+    postcss: "npm:^8.4.43"
+    rollup: "npm:^4.20.0"
+  peerDependencies:
+    "@types/node": ^18.0.0 || >=20.0.0
+    less: "*"
+    lightningcss: ^1.21.0
+    sass: "*"
+    sass-embedded: "*"
+    stylus: "*"
+    sugarss: "*"
+    terser: ^5.4.0
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    less:
+      optional: true
+    lightningcss:
+      optional: true
+    sass:
+      optional: true
+    sass-embedded:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: 10/479a63e271d2d9e80a8e553e165444179681f33ddec1e7c84a43c4572f67c3d3abd33136389beb42703e32d3e96e1e8a930a222ee1bb64263ba057c187ccf793
+  languageName: node
+  linkType: hard
+
+"vite@npm:^5.0.0":
   version: 5.4.6
   resolution: "vite@npm:5.4.6"
   dependencies:
