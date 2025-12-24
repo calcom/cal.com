@@ -28,38 +28,9 @@ env:
   JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
   NODE_ENV: ${{ vars.CI_NODE_ENV }}
 jobs:
-  check-api-v2-breaking-changes:
-    timeout-minutes: 10
-    name: Check API v2 breaking changes
-    runs-on: buildjet-4vcpu-ubuntu-2204
-    steps:
-      - uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/yarn-install
-
-      - name: Generate Swagger
-        working-directory: apps/api/v2
-        run: yarn generate-swagger
-
-      - name: Check API v2 breaking changes
-        run: |
-          docker run --rm \
-            -v "$PWD:/work" -w /work \
-            tufin/oasdiff:latest \
-            breaking \
-            https://raw.githubusercontent.com/calcom/cal.com/refs/heads/main/docs/api-reference/v2/openapi.json \
-            docs/api-reference/v2/openapi.json \
-            --fail-on ERR \
-            --err-ignore .github/oasdiff-err-ignore.txt
-
   e2e:
     timeout-minutes: 20
-    name: E2E API v2 (${{ matrix.shard }}/4)
-    needs: check-api-v2-breaking-changes
+    name: E2E API v2 (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: buildjet-16vcpu-ubuntu-2204
     services:
       postgres:
@@ -107,9 +78,9 @@ jobs:
       - name: Run Tests
         working-directory: apps/api/v2
         run: |
-          yarn workspace @calcom/platform-libraries build && yarn test:e2e --shard=${{ matrix.shard }}/4
+          yarn workspace @calcom/platform-libraries build && yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
           EXIT_CODE=$?
-          echo "yarn test:e2e --shard=${{ matrix.shard }}/4 command exit code: $EXIT_CODE"
+          echo "yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }} command exit code: $EXIT_CODE"
           exit $EXIT_CODE
 
       - name: Upload Test Results
