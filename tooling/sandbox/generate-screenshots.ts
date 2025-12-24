@@ -124,8 +124,13 @@ async function main() {
     console.log(`Using Storybook URL: ${STORYBOOK_URL}`);
 
     // Fetch all stories
-    const stories = await fetchStoryIndex();
-    console.log(`Found ${stories.length} stories`);
+    const allStories = await fetchStoryIndex();
+    console.log(`Found ${allStories.length} stories`);
+
+    // Limit to first 10 stories for testing (remove this limit for full generation)
+    const TEST_LIMIT = 10;
+    const stories = allStories.slice(0, TEST_LIMIT);
+    console.log(`⚡ Test mode: generating screenshots for first ${stories.length} stories only`);
 
     const firstStory = stories[0];
     if (!firstStory) {

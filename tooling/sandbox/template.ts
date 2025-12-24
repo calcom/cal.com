@@ -23,13 +23,13 @@ export const template = Template()
   .gitClone(
     `https://${process.env.GIT_ACCESS_TOKEN}@github.com/onlook-dev/cal.com.git`,
     '/home/user/code',
-    { branch: 'feat/storybook-setup' },
+    { branch: 'feat/storybook-stories' },
   )
   .setWorkdir('/home/user/code')
   .runCmd('yarn install')
   .runCmd('npx playwright install --with-deps chromium')
   .runCmd('npx tsx tooling/sandbox/generate-screenshots.ts')
   .setStartCmd(
-    'cd /home/user/code; git pull https://$GIT_ACCESS_TOKEN@github.com/onlook-dev/cal.com.git feat/storybook-setup; yarn install; yarn workspace @calcom/storybook storybook --host 0.0.0.0 --disable-telemetry --no-open',
+    'cd /home/user/code; git pull https://$GIT_ACCESS_TOKEN@github.com/onlook-dev/cal.com.git feat/storybook-stories; yarn install; yarn workspace @calcom/storybook storybook --host 0.0.0.0 --disable-telemetry --no-open',
     waitForPort(6006),
   );
