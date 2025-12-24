@@ -15,7 +15,6 @@ import {
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
-import { usePrefetch } from "@calcom/features/bookings/Booker/components/hooks/usePrefetch";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { ConnectedDestinationCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
@@ -77,7 +76,7 @@ const BookerPlatformWrapperComponent = (
 
   const { clientId } = useAtomsContext();
   const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
-  const [bookerState, setBookerState] = useBookerStoreContext(
+  const [_bookerState, setBookerState] = useBookerStoreContext(
     (state) => [state.state, state.setState],
     shallow
   );
@@ -237,22 +236,14 @@ const BookerPlatformWrapperComponent = (
   const extraOptions = useMemo(() => {
     return restFormValues;
   }, [restFormValues]);
-  const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
-  const { prefetchNextMonth, monthCount } = usePrefetch({
-    date,
-    month,
-    bookerLayout,
-    bookerState,
-  });
   const { timezone } = useTimePreferences();
 
   const [calculatedStartTime, calculatedEndTime] = useTimesForSchedule({
     month,
-    monthCount,
     dayCount,
-    prefetchNextMonth,
     selectedDate,
+    bookerLayout,
   });
 
   const startTime =

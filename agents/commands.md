@@ -28,10 +28,16 @@
 
 - `yarn test` - Run unit tests (vitest)
 - `yarn test <filename>` - Run tests for specific file
-- `yarn test <filename> -- --integrationTestsOnly` - Run integration tests for specific file
-- `yarn test <filename> -t "<testName>" -- --integrationTestsOnly` - Run specific test by name
+- `yarn test <filename> -t "<testName>"` - Run specific test by name for specific file
 - `yarn tdd` - Run tests in watch mode
 - `yarn test:ui` - Run tests with UI interface
+
+### Integration Tests
+
+- `yarn test -- --integrationTestsOnly` - Run integration tests (vitest)
+- `yarn test <filename> -- --integrationTestsOnly` - Run integration tests for specific file
+- `yarn test <filename> -t "<testName>" -- --integrationTestsOnly` - Run specific integration test by name for specific file
+
 
 ### End-to-End Tests
 

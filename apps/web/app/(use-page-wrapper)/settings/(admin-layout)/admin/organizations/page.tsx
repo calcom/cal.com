@@ -2,7 +2,7 @@ import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import AdminOrgTable from "@calcom/features/ee/organizations/pages/settings/admin/AdminOrgPage";
+import AdminOrgTable from "~/ee/organizations/admin/AdminOrgPage";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async () =>

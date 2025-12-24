@@ -1,6 +1,6 @@
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
-import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
+import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
