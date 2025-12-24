@@ -144,6 +144,8 @@ jobs:
     needs: [prepare, deps]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/setup-db.yml
+    with:
+      COMMIT_SHA: ${{ needs.prepare.outputs.commit-sha }}
     secrets: inherit
 
   build-api-v1:
