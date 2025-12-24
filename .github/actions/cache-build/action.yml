@@ -1,5 +1,5 @@
-name: Build production binaries
-description: "Build the web app using Turbo Remote Caching"
+name: Cache production build binaries
+description: "Cache or restore if necessary"
 inputs:
   node_version:
     required: false
