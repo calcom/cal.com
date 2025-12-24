@@ -5,6 +5,7 @@ export default function BookingsLayout() {
   return (
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: Platform.OS !== "ios" ? false : true }} />
+      <Stack.Screen name="booking-detail" />
     </Stack>
   );
 }
