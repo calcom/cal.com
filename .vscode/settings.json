@@ -2,10 +2,10 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "biomejs.biome",
-  "editor.codeActionsOnSave": {
-    "source.organizeImports.biome": "explicit",
-    "quickfix.biome": "explicit"
-  },
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.biome": "explicit",
+      "source.fixAll.biome": "explicit"
+    },
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "spellright.language": ["en"],
   "spellright.documentTypes": ["markdown", "typescript", "typescriptreact"],
