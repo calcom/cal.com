@@ -63,6 +63,13 @@ interface BookingModalsProps {
   onActionsClose: () => void;
   onReschedule: () => void;
   onCancel: () => void;
+
+  // Action modal handlers (optional - if not provided, actions will be disabled)
+  onEditLocation?: (booking: Booking) => void;
+  onAddGuests?: (booking: Booking) => void;
+  onViewRecordings?: (booking: Booking) => void;
+  onMeetingSessionDetails?: (booking: Booking) => void;
+  onMarkNoShow?: (booking: Booking) => void;
 }
 
 export const BookingModals: React.FC<BookingModalsProps> = ({
@@ -94,6 +101,11 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
   onActionsClose,
   onReschedule,
   onCancel,
+  onEditLocation,
+  onAddGuests,
+  onViewRecordings,
+  onMeetingSessionDetails,
+  onMarkNoShow,
 }) => {
   // Compute actions using centralized gating
   const actions = useMemo(() => {
@@ -176,25 +188,32 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
         actions={actions}
         onReschedule={onReschedule}
         onEditLocation={() => {
-          Alert.alert("Edit Location", "Edit location functionality coming soon");
+          if (selectedBooking && onEditLocation) {
+            onEditLocation(selectedBooking);
+          }
         }}
         onAddGuests={() => {
-          Alert.alert("Add Guests", "Add guests functionality coming soon");
+          if (selectedBooking && onAddGuests) {
+            onAddGuests(selectedBooking);
+          }
         }}
         onViewRecordings={() => {
-          Alert.alert("View Recordings", "View recordings functionality coming soon");
+          if (selectedBooking && onViewRecordings) {
+            onViewRecordings(selectedBooking);
+          }
         }}
         onMeetingSessionDetails={() => {
-          Alert.alert(
-            "Meeting Session Details",
-            "Meeting session details functionality coming soon"
-          );
+          if (selectedBooking && onMeetingSessionDetails) {
+            onMeetingSessionDetails(selectedBooking);
+          }
         }}
         onMarkNoShow={() => {
-          Alert.alert("Mark as No-Show", "Mark as no-show functionality coming soon");
+          if (selectedBooking && onMarkNoShow) {
+            onMarkNoShow(selectedBooking);
+          }
         }}
         onReportBooking={() => {
-          Alert.alert("Report Booking", "Report booking functionality coming soon");
+          Alert.alert("Report Booking", "Report booking functionality is not yet available");
         }}
         onCancelBooking={onCancel}
       />

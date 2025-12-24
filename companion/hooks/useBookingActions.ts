@@ -78,10 +78,32 @@ export const useBookingActions = ({
    * Open reschedule modal with pre-filled data
    */
   const handleRescheduleBooking = (booking: Booking) => {
-    // Pre-fill with the current booking date/time
-    const currentDate = new Date(booking.startTime);
-    const dateStr = currentDate.toISOString().split("T")[0]; // YYYY-MM-DD
-    const timeStr = currentDate.toTimeString().slice(0, 5); // HH:MM
+    // Get the start time from booking (prefer startTime, fallback to start)
+    const startTimeValue = booking.startTime || booking.start;
+
+    // Validate we have a valid date
+    if (!startTimeValue) {
+      showErrorAlert("Error", "Unable to reschedule: booking has no start time");
+      return;
+    }
+
+    const currentDate = new Date(startTimeValue);
+
+    // Check if the date is valid
+    if (isNaN(currentDate.getTime())) {
+      showErrorAlert("Error", "Unable to reschedule: invalid booking date");
+      return;
+    }
+
+    // Use local timezone consistently (not UTC) to avoid date/time mismatch
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+    const day = String(currentDate.getDate()).padStart(2, "0");
+    const hours = String(currentDate.getHours()).padStart(2, "0");
+    const minutes = String(currentDate.getMinutes()).padStart(2, "0");
+
+    const dateStr = `${year}-${month}-${day}`;
+    const timeStr = `${hours}:${minutes}`;
 
     setRescheduleBooking(booking);
     setRescheduleDate(dateStr);

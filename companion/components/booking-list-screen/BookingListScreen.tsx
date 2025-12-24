@@ -8,6 +8,13 @@ import { LoadingSpinner } from "../LoadingSpinner";
 import { EmptyScreen } from "../EmptyScreen";
 import { BookingListItem } from "../booking-list-item/BookingListItem";
 import { BookingModals } from "../booking-modals/BookingModals";
+import {
+  AddGuestsModal,
+  EditLocationModal,
+  ViewRecordingsModal,
+  MeetingSessionDetailsModal,
+  MarkNoShowModal,
+} from "../booking-action-modals";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   useBookings,
@@ -16,6 +23,7 @@ import {
   useDeclineBooking,
   useRescheduleBooking,
   useBookingActions,
+  useBookingActionModals,
   type BookingFilter,
 } from "../../hooks";
 import { offlineAwareRefresh } from "../../utils/network";
@@ -135,6 +143,36 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     isRescheduling,
   });
 
+  // Booking action modals hook (for add guests, edit location, recordings, etc.)
+  const {
+    showAddGuestsModal,
+    isAddingGuests,
+    openAddGuestsModal,
+    closeAddGuestsModal,
+    handleAddGuests,
+    showEditLocationModal,
+    isUpdatingLocation,
+    openEditLocationModal,
+    closeEditLocationModal,
+    handleUpdateLocation,
+    showViewRecordingsModal,
+    isLoadingRecordings,
+    recordings,
+    openViewRecordingsModal,
+    closeViewRecordingsModal,
+    showMeetingSessionDetailsModal,
+    isLoadingSessions,
+    sessions,
+    openMeetingSessionDetailsModal,
+    closeMeetingSessionDetailsModal,
+    showMarkNoShowModal,
+    isMarkingNoShow,
+    openMarkNoShowModal,
+    closeMarkNoShowModal,
+    handleMarkNoShow,
+    selectedBooking: actionModalBooking,
+  } = useBookingActionModals();
+
   // Sort bookings based on active filter
   const bookings = useMemo(() => {
     if (!rawBookings || !Array.isArray(rawBookings)) return [];
@@ -210,26 +248,13 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         }}
         // iOS context menu action handlers
         onReschedule={handleRescheduleBooking}
-        onEditLocation={() => {
-          Alert.alert("Edit Location", "Edit location functionality coming soon");
-        }}
-        onAddGuests={() => {
-          Alert.alert("Add Guests", "Add guests functionality coming soon");
-        }}
-        onViewRecordings={() => {
-          Alert.alert("View Recordings", "View recordings functionality coming soon");
-        }}
-        onMeetingSessionDetails={() => {
-          Alert.alert(
-            "Meeting Session Details",
-            "Meeting session details functionality coming soon"
-          );
-        }}
-        onMarkNoShow={() => {
-          Alert.alert("Mark as No-Show", "Mark as no-show functionality coming soon");
-        }}
+        onEditLocation={openEditLocationModal}
+        onAddGuests={openAddGuestsModal}
+        onViewRecordings={openViewRecordingsModal}
+        onMeetingSessionDetails={openMeetingSessionDetailsModal}
+        onMarkNoShow={openMarkNoShowModal}
         onReportBooking={() => {
-          Alert.alert("Report Booking", "Report booking functionality coming soon");
+          Alert.alert("Report Booking", "Report booking functionality is not yet available");
         }}
         onCancelBooking={handleCancelBooking}
       />
@@ -400,6 +425,45 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         onCancel={() => {
           if (selectedBooking) handleCancelBooking(selectedBooking);
         }}
+        onEditLocation={openEditLocationModal}
+        onAddGuests={openAddGuestsModal}
+        onViewRecordings={openViewRecordingsModal}
+        onMeetingSessionDetails={openMeetingSessionDetailsModal}
+        onMarkNoShow={openMarkNoShowModal}
+      />
+
+      {/* Action Modals */}
+      <AddGuestsModal
+        visible={showAddGuestsModal}
+        onClose={closeAddGuestsModal}
+        onSubmit={handleAddGuests}
+        isLoading={isAddingGuests}
+      />
+      <EditLocationModal
+        visible={showEditLocationModal}
+        onClose={closeEditLocationModal}
+        onSubmit={handleUpdateLocation}
+        isLoading={isUpdatingLocation}
+        currentLocation={actionModalBooking?.location}
+      />
+      <ViewRecordingsModal
+        visible={showViewRecordingsModal}
+        onClose={closeViewRecordingsModal}
+        recordings={recordings}
+        isLoading={isLoadingRecordings}
+      />
+      <MeetingSessionDetailsModal
+        visible={showMeetingSessionDetailsModal}
+        onClose={closeMeetingSessionDetailsModal}
+        sessions={sessions}
+        isLoading={isLoadingSessions}
+      />
+      <MarkNoShowModal
+        visible={showMarkNoShowModal}
+        onClose={closeMarkNoShowModal}
+        onSubmit={handleMarkNoShow}
+        isLoading={isMarkingNoShow}
+        attendees={actionModalBooking?.attendees}
       />
     </>
   );

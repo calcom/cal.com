@@ -73,6 +73,7 @@ export {
 } from "./useActiveBookingFilter";
 
 export { useBookingActions } from "./useBookingActions";
+export { useBookingActionModals } from "./useBookingActionModals";
 
 // Re-export query keys for advanced use cases
 export { queryKeys } from "../config/cache.config";
