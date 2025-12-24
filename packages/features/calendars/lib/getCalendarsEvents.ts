@@ -80,6 +80,54 @@ export const getCalendarsEventsWithTimezones = async (
   return awaitedResults;
 };
 
+/**
+ * Groups credentials by their delegation credential ID.
+ * Credentials sharing the same delegatedToId will be grouped together
+ * so we can batch their calendar availability requests.
+ *
+ * Non-delegation credentials get their own group (keyed by their credential ID).
+ */
+function groupCredentialsByDelegation(
+  credentials: CredentialForCalendarService[]
+): Map<string, CredentialForCalendarService[]> {
+  const groups = new Map<string, CredentialForCalendarService[]>();
+
+  for (const credential of credentials) {
+    const delegatedToId = credential.delegatedToId;
+    const groupKey = delegatedToId ? `delegation-${delegatedToId}` : `regular-${credential.id}`;
+
+    const existing = groups.get(groupKey) || [];
+    existing.push(credential);
+    groups.set(groupKey, existing);
+  }
+
+  return groups;
+}
+
+/**
+ * Merges selected calendars from multiple credentials in a delegation group.
+ * Deduplicates by externalId to avoid duplicate calendar entries.
+ */
+function mergeSelectedCalendarsForGroup(
+  credentials: CredentialForCalendarService[],
+  selectedCalendars: SelectedCalendar[]
+): SelectedCalendar[] {
+  const merged = new Map<string, SelectedCalendar>();
+
+  for (const credential of credentials) {
+    const calendarsForCredential = filterSelectedCalendarsForCredential(selectedCalendars, credential);
+    for (const calendar of calendarsForCredential) {
+      if (!merged.has(calendar.externalId)) {
+        merged.set(calendar.externalId, calendar);
+      }
+    }
+  }
+
+  return Array.from(merged.values()).sort((a, b) =>
+    a.externalId < b.externalId ? -1 : a.externalId > b.externalId ? 1 : 0
+  );
+}
+
 const getCalendarsEvents = async (
   withCredentials: CredentialForCalendarService[],
   dateFrom: string,
@@ -89,83 +137,90 @@ const getCalendarsEvents = async (
 ): Promise<EventBusyDate[][]> => {
   const calendarCredentials = withCredentials
     .filter((credential) => credential.type.endsWith("_calendar"))
-    // filter out invalid credentials - these won't work.
     .filter((credential) => !credential.invalid);
 
-  const calendarAndCredentialPairs = await Promise.all(
-    calendarCredentials.map(async (credential) => {
-      const calendar = await getCalendar(credential, shouldServeCache);
-      return [calendar, credential] as const;
+  // Group credentials by delegation credential ID to batch freebusy calls
+  const credentialGroups = groupCredentialsByDelegation(calendarCredentials);
+
+  log.debug("Grouped credentials for batching", {
+    totalCredentials: calendarCredentials.length,
+    groups: credentialGroups.size,
+    groupKeys: Array.from(credentialGroups.keys()),
+  });
+
+  // Create calendar services for each group (one service per delegation group)
+  const groupEntries = Array.from(credentialGroups.entries());
+  const calendarServicesForGroups = await Promise.all(
+    groupEntries.map(async ([groupKey, credentials]) => {
+      // Use the first credential in the group to create the calendar service
+      // For delegation credentials, they all share the same underlying token
+      const representativeCredential = credentials[0];
+      const calendar = await getCalendar(representativeCredential, shouldServeCache);
+      return { groupKey, credentials, calendar, representativeCredential };
     })
   );
 
-  const calendars = calendarAndCredentialPairs.map(([calendar]) => calendar);
-  const calendarToCredentialMap = new Map(calendarAndCredentialPairs);
   performance.mark("getBusyCalendarTimesStart");
-  const results = calendars.map(async (calendarService, i) => {
-    /** Filter out nulls */
-    if (!calendarService) return [];
-    /** We rely on the index so we can match credentials with calendars */
-    const { type, appId } = calendarCredentials[i];
-    const credential = calendarToCredentialMap.get(calendarService);
-    /** We just pass the calendars that matched the credential type,
-     * TODO: Migrate credential type or appId
-     */
-    // Important to have them unique so that
-    const passedSelectedCalendars = credential
-      ? filterSelectedCalendarsForCredential(selectedCalendars, credential)
-      : selectedCalendars
-          .filter((sc) => sc.integration === type)
-          // Needed to ensure cache keys are consistent
-          .sort((a, b) => (a.externalId < b.externalId ? -1 : a.externalId > b.externalId ? 1 : 0));
-    const isADelegationCredential = credential && isDelegationCredential({ credentialId: credential.id });
-    // We want to fallback to primary calendar when no selectedCalendars are passed
-    // Default behaviour for Google Calendar is to use all available calendars, which isn't good default.
-    const allowFallbackToPrimary = isADelegationCredential;
-    if (!passedSelectedCalendars.length) {
-      if (!isADelegationCredential) {
-        // It was done to fix the secondary calendar connections from always checking the conflicts even if intentional no calendars are selected.
-        // https://github.com/calcom/cal.com/issues/8929
-        log.error(
-          `No selected calendars for non DWD credential: Skipping getAvailability call for credential ${credential?.id}`
-        );
-        return [];
+
+  const results = calendarServicesForGroups.map(
+    async ({ groupKey, credentials, calendar: calendarService, representativeCredential }) => {
+      if (!calendarService) return [];
+
+      const { appId } = representativeCredential;
+      const isADelegationCredential = isDelegationCredential({ credentialId: representativeCredential.id });
+
+      // For delegation groups, merge all selected calendars from all credentials in the group
+      // This ensures we make ONE batched freebusy call instead of multiple calls
+      const passedSelectedCalendars = isADelegationCredential
+        ? mergeSelectedCalendarsForGroup(credentials, selectedCalendars)
+        : filterSelectedCalendarsForCredential(selectedCalendars, representativeCredential);
+
+      const allowFallbackToPrimary = isADelegationCredential;
+
+      if (!passedSelectedCalendars.length) {
+        if (!isADelegationCredential) {
+          log.error(
+            `No selected calendars for non DWD credential: Skipping getAvailability call for credential ${representativeCredential.id}`
+          );
+          return [];
+        }
+        log.info("Allowing getAvailability even without any selected calendars for Delegation Credential");
       }
-      // For delegation credential, we should allow getAvailability even without any selected calendars. It ensures that enabling Delegation Credential at Organization level always ensure one selected calendar for conflicts checking, without requiring any manual action from organization members
-      // This is also, similar to how Google Calendar connect flow(through /googlecalendar/api/callback) sets the primary calendar as the selected calendar automatically.
-      log.info("Allowing getAvailability even without any selected calendars for Delegation Credential");
+
+      const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
+      performance.mark("eventBusyDatesStart");
+
+      log.debug(
+        `Getting availability for group ${groupKey}`,
+        safeStringify({
+          calendarService: calendarService.constructor.name,
+          credentialCount: credentials.length,
+          selectedCalendars: passedSelectedCalendars.map(getPiiFreeSelectedCalendar),
+        })
+      );
+
+      const eventBusyDates = await calendarService.getAvailability(
+        dateFrom,
+        dateTo,
+        passedSelectedCalendars,
+        shouldServeCache,
+        allowFallbackToPrimary
+      );
+
+      performance.mark("eventBusyDatesEnd");
+      performance.measure(
+        `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,
+        "eventBusyDatesStart",
+        "eventBusyDatesEnd"
+      );
+
+      return eventBusyDates.map((a) => ({
+        ...a,
+        source: `${appId}`,
+      }));
     }
-    /** We extract external Ids so we don't cache too much */
+  );
 
-    const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
-    /** If we don't then we actually fetch external calendars (which can be very slow) */
-    performance.mark("eventBusyDatesStart");
-    log.debug(
-      `Getting availability for`,
-      safeStringify({
-        calendarService: calendarService.constructor.name,
-        selectedCalendars: passedSelectedCalendars.map(getPiiFreeSelectedCalendar),
-      })
-    );
-    const eventBusyDates = await calendarService.getAvailability(
-      dateFrom,
-      dateTo,
-      passedSelectedCalendars,
-      shouldServeCache,
-      allowFallbackToPrimary
-    );
-    performance.mark("eventBusyDatesEnd");
-    performance.measure(
-      `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,
-      "eventBusyDatesStart",
-      "eventBusyDatesEnd"
-    );
-
-    return eventBusyDates.map((a) => ({
-      ...a,
-      source: `${appId}`,
-    }));
-  });
   const awaitedResults = await Promise.all(results);
   performance.mark("getBusyCalendarTimesEnd");
   performance.measure(
@@ -173,6 +228,7 @@ const getCalendarsEvents = async (
     "getBusyCalendarTimesStart",
     "getBusyCalendarTimesEnd"
   );
+
   log.debug(
     "Result",
     safeStringify({
@@ -181,6 +237,7 @@ const getCalendarsEvents = async (
       calendarEvents: awaitedResults,
     })
   );
+
   return awaitedResults;
 };
 
