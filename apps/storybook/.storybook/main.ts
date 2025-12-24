@@ -1,7 +1,7 @@
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import type { StorybookConfig } from '@storybook/nextjs-vite';
-import { storybookOnlookPlugin } from './storybook-onlook-plugin/index';
+import { storybookOnlookPlugin } from 'storybook-onbook-plugin';
 import componentLocPlugin from './vite-plugin-component-loc';
 
 const __filename = fileURLToPath(import.meta.url);

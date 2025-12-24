@@ -3320,6 +3320,7 @@ __metadata:
     react-dom: "npm:^18.2.0"
     react-inlinesvg: "npm:^4.1.3"
     storybook: "npm:^10.0.5"
+    storybook-onbook-plugin: "npm:0.2.1"
     tailwindcss: "npm:4.1.17"
     typescript: "npm:^5.9.0"
     vite: "npm:^6.3.5"
@@ -41759,6 +41760,23 @@ __metadata:
   version: 2.14.2
   resolution: "store2@npm:2.14.2"
   checksum: 10/896cb4c75b94b630206e0ef414f78d656a5d2498127094d9d0852e1e7b88509b3a7972c92cad3e74ee34ef6b06d25083ad2ac38880254ccb2d40b7930dc0ed01
+  languageName: node
+  linkType: hard
+
+"storybook-onbook-plugin@npm:0.2.1":
+  version: 0.2.1
+  resolution: "storybook-onbook-plugin@npm:0.2.1"
+  dependencies:
+    "@babel/generator": "npm:^7.26.9"
+    "@babel/parser": "npm:^7.26.9"
+    "@babel/traverse": "npm:^7.26.9"
+    "@babel/types": "npm:^7.26.9"
+    playwright: "npm:^1.52.0"
+  peerDependencies:
+    vite: ^5.0.0 || ^6.0.0
+  bin:
+    generate-screenshots: dist/cli/generate-screenshots.js
+  checksum: 10/a2133b0993e66a224b5e8e4dc2be2e72953819f05e1cfde033fdaec9fcbbab9a496254777e72bb93983b9cbffff912c30f227f240ae04bf342db6357b22f4e66
   languageName: node
   linkType: hard
 
