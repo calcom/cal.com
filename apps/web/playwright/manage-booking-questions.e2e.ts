@@ -67,6 +67,9 @@ test.describe("Manage Booking Questions", () => {
 
       await test.step("Go to EventType Advanced Page ", async () => {
         const $eventTypes = page.locator("[data-testid=event-types] > li a");
+        const firstEventTypeElement = $eventTypes.first();
+
+        await firstEventTypeElement.click();
         await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
         await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
       });
