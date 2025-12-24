@@ -48,9 +48,7 @@ export default function Reschedule() {
         disabled={isSaving}
         className={`px-4 py-2 ${isSaving ? "opacity-50" : ""}`}
       >
-        <Text className="text-[16px] font-semibold text-[#007AFF]">
-          {isSaving ? "Saving..." : "Save"}
-        </Text>
+        <Text className="text-[16px] font-semibold text-[#007AFF]">Save</Text>
       </AppPressable>
     ),
     [handleSave, isSaving]
@@ -99,7 +97,7 @@ export default function Reschedule() {
           {/* Header right - Save button, same pattern as senior's implementation */}
           <Stack.Header.Right>
             <Stack.Header.Button onPress={handleSave} disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save"}
+              Save
             </Stack.Header.Button>
           </Stack.Header.Right>
         </Stack.Header>

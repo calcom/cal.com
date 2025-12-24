@@ -519,21 +519,45 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
             ) : null}
             {booking.attendees && booking.attendees.length > 0 ? (
               <View>
-                {booking.attendees.map((attendee, index) => (
-                  <View key={index} className={`flex-row items-start ${index > 0 ? "mt-4" : ""}`}>
-                    <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-black">
-                      <Text className="text-base font-semibold text-white">
-                        {getInitials(attendee.name)}
-                      </Text>
+                {booking.attendees.map((attendee, index) => {
+                  const isNoShow =
+                    (attendee as any).noShow === true || (attendee as any).absent === true;
+                  return (
+                    <View key={index} className={`flex-row items-start ${index > 0 ? "mt-4" : ""}`}>
+                      <View
+                        className={`mr-3 h-12 w-12 items-center justify-center rounded-full ${
+                          isNoShow ? "bg-[#DC2626]" : "bg-black"
+                        }`}
+                      >
+                        <Text className="text-base font-semibold text-white">
+                          {getInitials(attendee.name)}
+                        </Text>
+                      </View>
+                      <View className="flex-1">
+                        <View className="mb-1 flex-row items-center">
+                          <Text
+                            className={`text-base font-medium ${
+                              isNoShow ? "text-[#DC2626]" : "text-[#333]"
+                            }`}
+                          >
+                            {attendee.name}
+                          </Text>
+                          {isNoShow && (
+                            <View className="ml-2 flex-row items-center rounded-full bg-[#FEE2E2] px-2 py-0.5">
+                              <Ionicons name="eye-off" size={12} color="#DC2626" />
+                              <Text className="ml-1 text-xs font-medium text-[#DC2626]">
+                                No-show
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text className={`text-sm ${isNoShow ? "text-[#DC2626]" : "text-[#666]"}`}>
+                          {attendee.email}
+                        </Text>
+                      </View>
                     </View>
-                    <View className="flex-1">
-                      <Text className="mb-1 text-base font-medium text-[#333]">
-                        {attendee.name}
-                      </Text>
-                      <Text className="text-sm text-[#666]">{attendee.email}</Text>
-                    </View>
-                  </View>
-                ))}
+                  );
+                })}
               </View>
             ) : null}
           </View>

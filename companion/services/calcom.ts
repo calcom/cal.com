@@ -396,6 +396,11 @@ export class CalComAPIService {
     }
   ): Promise<Booking> {
     try {
+      console.log("[CalComAPIService] rescheduleBooking request:", {
+        bookingUid,
+        input,
+      });
+
       const response = await this.makeRequest<{ status: string; data: Booking }>(
         `/bookings/${bookingUid}/reschedule`,
         {
@@ -415,7 +420,11 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from reschedule booking API");
     } catch (error) {
-      console.error("rescheduleBooking error");
+      console.error("[CalComAPIService] rescheduleBooking error:", error);
+      if (error instanceof Error) {
+        console.error("[CalComAPIService] Error message:", error.message);
+        console.error("[CalComAPIService] Error stack:", error.stack);
+      }
       throw error;
     }
   }
@@ -553,11 +562,12 @@ export class CalComAPIService {
   }
 
   /**
-   * Update the location of a booking
+   * Update the location of a booking (legacy - sends location as string)
    * Note: This updates the booking location but may not update the calendar event
    * @param bookingUid - The unique identifier of the booking
    * @param location - The new location string
    * @returns Updated booking with new location
+   * @deprecated Use updateLocationV2 instead for proper typed location updates
    */
   static async updateLocation(bookingUid: string, location: string): Promise<Booking> {
     try {
@@ -581,6 +591,43 @@ export class CalComAPIService {
       throw new Error("Invalid response from update location API");
     } catch (error) {
       console.error("updateLocation error");
+      throw error;
+    }
+  }
+
+  /**
+   * Update the location of a booking with typed location object
+   * Supports: address, link, phone, attendeePhone, attendeeAddress, attendeeDefined
+   * Note: Integration-based locations (Cal Video, Google Meet, Zoom) are NOT supported
+   * @param bookingUid - The unique identifier of the booking
+   * @param location - The location object with type and value
+   * @returns Updated booking with new location
+   */
+  static async updateLocationV2(
+    bookingUid: string,
+    location: { type: string; [key: string]: string }
+  ): Promise<Booking> {
+    try {
+      const response = await this.makeRequest<UpdateLocationResponse>(
+        `/bookings/${bookingUid}/location`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "cal-api-version": "2024-08-13",
+          },
+          body: JSON.stringify({ location }),
+        },
+        "2024-08-13"
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      throw new Error("Invalid response from update location API");
+    } catch (error) {
+      console.error("[CalComAPIService] updateLocationV2 error:", error);
       throw error;
     }
   }

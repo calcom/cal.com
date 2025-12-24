@@ -22,6 +22,7 @@ export interface MarkNoShowScreenProps {
   booking: Booking | null;
   attendees: Attendee[];
   onUpdate: (attendees: Attendee[]) => void;
+  onBookingUpdate?: (booking: Booking) => void;
 }
 
 // Get initials from a name
@@ -35,7 +36,12 @@ const getInitials = (name: string): string => {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 };
 
-export function MarkNoShowScreen({ booking, attendees, onUpdate }: MarkNoShowScreenProps) {
+export function MarkNoShowScreen({
+  booking,
+  attendees,
+  onUpdate,
+  onBookingUpdate,
+}: MarkNoShowScreenProps) {
   const insets = useSafeAreaInsets();
   const safeAttendees = Array.isArray(attendees) ? attendees : [];
   const [processingEmail, setProcessingEmail] = useState<string | null>(null);
@@ -44,10 +50,10 @@ export function MarkNoShowScreen({ booking, attendees, onUpdate }: MarkNoShowScr
     if (!booking) return;
 
     const isCurrentlyNoShow = attendee.noShow === true;
-    const action = isCurrentlyNoShow ? "mark as present" : "mark as no-show";
+    const action = isCurrentlyNoShow ? "unmark no-show" : "mark no-show";
 
     Alert.alert(
-      isCurrentlyNoShow ? "Mark as Present" : "Mark as No-Show",
+      isCurrentlyNoShow ? "Unmark No-Show" : "Mark No-Show",
       `Are you sure you want to ${action} ${attendee.name || attendee.email}?`,
       [
         { text: "Cancel", style: "cancel" },
@@ -57,21 +63,56 @@ export function MarkNoShowScreen({ booking, attendees, onUpdate }: MarkNoShowScr
           onPress: async () => {
             try {
               setProcessingEmail(attendee.email);
-              await CalComAPIService.markNoShow(booking.uid, attendee.email, !isCurrentlyNoShow);
-
-              // Update local state
-              const updatedAttendees = safeAttendees.map((att) =>
-                att.email === attendee.email ? { ...att, noShow: !isCurrentlyNoShow } : att
+              // API returns updated booking with attendee noShow status from server
+              const updatedBooking = await CalComAPIService.markAbsent(
+                booking.uid,
+                attendee.email,
+                !isCurrentlyNoShow
               );
+
+              // Extract attendees from server response to get accurate noShow status
+              // API returns "absent" field, not "noShow"
+              const updatedAttendees: Attendee[] = [];
+              if (updatedBooking.attendees && Array.isArray(updatedBooking.attendees)) {
+                updatedBooking.attendees.forEach((att: any) => {
+                  updatedAttendees.push({
+                    id: att.id,
+                    email: att.email,
+                    name: att.name || att.email,
+                    // Check both "absent" (from API response) and "noShow" (from initial fetch)
+                    noShow: att.absent === true || att.noShow === true,
+                  });
+                });
+              }
+
+              // Update attendees list with server response
               onUpdate(updatedAttendees);
+
+              // Update booking if callback provided
+              if (onBookingUpdate) {
+                onBookingUpdate(updatedBooking);
+              }
 
               Alert.alert(
                 "Success",
                 `${attendee.name || attendee.email} has been ${
-                  isCurrentlyNoShow ? "marked as present" : "marked as no-show"
+                  isCurrentlyNoShow ? "unmarked as no-show" : "marked as no-show"
                 }`
               );
             } catch (error) {
+              // Log error to terminal for debugging
+              console.error("[MarkNoShowScreen] Failed to mark no-show:", error);
+              if (__DEV__) {
+                const message = error instanceof Error ? error.message : String(error);
+                const stack = error instanceof Error ? error.stack : undefined;
+                console.debug("[MarkNoShowScreen] Error details:", {
+                  message,
+                  stack,
+                  attendeeEmail: attendee.email,
+                  bookingUid: booking.uid,
+                  absent: !isCurrentlyNoShow,
+                });
+              }
               Alert.alert("Error", error instanceof Error ? error.message : `Failed to ${action}`);
             } finally {
               setProcessingEmail(null);
@@ -89,7 +130,7 @@ export function MarkNoShowScreen({ booking, attendees, onUpdate }: MarkNoShowScr
 
     return (
       <TouchableOpacity
-        className={`flex-row items-center px-4 py-3 ${!isLast ? "border-b border-gray-100" : ""} ${
+        className={`flex-row items-center px-4 py-4 ${!isLast ? "border-b border-gray-100" : ""} ${
           isNoShow ? "bg-[#FEF2F2]" : "bg-white"
         }`}
         onPress={() => handleMarkNoShow(item)}
@@ -97,27 +138,27 @@ export function MarkNoShowScreen({ booking, attendees, onUpdate }: MarkNoShowScr
         activeOpacity={0.7}
       >
         <View
-          className={`mr-3 h-11 w-11 items-center justify-center rounded-full ${
+          className={`mr-3 h-12 w-12 items-center justify-center rounded-full ${
             isNoShow ? "bg-[#FECACA]" : "bg-[#E8E8ED]"
           }`}
         >
           <Text
-            className={`text-[15px] font-semibold ${isNoShow ? "text-[#DC2626]" : "text-gray-600"}`}
+            className={`text-[16px] font-semibold ${isNoShow ? "text-[#DC2626]" : "text-gray-600"}`}
           >
             {getInitials(item.name)}
           </Text>
         </View>
-        <View className="flex-1">
+        <View className="mr-3 flex-1">
           <Text
             className={`text-[17px] font-medium ${isNoShow ? "text-[#991B1B]" : "text-[#000]"}`}
           >
             {item.name || "Unknown"}
           </Text>
-          <Text className={`text-[15px] ${isNoShow ? "text-[#DC2626]" : "text-gray-500"}`}>
+          <Text className={`mt-0.5 text-[15px] ${isNoShow ? "text-[#DC2626]" : "text-gray-500"}`}>
             {item.email}
           </Text>
           {isNoShow && (
-            <View className="mt-1 flex-row items-center">
+            <View className="mt-1.5 flex-row items-center">
               <Ionicons name="eye-off" size={12} color="#DC2626" />
               <Text className="ml-1 text-[13px] font-medium text-[#DC2626]">Marked as no-show</Text>
             </View>
@@ -128,14 +169,24 @@ export function MarkNoShowScreen({ booking, attendees, onUpdate }: MarkNoShowScr
         ) : (
           <View className="flex-row items-center">
             <View
-              className={`rounded-full px-3 py-1.5 ${isNoShow ? "bg-[#DCFCE7]" : "bg-[#FEE2E2]"}`}
+              className={`flex-row items-center rounded-full px-3.5 py-2 ${
+                isNoShow
+                  ? "border border-[#16A34A] bg-white"
+                  : "border border-[#FEE2E2] bg-[#FEE2E2]"
+              }`}
             >
+              <Ionicons
+                name={isNoShow ? "eye" : "eye-off"}
+                size={15}
+                color={isNoShow ? "#16A34A" : "#DC2626"}
+                style={{ marginRight: 5 }}
+              />
               <Text
-                className={`text-[13px] font-semibold ${
+                className={`text-[14px] font-semibold ${
                   isNoShow ? "text-[#16A34A]" : "text-[#DC2626]"
                 }`}
               >
-                {isNoShow ? "Mark Present" : "No-Show"}
+                {isNoShow ? "Unmark" : "Mark"}
               </Text>
             </View>
           </View>

@@ -25,7 +25,8 @@ export default function MarkNoShow() {
       CalComAPIService.getBookingByUid(uid)
         .then((bookingData) => {
           setBooking(bookingData);
-          // Extract attendees from booking
+          // Extract attendees from booking with proper noShow/absent status check
+          // API may return "absent" or "noShow" depending on the endpoint version
           const bookingAttendees: Attendee[] = [];
           if (bookingData.attendees && Array.isArray(bookingData.attendees)) {
             bookingData.attendees.forEach((att: any) => {
@@ -33,7 +34,7 @@ export default function MarkNoShow() {
                 id: att.id,
                 email: att.email,
                 name: att.name || att.email,
-                noShow: att.noShow || false,
+                noShow: att.absent === true || att.noShow === true,
               });
             });
           }
@@ -87,7 +88,29 @@ export default function MarkNoShow() {
         </Stack.Header>
       )}
 
-      <MarkNoShowScreen booking={booking} attendees={attendees} onUpdate={setAttendees} />
+      <MarkNoShowScreen
+        booking={booking}
+        attendees={attendees}
+        onUpdate={setAttendees}
+        onBookingUpdate={(updatedBooking) => {
+          // Update booking state with server response
+          setBooking(updatedBooking);
+          // Extract and update attendees from updated booking
+          // API returns "absent" field from mark-absent endpoint
+          const updatedAttendees: Attendee[] = [];
+          if (updatedBooking.attendees && Array.isArray(updatedBooking.attendees)) {
+            updatedBooking.attendees.forEach((att: any) => {
+              updatedAttendees.push({
+                id: att.id,
+                email: att.email,
+                name: att.name || att.email,
+                noShow: att.absent === true || att.noShow === true,
+              });
+            });
+          }
+          setAttendees(updatedAttendees);
+        }}
+      />
     </>
   );
 }

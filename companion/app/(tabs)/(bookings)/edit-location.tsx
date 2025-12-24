@@ -48,9 +48,7 @@ export default function EditLocation() {
         disabled={isSaving}
         className={`px-4 py-2 ${isSaving ? "opacity-50" : ""}`}
       >
-        <Text className="text-[16px] font-semibold text-[#007AFF]">
-          {isSaving ? "Saving..." : "Save"}
-        </Text>
+        <Text className="text-[16px] font-semibold text-[#007AFF]">Save</Text>
       </AppPressable>
     ),
     [handleSave, isSaving]
@@ -96,10 +94,10 @@ export default function EditLocation() {
         <Stack.Header style={{ shadowColor: "transparent" }}>
           <Stack.Header.Title>Edit Location</Stack.Header.Title>
 
-          {/* Header right - Save button, same pattern as senior's implementation */}
+          {/* Header right - Save button */}
           <Stack.Header.Right>
             <Stack.Header.Button onPress={handleSave} disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save"}
+              Save
             </Stack.Header.Button>
           </Stack.Header.Right>
         </Stack.Header>

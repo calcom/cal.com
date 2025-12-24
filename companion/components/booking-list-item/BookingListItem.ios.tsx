@@ -42,6 +42,11 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
   const hostAndAttendeesDisplay = getHostAndAttendeesDisplay(booking, userEmail);
   const meetingInfo = getMeetingInfo(booking.location);
 
+  // Check if any attendee is marked as no-show
+  const hasNoShowAttendee = booking.attendees?.some(
+    (att: any) => att.noShow === true || att.absent === true
+  );
+
   // Use centralized action gating for consistency
   const actions = React.useMemo(() => {
     return getBookingActions({
@@ -171,7 +176,15 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
         ) : null}
         {/* Host and Attendees */}
         {hostAndAttendeesDisplay ? (
-          <Text className="mb-2 text-sm text-[#333]">{hostAndAttendeesDisplay}</Text>
+          <View className="mb-2 flex-row items-center">
+            <Text className="text-sm text-[#333]">{hostAndAttendeesDisplay}</Text>
+            {hasNoShowAttendee && (
+              <View className="ml-2 flex-row items-center rounded-full bg-[#FEE2E2] px-1.5 py-0.5">
+                <Ionicons name="eye-off" size={10} color="#DC2626" />
+                <Text className="ml-0.5 text-[10px] font-medium text-[#DC2626]">No-show</Text>
+              </View>
+            )}
+          </View>
         ) : null}
         {/* Meeting Link */}
         {meetingInfo ? (
