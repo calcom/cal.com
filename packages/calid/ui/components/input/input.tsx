@@ -544,7 +544,7 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
 
   const passwordChecks = useMemo((): PasswordChecks => {
     return {
-      length: passwordValue.length >= 8,
+      length: passwordValue.length >= 7,
       hasLower: /[a-z]/.test(passwordValue),
       hasUpper: /[A-Z]/.test(passwordValue),
       hasNumber: /[0-9]/.test(passwordValue),
@@ -566,7 +566,12 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
         barClass: "bg-green-500",
         containerState: "strong",
       };
-    } else if (passedChecks >= totalChecks * 0.6) {
+    } else if (
+      passwordChecks.hasLower &&
+      passwordChecks.hasUpper &&
+      passwordChecks.hasNumber &&
+      passwordChecks.length
+    ) {
       return {
         label: t("acceptable") || "Acceptable",
         bars: 2,
@@ -706,13 +711,13 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
 
         {showRequirements && (
           <div className="mt-2 space-y-1">
-            <RequirementItem check={passwordChecks.length} label="At least 8 characters" />
+            <RequirementItem check={passwordChecks.length} label={t("pw_check_least_char")} />
             <RequirementItem
               check={passwordChecks.hasLower && passwordChecks.hasUpper}
-              label="Mix of uppercase & lowercase"
+              label={t("pw_check_mix_case")}
             />
-            <RequirementItem check={passwordChecks.hasNumber} label="At least one number" />
-            <RequirementItem check={passwordChecks.hasSpecial} label="At least one special character" />
+            <RequirementItem check={passwordChecks.hasNumber} label={t("pw_check_number")} />
+            <RequirementItem check={passwordChecks.hasSpecial} label={t("pw_check_special_char")} />
           </div>
         )}
       </div>
@@ -771,13 +776,13 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
 
       {showRequirements && (
         <div className="mt-2 space-y-1">
-          <RequirementItem check={passwordChecks.length} label="At least 8 characters" />
+          <RequirementItem check={passwordChecks.length} label={t("pw_check_least_char")} />
           <RequirementItem
             check={passwordChecks.hasLower && passwordChecks.hasUpper}
-            label="Mix of uppercase & lowercase"
+            label={t("pw_check_mix_case")}
           />
-          <RequirementItem check={passwordChecks.hasNumber} label="At least one number" />
-          <RequirementItem check={passwordChecks.hasSpecial} label="At least one special character" />
+          <RequirementItem check={passwordChecks.hasNumber} label={t("pw_check_number")} />
+          <RequirementItem check={passwordChecks.hasSpecial} label={t("pw_check_special_char")} />
         </div>
       )}
     </div>
