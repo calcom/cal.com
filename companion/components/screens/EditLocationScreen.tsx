@@ -31,8 +31,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-// Location types supported by the API (simplified for companion app)
-// Exported for use by route file
 export const LOCATION_TYPES = {
   link: {
     id: "link" as const,
@@ -66,7 +64,6 @@ export const LOCATION_TYPES = {
   },
 } as const;
 
-// Array version for FlatList
 const LOCATION_TYPES_ARRAY = Object.values(LOCATION_TYPES);
 
 export type LocationTypeId = keyof typeof LOCATION_TYPES;
@@ -75,22 +72,17 @@ export interface EditLocationScreenProps {
   booking: Booking | null;
   onSuccess: () => void;
   onSavingChange?: (isSaving: boolean) => void;
-  /** Selected location type from header menu (iOS) - ignored on Android/Web */
   selectedType?: LocationTypeId;
-  /** Callback to change location type (iOS) - ignored on Android/Web */
   onTypeChange?: (type: LocationTypeId) => void;
 }
 
-// Handle type for parent component to call submit
 export interface EditLocationScreenHandle {
   submit: () => void;
 }
 
-// Helper to detect location type from existing location string
 const detectLocationType = (location: string): LocationTypeId => {
   if (!location) return "link";
 
-  // Check if it's a URL
   if (
     location.startsWith("http://") ||
     location.startsWith("https://") ||
@@ -99,13 +91,11 @@ const detectLocationType = (location: string): LocationTypeId => {
     return "link";
   }
 
-  // Check if it looks like a phone number
   const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/;
   if (phoneRegex.test(location.replace(/\s/g, ""))) {
     return "phone";
   }
 
-  // Default to address for other text
   return "address";
 };
 
@@ -117,7 +107,6 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
     const [showTypePicker, setShowTypePicker] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
-    // Pre-fill with current location
     useEffect(() => {
       if (booking?.location) {
         const detectedType = detectLocationType(booking.location);
@@ -126,7 +115,6 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
       }
     }, [booking?.location]);
 
-    // Notify parent of saving state changes
     useEffect(() => {
       onSavingChange?.(isSaving);
     }, [isSaving, onSavingChange]);
@@ -143,7 +131,6 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
         return;
       }
 
-      // Validate phone number format
       if (selectedType === "phone") {
         if (!trimmedValue.startsWith("+")) {
           Alert.alert(
@@ -166,7 +153,6 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
           break;
         case "address":
         default:
-          // Use address type for physical locations and custom text
           locationPayload = { type: "address", address: trimmedValue };
       }
 
@@ -184,7 +170,6 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
       }
     }, [booking, selectedType, inputValue, onSuccess]);
 
-    // Expose submit function to parent via ref
     useImperativeHandle(
       ref,
       () => ({
@@ -317,7 +302,6 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
                       }`}
                       onPress={() => {
                         setSelectedType(item.id);
-                        // Clear input when changing to a different type
                         if (selectedType !== item.id) {
                           setInputValue("");
                         }
@@ -364,5 +348,4 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
   }
 );
 
-// Default export for React Native compatibility
 export default EditLocationScreen;

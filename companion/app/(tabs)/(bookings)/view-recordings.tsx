@@ -11,7 +11,6 @@ export default function ViewRecordings() {
   const [recordings, setRecordings] = useState<BookingRecording[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch recordings only (booking data not needed for this screen)
   useEffect(() => {
     if (uid) {
       setIsLoading(true);
@@ -24,7 +23,6 @@ export default function ViewRecordings() {
         })
         .finally(() => setIsLoading(false));
     } else {
-      // If uid is missing, navigate back to prevent infinite loading state
       setIsLoading(false);
       Alert.alert("Error", "Booking ID is missing");
       router.back();

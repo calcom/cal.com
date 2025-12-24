@@ -13,10 +13,8 @@ export default function EditLocation() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Ref to access EditLocationScreen submit function (same pattern as senior's actionHandlersRef)
   const editLocationScreenRef = useRef<EditLocationScreenHandle>(null);
 
-  // Fetch booking data
   useEffect(() => {
     if (uid) {
       setIsLoading(true);
@@ -28,24 +26,20 @@ export default function EditLocation() {
         })
         .finally(() => setIsLoading(false));
     } else {
-      // If uid is missing, navigate back to prevent infinite loading state
       setIsLoading(false);
       Alert.alert("Error", "Booking ID is missing");
       router.back();
     }
   }, [uid, router]);
 
-  // Handle save action from header - calls the screen's submit function
   const handleSave = useCallback(() => {
     editLocationScreenRef.current?.submit();
   }, []);
 
-  // Callback when location update is successful
   const handleUpdateSuccess = useCallback(() => {
     router.back();
   }, [router]);
 
-  // Android header right component
   const renderHeaderRight = useCallback(
     () => (
       <AppPressable
@@ -89,17 +83,14 @@ export default function EditLocation() {
         options={{
           title: "Edit Location",
           headerBackButtonDisplayMode: "minimal",
-          // Android uses headerRight
           headerRight: Platform.OS !== "ios" ? renderHeaderRight : undefined,
         }}
       />
 
-      {/* iOS-only Stack.Header with native styling */}
       {Platform.OS === "ios" && (
         <Stack.Header style={{ shadowColor: "transparent" }}>
           <Stack.Header.Title>Edit Location</Stack.Header.Title>
 
-          {/* Header right - Save button */}
           <Stack.Header.Right>
             <Stack.Header.Button onPress={handleSave} disabled={isSaving}>
               Save

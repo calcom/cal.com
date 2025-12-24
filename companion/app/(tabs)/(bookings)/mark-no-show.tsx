@@ -18,15 +18,13 @@ export default function MarkNoShow() {
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch booking data and attendees
   useEffect(() => {
     if (uid) {
       setIsLoading(true);
       CalComAPIService.getBookingByUid(uid)
         .then((bookingData) => {
           setBooking(bookingData);
-          // Extract attendees from booking with proper noShow/absent status check
-          // API may return "absent" or "noShow" depending on the endpoint version
+          // API may return "absent" or "noShow" depending on endpoint version
           const bookingAttendees: Attendee[] = [];
           if (bookingData.attendees && Array.isArray(bookingData.attendees)) {
             bookingData.attendees.forEach((att: any) => {
@@ -46,7 +44,6 @@ export default function MarkNoShow() {
         })
         .finally(() => setIsLoading(false));
     } else {
-      // If uid is missing, navigate back to prevent infinite loading state
       setIsLoading(false);
       Alert.alert("Error", "Booking ID is missing");
       router.back();
@@ -98,10 +95,7 @@ export default function MarkNoShow() {
         attendees={attendees}
         onUpdate={setAttendees}
         onBookingUpdate={(updatedBooking) => {
-          // Update booking state with server response
           setBooking(updatedBooking);
-          // Extract and update attendees from updated booking
-          // API returns "absent" field from mark-absent endpoint
           const updatedAttendees: Attendee[] = [];
           if (updatedBooking.attendees && Array.isArray(updatedBooking.attendees)) {
             updatedBooking.attendees.forEach((att: any) => {

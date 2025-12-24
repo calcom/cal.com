@@ -12,7 +12,6 @@ export default function MeetingSessionDetails() {
   const [sessions, setSessions] = useState<ConferencingSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch booking data and sessions
   useEffect(() => {
     if (uid) {
       setIsLoading(true);
@@ -33,7 +32,6 @@ export default function MeetingSessionDetails() {
         })
         .finally(() => setIsLoading(false));
     } else {
-      // If uid is missing, navigate back to prevent infinite loading state
       setIsLoading(false);
       Alert.alert("Error", "Booking ID is missing");
       router.back();

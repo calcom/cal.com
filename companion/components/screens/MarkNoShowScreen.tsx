@@ -25,7 +25,6 @@ export interface MarkNoShowScreenProps {
   onBookingUpdate?: (booking: Booking) => void;
 }
 
-// Get initials from a name
 const getInitials = (name: string): string => {
   if (!name) return "?";
   const parts = name.trim().split(/\s+/);
@@ -36,7 +35,6 @@ const getInitials = (name: string): string => {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 };
 
-// Mask email for logging (shows only first 2 chars and domain)
 const maskEmail = (email: string): string => {
   if (!email || !email.includes("@")) return "***";
   const [localPart, domain] = email.split("@");
@@ -73,14 +71,12 @@ export function MarkNoShowScreen({
           onPress: async () => {
             try {
               setProcessingEmail(attendee.email);
-              // API returns updated booking with attendee noShow status from server
               const updatedBooking = await CalComAPIService.markAbsent(
                 booking.uid,
                 attendee.email,
                 !isCurrentlyNoShow
               );
 
-              // Extract attendees from server response to get accurate noShow status
               // API returns "absent" field, not "noShow"
               const updatedAttendees: Attendee[] = [];
               if (updatedBooking.attendees && Array.isArray(updatedBooking.attendees)) {
@@ -89,16 +85,13 @@ export function MarkNoShowScreen({
                     id: att.id,
                     email: att.email,
                     name: att.name || att.email,
-                    // Check both "absent" (from API response) and "noShow" (from initial fetch)
                     noShow: att.absent === true || att.noShow === true,
                   });
                 });
               }
 
-              // Update attendees list with server response
               onUpdate(updatedAttendees);
 
-              // Update booking if callback provided
               if (onBookingUpdate) {
                 onBookingUpdate(updatedBooking);
               }
@@ -110,7 +103,6 @@ export function MarkNoShowScreen({
                 }`
               );
             } catch (error) {
-              // Log error to terminal for debugging
               console.error("[MarkNoShowScreen] Failed to mark no-show:", error);
               if (__DEV__) {
                 const message = error instanceof Error ? error.message : String(error);
@@ -118,7 +110,7 @@ export function MarkNoShowScreen({
                 console.debug("[MarkNoShowScreen] Error details:", {
                   message,
                   stack,
-                  attendeeEmail: maskEmail(attendee.email), // Masked to avoid logging PII
+                  attendeeEmail: maskEmail(attendee.email),
                   bookingUid: booking.uid,
                   absent: !isCurrentlyNoShow,
                 });
