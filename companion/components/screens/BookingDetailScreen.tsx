@@ -1,5 +1,6 @@
 import { CalComAPIService, Booking } from "../../services/calcom";
 import { showErrorAlert } from "../../utils/alerts";
+import { getBookingActions, type BookingActionsResult } from "../../utils/booking-actions";
 import { openInAppBrowser } from "../../utils/browser";
 import { getDefaultLocationIconUrl, defaultLocations } from "../../utils/defaultLocations";
 import { formatAppIdToDisplayName } from "../../utils/formatters";
@@ -12,7 +13,7 @@ import { SvgImage } from "../SvgImage";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -23,6 +24,18 @@ import {
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+// Empty actions result for when no booking is loaded
+const EMPTY_ACTIONS: BookingActionsResult = {
+  reschedule: { visible: false, enabled: false },
+  rescheduleRequest: { visible: false, enabled: false },
+  cancel: { visible: false, enabled: false },
+  changeLocation: { visible: false, enabled: false },
+  addGuests: { visible: false, enabled: false },
+  viewRecordings: { visible: false, enabled: false },
+  meetingSessionDetails: { visible: false, enabled: false },
+  markNoShow: { visible: false, enabled: false },
+};
 
 // Format date: "Tuesday, November 25, 2025"
 const formatDateFull = (dateString: string): string => {
@@ -184,6 +197,18 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
   const [rescheduleTime, setRescheduleTime] = useState("");
   const [rescheduleReason, setRescheduleReason] = useState("");
   const [rescheduling, setRescheduling] = useState(false);
+
+  // Compute actions using centralized gating
+  const actions = useMemo(() => {
+    if (!booking) return EMPTY_ACTIONS;
+    return getBookingActions({
+      booking,
+      eventType: undefined, // EventType not available in this context
+      currentUserId: undefined,
+      currentUserEmail: undefined,
+      isOnline: true, // Assume online for now
+    });
+  }, [booking]);
 
   useEffect(() => {
     if (uid) {
@@ -522,11 +547,7 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
           visible={showActionsModal}
           onClose={() => setShowActionsModal(false)}
           booking={booking}
-          hasLocationUrl={!!locationProvider?.url}
-          isUpcoming={booking ? new Date(booking.startTime) > new Date() : false}
-          isPast={booking ? new Date(booking.startTime) <= new Date() : false}
-          isCancelled={booking?.status?.toUpperCase() === "CANCELLED"}
-          isUnconfirmed={booking?.status?.toUpperCase() === "PENDING"}
+          actions={actions}
           onReschedule={openRescheduleModal}
           onEditLocation={() => {
             Alert.alert("Edit Location", "Edit location functionality coming soon");

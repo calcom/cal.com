@@ -53,7 +53,7 @@ export interface BookingActionsResult {
 }
 
 export interface BookingActionContext {
-  booking: NormalizedBooking;
+  booking: Booking | NormalizedBooking;
   eventType?: EventType | null;
   currentUserId?: number;
   currentUserEmail?: string;
@@ -319,12 +319,31 @@ export function isWithinMinimumRescheduleNotice(
 // ============================================================================
 
 /**
+ * Helper to check if a booking is already normalized (has Date objects for times)
+ */
+function isNormalizedBooking(booking: Booking | NormalizedBooking): booking is NormalizedBooking {
+  return booking.startTime instanceof Date;
+}
+
+/**
  * Get the visibility and enabled state for all booking actions.
  * This is the main entry point for action gating.
+ * Accepts either a raw Booking or NormalizedBooking and normalizes internally.
  */
 export function getBookingActions(context: BookingActionContext): BookingActionsResult {
-  const { booking, eventType, currentUserId, currentUserEmail, isOnline = true } = context;
+  const {
+    booking: rawBooking,
+    eventType,
+    currentUserId,
+    currentUserEmail,
+    isOnline = true,
+  } = context;
   const now = new Date();
+
+  // Normalize booking if needed (convert string times to Date objects)
+  const booking: NormalizedBooking = isNormalizedBooking(rawBooking)
+    ? rawBooking
+    : normalizeBooking(rawBooking);
 
   // Compute booking state flags
   const isPast = isBookingInPast(booking, now);
@@ -345,8 +364,8 @@ export function getBookingActions(context: BookingActionContext): BookingActions
   const disableRescheduling = eventType?.disableRescheduling ?? false;
   const disableCancelling = eventType?.disableCancelling ?? false;
   const disableGuests = eventType?.disableGuests ?? false;
-  const minimumRescheduleNotice = (eventType as any)?.minimumRescheduleNotice ?? null;
-  const allowReschedulingPastBookings = (eventType as any)?.allowReschedulingPastBookings ?? false;
+  const minimumRescheduleNotice = eventType?.minimumRescheduleNotice ?? null;
+  const allowReschedulingPastBookings = eventType?.allowReschedulingPastBookings ?? false;
 
   // Check minimum reschedule notice (only applies to non-organizers)
   const withinMinimumNotice =

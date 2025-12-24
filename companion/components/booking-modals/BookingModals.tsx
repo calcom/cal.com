@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -11,8 +11,21 @@ import {
 } from "react-native";
 
 import type { Booking, EventType } from "../../services/calcom";
+import { getBookingActions, type BookingActionsResult } from "../../utils/booking-actions";
 import { FullScreenModal } from "../FullScreenModal";
 import { BookingActionsModal } from "../BookingActionsModal";
+
+// Empty actions result for when no booking is selected
+const EMPTY_ACTIONS: BookingActionsResult = {
+  reschedule: { visible: false, enabled: false },
+  rescheduleRequest: { visible: false, enabled: false },
+  cancel: { visible: false, enabled: false },
+  changeLocation: { visible: false, enabled: false },
+  addGuests: { visible: false, enabled: false },
+  viewRecordings: { visible: false, enabled: false },
+  meetingSessionDetails: { visible: false, enabled: false },
+  markNoShow: { visible: false, enabled: false },
+};
 
 interface BookingModalsProps {
   // Reschedule modal props
@@ -82,6 +95,18 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
   onReschedule,
   onCancel,
 }) => {
+  // Compute actions using centralized gating
+  const actions = useMemo(() => {
+    if (!selectedBooking) return EMPTY_ACTIONS;
+    return getBookingActions({
+      booking: selectedBooking,
+      eventType: undefined, // EventType not available in this context
+      currentUserId: undefined,
+      currentUserEmail: undefined,
+      isOnline: true, // Assume online for now
+    });
+  }, [selectedBooking]);
+
   return (
     <>
       {/* Filter Modal - Only rendered if props are provided (non-iOS) */}
@@ -148,20 +173,7 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
         visible={showBookingActionsModal}
         onClose={onActionsClose}
         booking={selectedBooking}
-        hasLocationUrl={!!selectedBooking?.location}
-        isUpcoming={
-          selectedBooking
-            ? new Date(selectedBooking.endTime || selectedBooking.end || "") >= new Date() &&
-              selectedBooking.status?.toUpperCase() !== "PENDING"
-            : false
-        }
-        isPast={
-          selectedBooking
-            ? new Date(selectedBooking.endTime || selectedBooking.end || "") < new Date()
-            : false
-        }
-        isCancelled={selectedBooking?.status?.toUpperCase() === "CANCELLED"}
-        isUnconfirmed={selectedBooking?.status?.toUpperCase() === "PENDING"}
+        actions={actions}
         onReschedule={onReschedule}
         onEditLocation={() => {
           Alert.alert("Edit Location", "Edit location functionality coming soon");
