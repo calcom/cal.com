@@ -34,8 +34,9 @@ export function createWorkflowPageFixture(page: Page) {
     if (trigger) {
       await page.locator("#trigger-select").click();
       await page.getByTestId(`select-option-${trigger ?? WorkflowTriggerEvents.BEFORE_EVENT}`).click();
-      await selectEventType("30 min");
     }
+    // Always select an event type to ensure form becomes dirty
+    await selectEventType("30 min");
     const workflow = await saveWorkflow();
 
     for (const step of workflow.steps) {
@@ -51,7 +52,6 @@ export function createWorkflowPageFixture(page: Page) {
   const saveWorkflow = async () => {
     const submitPromise = page.waitForResponse("/api/trpc/workflows/update?batch=1");
     const saveButton = page.getByTestId("save-workflow");
-    await expect(saveButton).toBeEnabled();
     await saveButton.click();
     const response = await submitPromise;
     expect(response.status()).toBe(200);

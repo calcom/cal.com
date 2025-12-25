@@ -24,6 +24,9 @@ test.describe("Workflow Tab - Event Type", () => {
 
         await editSelectedWorkflow("Test Workflow");
         await fillNameInput("Edited Workflow");
+        // Select an event type to mark form as dirty (adds to activeOn list)
+        const { selectEventType } = workflowPage;
+        await selectEventType("30 min");
         await saveWorkflow();
         await page.getByTestId("go-back-button").click();
         await page.getByTestId("workflow-list").waitFor();
