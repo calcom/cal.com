@@ -210,14 +210,8 @@ export class CalIdWorkflowRepository {
 
     // Build base WHERE clause for workflows accessible by the user
     const baseWhere: Prisma.CalIdWorkflowWhereInput = {
-      OR: [
-        { userId },
-        {
-          calIdTeam: {
-            members: { some: { userId, acceptedInvitation: true } },
-          },
-        },
-      ],
+      userId, // only workflows owned by the user
+      calIdTeamId: null, // only workflows not associated with any team
     };
 
     // Fetch all workflows (needed for totalCount)
@@ -273,8 +267,9 @@ export class CalIdWorkflowRepository {
       });
     }
     if (filters?.userIds?.length) {
+      //only showing the logged in user workflows
       where.OR?.push({
-        userId: { in: filters.userIds },
+        userId: userId,
         calIdTeamId: null,
       });
     }
