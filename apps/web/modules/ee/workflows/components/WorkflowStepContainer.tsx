@@ -426,7 +426,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{${variable
         .toUpperCase()
         .replace(/ /g, "_")}}${currentEmailSubject.substring(cursorPosition)}`;
-      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable);
+      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable, { shouldDirty: true });
     }
   };
 
@@ -544,15 +544,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       const isCurrentFormTrigger = isFormTrigger(currentTrigger);
                       const isNewFormTrigger = isFormTrigger(triggerValue);
 
-                      form.setValue("trigger", triggerValue);
+                      form.setValue("trigger", triggerValue, { shouldDirty: true });
 
                       // Reset activeOn when switching between form and non-form triggers
                       if (isCurrentFormTrigger !== isNewFormTrigger) {
-                        form.setValue("activeOn", []);
+                        form.setValue("activeOn", [], { shouldDirty: true });
                         if (setSelectedOptions) {
                           setSelectedOptions([]);
                         }
-                        form.setValue("selectAll", false);
+                        form.setValue("selectAll", false, { shouldDirty: true });
                       }
 
                       const newTimeSectionText = getTimeSectionText(triggerValue, t);
@@ -562,11 +562,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           triggerValue === WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
                           triggerValue === WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
                         ) {
-                          form.setValue("time", 5);
-                          form.setValue("timeUnit", TimeUnit.MINUTE);
+                          form.setValue("time", 5, { shouldDirty: true });
+                          form.setValue("timeUnit", TimeUnit.MINUTE, { shouldDirty: true });
                         } else {
-                          form.setValue("time", 24);
-                          form.setValue("timeUnit", TimeUnit.HOUR);
+                          form.setValue("time", 24, { shouldDirty: true });
+                          form.setValue("timeUnit", TimeUnit.HOUR, { shouldDirty: true });
                         }
                       } else {
                         setTimeSectionText(null);
@@ -586,7 +586,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                   template: WorkflowTemplates.CUSTOM,
                                 }
                           );
-                          form.setValue("steps", updatedSteps);
+                          form.setValue("steps", updatedSteps, { shouldDirty: true });
                           setUpdateTemplate(!updateTemplate);
                         }
                       }
@@ -641,7 +641,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       setSelected={setSelectedOptions}
                       selected={form.getValues("selectAll") ? allOptions : selectedOptions}
                       setValue={(s: Option[]) => {
-                        form.setValue("activeOn", s);
+                        form.setValue("activeOn", s, { shouldDirty: true });
                       }}
                       countText={
                         isOrganization
@@ -673,7 +673,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           onChange(e);
                           if (e.target.value) {
                             setSelectedOptions(allOptions);
-                            form.setValue("activeOn", allOptions);
+                            form.setValue("activeOn", allOptions, { shouldDirty: true });
                           }
                         }}
                         checked={value}
@@ -800,7 +800,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
                         form.setValue(`steps.${step.stepNumber - 1}.sendTo`, null);
                         form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
-                        form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
+                        form.setValue(`steps.${step.stepNumber - 1}.action`, val.value, { shouldDirty: true });
                         setUpdateTemplate(!updateTemplate);
                       }
                     }}
@@ -1132,7 +1132,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       description={t("make_phone_number_required")}
                       descriptionClassName="ml-0"
                       onChange={(e) =>
-                        form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked)
+                        form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked, { shouldDirty: true })
                       }
                     />
                   )}
@@ -1288,7 +1288,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             }
                           }
                           field.onChange(value);
-                          form.setValue(`steps.${step.stepNumber - 1}.template`, value);
+                          form.setValue(`steps.${step.stepNumber - 1}.template`, value, { shouldDirty: true });
                           setUpdateTemplate(!updateTemplate);
                         }
                       }}
@@ -1366,7 +1366,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               <Editor
                 getText={() => props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || ""}
                 setText={(text: string) => {
-                  props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+                  props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text, { shouldDirty: true });
                   props.form.clearErrors();
                 }}
                 variables={!isFormTrigger(trigger) ? DYNAMIC_TEXT_VARIABLES : undefined}
@@ -1406,7 +1406,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         description={t("include_calendar_event")}
                         descriptionClassName="ml-0"
                         onChange={(e) =>
-                          form.setValue(`steps.${step.stepNumber - 1}.includeCalendarEvent`, e.target.checked)
+                          form.setValue(`steps.${step.stepNumber - 1}.includeCalendarEvent`, e.target.checked, { shouldDirty: true })
                         }
                       />
                     )}
@@ -1769,7 +1769,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }
                       return updatedStep;
                     });
-                  form.setValue("steps", updatedSteps);
+                  form.setValue("steps", updatedSteps, { shouldDirty: true });
                   if (setReload) {
                     setReload(!reload);
                   }

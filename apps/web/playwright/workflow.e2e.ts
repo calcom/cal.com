@@ -24,7 +24,6 @@ test.describe("Workflow Tab - Event Type", () => {
 
         await editSelectedWorkflow("Test Workflow");
         await fillNameInput("Edited Workflow");
-        // Select a trigger to mark form as dirty (trigger uses form.control)
         await page.locator("#trigger-select").click();
         await page.getByTestId(`select-option-${WorkflowTriggerEvents.AFTER_EVENT}`).click();
         await saveWorkflow();
