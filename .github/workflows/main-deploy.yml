@@ -752,6 +752,34 @@ jobs:
               exit 1
             fi
 
+            ## Extract and serve next build static content directly instead of from node layer
+            log_message "INFO" "Extracting Next.js static assets from container"
+            
+            STATIC_ROOT="/var/www/cal-id-static"
+            BUILD_ID="${GIT_HASH}"
+            NEW_STATIC_DIR="${STATIC_ROOT}/build-${BUILD_ID}"
+            CURRENT_STATIC_LINK="${STATIC_ROOT}/current"
+
+            sudo mkdir -p "$STATIC_ROOT"
+            sudo chown -R onehash:onehash "$STATIC_ROOT"
+
+            mkdir -p "$NEW_STATIC_DIR"
+
+            # Copy _next static assets
+            docker cp "$CONTAINER_NAME":/app/.next/static "$NEW_STATIC_DIR/_next"
+
+            # Copy public assets
+            docker cp "$CONTAINER_NAME":/app/public "$NEW_STATIC_DIR/public"
+
+            if [ $? -ne 0 ]; then
+              log_message "ERROR" "❌ Failed to extract static assets from container"
+              exit 1
+            fi
+
+            log_message "INFO" "✅ Static assets extracted to $NEW_STATIC_DIR"
+            
+
+            ## Switching traffic to new container port
             # NGINX configuration
             log_message "INFO" "Configuring NGINX"
 
@@ -818,6 +846,14 @@ jobs:
               exit 1
             fi
 
+            # Switch active static build
+            log_message "INFO" "Switching active static build"
+            ln -sfn "$NEW_STATIC_DIR" "$CURRENT_STATIC_LINK"
+
+            # Capture NEW active build (after switch)
+            ACTIVE_BUILD=$(basename "$(readlink "$CURRENT_STATIC_LINK")")
+
+
             log_message "INFO" "Reloading nginx configuration"
             if ! exec_command "NGINX final reload" "sudo nginx -s reload"; then
               exit 1
@@ -830,6 +866,18 @@ jobs:
             else
               exec_command "Remove old Green container" "docker rm -f Green" || log_message "WARN" "⚠️ Failed to remove old Green container (might not exist)"
             fi
+
+            # Cleanup old static builds
+            log_message "INFO" "Cleaning up old static builds (keeping last 3)"
+            cd "$STATIC_ROOT" || exit 1
+
+            ls -dt build-* 2>/dev/null \
+              | grep -v "$ACTIVE_BUILD" \
+              | tail -n +4 \
+              | while read old_build; do
+                  log_message "INFO" "Removing old static build: $old_build"
+                  rm -rf "$old_build"
+                done
 
             # Cleanup Docker images
             log_message "INFO" "Pruning unused Docker images and containers older than 72 hours"
