@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { Header } from "../../components/Header";
 import { LogoutConfirmModal } from "../../components/LogoutConfirmModal";
 import { useAuth } from "../../contexts/AuthContext";
 import { showErrorAlert } from "../../utils/alerts";
 import { openInAppBrowser } from "../../utils/browser";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
 
 interface MoreMenuItem {
   name: string;
@@ -103,7 +103,7 @@ export default function More() {
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.name}
-              onPress={item.href ? () => router.push(item.href!) : item.onPress}
+              onPress={item.onPress}
               className={`flex-row items-center justify-between bg-white px-5 py-5 active:bg-[#F8F9FA] ${
                 index < menuItems.length - 1 ? "border-b border-[#E5E5EA]" : ""
               }`}
