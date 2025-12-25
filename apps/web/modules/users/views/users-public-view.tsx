@@ -259,14 +259,17 @@ export function UserPage(props: PageProps) {
                         )}
                       </div>
                     </div>
-                    <div className="flex w-full flex-row justify-between">
-                      <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
+                    <div className="flex w-full flex-row items-end justify-between">
+                      <div className="pl-12">
+                        <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
+                      </div>
                       <Button
                         variant="button"
                         brandColor={profile?.brandColor}
                         darkBrandColor={profile?.darkBrandColor}
                         type="button"
                         size="base"
+                        className="h-8 flex-shrink-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleEventTypeClick(type);

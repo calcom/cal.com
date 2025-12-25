@@ -68,7 +68,7 @@ export const EventTypeDescription = ({
             eventType.metadata.multipleDuration.map((dur, idx) => (
               <li key={idx}>
                 <Tooltip content="Duration of the meeting" className="cursor-pointer">
-                  <Badge variant="minimal" startIcon="clock">
+                  <Badge variant="secondary" startIcon="clock">
                     {dur}m
                   </Badge>
                 </Tooltip>
@@ -77,7 +77,7 @@ export const EventTypeDescription = ({
           ) : (
             <li>
               <Tooltip content="Duration of the meeting" className="cursor-pointer">
-                <Badge variant="minimal" startIcon="clock">
+                <Badge variant="secondary" startIcon="clock">
                   {eventType.length}m
                 </Badge>
               </Tooltip>
@@ -85,20 +85,20 @@ export const EventTypeDescription = ({
           )}
           {eventType.schedulingType && eventType.schedulingType !== SchedulingType.MANAGED && (
             <li>
-              <Badge variant="minimal" startIcon="users">
+              <Badge variant="secondary" startIcon="users">
                 {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
                 {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
               </Badge>
             </li>
           )}
           {recurringEvent?.count && recurringEvent.count > 0 && (
-            <li className="hidden xl:block" data-testid="repeat-eventtype">
+            <li data-testid="repeat-eventtype">
               <Tooltip
                 content={t("repeats_up_to", {
                   count: recurringEvent.count,
                 })}
                 className="cursor-pointer">
-                <Badge variant="minimal" startIcon="refresh-cw">
+                <Badge variant="secondary" startIcon="refresh-cw">
                   {/* {t("repeats_up_to", {
                   count: recurringEvent.count,
                 })} */}
@@ -110,7 +110,7 @@ export const EventTypeDescription = ({
           {paymentAppData.enabled && (
             <li>
               <Badge
-                variant="minimal"
+                variant="secondary"
                 customStartIcon={
                   <PriceIcon currency={paymentAppData.currency} className="h-3 w-3 stroke-[3px]" />
                 }>
@@ -123,27 +123,17 @@ export const EventTypeDescription = ({
             </li>
           )}
           {eventType.requiresConfirmation && (
-            <li className="hidden xl:block" data-testid="requires-confirmation-badge">
-              <Badge variant="minimal" startIcon="clipboard">
+            <li data-testid="requires-confirmation-badge">
+              <Badge variant="secondary" startIcon="clipboard">
                 {eventType.metadata?.requiresConfirmationThreshold
                   ? t("may_require_confirmation")
                   : t("requires_confirmation")}
               </Badge>
             </li>
           )}
-          {/* TODO: Maybe add a tool tip to this? */}
-          {eventType.requiresConfirmation || (recurringEvent?.count && recurringEvent.count) ? (
-            <li className="block xl:hidden">
-              <Badge variant="minimal" startIcon="plus">
-                <p>{[eventType.requiresConfirmation, recurringEvent?.count].filter(Boolean).length}</p>
-              </Badge>
-            </li>
-          ) : (
-            <></>
-          )}
           {eventType?.seatsPerTimeSlot ? (
             <li>
-              <Badge variant="minimal" startIcon="user">
+              <Badge variant="secondary" startIcon="user">
                 <p>{t("event_type_seats", { numberOfSeats: eventType.seatsPerTimeSlot })} </p>
               </Badge>
             </li>
