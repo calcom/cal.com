@@ -108,7 +108,7 @@ export class EventTypesRepository_2024_06_14 {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
       include: {
-        users: true,
+        users: this.usersInclude,
         schedule: true,
         destinationCalendar: true,
         calVideoSettings: true,
