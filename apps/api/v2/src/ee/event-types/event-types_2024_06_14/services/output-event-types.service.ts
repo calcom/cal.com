@@ -397,6 +397,10 @@ export class OutputEventTypesService_2024_06_14 {
     const orgSlug = profile?.organization?.slug ?? firstUser.organization?.slug ?? null;
     const username = profile?.username ?? firstUser.username ?? "";
 
+    if (!username) {
+      return "";
+    }
+
     const baseUrl = getOrgFullOrigin(orgSlug).replace(/\/$/, "");
 
     return `${baseUrl}/${username}/${slug}`;

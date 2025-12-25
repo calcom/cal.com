@@ -59,7 +59,15 @@ export class EventTypesRepository_2024_06_14 {
   }
 
   private readonly usersInclude = {
-    include: {
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      avatarUrl: true,
+      brandColor: true,
+      darkBrandColor: true,
+      weekStart: true,
+      metadata: true,
       organization: {
         select: { slug: true },
       },

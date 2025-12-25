@@ -127,5 +127,35 @@ describe("OutputEventTypesService_2024_06_14", () => {
       expect(result).toBe("https://cal.com/john/30min");
       expect(result).not.toContain("//john");
     });
+
+    it("should return empty string when username is empty", () => {
+      const users = [
+        {
+          username: "",
+          organization: null,
+          profiles: [],
+        },
+      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
+      const slug = "30min";
+
+      const result = service.buildBookingUrl(users, slug);
+
+      expect(result).toBe("");
+    });
+
+    it("should return empty string when username is null", () => {
+      const users = [
+        {
+          username: null,
+          organization: null,
+          profiles: [],
+        },
+      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
+      const slug = "30min";
+
+      const result = service.buildBookingUrl(users, slug);
+
+      expect(result).toBe("");
+    });
   });
 });
