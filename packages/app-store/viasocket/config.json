@@ -5,7 +5,7 @@
   "type": "viasocket_automation",
   "logo": "icon.jpg",
   "url": "https://viasocket.com/support",
-  "redirectUrl": "https://viasocket.com/integrations/OneHash_Cal",
+  "redirectUrl": "https://viasocket.com/integrations/Cal_ID",
   "variant": "automation",
   "categories": ["automation"],
   "publisher": "Cal ID",

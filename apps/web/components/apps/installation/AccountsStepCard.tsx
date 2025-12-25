@@ -88,6 +88,8 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({
   onSelect,
   loading,
   installableOnTeams,
+
+  noTeamsOnAccountsPage,
 }) => {
   const { t } = useLocale();
   return (
@@ -103,7 +105,8 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({
           onClick={() => onSelect()}
           loading={loading}
         />
-        {installableOnTeams &&
+        {!noTeamsOnAccountsPage &&
+          installableOnTeams &&
           teams?.map((team) => (
             <AccountSelector
               key={team.id}
