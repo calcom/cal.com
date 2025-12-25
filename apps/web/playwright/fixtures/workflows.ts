@@ -31,12 +31,20 @@ export function createWorkflowPageFixture(page: Page) {
     if (name) {
       await fillNameInput(name);
     }
-    if (trigger) {
+
+    // The default trigger for new workflows is BEFORE_EVENT (see create.handler.ts)
+    // We need to select a DIFFERENT trigger to mark form as dirty
+    // First, always select AFTER_EVENT to ensure form becomes dirty
+    await page.locator("#trigger-select").click();
+    await page.getByTestId(`select-option-${WorkflowTriggerEvents.AFTER_EVENT}`).click();
+
+    // If the test wants a different trigger (e.g., BEFORE_EVENT), select it now
+    // The form is already dirty from the first selection, so we can safely select any trigger
+    if (trigger && trigger !== WorkflowTriggerEvents.AFTER_EVENT) {
       await page.locator("#trigger-select").click();
-      await page.getByTestId(`select-option-${trigger ?? WorkflowTriggerEvents.BEFORE_EVENT}`).click();
+      await page.getByTestId(`select-option-${trigger}`).click();
     }
-    // Always select an event type to ensure form becomes dirty
-    await selectEventType("30 min");
+
     const workflow = await saveWorkflow();
 
     for (const step of workflow.steps) {
