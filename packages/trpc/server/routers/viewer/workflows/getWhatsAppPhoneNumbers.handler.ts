@@ -15,7 +15,9 @@ type GetOptions = {
 };
 
 export const getWhatsAppPhoneNumbersHandler = async ({ ctx, input }: GetOptions) => {
-  const whereClause = input.calIdTeamId
+  const whereClause = input.credentialId
+    ? { credentialId: input.credentialId }
+    : input.calIdTeamId
     ? { credential: { calIdTeamId: input.calIdTeamId } }
     : { userId: ctx.user.id };
 
@@ -35,6 +37,7 @@ export const getWhatsAppPhoneNumbersHandler = async ({ ctx, input }: GetOptions)
   return phones.map((phone) => ({
     id: phone.phoneNumberId,
     phoneNumber: phone.phoneNumber,
+    credentialId: phone.credentialId,
     wabaId: phone.wabaId,
     isDefault: false, // Logic to determine default can be added
     isValid: !phone.credential.invalid,

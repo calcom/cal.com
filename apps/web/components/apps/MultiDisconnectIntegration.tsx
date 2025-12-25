@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@calid/features/ui/components/button";
 import {
   DropdownMenu,
@@ -21,12 +23,13 @@ type RouterOutput = inferRouterOutputs<AppRouter>;
 type Credentials = RouterOutput["viewer"]["apps"]["calid_appCredentialsByType"]["credentials"];
 
 interface Props {
+  slug: string;
   categories: string[];
   credentials: Credentials;
   onSuccess?: () => void;
 }
 
-export function MultiDisconnectIntegration({ categories, credentials, onSuccess }: Props) {
+export function MultiDisconnectIntegration({ slug, categories, credentials, onSuccess }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [credentialToDelete, setCredentialToDelete] = useState<{
@@ -35,6 +38,15 @@ export function MultiDisconnectIntegration({ categories, credentials, onSuccess 
     name: string | null;
   } | null>(null);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
+
+  const whatsappPhonesQueries = trpc.useQueries((t) =>
+    credentials.map((cred) =>
+      t.viewer.workflows.getWhatsAppPhoneNumbers({
+        credentialId: cred.id,
+      })
+    )
+  );
+  const whatsappPhones = whatsappPhonesQueries.flatMap((q) => q.data);
 
   const mutation = trpc.viewer.credentials.calid_delete.useMutation({
     onSuccess: () => {
@@ -101,6 +113,12 @@ export function MultiDisconnectIntegration({ categories, credentials, onSuccess 
                         ?.primary?.email || t("unnamed")}
                     </span>
                   )}
+                  {slug === "whatsapp-business" &&
+                    whatsappPhones.find((e) => e?.credentialId === cred.id) && (
+                      <span>
+                        {whatsappPhones.find((e) => e.credentialId === cred.id).phoneNumber || t("unnamed")}
+                      </span>
+                    )}
                 </div>
               </DropdownMenuItem>
             </DropdownMenuItem>
