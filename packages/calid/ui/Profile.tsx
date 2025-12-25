@@ -1,5 +1,6 @@
 "use client";
 
+import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import {
   DropdownMenu,
@@ -139,7 +140,12 @@ export const Profile = ({ small }: ProfileProps) => {
           <Icon name="settings" className="mr-2 h-4 w-4" />
           {t("settings")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/auth/logout" })} color="destructive">
+        <DropdownMenuItem
+          onClick={async () => {
+            await resetCrispSession();
+            signOut({ callbackUrl: "/auth/logout" });
+          }}
+          color="destructive">
           <Icon name="log-out" className=" mr-2 h-4 w-4" />
           {t("sign_out")}
         </DropdownMenuItem>

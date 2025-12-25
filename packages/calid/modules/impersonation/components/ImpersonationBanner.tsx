@@ -1,3 +1,4 @@
+import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import type { SessionContextValue } from "next-auth/react";
 import { signIn, signOut } from "next-auth/react";
 
@@ -21,8 +22,9 @@ function ImpersonationBanner({ data }: ImpersonationBannerProps) {
     signIn("impersonation-auth", { returnToId: impersonator.id });
   };
 
-  const handleStopImpersonationForNormalUser = (e: React.FormEvent) => {
+  const handleStopImpersonationForNormalUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    await resetCrispSession();
     signOut({ callbackUrl: "/auth/logout" });
   };
 
