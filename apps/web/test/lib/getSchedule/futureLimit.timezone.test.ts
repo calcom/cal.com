@@ -92,7 +92,7 @@ describe("getSchedule", () => {
               length: 60,
               ...getPeriodTypeData({
                 type: "ROLLING",
-                periodDays: 2,
+                periodDays: 3,
                 periodCountCalendarDays: true,
               }),
               users: [
@@ -180,7 +180,7 @@ describe("getSchedule", () => {
               length: 60,
               ...getPeriodTypeData({
                 type: "ROLLING",
-                periodDays: 2,
+                periodDays: 3,
                 periodCountCalendarDays: true,
               }),
               users: [
@@ -264,7 +264,7 @@ describe("getSchedule", () => {
               length: 60,
               ...getPeriodTypeData({
                 type: "ROLLING",
-                periodDays: 2,
+                periodDays: 3,
                 periodCountCalendarDays: true,
               }),
               users: [
@@ -359,7 +359,8 @@ describe("getSchedule", () => {
               length: 60,
               ...getPeriodTypeData({
                 type: "ROLLING",
-                periodDays: 2,
+                // periodDays: 3 means 3 business days total (Friday + Monday + Tuesday)
+                periodDays: 3,
                 periodCountCalendarDays: false,
               }),
               users: [
@@ -463,7 +464,8 @@ describe("getSchedule", () => {
                 length: 60,
                 ...getPeriodTypeData({
                   type: "ROLLING",
-                  periodDays: 2,
+
+                  periodDays: 3,
                   periodCountCalendarDays: true,
                 }),
                 users: [
@@ -553,7 +555,8 @@ describe("getSchedule", () => {
                 length: 60,
                 ...getPeriodTypeData({
                   type: "ROLLING",
-                  periodDays: 2,
+
+                  periodDays: 3,
                   periodCountCalendarDays: true,
                 }),
                 users: [
@@ -637,7 +640,8 @@ describe("getSchedule", () => {
                 length: 60,
                 ...getPeriodTypeData({
                   type: "ROLLING",
-                  periodDays: 2,
+
+                  periodDays: 3,
                   periodCountCalendarDays: true,
                 }),
                 users: [
