@@ -1,5 +1,6 @@
 "use client";
 
+import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
 import {
@@ -29,7 +30,7 @@ import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
@@ -169,6 +170,7 @@ const ProfileView = ({ user }: Props) => {
     triggerToast(t("Your account was deleted"), "success");
 
     setHasDeleteErrors(false); // dismiss any open errors
+    await resetCrispSession();
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
       signOut({ callbackUrl: "/auth/logout?survey=true" });
     } else {
@@ -605,7 +607,7 @@ const ProfileForm = ({
   });
 
   const handleBannerUpdate = async (newHeaderUrl: string | null) => {
-      setUploadingBanner(true);
+    setUploadingBanner(true);
     updateBannerMutation.mutate({
       username: user.username || "",
       avatarUrl: user.avatarUrl,
@@ -934,11 +936,11 @@ const ProfileForm = ({
 const BannerUploaderForm = ({
   banner,
   handleFormSubmit,
-uploadingBanner
+  uploadingBanner,
 }: {
   banner: string | null;
-  handleFormSubmit: (newHeaderUrl: string | null) => {} | Promise;
-uploadingBanner: boolean;
+  handleFormSubmit: (newHeaderUrl: string | null) => void | Promise<unknown>;
+  uploadingBanner: boolean;
 }) => {
   const { t } = useLocale();
 
