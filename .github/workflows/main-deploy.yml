@@ -766,10 +766,10 @@ jobs:
             mkdir -p "$NEW_STATIC_DIR"
 
             # Copy _next static assets
-            docker cp "$CONTAINER_NAME":/app/.next/static "$NEW_STATIC_DIR/_next"
+            docker cp "$CONTAINER_NAME":/app/apps/web/.next "$NEW_STATIC_DIR/_next"
 
             # Copy public assets
-            docker cp "$CONTAINER_NAME":/app/public "$NEW_STATIC_DIR/public"
+            docker cp "$CONTAINER_NAME":/app/apps/web/public "$NEW_STATIC_DIR/public"
 
             if [ $? -ne 0 ]; then
               log_message "ERROR" "❌ Failed to extract static assets from container"
