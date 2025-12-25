@@ -14,6 +14,7 @@ import {
   InternalLocation,
   BookingFieldSchema,
 } from "@/ee/event-types/event-types_2024_06_14/transformers";
+import { getOrgFullOrigin } from "@/lib/org-domains";
 import { Injectable } from "@nestjs/common";
 
 import {
@@ -34,10 +35,14 @@ import type {
 } from "@calcom/platform-types";
 import type { EventType, User, Schedule, DestinationCalendar, CalVideoSettings } from "@calcom/prisma/client";
 
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+type UserProfile = {
+  username: string;
+  organization: { slug: string | null } | null;
+};
 
 type UserWithOrganization = User & {
   organization?: { slug: string | null } | null;
+  profiles?: UserProfile[];
 };
 
 type EventTypeRelations = {
@@ -388,9 +393,13 @@ export class OutputEventTypesService_2024_06_14 {
       return "";
     }
 
-    const orgSlug = firstUser.organization?.slug ?? null;
-    const baseUrl = getOrgFullOrigin(orgSlug);
-    const username = firstUser.username ?? "";
+    // For organization users, use profile data (clean username + org subdomain)
+    // For non-org users, fall back to user.username and user.organization
+    const profile = firstUser.profiles?.[0];
+    const orgSlug = profile?.organization?.slug ?? firstUser.organization?.slug ?? null;
+    const username = profile?.username ?? firstUser.username ?? "";
+
+    const baseUrl = getOrgFullOrigin(orgSlug).replace(/\/$/, ""); // Remove trailing slash
 
     return `${baseUrl}/${username}/${slug}`;
   }

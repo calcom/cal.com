@@ -1,6 +1,6 @@
 import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
 
-jest.mock("@calcom/features/ee/organizations/lib/orgDomains", () => ({
+jest.mock("@/lib/org-domains", () => ({
   getOrgFullOrigin: jest.fn((slug: string | null) => {
     if (!slug) return "https://cal.com";
     return `https://${slug}.cal.com`;
@@ -20,8 +20,9 @@ describe("OutputEventTypesService_2024_06_14", () => {
         {
           username: "john-doe",
           organization: null,
+          profiles: [],
         },
-      ] as Parameters<typeof service.buildBookingUrl>[0];
+      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
       const slug = "30min";
 
       const result = service.buildBookingUrl(users, slug);
@@ -29,13 +30,36 @@ describe("OutputEventTypesService_2024_06_14", () => {
       expect(result).toBe("https://cal.com/john-doe/30min");
     });
 
-    it("should return correct URL for user with organization", () => {
+    it("should return correct URL for user with organization using profile data", () => {
+      // Organization user: user.username has org suffix, profile.username is clean
+      const users = [
+        {
+          username: "owner1-acme", // User's username includes org suffix
+          organization: { slug: "acme" },
+          profiles: [
+            {
+              username: "owner1", // Profile has the clean username
+              organization: { slug: "acme" },
+            },
+          ],
+        },
+      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
+      const slug = "30min";
+
+      const result = service.buildBookingUrl(users, slug);
+
+      // Should use profile.username (owner1) not user.username (owner1-acme)
+      expect(result).toBe("https://acme.cal.com/owner1/30min");
+    });
+
+    it("should fall back to user data when no profile exists", () => {
       const users = [
         {
           username: "keith",
           organization: { slug: "i" },
+          profiles: [],
         },
-      ] as Parameters<typeof service.buildBookingUrl>[0];
+      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
       const slug = "30min";
 
       const result = service.buildBookingUrl(users, slug);
@@ -57,12 +81,14 @@ describe("OutputEventTypesService_2024_06_14", () => {
         {
           username: "first-user",
           organization: null,
+          profiles: [],
         },
         {
           username: "second-user",
           organization: { slug: "org" },
+          profiles: [],
         },
-      ] as Parameters<typeof service.buildBookingUrl>[0];
+      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
       const slug = "meeting";
 
       const result = service.buildBookingUrl(users, slug);
@@ -75,13 +101,33 @@ describe("OutputEventTypesService_2024_06_14", () => {
         {
           username: "user",
           organization: { slug: null },
+          profiles: [],
         },
-      ] as Parameters<typeof service.buildBookingUrl>[0];
+      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
       const slug = "consultation";
 
       const result = service.buildBookingUrl(users, slug);
 
       expect(result).toBe("https://cal.com/user/consultation");
+    });
+
+    it("should handle base URL with trailing slash", () => {
+      const { getOrgFullOrigin } = require("@/lib/org-domains");
+      getOrgFullOrigin.mockReturnValueOnce("https://cal.com/");
+
+      const users = [
+        {
+          username: "john",
+          organization: null,
+          profiles: [],
+        },
+      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
+      const slug = "30min";
+
+      const result = service.buildBookingUrl(users, slug);
+
+      expect(result).toBe("https://cal.com/john/30min");
+      expect(result).not.toContain("//john");
     });
   });
 });

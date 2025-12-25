@@ -63,6 +63,14 @@ export class EventTypesRepository_2024_06_14 {
       organization: {
         select: { slug: true },
       },
+      profiles: {
+        select: {
+          username: true,
+          organization: {
+            select: { slug: true },
+          },
+        },
+      },
     },
   };
 
@@ -100,7 +108,12 @@ export class EventTypesRepository_2024_06_14 {
   async getEventTypeById(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
-      include: { users: this.usersInclude, schedule: true, destinationCalendar: true, calVideoSettings: true },
+      include: {
+        users: this.usersInclude,
+        schedule: true,
+        destinationCalendar: true,
+        calVideoSettings: true,
+      },
     });
   }
 
