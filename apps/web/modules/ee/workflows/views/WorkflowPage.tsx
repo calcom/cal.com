@@ -160,13 +160,13 @@ function WorkflowPage({
   };
 
   const handleNameSubmit = () => {
-    form.setValue("name", nameValue, { shouldDirty: true });
+    form.setValue("name", nameValue);
     setIsEditingName(false);
   };
 
   const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      form.setValue("name", nameValue, { shouldDirty: true });
+      form.setValue("name", nameValue);
       setIsEditingName(false);
     } else if (e.key === "Escape") {
       setNameValue(watchedName || "");
