@@ -34,8 +34,14 @@ import type {
 } from "@calcom/platform-types";
 import type { EventType, User, Schedule, DestinationCalendar, CalVideoSettings } from "@calcom/prisma/client";
 
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+
+type UserWithOrganization = User & {
+  organization?: { slug: string | null } | null;
+};
+
 type EventTypeRelations = {
-  users: User[];
+  users: UserWithOrganization[];
   schedule: Schedule | null;
   destinationCalendar?: DestinationCalendar | null;
   calVideoSettings?: CalVideoSettings | null;
@@ -168,6 +174,7 @@ export class OutputEventTypesService_2024_06_14 {
     } as TransformFutureBookingsLimitSchema_2024_06_14);
     const destinationCalendar = this.transformDestinationCalendar(databaseEventType.destinationCalendar);
     const bookerActiveBookingsLimit = this.transformBookerActiveBookingsLimit(databaseEventType);
+    const bookingUrl = this.buildBookingUrl(databaseEventType.users, slug);
 
     return {
       id,
@@ -214,6 +221,7 @@ export class OutputEventTypesService_2024_06_14 {
       hidden,
       bookingRequiresAuthentication,
       bookerActiveBookingsLimit,
+      bookingUrl,
     };
   }
 
@@ -372,6 +380,19 @@ export class OutputEventTypesService_2024_06_14 {
       seatsShowAttendees: !!seatsShowAttendees,
       seatsShowAvailabilityCount: !!seatsShowAvailabilityCount,
     });
+  }
+
+  buildBookingUrl(users: UserWithOrganization[], slug: string): string {
+    const firstUser = users[0];
+    if (!firstUser) {
+      return "";
+    }
+
+    const orgSlug = firstUser.organization?.slug ?? null;
+    const baseUrl = getOrgFullOrigin(orgSlug);
+    const username = firstUser.username ?? "";
+
+    return `${baseUrl}/${username}/${slug}`;
   }
 
   getResponseEventTypesWithoutHiddenFields(
