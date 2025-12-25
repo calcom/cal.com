@@ -606,6 +606,7 @@ describe("Event types Endpoints", () => {
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
           expect(createdEventType.bookingRequiresAuthentication).toEqual(true);
+          expect(createdEventType.bookingUrl).toContain(`/${user.username}/${body.slug}`);
           eventType = responseBody.data;
         });
     });
@@ -693,6 +694,7 @@ describe("Event types Endpoints", () => {
       );
       expect(fetchedEventType?.color).toEqual(eventType.color);
       expect(fetchedEventType?.hidden).toEqual(false);
+      expect(fetchedEventType?.bookingUrl).toContain(`/${user.username}/${eventType.slug}`);
 
       expect(fetchedHiddenEventType?.id).toEqual(hiddenEventType.id);
       expect(fetchedHiddenEventType?.hidden).toEqual(true);
@@ -1450,6 +1452,7 @@ describe("Event types Endpoints", () => {
         eventType.lockTimeZoneToggleOnBookingPage
       );
       expect(fetchedEventType.color).toEqual(eventType.color);
+      expect(fetchedEventType.bookingUrl).toContain(`/${user.username}/${eventType.slug}`);
     });
 
     it("system admin can access another user's event type by id", async () => {
