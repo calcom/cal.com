@@ -24,7 +24,8 @@ async function postHandler(req: NextApiRequest) {
   const session = checkSession(req);
   await checkInstalled(metadata.slug, session.user?.id);
   const body = req.body;
-  const teamId = req.query.teamId ? Number(req.query.teamId) : undefined;
+  const teamIdParam = req.query.teamId;
+  const teamId = teamIdParam && !isNaN(Number(teamIdParam)) ? Number(teamIdParam) : undefined;
 
   const schema = bbbOptionsSchema.safeParse(body);
   if (!schema.success) {
@@ -62,7 +63,7 @@ async function postHandler(req: NextApiRequest) {
     private: encrypted,
   };
 
-  createDefaultInstallation({
+  await createDefaultInstallation({
     appType: metadata.type,
     slug: metadata.slug,
     user: {

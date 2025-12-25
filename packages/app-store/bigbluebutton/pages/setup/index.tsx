@@ -33,7 +33,7 @@ export default function BBBSetup() {
     defaultValues: {
       url: "",
       secret: "",
-      hash: "sha1",
+      hash: "sha256",
     },
   });
 
@@ -127,7 +127,7 @@ export default function BBBSetup() {
                   {t("cancel")}
                 </Button>
                 <Button loading={isUpdateBtnLoading} disabled={isDisabled} color="primary" type="submit">
-                  <>{t("save")}</>
+                  {t("save")}
                 </Button>
               </div>
             </Form>

@@ -68,10 +68,11 @@ async function joinHandler(req: NextApiRequest, res: NextApiResponse) {
   const parsedKey = bbbEncryptedSchema.safeParse(data.credential.key);
   if (!parsedKey.success) throw new HttpError({ statusCode: 400, message: "Invalid meeting ID" });
 
-  const decryptedOptions = symmetricDecrypt(
-    parsedKey.data.private,
-    process.env.CALENDSO_ENCRYPTION_KEY || ""
-  );
+  if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+    throw new HttpError({ statusCode: 500, message: "Missing encryption key" });
+  }
+
+  const decryptedOptions = symmetricDecrypt(parsedKey.data.private, process.env.CALENDSO_ENCRYPTION_KEY);
   const bbbOptions = bbbOptionsSchema.safeParse(JSON.parse(decryptedOptions));
   if (!bbbOptions.success) throw new HttpError({ statusCode: 400, message: "Invalid meeting ID" });
 

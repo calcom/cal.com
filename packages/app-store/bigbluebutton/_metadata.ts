@@ -11,7 +11,6 @@ export const metadata = {
   logo: "icon.svg",
   publisher: "Moonbeeper",
   url: "https://github.com/moonbeeper",
-  category: "conferencing",
   slug: "bigbluebutton",
   title: "BigBlueButton",
   email: "beepingboop@duck.com",

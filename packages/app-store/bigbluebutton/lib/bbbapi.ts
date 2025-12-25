@@ -121,7 +121,7 @@ export class BBBApi {
       };
     } catch (err) {
       log.error(`[BBB] failed creating meeting: ${err}`);
-      this.handleError(err);
+      return this.handleError(err);
     }
   }
 
@@ -150,7 +150,7 @@ export class BBBApi {
       };
     } catch (err) {
       log.error(`[BBB] failed joining meeting: ${err}`);
-      this.handleError(err);
+      return this.handleError(err);
     }
   }
 

@@ -19,7 +19,7 @@ const BigBlueButtonAdapter = (credential: CredentialPayload): VideoApiAdapter =>
 
       if (!e.uid) {
         log.info("[BBB] No booking UID provided, cannot create meeting");
-        throw new Error("We need need the booking uid to create the BigBlueButton reference in the DB");
+        throw new Error("We need the booking uid to create the BigBlueButton reference in the DB");
       }
 
       const url = `${WEBAPP_URL}/api/integrations/bigbluebutton/join?meetingID=${e.uid}`;
@@ -39,7 +39,7 @@ const BigBlueButtonAdapter = (credential: CredentialPayload): VideoApiAdapter =>
 
       if (!e.uid) {
         log.info("[BBB] No booking UID provided, cannot update meeting");
-        throw new Error("We need need the booking uid to create the BigBlueButton reference in the DB");
+        throw new Error("We need the booking uid to create the BigBlueButton reference in the DB");
       }
 
       const url = `${WEBAPP_URL}/api/integrations/bigbluebutton/join?meetingID=${e.uid}`;
