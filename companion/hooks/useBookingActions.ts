@@ -78,10 +78,32 @@ export const useBookingActions = ({
    * Open reschedule modal with pre-filled data
    */
   const handleRescheduleBooking = (booking: Booking) => {
-    // Pre-fill with the current booking date/time
-    const currentDate = new Date(booking.startTime);
-    const dateStr = currentDate.toISOString().split("T")[0]; // YYYY-MM-DD
-    const timeStr = currentDate.toTimeString().slice(0, 5); // HH:MM
+    // Get the start time from booking (prefer startTime, fallback to start)
+    const startTimeValue = booking.startTime || booking.start;
+
+    // Validate we have a valid date
+    if (!startTimeValue) {
+      showErrorAlert("Error", "Unable to reschedule: booking has no start time");
+      return;
+    }
+
+    const currentDate = new Date(startTimeValue);
+
+    // Check if the date is valid
+    if (isNaN(currentDate.getTime())) {
+      showErrorAlert("Error", "Unable to reschedule: invalid booking date");
+      return;
+    }
+
+    // Use local timezone consistently (not UTC) to avoid date/time mismatch
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+    const day = String(currentDate.getDate()).padStart(2, "0");
+    const hours = String(currentDate.getHours()).padStart(2, "0");
+    const minutes = String(currentDate.getMinutes()).padStart(2, "0");
+
+    const dateStr = `${year}-${month}-${day}`;
+    const timeStr = `${hours}:${minutes}`;
 
     setRescheduleBooking(booking);
     setRescheduleDate(dateStr);
@@ -91,7 +113,7 @@ export const useBookingActions = ({
   };
 
   /**
-   * Validate and submit reschedule request
+   * Validate and submit reschedule request (uses internal state)
    */
   const handleSubmitReschedule = () => {
     if (!rescheduleBooking || !rescheduleDate || !rescheduleTime) {
@@ -138,6 +160,59 @@ export const useBookingActions = ({
         },
       }
     );
+  };
+
+  /**
+   * Submit reschedule with provided values (used by RescheduleModal component)
+   */
+  const handleRescheduleWithValues = async (
+    date: string,
+    time: string,
+    reason?: string
+  ): Promise<void> => {
+    if (!rescheduleBooking) {
+      throw new Error("No booking selected");
+    }
+
+    // Parse the date and time
+    const dateTimeStr = `${date}T${time}:00`;
+    const newDateTime = new Date(dateTimeStr);
+
+    // Validate the date
+    if (isNaN(newDateTime.getTime())) {
+      throw new Error(
+        "Invalid date or time format. Please use YYYY-MM-DD for date and HH:MM for time."
+      );
+    }
+
+    // Check if the new time is in the future
+    if (newDateTime <= new Date()) {
+      throw new Error("Please select a future date and time");
+    }
+
+    // Convert to UTC ISO string
+    const startUtc = newDateTime.toISOString();
+
+    return new Promise((resolve, reject) => {
+      rescheduleMutation(
+        {
+          uid: rescheduleBooking.uid,
+          start: startUtc,
+          reschedulingReason: reason || undefined,
+        },
+        {
+          onSuccess: () => {
+            setShowRescheduleModal(false);
+            setRescheduleBooking(null);
+            Alert.alert("Success", "Booking rescheduled successfully");
+            resolve();
+          },
+          onError: (error) => {
+            reject(new Error(error.message || "Failed to reschedule booking"));
+          },
+        }
+      );
+    });
   };
 
   /**
@@ -344,6 +419,7 @@ export const useBookingActions = ({
     handleBookingPress,
     handleRescheduleBooking,
     handleSubmitReschedule,
+    handleRescheduleWithValues,
     handleCloseRescheduleModal,
     handleCancelBooking,
     handleConfirmBooking,
