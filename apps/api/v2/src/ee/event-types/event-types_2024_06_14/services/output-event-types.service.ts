@@ -393,13 +393,11 @@ export class OutputEventTypesService_2024_06_14 {
       return "";
     }
 
-    // For organization users, use profile data (clean username + org subdomain)
-    // For non-org users, fall back to user.username and user.organization
     const profile = firstUser.profiles?.[0];
     const orgSlug = profile?.organization?.slug ?? firstUser.organization?.slug ?? null;
     const username = profile?.username ?? firstUser.username ?? "";
 
-    const baseUrl = getOrgFullOrigin(orgSlug).replace(/\/$/, ""); // Remove trailing slash
+    const baseUrl = getOrgFullOrigin(orgSlug).replace(/\/$/, "");
 
     return `${baseUrl}/${username}/${slug}`;
   }

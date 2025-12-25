@@ -31,14 +31,13 @@ describe("OutputEventTypesService_2024_06_14", () => {
     });
 
     it("should return correct URL for user with organization using profile data", () => {
-      // Organization user: user.username has org suffix, profile.username is clean
       const users = [
         {
-          username: "owner1-acme", // User's username includes org suffix
+          username: "owner1-acme",
           organization: { slug: "acme" },
           profiles: [
             {
-              username: "owner1", // Profile has the clean username
+              username: "owner1",
               organization: { slug: "acme" },
             },
           ],
@@ -48,7 +47,6 @@ describe("OutputEventTypesService_2024_06_14", () => {
 
       const result = service.buildBookingUrl(users, slug);
 
-      // Should use profile.username (owner1) not user.username (owner1-acme)
       expect(result).toBe("https://acme.cal.com/owner1/30min");
     });
 
