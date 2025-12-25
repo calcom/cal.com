@@ -628,7 +628,7 @@ export const sendSMS = async (args: {
   console.log("meta.sendSMS: ");
   console.log(JSON.stringify(args));
   return sendMetaWhatsAppMessage({
-    action,
+    action: args.action,
     eventTypeId: args.eventTypeId,
     workflowId: args.workflowId,
     recipientNumber: args.phoneNumber,
@@ -658,7 +658,7 @@ export const scheduleSMS = async (args: {
   console.log("meta.scheduleSMS");
   console.log(JSON.stringify(args));
   return scheduleMetaWhatsAppMessage({
-    action,
+    action: args.action,
     recipientNumber: args.phoneNumber,
     accountId: args.userId,
     organizationId: args.teamId,
