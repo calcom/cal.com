@@ -176,6 +176,7 @@ const executeImmediateWhatsapp = async ({
       variableData,
       metaTemplateName,
       metaPhoneNumberId,
+      action
     });
 
     await prisma.calIdWorkflowReminder.create({
@@ -244,6 +245,7 @@ const scheduleDelayedWhatsapp = async ({
 }): Promise<void> => {
   try {
     const scheduledWHATSAPP = await meta.scheduleSMS({
+      action,
       eventTypeId,
       workflowId,
       scheduledDate: scheduledDate.toDate(),

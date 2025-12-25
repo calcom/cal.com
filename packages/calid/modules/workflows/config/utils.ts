@@ -5,6 +5,7 @@ import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions, WorkflowTriggerEvents, WorkflowTemplates } from "@calcom/prisma/enums";
 
 import type { CalIdWorkflowType } from "../config/types";
+import { defaultTemplateComponentsMap } from "../providers/meta_default_templates";
 import emailRatingTemplate from "../templates/email/ratingTemplate";
 import emailReminderTemplate from "../templates/email/reminder";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";
@@ -66,20 +67,13 @@ function getTimeFormatFromUserSetting(timeFormat: number | null | undefined): Ti
 }
 
 const determineWhatsappTemplateHandler = (
+  actionType: WorkflowActions,
   templateCategory?: WorkflowTemplates
-): typeof whatsappReminderTemplate => {
-  const templateHandlerRegistry = {
-    CANCELLED: whatsappEventCancelledTemplate,
-    COMPLETED: whatsappEventCompletedTemplate,
-    RESCHEDULED: whatsappEventRescheduledTemplate,
-    CUSTOM: whatsappReminderTemplate,
-    REMINDER: whatsappReminderTemplate,
-  };
-
-  return (
-    templateHandlerRegistry[templateCategory as keyof typeof templateHandlerRegistry] ||
-    whatsappReminderTemplate
-  );
+): string => {
+  return defaultTemplateComponentsMap(
+    templateCategory ?? WorkflowTemplates.REMINDER,
+    actionType.includes("ATTENDEE") ? "attendee" : "organizer"
+  ).components[0].text;
 };
 
 function determineEmailTemplateHandler(template?: WorkflowTemplates) {
@@ -104,14 +98,15 @@ function determinSMSTemplateHandler(template?: WorkflowTemplates) {
   return templateHandlerRegistry[template as keyof typeof templateHandlerRegistry] || smsReminderTemplate;
 }
 
+// seems like this method is not used anywhere
 function getWhatsappTemplateContent(
   actionType: WorkflowActions,
   localeString: string,
   templateType: WorkflowTemplates,
   timeFormatSetting: TimeFormat
 ): string | null {
-  const contentRenderer = determineWhatsappTemplateHandler(templateType);
-  return contentRenderer(true, localeString, actionType, timeFormatSetting);
+  const contentRenderer = determineWhatsappTemplateHandler(actionType, templateType);
+  return contentRenderer;
 }
 
 function translateTextVariables(text: string, language: { locale: string; t: TFunction }): string {
@@ -277,8 +272,8 @@ function getTemplateBodyForAction({
   }
 
   if (isWhatsappAction(action)) {
-    const templateFunction = determineWhatsappTemplateHandler(template);
-    return templateFunction(true, locale, action, timeFormat);
+    const body = determineWhatsappTemplateHandler(action, template);
+    return body;
   }
 
   // If not a whatsapp action then it's an email action

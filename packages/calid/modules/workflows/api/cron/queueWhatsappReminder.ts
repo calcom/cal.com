@@ -81,7 +81,7 @@ const processMessageQueue = async (): Promise<number> => {
 
       // Get Meta template configuration
       const metaTemplateName = message.workflowStep.metaTemplateName;
-      const metaPhoneNumberId = message.workflowStep.metaPhoneNumberId;
+      const metaPhoneNumberId = message.workflowStep.metaTemplatePhoneNumberId;
 
       // Construct template variables
       const templateVariables = constructVariablesForTemplate(
@@ -95,12 +95,18 @@ const processMessageQueue = async (): Promise<number> => {
             name: message.booking.user?.name || "Organizer",
             email: message.booking.user?.email || "",
             timeZone: message.booking.user?.timeZone || "UTC",
+            language: {
+              locale: message.booking.user?.locale || "en",
+            },
           },
           attendees: message.booking.attendees.map((att) => ({
             name: att.name,
             email: att.email,
             timeZone: att.timeZone,
             phoneNumber: att.phoneNumber,
+            language: {
+              locale: att.locale || 'en',
+            }
           })),
         },
         targetAttendee,
@@ -128,6 +134,7 @@ const processMessageQueue = async (): Promise<number> => {
       const { ids } = await inngestClient.send({
         name: `whatsapp/reminder.scheduled-${key}`,
         data: {
+          action: message.workflowStep.action,
           eventTypeId: message.booking.eventTypeId,
           workflowId: message.workflowStep.workflowId,
           recipientNumber,
