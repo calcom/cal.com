@@ -11,13 +11,14 @@ type CreateWorkflowProps = {
   name?: string;
   isTeam?: true;
   trigger?: WorkflowTriggerEvents;
+  eventTypeNames?: string[];
 };
 
 const subjectPattern = /^Reminder: /i;
 
 export function createWorkflowPageFixture(page: Page) {
   const createWorkflow = async (props: CreateWorkflowProps) => {
-    const { name, isTeam, trigger } = props;
+    const { name, isTeam, trigger, eventTypeNames } = props;
     if (isTeam) {
       await page.getByTestId("create-button-dropdown").click();
       await page.getByTestId("option-team-1").click();
@@ -38,6 +39,17 @@ export function createWorkflowPageFixture(page: Page) {
     if (trigger && trigger !== WorkflowTriggerEvents.AFTER_EVENT) {
       await page.locator("#trigger-select").click();
       await page.getByTestId(`select-option-${trigger}`).click();
+    }
+
+    // Select event types if provided, otherwise apply to all event types
+    if (eventTypeNames && eventTypeNames.length > 0) {
+      await page.getByTestId("multi-select-check-boxes").click();
+      for (const eventTypeName of eventTypeNames) {
+        await page.getByText(eventTypeName, { exact: true }).click();
+      }
+    } else {
+      // Use "Apply to all" checkbox - matches various workflow types
+      await page.getByText(/Apply to all/i).first().click();
     }
 
     const workflow = await saveWorkflow();
