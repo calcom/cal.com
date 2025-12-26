@@ -1,7 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
-import type { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -45,7 +44,7 @@ export function sendWebhookPayload(
       subscriberUrl: webhook.subscriberUrl,
       appId: webhook.appId,
       payloadTemplate: webhook.payloadTemplate,
-      version: webhook.version as WebhookVersion,
+      version: webhook.version,
     },
     data: {
       title: booking.title,
