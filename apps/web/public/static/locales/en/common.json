@@ -3702,5 +3702,6 @@
   "template": "Template",
   "choose_file": "Choose file",
   "drop_file_here_or": "Drop file here or",
-  "file_limit": "File limit: {{max}}"
+  "file_limit": "File limit: {{max}}",
+  "uploading": "Uploading..."
 }

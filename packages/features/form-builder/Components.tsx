@@ -35,7 +35,6 @@ export const isValidValueProp: Record<Component["propsType"], (val: unknown) => 
     val !== null &&
     "name" in val &&
     "url" in val &&
-    "dataUrl" in val &&
     "size" in val &&
     "type" in val,
 };
@@ -87,14 +86,14 @@ type Component =
           value: {
             name: string;
             url: string;
-            dataUrl: string;
+            dataUrl?: string;
             size: number;
             type: string;
           };
           setValue: (value: {
             name: string;
             url: string;
-            dataUrl: string;
+            dataUrl?: string;
             size: number;
             type: string;
           }) => void;
@@ -589,13 +588,11 @@ export const Components: Record<FieldType, Component> = {
                 setValue({
                   name: "",
                   url: "",
-                  dataUrl: "",
                   size: 0,
                   type: "",
                 } as {
                   name: string;
                   url: string;
-                  dataUrl: string;
                   size: number;
                   type: string;
                 });
@@ -603,10 +600,9 @@ export const Components: Record<FieldType, Component> = {
               }
               setValue({
                 name: latest.file.name,
-                dataUrl: latest.dataUrl,
+                url: latest.url || "",
                 size: latest.file.size,
                 type: latest.file.type,
-                url: latest.dataUrl || "",
               });
             }}
           />

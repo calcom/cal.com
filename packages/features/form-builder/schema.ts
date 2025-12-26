@@ -337,7 +337,7 @@ export const fieldTypesSchemaMap: Partial<
         }
 
         if (size && typeof size === "number") {
-          const MAX_BYTES = 1 * 1024 * 1024; // 1MB
+          const MAX_BYTES = 1 * 1024 * 1024;
           if (size > MAX_BYTES) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,

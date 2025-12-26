@@ -20,7 +20,7 @@ type ProcessAttachmentParams = {
   bookingFields: z.infer<typeof eventTypeBookingFields> | null;
 };
 
-const MAX_BYTES = 1 * 1024 * 1024;
+const MAX_BYTES = 1 * 1024 * 1024; // 1MB
 
 /**
  * Optimized S3 client and configuration management.
@@ -68,7 +68,6 @@ export const processAttachmentResponses = async ({ responses, bookingFields }: P
 
   if (attachmentFields.length === 0) return responses;
 
-  // Optimisation: Process all attachment fields in parallel
   await Promise.all(
     attachmentFields.map(async (field) => {
       const rawValue = responses[field.name];
@@ -90,9 +89,10 @@ export const processAttachmentResponses = async ({ responses, bookingFields }: P
 const storeAttachment = async (value: AttachmentValue) => {
   if (typeof value !== "object" || value === null) return null;
 
-  // Optimisation: If we already have a URL and no fresh dataUrl, skip re-uploading.
-  // This allows the frontend to optionally handle uploads itself.
-  if (value.url && !value.dataUrl) return value;
+  // If URL exists, file is already uploaded via FormData - return as-is (skip re-upload)
+  if (value.url && typeof value.url === "string") {
+    return value;
+  }
 
   const dataUrl = value.dataUrl;
   if (!dataUrl || typeof dataUrl !== "string") return null;
