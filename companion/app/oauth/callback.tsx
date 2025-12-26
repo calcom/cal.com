@@ -11,7 +11,7 @@ export default function OAuthCallback() {
   useEffect(() => {
     if (Platform.OS === "android") {
       if (auth.userInfo) {
-        router.replace("/(tabs)");
+        router.replace("/");
       }
     }
 
@@ -45,7 +45,7 @@ export default function OAuthCallback() {
             window.localStorage.setItem(`oauth_callback_error_${state}`, errorMessage);
             window.localStorage.setItem(`oauth_callback_error_code_${state}`, error);
           }
-          router.replace("/(tabs)");
+          router.replace("/");
         }
       }
       return;
@@ -71,7 +71,7 @@ export default function OAuthCallback() {
           window.close();
         } else {
           // Redirect to main app
-          router.replace("/(tabs)");
+          router.replace("/");
         }
       }
     } else {
@@ -89,7 +89,7 @@ export default function OAuthCallback() {
           );
           window.close();
         } else {
-          router.replace("/(tabs)");
+          router.replace("/");
         }
       }
     }

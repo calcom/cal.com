@@ -560,11 +560,13 @@ export default function EventTypeDetail() {
         }
 
         if (eventType.metadata) {
-          if (eventType.metadata.calendarEventName) {
-            setCalendarEventName(eventType.metadata.calendarEventName);
+          const calendarEventNameValue = eventType.metadata.calendarEventName;
+          if (typeof calendarEventNameValue === "string") {
+            setCalendarEventName(calendarEventNameValue);
           }
-          if (eventType.metadata.addToCalendarEmail) {
-            setAddToCalendarEmail(eventType.metadata.addToCalendarEmail);
+          const addToCalendarEmailValue = eventType.metadata.addToCalendarEmail;
+          if (typeof addToCalendarEmailValue === "string") {
+            setAddToCalendarEmail(addToCalendarEmailValue);
           }
         }
 

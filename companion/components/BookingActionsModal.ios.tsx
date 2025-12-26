@@ -1,13 +1,8 @@
 /**
- * BookingActionsModal Component - Android/Web Implementation
+ * BookingActionsModal Component - iOS Implementation
  *
- * A reusable modal component for booking actions that can be used in both
- * the bookings list screen and the booking detail screen.
- *
- * This component uses the centralized action gating utility for consistent
- * action visibility and enabled state across the app.
- *
- * Note: iOS uses BookingActionsModal.ios.tsx with native Glass UI styling.
+ * iOS-specific modal for booking actions with Glass UI styling.
+ * This provides a native iOS action sheet experience with Glass UI design.
  */
 import type { Booking } from "../services/calcom";
 import type { BookingActionsResult } from "../utils/booking-actions";
@@ -35,15 +30,15 @@ export interface BookingActionsModalProps {
 
 // Icon mapping for actions
 const ACTION_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  reschedule: "calendar-outline",
-  rescheduleRequest: "send-outline",
-  changeLocation: "location-outline",
-  addGuests: "person-add-outline",
-  viewRecordings: "videocam-outline",
-  meetingSessionDetails: "information-circle-outline",
-  markNoShow: "eye-off-outline",
-  report: "flag-outline",
-  cancel: "close-circle-outline",
+  reschedule: "calendar",
+  rescheduleRequest: "send",
+  changeLocation: "location",
+  addGuests: "person-add",
+  viewRecordings: "videocam",
+  meetingSessionDetails: "information-circle",
+  markNoShow: "eye-off",
+  report: "flag",
+  cancel: "close-circle",
 };
 
 interface ActionButtonProps {
@@ -67,8 +62,8 @@ function ActionButton({
 }: ActionButtonProps) {
   if (!visible) return null;
 
-  const iconColor = !enabled ? "#D1D5DB" : isDanger ? "#DC2626" : "#6B7280";
-  const textColor = !enabled ? "#D1D5DB" : isDanger ? "#DC2626" : "#111827";
+  const iconColor = !enabled ? "#C7C7CC" : isDanger ? "#FF3B30" : "#007AFF";
+  const textColor = !enabled ? "#C7C7CC" : isDanger ? "#FF3B30" : "#000";
 
   return (
     <TouchableOpacity
@@ -77,15 +72,18 @@ function ActionButton({
         onPress();
       }}
       disabled={!enabled}
-      className={`flex-row items-center px-4 py-3 active:bg-gray-50 ${
+      className={`flex-row items-center px-4 py-3.5 active:bg-[#F8F9FA] ${
         !isLast ? "border-b border-gray-100" : ""
       }`}
       activeOpacity={0.7}
     >
-      <View className="mr-3 h-6 w-6 items-center justify-center">
-        <Ionicons name={icon} size={20} color={iconColor} />
+      <View className="mr-3 h-7 w-7 items-center justify-center">
+        <Ionicons name={icon} size={22} color={iconColor} />
       </View>
-      <Text className="flex-1 text-[16px]" style={{ color: textColor }}>
+      <Text
+        className={`flex-1 text-[17px] ${!enabled ? "text-[#C7C7CC]" : ""}`}
+        style={{ color: textColor }}
+      >
         {label}
       </Text>
       {!enabled && (
@@ -103,10 +101,8 @@ interface SectionHeaderProps {
 
 function SectionHeader({ title }: SectionHeaderProps) {
   return (
-    <View className="bg-gray-50 px-4 py-2">
-      <Text className="text-[12px] font-semibold uppercase tracking-wide text-gray-500">
-        {title}
-      </Text>
+    <View className="bg-[#F2F2F7] px-4 py-2">
+      <Text className="text-[13px] font-medium uppercase tracking-wide text-gray-500">{title}</Text>
     </View>
   );
 }
@@ -241,20 +237,21 @@ export function BookingActionsModal({
   return (
     <FullScreenModal visible={visible} animationType="fade" onRequestClose={onClose}>
       <TouchableOpacity
-        className="flex-1 items-center justify-center bg-black/50 p-4"
+        className="flex-1 items-center justify-end bg-black/40"
         activeOpacity={1}
         onPress={onClose}
       >
         <TouchableOpacity
-          className="w-full max-w-md"
+          className="w-full"
           activeOpacity={1}
           onPress={(e) => e.stopPropagation()}
+          style={{ paddingBottom: insets.bottom || 16 }}
         >
           {/* Actions Card */}
-          <View className="mb-4 overflow-hidden rounded-2xl bg-white shadow-lg">
+          <View className="mx-4 mb-3 overflow-hidden rounded-2xl bg-white">
             {/* Booking Title Header */}
-            <View className="border-b border-gray-100 px-4 py-3">
-              <Text className="text-center text-[14px] font-medium text-gray-600" numberOfLines={1}>
+            <View className="border-b border-gray-100 px-4 py-4">
+              <Text className="text-center text-[13px] font-medium text-gray-500" numberOfLines={1}>
                 {booking.title}
               </Text>
             </View>
@@ -319,12 +316,12 @@ export function BookingActionsModal({
 
           {/* Cancel Button */}
           <TouchableOpacity
-            className="overflow-hidden rounded-2xl bg-white shadow-lg"
+            className="mx-4 overflow-hidden rounded-2xl bg-white"
             onPress={onClose}
             activeOpacity={0.7}
           >
-            <View className="px-4 py-3">
-              <Text className="text-center text-[16px] font-semibold text-gray-700">Cancel</Text>
+            <View className="px-4 py-4">
+              <Text className="text-center text-[17px] font-semibold text-[#007AFF]">Cancel</Text>
             </View>
           </TouchableOpacity>
         </TouchableOpacity>

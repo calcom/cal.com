@@ -103,7 +103,7 @@ export default function More() {
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.name}
-              onPress={item.href ? () => router.push(item.href!) : item.onPress}
+              onPress={item.onPress}
               className={`flex-row items-center justify-between bg-white px-5 py-5 active:bg-[#F8F9FA] ${
                 index < menuItems.length - 1 ? "border-b border-[#E5E5EA]" : ""
               }`}
