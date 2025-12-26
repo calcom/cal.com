@@ -768,12 +768,13 @@ export const optionToValueSchema = <T extends z.ZodTypeAny>(valueSchema: T) =>
 export const getParserWithGeneric =
   <T extends ZodObject<ZodRawShape>>(valueSchema: T) =>
   <Data>(data: Data) => {
-    type Output = z.infer<T>;
+    type Output = z.output<T>;
     type SimpleFormValues = string | number | null | undefined;
-    return valueSchema.parse(data) as {
-      // TODO: Invesitage why this broke on zod 3.22.2 upgrade
-      [key in keyof Data]: Data[key] extends SimpleFormValues ? Data[key] : Output[key];
+    // In zod v4, we need to intersect keyof Data with keyof Output to ensure type safety
+    type Result = Output & {
+      [K in keyof Data & keyof Output]: Data[K] extends SimpleFormValues ? Data[K] : Output[K];
     };
+    return valueSchema.parse(data) as Result;
   };
 export const sendDailyVideoRecordingEmailsSchema = z.object({
   recordingId: z.string(),
