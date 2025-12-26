@@ -9,6 +9,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:extension": "tsc -p tsconfig.extension.json --noEmit",
+    "typecheck:all": "npm run typecheck && npm run typecheck:extension",
     "ext": "wxt",
     "ext:build": "wxt build",
     "ext:build-prod": "BUILD_FOR_STORE=true wxt build",

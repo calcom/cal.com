@@ -114,7 +114,7 @@ function hasMultipleDurationsChanged(
   return currentDefault !== originalDefault;
 }
 
-function deepEqual(a: any, b: any): boolean {
+function deepEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
   if (a == null || b == null) return a == b;
   if (typeof a !== typeof b) return false;
@@ -125,10 +125,12 @@ function deepEqual(a: any, b: any): boolean {
   }
 
   if (typeof a === "object" && typeof b === "object") {
-    const keysA = Object.keys(a);
-    const keysB = Object.keys(b);
+    const objA = a as Record<string, unknown>;
+    const objB = b as Record<string, unknown>;
+    const keysA = Object.keys(objA);
+    const keysB = Object.keys(objB);
     if (keysA.length !== keysB.length) return false;
-    return keysA.every((key) => deepEqual(a[key], b[key]));
+    return keysA.every((key) => deepEqual(objA[key], objB[key]));
   }
 
   return false;
