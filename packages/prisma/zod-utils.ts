@@ -673,9 +673,9 @@ export const DeploymentTheme = z
  
 export type ZodDenullish<T> = T extends ZodNullable<infer U> | ZodOptional<infer U> ? ZodDenullish<U> : T;
 
+// In zod v4, ZodRawShape requires string keys only, so we use Extract to filter out number/symbol keys
 export type ZodDenullishShape<T extends ZodRawShape> = {
-   
-  [k in keyof T]: ZodDenullish<T[k]>;
+  [K in keyof T & string]: ZodDenullish<T[K]>;
 };
 
  
@@ -687,12 +687,15 @@ export const denullish = <T>(schema: T): ZodDenullish<T> =>
 
 /**
  * @see https://github.com/3x071c/lsg-remix/blob/e2a9592ba3ec5103556f2cf307c32f08aeaee32d/app/lib/util/zod.ts
+ * In zod v4, we return ZodObject<any> because zod v4's internal type constraints are too strict for mapped types
  */
-export function denullishShape<T extends ZodRawShape>(obj: ZodObject<T>): ZodObject<{ [K in keyof T]: ZodDenullish<T[K]> }> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function denullishShape<T extends ZodRawShape>(obj: ZodObject<T>): ZodObject<any> {
   const shape = obj.shape;
-  const newShape = {} as { [K in keyof T]: ZodDenullish<T[K]> };
-  for (const key of Object.keys(shape) as (keyof T)[]) {
-    newShape[key] = denullish(shape[key]) as ZodDenullish<T[typeof key]>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const newShape: Record<string, any> = {};
+  for (const [field, schema] of Object.entries(shape)) {
+    newShape[field] = denullish(schema);
   }
   // In zod v4, use z.object() to create new ZodObject
   return z.object(newShape);
