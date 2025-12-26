@@ -54,6 +54,7 @@ export default function EventTypeDetail() {
 
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState("basics");
+  const [activeTab2, setActiveTab2] = useState("basics");
 
   // Form state
   const [eventTitle, setEventTitle] = useState(title || "");
