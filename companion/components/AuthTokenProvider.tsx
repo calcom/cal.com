@@ -1,6 +1,6 @@
-import { useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { CalComAPIService } from "../services/calcom";
+import { useEffect } from "react";
 
 export function AuthTokenProvider({ children }: { children: React.ReactNode }) {
   const { accessToken, isAuthenticated, isWebSession } = useAuth();

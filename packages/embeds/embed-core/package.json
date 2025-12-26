@@ -41,7 +41,7 @@
     "dist"
   ],
   "devDependencies": {
-    "@playwright/test": "^1.45.3",
+    "@playwright/test": "^1.55.1",
     "@tailwindcss/cli": "^4.0.0",
     "@tailwindcss/postcss": "^4.0.0",
     "@vitejs/plugin-basic-ssl": "^1.1.0",
@@ -50,7 +50,7 @@
     "postcss": "8.5.6",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.2",
-    "vite": "4.5.3",
+    "vite": "4.5.14",
     "vite-plugin-environment": "^1.1.3"
   }
 }
