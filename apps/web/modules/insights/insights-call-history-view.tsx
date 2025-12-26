@@ -15,14 +15,14 @@ import {
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { CallDetailsSheet } from "@calcom/features/ee/workflows/components/CallDetailsSheet";
-import type { CallDetailsState, CallDetailsAction } from "@calcom/features/ee/workflows/components/types";
+import type { CallDetailsState, CallDetailsAction } from "@calcom/features/ee/workflows/lib/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { CallDetailsSheet } from "@calcom/web/modules/ee/workflows/components/CallDetailsSheet";
 
 type CallHistoryRow = {
   id: string;
@@ -312,12 +312,12 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
           </>
         }
         EmptyView={
-            <EmptyScreen
-              Icon="phone"
-              headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("no_call_history")}
-              description={t("no_call_history_description")}
-              className="mb-16"
-            />
+          <EmptyScreen
+            Icon="phone"
+            headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("no_call_history")}
+            description={t("no_call_history_description")}
+            className="mb-16"
+          />
         }
       />
 

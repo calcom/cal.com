@@ -5,27 +5,37 @@ import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { InstallAppButton } from "../InstallAppButton";
+import type { AppCardApp } from "../types";
 import useAddAppMutation from "../_utils/useAddAppMutation";
+
+type AppData = Pick<AppCardApp, "type" | "variant" | "slug" | "teamsPlanRequired">;
 
 /**
  * Use this component to allow installing an app from anywhere on the app.
- * Use of this component requires you to remove custom InstallAppButtonComponent so that it can manage the redirection itself
+ * Use of this component requires you to remove custom InstallAppButtonComponent so that it can manage the redirection itself.
+ *
+ * When `app` prop is provided, it will use that data directly instead of fetching via useApp.
+ * This is useful when the app data is already available (e.g., from the integrations query)
+ * to avoid redundant API calls that can cause URL length issues when batched.
  */
 export default function OmniInstallAppButton({
   appId,
+  app: appProp,
   className,
   returnTo,
   teamId,
   onAppInstallSuccess,
 }: {
   appId: string;
+  app?: AppData;
   className: string;
   onAppInstallSuccess: () => void;
   returnTo?: string;
   teamId?: number;
 }) {
   const { t } = useLocale();
-  const { data: app } = useApp(appId);
+  const { data: fetchedApp } = useApp(appId, { enabled: !appProp });
+  const app = appProp ?? fetchedApp;
 
   const mutation = useAddAppMutation(null, {
     returnTo,
