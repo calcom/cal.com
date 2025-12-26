@@ -15,7 +15,7 @@
     "db-up": "docker compose up -d || docker-compose up -d",
     "dx": "yarn db-setup",
     "generate-schemas": "prisma generate && prisma format",
-    "post-install": "yarn generate-schemas",
+    "post-install": "node -e \"/* skip prisma generate during global yarn install; run 'yarn workspace @calcom/prisma generate-schemas' manually when ready */ process.exit(0)\"",
     "seed-app-store": "ts-node --transpile-only ../../scripts/seed-app-store.ts",
     "delete-app": "ts-node --transpile-only ./delete-app.ts",
     "seed-basic": "ts-node --transpile-only ../../scripts/seed.ts",
@@ -29,13 +29,13 @@
     "@prisma/generator-helper": "6.16.2",
     "prisma": "6.16.1",
     "prisma-kysely": "2.2.0",
+    "ts-node": "10.9.2",
     "uuid": "^8.3.2",
     "zod": "3.25.76",
     "zod-prisma-types": "^3.2.4"
   },
   "devDependencies": {
-    "npm-run-all": "^4.1.5",
-    "ts-node": "10.9.2"
+    "npm-run-all": "^4.1.5"
   },
   "main": "index.ts",
   "types": "index.d.ts",
