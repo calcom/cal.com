@@ -9,7 +9,7 @@
     "@calcom/lib": "workspace:*",
     "@calcom/prisma": "workspace:*",
     "@calcom/ui": "workspace:*",
-    "react-hook-form": "^7.43.3"
+    "react-hook-form": "7.43.3"
   },
   "devDependencies": {
     "@calcom/types": "workspace:*"

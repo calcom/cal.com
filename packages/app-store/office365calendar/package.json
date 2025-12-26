@@ -8,8 +8,8 @@
   "dependencies": {
     "@calcom/lib": "workspace:*",
     "@calcom/prisma": "workspace:*",
-    "msw": "^2.7.0",
-    "windows-iana": "^5.1.0"
+    "msw": "2.7.0",
+    "windows-iana": "5.1.0"
   },
   "devDependencies": {
     "@calcom/types": "workspace:*"
