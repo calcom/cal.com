@@ -186,12 +186,18 @@ export class BBBApi {
       await withFetch(url, { method: "GET" });
       return true;
     } catch (err) {
-      if (err instanceof BBBError && err.error === bbbError.INVALID_CHECKSUM) {
-        log.info(`[BBB] invalid configuration options`);
-        return false;
+      if (err instanceof BBBError) {
+        if (err.error === bbbError.INVALID_CHECKSUM) {
+          log.info(`[BBB] invalid configuration options`);
+          return false;
+        }
+        // Network errors mean we can't verify - propagate them
+        if (err.error === bbbError.CANNOT_REACH_SERVER || err.error === bbbError.NETWORK_ERROR) {
+          throw err;
+        }
       }
-
-      return true; // if it fails with any other error, we know the secret is valid.
+      // Other errors (like invalid XML) mean server responded, so checksum was valid
+      return true;
     }
   }
 }

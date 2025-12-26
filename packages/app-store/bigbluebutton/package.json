@@ -5,11 +5,11 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "dependencies": {
-    "@calcom/lib": "*",
+    "@calcom/lib": "workspace:*",
     "fast-xml-parser": "^5.2.5"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   },
   "description": "BigBlueButton is a web-based video conferencing platform for hosting and joining video meetings, with features for online classes and collaboration"
 }

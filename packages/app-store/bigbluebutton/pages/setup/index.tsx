@@ -55,7 +55,7 @@ export default function BBBSetup() {
             />
           </div>
           <div className="ml-2 ltr:mr-2 rtl:ml-2 md:ml-5">
-            <div className="text-default">Set up your BigBlueButton integration</div>
+            <div className="text-default">{t("set_up_your_integration", { appName: "BigBlueButton" })}</div>
             <div className="mt-1 text-xl">Connect to BigBlueButton:</div>
 
             <Form
@@ -137,7 +137,7 @@ export default function BBBSetup() {
               </div>
             </Form>
             <div>
-              <p className="text-lgf text-default mt-5 font-bold">Getting started with BigBlueButton</p>
+              <p className="text-lg text-default mt-5 font-bold">Getting started with BigBlueButton</p>
               <p className="font-semi mt-2 text-sm">
                 To connect your BigBlueButton server, you&apos;ll need your API endpoint and shared secret.
               </p>

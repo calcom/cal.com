@@ -102,9 +102,9 @@ export const bbbInstanceInfoSchema = z.object({
   returncode: z.literal("SUCCESS"),
   version: z.string(), // BBB API returns version as string e.g. "2.0"
   apiVersion: z.string(), // BBB API returns apiVersion as string e.g. "2.0"
-  bbbVersion: z.string(),
-  graphqlWebsocketUrl: z.string(),
-  graphqlApiUrl: z.string(),
+  bbbVersion: z.string().optional(), // Optional - may be empty on some versions
+  graphqlWebsocketUrl: z.string().optional(), // Only available on BBB 2.5+ with GraphQL enabled
+  graphqlApiUrl: z.string().optional(), // Only available on BBB 2.5+ with GraphQL enabled
 });
 
 /*
