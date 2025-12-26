@@ -4,8 +4,7 @@ import { nextJsOrgRewriteConfig } from "./getNextjsOrgRewriteConfig";
 
 // Top-level route names that are explicitly allowed for org rewrite (whitelist)
 export const topLevelRouteNamesWhitelistedForRewrite: string[] = [
-  // We don't allow all dashboard route names to be used as slug because people are probably accustomed to access
-  // links like acme.cal.com/workflows, acme.cal.com/event-types etc.
+  // We don't allow all dashboard route names to be used as slug because people are probably accustomed to access links like acme.cal.com/workflows, acme.cal.com/event-types etc.
   // So, we carefully allow, what is absolutely needed.
   // Allowed to be a team/user slug in organization because onboarding is a common team name
   "onboarding",
@@ -28,7 +27,7 @@ export const topLevelRoutesExcludedFromOrgRewrite: string[] = globSync(
     filename
       // Remove the directory prefix (pages/, app/ and route group folders.)
       .replace(
-        /^(app\/(use-page-wrapper)\/(main-nav)|app\/(use-page-wrapper)|app\/(booking-page-wrapper)|pages|app)\//,
+        /^(app\/\(use-page-wrapper\)\/\(main-nav\)|app\/\(use-page-wrapper\)|app\/\(booking-page-wrapper\)|pages|app)\//,
         ""
       )
       // Remove file extensions
