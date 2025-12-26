@@ -1,27 +1,15 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const MAX_BYTES = 1 * 1024 * 1024;
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession({
-      req: buildLegacyRequest(await headers(), await cookies()),
-    });
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
