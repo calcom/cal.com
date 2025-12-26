@@ -1,10 +1,7 @@
 import z from "zod";
 
-export type TGetIncompleteBookingSettingsInputSchema = {
-  formId: string;
-};
+export const ZGetIncompleteBookingSettingsInputSchema = z.object({
+  formId: z.string(),
+});
 
-export const ZGetIncompleteBookingSettingsInputSchema: z.ZodType<TGetIncompleteBookingSettingsInputSchema> =
-  z.object({
-    formId: z.string(),
-  });
+export type TGetIncompleteBookingSettingsInputSchema = z.input<typeof ZGetIncompleteBookingSettingsInputSchema>;

@@ -5,7 +5,7 @@ export type TChangePasswordInputSchema = {
   newPassword: string;
 };
 
-export const ZChangePasswordInputSchema: z.ZodType<TChangePasswordInputSchema> = z.object({
+export const ZChangePasswordInputSchema = z.object({
   oldPassword: z.string(),
   newPassword: z.string(),
 });

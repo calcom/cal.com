@@ -4,6 +4,6 @@ export type TGetInputSchema = {
   id: number;
 };
 
-export const ZGetInputSchema: z.ZodType<TGetInputSchema> = z.object({
+export const ZGetInputSchema = z.object({
   id: z.number(),
 });

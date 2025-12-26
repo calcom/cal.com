@@ -8,7 +8,7 @@ type TGuestSchema = {
   language?: string;
 };
 
-const ZGuestSchema: z.ZodType<TGuestSchema> = z.object({
+const ZGuestSchema = z.object({
   email: z.string().email(),
   name: z.string().optional(),
   timeZone: z.string().optional(),
@@ -21,7 +21,7 @@ export type TAddGuestsInputSchema = {
   guests: TGuestSchema[];
 };
 
-export const ZAddGuestsInputSchema: z.ZodType<TAddGuestsInputSchema> = z.object({
+export const ZAddGuestsInputSchema = z.object({
   bookingId: z.number(),
   guests: z.array(ZGuestSchema),
 });

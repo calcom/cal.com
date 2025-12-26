@@ -6,7 +6,7 @@ export type TVerifyPhoneNumberInputSchema = {
   teamId?: number;
 };
 
-export const ZVerifyPhoneNumberInputSchema: z.ZodType<TVerifyPhoneNumberInputSchema> = z.object({
+export const ZVerifyPhoneNumberInputSchema = z.object({
   phoneNumber: z.string(),
   code: z.string(),
   teamId: z.number().optional(),

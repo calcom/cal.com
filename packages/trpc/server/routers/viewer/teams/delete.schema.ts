@@ -4,6 +4,6 @@ export type TDeleteInputSchema = {
   teamId: number;
 };
 
-export const ZDeleteInputSchema: z.ZodType<TDeleteInputSchema> = z.object({
+export const ZDeleteInputSchema = z.object({
   teamId: z.number(),
 });

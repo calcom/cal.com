@@ -4,7 +4,7 @@ export type TGetAuditLogsInputSchema = {
   bookingUid: string;
 };
 
-export const ZGetAuditLogsInputSchema: z.ZodType<TGetAuditLogsInputSchema> = z.object({
+export const ZGetAuditLogsInputSchema = z.object({
   bookingUid: z.string(),
 });
 

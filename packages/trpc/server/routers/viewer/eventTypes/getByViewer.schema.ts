@@ -9,24 +9,21 @@ export type TFilterQuerySchemaStrict = {
   schedulingTypes?: SchedulingType[];
 };
 
-export const filterQuerySchemaStrict: z.ZodType<TFilterQuerySchemaStrict> = z.object({
+export const filterQuerySchemaStrict = z.object({
   teamIds: z.number().array().optional(),
   // A user can only filter by only his userId
   upIds: z.string().array().max(1).optional(),
   schedulingTypes: z.nativeEnum(SchedulingType).array().optional(),
 });
 
-export type TEventTypeInputSchema = {
-  filters?: TFilterQuerySchemaStrict;
-  forRoutingForms?: boolean;
-} | null | undefined;
-
-export const ZEventTypeInputSchema: z.ZodType<TEventTypeInputSchema> = z
+export const ZEventTypeInputSchema = z
   .object({
     filters: filterQuerySchemaStrict.optional(),
     forRoutingForms: z.boolean().optional(),
   })
   .nullish();
+
+export type TEventTypeInputSchema = z.input<typeof ZEventTypeInputSchema>;
 
 export type TGetEventTypesFromGroupSchemaInput = {
   filters?: TFilterQuerySchemaStrict;

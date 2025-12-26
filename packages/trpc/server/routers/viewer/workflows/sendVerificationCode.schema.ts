@@ -4,6 +4,6 @@ export type TSendVerificationCodeInputSchema = {
   phoneNumber: string;
 };
 
-export const ZSendVerificationCodeInputSchema: z.ZodType<TSendVerificationCodeInputSchema> = z.object({
+export const ZSendVerificationCodeInputSchema = z.object({
   phoneNumber: z.string(),
 });

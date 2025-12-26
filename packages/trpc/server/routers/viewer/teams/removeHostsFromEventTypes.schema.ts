@@ -6,7 +6,7 @@ export type TRemoveHostsFromEventTypes = {
   eventTypeIds: number[];
 };
 
-export const ZRemoveHostsFromEventTypes: z.ZodType<TRemoveHostsFromEventTypes> = z.object({
+export const ZRemoveHostsFromEventTypes = z.object({
   userIds: z.array(z.number()),
   teamId: z.number(),
   eventTypeIds: z.array(z.number()),

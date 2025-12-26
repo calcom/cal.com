@@ -5,7 +5,7 @@ export type TActivateEventTypeInputSchema = {
   workflowId: number;
 };
 
-export const ZActivateEventTypeInputSchema: z.ZodType<TActivateEventTypeInputSchema> = z.object({
+export const ZActivateEventTypeInputSchema = z.object({
   eventTypeId: z.number(),
   workflowId: z.number(),
 });

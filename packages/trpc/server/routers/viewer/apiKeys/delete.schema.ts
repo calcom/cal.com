@@ -5,7 +5,7 @@ export type TDeleteInputSchema = {
   eventTypeId?: number;
 };
 
-export const ZDeleteInputSchema: z.ZodType<TDeleteInputSchema> = z.object({
+export const ZDeleteInputSchema = z.object({
   id: z.string(),
   eventTypeId: z.number().optional(),
 });

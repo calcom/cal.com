@@ -5,7 +5,7 @@ export type TCheckIfMembershipExistsInputSchema = {
   value: string;
 };
 
-export const ZCheckIfMembershipExistsInputSchema: z.ZodType<TCheckIfMembershipExistsInputSchema> = z.object({
+export const ZCheckIfMembershipExistsInputSchema = z.object({
   teamId: z.number(),
   value: z.string(),
 });

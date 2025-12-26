@@ -5,7 +5,7 @@ export type TGetMembershipbyUserInputSchema = {
   memberId: number;
 };
 
-export const ZGetMembershipbyUserInputSchema: z.ZodType<TGetMembershipbyUserInputSchema> = z.object({
+export const ZGetMembershipbyUserInputSchema = z.object({
   teamId: z.number(),
   memberId: z.number(),
 });

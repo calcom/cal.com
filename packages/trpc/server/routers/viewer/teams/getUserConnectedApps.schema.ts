@@ -5,7 +5,7 @@ export type TGetUserConnectedAppsInputSchema = {
   teamId: number;
 };
 
-export const ZGetUserConnectedAppsInputSchema: z.ZodType<TGetUserConnectedAppsInputSchema> = z.object({
+export const ZGetUserConnectedAppsInputSchema = z.object({
   userIds: z.array(z.number()),
   teamId: z.number(),
 });

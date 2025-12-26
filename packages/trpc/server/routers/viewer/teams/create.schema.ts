@@ -10,7 +10,7 @@ export type TCreateInputSchema = {
   isOnboarding?: boolean;
 };
 
-export const ZCreateInputSchema: z.ZodType<TCreateInputSchema> = z.object({
+export const ZCreateInputSchema = z.object({
   name: z.string(),
   slug: z.string().transform((val) => slugify(val.trim())),
   logo: z

@@ -4,6 +4,6 @@ export type TVerifyPasswordInputSchema = {
   passwordInput: string;
 };
 
-export const ZVerifyPasswordInputSchema: z.ZodType<TVerifyPasswordInputSchema> = z.object({
+export const ZVerifyPasswordInputSchema = z.object({
   passwordInput: z.string(),
 });

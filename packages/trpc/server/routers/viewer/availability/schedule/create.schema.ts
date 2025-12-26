@@ -6,7 +6,7 @@ export type TCreateInputSchema = {
   eventTypeId?: number;
 };
 
-export const ZCreateInputSchema: z.ZodType<TCreateInputSchema> = z.object({
+export const ZCreateInputSchema = z.object({
   name: z.string(),
   schedule: z
     .array(

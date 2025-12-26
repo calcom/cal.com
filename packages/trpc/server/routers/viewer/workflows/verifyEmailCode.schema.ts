@@ -6,7 +6,7 @@ export type TVerifyEmailCodeInputSchema = {
   email: string;
 };
 
-export const ZVerifyEmailCodeInputSchema: z.ZodType<TVerifyEmailCodeInputSchema> = z.object({
+export const ZVerifyEmailCodeInputSchema = z.object({
   teamId: z.number().optional(),
   code: z.string(),
   email: z.string(),
