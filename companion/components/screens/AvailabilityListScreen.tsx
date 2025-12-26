@@ -97,7 +97,11 @@ export function AvailabilityListScreen({
   const handleScheduleLongPress = (schedule: Schedule) => {
     if (Platform.OS !== "ios") {
       // Fallback for non-iOS platforms (Android Alert supports max 3 buttons)
-      const options = [];
+      const options: Array<{
+        text: string;
+        onPress: () => void;
+        style?: "destructive" | "cancel" | "default";
+      }> = [];
       if (!schedule.isDefault) {
         options.push({ text: "Set as default", onPress: () => handleSetAsDefault(schedule) });
       }

@@ -13,7 +13,7 @@
     "@calcom/lib": "workspace:*",
     "@calcom/prisma": "workspace:*",
     "@jetstreamapp/soql-parser-js": "6.1.0",
-    "@jsforce/jsforce-node": "3.6.3",
+    "@jsforce/jsforce-node": "3.10.10",
     "@urql/core": "5.1.1",
     "@urql/exchange-retry": "2.0.0"
   },

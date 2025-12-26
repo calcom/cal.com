@@ -35,7 +35,6 @@ function detectBrowser(): BrowserType {
   const userAgent = navigator.userAgent.toLowerCase();
 
   // Check for Brave
-  // @ts-ignore - Brave adds this to navigator
   if (navigator.brave && typeof navigator.brave.isBrave === "function") {
     return BrowserType.Brave;
   }
@@ -95,9 +94,7 @@ function getBrowserDisplayName(): string {
 
 // Get the appropriate browser API namespace
 function getBrowserAPI(): typeof chrome {
-  // @ts-ignore - Firefox/Safari use browser namespace
-  if (typeof browser !== "undefined" && browser.runtime) {
-    // @ts-ignore
+  if (typeof browser !== "undefined" && browser?.runtime) {
     return browser;
   }
   return chrome;
@@ -130,8 +127,7 @@ function getTabsAPI(): typeof chrome.tabs | null {
 // Get action API with cross-browser support
 function getActionAPI(): typeof chrome.action | null {
   const api = getBrowserAPI();
-  // @ts-ignore - Some browsers use browserAction instead of action
-  return api?.action || api?.browserAction || null;
+  return api?.action || null;
 }
 
 // Check if the URL is a restricted page where content scripts can't run
@@ -168,7 +164,6 @@ function openAppPage(): void {
   }
 }
 
-// @ts-ignore - WXT provides this globally
 export default defineBackground(() => {
   const browserType = detectBrowser();
   const browserName = getBrowserDisplayName();
@@ -377,8 +372,10 @@ async function handleExtensionOAuth(authUrl: string): Promise<string> {
     // Firefox and Safari use Promise-based API
     if (browserType === BrowserType.Firefox || browserType === BrowserType.Safari) {
       try {
-        // @ts-ignore - Firefox/Safari return Promises
-        const result = identityAPI.launchWebAuthFlow({ url: authUrl, interactive: true });
+        const result = identityAPI.launchWebAuthFlow({
+          url: authUrl,
+          interactive: true,
+        }) as Promise<string | undefined> | void;
 
         if (result && typeof result.then === "function") {
           result

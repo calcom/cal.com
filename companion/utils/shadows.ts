@@ -24,9 +24,8 @@ export function createShadow(config: ShadowConfig = {}): ViewStyle {
       .toString(16)
       .padStart(2, "0");
     return {
-      // @ts-ignore - web-only property
       boxShadow: `${offsetX}px ${offsetY}px ${radius}px rgba(0, 0, 0, ${opacity})`,
-    };
+    } as ViewStyle;
   }
 
   return {
