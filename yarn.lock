@@ -2568,6 +2568,7 @@ __metadata:
     react-select: "npm:5.8.0"
     react-sticky-box: "npm:2.0.4"
     recharts: "npm:3.0.2"
+    stripe-event-types: "npm:3.1.0"
     trigger.dev: "npm:4.1.0"
     web-push: "npm:3.6.7"
     zustand: "npm:4.5.2"
@@ -38754,6 +38755,15 @@ __metadata:
   version: 2.0.1
   resolution: "strip-json-comments@npm:2.0.1"
   checksum: 10/1074ccb63270d32ca28edfb0a281c96b94dc679077828135141f27d52a5a398ef5e78bcf22809d23cadc2b81dfbe345eb5fd8699b385c8b1128907dec4a7d1e1
+  languageName: node
+  linkType: hard
+
+"stripe-event-types@npm:3.1.0":
+  version: 3.1.0
+  resolution: "stripe-event-types@npm:3.1.0"
+  peerDependencies:
+    stripe: ">=10.0.0"
+  checksum: 10/b50e7efad8b3b20c586d8deaf9d7df3ee8cbb6b0e9775b94179fac784f54c2267b11faa0d3882831da18c97104599b6617e822d8b8c83100edc4bb6585794399
   languageName: node
   linkType: hard
 
