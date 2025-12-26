@@ -47,10 +47,13 @@ const useMoveToNextMonthOnNoAvailability = ({
       return;
     }
 
+
     if (periodData?.periodType === "ROLLING" && periodData.periodDays) {
       const today = dayjs();
-      const periodDays = periodData.periodDays;
-      const maxBookableDate = today.add(Math.max(0, periodDays - 1), "day");
+      const daysToAdd = Math.max(0, periodData.periodDays - 1);
+      const maxBookableDate = periodData.periodCountCalendarDays
+        ? today.add(daysToAdd, "day")
+        : today.businessDaysAdd(daysToAdd);
       const nextMonthStart = browsingDate.add(1, "month").startOf("month");
 
       if (nextMonthStart.isAfter(maxBookableDate, "day")) {
