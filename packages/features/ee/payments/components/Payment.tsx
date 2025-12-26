@@ -5,6 +5,7 @@ import type { StripeElementLocale, StripeElements, StripePaymentElementOptions }
 import { useRouter } from "next/navigation";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
+import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
@@ -13,7 +14,11 @@ import { formatPrice } from "@calcom/lib/currencyConversions";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { CalPromotionData } from "@calcom/lib/payment/promoCode";
-import { getCalPromotionFromPaymentData, getStripePublishableKey } from "@calcom/lib/payment/promoCode";
+import {
+  calPromotionDataSchema,
+  getCalPromotionFromPaymentData,
+  getStripePublishableKey,
+} from "@calcom/lib/payment/promoCode";
 import type { EventType, Payment } from "@calcom/prisma/client";
 import type { PaymentOption } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
@@ -38,10 +43,38 @@ type ApiErrorPayload = {
   } | null;
 };
 
+const promoCodeApiResponseSchema = z.object({
+  payment: z.object({
+    uid: z.string(),
+    amount: z.number(),
+    currency: z.string(),
+  }),
+  promotion: calPromotionDataSchema.nullable(),
+});
+
+const apiErrorPayloadSchema = z.object({
+  message: z.string().optional(),
+  data: z
+    .object({
+      code: z.string().optional(),
+    })
+    .nullable()
+    .optional(),
+});
+
+const confirmFreeApiResponseSchema = z.object({
+  ok: z.boolean().optional(),
+  message: z.string().optional(),
+});
+
 function hasFetchUpdates(
   elements: StripeElements
 ): elements is StripeElements & { fetchUpdates: () => Promise<void> } {
-  const maybeFn = (elements as unknown as Record<string, unknown>)["fetchUpdates"];
+  if (!("fetchUpdates" in elements)) {
+    return false;
+  }
+
+  const maybeFn = (elements as StripeElements & Record<"fetchUpdates", unknown>).fetchUpdates;
   return typeof maybeFn === "function";
 }
 
@@ -296,12 +329,21 @@ const PaymentForm = (props: Props) => {
         }),
       });
 
-      const json = (await res.json()) as PromoCodeApiResponse | ApiErrorPayload;
+      const json: unknown = await res.json();
       if (!res.ok) {
-        setPromoError(mapPromoError(json as ApiErrorPayload));
+        const parsedError = apiErrorPayloadSchema.safeParse(json);
+        const payload = parsedError.success ? parsedError.data : ({} satisfies ApiErrorPayload);
+        setPromoError(mapPromoError(payload));
         return;
       }
-      const data = json as PromoCodeApiResponse;
+
+      const parsed = promoCodeApiResponseSchema.safeParse(json);
+      if (!parsed.success) {
+        setPromoError(t("promo_code_error"));
+        return;
+      }
+
+      const data: PromoCodeApiResponse = parsed.data;
       setPromotion(data.promotion);
       props.onPaymentAmountChange?.(data.payment.amount, data.promotion);
       if (hasFetchUpdates(elements)) {
@@ -334,12 +376,21 @@ const PaymentForm = (props: Props) => {
         }),
       });
 
-      const json = (await res.json()) as PromoCodeApiResponse | ApiErrorPayload;
+      const json: unknown = await res.json();
       if (!res.ok) {
-        setPromoError(mapPromoError(json as ApiErrorPayload));
+        const parsedError = apiErrorPayloadSchema.safeParse(json);
+        const payload = parsedError.success ? parsedError.data : ({} satisfies ApiErrorPayload);
+        setPromoError(mapPromoError(payload));
         return;
       }
-      const data = json as PromoCodeApiResponse;
+
+      const parsed = promoCodeApiResponseSchema.safeParse(json);
+      if (!parsed.success) {
+        setPromoError(t("promo_code_error"));
+        return;
+      }
+
+      const data: PromoCodeApiResponse = parsed.data;
       setPromotion(null);
       setPromoInput("");
       props.onPaymentAmountChange?.(data.payment.amount, null);
@@ -377,9 +428,11 @@ const PaymentForm = (props: Props) => {
             email,
           }),
         });
-        const json = (await res.json()) as { ok?: boolean; message?: string };
+        const json: unknown = await res.json();
+        const parsed = confirmFreeApiResponseSchema.safeParse(json);
+        const data = parsed.success ? parsed.data : undefined;
         if (!res.ok) {
-          throw new Error(json.message || t("something_went_wrong"));
+          throw new Error(data?.message || t("something_went_wrong"));
         }
 
         const params: {

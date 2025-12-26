@@ -7,37 +7,16 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { HttpError } from "@calcom/lib/http-error";
-import type { CalPromotionData } from "@calcom/lib/payment/promoCode";
-import { parseCalPromotionData } from "@calcom/lib/payment/promoCode";
+import { getCalPromotionFromPaymentData } from "@calcom/lib/payment/promoCode";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { defaultResponder, type TracedRequest } from "@calcom/lib/server/defaultResponder";
 import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { PaymentOption } from "@calcom/prisma/enums";
+
+import { getStripeAccountFromPaymentData, hasStringProp, lockPaymentById, safeJsonObject } from "./_utils";
 
 const CONFIRM_FREE_RATE_LIMIT = 5;
 const CONFIRM_FREE_RATE_LIMIT_WINDOW = "60s" as const;
-
-function safeJsonObject(value: unknown): Prisma.JsonObject {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  return value as Prisma.JsonObject;
-}
-
-function hasStringProp<T extends string>(x: unknown, key: T): x is { [K in T]: string } {
-  return !!x && typeof x === "object" && key in x && typeof (x as Record<string, unknown>)[key] === "string";
-}
-
-function getStripeAccountFromPaymentData(paymentData: unknown): string {
-  if (hasStringProp(paymentData, "stripeAccount")) return paymentData.stripeAccount;
-  throw new HttpError({
-    statusCode: 400,
-    message: "Stripe account not found on payment",
-    data: { code: "stripe_account_missing" },
-  });
-}
-
-function getExistingPromotion(data: Prisma.JsonObject): CalPromotionData | null {
-  return parseCalPromotionData(data["calPromotion"]);
-}
 
 const schema = z.object({
   paymentUid: z.string().min(1),
@@ -47,117 +26,176 @@ const schema = z.object({
 async function confirmFreePayment(input: z.infer<typeof schema>) {
   const { paymentUid, email } = input;
 
-  const payment = await prisma.payment.findUnique({
-    where: { uid: paymentUid },
-    select: {
-      id: true,
-      uid: true,
-      appId: true,
-      amount: true,
-      currency: true,
-      success: true,
-      refunded: true,
-      paymentOption: true,
-      externalId: true,
-      bookingId: true,
-      data: true,
-      booking: {
-        select: {
-          attendees: { select: { email: true } },
-          eventType: { select: { metadata: true } },
+  const locked = await prisma.$transaction(async (tx) => {
+    const payment = await tx.payment.findUnique({
+      where: { uid: paymentUid },
+      select: {
+        id: true,
+        uid: true,
+        appId: true,
+        amount: true,
+        success: true,
+        refunded: true,
+        paymentOption: true,
+        externalId: true,
+        bookingId: true,
+        data: true,
+        booking: {
+          select: {
+            attendees: { select: { email: true } },
+            eventType: { select: { metadata: true } },
+          },
         },
       },
-    },
+    });
+
+    if (!payment || !payment.bookingId || !payment.booking) {
+      throw new HttpError({ statusCode: 404, message: "Payment not found", data: { code: "not_found" } });
+    }
+
+    await lockPaymentById(tx, payment.id);
+
+    const lockedPayment = await tx.payment.findUnique({
+      where: { id: payment.id },
+      select: {
+        id: true,
+        uid: true,
+        appId: true,
+        amount: true,
+        success: true,
+        refunded: true,
+        paymentOption: true,
+        externalId: true,
+        bookingId: true,
+        data: true,
+        booking: {
+          select: {
+            attendees: { select: { email: true } },
+            eventType: { select: { metadata: true } },
+          },
+        },
+      },
+    });
+
+    if (!lockedPayment || !lockedPayment.bookingId || !lockedPayment.booking) {
+      throw new HttpError({ statusCode: 404, message: "Payment not found", data: { code: "not_found" } });
+    }
+    if (lockedPayment.appId !== "stripe") {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Payment is not Stripe",
+        data: { code: "not_stripe" },
+      });
+    }
+    if (lockedPayment.paymentOption !== PaymentOption.ON_BOOKING) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Free confirmation is only supported for on-booking payments",
+        data: { code: "unsupported_payment_option" },
+      });
+    }
+    if (lockedPayment.success) {
+      return { ok: true as const, paymentId: lockedPayment.id, bookingId: lockedPayment.bookingId };
+    }
+    if (lockedPayment.refunded) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Payment is refunded",
+        data: { code: "not_eligible" },
+      });
+    }
+    if (!lockedPayment.externalId) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Payment externalId missing",
+        data: { code: "payment_external_id_missing" },
+      });
+    }
+
+    const emailMatches = lockedPayment.booking.attendees.some(
+      (a) => (a.email ?? "").toLowerCase() === email.toLowerCase()
+    );
+    if (!emailMatches) {
+      throw new HttpError({ statusCode: 401, message: "Unauthorized", data: { code: "unauthorized" } });
+    }
+
+    const eventTypeMetadata = eventTypeMetaDataSchemaWithTypedApps.parse(
+      lockedPayment.booking.eventType?.metadata
+    );
+    const allowPromotionCodes = eventTypeMetadata?.apps?.stripe?.allowPromotionCodes === true;
+    if (!allowPromotionCodes) {
+      throw new HttpError({
+        statusCode: 403,
+        message: "Promo codes are not enabled",
+        data: { code: "not_enabled" },
+      });
+    }
+
+    const paymentData = safeJsonObject(lockedPayment.data);
+    const stripeAccount = getStripeAccountFromPaymentData(paymentData);
+
+    const promotion = getCalPromotionFromPaymentData(paymentData);
+    if (!promotion || promotion.finalAmount !== 0) {
+      throw new HttpError({ statusCode: 400, message: "Payment is not free", data: { code: "not_free" } });
+    }
+    if (lockedPayment.amount !== 0) {
+      throw new HttpError({ statusCode: 400, message: "Payment is not free", data: { code: "not_free" } });
+    }
+
+    const paymentIntent = await stripe.paymentIntents.retrieve(lockedPayment.externalId, { stripeAccount });
+    if (paymentIntent.status === "succeeded") {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Payment already succeeded",
+        data: { code: "not_eligible" },
+      });
+    }
+
+    if (paymentIntent.status !== "canceled") {
+      await stripe.paymentIntents.update(
+        lockedPayment.externalId,
+        {
+          metadata: {
+            calPromotionCode: promotion.code,
+            calPromotionCodeId: promotion.promotionCodeId,
+            calPromotionFinalAmount: "0",
+          },
+        },
+        { stripeAccount }
+      );
+
+      await stripe.paymentIntents.cancel(
+        lockedPayment.externalId,
+        {
+          cancellation_reason: "requested_by_customer",
+        },
+        { stripeAccount }
+      );
+    }
+
+    // Make the operation idempotent for concurrent requests.
+    await tx.payment.update({
+      where: { id: lockedPayment.id },
+      data: { success: true },
+    });
+    await tx.booking.update({
+      where: { id: lockedPayment.bookingId },
+      data: { paid: true },
+    });
+
+    return {
+      ok: true as const,
+      paymentId: lockedPayment.id,
+      bookingId: lockedPayment.bookingId,
+    };
   });
 
-  if (!payment || !payment.bookingId || !payment.booking) {
-    throw new HttpError({ statusCode: 404, message: "Payment not found", data: { code: "not_found" } });
-  }
-  if (payment.appId !== "stripe") {
-    throw new HttpError({ statusCode: 400, message: "Payment is not Stripe", data: { code: "not_stripe" } });
-  }
-  if (payment.paymentOption !== "ON_BOOKING") {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Free confirmation is only supported for on-booking payments",
-      data: { code: "unsupported_payment_option" },
-    });
-  }
-  if (payment.success) {
+  if (!locked.ok) {
     return { ok: true };
-  }
-  if (payment.refunded) {
-    throw new HttpError({ statusCode: 400, message: "Payment is refunded", data: { code: "not_eligible" } });
-  }
-  if (!payment.externalId) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Payment externalId missing",
-      data: { code: "payment_external_id_missing" },
-    });
-  }
-
-  const emailMatches = payment.booking.attendees.some(
-    (a) => (a.email ?? "").toLowerCase() === email.toLowerCase()
-  );
-  if (!emailMatches) {
-    throw new HttpError({ statusCode: 401, message: "Unauthorized", data: { code: "unauthorized" } });
-  }
-
-  const eventTypeMetadata = eventTypeMetaDataSchemaWithTypedApps.parse(payment.booking.eventType?.metadata);
-  const allowPromotionCodes = eventTypeMetadata?.apps?.stripe?.allowPromotionCodes === true;
-  if (!allowPromotionCodes) {
-    throw new HttpError({
-      statusCode: 403,
-      message: "Promo codes are not enabled",
-      data: { code: "not_enabled" },
-    });
-  }
-
-  const paymentData = safeJsonObject(payment.data);
-  const stripeAccount = getStripeAccountFromPaymentData(paymentData);
-
-  const promotion = getExistingPromotion(paymentData);
-  if (!promotion || promotion.finalAmount !== 0) {
-    throw new HttpError({ statusCode: 400, message: "Payment is not free", data: { code: "not_free" } });
-  }
-  if (payment.amount !== 0) {
-    throw new HttpError({ statusCode: 400, message: "Payment is not free", data: { code: "not_free" } });
-  }
-
-  const paymentIntent = await stripe.paymentIntents.retrieve(payment.externalId, { stripeAccount });
-  if (paymentIntent.status === "succeeded") {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Payment already succeeded",
-      data: { code: "not_eligible" },
-    });
-  }
-
-  if (paymentIntent.status !== "canceled") {
-    await stripe.paymentIntents.update(
-      payment.externalId,
-      {
-        metadata: {
-          calPromotionCode: promotion.code,
-          calPromotionCodeId: promotion.promotionCodeId,
-          calPromotionFinalAmount: "0",
-        },
-      },
-      { stripeAccount }
-    );
-
-    await stripe.paymentIntents.cancel(
-      payment.externalId,
-      {
-        cancellation_reason: "requested_by_customer",
-      },
-      { stripeAccount }
-    );
   }
 
   try {
-    await handlePaymentSuccess(payment.id, payment.bookingId);
+    await handlePaymentSuccess(locked.paymentId, locked.bookingId);
   } catch (err) {
     if (err instanceof HttpError && err.statusCode === 200) {
       return { ok: true };

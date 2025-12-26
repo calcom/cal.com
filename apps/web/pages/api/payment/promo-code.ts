@@ -7,20 +7,22 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import type { CalPromotionData } from "@calcom/lib/payment/promoCode";
-import { parseCalPromotionData } from "@calcom/lib/payment/promoCode";
+import { getCalPromotionFromPaymentData } from "@calcom/lib/payment/promoCode";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { defaultResponder, type TracedRequest } from "@calcom/lib/server/defaultResponder";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
+import { getStripeAccountFromPaymentData, hasStringProp, lockPaymentById, safeJsonObject } from "./_utils";
+
 const PROMO_CODE_RATE_LIMIT = 5;
 const PROMO_CODE_RATE_LIMIT_WINDOW = "60s" as const;
 
-function safeJsonObject(value: unknown): Prisma.JsonObject {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  return value as Prisma.JsonObject;
-}
+const MILLISECONDS_PER_SECOND = 1000;
+
+const log = logger.getSubLogger({ prefix: ["[paymentPromoCode]"] });
 
 function throwPromoError(code: string, message: string, statusCode = 400): never {
   throw new HttpError({
@@ -30,23 +32,6 @@ function throwPromoError(code: string, message: string, statusCode = 400): never
       code,
     },
   });
-}
-
-function hasStringProp<T extends string>(x: unknown, key: T): x is { [K in T]: string } {
-  return !!x && typeof x === "object" && key in x && typeof (x as Record<string, unknown>)[key] === "string";
-}
-
-function getStripeAccountFromPaymentData(paymentData: unknown): string {
-  if (hasStringProp(paymentData, "stripeAccount")) return paymentData.stripeAccount;
-  return throwPromoError("stripe_account_missing", "Stripe account not found on payment");
-}
-
-function getExistingPromotion(data: Prisma.JsonObject): CalPromotionData | null {
-  return parseCalPromotionData(data["calPromotion"]);
-}
-
-async function lockPaymentForPromoCode(tx: Prisma.TransactionClient, paymentId: number) {
-  await tx.$executeRaw`SELECT pg_advisory_xact_lock(${BigInt(paymentId)})`;
 }
 
 const applySchema = z.object({
@@ -116,7 +101,7 @@ async function applyPromoCode(args: z.infer<typeof applySchema>) {
   const paymentData = safeJsonObject(payment.data);
   const stripeAccount = getStripeAccountFromPaymentData(paymentData);
 
-  const existingPromotion = getExistingPromotion(paymentData);
+  const existingPromotion = getCalPromotionFromPaymentData(paymentData);
   if (existingPromotion && existingPromotion.code.toLowerCase() === promoCode.toLowerCase()) {
     return {
       payment: { uid: payment.uid, amount: payment.amount, currency: payment.currency },
@@ -145,7 +130,7 @@ async function applyPromoCode(args: z.infer<typeof applySchema>) {
     return throwPromoError("not_active", "Promo code is not active");
   }
 
-  const now = Math.floor(Date.now() / 1000);
+  const now = Math.floor(Date.now() / MILLISECONDS_PER_SECOND);
   if (coupon.redeem_by && coupon.redeem_by < now) {
     return throwPromoError("expired", "Promo code has expired");
   }
@@ -183,7 +168,7 @@ async function applyPromoCode(args: z.infer<typeof applySchema>) {
       : "";
 
   return await prisma.$transaction(async (tx) => {
-    await lockPaymentForPromoCode(tx, payment.id);
+    await lockPaymentById(tx, payment.id);
 
     const lockedPayment = await tx.payment.findUnique({
       where: { id: payment.id },
@@ -208,7 +193,7 @@ async function applyPromoCode(args: z.infer<typeof applySchema>) {
     }
 
     const lockedPaymentData = safeJsonObject(lockedPayment.data);
-    const lockedExistingPromotion = getExistingPromotion(lockedPaymentData);
+    const lockedExistingPromotion = getCalPromotionFromPaymentData(lockedPaymentData);
     if (lockedExistingPromotion && lockedExistingPromotion.code.toLowerCase() === promoCode.toLowerCase()) {
       return {
         payment: { uid: lockedPayment.uid, amount: lockedPayment.amount, currency: lockedPayment.currency },
@@ -288,8 +273,13 @@ async function applyPromoCode(args: z.infer<typeof applySchema>) {
           },
           { stripeAccount }
         );
-      } catch {
-        // ignore rollback errors
+      } catch (rollbackErr) {
+        log.error("Failed to rollback Stripe payment intent update after promo code error", {
+          paymentId: lockedPayment.id,
+          paymentUid: lockedPayment.uid,
+          stripePaymentIntentId: lockedPayment.externalId,
+          rollbackErr,
+        });
       }
       throw err;
     }
@@ -353,7 +343,7 @@ async function removePromoCode(args: z.infer<typeof removeSchema>) {
   const paymentData = safeJsonObject(payment.data);
   const stripeAccount = getStripeAccountFromPaymentData(paymentData);
 
-  const existingPromotion = getExistingPromotion(paymentData);
+  const existingPromotion = getCalPromotionFromPaymentData(paymentData);
   if (!existingPromotion) {
     return {
       payment: { uid: payment.uid, amount: payment.amount, currency: payment.currency },
@@ -377,7 +367,7 @@ async function removePromoCode(args: z.infer<typeof removeSchema>) {
       : "";
 
   return await prisma.$transaction(async (tx) => {
-    await lockPaymentForPromoCode(tx, payment.id);
+    await lockPaymentById(tx, payment.id);
 
     const lockedPayment = await tx.payment.findUnique({
       where: { id: payment.id },
@@ -402,7 +392,7 @@ async function removePromoCode(args: z.infer<typeof removeSchema>) {
     }
 
     const lockedPaymentData = safeJsonObject(lockedPayment.data);
-    const lockedExistingPromotion = getExistingPromotion(lockedPaymentData);
+    const lockedExistingPromotion = getCalPromotionFromPaymentData(lockedPaymentData);
     if (!lockedExistingPromotion) {
       return {
         payment: { uid: lockedPayment.uid, amount: lockedPayment.amount, currency: lockedPayment.currency },
@@ -445,8 +435,13 @@ async function removePromoCode(args: z.infer<typeof removeSchema>) {
           },
           { stripeAccount }
         );
-      } catch {
-        // ignore rollback errors
+      } catch (rollbackErr) {
+        log.error("Failed to rollback Stripe payment intent update after promo code removal error", {
+          paymentId: lockedPayment.id,
+          paymentUid: lockedPayment.uid,
+          stripePaymentIntentId: lockedPayment.externalId,
+          rollbackErr,
+        });
       }
       throw err;
     }

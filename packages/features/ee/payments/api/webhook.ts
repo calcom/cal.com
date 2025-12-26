@@ -59,6 +59,11 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
     where: {
       externalId: setupIntent.id,
     },
+    select: {
+      id: true,
+      bookingId: true,
+      data: true,
+    },
   });
 
   if (!payment?.data || !payment?.id) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
@@ -179,8 +184,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // bypassing this validation for e2e tests
     // in order to successfully confirm the payment
-    const isE2E =
-      process.env.NEXT_PUBLIC_IS_E2E === "1" || process.env.NEXT_PUBLIC_IS_E2E === "true";
+    const isE2E = process.env.NEXT_PUBLIC_IS_E2E === "1" || process.env.NEXT_PUBLIC_IS_E2E === "true";
 
     // Ignore connected-account events (they include `event.account`)
     if (event.account && !isE2E) {
