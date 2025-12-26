@@ -1,22 +1,12 @@
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import prisma from "@calcom/prisma";
 
 export async function DELETE(req: NextRequest) {
   try {
-    const session = await getServerSession({
-      req: buildLegacyRequest(await headers(), await cookies()),
-    });
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    // Public endpoint - but only allow deletion if file is not used in any booking
     const { searchParams } = new URL(req.url);
     const key = searchParams.get("key");
 
@@ -37,6 +27,21 @@ export async function DELETE(req: NextRequest) {
     // Validate that the key belongs to the deployment environment
     if (!key.startsWith(`${deploymentEnv}/`)) {
       return NextResponse.json({ error: "Invalid key" }, { status: 403 });
+    }
+
+    // Security: Check if file is used in any booking - if so, don't allow deletion
+    const filename = key.split("/").pop();
+    const bookings = (await prisma.$queryRaw`
+      SELECT b.id FROM "Booking" b
+      WHERE (b.responses::text LIKE ${`%${key}%`} OR b.responses::text LIKE ${`%${filename}%`})
+      LIMIT 1
+    `) as { id: number }[];
+
+    if (bookings && bookings.length > 0) {
+      return NextResponse.json(
+        { error: "File is associated with a booking and cannot be deleted" },
+        { status: 403 }
+      );
     }
 
     const client = new S3Client({
