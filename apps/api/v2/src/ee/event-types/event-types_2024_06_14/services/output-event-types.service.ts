@@ -436,7 +436,7 @@ export class OutputEventTypesService_2024_06_14 {
     }
 
     const orgSlug = enrichedUser.profile?.organization?.slug ?? null;
-    const baseUrl = getBookerBaseUrlSync(orgSlug);
+    const baseUrl = getBookerBaseUrlSync(orgSlug).replace(/\/$/, "");
 
     return `${baseUrl}/${username}/${slug}`;
   }

@@ -171,7 +171,8 @@ describe("OutputEventTypesService_2024_06_14", () => {
 
       const result = service.buildBookingUrl(users, slug);
 
-      expect(result).toContain("/john/30min");
+      // Trailing slash should be stripped to avoid double slashes
+      expect(result).toBe("https://cal.com/john/30min");
     });
 
     it("should return empty string when username is empty", () => {
