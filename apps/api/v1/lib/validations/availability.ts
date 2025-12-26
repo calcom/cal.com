@@ -1,15 +1,13 @@
 import { z } from "zod";
 
-import { denullishShape } from "@calcom/prisma/zod-utils";
+import { denullish } from "@calcom/prisma/zod-utils";
 import { AvailabilitySchema } from "@calcom/prisma/zod/modelSchema/AvailabilitySchema";
 import { ScheduleSchema } from "@calcom/prisma/zod/modelSchema/ScheduleSchema";
 
-export const schemaAvailabilityBaseBodyParams = /** We make all these properties required */ denullishShape(
-  AvailabilitySchema.pick({
-    /** We need to pass the schedule where this availability belongs to */
-    scheduleId: true,
-  })
-);
+/** We make scheduleId required by denullishing it individually to preserve type inference in zod v4 */
+export const schemaAvailabilityBaseBodyParams = z.object({
+  scheduleId: denullish(AvailabilitySchema.shape.scheduleId),
+});
 
 export const schemaAvailabilityReadPublic = AvailabilitySchema.pick({
   id: true,
