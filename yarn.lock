@@ -2992,7 +2992,7 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "workspace:*"
     "@calcom/platform-enums": "workspace:*"
-    "@nestjs/common": "npm:10.0.0"
+    "@nestjs/common": "npm:10.3.3"
     "@nestjs/swagger": "npm:7.3.0"
     "@types/express": "npm:4.17.21"
     class-transformer: "npm:0.5.1"
@@ -3260,12 +3260,12 @@ __metadata:
     "@trpc/next": "npm:11.0.0-next-beta.222"
     "@trpc/react-query": "npm:11.0.0-next-beta.222"
     "@trpc/server": "npm:11.0.0-next-beta.222"
-    "@types/cookie": "npm:^0.6.0"
-    "@types/uuid": "npm:^8.3.4"
-    cookie: "npm:^0.7.0"
+    "@types/cookie": "npm:0.6.0"
+    "@types/uuid": "npm:8.3.4"
+    cookie: "npm:0.7.0"
     superjson: "npm:1.9.1"
     typescript: "npm:5.9.2"
-    uuid: "npm:^8.3.2"
+    uuid: "npm:8.3.2"
     zod: "npm:3.25.76"
   peerDependencies:
     next: ">=14.0.0"
@@ -8420,27 +8420,6 @@ __metadata:
   bin:
     nest: bin/nest.js
   checksum: 10/fef0719e22fd9ed8f68f792aac10d75b9a5420395ecf9cc8614b1a8631f92d86c519ac2e798250a405ac13bdcd4747a9ef93ea294adc1f29f3e26f54e2d3fc0e
-  languageName: node
-  linkType: hard
-
-"@nestjs/common@npm:10.0.0":
-  version: 10.0.0
-  resolution: "@nestjs/common@npm:10.0.0"
-  dependencies:
-    iterare: "npm:1.2.1"
-    tslib: "npm:2.5.3"
-    uid: "npm:2.0.2"
-  peerDependencies:
-    class-transformer: "*"
-    class-validator: "*"
-    reflect-metadata: ^0.1.12
-    rxjs: ^7.1.0
-  peerDependenciesMeta:
-    class-transformer:
-      optional: true
-    class-validator:
-      optional: true
-  checksum: 10/45a6790089d4fbd2b07b97b12aad38e67b14fd24649456feef94b91dd35f8705e839cc1d7b01bda84840ee9cbcc5b5142ef454b9fe3aafb23114757d2e537fb2
   languageName: node
   linkType: hard
 
@@ -16077,17 +16056,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/cookie@npm:0.6.0, @types/cookie@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "@types/cookie@npm:0.6.0"
+  checksum: 10/b883348d5bf88695fbc2c2276b1c49859267a55cae3cf11ea1dccc1b3be15b466e637ce3242109ba27d616c77c6aa4efe521e3d557110b4fdd9bc332a12445c2
+  languageName: node
+  linkType: hard
+
 "@types/cookie@npm:^0.4.1":
   version: 0.4.1
   resolution: "@types/cookie@npm:0.4.1"
   checksum: 10/427c9220217d3d74f3e5d53d68cd39502f3bbebdb1af4ecf0d05076bcbe9ddab299ad6369fe0f517389296ba4ca49ddf9a8c22f68e5e9eb8ae6d0076cfab90b2
-  languageName: node
-  linkType: hard
-
-"@types/cookie@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@types/cookie@npm:0.6.0"
-  checksum: 10/b883348d5bf88695fbc2c2276b1c49859267a55cae3cf11ea1dccc1b3be15b466e637ce3242109ba27d616c77c6aa4efe521e3d557110b4fdd9bc332a12445c2
   languageName: node
   linkType: hard
 
@@ -17030,7 +17009,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/uuid@npm:^8.3.4":
+"@types/uuid@npm:8.3.4":
   version: 8.3.4
   resolution: "@types/uuid@npm:8.3.4"
   checksum: 10/6f11f3ff70f30210edaa8071422d405e9c1d4e53abbe50fdce365150d3c698fe7bbff65c1e71ae080cbfb8fded860dbb5e174da96fdbbdfcaa3fb3daa474d20f
@@ -21375,6 +21354,13 @@ __metadata:
   version: 0.5.0
   resolution: "cookie@npm:0.5.0"
   checksum: 10/aae7911ddc5f444a9025fbd979ad1b5d60191011339bce48e555cb83343d0f98b865ff5c4d71fecdfb8555a5cafdc65632f6fce172f32aaf6936830a883a0380
+  languageName: node
+  linkType: hard
+
+"cookie@npm:0.7.0":
+  version: 0.7.0
+  resolution: "cookie@npm:0.7.0"
+  checksum: 10/2e69a615fa2c5a1e1126012dd2118b0de4fbbdede38ebcc1f971a9b08075718bc4465b119896bac61969b38c6cacaf471b0fd2601ea978fd8f3e834f2c2393f8
   languageName: node
   linkType: hard
 
@@ -40451,13 +40437,6 @@ __metadata:
   version: 2.0.1
   resolution: "tslib@npm:2.0.1"
   checksum: 10/609a4124f259551e173f2615eca023cc40e5748331e4a4a4f8e75d39567491d73936d847f11463965018b0dc78200b8494341426a038338e633d452afd44aec8
-  languageName: node
-  linkType: hard
-
-"tslib@npm:2.5.3":
-  version: 2.5.3
-  resolution: "tslib@npm:2.5.3"
-  checksum: 10/d507e60ebe2480af4efc1655dfdb2762bb6ca57d76c4ba680375af801493648c2e97808bbd7e54691eb40e33a7e2e793cdef9c24ce6a8539b03cac8b26e09a61
   languageName: node
   linkType: hard
 
