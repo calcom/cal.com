@@ -16,6 +16,7 @@ export const inputStyles = cva(
     // Base styles
     "rounded-[10px] border",
     "leading-none font-normal",
+    "overflow-hidden",
 
     // Colors
     "bg-default",
