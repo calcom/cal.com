@@ -2579,12 +2579,19 @@ describe("Event types Endpoints", () => {
             expect(createdEventType.title).toEqual(body.title);
             secondCreatedEventType = responseBody.data;
 
-            const { id, title, slug, ...restFirst } = firstCreatedEventType;
-            const { id: id2, title: title2, slug: slug2, ...restSecond } = secondCreatedEventType;
+            const { id, title, slug, bookingUrl, ...restFirst } = firstCreatedEventType;
+            const {
+              id: id2,
+              title: title2,
+              slug: slug2,
+              bookingUrl: bookingUrl2,
+              ...restSecond
+            } = secondCreatedEventType;
             expect(restFirst).toEqual(restSecond);
             expect(id2).not.toEqual(id);
             expect(title2).not.toEqual(title);
             expect(slug2).not.toEqual(slug);
+            expect(bookingUrl2).not.toEqual(bookingUrl);
           });
       });
 
