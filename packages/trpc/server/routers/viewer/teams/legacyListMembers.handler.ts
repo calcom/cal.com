@@ -1,5 +1,6 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -69,7 +70,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
     };
   }
 
-  const searchTextClauses = [
+  const searchTextClauses: Prisma.UserWhereInput[] = [
     { name: { contains: input.searchText, mode: "insensitive" } },
     { username: { contains: input.searchText, mode: "insensitive" } },
   ];
