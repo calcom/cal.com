@@ -51,8 +51,8 @@ export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles }) => {
 
   // Navigation handlers
   const handleUserClick = useCallback(() => {
-    router.push(`${pathname}?userIds=${userId}`);
-  }, [pathname, router, userId]);
+    router.push(`${pathname}`);
+  }, [pathname, router]);
 
   const handleTeamClick = useCallback(
     (teamId: number) => {
