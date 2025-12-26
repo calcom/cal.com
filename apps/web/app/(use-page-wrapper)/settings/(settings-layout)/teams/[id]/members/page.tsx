@@ -11,10 +11,9 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import { prisma } from "@calcom/prisma";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
+import { TeamMembersView } from "@calcom/web/modules/ee/teams/views/team-members-view";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
-import { TeamMembersView } from "~/teams/team-members-view";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(

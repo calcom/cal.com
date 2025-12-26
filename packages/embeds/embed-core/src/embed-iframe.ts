@@ -414,6 +414,12 @@ export const methods = {
         return;
       }
 
+      // Check page status again before firing linkReady, in case it was set after initialization
+      if (hasPageError()) {
+        handlePageError(window.CalComPageStatus);
+        return;
+      }
+
       makeBodyVisible();
       log("renderState is 'completed'");
       embedStore.renderState = "completed";
@@ -587,6 +593,29 @@ function main() {
   }
 }
 
+/**
+ * Checks if there's a page error (non-200 status).
+ * @returns true if an error exists, false otherwise
+ */
+function hasPageError() {
+  const pageStatus = window.CalComPageStatus;
+  return !!(pageStatus && pageStatus != "200");
+}
+
+/**
+ * Handles a page error by firing the linkFailed event.
+ * @param pageStatus - The error status code (e.g., "404", "500", "403")
+ */
+function handlePageError(pageStatus: string) {
+  sdkActionManager?.fire("linkFailed", {
+    code: pageStatus,
+    msg: "Problem loading the link",
+    data: {
+      url: document.URL,
+    },
+  });
+}
+
 function initializeAndSetupEmbed() {
   sdkActionManager?.fire("__iframeReady", {
     isPrerendering: isPrerendering(),
@@ -604,16 +633,12 @@ function initializeAndSetupEmbed() {
   // HACK
   const pageStatus = window.CalComPageStatus;
 
-  if (!pageStatus || pageStatus == "200") {
+  if (hasPageError()) {
+    handlePageError(pageStatus);
+    return;
+  } else {
     keepParentInformedAboutDimensionChanges({ embedStore });
-  } else
-    sdkActionManager?.fire("linkFailed", {
-      code: pageStatus,
-      msg: "Problem loading the link",
-      data: {
-        url: document.URL,
-      },
-    });
+  }
 }
 
 function runAllUiSetters(uiConfig: UiConfig) {
@@ -665,6 +690,13 @@ async function connectPreloadedEmbed({
         runAsap(tryToFireLinkReady);
         return;
       }
+      // Check page status again before firing linkReady, in case it was set after initialization
+      if (hasPageError()) {
+        handlePageError(window.CalComPageStatus);
+        resolve();
+        return;
+      }
+
       // link is ready now, so we could stop doing it.
       // Also the page is visible to user now.
       stopEnsuringQueryParamsInUrl();

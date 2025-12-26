@@ -13,6 +13,10 @@
     "@next/eslint-plugin-next": "15.4.5",
     "@typescript-eslint/eslint-plugin": "8.39.0",
     "@typescript-eslint/parser": "8.39.0",
+    "globals": "15.15.0",
+    "typescript-eslint": "8.40.0"
+  },
+  "devDependencies": {
     "eslint": "9.36.0",
     "eslint-config-prettier": "9.1.2",
     "eslint-import-resolver-typescript": "4.4.4",
@@ -21,8 +25,6 @@
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "5.2.0",
     "eslint-plugin-turbo": "2.5.5",
-    "globals": "15.15.0",
-    "typescript": "5.9.2",
-    "typescript-eslint": "8.40.0"
+    "typescript": "5.9.2"
   }
 }

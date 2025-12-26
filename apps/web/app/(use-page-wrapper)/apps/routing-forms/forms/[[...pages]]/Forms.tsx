@@ -1,21 +1,16 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import posthog from "posthog-js";
 
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import { useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
-import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { ShellMain } from "@calcom/features/shell/Shell";
-import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -38,6 +33,12 @@ import {
   FormActionsDropdown,
   FormActionsProvider,
 } from "@calcom/web/components/apps/routing-forms/FormActions";
+
+import { useHasPaidPlan } from "~/billing/hooks/useHasPaidPlan";
+import SkeletonLoaderTeamList from "~/ee/teams/components/SkeletonloaderTeamList";
+import { CreateButtonWithTeamsList } from "~/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import { ShellMain } from "~/shell/Shell";
+import { UpgradeTip } from "~/shell/UpgradeTip";
 
 function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {
   const { t } = useLocale();

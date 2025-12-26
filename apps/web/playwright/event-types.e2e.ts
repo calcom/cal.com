@@ -182,6 +182,9 @@ test.describe("Event Types tests", () => {
        * Verify first organizer address
        */
       await page.goto(previewLink ?? "");
+      await page.waitForURL((url) => {
+        return url.searchParams.get("overlayCalendar") === "true";
+      });
       await selectFirstAvailableTimeSlotNextMonth(page);
       await page.locator(`span:has-text("${locationData[0]}")`).click();
       await bookTimeSlot(page);

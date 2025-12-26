@@ -1,5 +1,5 @@
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { type InvalidAppCredentialBannerProps } from "@calcom/features/users/components/InvalidAppCredentialsBanner";
+import { type InvalidAppCredentialBannerProps } from "@calcom/features/users/types/invalidAppCredentials";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";

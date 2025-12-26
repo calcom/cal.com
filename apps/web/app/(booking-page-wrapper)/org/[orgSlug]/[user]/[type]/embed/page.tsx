@@ -32,11 +32,7 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
 
   const eventLocale = props.eventData?.interfaceLanguage;
   const ns = "common";
-  let translations;
-  if (eventLocale) {
-    const ns = "common";
-    translations = await loadTranslations(eventLocale, ns);
-  }
+  const translations = await loadTranslations(eventLocale ?? "en", ns);
 
   if ((props as TeamTypePageProps)?.teamId) {
     return eventLocale ? (

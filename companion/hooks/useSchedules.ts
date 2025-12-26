@@ -8,10 +8,9 @@
  * - Optimistic updates for mutations
  * - Cache invalidation on create/update/delete
  */
-
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CalComAPIService, Schedule } from "../services/calcom";
 import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
+import { CalComAPIService, Schedule } from "../services/calcom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Sort schedules: default first, then alphabetically by name
@@ -147,7 +146,7 @@ export function useCreateSchedule() {
       queryClient.setQueryData(queryKeys.schedules.detail(newSchedule.id), newSchedule);
     },
     onError: (error) => {
-      console.error("Failed to create schedule:", error);
+      console.error("Failed to create schedule");
     },
   });
 }
@@ -181,7 +180,7 @@ export function useUpdateSchedule() {
       queryClient.setQueryData(queryKeys.schedules.detail(variables.id), updatedSchedule);
     },
     onError: (error) => {
-      console.error("Failed to update schedule:", error);
+      console.error("Failed to update schedule");
     },
   });
 }
@@ -208,7 +207,7 @@ export function useSetScheduleAsDefault() {
       queryClient.invalidateQueries({ queryKey: queryKeys.schedules.all });
     },
     onError: (error) => {
-      console.error("Failed to set schedule as default:", error);
+      console.error("Failed to set schedule as default");
     },
   });
 }
@@ -252,7 +251,7 @@ export function useDeleteSchedule() {
       if (context?.previousSchedules) {
         queryClient.setQueryData(queryKeys.schedules.lists(), context.previousSchedules);
       }
-      console.error("Failed to delete schedule:", error);
+      console.error("Failed to delete schedule");
     },
     onSettled: () => {
       // Always refetch after error or success
@@ -283,7 +282,7 @@ export function useDuplicateSchedule() {
       queryClient.invalidateQueries({ queryKey: queryKeys.schedules.lists() });
     },
     onError: (error) => {
-      console.error("Failed to duplicate schedule:", error);
+      console.error("Failed to duplicate schedule");
     },
   });
 }

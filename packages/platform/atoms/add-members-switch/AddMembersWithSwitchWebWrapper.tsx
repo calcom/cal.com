@@ -1,6 +1,6 @@
 import type { AddMembersWithSwitchProps } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { AddMembersWithSwitch } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 
 export const AddMembersWithSwitchWebWrapper = ({ ...props }: AddMembersWithSwitchProps) => {
   const utils = trpc.useUtils();

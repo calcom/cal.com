@@ -910,7 +910,11 @@ test.describe("Routing Forms", () => {
       await page.goto(`apps/routing-forms/form-edit/${formId}`);
       await page.getByTestId("settings-button").click();
       await page.click('[data-testid="routing-form-select-members"]');
-      await page.getByText(text).nth(1).click();
+      // Wait for the react-select menu to appear and click the option within it
+      // This is more robust than using .nth(1) which assumes specific DOM structure
+      const menuListbox = page.locator('[id$="-listbox"]');
+      await menuListbox.waitFor({ state: "visible" });
+      await menuListbox.getByText(text).click();
       await page.getByTestId("settings-slider-over-done").click();
       await saveCurrentForm(page);
     };

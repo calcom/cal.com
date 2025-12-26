@@ -1,4 +1,4 @@
-import { acrossQueryValueCompatiblity } from "@calcom/app-store/_utils/raqb/raqbUtils";
+import { acrossQueryValueCompatiblity } from "@calcom/app-store/_utils/raqb/raqbUtils.server";
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
@@ -502,10 +502,10 @@ export class LuckyUserService implements ILuckyUserService {
         type?: string | undefined;
         properties?:
           | {
-              field?: any;
-              operator?: any;
-              value?: any;
-              valueSrc?: any;
+              field?: string | null;
+              operator?: string | null;
+              value?: (string | string[])[];
+              valueSrc?: string[];
             }
           | undefined;
       }
@@ -523,9 +523,10 @@ export class LuckyUserService implements ILuckyUserService {
       const attributeId = obj.field;
       const allRRHostsWeights = new Map<number, number[]>();
 
-      if (attributeId === attributeWithWeights.id) {
-        obj.value.forEach((arrayobj: string[]) => {
-          arrayobj.forEach((attributeOption: string) => {
+      if (attributeId === attributeWithWeights.id && obj.value) {
+        obj.value.forEach((valueItem) => {
+          const attributeOptions = Array.isArray(valueItem) ? valueItem : [valueItem];
+          attributeOptions.forEach((attributeOption: string) => {
             const attributeOptionWithUsers = attributeWithWeights.options.find(
               (option) => option.value.toLowerCase() === attributeOption.toLowerCase()
             );
@@ -570,10 +571,10 @@ export class LuckyUserService implements ILuckyUserService {
         type?: string | undefined;
         properties?:
           | {
-              field?: any;
-              operator?: any;
-              value?: any;
-              valueSrc?: any;
+              field?: string | null;
+              operator?: string | null;
+              value?: (string | string[])[];
+              valueSrc?: string[];
             }
           | undefined;
       }
@@ -590,9 +591,10 @@ export class LuckyUserService implements ILuckyUserService {
     fieldValueArray.some((obj) => {
       const attributeId = obj.field;
 
-      if (attributeId === attributeWithWeights.id) {
-        obj.value.some((arrayobj: string[]) => {
-          arrayobj.some((attributeOptionId: string) => {
+      if (attributeId === attributeWithWeights.id && obj.value) {
+        obj.value.some((valueItem) => {
+          const attributeOptionIds = Array.isArray(valueItem) ? valueItem : [valueItem];
+          return attributeOptionIds.some((attributeOptionId: string) => {
             const content = attributeOptionId.slice(1, -1);
 
             const routingFormFieldId = content.includes("field:") ? content.split("field:")[1] : null;
@@ -602,6 +604,7 @@ export class LuckyUserService implements ILuckyUserService {
               selectionOptions = { fieldId: routingFormFieldId, selectedOptionIds: fieldResponse.value };
               return true;
             }
+            return false;
           });
         });
       }

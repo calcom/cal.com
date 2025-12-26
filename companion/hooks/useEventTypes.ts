@@ -8,10 +8,9 @@
  * - Optimistic updates for mutations
  * - Cache invalidation on create/update/delete
  */
-
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CalComAPIService, EventType, CreateEventTypeInput } from "../services/calcom";
 import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
+import { CalComAPIService, EventType, CreateEventTypeInput } from "../services/calcom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Hook to fetch all event types
@@ -93,7 +92,12 @@ export function useCreateEventType() {
       queryClient.setQueryData(queryKeys.eventTypes.detail(newEventType.id), newEventType);
     },
     onError: (error) => {
-      console.error("Failed to create event type:", error);
+      console.error("Failed to create event type");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[useCreateEventType] failed", { message, stack });
+      }
     },
   });
 }
@@ -127,7 +131,12 @@ export function useUpdateEventType() {
       queryClient.setQueryData(queryKeys.eventTypes.detail(variables.id), updatedEventType);
     },
     onError: (error) => {
-      console.error("Failed to update event type:", error);
+      console.error("Failed to update event type");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[useUpdateEventType] failed", { message, stack });
+      }
     },
   });
 }
@@ -173,7 +182,12 @@ export function useDeleteEventType() {
       if (context?.previousEventTypes) {
         queryClient.setQueryData(queryKeys.eventTypes.lists(), context.previousEventTypes);
       }
-      console.error("Failed to delete event type:", error);
+      console.error("Failed to delete event type");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[useDeleteEventType] failed", { message, stack });
+      }
     },
     onSettled: () => {
       // Always refetch after error or success
@@ -233,7 +247,12 @@ export function useDuplicateEventType() {
       queryClient.invalidateQueries({ queryKey: queryKeys.eventTypes.lists() });
     },
     onError: (error) => {
-      console.error("Failed to duplicate event type:", error);
+      console.error("Failed to duplicate event type");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[useDuplicateEventType] failed", { message, stack });
+      }
     },
   });
 }

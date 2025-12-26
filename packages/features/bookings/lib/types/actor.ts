@@ -5,13 +5,6 @@ const UserActorSchema = z.object({
   userUuid: z.string(),
 });
 
-const GuestActorSchema = z.object({
-  identifiedBy: z.literal("guest"),
-  email: z.string().optional(),
-  name: z.string().optional(),
-  phone: z.string().optional(),
-});
-
 const AttendeeActorSchema = z.object({
   identifiedBy: z.literal("attendee"),
   attendeeId: z.number(),
@@ -22,19 +15,47 @@ const ActorByIdSchema = z.object({
   id: z.string(),
 });
 
+const GuestActorSchema = z.object({
+  identifiedBy: z.literal("guest"),
+  email: z.string(),
+  name: z.string().nullable(),
+});
+
+const AppActorByCredentialIdSchema = z.object({
+  identifiedBy: z.literal("app"),
+  credentialId: z.number(),
+});
+
+const AppActorBySlugSchema = z.object({
+  identifiedBy: z.literal("appSlug"),
+  appSlug: z.string(),
+  name: z.string(),
+});
+
 export const ActorSchema = z.discriminatedUnion("identifiedBy", [
   ActorByIdSchema,
   UserActorSchema,
+  AttendeeActorSchema,
   GuestActorSchema,
+  AppActorByCredentialIdSchema,
+  AppActorBySlugSchema,
+]);
+
+export const PiiFreeActorSchema = z.discriminatedUnion("identifiedBy", [
+  ActorByIdSchema,
+  UserActorSchema,
   AttendeeActorSchema,
 ]);
 
 export type Actor = z.infer<typeof ActorSchema>;
+export type PiiFreeActor = z.infer<typeof PiiFreeActorSchema>;
+
 type UserActor = z.infer<typeof UserActorSchema>;
 type GuestActor = z.infer<typeof GuestActorSchema>;
 type AttendeeActor = z.infer<typeof AttendeeActorSchema>;
 type ActorById = z.infer<typeof ActorByIdSchema>;
-
+type AppActorByCredentialId = z.infer<typeof AppActorByCredentialIdSchema>;
+type AppActorBySlug = z.infer<typeof AppActorBySlugSchema>;
 /**
  * Creates an Actor representing a User by UUID
  */
@@ -42,6 +63,14 @@ export function makeUserActor(userUuid: string): UserActor {
   return {
     identifiedBy: "user",
     userUuid,
+  };
+}
+
+export function makeGuestActor({ email, name }: { email: string, name: string | null }): GuestActor {
+  return {
+    identifiedBy: "guest",
+    email,
+    name: name ?? null,
   };
 }
 
@@ -56,21 +85,6 @@ export function makeSystemActor(): ActorById {
   };
 }
 
-/**
- * Creates an Actor representing a Guest (non-registered attendee)
- */
-export function makeGuestActor(params: {
-  email: string;
-  name?: string;
-  phone?: string;
-}): GuestActor {
-  return {
-    identifiedBy: "guest",
-    email: params.email,
-    name: params.name,
-    phone: params.phone,
-  };
-}
 
 /**
  * Creates an Actor by existing actor ID
@@ -92,5 +106,33 @@ export function makeAttendeeActor(attendeeId: number): AttendeeActor {
   };
 }
 
-// System actor ID constant
+/**
+ * Creates an Actor representing an App by credential ID (preferred)
+ * The credentialId uniquely identifies which app instance (e.g., which Stripe account)
+ * App name and slug are derived from the credential at display time
+ */
+export function makeAppActor(params: { credentialId: number }): AppActorByCredentialId {
+  return {
+    identifiedBy: "app",
+    credentialId: params.credentialId,
+  };
+}
+
+/**
+ * Creates an Actor representing an App by app slug (fallback)
+ * Used when credentialId is not available or for apps not yet migrated
+ * App actors use @app.internal email convention
+ */
+export function makeAppActorUsingSlug(params: { appSlug: string; name: string }): AppActorBySlug {
+  return {
+    identifiedBy: "appSlug",
+    appSlug: params.appSlug,
+    name: params.name,
+  };
+}
+
+export function buildActorEmail({ identifier, actorType }: { identifier: string, actorType: "system" | "guest" | "app" }): string {
+  return `${identifier}@${actorType}.internal`;
+}
+
 export const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";

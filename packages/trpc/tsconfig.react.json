@@ -1,0 +1,27 @@
+{
+  "extends": "@calcom/tsconfig/react-library.json",
+  "include": [
+    "../types/@wojtekmaj__react-daterange-picker.d.ts",
+    "../types/business-days-plugin.d.ts",
+    "../types/next-auth.d.ts",
+    "../types/tanstack-table.d.ts",
+    "../types/next.d.ts",
+    "../types/window.d.ts",
+    "./react"
+  ],
+  "exclude": ["**/node_modules/**", "./server", "./react/**/*.test.ts", "./react/**/*.spec.ts"],
+  "compilerOptions": {
+    "isolatedModules": false,
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "experimentalDecorators": true,
+    "declarationMap": false,
+    "resolveJsonModule": true,
+    "declarationDir": "types/react",
+    "moduleResolution": "node",
+    "paths": {
+      "~/*": ["./*"]
+    }
+  }
+}

@@ -8,10 +8,9 @@
  * - Optimistic updates for mutations
  * - Cache invalidation on mutations
  */
-
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CalComAPIService, Booking } from "../services/calcom";
 import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
+import { CalComAPIService, Booking } from "../services/calcom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Filter options for fetching bookings
@@ -108,7 +107,7 @@ export function useCancelBooking() {
       });
     },
     onError: (error) => {
-      console.error("Failed to cancel booking:", error);
+      console.error("Failed to cancel booking");
     },
   });
 }
@@ -152,7 +151,7 @@ export function useRescheduleBooking() {
       });
     },
     onError: (error) => {
-      console.error("Failed to reschedule booking:", error);
+      console.error("Failed to reschedule booking");
     },
   });
 }
@@ -184,7 +183,7 @@ export function useConfirmBooking() {
       });
     },
     onError: (error) => {
-      console.error("Failed to confirm booking:", error);
+      console.error("Failed to confirm booking");
     },
   });
 }
@@ -217,7 +216,7 @@ export function useDeclineBooking() {
       });
     },
     onError: (error) => {
-      console.error("Failed to decline booking:", error);
+      console.error("Failed to decline booking");
     },
   });
 }

@@ -57,6 +57,7 @@ export async function createPBACOrganization() {
       teamId: organization.id,
       assignedBy: "system (Seed script)",
       assignedAt: new Date(),
+      enabled: true,
     },
   });
 

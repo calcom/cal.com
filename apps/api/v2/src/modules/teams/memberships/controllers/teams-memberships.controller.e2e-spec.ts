@@ -307,6 +307,57 @@ describe("Teams Memberships Endpoints", () => {
         });
     });
 
+    it("should assign team wide events when membership transitions from accepted=false to accepted=true via PATCH", async () => {
+      const pendingUserEmail = `pending-user-${randomString()}@api.com`;
+      const pendingUser = await userRepositoryFixture.create({
+        email: pendingUserEmail,
+        username: pendingUserEmail,
+        bio,
+        metadata,
+      });
+
+      const createPendingMembershipBody: CreateTeamMembershipInput = {
+        userId: pendingUser.id,
+        accepted: false,
+        role: "MEMBER",
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post(`/v2/teams/${team.id}/memberships`)
+        .send(createPendingMembershipBody)
+        .expect(201);
+
+      const pendingMembership: TeamMembershipOutput = createResponse.body.data;
+      expect(pendingMembership.accepted).toEqual(false);
+
+      const teamEventTypesBeforePatch = await eventTypesRepositoryFixture.getAllTeamEventTypes(team.id);
+      const collectiveEventBeforePatch = teamEventTypesBeforePatch?.find(
+        (eventType) => eventType.slug === teamEventType.slug
+      );
+      const userHostBeforePatch = collectiveEventBeforePatch?.hosts.find((host) => host.userId === pendingUser.id);
+      expect(userHostBeforePatch).toBeFalsy();
+
+      const updateToAcceptedBody: UpdateTeamMembershipInput = {
+        accepted: true,
+      };
+
+      const patchResponse = await request(app.getHttpServer())
+        .patch(`/v2/teams/${team.id}/memberships/${pendingMembership.id}`)
+        .send(updateToAcceptedBody)
+        .expect(200);
+
+      const acceptedMembership: TeamMembershipOutput = patchResponse.body.data;
+      expect(acceptedMembership.accepted).toEqual(true);
+
+      await userHasCorrectEventTypes(pendingUser.id);
+
+      await request(app.getHttpServer())
+        .delete(`/v2/teams/${team.id}/memberships/${pendingMembership.id}`)
+        .expect(200);
+
+      await userRepositoryFixture.deleteByEmail(pendingUserEmail);
+    });
+
     it("should delete the membership of the org's team we created via api", async () => {
       return request(app.getHttpServer())
         .delete(`/v2/teams/${team.id}/memberships/${membershipCreatedViaApi.id}`)

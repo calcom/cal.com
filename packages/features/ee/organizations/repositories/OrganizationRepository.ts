@@ -6,7 +6,7 @@ import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/cr
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { PrismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import type { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
@@ -227,6 +227,7 @@ export class OrganizationRepository {
       },
       select: {
         ...orgSelect,
+        metadata: true,
         organizationSettings: true,
       },
     });

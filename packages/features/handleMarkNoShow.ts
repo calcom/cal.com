@@ -1,6 +1,7 @@
 import { type TFunction } from "i18next";
 
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
@@ -423,9 +424,14 @@ const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
   if (!userId) throw new HttpError({ statusCode: 401 });
 
   const bookingRepo = new BookingRepository(prisma);
-  const booking = await bookingRepo.findBookingByUidAndUserId({ bookingUid, userId });
+  const booking = await bookingRepo.findByUidIncludeEventTypeAndReferences({ bookingUid });
+  const bookingAccessService = new BookingAccessService(prisma);
+  const isAuthorized = await bookingAccessService.doesUserIdHaveAccessToBooking({
+    userId,
+    bookingUid,
+  });
 
-  if (!booking)
+  if (!isAuthorized)
     throw new HttpError({ statusCode: 403, message: "You are not allowed to access this booking" });
 
   const isUpcoming = new Date(booking.endTime) >= new Date();

@@ -84,13 +84,14 @@ const ApiKeyListItem = ({
                 {t("edit") as string}
               </DropdownItem>
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem className="hover:bg-transparent">
               <DropdownItem
                 type="button"
                 color="destructive"
                 disabled={deleteApiKey.isPending}
                 onClick={() => setDeleteDialogOpen(true)}
-                StartIcon="trash">
+                StartIcon="trash"
+                className="rounded-t-none">
                 {t("delete") as string}
               </DropdownItem>
             </DropdownMenuItem>

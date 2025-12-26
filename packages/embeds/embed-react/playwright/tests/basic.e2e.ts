@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 
 import { getEmbedIframe } from "@calcom/embed-core/playwright/lib/testUtils";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { test } from "@calcom/web/playwright/lib/fixtures";
 
 test.describe("React Embed", () => {
@@ -13,7 +13,7 @@ test.describe("React Embed", () => {
       const calNamespace = "inline";
       await embeds.gotoPlayground({ url: "/inline.html", calNamespace });
       const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
-      expect(embedIframe).toBeEmbedCalLink("", embeds.getActionFiredDetails, {
+      await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
         pathname: "/pro",
         searchParams: {
           theme: "dark",
@@ -35,7 +35,7 @@ test.describe("React Embed", () => {
       await page.click("text=Book my Cal");
 
       const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
-      expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
+      await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
         pathname: "/pro",
         searchParams: {
           theme: "dark",
@@ -45,7 +45,6 @@ test.describe("React Embed", () => {
   });
 
   // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
-  // eslint-disable-next-line playwright/no-skipped-test
   test.describe.skip("Element Click Popup", () => {
     test("should verify that the iframe got created with correct URL - namespaced", async ({
       page,
@@ -57,7 +56,7 @@ test.describe("React Embed", () => {
       await page.click("text=Click me");
 
       const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
-      expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
+      await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
         pathname: "/pro",
         searchParams: {
           theme: "dark",

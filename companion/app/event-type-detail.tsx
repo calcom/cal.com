@@ -1,4 +1,36 @@
+import { AdvancedTab } from "../components/event-type-detail/tabs/AdvancedTab";
+import { AvailabilityTab } from "../components/event-type-detail/tabs/AvailabilityTab";
+import { BasicsTab } from "../components/event-type-detail/tabs/BasicsTab";
+import { LimitsTab } from "../components/event-type-detail/tabs/LimitsTab";
+import { RecurringTab } from "../components/event-type-detail/tabs/RecurringTab";
+import {
+  formatDuration,
+  truncateTitle,
+  formatAppIdToDisplayName,
+} from "../components/event-type-detail/utils";
+import {
+  buildPartialUpdatePayload,
+  hasChanges,
+} from "../components/event-type-detail/utils/buildPartialUpdatePayload";
+import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
+import { LocationItem, LocationOptionGroup } from "../types/locations";
+import { showErrorAlert } from "../utils/alerts";
+import { openInAppBrowser } from "../utils/browser";
+import {
+  parseBufferTime,
+  parseMinimumNotice,
+  parseFrequencyUnit,
+  parseSlotInterval,
+} from "../utils/eventTypeParsers";
+import {
+  mapApiLocationToItem,
+  mapItemToApiLocation,
+  buildLocationOptions,
+  validateLocationItem,
+} from "../utils/locationHelpers";
+import { slugify } from "../utils/slugify";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { useRouter, useLocalSearchParams, Stack } from "expo-router";
 import React, { useState, useEffect } from "react";
@@ -15,40 +47,7 @@ import {
   Image,
   Platform,
 } from "react-native";
-import * as Clipboard from "expo-clipboard";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
-import { showErrorAlert } from "../utils/alerts";
-import { openInAppBrowser } from "../utils/browser";
-import { LocationItem, LocationOptionGroup } from "../types/locations";
-import {
-  mapApiLocationToItem,
-  mapItemToApiLocation,
-  buildLocationOptions,
-  validateLocationItem,
-} from "../utils/locationHelpers";
-import {
-  parseBufferTime,
-  parseMinimumNotice,
-  parseFrequencyUnit,
-  parseSlotInterval,
-} from "../utils/eventTypeParsers";
-import { slugify } from "../utils/slugify";
-import { BasicsTab } from "../components/event-type-detail/tabs/BasicsTab";
-import { AvailabilityTab } from "../components/event-type-detail/tabs/AvailabilityTab";
-import { LimitsTab } from "../components/event-type-detail/tabs/LimitsTab";
-import { AdvancedTab } from "../components/event-type-detail/tabs/AdvancedTab";
-import { RecurringTab } from "../components/event-type-detail/tabs/RecurringTab";
-import {
-  formatDuration,
-  truncateTitle,
-  formatAppIdToDisplayName,
-} from "../components/event-type-detail/utils";
-import {
-  buildPartialUpdatePayload,
-  hasChanges,
-} from "../components/event-type-detail/utils/buildPartialUpdatePayload";
 
 const tabs = [
   { id: "basics", label: "Basics", icon: "link" },
@@ -561,11 +560,13 @@ export default function EventTypeDetail() {
         }
 
         if (eventType.metadata) {
-          if (eventType.metadata.calendarEventName) {
-            setCalendarEventName(eventType.metadata.calendarEventName);
+          const calendarEventNameValue = eventType.metadata.calendarEventName;
+          if (typeof calendarEventNameValue === "string") {
+            setCalendarEventName(calendarEventNameValue);
           }
-          if (eventType.metadata.addToCalendarEmail) {
-            setAddToCalendarEmail(eventType.metadata.addToCalendarEmail);
+          const addToCalendarEmailValue = eventType.metadata.addToCalendarEmail;
+          if (typeof addToCalendarEmailValue === "string") {
+            setAddToCalendarEmail(addToCalendarEmailValue);
           }
         }
 
@@ -1048,7 +1049,9 @@ export default function EventTypeDetail() {
             </Text>
 
             <TouchableOpacity
-              className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${saving ? "opacity-60" : ""}`}
+              className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${
+                saving ? "opacity-60" : ""
+              }`}
               onPress={handleSave}
               disabled={saving}
             >
@@ -1093,7 +1096,9 @@ export default function EventTypeDetail() {
                       color={activeTab === tab.id ? "#007AFF" : "#666"}
                     />
                     <Text
-                      className={`text-base font-medium ${activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"}`}
+                      className={`text-base font-medium ${
+                        activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"
+                      }`}
                     >
                       {tab.label}
                     </Text>
@@ -1137,7 +1142,9 @@ export default function EventTypeDetail() {
                       color={activeTab === tab.id ? "#007AFF" : "#666"}
                     />
                     <Text
-                      className={`text-base font-medium ${activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"}`}
+                      className={`text-base font-medium ${
+                        activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"
+                      }`}
                     >
                       {tab.label}
                     </Text>
@@ -1157,7 +1164,7 @@ export default function EventTypeDetail() {
           }}
           contentContainerStyle={{ padding: 20, paddingBottom: 200 }}
         >
-          {activeTab === "basics" && (
+          {activeTab === "basics" ? (
             <BasicsTab
               eventTitle={eventTitle}
               setEventTitle={setEventTitle}
@@ -1182,7 +1189,7 @@ export default function EventTypeDetail() {
               locationOptions={getLocationOptionsForDropdown()}
               conferencingLoading={conferencingLoading}
             />
-          )}
+          ) : null}
 
           {/* Duration Multi-Select Modal */}
           <Modal
@@ -1209,13 +1216,15 @@ export default function EventTypeDetail() {
                       onPress={() => toggleDurationSelection(duration)}
                     >
                       <Text
-                        className={`text-base text-[#333] ${selectedDurations.includes(duration) ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedDurations.includes(duration) ? "font-semibold" : ""
+                        }`}
                       >
                         {duration}
                       </Text>
-                      {selectedDurations.includes(duration) && (
+                      {selectedDurations.includes(duration) ? (
                         <Ionicons name="checkmark" size={20} color="#000" />
-                      )}
+                      ) : null}
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -1256,13 +1265,15 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${defaultDuration === duration ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        defaultDuration === duration ? "font-semibold" : ""
+                      }`}
                     >
                       {duration}
                     </Text>
-                    {defaultDuration === duration && (
+                    {defaultDuration === duration ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1298,19 +1309,21 @@ export default function EventTypeDetail() {
                   >
                     <View className="flex-1 flex-row items-center justify-between">
                       <Text
-                        className={`text-base text-[#333] ${selectedSchedule?.id === schedule.id ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedSchedule?.id === schedule.id ? "font-semibold" : ""
+                        }`}
                       >
                         {schedule.name}
                       </Text>
-                      {schedule.isDefault && (
+                      {schedule.isDefault ? (
                         <Text className="rounded bg-[#E8F5E8] px-1.5 py-0.5 text-xs font-medium text-[#34C759]">
                           Default
                         </Text>
-                      )}
+                      ) : null}
                     </View>
-                    {selectedSchedule?.id === schedule.id && (
+                    {selectedSchedule?.id === schedule.id ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1364,14 +1377,19 @@ export default function EventTypeDetail() {
                       }}
                     >
                       <Text
-                        className={`text-base text-[#333] ${selectedTimezone === tz || (selectedScheduleDetails?.timeZone === tz && !selectedTimezone) ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedTimezone === tz ||
+                          (selectedScheduleDetails?.timeZone === tz && !selectedTimezone)
+                            ? "font-semibold"
+                            : ""
+                        }`}
                       >
                         {tz}
                       </Text>
-                      {(selectedTimezone === tz ||
-                        (selectedScheduleDetails?.timeZone === tz && !selectedTimezone)) && (
+                      {selectedTimezone === tz ||
+                      (selectedScheduleDetails?.timeZone === tz && !selectedTimezone) ? (
                         <Ionicons name="checkmark" size={20} color="#000" />
-                      )}
+                      ) : null}
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -1406,13 +1424,15 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${beforeEventBuffer === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        beforeEventBuffer === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
-                    {beforeEventBuffer === option && (
+                    {beforeEventBuffer === option ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1446,13 +1466,15 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${afterEventBuffer === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        afterEventBuffer === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
-                    {afterEventBuffer === option && (
+                    {afterEventBuffer === option ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1486,13 +1508,15 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${minimumNoticeUnit === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        minimumNoticeUnit === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
-                    {minimumNoticeUnit === option && (
+                    {minimumNoticeUnit === option ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1618,13 +1642,15 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${slotInterval === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        slotInterval === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
-                    {slotInterval === option && (
+                    {slotInterval === option ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1658,33 +1684,35 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base capitalize text-[#333] ${recurringFrequency === option ? "font-semibold" : ""}`}
+                      className={`text-base capitalize text-[#333] ${
+                        recurringFrequency === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option === "weekly" ? "week" : option === "monthly" ? "month" : "year"}
                     </Text>
-                    {recurringFrequency === option && (
+                    {recurringFrequency === option ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
               </View>
             </TouchableOpacity>
           </Modal>
 
-          {activeTab === "availability" && (
+          {activeTab === "availability" ? (
             <AvailabilityTab
               selectedSchedule={selectedSchedule}
               setShowScheduleDropdown={setShowScheduleDropdown}
               schedulesLoading={schedulesLoading}
               scheduleDetailsLoading={scheduleDetailsLoading}
               selectedScheduleDetails={selectedScheduleDetails}
-              getDaySchedule={getDaySchedule}
+              getDaySchedules={getDaySchedule}
               formatTime={formatTime}
               selectedTimezone={selectedTimezone}
             />
-          )}
+          ) : null}
 
-          {activeTab === "limits" && (
+          {activeTab === "limits" ? (
             <LimitsTab
               beforeEventBuffer={beforeEventBuffer}
               setShowBeforeBufferDropdown={setShowBeforeBufferDropdown}
@@ -1733,9 +1761,9 @@ export default function EventTypeDetail() {
               rangeEndDate={rangeEndDate}
               setRangeEndDate={setRangeEndDate}
             />
-          )}
+          ) : null}
 
-          {activeTab === "advanced" && (
+          {activeTab === "advanced" ? (
             <AdvancedTab
               requiresConfirmation={requiresConfirmation}
               setRequiresConfirmation={setRequiresConfirmation}
@@ -1779,9 +1807,9 @@ export default function EventTypeDetail() {
               // Event type ID for private links
               eventTypeId={id}
             />
-          )}
+          ) : null}
 
-          {activeTab === "recurring" && (
+          {activeTab === "recurring" ? (
             <RecurringTab
               recurringEnabled={recurringEnabled}
               setRecurringEnabled={setRecurringEnabled}
@@ -1793,9 +1821,9 @@ export default function EventTypeDetail() {
               setRecurringOccurrences={setRecurringOccurrences}
               setShowFrequencyDropdown={setShowRecurringFrequencyDropdown}
             />
-          )}
+          ) : null}
 
-          {activeTab === "other" && (
+          {activeTab === "other" ? (
             <View className="rounded-2xl bg-white p-5 shadow-md">
               <Text className="mb-2 text-lg font-semibold text-[#333]">Additional Settings</Text>
               <Text className="mb-5 text-sm leading-5 text-[#666]">
@@ -1884,7 +1912,7 @@ export default function EventTypeDetail() {
                 </TouchableOpacity>
               </View>
             </View>
-          )}
+          ) : null}
         </ScrollView>
 
         {/* Bottom Action Bar */}

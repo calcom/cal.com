@@ -56,32 +56,40 @@ export default class HubspotCalendarService implements CRM {
       })
       .join("<br><br>");
 
-    return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
-      event.attendees[0].timeZone
-    }<br><br>${
-      event.additionalNotes
-        ? `<b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
-            event.additionalNotes
-          }<br><br>`
+    const organizerName = event.organizer.name || event.organizer.email;
+    const organizerInfo = `<b>${event.organizer.language.translate("organizer")}:</b> ${organizerName} (${event.organizer.email
+      })`;
+
+    return `${organizerInfo}<br><br><b>${event.organizer.language.translate("invitee_timezone")}:</b> ${event.attendees[0].timeZone
+      }<br><br>${event.additionalNotes
+        ? `<b>${event.organizer.language.translate("share_additional_notes")}</b><br>${event.additionalNotes
+        }<br><br>`
         : ""
-    }
+      }
     ${userFieldsHtml}<br><br>
     <b>${event.organizer.language.translate("where")}:</b> ${location}<br><br>
     ${plainText ? `<b>${event.organizer.language.translate("description")}</b><br>${plainText}` : ""}
   `;
   };
 
-  private hubspotCreateMeeting = async (event: CalendarEvent) => {
+  private hubspotCreateMeeting = async (event: CalendarEvent, hubspotOwnerId?: string) => {
+    const properties: Record<string, string> = {
+      hs_timestamp: Date.now().toString(),
+      hs_meeting_title: event.title,
+      hs_meeting_body: this.getHubspotMeetingBody(event),
+      hs_meeting_location: getLocation(event),
+      hs_meeting_start_time: new Date(event.startTime).toISOString(),
+      hs_meeting_end_time: new Date(event.endTime).toISOString(),
+      hs_meeting_outcome: "SCHEDULED",
+    };
+
+    if (hubspotOwnerId) {
+      properties.hubspot_owner_id = hubspotOwnerId;
+      this.log.debug("hubspot:meeting:setting_owner", { hubspotOwnerId });
+    }
+
     const simplePublicObjectInput: SimplePublicObjectInput = {
-      properties: {
-        hs_timestamp: Date.now().toString(),
-        hs_meeting_title: event.title,
-        hs_meeting_body: this.getHubspotMeetingBody(event),
-        hs_meeting_location: getLocation(event),
-        hs_meeting_start_time: new Date(event.startTime).toISOString(),
-        hs_meeting_end_time: new Date(event.endTime).toISOString(),
-        hs_meeting_outcome: "SCHEDULED",
-      },
+      properties,
     };
 
     return this.hubspotClient.crm.objects.meetings.basicApi.create(simplePublicObjectInput);
@@ -132,6 +140,34 @@ export default class HubspotCalendarService implements CRM {
     return this.hubspotClient.crm.objects.meetings.basicApi.archive(uid);
   };
 
+  private getHubspotOwnerIdByEmail = async (email: string): Promise<string | undefined> => {
+    try {
+      const ownersResponse = await this.hubspotClient.crm.owners.ownersApi.getPage(
+        email,
+        undefined,
+        100,
+        false
+      );
+
+      if (ownersResponse.results && ownersResponse.results.length > 0) {
+        const matchingOwner = ownersResponse.results.find(
+          (owner) => owner.email?.toLowerCase() === email.toLowerCase()
+        );
+
+        if (matchingOwner) {
+          this.log.debug("hubspot:owner:found", { ownerId: matchingOwner.id });
+          return matchingOwner.id;
+        }
+      }
+
+      this.log.debug("hubspot:owner:not_found");
+      return undefined;
+    } catch (error) {
+      this.log.error("hubspot:owner:lookup_error", { error });
+      return undefined;
+    }
+  };
+
   private hubspotAuth = async (credential: CredentialPayload) => {
     const appKeys = await getAppKeysFromSlug("hubspot");
     if (typeof appKeys.client_id === "string") this.client_id = appKeys.client_id;
@@ -139,13 +175,14 @@ export default class HubspotCalendarService implements CRM {
     if (!this.client_id) throw new HttpError({ statusCode: 400, message: "Hubspot client_id missing." });
     if (!this.client_secret)
       throw new HttpError({ statusCode: 400, message: "Hubspot client_secret missing." });
-    const credentialKey = credential.key as unknown as HubspotToken;
+    let currentToken = credential.key as unknown as HubspotToken;
+
     const isTokenValid = (token: HubspotToken) =>
       token &&
       token.tokenType &&
       token.accessToken &&
       token.expiryDate &&
-      (token.expiresIn || token.expiryDate) < Date.now();
+      token.expiryDate > Date.now();
 
     const refreshAccessToken = async (refreshToken: string) => {
       try {
@@ -162,7 +199,6 @@ export default class HubspotCalendarService implements CRM {
           "hubspot",
           credential.userId
         );
-        // set expiry date as offset from current time.
         hubspotRefreshToken.expiryDate = Math.round(Date.now() + hubspotRefreshToken.expiresIn * 1000);
         await prisma.credential.update({
           where: {
@@ -174,22 +210,34 @@ export default class HubspotCalendarService implements CRM {
         });
 
         this.hubspotClient.setAccessToken(hubspotRefreshToken.accessToken);
+        currentToken = { ...currentToken, ...hubspotRefreshToken };
       } catch (e: unknown) {
         this.log.error(e);
       }
     };
 
     return {
-      getToken: () =>
-        !isTokenValid(credentialKey) ? Promise.resolve([]) : refreshAccessToken(credentialKey.refreshToken),
+      getToken: async () => {
+        if (!isTokenValid(currentToken)) {
+          await refreshAccessToken(currentToken.refreshToken);
+        } else {
+          this.hubspotClient.setAccessToken(currentToken.accessToken);
+        }
+      },
     };
   };
 
   async handleMeetingCreation(event: CalendarEvent, contacts: Contact[]) {
     const contactIds: { id?: string }[] = contacts.map((contact) => ({ id: contact.id }));
-    const meetingEvent = await this.hubspotCreateMeeting(event);
+
+    const organizerEmail = event.organizer.email;
+    this.log.debug("hubspot:meeting:fetching_owner");
+
+    const hubspotOwnerId = await this.getHubspotOwnerIdByEmail(organizerEmail);
+
+    const meetingEvent = await this.hubspotCreateMeeting(event, hubspotOwnerId);
     if (meetingEvent) {
-      this.log.debug("meeting:creation:ok", { meetingEvent });
+      this.log.debug("meeting:creation:ok", { meetingId: meetingEvent.id, hubspotOwnerId });
       const associatedMeeting = await this.hubspotAssociate(meetingEvent, contactIds as any);
       if (associatedMeeting) {
         this.log.debug("association:creation:ok", { associatedMeeting });

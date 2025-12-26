@@ -5,7 +5,7 @@ import { useState } from "react";
 import { EmailType } from "@calcom/emails/email-types";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Checkbox, SettingsToggle } from "@calcom/ui/components/form";

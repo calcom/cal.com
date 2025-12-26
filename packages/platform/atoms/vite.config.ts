@@ -85,9 +85,6 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        fs: resolve("../../../node_modules/rollup-plugin-node-builtins"),
-        path: resolve("../../../node_modules/rollup-plugin-node-builtins"),
-        os: resolve("../../../node_modules/rollup-plugin-node-builtins"),
         "@": path.resolve(__dirname, "./src"),
         "@calcom/lib/markdownToSafeHTML": path.resolve(__dirname, "./lib/markdownToSafeHTML"),
         "@calcom/lib/hooks/useLocale": path.resolve(__dirname, "./lib/useLocale"),

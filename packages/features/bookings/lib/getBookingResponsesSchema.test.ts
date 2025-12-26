@@ -1345,7 +1345,7 @@ describe("getBookingResponsesPartialSchema - Prefill validation", () => {
 
 describe("excluded email/domain validation", () => {
   test("should fail if the email is present in excluded emails", async () => {
-    const excludedEmails = "spammer@cal.com, hotmail.com, yahoo, @gmail.com";
+    const excludedEmails = "spammer@cal.com, hotmail.com, yahoo.com, gmail.com";
 
     const schema = getBookingResponsesSchema({
       bookingFields: [
@@ -1382,7 +1382,7 @@ describe("excluded email/domain validation", () => {
   });
 
   test("should pass if the email is not present in excluded emails", async () => {
-    const excludedEmails = "spammer@cal.com, hotmail.com, yahoo, @gmail.com";
+    const excludedEmails = "spammer@cal.com, hotmail.com, yahoo.com, gmail.com";
 
     const schema = getBookingResponsesSchema({
       bookingFields: [
@@ -1417,11 +1417,130 @@ describe("excluded email/domain validation", () => {
       email: "harry@workmail.com",
     });
   });
+
+  test("should not block email domains that contain excluded domain as substring", async () => {
+    // This tests the fix for the bug where `includes` was used instead of `endsWith`
+    // e.g., blocking "test.co" should not block "test.com"
+    const excludedEmails = "test.co";
+
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+          excludeEmails: excludedEmails,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    // test.com should NOT be blocked when test.co is excluded
+    const parsedResponses = await schema.safeParseAsync({
+      name: "test",
+      email: "user@test.com",
+    });
+
+    expect(parsedResponses.success).toBe(true);
+
+    if (!parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+
+    expect(parsedResponses.data).toEqual({
+      name: "test",
+      email: "user@test.com",
+    });
+  });
+
+  test("should block exact domain match when using endsWith", async () => {
+    const excludedEmails = "test.co";
+
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+          excludeEmails: excludedEmails,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    // test.co should be blocked
+    const parsedResponses = await schema.safeParseAsync({
+      name: "test",
+      email: "user@test.co",
+    });
+
+    expect(parsedResponses.success).toBe(false);
+
+    if (parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+
+    expect(parsedResponses.error.issues[0]).toEqual(
+      expect.objectContaining({
+        code: "custom",
+        message: `{email}${CUSTOM_EMAIL_EXCLUDED_ERROR_MSG}`,
+      })
+    );
+  });
+
+  test("should not block emails where excluded domain appears in local part", async () => {
+    // Ensures that the @ anchor prevents matching domains in the local part of email
+    const excludedEmails = "blocked.com";
+
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+          excludeEmails: excludedEmails,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    // Email with blocked.com in local part should not be blocked
+    const parsedResponses = await schema.safeParseAsync({
+      name: "test",
+      email: "blocked.com@allowed.com",
+    });
+
+    expect(parsedResponses.success).toBe(true);
+
+    if (!parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+
+    expect(parsedResponses.data).toEqual({
+      name: "test",
+      email: "blocked.com@allowed.com",
+    });
+  });
 });
 
 describe("require email/domain validation", () => {
   test("should fail if the required email/domain is not present", async () => {
-    const requiredEmails = "gmail.com, user@hotmail.com, @yahoo.com";
+    const requiredEmails = "gmail.com, user@hotmail.com, yahoo.com";
     const schema = getBookingResponsesSchema({
       bookingFields: [
         {
@@ -1459,7 +1578,7 @@ describe("require email/domain validation", () => {
   });
 
   test("should pass if the required email/domain is present", async () => {
-    const requiredEmails = "gmail.com, user@hotmail.com, @yahoo.com";
+    const requiredEmails = "gmail.com, user@hotmail.com, yahoo.com";
 
     const schema = getBookingResponsesSchema({
       bookingFields: [
@@ -1493,5 +1612,126 @@ describe("require email/domain validation", () => {
       name: "test",
       email: "test@gmail.com",
     });
+  });
+
+  test("should not match email domains that contain required domain as substring", async () => {
+    // This tests the fix for the bug where `includes` was used instead of `endsWith`
+    // e.g., requiring "test.co" should not match "test.com"
+    const requiredEmails = "test.co";
+
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+          requireEmails: requiredEmails,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    // test.com should NOT match when test.co is required
+    const parsedResponses = await schema.safeParseAsync({
+      name: "test",
+      email: "user@test.com",
+    });
+
+    expect(parsedResponses.success).toBe(false);
+
+    if (parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+
+    expect(parsedResponses.error.issues[0]).toEqual(
+      expect.objectContaining({
+        code: "custom",
+        message: `{email}${CUSTOM_EMAIL_REQUIRED_ERROR_MSG}`,
+      })
+    );
+  });
+
+  test("should match exact domain when using endsWith", async () => {
+    const requiredEmails = "test.co";
+
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+          requireEmails: requiredEmails,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    // test.co should match
+    const parsedResponses = await schema.safeParseAsync({
+      name: "test",
+      email: "user@test.co",
+    });
+
+    expect(parsedResponses.success).toBe(true);
+
+    if (!parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+
+    expect(parsedResponses.data).toEqual({
+      name: "test",
+      email: "user@test.co",
+    });
+  });
+
+  test("should not match emails where required domain appears in local part", async () => {
+    // Ensures that the @ anchor prevents matching domains in the local part of email
+    const requiredEmails = "required.com";
+
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+          requireEmails: requiredEmails,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    // Email with required.com in local part should not match
+    const parsedResponses = await schema.safeParseAsync({
+      name: "test",
+      email: "required.com@other.com",
+    });
+
+    expect(parsedResponses.success).toBe(false);
+
+    if (parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+
+    expect(parsedResponses.error.issues[0]).toEqual(
+      expect.objectContaining({
+        code: "custom",
+        message: `{email}${CUSTOM_EMAIL_REQUIRED_ERROR_MSG}`,
+      })
+    );
   });
 });

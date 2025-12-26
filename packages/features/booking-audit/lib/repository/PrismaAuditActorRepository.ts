@@ -1,8 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma/client";
 import type { IAuditActorRepository } from "./IAuditActorRepository";
 
-const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";
-
 type Dependencies = {
     prismaClient: PrismaClient;
 }
@@ -12,18 +10,6 @@ export class PrismaAuditActorRepository implements IAuditActorRepository {
         return this.deps.prismaClient.auditActor.findUnique({
             where: { userUuid },
         });
-    }
-
-    async findSystemActorOrThrow() {
-        const actor = await this.deps.prismaClient.auditActor.findUnique({
-            where: { id: SYSTEM_ACTOR_ID },
-        });
-
-        if (!actor) {
-            throw new Error("System actor not found");
-        }
-
-        return actor;
     }
 
     async createIfNotExistsUserActor(params: { userUuid: string }) {
@@ -37,7 +23,8 @@ export class PrismaAuditActorRepository implements IAuditActorRepository {
         });
     }
 
-    async createIfNotExistsGuestActor(email: string | null, name: string | null, phone: string | null) {
+    async createIfNotExistsGuestActor(params: { email: string | null; name: string | null; phone: string | null }) {
+        const { email, name, phone } = params;
         const normalizedEmail = email && email.trim() !== "" ? email : null;
         const normalizedName = name && name.trim() !== "" ? name : null;
         const normalizedPhone = phone && phone.trim() !== "" ? phone : null;
@@ -101,9 +88,40 @@ export class PrismaAuditActorRepository implements IAuditActorRepository {
         });
     }
 
-    async findByAttendeeId(attendeeId: number) {
-        return this.deps.prismaClient.auditActor.findUnique({
-            where: { attendeeId },
+    async createIfNotExistsAttendeeActor(params: { attendeeId: number }) {
+        return this.deps.prismaClient.auditActor.upsert({
+            where: { attendeeId: params.attendeeId },
+            create: {
+                type: "ATTENDEE",
+                attendeeId: params.attendeeId,
+            },
+            update: {},
+        });
+    }
+
+    async createIfNotExistsAppActor(params:
+        | { credentialId: number }
+        | { email: string; name: string }
+    ) {
+        if ('credentialId' in params) {
+            return this.deps.prismaClient.auditActor.upsert({
+                where: { credentialId: params.credentialId },
+                create: {
+                    type: "APP",
+                    credentialId: params.credentialId,
+                },
+                update: {},
+            });
+        }
+
+        return this.deps.prismaClient.auditActor.upsert({
+            where: { email: params.email },
+            create: {
+                type: "APP",
+                email: params.email,
+                name: params.name,
+            },
+            update: {},
         });
     }
 

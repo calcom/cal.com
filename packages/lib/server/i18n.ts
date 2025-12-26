@@ -5,7 +5,6 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { fetchWithTimeout } from "../fetchWithTimeout";
 import logger from "../logger";
 
-/* eslint-disable @typescript-eslint/no-var-requires */
 const { i18n } = require("@calcom/config/next-i18next.config");
 const log = logger.getSubLogger({ prefix: ["[i18n]"] });
 
@@ -19,6 +18,15 @@ const englishTranslations: Record<
 const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
 const SUPPORTED_NAMESPACES = ["common"];
+
+export function mergeWithEnglishFallback(localeTranslations: Record<string, string>): Record<string, string> {
+  return {
+    // IMPORTANT: Spread English translations first to provide fallback for missing keys
+    ...englishTranslations,
+    // Then spread locale translations to override English when keys exist in both
+    ...localeTranslations,
+  };
+}
 
 /**
  * Loads translations for a specific locale and namespace with optimized caching
@@ -34,8 +42,9 @@ export async function loadTranslations(_locale: string, _ns: string) {
   const ns = SUPPORTED_NAMESPACES.includes(_ns) ? _ns : "common";
   const cacheKey = `${locale}-${ns}`;
 
-  if (translationCache.has(cacheKey)) {
-    return translationCache.get(cacheKey);
+  const cached = translationCache.get(cacheKey);
+  if (cached) {
+    return cached;
   }
 
   if (locale === "en") {
@@ -48,8 +57,9 @@ export async function loadTranslations(_locale: string, _ns: string) {
       `../../../apps/web/public/static/locales/${locale}/${ns}.json`
     );
 
-    translationCache.set(cacheKey, localeTranslations);
-    return localeTranslations;
+    const mergedTranslations = mergeWithEnglishFallback(localeTranslations);
+    translationCache.set(cacheKey, mergedTranslations);
+    return mergedTranslations;
   } catch (dynamicImportErr) {
     log.warn(`Dynamic import failed for locale ${locale}:`, dynamicImportErr);
 
@@ -64,8 +74,9 @@ export async function loadTranslations(_locale: string, _ns: string) {
       );
       if (response.ok) {
         const httpTranslations = await response.json();
-        translationCache.set(cacheKey, httpTranslations);
-        return httpTranslations;
+        const mergedTranslations = mergeWithEnglishFallback(httpTranslations);
+        translationCache.set(cacheKey, mergedTranslations);
+        return mergedTranslations;
       }
     } catch (httpErr) {
       log.error(`HTTP fallback also failed for locale ${locale}:`, httpErr);

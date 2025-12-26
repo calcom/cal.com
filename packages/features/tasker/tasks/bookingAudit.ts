@@ -1,6 +1,7 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getBookingAuditTaskConsumer } from "@calcom/features/booking-audit/di/BookingAuditTaskConsumer.container";
+import { BookingAuditTaskConsumerSchema } from "@calcom/features/booking-audit/lib/types/bookingAuditTask";
 
 const log = logger.getSubLogger({ prefix: ["[tasker] bookingAudit"] });
 
@@ -8,7 +9,7 @@ const log = logger.getSubLogger({ prefix: ["[tasker] bookingAudit"] });
  * Booking Audit Task Handler
  * 
  * Thin wrapper that parses JSON and delegates to BookingAuditTaskConsumer.
- * Schema validation happens in processAuditTask for better separation of concerns.
+ * Routes to processAuditTask or processBulkAuditTask based on isBulk field.
  * 
  */
 export async function bookingAudit(payload: string, taskId?: string): Promise<void> {
@@ -18,13 +19,22 @@ export async function bookingAudit(payload: string, taskId?: string): Promise<vo
         }
         const parsedPayload: unknown = JSON.parse(payload);
 
-        log.info(`Processing booking audit: taskId=${taskId}`);
+        const parseResult = BookingAuditTaskConsumerSchema.safeParse(parsedPayload);
 
+        if (!parseResult.success) {
+            const errorMsg = `Invalid booking audit payload: ${safeStringify(parseResult.error.errors)} | TaskId: ${taskId}`;
+            log.error(errorMsg);
+            throw new Error(errorMsg);
+        }
+
+        const validatedPayload = parseResult.data;
         const bookingAuditTaskConsumer = getBookingAuditTaskConsumer();
 
-        await bookingAuditTaskConsumer.processAuditTask(parsedPayload, taskId);
-
-        log.info(`Successfully processed booking audit: taskId=${taskId}`);
+        if (validatedPayload.isBulk) {
+            await bookingAuditTaskConsumer.processBulkAuditTask(validatedPayload, taskId);
+        } else {
+            await bookingAuditTaskConsumer.processAuditTask(validatedPayload, taskId);
+        }
     } catch (error) {
         const errorMsg = `Error processing booking audit: ${safeStringify(error)} | TaskId: ${taskId}`;
         log.error(errorMsg);
@@ -32,4 +42,3 @@ export async function bookingAudit(payload: string, taskId?: string): Promise<vo
         throw error;
     }
 }
-

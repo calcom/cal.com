@@ -2,17 +2,12 @@ import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import { type PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import {
-  eventTypeLocations,
-  EventTypeMetaDataSchema,
-  eventTypeSlug,
-  type BookerLayoutSettings,
-} from "@calcom/prisma/zod-utils";
+import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { eventTypeColor } from "@calcom/prisma/zod-utils";
@@ -236,55 +231,8 @@ export type SelectClassNames = {
   container?: string;
 };
 
-export const EventTypeDuplicateInput = z
-  .object({
-    id: z.number(),
-    slug: z.string(),
-    title: z.string().min(1),
-    description: z.string(),
-    length: z.number(),
-    teamId: z.number().nullish(),
-  })
-  .strict();
-
-const calVideoSettingsSchema = z
-  .object({
-    disableRecordingForGuests: z.boolean().nullish(),
-    disableRecordingForOrganizer: z.boolean().nullish(),
-    enableAutomaticTranscription: z.boolean().nullish(),
-    enableAutomaticRecordingForOrganizer: z.boolean().nullish(),
-    disableTranscriptionForGuests: z.boolean().nullish(),
-    disableTranscriptionForOrganizer: z.boolean().nullish(),
-    redirectUrlOnExit: z.string().url().nullish(),
-    requireEmailForGuests: z.boolean().nullish(),
-  })
-  .optional()
-  .nullable();
-
-export const createEventTypeInput = z
-  .object({
-    title: z.string().trim().min(1),
-    slug: eventTypeSlug,
-    description: z.string().nullish(),
-    length: z.number().int(),
-    hidden: z.boolean(),
-    teamId: z.number().int().nullish(),
-    schedulingType: z.nativeEnum(SchedulingType).nullish(),
-    locations: eventTypeLocations,
-    metadata: EventTypeMetaDataSchema.optional(),
-    disableGuests: z.boolean().optional(),
-    slotInterval: z.number().min(0).nullish(),
-    minimumBookingNotice: z.number().int().min(0).optional(),
-    beforeEventBuffer: z.number().int().min(0).optional(),
-    afterEventBuffer: z.number().int().min(0).optional(),
-    scheduleId: z.number().int().optional(),
-    calVideoSettings: calVideoSettingsSchema,
-  })
-  .partial({ hidden: true, locations: true })
-  .refine((data) => (data.teamId ? data.teamId && data.schedulingType : true), {
-    path: ["schedulingType"],
-    message: "You must select a scheduling type for team events",
-  });
+// Re-export schemas from server-safe location
+export { EventTypeDuplicateInput, createEventTypeInput } from "./schemas";
 
 export type FormValidationResult = {
   isValid: boolean;

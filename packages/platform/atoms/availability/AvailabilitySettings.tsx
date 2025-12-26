@@ -26,7 +26,6 @@ import DateOverrideList from "@calcom/features/schedules/components/DateOverride
 import WebSchedule, {
   ScheduleComponent as PlatformSchedule,
 } from "@calcom/features/schedules/components/Schedule";
-import WebShell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
@@ -43,6 +42,7 @@ import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import WebShell from "@calcom/web/modules/shell/Shell";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";

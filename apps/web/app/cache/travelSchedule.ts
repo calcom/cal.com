@@ -22,5 +22,5 @@ export const getTravelSchedule = unstable_cache(
 );
 
 export const revalidateTravelSchedules = async () => {
-  revalidateTag(CACHE_TAGS.TRAVEL_SCHEDULES);
+  revalidateTag(CACHE_TAGS.TRAVEL_SCHEDULES, "max");
 };

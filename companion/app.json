@@ -40,6 +40,9 @@
       }
     },
     "owner": "calcoms-organization",
-    "plugins": ["expo-router", "expo-secure-store", "expo-web-browser"]
+    "plugins": ["expo-router", "expo-secure-store", "expo-web-browser"],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }

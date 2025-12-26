@@ -2,7 +2,7 @@ import { z } from "zod";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
 
 /**
  * Created Audit Action Service
@@ -17,10 +17,7 @@ const fieldsSchemaV1 = z.object({
     status: z.nativeEnum(BookingStatus),
 });
 
-export class CreatedAuditActionService implements IAuditActionService<
-    typeof fieldsSchemaV1,
-    typeof fieldsSchemaV1
-> {
+export class CreatedAuditActionService implements IAuditActionService {
     readonly VERSION = 1;
     public static readonly TYPE = "CREATED" as const;
     private static dataSchemaV1 = z.object({
@@ -61,18 +58,15 @@ export class CreatedAuditActionService implements IAuditActionService<
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone: string }): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.created" };
     }
 
     getDisplayJson({
         storedData,
         userTimeZone,
-    }: {
-        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
-        userTimeZone: string;
-    }): CreatedAuditDisplayData {
-        const { fields } = storedData;
+    }: GetDisplayJsonParams): CreatedAuditDisplayData {
+        const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
         const timeZone = userTimeZone;
 
         return {

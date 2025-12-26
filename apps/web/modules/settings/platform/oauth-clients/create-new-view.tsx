@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 
-import Shell from "@calcom/features/shell/Shell";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { PERMISSION_MAP } from "@calcom/platform-constants";
@@ -15,6 +14,8 @@ import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPl
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
+
+import Shell from "~/shell/Shell";
 
 export default function CreateOAuthClient() {
   const router = useRouter();

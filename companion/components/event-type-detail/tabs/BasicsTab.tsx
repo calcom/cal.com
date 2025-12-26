@@ -84,7 +84,7 @@ export function BasicsTab(props: BasicsTabProps) {
 
       {/* Duration Card */}
       <View className="rounded-2xl bg-white p-5">
-        {!props.allowMultipleDurations && (
+        {!props.allowMultipleDurations ? (
           <View className="mb-3">
             <Text className="mb-1.5 text-base font-semibold text-[#333]">Duration</Text>
             <View className="flex-row items-center gap-3">
@@ -99,9 +99,9 @@ export function BasicsTab(props: BasicsTabProps) {
               <Text className="text-base text-[#666]">Minutes</Text>
             </View>
           </View>
-        )}
+        ) : null}
 
-        {props.allowMultipleDurations && (
+        {props.allowMultipleDurations ? (
           <>
             <View className="mb-3">
               <Text className="mb-1.5 text-base font-semibold text-[#333]">
@@ -122,7 +122,7 @@ export function BasicsTab(props: BasicsTabProps) {
               </TouchableOpacity>
             </View>
 
-            {props.selectedDurations.length > 0 && (
+            {props.selectedDurations.length > 0 ? (
               <View className="mb-3">
                 <Text className="mb-1.5 text-base font-semibold text-[#333]">Default duration</Text>
                 <TouchableOpacity
@@ -135,9 +135,9 @@ export function BasicsTab(props: BasicsTabProps) {
                   <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                 </TouchableOpacity>
               </View>
-            )}
+            ) : null}
           </>
-        )}
+        ) : null}
 
         <View className="flex-row items-start justify-between">
           <Text className="mb-1 text-base font-medium text-[#333]">Allow multiple durations</Text>

@@ -41,7 +41,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   const { id: userId, organizationId } = user;
 
   if (!organizationId)
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a member of an organizaiton" });
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a member of an organization" });
 
   // Is requested user a member of the organization?
   const requestedMember = await prisma.membership.findFirst({
