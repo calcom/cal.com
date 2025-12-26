@@ -1,12 +1,12 @@
 import type { EventType } from "../../../services/calcom";
 import type { LocationItem } from "../../../types/locations";
-import { mapItemToApiLocation } from "../../../utils/locationHelpers";
 import {
   parseBufferTime,
   parseMinimumNotice,
   parseFrequencyUnit,
   parseSlotInterval,
 } from "../../../utils/eventTypeParsers";
+import { mapItemToApiLocation } from "../../../utils/locationHelpers";
 
 interface FrequencyLimit {
   id: number;
@@ -105,7 +105,7 @@ function hasMultipleDurationsChanged(
   const currentDurations = selectedDurations.map(parseDurationString).sort((a, b) => a - b);
   const originalDurations = [...originalOptions].sort((a: number, b: number) => a - b);
 
-  if (!deepEqual(currentDurations, originalDurations)) return true;
+  if (!areEqual(currentDurations, originalDurations)) return true;
 
   // Also check if the default (main) duration changed
   const currentDefault = parseDurationString(defaultDuration || mainDuration);
@@ -114,26 +114,11 @@ function hasMultipleDurationsChanged(
   return currentDefault !== originalDefault;
 }
 
-function deepEqual(a: unknown, b: unknown): boolean {
+function areEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
-  if (a == null || b == null) return a == b;
-  if (typeof a !== typeof b) return false;
-
-  if (Array.isArray(a) && Array.isArray(b)) {
-    if (a.length !== b.length) return false;
-    return a.every((item, index) => deepEqual(item, b[index]));
-  }
-
-  if (typeof a === "object" && typeof b === "object") {
-    const objA = a as Record<string, unknown>;
-    const objB = b as Record<string, unknown>;
-    const keysA = Object.keys(objA);
-    const keysB = Object.keys(objB);
-    if (keysA.length !== keysB.length) return false;
-    return keysA.every((key) => deepEqual(objA[key], objB[key]));
-  }
-
-  return false;
+  if (a == null || b == null) return false;
+  if (typeof a !== "object" || typeof b !== "object") return false;
+  return JSON.stringify(a) === JSON.stringify(b);
 }
 
 function normalizeLocation(loc: any): any {
@@ -174,7 +159,7 @@ function haveLocationsChanged(
   currentMapped.sort(sortByType);
   originalMapped.sort(sortByType);
 
-  return !deepEqual(currentMapped, originalMapped);
+  return !areEqual(currentMapped, originalMapped);
 }
 
 function hasBookingLimitsCountChanged(
@@ -209,7 +194,7 @@ function hasBookingLimitsCountChanged(
     });
   }
 
-  return !deepEqual(currentLimits, originalLimits);
+  return !areEqual(currentLimits, originalLimits);
 }
 
 function hasBookingLimitsDurationChanged(
@@ -244,7 +229,7 @@ function hasBookingLimitsDurationChanged(
     });
   }
 
-  return !deepEqual(currentLimits, originalLimits);
+  return !areEqual(currentLimits, originalLimits);
 }
 
 function hasBookingWindowChanged(
@@ -370,7 +355,7 @@ function hasBookerLayoutsChanged(
   const currentNormalized = selectedLayouts.map(mapLayoutToApi).sort();
   const originalNormalized = originalEnabled.map((l: string) => mapLayoutToApi(l)).sort();
 
-  if (!deepEqual(currentNormalized, originalNormalized)) return true;
+  if (!areEqual(currentNormalized, originalNormalized)) return true;
   return mapLayoutToApi(defaultLayout) !== mapLayoutToApi(originalDefault || "");
 }
 
