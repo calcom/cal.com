@@ -14,7 +14,6 @@ import {
   InternalLocation,
   BookingFieldSchema,
 } from "@/ee/event-types/event-types_2024_06_14/transformers";
-import { getOrgFullOrigin } from "@/lib/org-domains";
 import { Injectable } from "@nestjs/common";
 
 import {
@@ -24,6 +23,7 @@ import {
   getBookingFieldsWithSystemFields,
 } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema, parseEventTypeColor } from "@calcom/platform-libraries/event-types";
+import { getOrgFullOrigin } from "@calcom/platform-libraries/organizations";
 import type {
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
@@ -33,14 +33,28 @@ import type {
   OutputUnknownBookingField_2024_06_14,
   OutputBookingField_2024_06_14,
 } from "@calcom/platform-types";
-import type { EventType, User, Schedule, DestinationCalendar, CalVideoSettings } from "@calcom/prisma/client";
+import type {
+  EventType,
+  Schedule,
+  DestinationCalendar,
+  CalVideoSettings,
+  Prisma,
+} from "@calcom/prisma/client";
 
 type UserProfile = {
   username: string;
   organization: { slug: string | null } | null;
 };
 
-type UserWithOrganization = User & {
+type UserWithOrganization = {
+  id: number;
+  name: string | null;
+  username: string | null;
+  avatarUrl: string | null;
+  brandColor: string | null;
+  darkBrandColor: string | null;
+  weekStart: string;
+  metadata: Prisma.JsonValue;
   organization?: { slug: string | null } | null;
   profiles?: UserProfile[];
 };
@@ -324,7 +338,7 @@ export class OutputEventTypesService_2024_06_14 {
     return EventTypeMetaDataSchema.parse(metadata);
   }
 
-  transformUsers(users: User[]) {
+  transformUsers(users: UserWithOrganization[]) {
     return users.map((user) => {
       const metadata = user.metadata ? userMetadata.parse(user.metadata) : {};
       return {
