@@ -129,7 +129,7 @@ function areEqual(a: unknown, b: unknown): boolean {
   const keysA = Object.keys(objA).sort();
   const keysB = Object.keys(objB).sort();
   if (keysA.length !== keysB.length) return false;
-  return keysA.every((key) => areEqual(objA[key], objB[key]));
+  return keysA.every((key, index) => key === keysB[index] && areEqual(objA[key], objB[key]));
 }
 
 function normalizeLocation(loc: any): any {
