@@ -32,9 +32,6 @@ export const useWorkflowMutations = (filters: any, onCreateSuccess?: () => void)
         handleUpdateWorkflowFromBuilderTemplate(workflow, builderTemplate);
       }
 
-      console.log("Workflow created", workflow);
-      console.log("Builder Template", builderTemplate);
-
       onCreateSuccess?.();
     },
     onError: (err) => {
@@ -114,8 +111,6 @@ export const useWorkflowMutations = (filters: any, onCreateSuccess?: () => void)
   // Handler functions
   const handleCreateWorkflow = useCallback(
     async (teamId?: number, builderTemplate?: WorkflowTemplate) => {
-      console.log("Team id: ", teamId);
-      console.log("template: ", builderTemplate);
       createMutation.mutate({ calIdTeamId: teamId, builderTemplate });
     },
     [createMutation]
@@ -123,7 +118,6 @@ export const useWorkflowMutations = (filters: any, onCreateSuccess?: () => void)
 
   const updateMutation = trpc.viewer.workflows.calid_update.useMutation({
     onSuccess: async ({ workflow }) => {
-      console.log("Workflow updated", workflow);
       if (workflow) {
         utils.viewer.workflows.calid_get.setData({ id: workflow.id }, workflow);
 
@@ -141,7 +135,6 @@ export const useWorkflowMutations = (filters: any, onCreateSuccess?: () => void)
 
   const handleUpdateWorkflowFromBuilderTemplate = useCallback(
     (workflow: CalIdWorkflow, template: TWorkflowBuilderTemplateFieldsSchema) => {
-      console.log("Updating workflow from builder template:", workflow, ", ", template);
       const newStep = {
         id: -Date.now(),
         stepNumber: 0,
@@ -158,8 +151,6 @@ export const useWorkflowMutations = (filters: any, onCreateSuccess?: () => void)
         includeCalendarEvent: false,
         verifiedAt: null,
       };
-
-      console.log("Step : ", newStep);
 
       const timeFormat = user
         ? getTimeFormatStringFromUserTimeFormat(user.timeFormat)
@@ -200,7 +191,6 @@ export const useWorkflowMutations = (filters: any, onCreateSuccess?: () => void)
         time: template.time,
         timeUnit: "MINUTE",
       };
-      console.log("Update mutation params: ", updateParams);
 
       updateMutation.mutate(updateParams);
     },

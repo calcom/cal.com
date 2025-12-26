@@ -1,5 +1,6 @@
 "use client";
 
+import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Button } from "@calid/features/ui/components/button";
 import { StepCard } from "@calid/features/ui/components/card";
 import { Steps } from "@calid/features/ui/components/card";
@@ -280,7 +281,10 @@ const OnboardingPage = (props: PageProps) => {
             <Button
               color="minimal"
               data-testid="sign-out"
-              onClick={() => signOut({ callbackUrl: "/auth/logout" })}
+              onClick={async () => {
+                await resetCrispSession();
+                signOut({ callbackUrl: "/auth/logout" });
+              }}
               className="hover:text-emphasis mt-8 cursor-pointer border-none text-sm font-medium">
               {t("sign_out")}
             </Button>

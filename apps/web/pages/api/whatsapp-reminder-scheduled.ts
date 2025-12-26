@@ -9,7 +9,7 @@ import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import type { WorkflowTemplates } from "@calcom/prisma/enums";
 import { inngestClient } from "@calcom/web/pages/api/inngest";
 
-import type { VariablesType } from "../templates/customTemplate";
+import type { VariablesType } from "@calid/features/modules/workflows/templates/customTemplate";
 
 const log = logger.getSubLogger({ prefix: ["[inngest-whatsapp-scheduled]"] });
 
@@ -27,6 +27,7 @@ interface WhatsAppReminderData {
   template: string | null;
   metaTemplateName: string | null;
   metaPhoneNumberId: string | null;
+  action: WorkflowActions;
 }
 
 export const whatsappReminderScheduled = async ({ event, step, logger }) => {
@@ -86,6 +87,7 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
       // Any logic above this call should be idempotent, as due to retries the above code may run several times.
       // Errors below are always non-retriable so no issues there.
       const response = await meta.sendSMS({
+        action: data.action,
         eventTypeId: data.eventTypeId,
         workflowId: data.workflowId,
         phoneNumber: recipientPhone,
@@ -97,7 +99,7 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
         metaPhoneNumberId: data.metaPhoneNumberId,
       });
 
-      if(!response.messageId) {
+      if (!response.messageId) {
         throw new Error("Message sent acknowledgement missing messageId");
       }
 

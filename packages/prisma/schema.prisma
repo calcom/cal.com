@@ -451,6 +451,7 @@ model User {
   bannerUrl                      String?
   faviconUrl                     String?
   socialProfiles                 Json?
+  crispTokenId                   String?                       @unique
 
   whatsappBusinessPhone WhatsAppBusinessPhone[]
   calIdApiKeys          CalIdApiKey[]
@@ -2786,6 +2787,8 @@ model WhatsAppBusinessPhone {
   wabaId        String
   phoneNumberId String @unique
   phoneNumber   String @unique
+
+  verificationPin String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

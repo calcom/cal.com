@@ -1,3 +1,4 @@
+import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Icon } from "@calid/features/ui/components/icon";
 import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
@@ -209,7 +210,8 @@ export function UserDropdown({ small }: UserDropdownProps) {
                   type="button"
                   StartIcon="log-out"
                   aria-hidden="true"
-                  onClick={() => {
+                  onClick={async () => {
+                    await resetCrispSession();
                     signOut({ callbackUrl: "/auth/logout" });
                   }}>
                   {t("sign_out")}

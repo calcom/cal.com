@@ -51,4 +51,8 @@ export const meRouter = router({
       const handler = (await import("./calid/updateProfile.handler")).calidUpdateProfileHandler;
       return handler({ ctx, input });
     }),
+  getCrispTokenId: authedProcedure.query(async ({ ctx }) => {
+    const handler = (await import("./calid/getCrispTokenId.handler")).getCrispTokenIdHandler;
+    return handler({ ctx });
+  }),
 });

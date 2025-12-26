@@ -67,7 +67,6 @@ export default function Signup({
 }: SignupProps) {
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [passwordValue, setPasswordValue] = useState("");
   const [passwordStrength, setPasswordStrength] = useState({
     label: "",
     bars: 0,
@@ -114,6 +113,10 @@ export default function Signup({
 
   // Password strength checker
   useEffect(() => {
+    if (!watchedPassword) {
+      setPasswordStrength({ label: "", bars: 0, textClass: "", barClass: "" });
+      return;
+    }
     const regex = {
       lower: /[a-z]/,
       upper: /[A-Z]/,
@@ -123,12 +126,12 @@ export default function Signup({
     };
 
     const checks = {
-      length: passwordValue.length >= 8,
-      hasLower: regex.lower.test(passwordValue),
-      hasUpper: regex.upper.test(passwordValue),
-      hasNumber: regex.number.test(passwordValue),
-      hasSpecial: regex.special.test(passwordValue),
-      noRepeat: !regex.repeat.test(passwordValue),
+      length: watchedPassword.length >= 7,
+      hasLower: regex.lower.test(watchedPassword),
+      hasUpper: regex.upper.test(watchedPassword),
+      hasNumber: regex.number.test(watchedPassword),
+      hasSpecial: regex.special.test(watchedPassword),
+      noRepeat: !regex.repeat.test(watchedPassword),
     };
 
     setPasswordChecks(checks);
@@ -149,13 +152,13 @@ export default function Signup({
     let level = strengthLevels.weak;
     if (checks.length && checks.noRepeat) {
       if (score >= 4) level = strengthLevels.strong;
-      else if (score >= 2) level = strengthLevels.acceptable;
+      else if (checks.hasLower && checks.hasLower && checks.hasNumber) level = strengthLevels.acceptable;
     }
 
-    if (passwordValue.length === 0) level = strengthLevels.empty;
+    if (watchedPassword.length === 0) level = strengthLevels.empty;
 
     setPasswordStrength(level);
-  }, [passwordValue]);
+  }, [watchedPassword]);
 
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
 
@@ -475,6 +478,7 @@ export default function Signup({
                     loading={loadingSubmitState}
                     disabled={
                       !!formMethods.formState.errors.email ||
+                      passwordStrength.bars < 2 ||
                       !watchedEmail ||
                       !watchedPassword ||
                       (CLOUDFLARE_SITE_ID && !process.env.NEXT_PUBLIC_IS_E2E && !watchedCfToken) ||

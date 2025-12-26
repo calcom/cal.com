@@ -5,7 +5,6 @@ import {
   WORKFLOW_TRIGGER_EVENTS,
 } from "@calid/features/modules/workflows/config/constants";
 import { z } from "zod";
-import { Prisma } from "@prisma/client";
 
 export const ZCalIdUpdateInputSchema = z.object({
   id: z.number(),
