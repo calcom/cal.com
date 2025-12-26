@@ -192,7 +192,7 @@ export class BBBApi {
           return false;
         }
         // Network errors mean we can't verify - propagate them
-        if (err.error === bbbError.CANNOT_REACH_SERVER || err.error === bbbError.NETWORK_ERROR) {
+        if (err.error === bbbError.CANNOT_REACH_SERVER) {
           throw err;
         }
       }
