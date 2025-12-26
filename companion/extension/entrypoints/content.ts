@@ -1,4 +1,5 @@
 /// <reference types="chrome" />
+import { initGoogleCalendarIntegration } from "../lib/google-calendar";
 
 export default defineContentScript({
   matches: ["<all_urls>"],
@@ -16,7 +17,19 @@ export default defineContentScript({
         console.log("Cal.com: Gmail integration initialized successfully");
       } catch (error) {
         // Fail silently - don't break Gmail UI
-        console.error("Cal.com: Failed to initialize Gmail integration:", error);
+        console.error("Cal.com: Failed to initialize Gmail integration");
+      }
+    }
+
+    // Initialize Google Calendar integration if on Google Calendar
+    // Wrapped in try-catch to prevent breaking Google Calendar if anything fails
+    if (window.location.hostname === "calendar.google.com") {
+      try {
+        initGoogleCalendarIntegration();
+        console.log("Cal.com: Google Calendar integration initialized successfully");
+      } catch (error) {
+        // Fail silently - don't break Google Calendar UI
+        console.error("Cal.com: Failed to initialize Google Calendar integration");
       }
     }
 
@@ -47,25 +60,34 @@ export default defineContentScript({
     sidebarContainer.style.transform = "translateX(100%)";
     sidebarContainer.style.display = "none";
 
-    // Create iframe container with max width
+    // Create iframe container - positioned to right side
     const iframeContainer = document.createElement("div");
-    iframeContainer.style.width = "100%";
-    iframeContainer.style.height = "100%";
-    iframeContainer.style.display = "flex";
-    iframeContainer.style.justifyContent = "flex-end";
-    iframeContainer.style.pointerEvents = "none";
+    iframeContainer.style.position = "absolute";
+    iframeContainer.style.top = "0";
+    iframeContainer.style.right = "0";
+    iframeContainer.style.bottom = "0";
+    iframeContainer.style.width = "400px";
+    iframeContainer.style.overflow = "hidden";
 
     const iframe = document.createElement("iframe");
+    // URL is determined at build time:
+    // - ext:build-dev  → uses EXPO_PUBLIC_COMPANION_DEV_URL (localhost)
+    // - ext:build-prod → uses https://companion.cal.com
     const COMPANION_URL =
       (import.meta.env.EXPO_PUBLIC_COMPANION_DEV_URL as string) || "https://companion.cal.com";
     iframe.src = COMPANION_URL;
-    iframe.style.width = "400px";
-    iframe.style.height = "100%";
-    iframe.style.border = "none";
-    iframe.style.borderRadius = "0";
-    iframe.style.backgroundColor = "transparent";
-    iframe.style.pointerEvents = "auto";
-    iframe.style.transition = "none";
+    // Use explicit dimensions - Brave has issues with percentage-based sizing
+    iframe.style.cssText = `
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 400px !important;
+      height: 100vh !important;
+      border: none !important;
+      background-color: transparent !important;
+      pointer-events: auto !important;
+      display: block !important;
+    `;
 
     iframeContainer.appendChild(iframe);
 
@@ -105,15 +127,17 @@ export default defineContentScript({
       if (event.data.type === "cal-companion-expand") {
         // Disable transition for instant expansion
         iframe.style.transition = "none";
-        iframe.style.width = "100%";
-        iframeContainer.style.pointerEvents = "auto";
-        iframeContainer.style.justifyContent = "center";
+        iframe.style.width = "100vw";
+        iframeContainer.style.width = "100%";
+        iframeContainer.style.left = "0";
+        iframeContainer.style.right = "0";
       } else if (event.data.type === "cal-companion-collapse") {
         // Disable transition for instant collapse
         iframe.style.transition = "none";
         iframe.style.width = "400px";
-        iframeContainer.style.pointerEvents = "none";
-        iframeContainer.style.justifyContent = "flex-end";
+        iframeContainer.style.width = "400px";
+        iframeContainer.style.left = "auto";
+        iframeContainer.style.right = "0";
       } else if (event.data.type === "cal-extension-oauth-request") {
         // Handle OAuth request from iframe
         handleOAuthRequest(event.data.authUrl, iframe.contentWindow);
@@ -518,6 +542,7 @@ export default defineContentScript({
 
     // Listen for extension icon click
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      // Skip debug-log messages to avoid infinite loop
       if (message.action === "icon-clicked") {
         if (isClosed) {
           openSidebar();
@@ -530,6 +555,15 @@ export default defineContentScript({
           }
         }
         sendResponse({ success: true }); // Send response to acknowledge
+      }
+    });
+
+    // Listen for custom event to open sidebar (from Google Calendar/Gmail integrations)
+    window.addEventListener("cal-companion-open-sidebar", () => {
+      if (isClosed) {
+        openSidebar();
+      } else if (!isVisible) {
+        openSidebar();
       }
     });
 
@@ -896,7 +930,11 @@ export default defineContentScript({
                       ">
                         ${length}min
                       </span>
-                      ${description ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>` : ""}
+                      ${
+                        description
+                          ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>`
+                          : ""
+                      }
                     </div>
                   `;
 
@@ -992,7 +1030,9 @@ export default defineContentScript({
 
                   previewBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+                    const bookingUrl = `https://cal.com/${
+                      eventType.users?.[0]?.username || "user"
+                    }/${eventType.slug}`;
                     window.open(bookingUrl, "_blank");
                   });
                   previewBtn.addEventListener("mouseenter", () => {
@@ -1032,7 +1072,9 @@ export default defineContentScript({
                   copyBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
                     // Copy to clipboard
-                    const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+                    const bookingUrl = `https://cal.com/${
+                      eventType.users?.[0]?.username || "user"
+                    }/${eventType.slug}`;
                     navigator.clipboard
                       .writeText(bookingUrl)
                       .then(() => {
@@ -1193,7 +1235,9 @@ export default defineContentScript({
 
           function insertEventTypeLink(eventType) {
             // Construct the Cal.com booking link
-            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
+              eventType.slug
+            }`;
 
             // Try to insert at cursor position in the compose field
             const inserted = insertTextAtCursor(bookingUrl);
@@ -1215,7 +1259,9 @@ export default defineContentScript({
 
           function copyEventTypeLink(eventType) {
             // Construct the Cal.com booking link
-            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
+              eventType.slug
+            }`;
 
             // Try to insert at cursor position in the compose field
             const inserted = insertTextAtCursor(bookingUrl);
@@ -1489,7 +1535,9 @@ export default defineContentScript({
             </div>
             ${datesHTML}
             <div style="margin-top: 13px;">
-              <a href="https://cal.com/${username}/${eventType.slug}?cal.tz=${encodeURIComponent(timezone)}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
+              <a href="https://cal.com/${username}/${eventType.slug}?cal.tz=${encodeURIComponent(
+          timezone
+        )}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
                 See all available times →
               </a>
             </div>
@@ -1594,7 +1642,7 @@ export default defineContentScript({
             return false;
           }
         } catch (error) {
-          console.error("Cal.com: Critical error inserting HTML:", error);
+          console.error("Cal.com: Critical error inserting HTML");
           return false;
         }
       }
@@ -1823,7 +1871,7 @@ export default defineContentScript({
           }, 1000);
         } catch (error) {
           // Critical failure - log but don't break Gmail
-          console.error("Cal.com: Failed to initialize chip watcher:", error);
+          console.error("Cal.com: Failed to initialize chip watcher");
         }
       }
 
@@ -1857,7 +1905,9 @@ export default defineContentScript({
           }
 
           console.log(
-            `Cal.com: ✅ Google chip detected - ${parsedData.slots.length} slot${parsedData.slots.length > 1 ? "s" : ""} (${parsedData.detectedDuration}min)`
+            `Cal.com: ✅ Google chip detected - ${parsedData.slots.length} slot${
+              parsedData.slots.length > 1 ? "s" : ""
+            } (${parsedData.detectedDuration}min)`
           );
 
           // Safely check for parent element
@@ -2153,7 +2203,7 @@ export default defineContentScript({
               embedButton.style.opacity = "1";
               embedButton.style.cursor = "pointer";
             } catch (error) {
-              console.error("Cal.com: Failed to insert embed:", error);
+              console.error("Cal.com: Failed to insert embed");
 
               // Check if this is the "Extension context invalidated" error
               const isContextInvalidated =
@@ -2321,7 +2371,7 @@ export default defineContentScript({
               window.removeEventListener("resize", updatePosition);
             };
           } catch (error) {
-            console.error("Cal.com: Failed to create or insert action bar:", error);
+            console.error("Cal.com: Failed to create or insert action bar");
             // Clean up if something failed
             try {
               actionBar.remove();
@@ -2331,7 +2381,7 @@ export default defineContentScript({
           }
         } catch (error) {
           // Catch-all to prevent breaking Gmail UI
-          console.error("Cal.com: Error handling Google chip:", error);
+          console.error("Cal.com: Error handling Google chip");
           return;
         }
       }
@@ -2405,7 +2455,11 @@ export default defineContentScript({
         header.innerHTML = `
           <div>
             <div style="font-weight: 600; font-size: 16px; color: #000;">📅 Suggest Cal.com Links</div>
-            <div style="font-size: 13px; color: #666; margin-top: 4px;">${parsedData.slots.length} time slot${parsedData.slots.length > 1 ? "s" : ""} • ${parsedData.detectedDuration}min each</div>
+            <div style="font-size: 13px; color: #666; margin-top: 4px;">${
+              parsedData.slots.length
+            } time slot${parsedData.slots.length > 1 ? "s" : ""} • ${
+          parsedData.detectedDuration
+        }min each</div>
           </div>
           <button class="close-menu" style="background: none; border: none; cursor: pointer; font-size: 28px; color: #666; line-height: 1; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">×</button>
         `;
@@ -2657,7 +2711,9 @@ export default defineContentScript({
                 color: #000;
                 cursor: pointer;
                 transition: background-color 0.1s;
-                border-bottom: ${index < matchingEventTypes.length - 1 ? "1px solid #f0f0f0" : "none"};
+                border-bottom: ${
+                  index < matchingEventTypes.length - 1 ? "1px solid #f0f0f0" : "none"
+                };
                 pointer-events: auto;
               `;
               option.textContent = `${et.title} (${et.lengthInMinutes}min)`;
@@ -2856,7 +2912,7 @@ export default defineContentScript({
             });
           });
         } catch (error) {
-          console.error("Error showing Cal.com suggestion menu:", error);
+          console.error("Error showing Cal.com suggestion menu");
           loadingDiv.remove();
 
           const errorMessage = error instanceof Error ? error.message : "";
