@@ -2810,6 +2810,7 @@
                   "booking.readOrgBookings",
                   "booking.readRecordings",
                   "booking.update",
+                  "booking.readOrgAuditLogs",
                   "insights.read",
                   "workflow.create",
                   "workflow.read",
@@ -6342,6 +6343,7 @@
                   "booking.readTeamBookings",
                   "booking.readRecordings",
                   "booking.update",
+                  "booking.readTeamAuditLogs",
                   "insights.read",
                   "workflow.create",
                   "workflow.read",
@@ -6972,6 +6974,16 @@
             "schema": {
               "minimum": 0,
               "default": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter schedules by event type ID to return only schedules used by hosts of this event type for availability calculation",
+            "example": 123,
+            "schema": {
               "type": "number"
             }
           }
@@ -10630,6 +10642,64 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetBookingVideoSessionsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/location": {
+      "patch": {
+        "operationId": "BookingLocationController_2024_08_13_updateBookingLocation",
+        "summary": "Update booking location for an existing booking",
+        "description": "**Current Limitation:** Updating a booking location will update the location in Cal.com, but the corresponding Calendar event will not be updated automatically. The old location will persist in the Calendar event. This is a known limitation that will be addressed in a future update.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. This header is required as this endpoint does not exist in older API versions.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBookingLocationInput_2024_08_13"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateBookingLocationOutput_2024_08_13"
                 }
               }
             }
@@ -15018,6 +15088,16 @@
             "schema": {
               "minimum": 0,
               "default": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter schedules by event type ID to return only schedules used by hosts of this event type for availability calculation",
+            "example": 123,
+            "schema": {
               "type": "number"
             }
           }
@@ -22825,6 +22905,12 @@
           },
           "secret": {
             "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "description": "The version of the webhook",
+            "example": "2021-10-20",
+            "enum": ["2021-10-20"]
           }
         },
         "required": ["active", "subscriberUrl", "triggers"]
@@ -22893,6 +22979,12 @@
           },
           "secret": {
             "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "description": "The version of the webhook",
+            "example": "2021-10-20",
+            "enum": ["2021-10-20"]
           }
         }
       },
@@ -26359,6 +26451,7 @@
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26463,6 +26556,7 @@
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26595,6 +26689,7 @@
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26698,6 +26793,7 @@
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26781,6 +26877,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26864,6 +26961,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26975,6 +27073,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -27057,6 +27156,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -30033,6 +30133,74 @@
         "required": ["guests"]
       },
       "AddGuestsOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+                }
+              }
+            ],
+            "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateBookingLocationInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "description": "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UpdateInputAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeeAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeeDefinedLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeePhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputLinkLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputPhoneLocation_2024_08_13"
+              }
+            ]
+          }
+        }
+      },
+      "UpdateBookingLocationOutput_2024_08_13": {
         "type": "object",
         "properties": {
           "status": {
