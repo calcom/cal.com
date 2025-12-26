@@ -151,6 +151,11 @@ test.describe("Manage Booking Questions - Date Type", () => {
                     await availableDateCell.click();
 
                     await expect(datePickerButton).not.toContainText("Pick a date");
+                    const dialog = page.locator('[role="dialog"]').first();
+                    if (await dialog.isVisible()) {
+                        await page.keyboard.press('Escape');
+                        await expect(dialog).toBeHidden();
+                    }
                     await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
                     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
