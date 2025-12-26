@@ -71,7 +71,8 @@ export function LoginScreen() {
         >
           <View>
             <Text className="text-[15px] text-gray-500">
-              Don't have an account? <Text className="font-semibold text-gray-900">Sign up</Text>
+              Don&apos;t have an account?{" "}
+              <Text className="font-semibold text-gray-900">Sign up</Text>
             </Text>
             <View className="h-px bg-gray-400" style={{ marginTop: 2 }} />
           </View>

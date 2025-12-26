@@ -859,8 +859,8 @@ export default function EventTypes() {
                   <Text className="text-sm leading-5 text-gray-600">
                     {eventTypeToDelete ? (
                       <>
-                        This will permanently delete the "{eventTypeToDelete.title}" event type.
-                        This action cannot be undone.
+                        This will permanently delete the &quot;{eventTypeToDelete.title}&quot; event
+                        type. This action cannot be undone.
                       </>
                     ) : null}
                   </Text>

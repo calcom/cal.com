@@ -132,7 +132,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
               Auto translate title and description
             </Text>
             <Text className="text-sm text-[#666]">
-              Automatically translate titles and descriptions to the visitor's browser language
+              Automatically translate titles and descriptions to the visitor&apos;s browser language
               using AI.
             </Text>
           </View>
@@ -159,7 +159,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
               Requires booker email verification
             </Text>
             <Text className="text-sm text-[#666]">
-              To ensure booker's email verification before scheduling events.
+              To ensure booker&apos;s email verification before scheduling events.
             </Text>
           </View>
           <Switch
@@ -236,8 +236,8 @@ export function AdvancedTab(props: AdvancedTabProps) {
         </View>
         {props.successRedirectUrl ? (
           <Text className="mt-2 text-xs text-[#FF9500]">
-            Adding a redirect will disable the success page. Make sure to mention "Booking
-            Confirmed" on your custom success page.
+            Adding a redirect will disable the success page. Make sure to mention &quot;Booking
+            Confirmed&quot; on your custom success page.
           </Text>
         ) : null}
       </View>
@@ -355,9 +355,11 @@ export function AdvancedTab(props: AdvancedTabProps) {
       <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
         <View className="flex-row items-start justify-between">
           <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">Hide organizer's email</Text>
+            <Text className="mb-1 text-base font-medium text-[#333]">
+              Hide organizer&apos;s email
+            </Text>
             <Text className="text-sm text-[#666]">
-              Hide organizer's email address from the booking screen, email notifications, and
+              Hide organizer&apos;s email address from the booking screen, email notifications, and
               calendar events.
             </Text>
           </View>

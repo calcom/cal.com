@@ -103,24 +103,8 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
       hour12: false,
     });
 
-    // Expose submit function to parent via ref (same pattern as senior's actionHandlersRef)
-    useImperativeHandle(
-      ref,
-      () => ({
-        submit: handleSubmit,
-      }),
-      [handleSubmit]
-    );
-
-    if (!booking) {
-      return (
-        <View className="flex-1 items-center justify-center bg-[#F2F2F7]">
-          <Text className="text-gray-500">No booking data</Text>
-        </View>
-      );
-    }
-
     // Generate date options for picker (next 90 days)
+    // Note: useMemo must be called before any conditional returns to follow React hooks rules
     const dateOptions = React.useMemo(() => {
       const options: Array<{ label: string; value: Date }> = [];
       const today = new Date();
@@ -153,6 +137,23 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
       }
       return options;
     }, []);
+
+    // Expose submit function to parent via ref (same pattern as senior's actionHandlersRef)
+    useImperativeHandle(
+      ref,
+      () => ({
+        submit: handleSubmit,
+      }),
+      [handleSubmit]
+    );
+
+    if (!booking) {
+      return (
+        <View className="flex-1 items-center justify-center bg-[#F2F2F7]">
+          <Text className="text-gray-500">No booking data</Text>
+        </View>
+      );
+    }
 
     return (
       <>
