@@ -206,6 +206,61 @@ POST /v2/bookings/{uid}/reschedule
 - Simpler process - just provide new start time
 - Automatically handles the relationship between old and new bookings
 
+#### Update booking location
+
+**V1:** Not available
+
+**V2 endpoint:**
+```
+PATCH /v2/bookings/{uid}/location
+```
+
+**V2 request body examples:**
+
+Update to physical address:
+```json
+{
+  "location": {
+    "type": "address",
+    "address": "123 Main St, San Francisco, CA 94102"
+  }
+}
+```
+
+Update to video call link:
+```json
+{
+  "location": {
+    "type": "link",
+    "link": "https://meet.google.com/abc-defg-hij"
+  }
+}
+```
+
+Update to phone number:
+```json
+{
+  "location": {
+    "type": "phone",
+    "phone": "+14155551234"
+  }
+}
+```
+
+**Supported location types:**
+- `address` - Organizer-defined physical address
+- `link` - Organizer-defined link (e.g., video call URL)
+- `phone` - Organizer-defined phone number
+- `attendeeAddress` - Attendee-provided physical address
+- `attendeePhone` - Attendee-provided phone number
+- `attendeeDefined` - Free-form location text from attendee
+
+**Key differences:**
+- This is a new endpoint in v2 (not available in v1)
+- Requires `cal-api-version: 2024-08-13` header (returns 404 without it)
+- Requires BOOKING_WRITE permission
+- **Important limitation:** Updates the location in Cal.com but does NOT update the corresponding external calendar event. The old location will persist in the calendar event.
+
 ### Event types
 
 #### Get all event types
