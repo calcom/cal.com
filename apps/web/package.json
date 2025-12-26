@@ -155,7 +155,7 @@
     "superjson": "1.9.1",
     "turndown": "7.2.0",
     "uuid": "8.3.2",
-    "zod": "3.25.76"
+    "zod": "4.2.1"
   },
   "devDependencies": {
     "@babel/core": "7.26.10",

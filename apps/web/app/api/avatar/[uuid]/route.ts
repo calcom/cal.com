@@ -13,7 +13,7 @@ const querySchema = z.object({
 });
 
 const handleValidationError = (error: z.ZodError): NextResponse => {
-  const errors = error.errors.map((err) => ({
+  const errors = error.issues.map((err) => ({
     path: err.path.join("."),
     errorCode: `error.validation.${err.code}`,
   }));

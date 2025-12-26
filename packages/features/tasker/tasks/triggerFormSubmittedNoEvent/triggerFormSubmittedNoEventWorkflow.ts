@@ -13,7 +13,7 @@ const log = logger.getSubLogger({ prefix: ["[tasker] triggerFormSubmittedNoEvent
 
 export const ZTriggerFormSubmittedNoEventWorkflowPayloadSchema = z.object({
   responseId: z.number(),
-  responses: z.record(z.unknown()),
+  responses: z.record(z.string(), z.unknown()),
   routedEventTypeId: z.number().nullable().optional(),
   form: z.object({
     id: z.string(),

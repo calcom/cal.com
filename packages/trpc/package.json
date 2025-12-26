@@ -20,7 +20,7 @@
     "@trpc/react-query": "11.0.0-next-beta.222",
     "@trpc/server": "11.0.0-next-beta.222",
     "superjson": "1.9.1",
-    "zod": "3.25.76"
+    "zod": "4.2.1"
   },
   "peerDependencies": {
     "next": ">=14.0.0",

@@ -29,7 +29,7 @@ export const routingFormIncompleteBookingDataSchema = z.object({
   writeToRecordObject: writeToRecordDataSchema.optional(),
 });
 
-const optionalBooleanOnlyRunTimeValidation = z
+const _optionalBooleanOnlyRunTimeValidation = z
   .any()
   .refine((val) => typeof val === "boolean" || val === undefined)
   .optional();
@@ -47,7 +47,7 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   createNewContactUnderAccount: z.boolean().optional(),
   createLeadIfAccountNull: z.boolean().optional(),
   onBookingWriteToEventObject: z.boolean().optional(),
-  onBookingWriteToEventObjectMap: z.record(z.any()).optional(),
+  onBookingWriteToEventObjectMap: z.record(z.string(), z.any()).optional(),
   createEventOnLeadCheckForContact: z.boolean().optional(),
   onBookingChangeRecordOwner: z.boolean().optional(),
   onBookingChangeRecordOwnerName: z.string().optional(),

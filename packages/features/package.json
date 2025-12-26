@@ -39,7 +39,7 @@
     "react-dom": "18.2.0",
     "react-is": "^18.2.0",
     "stripe": "^9.0.0 || ^15.0.0",
-    "zod": "^3.0.0"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@testing-library/react-hooks": "8.0.1",

@@ -14,7 +14,7 @@ type TranslationFunction = (key: string, options?: Record<string, unknown>) => s
 type CommonParams = { bookingFields: BookingFields; view: View; translateFn?: TranslationFunction };
 
 export const bookingResponse = dbReadResponseSchema;
-export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
+export const bookingResponsesDbSchema = z.record(z.string(), dbReadResponseSchema);
 
 const catchAllSchema = bookingResponsesDbSchema;
 
@@ -34,8 +34,8 @@ export const getBookingResponsesPartialSchema = ({ bookingFields, view, translat
 // - Can happen when we are parsing the prefill query string
 // - Can happen when we are parsing a booking's responses (which was created before we added a new required field)
 export default function getBookingResponsesSchema({ bookingFields, view, translateFn }: CommonParams) {
-  const schema = bookingResponses.and(z.record(z.any()));
-  return preprocess({ schema, bookingFields, isPartialSchema: false, view, translateFn });
+    const schema = bookingResponses.and(z.record(z.string(), z.any()));
+    return preprocess({ schema, bookingFields, isPartialSchema: false, view, translateFn });
 }
 
 // Should be used when we want to check if the optional fields are entered and valid as well
@@ -44,7 +44,7 @@ export function getBookingResponsesSchemaWithOptionalChecks({
   view,
   translateFn,
 }: CommonParams) {
-  const schema = bookingResponses.and(z.record(z.any()));
+  const schema = bookingResponses.and(z.record(z.string(), z.any()));
   return preprocess({
     schema,
     bookingFields,
@@ -75,7 +75,7 @@ function preprocess<T extends z.ZodType>({
   const log = logger.getSubLogger({ prefix: ["getBookingResponsesSchema"] });
   const preprocessed = z.preprocess(
     (responses) => {
-      const parsedResponses = z.record(z.any()).nullable().parse(responses) || {};
+      const parsedResponses = z.record(z.string(), z.any()).nullable().parse(responses) || {};
       const newResponses = {} as typeof parsedResponses;
       // if eventType has been deleted, we won't have bookingFields and thus we can't preprocess or validate them.
       if (!bookingFields) return parsedResponses;
@@ -358,12 +358,12 @@ function preprocess<T extends z.ZodType>({
       }
     })
   );
-  if (isPartialSchema) {
-    // Query Params can be completely invalid, try to preprocess as much of it in correct format but in worst case simply don't prefill instead of crashing
-    return preprocessed.catch(function (res?: { error?: unknown[] }) {
-      console.error("Failed to preprocess query params, prefilling will be skipped", res?.error);
-      return {};
-    });
-  }
-  return preprocessed;
+    if (isPartialSchema) {
+      // Query Params can be completely invalid, try to preprocess as much of it in correct format but in worst case simply don't prefill instead of crashing
+      return preprocessed.catch(function (ctx) {
+        console.error("Failed to preprocess query params, prefilling will be skipped", ctx?.issues);
+        return {};
+      }) as unknown as typeof preprocessed;
+    }
+    return preprocessed;
 }

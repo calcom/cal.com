@@ -13,7 +13,7 @@ export const stripeInvalidRequestErrorSchema = errorSchema.extend({
   doc_url: z.string().optional(),
   statusCode: z.number().optional(),
   raw: z.unknown(),
-  headers: z.record(z.string()),
+  headers: z.record(z.string(), z.string()),
   requestId: z.string(),
   param: z.string().optional(),
 });

@@ -122,7 +122,7 @@ const raqbChildSchema = z.object({
     .optional(),
 });
 
-const raqbChildren1Schema = z.record(raqbChildSchema).superRefine((children1, ctx) => {
+const raqbChildren1Schema = z.record(z.string(), raqbChildSchema).superRefine((children1, ctx) => {
   if (!children1) return;
   const isObject = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null;
@@ -581,7 +581,7 @@ export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),
   })
-  .and(z.record(z.string()))
+  .and(z.record(z.string(), z.string()))
   .nullable()
   .describe("BookingMetadata");
 

@@ -1934,7 +1934,7 @@ __metadata:
     uuid: "npm:8.3.2"
     winston: "npm:3.17.0"
     winston-transport: "npm:4.9.0"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   languageName: unknown
   linkType: soft
 
@@ -1965,7 +1965,7 @@ __metadata:
     typescript: "npm:5.9.2"
     tzdata: "npm:1.0.40"
     uuid: "npm:8.3.2"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   languageName: unknown
   linkType: soft
 
@@ -2318,7 +2318,7 @@ __metadata:
     "@sendgrid/mail": "npm:7.7.0"
     libphonenumber-js: "npm:^1.11.18"
     twilio: "npm:3.84.1"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   languageName: unknown
   linkType: soft
 
@@ -2577,7 +2577,7 @@ __metadata:
     react-dom: 18.2.0
     react-is: ^18.2.0
     stripe: ^9.0.0 || ^15.0.0
-    zod: ^3.0.0
+    zod: ^4.0.0
   languageName: unknown
   linkType: soft
 
@@ -3052,7 +3052,7 @@ __metadata:
     prisma-kysely: "npm:2.2.0"
     ts-node: "npm:10.9.2"
     uuid: "npm:8.3.2"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
     zod-prisma-types: "npm:3.2.4"
   languageName: unknown
   linkType: soft
@@ -3206,7 +3206,7 @@ __metadata:
     stripe: "npm:9.16.0"
     ts-node: "npm:10.9.2"
     uuid: "npm:8.3.2"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   languageName: unknown
   linkType: soft
 
@@ -3268,7 +3268,7 @@ __metadata:
     "@trpc/server": "npm:11.0.0-next-beta.222"
     superjson: "npm:1.9.1"
     typescript: "npm:5.9.2"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   peerDependencies:
     next: ">=14.0.0"
     react: ^18.0.0 || ^19.0.0
@@ -3562,7 +3562,7 @@ __metadata:
     turndown: "npm:7.2.0"
     typescript: "npm:5.9.2"
     uuid: "npm:8.3.2"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   languageName: unknown
   linkType: soft
 
@@ -42874,6 +42874,13 @@ __metadata:
   version: 3.25.76
   resolution: "zod@npm:3.25.76"
   checksum: 10/f0c963ec40cd96858451d1690404d603d36507c1fc9682f2dae59ab38b578687d542708a7fdbf645f77926f78c9ed558f57c3d3aa226c285f798df0c4da16995
+  languageName: node
+  linkType: hard
+
+"zod@npm:4.2.1":
+  version: 4.2.1
+  resolution: "zod@npm:4.2.1"
+  checksum: 10/f21d106ce31e0f24040aa13b13fdd1300fcc8119622b28ca1b1b726ff70b75190dbcfeb927d34f19174683afa298e5df4d806f622abe9b037a0aadb9cdef6443
   languageName: node
   linkType: hard
 
