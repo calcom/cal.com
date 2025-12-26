@@ -272,11 +272,11 @@ jobs:
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: Dump dependent job results and fail only on 'failure'
-        if: needs.changes.outputs.has-files-requiring-all-checks == 'true'
+        if: needs.prepare.outputs.has-files-requiring-all-checks == 'true'
         run: |
           echo 'Dependent job results:'
           echo '${{ toJson(needs) }}'
-          
+
           # Use jq to list jobs with result == "failure"
           echo '${{ toJson(needs) }}' > /tmp/needs.json
           cat /tmp/needs.json
