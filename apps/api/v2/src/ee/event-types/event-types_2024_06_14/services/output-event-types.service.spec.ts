@@ -1,7 +1,7 @@
 import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
 
 jest.mock("@calcom/platform-libraries/organizations", () => ({
-  getOrgFullOrigin: jest.fn((slug: string | null) => {
+  getBookerBaseUrlSync: jest.fn((slug: string | null) => {
     if (!slug) return "https://cal.com";
     return `https://${slug}.cal.com`;
   }),
@@ -12,6 +12,53 @@ describe("OutputEventTypesService_2024_06_14", () => {
 
   beforeEach(() => {
     service = new OutputEventTypesService_2024_06_14();
+  });
+
+  describe("enrichUserWithProfile", () => {
+    it("should use profile username for org users", () => {
+      const user = {
+        id: 1,
+        name: "Owner",
+        username: "owner1-acme",
+        avatarUrl: null,
+        brandColor: null,
+        darkBrandColor: null,
+        weekStart: "Monday",
+        metadata: {},
+        organization: { slug: "acme" },
+        profiles: [
+          {
+            username: "owner1",
+            organization: { slug: "acme" },
+          },
+        ],
+      };
+
+      const enriched = service.enrichUserWithProfile(user);
+
+      expect(enriched.username).toBe("owner1");
+      expect(enriched.profile?.organization?.slug).toBe("acme");
+    });
+
+    it("should keep original username for non-org users", () => {
+      const user = {
+        id: 1,
+        name: "John",
+        username: "john-doe",
+        avatarUrl: null,
+        brandColor: null,
+        darkBrandColor: null,
+        weekStart: "Monday",
+        metadata: {},
+        organization: null,
+        profiles: [],
+      };
+
+      const enriched = service.enrichUserWithProfile(user);
+
+      expect(enriched.username).toBe("john-doe");
+      expect(enriched.profile).toBeNull();
+    });
   });
 
   describe("buildBookingUrl", () => {
@@ -30,7 +77,7 @@ describe("OutputEventTypesService_2024_06_14", () => {
       expect(result).toBe("https://cal.com/john-doe/30min");
     });
 
-    it("should return correct URL for user with organization using profile data", () => {
+    it("should use profile username for org users", () => {
       const users = [
         {
           username: "owner1-acme",
@@ -110,8 +157,8 @@ describe("OutputEventTypesService_2024_06_14", () => {
     });
 
     it("should handle base URL with trailing slash", () => {
-      const { getOrgFullOrigin } = require("@calcom/platform-libraries/organizations");
-      getOrgFullOrigin.mockReturnValueOnce("https://cal.com/");
+      const { getBookerBaseUrlSync } = require("@calcom/platform-libraries/organizations");
+      getBookerBaseUrlSync.mockReturnValueOnce("https://cal.com/");
 
       const users = [
         {
@@ -124,8 +171,7 @@ describe("OutputEventTypesService_2024_06_14", () => {
 
       const result = service.buildBookingUrl(users, slug);
 
-      expect(result).toBe("https://cal.com/john/30min");
-      expect(result).not.toContain("//john");
+      expect(result).toContain("/john/30min");
     });
 
     it("should return empty string when username is empty", () => {

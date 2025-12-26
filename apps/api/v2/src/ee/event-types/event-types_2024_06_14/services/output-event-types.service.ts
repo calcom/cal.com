@@ -23,7 +23,7 @@ import {
   getBookingFieldsWithSystemFields,
 } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema, parseEventTypeColor } from "@calcom/platform-libraries/event-types";
-import { getOrgFullOrigin } from "@calcom/platform-libraries/organizations";
+import { getBookerBaseUrlSync } from "@calcom/platform-libraries/organizations";
 import type {
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
@@ -57,6 +57,10 @@ type UserWithOrganization = {
   metadata: Prisma.JsonValue;
   organization?: { slug: string | null } | null;
   profiles?: UserProfile[];
+};
+
+type EnrichedUser = Omit<UserWithOrganization, "profiles"> & {
+  profile: UserProfile | null;
 };
 
 type EventTypeRelations = {
@@ -401,21 +405,38 @@ export class OutputEventTypesService_2024_06_14 {
     });
   }
 
+  enrichUserWithProfile(user: UserWithOrganization): EnrichedUser {
+    const profile = user.profiles?.[0] ?? null;
+
+    if (profile) {
+      return {
+        ...user,
+        username: profile.username,
+        profile,
+      };
+    }
+
+    return {
+      ...user,
+      profile: user.organization ? { username: user.username ?? "", organization: user.organization } : null,
+    };
+  }
+
   buildBookingUrl(users: UserWithOrganization[], slug: string): string {
     const firstUser = users[0];
     if (!firstUser) {
       return "";
     }
 
-    const profile = firstUser.profiles?.[0];
-    const orgSlug = profile?.organization?.slug ?? firstUser.organization?.slug ?? null;
-    const username = profile?.username ?? firstUser.username ?? "";
+    const enrichedUser = this.enrichUserWithProfile(firstUser);
+    const username = enrichedUser.username;
 
     if (!username) {
       return "";
     }
 
-    const baseUrl = getOrgFullOrigin(orgSlug).replace(/\/$/, "");
+    const orgSlug = enrichedUser.profile?.organization?.slug ?? null;
+    const baseUrl = getBookerBaseUrlSync(orgSlug);
 
     return `${baseUrl}/${username}/${slug}`;
   }
