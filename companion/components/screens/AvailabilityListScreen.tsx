@@ -604,8 +604,8 @@ export function AvailabilityListScreen({
 
             {/* Description */}
             <Text className="mb-6 text-center text-base text-gray-600">
-              Are you sure you want to delete &quot;{selectedSchedule?.name}&quot;? This action
-              cannot be undone.
+              Are you sure you want to delete "{selectedSchedule?.name}"? This action cannot be
+              undone.
             </Text>
 
             {/* Buttons */}

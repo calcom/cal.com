@@ -42,4 +42,15 @@ module.exports = [
       },
     },
   },
+
+  // React Native specific rules
+  {
+    files: ["**/*.tsx", "**/*.jsx"],
+    rules: {
+      // Disable react/no-unescaped-entities for React Native
+      // React Native doesn't decode HTML entities like &apos; or &quot;
+      // They render literally, so we use actual characters instead
+      "react/no-unescaped-entities": "off",
+    },
+  },
 ];

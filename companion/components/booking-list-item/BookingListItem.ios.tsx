@@ -169,7 +169,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
         {/* Description */}
         {booking.description ? (
           <Text className="mb-2 text-sm leading-5 text-[#666]" numberOfLines={1}>
-            &quot;{booking.description}&quot;
+            "{booking.description}"
           </Text>
         ) : null}
         {/* Host and Attendees */}

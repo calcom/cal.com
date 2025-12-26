@@ -234,8 +234,8 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
 
               {/* Description */}
               <Text className="mb-4 text-sm text-gray-500">
-                Are you sure you want to reject the booking? We&apos;ll let the person who tried to
-                book know. You can provide a reason below.
+                Are you sure you want to reject the booking? We'll let the person who tried to book
+                know. You can provide a reason below.
               </Text>
 
               {/* Reason Input */}
