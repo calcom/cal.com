@@ -204,6 +204,13 @@ jobs:
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
+  check-api-v2-breaking-changes:
+    name: Check API v2 breaking changes
+    needs: [prepare, deps]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/check-api-v2-breaking-changes.yml
+    secrets: inherit
+
   e2e-api-v2:
     name: Tests
     needs: [prepare, setup-db]
@@ -245,6 +252,7 @@ jobs:
         lint,
         type-check,
         unit-test,
+        check-api-v2-breaking-changes,
         integration-test,
         build,
         build-api-v1,
@@ -271,6 +279,7 @@ jobs:
               needs.lint.result != 'success' ||
               needs.type-check.result != 'success' ||
               needs.unit-test.result != 'success' ||
+              needs.check-api-v2-breaking-changes.result != 'success' ||
               needs.build.result != 'success' ||
               needs.build-api-v1.result != 'success' ||
               needs.build-api-v2.result != 'success' ||
