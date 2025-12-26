@@ -3508,6 +3508,7 @@ __metadata:
     ics: "npm:2.37.0"
     isbot: "npm:5.1.30"
     jose: "npm:4.13.1"
+    jotai: "npm:2.6.0"
     jsdom: "npm:22.0.0"
     kbar: "npm:0.1.0-beta.36"
     libphonenumber-js: "npm:^1.11.18"
@@ -3541,6 +3542,7 @@ __metadata:
     react-i18next: "npm:12.3.1"
     react-live-chat-loader: "npm:2.8.1"
     react-phone-input-2: "npm:2.15.1"
+    react-phone-number-input: "npm:3.4.12"
     react-schemaorg: "npm:2.0.0"
     react-select: "npm:5.8.0"
     react-timezone-select: "npm:1.4.0"
@@ -20594,6 +20596,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"classnames@npm:^2.5.1":
+  version: 2.5.1
+  resolution: "classnames@npm:2.5.1"
+  checksum: 10/58eb394e8817021b153bb6e7d782cfb667e4ab390cb2e9dac2fc7c6b979d1cc2b2a733093955fc5c94aa79ef5c8c89f11ab77780894509be6afbb91dddd79d15
+  languageName: node
+  linkType: hard
+
 "clean-stack@npm:^2.0.0":
   version: 2.2.0
   resolution: "clean-stack@npm:2.2.0"
@@ -21468,6 +21477,13 @@ __metadata:
     typescript:
       optional: true
   checksum: 10/91d082baca0f33b1c085bf010f9ded4af43cbedacba8821da0fb5667184d0a848addc52c31fadd080007f904a555319c238cf5f4c03e6d58ece2e4876b2e73d6
+  languageName: node
+  linkType: hard
+
+"country-flag-icons@npm:^1.5.17":
+  version: 1.6.4
+  resolution: "country-flag-icons@npm:1.6.4"
+  checksum: 10/41a978d0faaca4e3ee85001c63cc943389102800f6d387e36ebc20ef5811f261758b3e9598ab69b64b59150e7542854cdba06cf42142d05b68b3532a83bb6fba
   languageName: node
   linkType: hard
 
@@ -27211,6 +27227,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"input-format@npm:^0.3.10":
+  version: 0.3.14
+  resolution: "input-format@npm:0.3.14"
+  dependencies:
+    prop-types: "npm:^15.8.1"
+  peerDependencies:
+    react: ">=18.1.0"
+    react-dom: ">=18.1.0"
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 10/2b6903599f59aefe1571fbde46c45663c8b9d170934c798f2d6c5bf07a2f578bc3c63a5f653d48eaefd414e9b1b8f16b497f2cd4e56d65dc65e4a86b4611ae02
+  languageName: node
+  linkType: hard
+
 "inquirer@npm:12.6.0":
   version: 12.6.0
   resolution: "inquirer@npm:12.6.0"
@@ -28827,6 +28860,21 @@ __metadata:
   version: 6.0.12
   resolution: "jose@npm:6.0.12"
   checksum: 10/48b7aee43a88e157eb973c7e950f5835175264ecda01a7fcb1750ad6cc02672153e2bd486b65db969841b38c01b1596d86cb71f65e2ccb5311b67127ba4f8549
+  languageName: node
+  linkType: hard
+
+"jotai@npm:2.6.0":
+  version: 2.6.0
+  resolution: "jotai@npm:2.6.0"
+  peerDependencies:
+    "@types/react": ">=17.0.0"
+    react: ">=17.0.0"
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    react:
+      optional: true
+  checksum: 10/7e635f4f5052582095ed3949aa46f26213b10237bc4876db242c936f0f4d4272129727d7419e4fd5b1b83fa55b7ad737575453116a955dcc6b3a26cba14591f2
   languageName: node
   linkType: hard
 
@@ -35946,6 +35994,22 @@ __metadata:
     react: ^16.12.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^20.0.0 || ^21.0.0
     react-dom: ^16.12.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^20.0.0 || ^21.0.0
   checksum: 10/fa987dc5cec1a16e2f1f6ac65bec3745b8bc88f01c166416d5bb688f8c629d69d133d7c05ae3326e135ad6f6afc97550bf41e91ab41f71c21307368b8beec6ba
+  languageName: node
+  linkType: hard
+
+"react-phone-number-input@npm:3.4.12":
+  version: 3.4.12
+  resolution: "react-phone-number-input@npm:3.4.12"
+  dependencies:
+    classnames: "npm:^2.5.1"
+    country-flag-icons: "npm:^1.5.17"
+    input-format: "npm:^0.3.10"
+    libphonenumber-js: "npm:^1.11.20"
+    prop-types: "npm:^15.8.1"
+  peerDependencies:
+    react: ">=16.8"
+    react-dom: ">=16.8"
+  checksum: 10/e964b115b2988263b5b6c7778d99c6d97a14a49782d3e398fe506b082be6f96025475e5412db615fed02bdfa55e78d91c70a0a1d4361c08a89a8879cb863b8da
   languageName: node
   linkType: hard
 
