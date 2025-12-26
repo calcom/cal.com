@@ -1,28 +1,32 @@
 import { CalComAPIService, Booking } from "../../services/calcom";
+import { useAuth } from "../../contexts/AuthContext";
+import { useBookingActionModals } from "../../hooks";
 import { showErrorAlert } from "../../utils/alerts";
+import { getBookingActions, type BookingActionsResult } from "../../utils/booking-actions";
 import { openInAppBrowser } from "../../utils/browser";
 import { getDefaultLocationIconUrl, defaultLocations } from "../../utils/defaultLocations";
 import { formatAppIdToDisplayName } from "../../utils/formatters";
 import { getAppIconUrl } from "../../utils/getAppIconUrl";
-import { shadows } from "../../utils/shadows";
 import { AppPressable } from "../AppPressable";
 import { BookingActionsModal } from "../BookingActionsModal";
-import { FullScreenModal } from "../FullScreenModal";
 import { SvgImage } from "../SvgImage";
 import { Ionicons } from "@expo/vector-icons";
-import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-  TextInput,
-  Platform,
-} from "react-native";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { View, Text, ScrollView, Alert, ActivityIndicator, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+// Empty actions result for when no booking is loaded
+const EMPTY_ACTIONS: BookingActionsResult = {
+  reschedule: { visible: false, enabled: false },
+  rescheduleRequest: { visible: false, enabled: false },
+  cancel: { visible: false, enabled: false },
+  changeLocation: { visible: false, enabled: false },
+  addGuests: { visible: false, enabled: false },
+  viewRecordings: { visible: false, enabled: false },
+  meetingSessionDetails: { visible: false, enabled: false },
+  markNoShow: { visible: false, enabled: false },
+};
 
 // Format date: "Tuesday, November 25, 2025"
 const formatDateFull = (dateString: string): string => {
@@ -169,27 +173,195 @@ const getLocationProvider = (location: string | undefined, metadata?: Record<str
 
 export interface BookingDetailScreenProps {
   uid: string;
+  /**
+   * Callback to expose internal action handlers to parent component.
+   * Used by iOS header menu to trigger actions like reschedule.
+   */
+  onActionsReady?: (handlers: {
+    openRescheduleModal: () => void;
+    openEditLocationModal: () => void;
+    openAddGuestsModal: () => void;
+    openViewRecordingsModal: () => void;
+    openMeetingSessionDetailsModal: () => void;
+    openMarkNoShowModal: () => void;
+    handleCancelBooking: () => void;
+  }) => void;
 }
 
-export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
+export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreenProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { userInfo } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState<Booking | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showActionsModal, setShowActionsModal] = useState(false);
-  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
-  const [rescheduleDate, setRescheduleDate] = useState("");
-  const [rescheduleTime, setRescheduleTime] = useState("");
-  const [rescheduleReason, setRescheduleReason] = useState("");
-  const [rescheduling, setRescheduling] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  // Compute actions using centralized gating
+  const actions = useMemo(() => {
+    if (!booking) return EMPTY_ACTIONS;
+    return getBookingActions({
+      booking,
+      eventType: undefined, // EventType not available in this context
+      currentUserId: userInfo?.id,
+      currentUserEmail: userInfo?.email,
+      isOnline: true, // Assume online for now
+    });
+  }, [booking, userInfo?.id, userInfo?.email]);
+
+  // Cancel booking handler (needs to be defined before useEffect that exposes it)
+  const performCancelBooking = useCallback(
+    async (reason: string) => {
+      if (!booking) return;
+
+      setIsCancelling(true);
+      setShowActionsModal(false);
+
+      try {
+        await CalComAPIService.cancelBooking(booking.uid, reason);
+        Alert.alert("Success", "Booking cancelled successfully", [
+          {
+            text: "OK",
+            onPress: () => router.back(),
+          },
+        ]);
+      } catch (error) {
+        console.error("Failed to cancel booking");
+        if (__DEV__) {
+          const message = error instanceof Error ? error.message : String(error);
+          console.debug("[BookingDetailScreen] cancelBooking failed", { message });
+        }
+        showErrorAlert("Error", "Failed to cancel booking. Please try again.");
+      } finally {
+        setIsCancelling(false);
+      }
+    },
+    [booking, router]
+  );
+
+  const handleCancelBooking = useCallback(() => {
+    if (!booking) return;
+
+    Alert.alert("Cancel Booking", `Are you sure you want to cancel "${booking.title}"?`, [
+      { text: "No", style: "cancel" },
+      {
+        text: "Yes, Cancel",
+        style: "destructive",
+        onPress: () => {
+          // Prompt for cancellation reason (iOS only supports Alert.prompt)
+          if (Platform.OS === "ios") {
+            Alert.prompt(
+              "Cancellation Reason",
+              "Please provide a reason for cancelling this booking:",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Cancel Booking",
+                  style: "destructive",
+                  onPress: (reason) => {
+                    performCancelBooking(reason?.trim() || "Cancelled by host");
+                  },
+                },
+              ],
+              "plain-text",
+              "",
+              "default"
+            );
+          } else {
+            // For Android, just cancel with default reason
+            performCancelBooking("Cancelled by host");
+          }
+        },
+      },
+    ]);
+  }, [booking, performCancelBooking]);
+
+  // Navigate to reschedule screen (same pattern as senior's - navigate to screen in same folder)
+  const openRescheduleModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/reschedule",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to edit location screen (same pattern as senior's - navigate to screen in same folder)
+  const openEditLocationModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/edit-location",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to add guests screen (same pattern as senior's - navigate to screen in same folder)
+  const openAddGuestsModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/add-guests",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to mark no show screen (same pattern as senior's - navigate to screen in same folder)
+  const openMarkNoShowModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/mark-no-show",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to view recordings screen (same pattern as senior's - navigate to screen in same folder)
+  const openViewRecordingsModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/view-recordings",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to meeting session details screen (same pattern as senior's - navigate to screen in same folder)
+  const openMeetingSessionDetailsModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/(tabs)/(bookings)/meeting-session-details",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
 
   useEffect(() => {
     if (uid) {
       fetchBooking();
     }
   }, [uid]);
+
+  // Expose action handlers to parent component (for iOS header menu)
+  useEffect(() => {
+    if (booking && onActionsReady) {
+      onActionsReady({
+        openRescheduleModal,
+        openEditLocationModal,
+        openAddGuestsModal,
+        openViewRecordingsModal,
+        openMeetingSessionDetailsModal,
+        openMarkNoShowModal,
+        handleCancelBooking,
+      });
+    }
+  }, [
+    booking,
+    onActionsReady,
+    openRescheduleModal,
+    openEditLocationModal,
+    openAddGuestsModal,
+    openViewRecordingsModal,
+    openMeetingSessionDetailsModal,
+    handleCancelBooking,
+    openMarkNoShowModal,
+  ]);
 
   const fetchBooking = async () => {
     try {
@@ -233,81 +405,6 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
     const provider = getLocationProvider(booking.location);
     if (provider?.url) {
       openInAppBrowser(provider.url, "meeting link");
-    }
-  };
-
-  const openRescheduleModal = () => {
-    if (!booking) return;
-
-    // Pre-fill with the current booking date/time (using local timezone consistently)
-    const currentDate = new Date(booking.startTime);
-    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}-${String(currentDate.getDate()).padStart(2, "0")}`;
-    const timeStr = `${String(currentDate.getHours()).padStart(2, "0")}:${String(
-      currentDate.getMinutes()
-    ).padStart(2, "0")}`;
-
-    setRescheduleDate(dateStr);
-    setRescheduleTime(timeStr);
-    setRescheduleReason("");
-    setShowRescheduleModal(true);
-  };
-
-  const handleReschedule = async () => {
-    if (!booking || !rescheduleDate || !rescheduleTime) {
-      showErrorAlert("Error", "Please enter both date and time");
-      return;
-    }
-
-    // Parse the date and time
-    const dateTimeStr = `${rescheduleDate}T${rescheduleTime}:00`;
-    const newDateTime = new Date(dateTimeStr);
-
-    // Validate the date
-    if (isNaN(newDateTime.getTime())) {
-      showErrorAlert(
-        "Error",
-        "Invalid date or time format. Please use YYYY-MM-DD for date and HH:MM for time."
-      );
-      return;
-    }
-
-    // Check if the new time is in the future
-    if (newDateTime <= new Date()) {
-      showErrorAlert("Error", "Please select a future date and time");
-      return;
-    }
-
-    // Convert to UTC ISO string
-    const startUtc = newDateTime.toISOString();
-
-    setRescheduling(true);
-    try {
-      await CalComAPIService.rescheduleBooking(booking.uid, {
-        start: startUtc,
-        reschedulingReason: rescheduleReason.trim() || undefined,
-      });
-
-      Alert.alert("Success", "Booking rescheduled successfully");
-      setShowRescheduleModal(false);
-      setRescheduleDate("");
-      setRescheduleTime("");
-      setRescheduleReason("");
-
-      // Refresh booking data
-      await fetchBooking();
-    } catch (error) {
-      console.error("Failed to reschedule booking");
-      if (__DEV__) {
-        const message = error instanceof Error ? error.message : String(error);
-        const stack = error instanceof Error ? error.stack : undefined;
-        console.debug("[BookingDetailScreen] rescheduleBooking failed", { message, stack });
-      }
-      showErrorAlert("Error", "Failed to reschedule booking. Please try again.");
-    } finally {
-      setRescheduling(false);
     }
   };
 
@@ -422,21 +519,45 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
             ) : null}
             {booking.attendees && booking.attendees.length > 0 ? (
               <View>
-                {booking.attendees.map((attendee, index) => (
-                  <View key={index} className={`flex-row items-start ${index > 0 ? "mt-4" : ""}`}>
-                    <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-black">
-                      <Text className="text-base font-semibold text-white">
-                        {getInitials(attendee.name)}
-                      </Text>
+                {booking.attendees.map((attendee, index) => {
+                  const isNoShow =
+                    (attendee as any).noShow === true || (attendee as any).absent === true;
+                  return (
+                    <View key={index} className={`flex-row items-start ${index > 0 ? "mt-4" : ""}`}>
+                      <View
+                        className={`mr-3 h-12 w-12 items-center justify-center rounded-full ${
+                          isNoShow ? "bg-[#DC2626]" : "bg-black"
+                        }`}
+                      >
+                        <Text className="text-base font-semibold text-white">
+                          {getInitials(attendee.name)}
+                        </Text>
+                      </View>
+                      <View className="flex-1">
+                        <View className="mb-1 flex-row items-center">
+                          <Text
+                            className={`text-base font-medium ${
+                              isNoShow ? "text-[#DC2626]" : "text-[#333]"
+                            }`}
+                          >
+                            {attendee.name}
+                          </Text>
+                          {isNoShow && (
+                            <View className="ml-2 flex-row items-center rounded-full bg-[#FEE2E2] px-2 py-0.5">
+                              <Ionicons name="eye-off" size={12} color="#DC2626" />
+                              <Text className="ml-1 text-xs font-medium text-[#DC2626]">
+                                No-show
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text className={`text-sm ${isNoShow ? "text-[#DC2626]" : "text-[#666]"}`}>
+                          {attendee.email}
+                        </Text>
+                      </View>
                     </View>
-                    <View className="flex-1">
-                      <Text className="mb-1 text-base font-medium text-[#333]">
-                        {attendee.name}
-                      </Text>
-                      <Text className="text-sm text-[#666]">{attendee.email}</Text>
-                    </View>
-                  </View>
-                ))}
+                  );
+                })}
               </View>
             ) : null}
           </View>
@@ -522,170 +643,30 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
           visible={showActionsModal}
           onClose={() => setShowActionsModal(false)}
           booking={booking}
-          hasLocationUrl={!!locationProvider?.url}
-          isUpcoming={booking ? new Date(booking.startTime) > new Date() : false}
-          isPast={booking ? new Date(booking.startTime) <= new Date() : false}
-          isCancelled={booking?.status?.toUpperCase() === "CANCELLED"}
-          isUnconfirmed={booking?.status?.toUpperCase() === "PENDING"}
+          actions={actions}
           onReschedule={openRescheduleModal}
-          onEditLocation={() => {
-            Alert.alert("Edit Location", "Edit location functionality coming soon");
-          }}
-          onAddGuests={() => {
-            Alert.alert("Add Guests", "Add guests functionality coming soon");
-          }}
-          onViewRecordings={() => {
-            Alert.alert("View Recordings", "View recordings functionality coming soon");
-          }}
-          onMeetingSessionDetails={() => {
-            Alert.alert(
-              "Meeting Session Details",
-              "Meeting session details functionality coming soon"
-            );
-          }}
-          onMarkNoShow={() => {
-            Alert.alert("Mark as No-Show", "Mark as no-show functionality coming soon");
-          }}
+          onEditLocation={openEditLocationModal}
+          onAddGuests={openAddGuestsModal}
+          onViewRecordings={openViewRecordingsModal}
+          onMeetingSessionDetails={openMeetingSessionDetailsModal}
+          onMarkNoShow={openMarkNoShowModal}
           onReportBooking={() => {
-            Alert.alert("Report Booking", "Report booking functionality coming soon");
+            Alert.alert("Report Booking", "Report booking functionality is not yet available");
           }}
-          onCancelBooking={() => {
-            Alert.alert("Cancel Booking", "Are you sure you want to cancel this booking?", [
-              { text: "No", style: "cancel" },
-              {
-                text: "Yes, Cancel",
-                style: "destructive",
-                onPress: () => {
-                  // TODO: Implement cancel booking
-                  if (__DEV__)
-                    console.debug("[BookingDetailScreen] cancel booking (not implemented yet)");
-                },
-              },
-            ]);
-          }}
+          onCancelBooking={handleCancelBooking}
         />
 
-        {/* Reschedule Modal */}
-        <FullScreenModal
-          visible={showRescheduleModal}
-          animationType="fade"
-          onRequestClose={() => setShowRescheduleModal(false)}
-        >
-          <AppPressable
-            className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
-            onPress={() => setShowRescheduleModal(false)}
-          >
-            <AppPressable
-              className="w-[90%] max-w-[500px] rounded-2xl bg-white"
-              onPress={(e) => e.stopPropagation()}
-              style={shadows.xl()}
-            >
-              {/* Header */}
-              <View className="px-8 pb-4 pt-6">
-                <View className="flex-row items-start space-x-3">
-                  <View className="h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#F3F4F6]">
-                    <Ionicons name="calendar-outline" size={24} color="#111827" />
-                  </View>
-                  <View className="flex-1 pt-1">
-                    <Text className="mb-2 text-2xl font-semibold text-[#111827]">
-                      Reschedule Booking
-                    </Text>
-                    <Text className="text-sm text-[#6B7280]">
-                      Select a new date and time for this booking.
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Content */}
-              <ScrollView className="max-h-[400px] px-8 pb-6">
-                {/* Date Input */}
-                <View className="mb-4">
-                  <Text className="mb-2 text-sm font-bold text-[#111827]">
-                    New Date
-                    <Text className="font-normal text-[#6B7280]"> (YYYY-MM-DD)</Text>
-                  </Text>
-                  <TextInput
-                    className="rounded-md border border-[#D1D5DB] bg-white px-3 py-3 text-base text-[#111827]"
-                    placeholder="2024-12-25"
-                    placeholderTextColor="#9CA3AF"
-                    value={rescheduleDate}
-                    onChangeText={setRescheduleDate}
-                    editable={!rescheduling}
-                    keyboardType="default"
-                  />
-                </View>
-
-                {/* Time Input */}
-                <View className="mb-4">
-                  <Text className="mb-2 text-sm font-bold text-[#111827]">
-                    New Time
-                    <Text className="font-normal text-[#6B7280]"> (HH:MM, 24-hour)</Text>
-                  </Text>
-                  <TextInput
-                    className="rounded-md border border-[#D1D5DB] bg-white px-3 py-3 text-base text-[#111827]"
-                    placeholder="14:30"
-                    placeholderTextColor="#9CA3AF"
-                    value={rescheduleTime}
-                    onChangeText={setRescheduleTime}
-                    editable={!rescheduling}
-                    keyboardType="default"
-                  />
-                </View>
-
-                {/* Reason Input */}
-                <View className="mb-2">
-                  <Text className="mb-2 text-sm font-bold text-[#111827]">
-                    Reason
-                    <Text className="font-normal text-[#6B7280]"> (Optional)</Text>
-                  </Text>
-                  <TextInput
-                    className="min-h-[80px] rounded-md border border-[#D1D5DB] bg-white px-3 py-3 text-base text-[#111827]"
-                    placeholder="Enter reason for rescheduling..."
-                    placeholderTextColor="#9CA3AF"
-                    value={rescheduleReason}
-                    onChangeText={setRescheduleReason}
-                    multiline
-                    numberOfLines={3}
-                    textAlignVertical="top"
-                    editable={!rescheduling}
-                  />
-                </View>
-              </ScrollView>
-
-              {/* Footer */}
-              <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4">
-                <View className="flex-row justify-end gap-2 space-x-2">
-                  <AppPressable
-                    className="rounded-xl border border-[#D1D5DB] bg-white px-2 py-2 md:px-4"
-                    onPress={() => {
-                      setShowRescheduleModal(false);
-                      setRescheduleDate("");
-                      setRescheduleTime("");
-                      setRescheduleReason("");
-                    }}
-                    disabled={rescheduling}
-                  >
-                    <Text className="text-base font-medium text-[#374151]">Cancel</Text>
-                  </AppPressable>
-                  <AppPressable
-                    className={`rounded-xl bg-[#111827] px-2 py-2 md:px-4 ${
-                      rescheduling ? "opacity-60" : ""
-                    }`}
-                    onPress={handleReschedule}
-                    disabled={rescheduling}
-                  >
-                    {rescheduling ? (
-                      <ActivityIndicator size="small" color="white" />
-                    ) : (
-                      <Text className="text-base font-medium text-white">Reschedule</Text>
-                    )}
-                  </AppPressable>
-                </View>
-              </View>
-            </AppPressable>
-          </AppPressable>
-        </FullScreenModal>
+        {/* Cancelling overlay */}
+        {isCancelling && (
+          <View className="absolute inset-0 items-center justify-center bg-black/50">
+            <View className="rounded-2xl bg-white px-8 py-6">
+              <ActivityIndicator size="large" color="#000" />
+              <Text className="mt-3 text-base font-medium text-gray-700">
+                Cancelling booking...
+              </Text>
+            </View>
+          </View>
+        )}
       </View>
     </>
   );
