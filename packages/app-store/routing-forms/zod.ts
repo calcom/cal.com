@@ -62,8 +62,9 @@ export type TField = TNonRouterField | TRouterField;
 export type TFields = TField[] | undefined;
 
 // This ordering is important - If routerId is present then it should be in the parsed object. Moving zodNonRouterField to first position doesn't do that
-export const zodField: z.ZodType<TField> = z.union([zodRouterField, zodNonRouterField]);
-export const zodFields: z.ZodType<TFields> = z.array(zodField).optional();
+// Note: Using `satisfies` instead of type annotation to preserve type inference in zod v4
+export const zodField = z.union([zodRouterField, zodNonRouterField]) satisfies z.ZodType<TField>;
+export const zodFields = z.array(zodField).optional() satisfies z.ZodType<TFields>;
 
 export const zodNonRouterFieldView = zodNonRouterField;
 export const zodRouterFieldView = zodRouterField.extend({
