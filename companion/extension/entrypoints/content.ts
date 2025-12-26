@@ -1,5 +1,6 @@
 /// <reference types="chrome" />
 import { initGoogleCalendarIntegration } from "../lib/google-calendar";
+import { initLinkedInIntegration } from "../lib/linkedin";
 
 export default defineContentScript({
   matches: ["<all_urls>"],
@@ -9,29 +10,8 @@ export default defineContentScript({
       return;
     }
 
-    // Initialize Gmail integration if on Gmail
-    // Wrapped in try-catch to prevent breaking Gmail if anything fails
-    if (window.location.hostname === "mail.google.com") {
-      try {
-        initGmailIntegration();
-        console.log("Cal.com: Gmail integration initialized successfully");
-      } catch (error) {
-        // Fail silently - don't break Gmail UI
-        console.error("Cal.com: Failed to initialize Gmail integration");
-      }
-    }
-
-    // Initialize Google Calendar integration if on Google Calendar
-    // Wrapped in try-catch to prevent breaking Google Calendar if anything fails
-    if (window.location.hostname === "calendar.google.com") {
-      try {
-        initGoogleCalendarIntegration();
-        console.log("Cal.com: Google Calendar integration initialized successfully");
-      } catch (error) {
-        // Fail silently - don't break Google Calendar UI
-        console.error("Cal.com: Failed to initialize Google Calendar integration");
-      }
-    }
+    // NOTE: Integration initialization moved to end of main() to ensure functions are defined
+    // See initializeIntegrations() call at the bottom of main()
 
     const sessionToken = generateSecureToken();
     let iframeSessionValidated = false;
@@ -1436,6 +1416,637 @@ export default defineContentScript({
       }, 1000);
 
       // ========== Google Calendar Chip Integration ==========
+      // TODO: Implement Google Calendar chip integration
+
+      // Shared functions (reused from Gmail integration)
+      function createTooltip(text: string, buttonElement: HTMLElement) {
+        const tooltip = document.createElement("div");
+        tooltip.className = "cal-tooltip";
+        tooltip.style.cssText = `
+          position: fixed;
+          background-color: #1a1a1a;
+          color: white;
+          padding: 4px 8px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          white-space: nowrap;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.15s ease;
+          z-index: 10002;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          display: none;
+        `;
+        tooltip.textContent = text;
+        document.body.appendChild(tooltip);
+
+        // Position tooltip on hover
+        const updatePosition = () => {
+          const rect = buttonElement.getBoundingClientRect();
+          tooltip.style.left = `${rect.left + rect.width / 2}px`;
+          tooltip.style.top = `${rect.top - 8}px`;
+          tooltip.style.transform = "translate(-50%, -100%)";
+        };
+
+        buttonElement.addEventListener("mouseenter", () => {
+          updatePosition();
+          tooltip.style.display = "block";
+          tooltip.style.opacity = "1";
+        });
+
+        buttonElement.addEventListener("mouseleave", () => {
+          tooltip.style.opacity = "0";
+          setTimeout(() => {
+            if (tooltip.style.opacity === "0") {
+              tooltip.style.display = "none";
+            }
+          }, 150);
+        });
+
+        return tooltip;
+      }
+
+      function openCalSidebar() {
+        // Open Cal.com sidebar or quick schedule flow
+        if (isClosed) {
+          // Trigger sidebar open
+          chrome.runtime.sendMessage({ action: "icon-clicked" });
+        } else {
+          // Toggle sidebar visibility
+          isVisible = !isVisible;
+          if (isVisible) {
+            sidebarContainer.style.transform = "translateX(0)";
+          } else {
+            sidebarContainer.style.transform = "translateX(100%)";
+          }
+        }
+      }
+
+      async function fetchEventTypes(menu: HTMLElement, tooltipsToCleanup: HTMLElement[]) {
+        try {
+          // Check cache first
+          const now = Date.now();
+          const isCacheValid =
+            eventTypesCache && cacheTimestamp && now - cacheTimestamp < CACHE_DURATION;
+
+          let eventTypes: any[] = [];
+
+          if (isCacheValid) {
+            // Use cached data
+            eventTypes = eventTypesCache!;
+          } else {
+            // Check if extension context is valid
+            if (!chrome.runtime?.id) {
+              throw new Error("Extension context invalidated. Please reload the page.");
+            }
+
+            // Fetch fresh data from background script
+            const response = await new Promise((resolve, reject) => {
+              try {
+                chrome.runtime.sendMessage({ action: "fetch-event-types" }, (response) => {
+                  if (chrome.runtime.lastError) {
+                    reject(new Error(chrome.runtime.lastError.message));
+                  } else if (response && response.error) {
+                    reject(new Error(response.error));
+                  } else {
+                    resolve(response);
+                  }
+                });
+              } catch (err) {
+                reject(err);
+              }
+            });
+
+            if (response && (response as any).data) {
+              eventTypes = (response as any).data;
+            } else if (Array.isArray(response)) {
+              eventTypes = response;
+            } else {
+              eventTypes = [];
+            }
+
+            // Ensure eventTypes is an array
+            if (!Array.isArray(eventTypes)) {
+              eventTypes = [];
+            }
+
+            // Update cache
+            eventTypesCache = eventTypes;
+            cacheTimestamp = now;
+          }
+
+          // Clear loading state
+          menu.innerHTML = "";
+
+          if (eventTypes.length === 0) {
+            menu.innerHTML = `
+              <div style="padding: 16px; text-align: center; color: #5f6368;">
+                No event types found
+              </div>
+            `;
+            return;
+          }
+
+          // Add event types - with additional safety checks
+          try {
+            eventTypes.forEach((eventType, index) => {
+              // Validate eventType object
+              if (!eventType || typeof eventType !== "object") {
+                return;
+              }
+
+              const title = eventType.title || "Untitled Event";
+              const length =
+                eventType.lengthInMinutes || eventType.length || eventType.duration || 30;
+              const description = eventType.description || "";
+
+              const menuItem = document.createElement("div");
+              menuItem.style.cssText = `
+                padding: 14px 16px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                transition: background-color 0.1s ease;
+                border-bottom: ${index < eventTypes.length - 1 ? "1px solid #E5E5EA" : "none"};
+              `;
+
+              // Create content wrapper
+              const contentWrapper = document.createElement("div");
+              contentWrapper.style.cssText = `
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                cursor: pointer;
+                margin-right: 12px;
+                position: relative;
+                min-width: 0;
+                overflow: hidden;
+              `;
+
+              contentWrapper.innerHTML = `
+                <div style="display: flex; align-items: center; margin-bottom: 6px; overflow: hidden;">
+                  <span style="color: #3c4043; font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${title}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
+                  <span style="
+                    display: inline-flex;
+                    align-items: center;
+                    background-color: #E5E5EA;
+                    border: 1px solid #E5E5EA;
+                    border-radius: 6px;
+                    padding: 3px 8px;
+                    font-size: 12px;
+                    color: #000;
+                    font-weight: 600;
+                    flex-shrink: 0;
+                  ">
+                    ${length}min
+                  </span>
+                  ${
+                    description
+                      ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>`
+                      : ""
+                  }
+                </div>
+              `;
+
+              // Create tooltip for content wrapper
+              const contentTooltip = document.createElement("div");
+              contentTooltip.className = "cal-tooltip";
+              contentTooltip.style.cssText = `
+                position: fixed;
+                background-color: #1a1a1a;
+                color: white;
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                white-space: nowrap;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.15s ease;
+                z-index: 10002;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                display: none;
+              `;
+              contentTooltip.textContent = "Insert link";
+              document.body.appendChild(contentTooltip);
+              tooltipsToCleanup.push(contentTooltip);
+
+              // Show/hide tooltip
+              contentWrapper.addEventListener("mouseenter", (e) => {
+                const rect = contentWrapper.getBoundingClientRect();
+                contentTooltip.style.left = `${rect.left + rect.width / 2 + 80}px`;
+                contentTooltip.style.top = `${rect.top + 35}px`;
+                contentTooltip.style.transform = "translate(-50%, -100%)";
+                contentTooltip.style.display = "block";
+                contentTooltip.style.opacity = "1";
+              });
+              contentWrapper.addEventListener("mouseleave", () => {
+                contentTooltip.style.opacity = "0";
+                setTimeout(() => {
+                  if (contentTooltip.style.opacity === "0") {
+                    contentTooltip.style.display = "none";
+                  }
+                }, 150);
+              });
+
+              // Add click handler to content wrapper to insert link
+              contentWrapper.addEventListener("click", (e) => {
+                e.stopPropagation();
+                // Remove tooltip
+                contentTooltip.remove();
+                menu.remove();
+                // Insert link into message text
+                insertEventTypeLink(eventType);
+              });
+
+              // Create buttons container
+              const buttonsContainer = document.createElement("div");
+              buttonsContainer.style.cssText = `
+                display: flex;
+                align-items: center;
+                gap: 0;
+                flex-shrink: 0;
+              `;
+
+              // Preview button
+              const previewBtn = document.createElement("button");
+              previewBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3F44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              `;
+              previewBtn.style.cssText = `
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #e5e5ea;
+                border-right: none;
+                border-radius: 6px 0 0 6px;
+                background: white;
+                cursor: pointer;
+                transition: background-color 0.1s ease;
+                padding: 0;
+                position: relative;
+              `;
+
+              // Create tooltip for preview button
+              const previewTooltip = createTooltip("Preview", previewBtn);
+              tooltipsToCleanup.push(previewTooltip);
+
+              previewBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const bookingUrl = `https://cal.com/${
+                  eventType.users?.[0]?.username || "user"
+                }/${eventType.slug}`;
+                window.open(bookingUrl, "_blank");
+              });
+              previewBtn.addEventListener("mouseenter", () => {
+                previewBtn.style.backgroundColor = "#f8f9fa";
+              });
+              previewBtn.addEventListener("mouseleave", () => {
+                previewBtn.style.backgroundColor = "white";
+              });
+
+              // Copy link button
+              const copyBtn = document.createElement("button");
+              copyBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3F44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+              `;
+              copyBtn.style.cssText = `
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #e5e5ea;
+                border-right: none;
+                background: white;
+                cursor: pointer;
+                transition: background-color 0.1s ease;
+                padding: 0;
+                position: relative;
+              `;
+
+              // Create tooltip for copy button
+              const copyTooltip = createTooltip("Copy link", copyBtn);
+              tooltipsToCleanup.push(copyTooltip);
+
+              copyBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                // Copy to clipboard
+                const bookingUrl = `https://cal.com/${
+                  eventType.users?.[0]?.username || "user"
+                }/${eventType.slug}`;
+                navigator.clipboard
+                  .writeText(bookingUrl)
+                  .then(() => {
+                    showNotification("Link copied!", "success");
+                    // Change icon to checkmark
+                    copyBtn.innerHTML = `
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    `;
+                    setTimeout(() => {
+                      copyBtn.innerHTML = `
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3F44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                      `;
+                    }, 2000);
+                  })
+                  .catch(() => {
+                    showNotification("Failed to copy link", "error");
+                  });
+              });
+              copyBtn.addEventListener("mouseenter", () => {
+                copyBtn.style.backgroundColor = "#f8f9fa";
+              });
+              copyBtn.addEventListener("mouseleave", () => {
+                copyBtn.style.backgroundColor = "white";
+              });
+
+              // Edit button
+              const editBtn = document.createElement("button");
+              editBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3F44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              `;
+              editBtn.style.cssText = `
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #e5e5ea;
+                border-radius: 0 6px 6px 0;
+                background: white;
+                cursor: pointer;
+                transition: background-color 0.1s ease;
+                padding: 0;
+                position: relative;
+              `;
+
+              // Create tooltip for edit button
+              const editTooltip = createTooltip("Edit", editBtn);
+              tooltipsToCleanup.push(editTooltip);
+
+              editBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const editUrl = `https://app.cal.com/event-types/${eventType.id}`;
+                window.open(editUrl, "_blank");
+              });
+              editBtn.addEventListener("mouseenter", () => {
+                editBtn.style.backgroundColor = "#f8f9fa";
+              });
+              editBtn.addEventListener("mouseleave", () => {
+                editBtn.style.backgroundColor = "white";
+              });
+
+              // Assemble buttons
+              buttonsContainer.appendChild(previewBtn);
+              buttonsContainer.appendChild(copyBtn);
+              buttonsContainer.appendChild(editBtn);
+
+              // Hover effect for whole item
+              menuItem.addEventListener("mouseenter", () => {
+                menuItem.style.backgroundColor = "#f8f9fa";
+              });
+
+              menuItem.addEventListener("mouseleave", () => {
+                menuItem.style.backgroundColor = "transparent";
+              });
+
+              // Assemble menu item
+              menuItem.appendChild(contentWrapper);
+              menuItem.appendChild(buttonsContainer);
+
+              menu.appendChild(menuItem);
+            });
+          } catch (forEachError) {
+            menu.innerHTML = `
+              <div style="padding: 16px; text-align: center; color: #ea4335;">
+                Error displaying event types
+              </div>
+            `;
+          }
+        } catch (error) {
+          const errorMessage = (error as Error).message || "";
+          const isAuthError =
+            errorMessage.includes("OAuth") ||
+            errorMessage.includes("access token") ||
+            errorMessage.includes("sign in") ||
+            errorMessage.includes("authentication");
+
+          if (isAuthError) {
+            // Not logged in - open sidebar directly
+            tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+            menu.remove();
+            openCalSidebar();
+            return;
+          } else {
+            // Show generic error for non-auth errors
+            menu.innerHTML = `
+              <div style="padding: 20px; text-align: center;">
+                <div style="margin-bottom: 12px;">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                </div>
+                <div style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 8px;">
+                  Something went wrong
+                </div>
+                <div style="font-size: 13px; color: #6B7280; margin-bottom: 16px;">
+                  ${errorMessage || "Failed to load event types"}
+                </div>
+                <button class="cal-linkedin-close-btn" style="
+                  background: #F3F4F6;
+                  color: #374151;
+                  border: none;
+                  padding: 10px 20px;
+                  border-radius: 8px;
+                  font-size: 14px;
+                  font-weight: 500;
+                  cursor: pointer;
+                  transition: background 0.2s ease;
+                ">Close</button>
+              </div>
+            `;
+
+            const closeBtn = menu.querySelector(".cal-linkedin-close-btn") as HTMLButtonElement;
+            if (closeBtn) {
+              closeBtn.addEventListener("mouseenter", () => {
+                closeBtn.style.background = "#E5E7EB";
+              });
+              closeBtn.addEventListener("mouseleave", () => {
+                closeBtn.style.background = "#F3F4F6";
+              });
+              closeBtn.addEventListener("click", () => {
+                tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+                menu.remove();
+              });
+            }
+          }
+        }
+      }
+
+      function insertEventTypeLink(eventType: any) {
+        // Construct the Cal.com booking link
+        const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
+          eventType.slug
+        }`;
+
+        // Try to insert at cursor position in the message field
+        const inserted = insertTextAtCursor(bookingUrl);
+
+        if (inserted) {
+          showNotification("Link inserted", "success");
+        } else {
+          // Fallback: copy to clipboard if insertion fails
+          navigator.clipboard
+            .writeText(bookingUrl)
+            .then(() => {
+              showNotification("Link copied!", "success");
+            })
+            .catch(() => {
+              showNotification("Failed to copy link", "error");
+            });
+        }
+      }
+
+      function insertTextAtCursor(text: string) {
+        // Find the active message input field
+        // LinkedIn uses contenteditable divs for message input
+        const messageInput =
+          document.querySelector(
+            'div[contenteditable="true"][role="textbox"][aria-label*="message" i]'
+          ) ||
+          document.querySelector('div[contenteditable="true"][data-testid*="message"]') ||
+          document.querySelector('div[contenteditable="true"].msg-form__contenteditable');
+
+        if (!messageInput) {
+          return false;
+        }
+
+        // Focus the message field
+        (messageInput as HTMLElement).focus();
+
+        // Get the current selection
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) {
+          // If no selection, append to the end
+          const textNode = document.createTextNode(" " + text + " ");
+          messageInput.appendChild(textNode);
+
+          // Move cursor after inserted text
+          const range = document.createRange();
+          range.setStartAfter(textNode);
+          range.collapse(true);
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+
+          return true;
+        }
+
+        // Insert at cursor position
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+
+        // Create a text node with the link (with spaces around it)
+        const textNode = document.createTextNode(" " + text + " ");
+        range.insertNode(textNode);
+
+        // Move cursor after inserted text
+        range.setStartAfter(textNode);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        // Trigger input event so LinkedIn knows content changed
+        messageInput.dispatchEvent(new Event("input", { bubbles: true }));
+        messageInput.dispatchEvent(new Event("change", { bubbles: true }));
+
+        return true;
+      }
+
+      function showNotification(message: string, type: "success" | "error") {
+        const notification = document.createElement("div");
+        notification.style.cssText = `
+          position: fixed;
+          bottom: 80px;
+          right: 80px;
+          padding: 10px 12px;
+          background: ${type === "success" ? "#111827" : "#752522"};
+          color: white;
+          border: 1px solid #2b2b2b;
+          border-radius: 8px;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          font-size: 14px;
+          font-weight: 600;
+          z-index: 10000;
+          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          opacity: 0;
+          transform: translateY(10px);
+          transition: opacity 0.2s ease, transform 0.2s ease;
+        `;
+
+        // Add check icon for success
+        if (type === "success") {
+          const checkIcon = document.createElement("span");
+          checkIcon.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13.3332 4L5.99984 11.3333L2.6665 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+          checkIcon.style.cssText = `
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          `;
+          notification.appendChild(checkIcon);
+        }
+
+        // Add message text
+        const messageText = document.createElement("span");
+        messageText.textContent = message;
+        notification.appendChild(messageText);
+
+        document.body.appendChild(notification);
+
+        // Trigger fade-in animation
+        requestAnimationFrame(() => {
+          notification.style.opacity = "1";
+          notification.style.transform = "translateY(0)";
+        });
+
+        // Fade out and remove after 3 seconds
+        setTimeout(() => {
+          notification.style.opacity = "0";
+          notification.style.transform = "translateY(10px)";
+          setTimeout(() => {
+            notification.remove();
+          }, 200);
+        }, 3000);
+      }
 
       /**
        * Generate HTML email embed for Cal.com booking
@@ -1536,8 +2147,8 @@ export default defineContentScript({
             ${datesHTML}
             <div style="margin-top: 13px;">
               <a href="https://cal.com/${username}/${eventType.slug}?cal.tz=${encodeURIComponent(
-          timezone
-        )}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
+                timezone
+              )}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
                 See all available times →
               </a>
             </div>
@@ -2458,8 +3069,8 @@ export default defineContentScript({
             <div style="font-size: 13px; color: #666; margin-top: 4px;">${
               parsedData.slots.length
             } time slot${parsedData.slots.length > 1 ? "s" : ""} • ${
-          parsedData.detectedDuration
-        }min each</div>
+              parsedData.detectedDuration
+            }min each</div>
           </div>
           <button class="close-menu" style="background: none; border: none; cursor: pointer; font-size: 28px; color: #666; line-height: 1; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">×</button>
         `;
@@ -3176,6 +3787,39 @@ export default defineContentScript({
 
       // Start watching for Google Calendar chips
       watchForGoogleChips();
+    }
+
+    // ========== Initialize Integrations ==========
+    // These calls are at the end of main() to ensure all functions are defined before being called
+
+    // Initialize Gmail integration if on Gmail
+    if (window.location.hostname === "mail.google.com") {
+      try {
+        initGmailIntegration();
+        console.log("Cal.com: Gmail integration initialized successfully");
+      } catch (error) {
+        console.error("Cal.com: Failed to initialize Gmail integration", error);
+      }
+    }
+
+    // Initialize LinkedIn integration if on LinkedIn
+    if (window.location.hostname === "www.linkedin.com") {
+      try {
+        initLinkedInIntegration();
+        console.log("Cal.com: LinkedIn integration initialized successfully");
+      } catch (error) {
+        console.error("Cal.com: Failed to initialize LinkedIn integration", error);
+      }
+    }
+
+    // Initialize Google Calendar integration if on Google Calendar
+    if (window.location.hostname === "calendar.google.com") {
+      try {
+        initGoogleCalendarIntegration();
+        console.log("Cal.com: Google Calendar integration initialized successfully");
+      } catch (error) {
+        console.error("Cal.com: Failed to initialize Google Calendar integration", error);
+      }
     }
   },
 });

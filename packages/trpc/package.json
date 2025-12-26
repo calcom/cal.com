@@ -14,7 +14,7 @@
     "build:react": "yarn tsc --project tsconfig.react.json"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.17.15",
+    "@tanstack/react-query": "5.17.19",
     "@trpc/client": "11.0.0-next-beta.222",
     "@trpc/next": "11.0.0-next-beta.222",
     "@trpc/react-query": "11.0.0-next-beta.222",
