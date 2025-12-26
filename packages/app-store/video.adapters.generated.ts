@@ -6,6 +6,7 @@ export const VideoApiAdapterMap =
   process.env.NEXT_PUBLIC_IS_E2E === "1"
     ? {}
     : {
+        bigbluebutton: import("./bigbluebutton/lib/VideoApiAdapter"),
         dailyvideo: import("./dailyvideo/lib/VideoApiAdapter"),
         huddle01video: import("./huddle01video/lib/VideoApiAdapter"),
         jelly: import("./jelly/lib/VideoApiAdapter"),

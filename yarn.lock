@@ -2119,6 +2119,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/bigbluebutton@workspace:packages/app-store/bigbluebutton":
+  version: 0.0.0-use.local
+  resolution: "@calcom/bigbluebutton@workspace:packages/app-store/bigbluebutton"
+  dependencies:
+    "@calcom/lib": "npm:*"
+    "@calcom/types": "npm:*"
+    fast-xml-parser: "npm:^5.2.5"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/bolna@workspace:packages/app-store/bolna":
   version: 0.0.0-use.local
   resolution: "@calcom/bolna@workspace:packages/app-store/bolna"
@@ -24614,6 +24624,17 @@ __metadata:
   bin:
     fxparser: src/cli/cli.js
   checksum: 10/8157045ebb1709696729f75c5a1d31e1224df73d51300dadd2468224b9ffdc3197615712affee4578889534ed47d6344545765a0d63b3151749dd427b68b70da
+  languageName: node
+  linkType: hard
+
+"fast-xml-parser@npm:^5.2.5":
+  version: 5.3.3
+  resolution: "fast-xml-parser@npm:5.3.3"
+  dependencies:
+    strnum: "npm:^2.1.0"
+  bin:
+    fxparser: src/cli/cli.js
+  checksum: 10/84bc57dda635e8bc7fafca8645ddf927d40dedaeff7b83249db3361f7699e9c8a322a679b14beb8d9c5bce08de3b8a983b7bea62f1e624721b5f97187d80ff45
   languageName: node
   linkType: hard
 
