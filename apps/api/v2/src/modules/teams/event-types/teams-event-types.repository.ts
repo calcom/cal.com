@@ -157,4 +157,32 @@ export class TeamsEventTypesRepository {
       },
     });
   }
+
+  async getEventTypeHostScheduleIds(teamId: number, eventTypeId: number): Promise<number[]> {
+    const hosts = await this.dbRead.prisma.host.findMany({
+      where: {
+        eventTypeId,
+        eventType: {
+          teamId,
+        },
+      },
+      select: {
+        scheduleId: true,
+        user: {
+          select: {
+            defaultScheduleId: true,
+          },
+        },
+      },
+    });
+
+    // Get schedule IDs: use host's scheduleId, fallback to user's defaultScheduleId
+    const uniqueScheduleIds = new Set(
+      hosts
+        .map((host) => host.scheduleId ?? host.user.defaultScheduleId)
+        .filter((id): id is number => id !== null)
+    );
+
+    return Array.from(uniqueScheduleIds);
+  }
 }
