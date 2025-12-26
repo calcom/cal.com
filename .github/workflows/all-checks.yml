@@ -25,7 +25,7 @@ jobs:
     secrets: inherit
 
   api-v2-unit-test:
-    name: API v2 Unit
+    name: Tests
     uses: ./.github/workflows/api-v2-unit-tests.yml
     secrets: inherit
 
