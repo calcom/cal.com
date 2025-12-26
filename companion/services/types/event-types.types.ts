@@ -285,7 +285,7 @@ export interface CreateEventTypeInput {
   lockTimeZoneToggleOnBookingPage?: boolean;
   successRedirectUrl?: string;
   forwardParamsSuccessRedirect?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface GetEventTypesResponse {

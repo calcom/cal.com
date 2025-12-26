@@ -803,8 +803,8 @@ export class CalComAPIService {
           } else {
             const keys = Object.keys(response.data);
             if (keys.length > 0) {
-              eventTypesArray = Object.values(response.data).filter(
-                (item): item is EventType => item && typeof item === "object" && "id" in item
+              eventTypesArray = Object.values(response.data).filter((item): item is EventType =>
+                Boolean(item && typeof item === "object" && "id" in item)
               ) as EventType[];
             }
           }
@@ -900,9 +900,8 @@ export class CalComAPIService {
             // Convert object values to array as last resort
             const keys = Object.keys(response.data);
             if (keys.length > 0) {
-              bookingsArray = Object.values(response.data).filter(
-                (item): item is Booking =>
-                  item && typeof item === "object" && ("id" in item || "uid" in item)
+              bookingsArray = Object.values(response.data).filter((item): item is Booking =>
+                Boolean(item && typeof item === "object" && ("id" in item || "uid" in item))
               ) as Booking[];
             }
           }
