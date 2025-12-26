@@ -2027,7 +2027,7 @@ __metadata:
     "@tailwindcss/postcss": "npm:4.1.15"
     "@tanstack/react-query": "npm:5.17.19"
     "@types/jest": "npm:29.5.12"
-    "@types/node": "npm:^20.3.1"
+    "@types/node": "npm:20.17.23"
     "@types/react": "npm:18.0.26"
     "@types/react-dom": "npm:18.2.6"
     "@vitejs/plugin-react": "npm:2.2.0"
@@ -2093,11 +2093,11 @@ __metadata:
     "@calcom/atoms": "workspace:*"
     "@calcom/eslint-config": "workspace:*"
     "@playwright/test": "npm:1.57.0"
-    "@prisma/client": "npm:6.7.0"
+    "@prisma/client": "npm:6.16.1"
     "@tailwindcss/postcss": "npm:4.1.15"
-    "@types/node": "npm:^20.3.1"
-    "@types/react": "npm:^18"
-    "@types/react-dom": "npm:^18"
+    "@types/node": "npm:20.17.23"
+    "@types/react": "npm:18.0.26"
+    "@types/react-dom": "npm:18.2.6"
     dotenv: "npm:17.2.2"
     next: "npm:16.1.0"
     postcss: "npm:8.5.6"
@@ -2445,10 +2445,10 @@ __metadata:
   dependencies:
     "@calcom/atoms": "workspace:*"
     "@calcom/eslint-config": "workspace:*"
-    "@prisma/client": "npm:6.7.0"
-    "@types/node": "npm:^20.3.1"
-    "@types/react": "npm:^18"
-    "@types/react-dom": "npm:^18"
+    "@prisma/client": "npm:6.16.1"
+    "@types/node": "npm:20.17.23"
+    "@types/react": "npm:18.0.26"
+    "@types/react-dom": "npm:18.2.6"
     autoprefixer: "npm:10.4.19"
     dotenv: "npm:16.6.1"
     next: "npm:14.2.35"
@@ -2977,7 +2977,7 @@ __metadata:
   dependencies:
     "@calcom/features": "workspace:*"
     "@calcom/lib": "workspace:*"
-    "@types/node": "npm:^20.3.1"
+    "@types/node": "npm:20.17.23"
     "@vitejs/plugin-react": "npm:4.2.1"
     typescript: "npm:5.9.2"
     vite: "npm:5.4.21"
@@ -10489,21 +10489,6 @@ __metadata:
     typescript:
       optional: true
   checksum: 10/a54fff1a60f78010cddb36065b04825cf6b65913ff9b75dce1d1e85c98e16291a04c329d8b8663f608b5e868643cf18d2711249a64050aa73ce262a34f729d7c
-  languageName: node
-  linkType: hard
-
-"@prisma/client@npm:6.7.0":
-  version: 6.7.0
-  resolution: "@prisma/client@npm:6.7.0"
-  peerDependencies:
-    prisma: "*"
-    typescript: ">=5.1.0"
-  peerDependenciesMeta:
-    prisma:
-      optional: true
-    typescript:
-      optional: true
-  checksum: 10/afc53912a3a496c045fdd56481cba576921d026f19694a506820352b58d2224559c0ab140a899cecf3474c487ad1b12672397fbe1c0b4ba297817d1776c83268
   languageName: node
   linkType: hard
 
