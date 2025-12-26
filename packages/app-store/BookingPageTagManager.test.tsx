@@ -84,9 +84,9 @@ describe("BookingPageTagManager", () => {
         eventType={{
           metadata: {
             apps: {
-              zoomvideo: {
-                enabled: true,
-              },
+              // zoomvideo schema is z.object({}) - no properties allowed
+              // This test verifies non-analytics apps don't add scripts
+              zoomvideo: {},
             },
           },
           price: 0,
