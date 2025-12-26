@@ -15,7 +15,6 @@ import { FullScreenModal } from "./FullScreenModal";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export interface BookingActionsModalProps {
   visible: boolean;
@@ -126,8 +125,6 @@ export function BookingActionsModal({
   onReportBooking,
   onCancelBooking,
 }: BookingActionsModalProps) {
-  const insets = useSafeAreaInsets();
-
   if (!booking) return null;
 
   const handleAction = (action: () => void) => {

@@ -106,7 +106,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
     // Generate date options for picker (next 90 days)
     // Note: useMemo must be called before any conditional returns to follow React hooks rules
     const dateOptions = React.useMemo(() => {
-      const options: Array<{ label: string; value: Date }> = [];
+      const options: { label: string; value: Date }[] = [];
       const today = new Date();
       for (let i = 0; i < 90; i++) {
         const date = new Date(today);
@@ -125,7 +125,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
 
     // Generate time options (every 15 minutes)
     const timeOptions = React.useMemo(() => {
-      const options: Array<{ label: string; value: { hour: number; minute: number } }> = [];
+      const options: { label: string; value: { hour: number; minute: number } }[] = [];
       for (let hour = 0; hour < 24; hour++) {
         for (let minute = 0; minute < 60; minute += 15) {
           const time = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;

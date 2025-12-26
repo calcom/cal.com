@@ -1,5 +1,5 @@
 import { AppPressable } from "../../../components/AppPressable";
-import EditLocationScreen from "../../../components/screens/EditLocationScreen";
+import EditLocationScreenComponent from "../../../components/screens/EditLocationScreen";
 import type { EditLocationScreenHandle } from "../../../components/screens/EditLocationScreen";
 import { CalComAPIService, type Booking } from "../../../services/calcom";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -99,7 +99,7 @@ export default function EditLocation() {
         </Stack.Header>
       )}
 
-      <EditLocationScreen
+      <EditLocationScreenComponent
         ref={editLocationScreenRef}
         booking={booking}
         onSuccess={handleUpdateSuccess}

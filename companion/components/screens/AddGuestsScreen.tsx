@@ -41,7 +41,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
     const insets = useSafeAreaInsets();
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
-    const [guests, setGuests] = useState<Array<{ email: string; name?: string }>>([]);
+    const [guests, setGuests] = useState<{ email: string; name?: string }[]>([]);
     const [isSaving, setIsSaving] = useState(false);
 
     // Notify parent of saving state changes

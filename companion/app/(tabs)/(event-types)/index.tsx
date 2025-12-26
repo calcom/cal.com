@@ -184,7 +184,7 @@ export default function EventTypes() {
       } else {
         Alert.alert("Link Copied", "Event type link copied!");
       }
-    } catch (error) {
+    } catch {
       if (Platform.OS === "web") {
         showToastMessage("Failed to copy link");
       } else {
@@ -193,6 +193,7 @@ export default function EventTypes() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleShare = async (eventType: EventType) => {
     try {
       const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
@@ -200,7 +201,7 @@ export default function EventTypes() {
         message: `Book a meeting: ${eventType.title}`,
         url: link,
       });
-    } catch (error) {
+    } catch {
       showErrorAlert("Error", "Failed to share link. Please try again.");
     }
   };
@@ -313,7 +314,7 @@ export default function EventTypes() {
         // For mobile, use in-app browser
         await openInAppBrowser(link, "event type preview");
       }
-    } catch (error) {
+    } catch {
       console.error("Failed to open preview");
       if (Platform.OS === "web") {
         showToastMessage("Failed to open preview");

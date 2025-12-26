@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { Activity, useMemo, useState } from "react";
-import { View, Text, FlatList, RefreshControl, ScrollView, Alert } from "react-native";
+import { View, Text, FlatList, RefreshControl, ScrollView } from "react-native";
 
 import type { Booking, EventType } from "../../services/calcom";
 import { LoadingSpinner } from "../LoadingSpinner";
@@ -16,7 +16,6 @@ import {
   useDeclineBooking,
   useRescheduleBooking,
   useBookingActions,
-  useBookingActionModals,
   type BookingFilter,
 } from "../../hooks";
 import { offlineAwareRefresh } from "../../utils/network";
@@ -81,13 +80,9 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const {
     data: rawBookings = [],
     isLoading: loading,
-    isFetching,
     error: queryError,
     refetch,
   } = useBookings(filterParams);
-
-  // Show refresh indicator when fetching
-  const refreshing = isFetching && !loading;
 
   // Cancel booking mutation
   const { mutate: cancelBookingMutation } = useCancelBooking();
@@ -124,9 +119,6 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     isDeclining,
     isRescheduling,
   });
-
-  // Booking action modals hook
-  const { selectedBooking: actionModalBooking } = useBookingActionModals();
 
   // Navigate to reschedule screen (same pattern as booking detail)
   const handleNavigateToReschedule = React.useCallback(

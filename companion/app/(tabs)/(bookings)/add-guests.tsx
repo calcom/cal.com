@@ -1,5 +1,5 @@
 import { AppPressable } from "../../../components/AppPressable";
-import AddGuestsScreen from "../../../components/screens/AddGuestsScreen";
+import AddGuestsScreenComponent from "../../../components/screens/AddGuestsScreen";
 import type { AddGuestsScreenHandle } from "../../../components/screens/AddGuestsScreen";
 import { CalComAPIService, type Booking } from "../../../services/calcom";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -99,7 +99,7 @@ export default function AddGuests() {
         </Stack.Header>
       )}
 
-      <AddGuestsScreen
+      <AddGuestsScreenComponent
         ref={addGuestsScreenRef}
         booking={booking}
         onSuccess={handleAddGuestsSuccess}

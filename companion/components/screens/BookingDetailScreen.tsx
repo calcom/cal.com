@@ -1,6 +1,5 @@
 import { CalComAPIService, Booking } from "../../services/calcom";
 import { useAuth } from "../../contexts/AuthContext";
-import { useBookingActionModals } from "../../hooks";
 import { showErrorAlert } from "../../utils/alerts";
 import { getBookingActions, type BookingActionsResult } from "../../utils/booking-actions";
 import { openInAppBrowser } from "../../utils/browser";
@@ -14,7 +13,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { View, Text, ScrollView, Alert, ActivityIndicator, Platform } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -39,7 +37,7 @@ const formatDateFull = (dateString: string): string => {
       day: "numeric",
       year: "numeric",
     });
-  } catch (error) {
+  } catch {
     return "";
   }
 };
@@ -55,7 +53,7 @@ const formatTime12Hour = (dateString: string): string => {
     const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
     const minStr = minutes.toString().padStart(2, "0");
     return `${hour12}:${minStr}${period}`;
-  } catch (error) {
+  } catch {
     return "";
   }
 };
@@ -66,12 +64,12 @@ const getTimezone = (dateString: string): string => {
   try {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     return timeZone;
-  } catch (error) {
+  } catch {
     return "";
   }
 };
 
-// Get initials from a name (e.g., "Keith Williams" -> "KW", "Dhairyashil Shinde" -> "DS")
+// Get initials from a name(e.g., "Keith Williams" -> "KW", "Dhairyashil Shinde" -> "DS")
 const getInitials = (name: string): string => {
   if (!name) return "";
   const parts = name.trim().split(/\s+/);
@@ -190,7 +188,6 @@ export interface BookingDetailScreenProps {
 
 export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreenProps) {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { userInfo } = useAuth();
 
   const [loading, setLoading] = useState(true);
@@ -336,6 +333,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
     if (uid) {
       fetchBooking();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uid]);
 
   // Expose action handlers to parent component (for iOS header menu)

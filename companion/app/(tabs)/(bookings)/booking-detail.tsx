@@ -1,6 +1,5 @@
 import { BookingDetailScreen } from "../../../components/screens/BookingDetailScreen";
 import { useAuth } from "../../../contexts/AuthContext";
-import { useBookingActionModals } from "../../../hooks";
 import { CalComAPIService, type Booking } from "../../../services/calcom";
 import { getBookingActions, type BookingActionsResult } from "../../../utils/booking-actions";
 import { Stack, useLocalSearchParams } from "expo-router";
@@ -53,9 +52,6 @@ export default function BookingDetail() {
         });
     }
   }, [uid]);
-
-  // Booking action modals hook
-  const { selectedBooking: actionModalBooking } = useBookingActionModals();
 
   // Compute actions using centralized gating (same as BookingDetailScreen)
   const actions = useMemo(() => {

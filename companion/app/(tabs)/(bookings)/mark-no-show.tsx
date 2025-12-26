@@ -1,4 +1,4 @@
-import MarkNoShowScreen from "../../../components/screens/MarkNoShowScreen";
+import MarkNoShowScreenComponent from "../../../components/screens/MarkNoShowScreen";
 import { CalComAPIService, type Booking } from "../../../services/calcom";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
@@ -90,7 +90,7 @@ export default function MarkNoShow() {
         </Stack.Header>
       )}
 
-      <MarkNoShowScreen
+      <MarkNoShowScreenComponent
         booking={booking}
         attendees={attendees}
         onUpdate={setAttendees}

@@ -1,5 +1,5 @@
 import { AppPressable } from "../../../components/AppPressable";
-import RescheduleScreen from "../../../components/screens/RescheduleScreen";
+import RescheduleScreenComponent from "../../../components/screens/RescheduleScreen";
 import type { RescheduleScreenHandle } from "../../../components/screens/RescheduleScreen";
 import { CalComAPIService, type Booking } from "../../../services/calcom";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -98,7 +98,7 @@ export default function Reschedule() {
         </Stack.Header>
       )}
 
-      <RescheduleScreen
+      <RescheduleScreenComponent
         ref={rescheduleScreenRef}
         booking={booking}
         onSuccess={handleRescheduleSuccess}

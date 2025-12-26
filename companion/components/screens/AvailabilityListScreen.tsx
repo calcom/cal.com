@@ -97,11 +97,11 @@ export function AvailabilityListScreen({
   const handleScheduleLongPress = (schedule: Schedule) => {
     if (Platform.OS !== "ios") {
       // Fallback for non-iOS platforms (Android Alert supports max 3 buttons)
-      const options: Array<{
+      const options: {
         text: string;
         onPress: () => void;
         style?: "destructive" | "cancel" | "default";
-      }> = [];
+      }[] = [];
       if (!schedule.isDefault) {
         options.push({ text: "Set as default", onPress: () => handleSetAsDefault(schedule) });
       }
@@ -234,7 +234,7 @@ export function AvailabilityListScreen({
       if (userProfile.timeZone) {
         userTimezone = userProfile.timeZone;
       }
-    } catch (error) {
+    } catch {
       console.log("Could not get user timezone, using default");
     }
 

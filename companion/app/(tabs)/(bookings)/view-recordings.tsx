@@ -1,4 +1,4 @@
-import ViewRecordingsScreen from "../../../components/screens/ViewRecordingsScreen";
+import ViewRecordingsScreenComponent from "../../../components/screens/ViewRecordingsScreen";
 import { CalComAPIService } from "../../../services/calcom";
 import type { BookingRecording } from "../../../services/types/bookings.types";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -69,7 +69,7 @@ export default function ViewRecordings() {
         </Stack.Header>
       )}
 
-      <ViewRecordingsScreen recordings={recordings} />
+      <ViewRecordingsScreenComponent recordings={recordings} />
     </>
   );
 }

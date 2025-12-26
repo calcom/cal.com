@@ -84,7 +84,8 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [schedule, setSchedule] = useState<Schedule | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_schedule, setSchedule] = useState<Schedule | null>(null);
   const [scheduleName, setScheduleName] = useState("");
   const [timeZone, setTimeZone] = useState("");
   const [isDefault, setIsDefault] = useState(false);
@@ -96,11 +97,11 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
     type: "start" | "end";
   } | null>(null);
   const [overrides, setOverrides] = useState<
-    Array<{
+    {
       date: string; // Format: "2024-05-20"
       startTime: string; // Format: "12:00" or "00:00" for unavailable
       endTime: string; // Format: "14:00" or "00:00" for unavailable
-    }>
+    }[]
   >([]);
   const [showOverrideModal, setShowOverrideModal] = useState(false);
   const [editingOverride, setEditingOverride] = useState<number | null>(null);
@@ -132,6 +133,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
     if (id) {
       fetchSchedule();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchSchedule = async () => {
@@ -301,11 +303,11 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
       setSaving(true);
 
       // Convert availability object back to array format with day names
-      const availabilityArray: Array<{
+      const availabilityArray: {
         days: string[]; // Day names like "Monday", "Tuesday"
         startTime: string; // Format: "09:00"
         endTime: string; // Format: "10:00"
-      }> = [];
+      }[] = [];
 
       Object.keys(availability).forEach((dayIndexStr) => {
         const dayIndex = Number(dayIndexStr);
@@ -347,7 +349,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
       Alert.alert("Success", "Schedule updated successfully", [
         { text: "OK", onPress: () => router.back() },
       ]);
-    } catch (error) {
+    } catch {
       showErrorAlert("Error", "Failed to update schedule. Please try again.");
     } finally {
       setSaving(false);
@@ -361,7 +363,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
       });
       setIsDefault(true);
       Alert.alert("Success", "Schedule set as default successfully");
-    } catch (error) {
+    } catch {
       showErrorAlert("Error", "Failed to set schedule as default. Please try again.");
     }
   };
@@ -378,7 +380,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
             Alert.alert("Success", "Schedule deleted successfully", [
               { text: "OK", onPress: () => router.back() },
             ]);
-          } catch (error) {
+          } catch {
             showErrorAlert("Error", "Failed to delete schedule. Please try again.");
           }
         },

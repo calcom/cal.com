@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { View, Text, TouchableOpacity, Linking, Pressable, Alert } from "react-native";
+import { View, Text, TouchableOpacity, Linking, Pressable } from "react-native";
 import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
 import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
@@ -37,8 +37,6 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
   const isPending = booking.status?.toUpperCase() === "PENDING";
   const isCancelled = booking.status?.toUpperCase() === "CANCELLED";
   const isRejected = booking.status?.toUpperCase() === "REJECTED";
-  const hasLocationUrl = !!booking.location;
-
   const hostAndAttendeesDisplay = getHostAndAttendeesDisplay(booking, userEmail);
   const meetingInfo = getMeetingInfo(booking.location);
 

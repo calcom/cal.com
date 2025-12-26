@@ -3,32 +3,18 @@ import { AvailabilityTab } from "../components/event-type-detail/tabs/Availabili
 import { BasicsTab } from "../components/event-type-detail/tabs/BasicsTab";
 import { LimitsTab } from "../components/event-type-detail/tabs/LimitsTab";
 import { RecurringTab } from "../components/event-type-detail/tabs/RecurringTab";
-import {
-  formatDuration,
-  truncateTitle,
-  formatAppIdToDisplayName,
-} from "../components/event-type-detail/utils";
-import {
-  buildPartialUpdatePayload,
-  hasChanges,
-} from "../components/event-type-detail/utils/buildPartialUpdatePayload";
+import { truncateTitle } from "../components/event-type-detail/utils";
+import { buildPartialUpdatePayload } from "../components/event-type-detail/utils/buildPartialUpdatePayload";
 import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
 import { LocationItem, LocationOptionGroup } from "../types/locations";
 import { showErrorAlert } from "../utils/alerts";
 import { openInAppBrowser } from "../utils/browser";
-import {
-  parseBufferTime,
-  parseMinimumNotice,
-  parseFrequencyUnit,
-  parseSlotInterval,
-} from "../utils/eventTypeParsers";
 import {
   mapApiLocationToItem,
   mapItemToApiLocation,
   buildLocationOptions,
   validateLocationItem,
 } from "../utils/locationHelpers";
-import { slugify } from "../utils/slugify";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
@@ -39,12 +25,10 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   Switch,
   Modal,
   Alert,
   Animated,
-  Image,
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -60,13 +44,11 @@ const tabs = [
 
 export default function EventTypeDetail() {
   const router = useRouter();
-  const { id, title, description, duration, price, currency, slug } = useLocalSearchParams<{
+  const { id, title, description, duration, slug } = useLocalSearchParams<{
     id: string;
     title: string;
     description?: string;
     duration: string;
-    price?: string;
-    currency?: string;
     slug?: string;
   }>();
 
@@ -81,9 +63,6 @@ export default function EventTypeDetail() {
   const [username, setUsername] = useState("username");
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
   const [locations, setLocations] = useState<LocationItem[]>([]);
-  const [locationAddress, setLocationAddress] = useState("");
-  const [locationLink, setLocationLink] = useState("");
-  const [locationPhone, setLocationPhone] = useState("");
   const [selectedDurations, setSelectedDurations] = useState<string[]>([]);
   const [defaultDuration, setDefaultDuration] = useState("");
   const [showDurationDropdown, setShowDurationDropdown] = useState(false);
@@ -128,8 +107,6 @@ export default function EventTypeDetail() {
   const [rollingCalendarDays, setRollingCalendarDays] = useState(false);
   const [rangeStartDate, setRangeStartDate] = useState("");
   const [rangeEndDate, setRangeEndDate] = useState("");
-  const [offsetStartTimes, setOffsetStartTimes] = useState(false);
-  const [offsetStartValue, setOffsetStartValue] = useState("0");
 
   // Advanced tab state
   const [calendarEventName, setCalendarEventName] = useState("");
@@ -241,13 +218,6 @@ export default function EventTypeDetail() {
     setLocations((prev) =>
       prev.map((loc) => (loc.id === locationId ? { ...loc, ...updates } : loc))
     );
-  };
-
-  const getSelectedLocationIconUrl = (): string | null => {
-    if (locations.length > 0) {
-      return locations[0].iconUrl;
-    }
-    return null;
   };
 
   const toggleDurationSelection = (duration: string) => {
@@ -425,7 +395,7 @@ export default function EventTypeDetail() {
         // Load booking frequency limits
         if (eventType.bookingLimitsCount && !("disabled" in eventType.bookingLimitsCount)) {
           setLimitBookingFrequency(true);
-          const limits: Array<{ id: number; value: string; unit: string }> = [];
+          const limits: { id: number; value: string; unit: string }[] = [];
           let idCounter = 1;
           if (eventType.bookingLimitsCount.day) {
             limits.push({
@@ -463,7 +433,7 @@ export default function EventTypeDetail() {
         // Load duration limits
         if (eventType.bookingLimitsDuration && !("disabled" in eventType.bookingLimitsDuration)) {
           setLimitTotalDuration(true);
-          const limits: Array<{ id: number; value: string; unit: string }> = [];
+          const limits: { id: number; value: string; unit: string }[] = [];
           let idCounter = 1;
           if (eventType.bookingLimitsDuration.day) {
             limits.push({
@@ -705,12 +675,14 @@ export default function EventTypeDetail() {
     if (activeTab === "basics") {
       fetchConferencingOptions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   useEffect(() => {
     // Fetch event type data and conferencing options on initial load
     fetchEventTypeData();
     fetchConferencingOptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -745,7 +717,7 @@ export default function EventTypeDetail() {
         minute: "2-digit",
         hour12: true,
       });
-    } catch (error) {
+    } catch {
       return time; // Return original if parsing fails
     }
   };

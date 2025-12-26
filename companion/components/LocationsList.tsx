@@ -67,7 +67,7 @@ export const LocationsList: React.FC<LocationsListProps> = ({
 
   const handleAddLocation = () => {
     if (Platform.OS === "ios") {
-      const allOptions: Array<{ label: string; value: string }> = [];
+      const allOptions: { label: string; value: string }[] = [];
       locationOptions.forEach((group) => {
         group.options.forEach((option) => {
           if (!isLocationAlreadyAdded(locations, option.value)) {

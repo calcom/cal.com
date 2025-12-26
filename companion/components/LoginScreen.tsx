@@ -3,7 +3,7 @@ import { showErrorAlert } from "../utils/alerts";
 import { openInAppBrowser } from "../utils/browser";
 import { CalComLogo } from "./CalComLogo";
 import React from "react";
-import { View, Text, TouchableOpacity, Platform, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function LoginScreen() {
