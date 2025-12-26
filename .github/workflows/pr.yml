@@ -1,8 +1,11 @@
 name: PR Update
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - gh-actions-test-branch
 
   workflow_dispatch:
 
@@ -138,7 +141,7 @@ jobs:
     secrets: inherit
 
   api-v2-unit-test:
-    name: API v2 Unit
+    name: Tests
     needs: [prepare, deps]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-unit-tests.yml
