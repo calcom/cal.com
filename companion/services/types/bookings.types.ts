@@ -48,7 +48,7 @@ export interface Booking {
   location?: string;
   cancellationReason?: string;
   rejectionReason?: string;
-  responses?: Record<string, any>;
+  responses?: Record<string, unknown>;
 }
 
 export interface GetBookingsResponse {

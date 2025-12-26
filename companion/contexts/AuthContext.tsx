@@ -4,17 +4,29 @@ import {
   OAuthTokens,
   CalComOAuthService,
 } from "../services/oauthService";
+import type { UserProfile } from "../services/types/users.types";
 import { WebAuthService } from "../services/webAuth";
 import { secureStorage } from "../utils/storage";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+
+/**
+ * Simplified user info stored in auth context
+ * Contains only the essential fields needed for the app
+ */
+interface AuthUserInfo {
+  id: number;
+  email: string;
+  name: string;
+  username: string;
+}
 
 interface AuthContextType {
   isAuthenticated: boolean;
   accessToken: string | null;
   refreshToken: string | null;
-  userInfo: any;
+  userInfo: AuthUserInfo | null;
   isWebSession: boolean;
-  loginFromWebSession: (userInfo: any) => Promise<void>;
+  loginFromWebSession: (userInfo: UserProfile) => Promise<void>;
   loginWithOAuth: () => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
@@ -44,7 +56,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfo, setUserInfo] = useState<AuthUserInfo | null>(null);
   const [isWebSession, setIsWebSession] = useState(false);
   const [loading, setLoading] = useState(true);
   const [oauthService] = useState(() => {
@@ -237,9 +249,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const loginFromWebSession = async (sessionUserInfo: any) => {
+  const loginFromWebSession = async (sessionUserInfo: UserProfile) => {
     try {
-      setUserInfo(sessionUserInfo);
+      setUserInfo({
+        id: sessionUserInfo.id,
+        email: sessionUserInfo.email,
+        name: sessionUserInfo.name,
+        username: sessionUserInfo.username,
+      });
       setIsAuthenticated(true);
       setIsWebSession(true);
       await storage.set(AUTH_TYPE_KEY, "web_session");
