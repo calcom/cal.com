@@ -59,9 +59,10 @@ async function getExtensionSessionToken(): Promise<string | null> {
       clearTimeout(timeoutId);
       window.removeEventListener("message", messageHandler);
 
-      extensionSessionToken = event.data.sessionToken || "";
+      const token = event.data.sessionToken || "";
+      extensionSessionToken = token;
       sessionTokenPromise = null;
-      resolve(extensionSessionToken);
+      resolve(token);
     };
 
     window.addEventListener("message", messageHandler);
@@ -253,10 +254,8 @@ export class CalComOAuthService {
       }
 
       // Try Firefox/Safari browser.identity API (Promise-based)
-      // @ts-ignore - Firefox/Safari use browser namespace
-      if (typeof browser !== "undefined" && browser.identity) {
+      if (typeof browser !== "undefined" && browser?.identity) {
         try {
-          // @ts-ignore - Firefox/Safari browser.identity returns Promise
           browser.identity
             .launchWebAuthFlow({ url: authUrl, interactive: true })
             .then((responseUrl: string | undefined) => {
@@ -553,7 +552,6 @@ function detectBrowserType(): BrowserType {
   const userAgent = navigator.userAgent.toLowerCase();
 
   // Check for Brave first (it identifies as Chrome but has Brave-specific properties)
-  // @ts-ignore - Brave adds this to navigator
   if (navigator.brave && typeof navigator.brave.isBrave === "function") {
     return "brave";
   }
