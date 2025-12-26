@@ -3519,7 +3519,7 @@ __metadata:
     ics: "npm:2.37.0"
     isbot: "npm:5.1.30"
     jose: "npm:4.13.1"
-    jotai: "npm:2.6.0"
+    jotai: "npm:2.12.2"
     jsdom: "npm:22.0.0"
     kbar: "npm:0.1.0-beta.36"
     libphonenumber-js: "npm:^1.11.18"
@@ -28566,9 +28566,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jotai@npm:2.6.0":
-  version: 2.6.0
-  resolution: "jotai@npm:2.6.0"
+"jotai@npm:2.12.2":
+  version: 2.12.2
+  resolution: "jotai@npm:2.12.2"
   peerDependencies:
     "@types/react": ">=17.0.0"
     react: ">=17.0.0"
@@ -28577,7 +28577,7 @@ __metadata:
       optional: true
     react:
       optional: true
-  checksum: 10/7e635f4f5052582095ed3949aa46f26213b10237bc4876db242c936f0f4d4272129727d7419e4fd5b1b83fa55b7ad737575453116a955dcc6b3a26cba14591f2
+  checksum: 10/8ffe817ff2abc76f8902b8c9868759ee8435195efc8714cb90263983cdbc5e9ac414c59c081e12f12030ed4882a2b7b6cc7ba3e4ffe6eb8f766d61b94989a0fc
   languageName: node
   linkType: hard
 
