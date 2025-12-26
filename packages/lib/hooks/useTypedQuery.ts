@@ -51,7 +51,7 @@ export function useTypedQuery<T extends z.ZodObject<z.ZodRawShape>>(schema: T) {
     if (parsedQuerySchema.success && parsedQuerySchema.data) {
       Object.entries(parsedQuerySchema.data).forEach(([key, value]) => {
         if (key in unparsedQuery || !value) return;
-        const search = new URLSearchParams(parsedQuery);
+        const search = new URLSearchParams(parsedQuery as Record<string, string>);
         search.set(String(key), String(value));
         router.replace(`${pathname}?${search.toString()}`);
       });
@@ -65,7 +65,7 @@ export function useTypedQuery<T extends z.ZodObject<z.ZodRawShape>>(schema: T) {
   const setQuery = useCallback(
     function setQuery<J extends OutputKeys>(key: J, value: Output[J]) {
       // Remove old value by key so we can merge new value
-      const search = new URLSearchParams(parsedQuery);
+      const search = new URLSearchParams(parsedQuery as Record<string, string>);
       search.set(String(key), String(value));
       router.replace(`${pathname}?${search.toString()}`);
     },
@@ -74,13 +74,13 @@ export function useTypedQuery<T extends z.ZodObject<z.ZodRawShape>>(schema: T) {
 
   // Delete a key from the query
   function removeByKey(key: OutputOptionalKeys) {
-    const search = new URLSearchParams(parsedQuery);
+    const search = new URLSearchParams(parsedQuery as Record<string, string>);
     search.delete(String(key));
     router.replace(`${pathname}?${search.toString()}`);
   }
 
   // push item to existing key
-  function pushItemToKey<J extends ArrayOutputKeys>(key: J, value: ArrayOutput[J][number]) {
+  function pushItemToKey<J extends ArrayOutputKeys>(key: J, value: unknown) {
     const existingValue = parsedQuery[key];
     if (Array.isArray(existingValue)) {
       if (existingValue.includes(value)) return; // prevent adding the same value to the array
@@ -91,13 +91,13 @@ export function useTypedQuery<T extends z.ZodObject<z.ZodRawShape>>(schema: T) {
   }
 
   // Remove item by key and value
-  function removeItemByKeyAndValue<J extends ArrayOutputKeys>(key: J, value: ArrayOutput[J][number]) {
+  function removeItemByKeyAndValue<J extends ArrayOutputKeys>(key: J, value: unknown) {
     const existingValue = parsedQuery[key];
     if (Array.isArray(existingValue) && existingValue.length > 1) {
       const newValue = existingValue.filter((item) => item !== value);
       setQuery(key, newValue as Output[J]);
     } else {
-      removeByKey(key as OutputOptionalKeys);
+      removeByKey(key as unknown as OutputOptionalKeys);
     }
   }
 
