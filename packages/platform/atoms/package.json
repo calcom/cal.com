@@ -22,7 +22,7 @@
     "@tailwindcss/cli": "4.1.16",
     "@tailwindcss/postcss": "4.1.15",
     "@types/jest": "29.5.12",
-    "@types/node": "^20.3.1",
+    "@types/node": "20.17.23",
     "@types/react": "18.0.26",
     "@types/react-dom": "18.2.6",
     "@vitejs/plugin-react": "2.2.0",
