@@ -51,11 +51,11 @@ type ValueProps =
       value: {
         name: string;
         url: string;
-        dataUrl: string;
+        dataUrl?: string;
         size: number;
         type: string;
       };
-      setValue: (value: { name: string; url: string; dataUrl: string; size: number; type: string }) => void;
+      setValue: (value: { name: string; url: string; dataUrl?: string; size: number; type: string }) => void;
     };
 
 export const FormBuilderField = ({
@@ -415,7 +415,7 @@ export const ComponentForField = ({
             value as {
               name: string;
               url: string;
-              dataUrl: string;
+              dataUrl?: string;
               size: number;
               type: string;
             }
@@ -424,7 +424,7 @@ export const ComponentForField = ({
             setValue as (arg: {
               name: string;
               url: string;
-              dataUrl: string;
+              dataUrl?: string;
               size: number;
               type: string;
             }) => void

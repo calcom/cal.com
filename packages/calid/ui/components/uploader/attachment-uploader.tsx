@@ -19,8 +19,9 @@ import { triggerToast } from "../toast";
 
 export interface FileData {
   file: File;
-  dataUrl: string;
+  url?: string; // URL from server after upload
   id: string;
+  uploading?: boolean;
 }
 
 interface AttachmentUploaderProps {
@@ -82,6 +83,7 @@ export default function AttachmentUploader({
   const { t } = useLocale();
   const [files, setFiles] = useState<FileData[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const uploadingFiles = useRef<Set<string>>(new Set()); // Track files being uploaded by name+size
   const inputRef = useRef<HTMLInputElement | null>(null);
   const maxTotalSizeText = formatFileSize(MAX_TOTAL_BYTES);
   const maxSizeLabel = t("file_limit", { max: maxTotalSizeText });
@@ -93,14 +95,47 @@ export default function AttachmentUploader({
 
   const generateFileId = () => `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-  const readFileAsDataURL = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-  };
+  const uploadFile = useCallback(
+    async (file: File): Promise<{ url: string; name: string; size: number; type: string }> => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/bookings/attachments/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: "Upload failed" }));
+        throw new Error(error.error || "Failed to upload file");
+      }
+
+      return response.json();
+    },
+    []
+  );
+
+  const deleteFileFromS3 = useCallback(async (url: string) => {
+    try {
+      const urlObj = new URL(url);
+      const key = urlObj.searchParams.get("key");
+      if (!key) {
+        console.warn("No key found in attachment URL:", url);
+        return;
+      }
+
+      const response = await fetch(`/api/bookings/attachments/delete?key=${encodeURIComponent(key)}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to delete file from S3:", await response.text());
+      }
+    } catch (error) {
+      console.error("Error deleting file from S3:", error);
+      // Don't throw - file removal from UI should still work even if S3 delete fails
+    }
+  }, []);
 
   const allowedTypes = useMemo(() => fileTypes.flatMap((type) => acceptFileTypes[type].types), [fileTypes]);
   const allowedExtensions = useMemo(
@@ -126,7 +161,6 @@ export default function AttachmentUploader({
 
   const handleFileSelect = useCallback(
     async (selectedFiles: FileList) => {
-      const newFiles: FileData[] = [];
       const errors: string[] = [];
 
       if (files.length + selectedFiles.length > maxAllowedFiles) {
@@ -143,45 +177,77 @@ export default function AttachmentUploader({
           continue;
         }
 
-        try {
-          const dataUrl = await readFileAsDataURL(file);
-          newFiles.push({
-            file,
-            dataUrl,
-            id: generateFileId(),
-          });
-        } catch (error) {
-          errors.push(`${file.name}: Failed to read file`);
-        }
-      }
+        const fileId = generateFileId();
+        const fileKey = `${file.name}-${file.size}`;
 
-      const totalSize = [...files, ...newFiles].reduce((sum, f) => sum + f.file.size, 0);
-      if (totalSize > MAX_TOTAL_BYTES) {
-        errors.push(t("file_size_limit_exceed"));
-        newFiles.length = 0;
+        // Prevent duplicate uploads of the same file
+        if (uploadingFiles.current.has(fileKey)) {
+          errors.push(`${file.name}: File is already being uploaded`);
+          continue;
+        }
+
+        uploadingFiles.current.add(fileKey);
+        const tempFileData: FileData = {
+          file,
+          id: fileId,
+          uploading: true,
+        };
+
+        setFiles((prev) => [...prev, tempFileData]);
+
+        try {
+          const uploadResult = await uploadFile(file);
+
+          const uploadedFile: FileData = {
+            ...tempFileData,
+            url: uploadResult.url,
+            uploading: false,
+          };
+
+          setFiles((prev) => {
+            const updated = prev.map((f) =>
+              f.id === fileId
+                ? {
+                    ...f,
+                    url: uploadResult.url,
+                    uploading: false,
+                  }
+                : f
+            );
+            // Notify parent with the updated files list
+            onFilesChange(updated, [uploadedFile], []);
+            return updated;
+          });
+          uploadingFiles.current.delete(fileKey);
+        } catch (error) {
+          errors.push(`${file.name}: ${error instanceof Error ? error.message : "Failed to upload file"}`);
+
+          setFiles((prev) => prev.filter((f) => f.id !== fileId));
+          uploadingFiles.current.delete(fileKey);
+        }
       }
 
       if (errors.length > 0) {
         triggerToast(errors.join(", "), "error");
       }
-
-      if (newFiles.length > 0) {
-        const updatedFiles = [...files, ...newFiles];
-        setFiles(updatedFiles);
-        onFilesChange(updatedFiles, newFiles, []);
-      }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [files, maxAllowedFiles, onFilesChange, t, validateFile]
   );
 
   const handleFileRemove = useCallback(
-    (fileId: string) => {
+    async (fileId: string) => {
       const removed = files.find((file) => file.id === fileId);
       const updatedFiles = files.filter((file) => file.id !== fileId);
       setFiles(updatedFiles);
       onFilesChange(updatedFiles, [], removed ? [removed] : []);
+
+      // Delete file from S3 if it was uploaded
+      if (removed?.url) {
+        await deleteFileFromS3(removed.url);
+      }
     },
-    [files, onFilesChange]
+    [files, onFilesChange, deleteFileFromS3]
   );
 
   const handleChooseFiles = () => {
@@ -265,7 +331,9 @@ export default function AttachmentUploader({
                 <Icon name="file-text" className="h-5 w-5 flex-shrink-0" />
                 <div className="min-w-0 border-l py-2 pl-3">
                   <p className="text-emphasis truncate text-sm font-medium">{fileData.file.name}</p>
-                  <p className="text-xs">{formatFileSize(fileData.file.size)}</p>
+                  <p className="text-xs">
+                    {fileData.uploading ? t("uploading") : formatFileSize(fileData.file.size)}
+                  </p>
                 </div>
               </div>
               <Button
