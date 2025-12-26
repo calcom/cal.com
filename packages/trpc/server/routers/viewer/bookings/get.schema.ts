@@ -42,7 +42,7 @@ export type TGetInputSchema = {
   sort?: TGetInputSchemaSort;
 };
 
-export const ZGetInputSchema: z.ZodType<TGetInputSchema, z.ZodTypeDef, TGetInputRawSchema> = z.object({
+export const ZGetInputSchema: z.ZodType<TGetInputSchema, TGetInputRawSchema> = z.object({
   filters: z.object({
     teamIds: z.number().array().optional(),
     userIds: z.number().array().optional(),

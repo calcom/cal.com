@@ -22,7 +22,7 @@ export async function bookingAudit(payload: string, taskId?: string): Promise<vo
         const parseResult = BookingAuditTaskConsumerSchema.safeParse(parsedPayload);
 
         if (!parseResult.success) {
-            const errorMsg = `Invalid booking audit payload: ${safeStringify(parseResult.error.errors)} | TaskId: ${taskId}`;
+            const errorMsg = `Invalid booking audit payload: ${safeStringify(parseResult.error.issues)} | TaskId: ${taskId}`;
             log.error(errorMsg);
             throw new Error(errorMsg);
         }

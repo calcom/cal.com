@@ -46,7 +46,7 @@ export type TGetEventTypesFromGroupSchema = {
   searchQuery?: string;
 };
 
-export const ZGetEventTypesFromGroupSchema: z.ZodType<TGetEventTypesFromGroupSchema, z.ZodTypeDef, TGetEventTypesFromGroupSchemaInput> = z.object({
+export const ZGetEventTypesFromGroupSchema: z.ZodType<TGetEventTypesFromGroupSchema, TGetEventTypesFromGroupSchemaInput> = z.object({
   filters: filterQuerySchemaStrict.optional(),
   forRoutingForms: z.boolean().optional(),
   cursor: z.number().nullish(),

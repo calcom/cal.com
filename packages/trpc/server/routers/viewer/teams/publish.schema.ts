@@ -8,6 +8,6 @@ export type TPublishInputSchema = {
   teamId: number;
 };
 
-export const ZPublishInputSchema: z.ZodType<TPublishInputSchema, z.ZodTypeDef, TPublishInputRawSchema> = z.object({
+export const ZPublishInputSchema: z.ZodType<TPublishInputSchema, TPublishInputRawSchema> = z.object({
   teamId: z.coerce.number(),
 });

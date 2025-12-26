@@ -71,7 +71,7 @@ function preprocess<T extends z.ZodType>({
   // - Even a field response itself can be partial so the content isn't validated e.g. a field with type="phone" can be given a partial phone number(e.g. Specifying the country code like +91)
   isPartialSchema: boolean;
   checkOptional?: boolean;
-}): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
+}) {
   const log = logger.getSubLogger({ prefix: ["getBookingResponsesSchema"] });
   const preprocessed = z.preprocess(
     (responses) => {
@@ -139,11 +139,13 @@ function preprocess<T extends z.ZodType>({
         ...newResponses,
       };
     },
-    schema.superRefine(async (responses, ctx) => {
+    schema.superRefine(async (responsesInput, ctx) => {
       if (!bookingFields) {
         // if eventType has been deleted, we won't have bookingFields and thus we can't validate the responses.
         return;
       }
+      // In zod v4, superRefine receives unknown type, so we need to cast it
+      const responses = responsesInput as Record<string, unknown>;
 
       const attendeePhoneNumberField = bookingFields.find((field) => field.name === "attendeePhoneNumber");
       const isAttendeePhoneNumberFieldHidden = attendeePhoneNumberField?.hidden;
@@ -204,7 +206,7 @@ function preprocess<T extends z.ZodType>({
             }
 
             // validate the excluded emails
-            const bookerEmail = value;
+            const bookerEmail = typeof value === "string" ? value : "";
             const excludedEmails =
               bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
 
@@ -236,7 +238,7 @@ function preprocess<T extends z.ZodType>({
 
         if (fieldTypeSchema) {
           fieldTypeSchema.superRefine({
-            response: value,
+            response: value as string,
             ctx,
             m,
             field: bookingField,
@@ -247,15 +249,16 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "multiemail") {
           const emailsParsed = emailSchema.array().safeParse(value);
+          const valueAsArray = Array.isArray(value) ? value : [];
 
-          if (isRequired && (!value || value.length === 0)) {
+          if (isRequired && (!value || valueAsArray.length === 0)) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
             continue;
           }
 
           if (!emailsParsed.success) {
             // If additional guests are shown but all inputs are empty then don't show any errors
-            if (bookingField.name === "guests" && value.every((email: string) => email === "")) {
+            if (bookingField.name === "guests" && valueAsArray.every((email: string) => email === "")) {
               // reset guests to empty array, otherwise it adds "" for every input
               responses[bookingField.name] = [];
               continue;
@@ -278,7 +281,8 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "multiselect") {
-          if (isRequired && (!value || value.length === 0)) {
+          const valueAsArray = Array.isArray(value) ? value : [];
+          if (isRequired && (!value || valueAsArray.length === 0)) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
             continue;
           }
@@ -297,7 +301,8 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "phone") {
           // Determine if the phone field needs validation
-          const needsValidation = isRequired || (value && value.trim() !== "");
+          const valueAsString = typeof value === "string" ? value : "";
+          const needsValidation = isRequired || (value && valueAsString.trim() !== "");
 
           // Validate phone number if the field is not hidden and requires validation
           if (!bookingField.hidden && needsValidation) {
@@ -318,12 +323,13 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "radioInput") {
           if (bookingField.optionsInputs) {
-            const optionValue = value?.optionValue;
-            const optionField = bookingField.optionsInputs[value?.value];
+            const valueAsRadioInput = value as { optionValue?: string; value?: string } | undefined;
+            const optionValue = valueAsRadioInput?.optionValue;
+            const optionField = bookingField.optionsInputs[valueAsRadioInput?.value ?? ""];
             const typeOfOptionInput = optionField?.type;
             if (
               // Either the field is required or there is a radio selected, we need to check if the optionInput is required or not.
-              (isRequired || value?.value) && checkOptional ? true : optionField?.required && !optionValue
+              (isRequired || valueAsRadioInput?.value) && checkOptional ? true : optionField?.required && !optionValue
             ) {
               ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
               return;
@@ -358,12 +364,10 @@ function preprocess<T extends z.ZodType>({
       }
     })
   );
-    if (isPartialSchema) {
-      // Query Params can be completely invalid, try to preprocess as much of it in correct format but in worst case simply don't prefill instead of crashing
-      return preprocessed.catch(function (ctx) {
-        console.error("Failed to preprocess query params, prefilling will be skipped", ctx?.issues);
-        return {};
-      }) as unknown as typeof preprocessed;
-    }
-    return preprocessed;
+  if (isPartialSchema) {
+    // Query Params can be completely invalid, try to preprocess as much of it in correct format but in worst case simply don't prefill instead of crashing
+    // In zod v4, .catch() takes a default value directly
+    return preprocessed.catch({} as z.infer<T>);
+  }
+  return preprocessed;
 }

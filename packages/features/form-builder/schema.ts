@@ -48,6 +48,7 @@ export const fieldTypeConfigSchema = z
          */
         toggleLabel: z.string().optional(),
         variants: z.record(
+          z.string(),
           z.object({
             /**
              * That's how the variant would be labelled in App UI. This label represents the field in booking questions' list
@@ -55,6 +56,7 @@ export const fieldTypeConfigSchema = z
              */
             label: z.string(),
             fieldsMap: z.record(
+              z.string(),
               z.object({
                 /**
                  * Supports translation
@@ -229,7 +231,7 @@ export const fieldTypesSchemaMap: Partial<
       const urlSchema = z.string().url();
 
       // Check for malformed protocols (missing second slash test case)
-      if (value.match(/^https?:\/[^\/]/)) {
+      if (value.match(/^https?:\/[^/]/)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: m("url_validation_error"),
