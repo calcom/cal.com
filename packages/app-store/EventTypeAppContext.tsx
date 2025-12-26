@@ -13,13 +13,11 @@ type AppContext = {
   disabled?: Disabled;
 };
 
- 
 const EventTypeAppContext = React.createContext<AppContext>({
   getAppData: () => ({}),
   setAppData: () => ({}),
 });
 
-// In zod v4, ZodTypeAny is used instead of ZodType to avoid z.infer returning 'never'
 type SetAppDataGeneric<TAppData extends ZodTypeAny> = <
   TKey extends keyof z.output<TAppData>,
   TValue extends z.output<TAppData>[TKey]
@@ -32,16 +30,26 @@ type GetAppDataGeneric<TAppData extends ZodTypeAny> = <TKey extends keyof z.outp
   key: TKey
 ) => z.output<TAppData>[TKey];
 
-export const useAppContextWithSchema = <TAppData extends ZodTypeAny = ZodTypeAny>() => {
-  type GetAppData = GetAppDataGeneric<TAppData>;
-  type SetAppData = SetAppDataGeneric<TAppData>;
-  // TODO: Not able to do it without type assertion here
-  const context = React.useContext(EventTypeAppContext) as {
-    getAppData: GetAppData;
-    setAppData: SetAppData;
-    LockedIcon: LockedIcon;
-    disabled: Disabled;
-  };
-  return context;
+type TypedAppContext<TAppData extends ZodTypeAny> = {
+  getAppData: GetAppDataGeneric<TAppData>;
+  setAppData: SetAppDataGeneric<TAppData>;
+  LockedIcon: LockedIcon;
+  disabled: Disabled;
 };
+
+type UntypedAppContext = {
+  getAppData: GetAppData;
+  setAppData: SetAppData;
+  LockedIcon: LockedIcon;
+  disabled: Disabled;
+};
+
+// Overload order matters: non-generic must come first for zero-arg calls to resolve correctly
+export function useAppContextWithSchema(): UntypedAppContext;
+export function useAppContextWithSchema<TAppData extends ZodTypeAny>(): TypedAppContext<TAppData>;
+export function useAppContextWithSchema<TAppData extends ZodTypeAny>() {
+  const context = React.useContext(EventTypeAppContext) as TypedAppContext<TAppData> | UntypedAppContext;
+  return context;
+}
+
 export default EventTypeAppContext;
