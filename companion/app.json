@@ -27,7 +27,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.calcom.companion"
+      "package": "com.calcom.companion",
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -39,6 +40,9 @@
       }
     },
     "owner": "calcoms-organization",
-    "plugins": ["expo-router", "expo-secure-store", "expo-web-browser"]
+    "plugins": ["expo-router", "expo-secure-store", "expo-web-browser"],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }

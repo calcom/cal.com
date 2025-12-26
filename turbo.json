@@ -10,6 +10,8 @@
     "ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED",
     "ATOMS_E2E_OAUTH_CLIENT_SECRET",
     "ATOMS_E2E_ORG_ID",
+    "AXIOM_TOKEN",
+    "AXIOM_DATASET",
     "BASECAMP3_CLIENT_ID",
     "BASECAMP3_CLIENT_SECRET",
     "BASECAMP3_USER_AGENT",
@@ -321,6 +323,7 @@
       "dependsOn": ["@calcom/prisma#db-up"]
     },
     "@calcom/trpc#build": {
+      "dependsOn": ["@calcom/prisma#post-install"],
       "outputs": ["./types"]
     },
     "@calcom/web#build": {
@@ -373,7 +376,7 @@
       "cache": false,
       "dependsOn": []
     },
-    "@calcom/atoms#build": {
+    "@calcom/atoms#build-npm": {
       "outputs": ["dist/**", "globals.min.css"]
     },
     "@calcom/api-v2#build": {

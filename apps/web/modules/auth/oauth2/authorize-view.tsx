@@ -69,7 +69,9 @@ export default function Authorize() {
       }
 
       if (client?.redirectUri) {
-        window.location.href = `${client.redirectUri}${client.redirectUri.includes("?") ? "&" : "?"}${errorParams.toString()}`;
+        window.location.href = `${client.redirectUri}${
+          client.redirectUri.includes("?") ? "&" : "?"
+        }${errorParams.toString()}`;
       }
     },
   });
@@ -88,6 +90,18 @@ export default function Authorize() {
       setSelectedAccount(mappedProfiles[0]);
     }
   }, [isPendingProfiles]);
+
+  // Auto-authorize trusted clients
+  useEffect(() => {
+    if (client?.isTrusted && selectedAccount) {
+      generateAuthCodeMutation.mutate({
+        clientId: client_id as string,
+        scopes,
+        codeChallenge: code_challenge || undefined,
+        codeChallengeMethod: (code_challenge_method as "S256") || undefined,
+      });
+    }
+  }, [client?.isTrusted, selectedAccount]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -108,9 +122,20 @@ export default function Authorize() {
     return <div>{t("unauthorized")}</div>;
   }
 
+  // Don't show UI for trusted clients, they'll auto-authorize
+  if (client.isTrusted && selectedAccount) {
+    return (
+      <div className="flex justify-center pt-32">
+        <div className="flex items-center space-x-3">
+          <span className="text-lg font-medium text-gray-700">Authorizing...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="bg-default border-subtle mt-2 max-w-xl rounded-md border px-9 pb-3 pt-2">
+      <div className="bg-default border-subtle mt-2 max-w-xl rounded-md border px-9 pt-2 pb-3">
         <div className="flex items-center justify-center">
           <Avatar
             alt=""
@@ -127,7 +152,7 @@ export default function Authorize() {
             </div>
           </div>
         </div>
-        <h1 className="px-5 pb-5 pt-3 text-center text-2xl font-bold tracking-tight">
+        <h1 className="px-5 pt-3 pb-5 text-center text-2xl font-bold tracking-tight">
           {t("access_cal_account", { clientName: client.name, appName: APP_NAME })}
         </h1>
         <div className="mb-1 text-sm font-medium">{t("select_account_team")}</div>
@@ -141,7 +166,7 @@ export default function Authorize() {
           defaultValue={selectedAccount || mappedProfiles[0]}
           options={mappedProfiles}
         />
-        <div className="mb-4 mt-5 font-medium">{t("allow_client_to", { clientName: client.name })}</div>
+        <div className="mt-5 mb-4 font-medium">{t("allow_client_to", { clientName: client.name })}</div>
         <ul className="stack-y-4 text-sm">
           <li className="relative pl-5">
             <span className="absolute left-0">&#10003;</span>{" "}
@@ -166,7 +191,7 @@ export default function Authorize() {
             <span className="absolute left-0">&#10003;</span> {t("access_bookings")}
           </li>
         </ul>
-        <div className="bg-subtle mb-8 mt-8 flex rounded-md p-3">
+        <div className="bg-subtle mt-8 mb-8 flex rounded-md p-3">
           <div>
             <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
           </div>

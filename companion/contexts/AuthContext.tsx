@@ -1,12 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { WebAuthService } from "../services/webAuth";
 import { CalComAPIService } from "../services/calcom";
 import {
   createCalComOAuthService,
   OAuthTokens,
   CalComOAuthService,
 } from "../services/oauthService";
+import { WebAuthService } from "../services/webAuth";
 import { secureStorage } from "../utils/storage";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -35,6 +35,10 @@ interface AuthProviderProps {
 
 // Use the shared secure storage adapter
 const storage = secureStorage;
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : String(error);
+const getErrorStack = (error: unknown) => (error instanceof Error ? error.stack : undefined);
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -84,15 +88,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  // Save OAuth tokens to storage
   const saveOAuthTokens = async (tokens: OAuthTokens) => {
     await storage.set(OAUTH_TOKENS_KEY, JSON.stringify(tokens));
     await storage.set(AUTH_TYPE_KEY, "oauth");
+
+    if (oauthService) {
+      try {
+        await oauthService.syncTokensToExtension(tokens);
+      } catch (error) {
+        console.warn("Failed to sync tokens to extension:", error);
+      }
+    }
   };
 
-  // Clear all auth data from storage
   const clearAuth = async () => {
     await storage.removeAll([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, OAUTH_TOKENS_KEY, AUTH_TYPE_KEY]);
+
+    if (oauthService) {
+      try {
+        await oauthService.clearTokensFromExtension();
+      } catch (error) {
+        console.warn("Failed to clear tokens from extension:", error);
+      }
+    }
   };
 
   // Reset all auth state
@@ -129,7 +147,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           newRefreshToken || refreshToken || undefined
         );
       } catch (error) {
-        console.error("Failed to handle token refresh:", error);
+        const message = getErrorMessage(error);
+        console.error("Failed to handle token refresh", message);
+        if (__DEV__) {
+          console.debug("[AuthContext] token refresh handler failed", {
+            message,
+            stack: getErrorStack(error),
+          });
+        }
         await logout();
       }
     };
@@ -147,11 +172,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Refresh token if expired
     let tokens = storedTokens;
+    let tokensWereRefreshed = false;
     if (oauthService.isTokenExpired(storedTokens) && storedTokens.refreshToken) {
       try {
         console.log("Access token expired, refreshing...");
         tokens = await oauthService.refreshAccessToken(storedTokens.refreshToken);
         await saveOAuthTokens(tokens);
+        tokensWereRefreshed = true;
       } catch (refreshError) {
         console.error("Failed to refresh token:", refreshError);
         await clearAuth();
@@ -169,6 +196,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
     if (tokens.refreshToken) {
       setupRefreshTokenFunction(oauthService);
+    }
+
+    if (!tokensWereRefreshed) {
+      try {
+        await oauthService.syncTokensToExtension(tokens);
+      } catch (error) {
+        console.warn("Failed to sync tokens to extension on init:", error);
+      }
     }
   };
 
@@ -189,7 +224,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         handleWebSessionAuth();
       }
     } catch (error) {
-      console.error("Failed to check auth state:", error);
+      const message = getErrorMessage(error);
+      console.error("Failed to check auth state", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] checkAuthState failed", {
+          message,
+          stack: getErrorStack(error),
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -210,7 +252,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
       }
     } catch (error) {
-      console.error("Failed to login from web session:", error);
+      const message = getErrorMessage(error);
+      console.error("Failed to login from web session", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] loginFromWebSession failed", {
+          message,
+          stack: getErrorStack(error),
+        });
+      }
       throw error;
     }
   };
@@ -243,7 +292,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Clear PKCE parameters
       oauthService.clearPKCEParams();
     } catch (error) {
-      console.error("OAuth login failed:", error);
+      const message = getErrorMessage(error);
+      console.error("OAuth login failed", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] loginWithOAuth failed", {
+          message,
+          stack: getErrorStack(error),
+        });
+      }
       throw error;
     } finally {
       setLoading(false);
@@ -255,7 +311,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await clearAuth();
       resetAuthState();
     } catch (error) {
-      console.error("Failed to logout:", error);
+      const message = getErrorMessage(error);
+      console.error("Failed to logout", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] logout failed", { message, stack: getErrorStack(error) });
+      }
     }
   };
 
