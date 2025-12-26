@@ -688,13 +688,11 @@ export const denullish = <T>(schema: T): ZodDenullish<T> =>
 /**
  * @see https://github.com/3x071c/lsg-remix/blob/e2a9592ba3ec5103556f2cf307c32f08aeaee32d/app/lib/util/zod.ts
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function denullishShape<T extends ZodRawShape>(obj: ZodObject<T>): ZodObject<any> {
+export function denullishShape<T extends ZodRawShape>(obj: ZodObject<T>): ZodObject<{ [K in keyof T]: ZodDenullish<T[K]> }> {
   const shape = obj.shape;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const newShape: Record<string, any> = {};
-  for (const [field, schema] of Object.entries(shape)) {
-    newShape[field] = denullish(schema);
+  const newShape = {} as { [K in keyof T]: ZodDenullish<T[K]> };
+  for (const key of Object.keys(shape) as (keyof T)[]) {
+    newShape[key] = denullish(shape[key]) as ZodDenullish<T[typeof key]>;
   }
   // In zod v4, use z.object() to create new ZodObject
   return z.object(newShape);

@@ -14,16 +14,20 @@ import { handleCustomInputs } from "./handleCustomInputs";
 type ReqBodyWithEnd = TgetBookingDataSchema & { end: string };
 
 // Define the function with underscore prefix
-const _getBookingData = async <T extends z.ZodType>({
+// In zod v4, we need to constrain the schema output type to ensure proper type inference
+const _getBookingData = async <
+  TParsed extends TgetBookingDataSchema,
+  TSchema extends z.ZodType<TParsed>
+>({
   reqBody,
   eventType,
   schema,
 }: {
-  reqBody: Record<string, any>;
+  reqBody: Record<string, unknown>;
   eventType: getEventTypeResponse;
-  schema: T;
+  schema: TSchema;
 }) => {
-  const parsedBody = await schema.parseAsync(reqBody);
+  const parsedBody = (await schema.parseAsync(reqBody)) as TParsed;
   const parsedBodyWithEnd = (body: TgetBookingDataSchema): body is ReqBodyWithEnd => {
     // Use the event length to auto-set the event end time.
     if (!Object.prototype.hasOwnProperty.call(body, "end")) {
