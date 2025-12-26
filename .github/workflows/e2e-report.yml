@@ -67,23 +67,27 @@ jobs:
               }
               console.log('Found PR Update workflow ID:', prUpdateWorkflow.id);
               
-              // Find the most recent run for this SHA with blob-report artifacts
+              // Find the most recent completed run for this branch with blob-report artifacts
+              // We search by branch instead of SHA to handle cases where:
+              // 1. The PR was updated after E2E tests ran (artifacts exist for older SHA)
+              // 2. The current run for the SHA is still queued/in-progress
               const { data: runs } = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 workflow_id: prUpdateWorkflow.id,
-                head_sha: headSha,
-                per_page: 10
+                branch: headBranch,
+                status: 'completed',
+                per_page: 20
               });
               
-              console.log('Found', runs.workflow_runs.length, 'runs for SHA');
+              console.log('Found', runs.workflow_runs.length, 'completed runs for branch', headBranch);
               
               // Find a run with blob-report artifacts
               let selectedRun = null;
               let hasBlobReports = false;
               
               for (const run of runs.workflow_runs) {
-                console.log('Checking run', run.id, 'status:', run.status, 'conclusion:', run.conclusion);
+                console.log('Checking run', run.id, 'conclusion:', run.conclusion);
                 
                 const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
                   owner: context.repo.owner,
