@@ -766,7 +766,7 @@ export const optionToValueSchema = <T extends z.ZodTypeAny>(valueSchema: T) =>
  * @url https://github.com/colinhacks/zod/discussions/1655#discussioncomment-4367368
  */
 export const getParserWithGeneric =
-  <T extends AnyZodObject>(valueSchema: T) =>
+  <T extends ZodObject<ZodRawShape>>(valueSchema: T) =>
   <Data>(data: Data) => {
     type Output = z.infer<T>;
     type SimpleFormValues = string | number | null | undefined;

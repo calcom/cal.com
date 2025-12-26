@@ -68,10 +68,12 @@ export const listLocalHandler = async ({ ctx, input }: ListLocalOptions) => {
     // it is important to avoid string to string comparisons as much as we can
     if (keysSchema !== undefined) {
       // TODO: Why don't we parse with schema here? Not doing it makes default() not work in schema.
-      Object.values(keysSchema.keyof()._def.values).reduce((keysObject, key) => {
-        keys[key as string] = "";
-        return keysObject;
-      }, {} as Record<string, string>);
+      // In zod v4, keyof() returns a ZodEnum with .options array instead of ._def.values
+      const keyofSchema = keysSchema.keyof();
+      const enumValues = "options" in keyofSchema ? keyofSchema.options : [];
+      enumValues.forEach((key: string) => {
+        keys[key] = "";
+      });
     }
 
     return {
