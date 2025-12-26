@@ -44,7 +44,7 @@
     "@react-native-segmented-control/segmented-control": "^2.5.7",
     "@tanstack/react-query": "^5.62.0",
     "@tanstack/react-query-persist-client": "^5.62.0",
-    "base64-js": "^1.5.1",
+    "base64-js": "1.5.1",
     "expo": "^55.0.0-canary-20251216-3f01dbf",
     "expo-auth-session": "7.0.11-canary-20251216-3f01dbf",
     "expo-clipboard": "8.0.9-canary-20251216-3f01dbf",
