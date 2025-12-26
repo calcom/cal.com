@@ -14,7 +14,7 @@ export type TAddClientInputSchema = {
   enablePkce: boolean;
 };
 
-export const ZAddClientInputSchema: z.ZodType<TAddClientInputSchema, TAddClientInputSchemaInput> = z.object({
+export const ZAddClientInputSchema = z.object({
   name: z.string(),
   redirectUri: z.string(),
   logo: z.string(),

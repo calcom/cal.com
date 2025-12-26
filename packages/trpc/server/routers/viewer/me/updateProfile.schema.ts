@@ -84,7 +84,7 @@ export type TUpdateProfileInputSchema = {
   }[];
 };
 
-export const ZUpdateProfileInputSchema: z.ZodType<TUpdateProfileInputSchema, TUpdateProfileInputSchemaInput> = z.object({
+export const ZUpdateProfileInputSchema = z.object({
   username: z.string().optional(),
   name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
   email: z.string().optional(),

@@ -77,7 +77,7 @@ export type TUpdateInputSchema = {
   disableAttendeeNewEventEmail?: boolean;
 };
 
-export const ZUpdateInputSchema: z.ZodType<TUpdateInputSchema, TUpdateInputSchemaInput> = z.object({
+export const ZUpdateInputSchema = z.object({
   name: z.string().optional(),
   orgId: z
     .string()

@@ -16,7 +16,7 @@ export type TListMembersInputSchema = {
   cursor?: number | null;
 };
 
-export const ZListMembersInputSchema: z.ZodType<TListMembersInputSchema, TListMembersInputSchemaInput> = z.object({
+export const ZListMembersInputSchema = z.object({
   teamId: z.number(),
   limit: z.number().default(10),
   searchTerm: z.string().optional(),

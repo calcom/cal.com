@@ -18,7 +18,7 @@ export type TEventInputSchema = {
   fromRedirectOfNonOrgLink: boolean;
 };
 
-export const ZEventInputSchema: z.ZodType<TEventInputSchema, TEventInputSchemaInput> = z.object({
+export const ZEventInputSchema = z.object({
   username: z.string(),
   eventSlug: z.string(),
   isTeamEvent: z.boolean().optional(),

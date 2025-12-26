@@ -14,7 +14,7 @@ export type TRemoveMemberInputSchema = {
   isOrg: boolean;
 };
 
-export const ZRemoveMemberInputSchema: z.ZodType<TRemoveMemberInputSchema, TRemoveMemberInputSchemaInput> = z.object({
+export const ZRemoveMemberInputSchema = z.object({
   teamIds: z.array(z.number()),
   memberIds: z.array(z.number()),
   isOrg: z.boolean().default(false),
