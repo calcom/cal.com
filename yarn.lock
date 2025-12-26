@@ -1877,13 +1877,13 @@ __metadata:
     "@nestjs/cli": "npm:10.3.2"
     "@nestjs/common": "npm:10.4.20"
     "@nestjs/config": "npm:3.2.0"
-    "@nestjs/core": "npm:10.3.3"
+    "@nestjs/core": "npm:10.4.20"
     "@nestjs/jwt": "npm:10.2.0"
     "@nestjs/passport": "npm:10.0.3"
     "@nestjs/platform-express": "npm:10.4.20"
     "@nestjs/schematics": "npm:10.1.1"
     "@nestjs/swagger": "npm:7.3.0"
-    "@nestjs/testing": "npm:10.3.3"
+    "@nestjs/testing": "npm:10.4.20"
     "@nestjs/throttler": "npm:6.2.1"
     "@sentry/nestjs": "npm:9.46.0"
     "@sentry/node": "npm:9.46.0"
@@ -8296,15 +8296,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/core@npm:10.3.3":
-  version: 10.3.3
-  resolution: "@nestjs/core@npm:10.3.3"
+"@nestjs/core@npm:10.4.20":
+  version: 10.4.20
+  resolution: "@nestjs/core@npm:10.4.20"
   dependencies:
     "@nuxtjs/opencollective": "npm:0.3.2"
     fast-safe-stringify: "npm:2.1.1"
     iterare: "npm:1.2.1"
-    path-to-regexp: "npm:3.2.0"
-    tslib: "npm:2.6.2"
+    path-to-regexp: "npm:3.3.0"
+    tslib: "npm:2.8.1"
     uid: "npm:2.0.2"
   peerDependencies:
     "@nestjs/common": ^10.0.0
@@ -8320,7 +8320,7 @@ __metadata:
       optional: true
     "@nestjs/websockets":
       optional: true
-  checksum: 10/6ef7c3695396d9178c5271168c0f14ab72d44304168c745fa26a6d476d46f890c6c0c71ca4fec47c8b6fcbcb7e8daec9b2cf3d87addfe51704d6e20246842b19
+  checksum: 10/bf5faa7f6d2ae004010e112b4f53511fb5db12f78e67e88085c29b0ff50813cc91c60ffb795e88a2ea1208d6281bb2bc5573400eba545845496f15e717c9dd61
   languageName: node
   linkType: hard
 
@@ -8422,11 +8422,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/testing@npm:10.3.3":
-  version: 10.3.3
-  resolution: "@nestjs/testing@npm:10.3.3"
+"@nestjs/testing@npm:10.4.20":
+  version: 10.4.20
+  resolution: "@nestjs/testing@npm:10.4.20"
   dependencies:
-    tslib: "npm:2.6.2"
+    tslib: "npm:2.8.1"
   peerDependencies:
     "@nestjs/common": ^10.0.0
     "@nestjs/core": ^10.0.0
@@ -8437,7 +8437,7 @@ __metadata:
       optional: true
     "@nestjs/platform-express":
       optional: true
-  checksum: 10/ae8176aeba18c13014f48f756e8ce1d69fb1f80cd15252877ac28c11e430c516d581230b2d21d55efb8d71f021eb276a8a0a35187815062b5bc514ea92cf6d0e
+  checksum: 10/5e0256ed2e80c161f2fea67b2dcf261c0a2d2f5d26072563b165abb6c9b6e065f9b2a0db266095a8223842276685b7ebaa52f7252889e5647de157164aac793c
   languageName: node
   linkType: hard
 
@@ -33735,6 +33735,13 @@ __metadata:
   version: 3.2.0
   resolution: "path-to-regexp@npm:3.2.0"
   checksum: 10/3c86811e0d69719e20908ed6457b6f51d0d66ffc526e04d259cddea5fd777c7b967adb60907658b7e1a98cb7bf1bbbbad3523337a676c98513fd76a7b513075e
+  languageName: node
+  linkType: hard
+
+"path-to-regexp@npm:3.3.0":
+  version: 3.3.0
+  resolution: "path-to-regexp@npm:3.3.0"
+  checksum: 10/8d256383af8db66233ee9027cfcbf8f5a68155efbb4f55e784279d3ab206dcaee554ddb72ff0dae97dd2882af9f7fa802634bb7cffa2e796927977e31b829259
   languageName: node
   linkType: hard
 
