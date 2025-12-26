@@ -1123,6 +1123,7 @@ export const baseFieldSchema = z.object({
    */
   optionsInputs: z
     .record(
+      z.string(),
       z.object({
         // Support all types as needed
         // Must be a subset of `fieldTypeEnum`.TODO: Enforce it in TypeScript
@@ -1158,6 +1159,7 @@ export const baseFieldSchema = z.object({
 
 export const variantsConfigSchema = z.object({
   variants: z.record(
+    z.string(),
     z.object({
       /**
        * Variant Fields schema for a variant of the main field.
@@ -1215,4 +1217,4 @@ export const fieldSchema = baseFieldSchema.merge(
 );
 
 export const eventTypeBookingFields = z.array(fieldSchema);
-export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;
+export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.enum;
