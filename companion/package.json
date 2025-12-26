@@ -99,7 +99,10 @@
     "wxt": "^0.20.11"
   },
   "lint-staged": {
-    "**/*.{js,jsx,ts,tsx,json,css,md}": [
+    "**/*.{js,jsx,ts,tsx}": [
+      "bun run lint -- --fix --max-warnings=0"
+    ],
+    "**/*.{json,css,md}": [
       "prettier --write"
     ]
   }
