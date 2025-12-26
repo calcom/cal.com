@@ -19,7 +19,7 @@
     "@trpc/next": "11.0.0-next-beta.222",
     "@trpc/react-query": "11.0.0-next-beta.222",
     "@trpc/server": "11.0.0-next-beta.222",
-    "cookie": "0.7.0",
+    "cookie": "0.7.2",
     "superjson": "1.9.1",
     "uuid": "8.3.2",
     "zod": "3.25.76"
