@@ -63,6 +63,12 @@ export default function EventTypeDetail() {
   const [username, setUsername] = useState("username");
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
   const [locations, setLocations] = useState<LocationItem[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [locationAddress, setLocationAddress] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [locationLink, setLocationLink] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [locationPhone, setLocationPhone] = useState("");
   const [selectedDurations, setSelectedDurations] = useState<string[]>([]);
   const [defaultDuration, setDefaultDuration] = useState("");
   const [showDurationDropdown, setShowDurationDropdown] = useState(false);

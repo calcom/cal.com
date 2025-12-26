@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { Activity, useMemo, useState } from "react";
-import { View, Text, FlatList, RefreshControl, ScrollView } from "react-native";
+import { View, Text, FlatList, RefreshControl, ScrollView, Alert } from "react-native";
 
 import type { Booking, EventType } from "../../services/calcom";
 import { LoadingSpinner } from "../LoadingSpinner";
