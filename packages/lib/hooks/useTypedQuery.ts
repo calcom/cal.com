@@ -32,7 +32,7 @@ export const queryStringArray = z
   .preprocess((a) => z.string().parse(a).split(","), z.string().array())
   .or(z.string().array());
 
-export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
+export function useTypedQuery<T extends z.ZodObject<z.ZodRawShape>>(schema: T) {
   type Output = z.infer<typeof schema>;
   type FullOutput = Required<Output>;
   type OutputKeys = Required<keyof FullOutput>;
@@ -69,8 +69,7 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
       search.set(String(key), String(value));
       router.replace(`${pathname}?${search.toString()}`);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [parsedQuery, router]
+    [parsedQuery, router, pathname]
   );
 
   // Delete a key from the query
@@ -85,11 +84,9 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
     const existingValue = parsedQuery[key];
     if (Array.isArray(existingValue)) {
       if (existingValue.includes(value)) return; // prevent adding the same value to the array
-      // @ts-expect-error this is too much for TS it seems
-      setQuery(key, [...existingValue, value]);
+      setQuery(key, [...existingValue, value] as Output[J]);
     } else {
-      // @ts-expect-error this is too much for TS it seems
-      setQuery(key, [value]);
+      setQuery(key, [value] as Output[J]);
     }
   }
 
@@ -97,12 +94,10 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
   function removeItemByKeyAndValue<J extends ArrayOutputKeys>(key: J, value: ArrayOutput[J][number]) {
     const existingValue = parsedQuery[key];
     if (Array.isArray(existingValue) && existingValue.length > 1) {
-      // @ts-expect-error this is too much for TS it seems
       const newValue = existingValue.filter((item) => item !== value);
-      setQuery(key, newValue);
+      setQuery(key, newValue as Output[J]);
     } else {
-      // @ts-expect-error this is too much for TS it seems
-      removeByKey(key);
+      removeByKey(key as OutputOptionalKeys);
     }
   }
 

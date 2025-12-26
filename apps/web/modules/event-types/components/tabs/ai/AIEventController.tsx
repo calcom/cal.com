@@ -113,7 +113,7 @@ const TemplateFields = () => {
             name={`aiPhoneCallConfig.${field.name}`}
             render={({ field: { value, onChange }, fieldState: { error } }) => {
               const { variableName, ...restField } = field;
-              const variableInfo = !!variableName ? `: ${t("variable")} {{${variableName}}}` : "";
+              const variableInfo = variableName ? `: ${t("variable")} {{${variableName}}}` : "";
               return (
                 <div>
                   <ComponentForField
@@ -148,7 +148,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
   const createCallMutation = trpc.viewer.organizations.createPhoneCall.useMutation({
     onSuccess: (data) => {
-      if (!!data?.callId) {
+      if (data?.callId) {
         showToast("Phone Call Created successfully", "success");
       }
     },
@@ -181,11 +181,11 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
       if (err instanceof z.ZodError) {
         const fieldName = err.issues?.[0]?.path?.[0];
         const message = err.issues?.[0]?.message;
-        showToast(`Error on ${fieldName}: ${message} `, "error");
+        showToast(`Error on ${String(fieldName)}: ${message} `, "error");
 
         const issues = err.issues;
         for (const issue of issues) {
-          const fieldName = `aiPhoneCallConfig.${issue.path[0]}` as unknown as keyof FormValues;
+          const fieldName = `aiPhoneCallConfig.${String(issue.path[0])}` as unknown as keyof FormValues;
           formMethods.setError(fieldName, {
             type: "custom",
             message: issue.message,

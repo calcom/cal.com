@@ -50,7 +50,7 @@ export const BookingFields = ({
 
   // Identify all phone fields (except location field)
   const otherPhoneFieldNames = useMemo(
-    () => fields.filter((f) => f.type === "phone" && f.name !== SystemField.Enum.location).map((f) => f.name),
+    () => fields.filter((f) => f.type === "phone" && f.name !== SystemField.enum.location).map((f) => f.name),
     [fields]
   );
 
@@ -151,7 +151,7 @@ export const BookingFields = ({
           return null;
         }
 
-        if (field.name === SystemField.Enum.rescheduleReason) {
+        if (field.name === SystemField.enum.rescheduleReason) {
           if (bookingData === null) {
             return null;
           }
@@ -159,11 +159,11 @@ export const BookingFields = ({
           readOnly = false;
         }
 
-        if (field.name === SystemField.Enum.smsReminderNumber) {
+        if (field.name === SystemField.enum.smsReminderNumber) {
           // `smsReminderNumber` and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
           // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
           if (locationResponse?.value === "phone") {
-            setValue(`responses.${SystemField.Enum.smsReminderNumber}`, locationResponse?.optionValue);
+            setValue(`responses.${SystemField.enum.smsReminderNumber}`, locationResponse?.optionValue);
             // Just don't render the field now, as the value is already connected to attendee phone location
             return null;
           }
@@ -171,23 +171,23 @@ export const BookingFields = ({
           readOnly = false;
         }
 
-        if (field.name === SystemField.Enum.guests) {
+        if (field.name === SystemField.enum.guests) {
           readOnly = false;
           // No matter what user configured for Guests field, we don't show it for dynamic group booking as that doesn't support guests
           hidden = isDynamicGroupBooking ? true : !!field.hidden;
         }
 
         // We don't show `notes` field during reschedule but since it's a query param we better valid if rescheduleUid brought any bookingData
-        if (field.name === SystemField.Enum.notes && bookingData !== null) {
+        if (field.name === SystemField.enum.notes && bookingData !== null) {
           return null;
         }
 
-        if (field.name === SystemField.Enum.location) {
+        if (field.name === SystemField.enum.location) {
           readOnly = false;
         }
 
         // Dynamically populate location field options
-        if (field.name === SystemField.Enum.location && field.type === "radioInput") {
+        if (field.name === SystemField.enum.location && field.type === "radioInput") {
           if (!field.optionsInputs) {
             throw new Error("radioInput must have optionsInputs");
           }
@@ -250,7 +250,7 @@ export const BookingFields = ({
             field={{ ...fieldWithPrice, hidden }}
             readOnly={readOnly}
             key={index}
-            {...(field.name === SystemField.Enum.location && {
+            {...(field.name === SystemField.enum.location && {
               onValueChange: ({ value }) => {
                 syncPhoneFields(value);
               },

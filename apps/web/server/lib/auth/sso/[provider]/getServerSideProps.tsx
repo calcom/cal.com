@@ -16,7 +16,7 @@ import { z } from "zod";
 const Params = z.object({
   username: z.string().optional(),
   email: z.string().optional(),
-  provider: z.string({ required_error: "File is not named sso/[provider]" }),
+  provider: z.string({ error: "File is not named sso/[provider]" }),
 });
 
 export const getServerSideProps = async ({ req, query }: GetServerSidePropsContext) => {
