@@ -112,7 +112,7 @@ export const EventTypeDescription = ({
               <Badge
                 variant="secondary"
                 customStartIcon={
-                  <PriceIcon currency={paymentAppData.currency} className="h-3 w-3 stroke-[3px]" />
+                  <PriceIcon currency={paymentAppData.currency} className="mr-1 stroke-[3px]" />
                 }>
                 <Price
                   currency={paymentAppData.currency}
