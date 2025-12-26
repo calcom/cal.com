@@ -118,7 +118,18 @@ function areEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
   if (a == null || b == null) return false;
   if (typeof a !== "object" || typeof b !== "object") return false;
-  return JSON.stringify(a) === JSON.stringify(b);
+
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) return false;
+    return a.every((item, index) => areEqual(item, b[index]));
+  }
+
+  const objA = a as Record<string, unknown>;
+  const objB = b as Record<string, unknown>;
+  const keysA = Object.keys(objA).sort();
+  const keysB = Object.keys(objB).sort();
+  if (keysA.length !== keysB.length) return false;
+  return keysA.every((key) => areEqual(objA[key], objB[key]));
 }
 
 function normalizeLocation(loc: any): any {
