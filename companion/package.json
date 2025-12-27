@@ -42,8 +42,7 @@
     "ext:build-all-prod": "npm run ext:build-prod && npm run ext:build-firefox-prod && npm run ext:build-safari-prod && npm run ext:build-edge-prod",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "prepare": "cd .. && husky companion/.husky",
-    "lint": "expo lint"
+    "prepare": "cd .. && husky companion/.husky"
   },
   "dependencies": {
     "@expo/ui": "0.2.0-canary-20251216-3f01dbf",
@@ -86,10 +85,6 @@
     "@types/react": "19.2.3",
     "@types/react-dom": "19.2.3",
     "babel-preset-expo": "^54.0.7",
-    "eslint": "^9.39.2",
-    "eslint-config-expo": "^10.0.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.0",
     "prettier": "^3.2.5",
@@ -99,10 +94,7 @@
     "wxt": "^0.20.11"
   },
   "lint-staged": {
-    "**/*.{js,jsx,ts,tsx}": [
-      "bun run lint -- --fix --max-warnings=0"
-    ],
-    "**/*.{json,css,md}": [
+    "**/*.{js,jsx,ts,tsx,json,css,md}": [
       "prettier --write"
     ]
   }
