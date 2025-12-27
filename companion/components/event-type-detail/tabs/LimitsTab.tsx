@@ -36,7 +36,7 @@ interface LimitsTabProps {
   toggleBookingFrequency: (value: boolean) => void;
   frequencyAnimationValue: Animated.Value;
   frequencyLimits: FrequencyLimit[];
-  updateFrequencyLimit: (id: number, field: string, value: string) => void;
+  updateFrequencyLimit: (id: number, field: "value" | "unit", value: string) => void;
   setShowFrequencyUnitDropdown: (id: number) => void;
   removeFrequencyLimit: (id: number) => void;
   addFrequencyLimit: () => void;
@@ -50,7 +50,7 @@ interface LimitsTabProps {
   toggleTotalDuration: (value: boolean) => void;
   durationAnimationValue: Animated.Value;
   durationLimits: DurationLimit[];
-  updateDurationLimit: (id: number, field: string, value: string) => void;
+  updateDurationLimit: (id: number, field: "value" | "unit", value: string) => void;
   setShowDurationUnitDropdown: (id: number) => void;
   removeDurationLimit: (id: number) => void;
   addDurationLimit: () => void;
