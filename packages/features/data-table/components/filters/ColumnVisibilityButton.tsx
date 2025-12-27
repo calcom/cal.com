@@ -75,7 +75,7 @@ function ColumnVisibilityButtonComponent<TData>(
             </CommandGroup>
           </CommandList>
           <CommandSeparator className="mb-0" />
-          <CommandGroup>
+          <CommandGroup forceMount>
             <CommandItem
               onSelect={() => {
                 table.toggleAllColumnsVisible(true);
