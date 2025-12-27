@@ -22,6 +22,7 @@ const patchHandler = async (req: NextApiRequest, res: NextApiResponse) => {
     return {
       user: {
         id: req.userId,
+        uuid: req.userUuid,
         username: "" /* Not used in this context */,
         role: req.isSystemWideAdmin ? UserPermissionRole.ADMIN : UserPermissionRole.USER,
         profile: {
