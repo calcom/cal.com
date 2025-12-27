@@ -726,7 +726,7 @@ export default defineContentScript({
             }, 0);
           });
 
-          function createTooltip(text, buttonElement) {
+          function createTooltip(text: string, buttonElement: HTMLElement): HTMLElement {
             const tooltip = document.createElement("div");
             tooltip.className = "cal-tooltip";
             tooltip.style.cssText = `
@@ -790,7 +790,10 @@ export default defineContentScript({
             }
           }
 
-          async function fetchEventTypes(menu, tooltipsToCleanup) {
+          async function fetchEventTypes(
+            menu: HTMLElement,
+            tooltipsToCleanup: HTMLElement[]
+          ): Promise<void> {
             try {
               // Check cache first
               const now = Date.now();
@@ -1213,7 +1216,10 @@ export default defineContentScript({
             }
           }
 
-          function insertEventTypeLink(eventType) {
+          function insertEventTypeLink(eventType: {
+            slug: string;
+            users?: Array<{ username?: string }>;
+          }): void {
             // Construct the Cal.com booking link
             const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
               eventType.slug
@@ -1237,7 +1243,10 @@ export default defineContentScript({
             }
           }
 
-          function copyEventTypeLink(eventType) {
+          function copyEventTypeLink(eventType: {
+            slug: string;
+            users?: Array<{ username?: string }>;
+          }): void {
             // Construct the Cal.com booking link
             const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
               eventType.slug
@@ -1261,7 +1270,7 @@ export default defineContentScript({
             }
           }
 
-          function insertTextAtCursor(text) {
+          function insertTextAtCursor(text: string): boolean {
             // Find the active compose field
             // Gmail uses contenteditable divs for the compose body
             const composeBody =
@@ -1314,7 +1323,7 @@ export default defineContentScript({
             return true;
           }
 
-          function showNotification(message, type) {
+          function showNotification(message: string, type: "success" | "error"): void {
             const notification = document.createElement("div");
             notification.style.cssText = `
               position: fixed;

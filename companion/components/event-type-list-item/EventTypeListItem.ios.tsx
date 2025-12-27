@@ -49,19 +49,19 @@ export const EventTypeListItem = ({
     {
       label: "Edit",
       icon: "pencil",
-      onPress: () => onEdit(item),
+      onPress: () => onEdit?.(item),
       role: "default",
     },
     {
       label: "Duplicate",
       icon: "square.on.square",
-      onPress: () => onDuplicate(item),
+      onPress: () => onDuplicate?.(item),
       role: "default",
     },
     {
       label: "Delete",
       icon: "trash",
-      onPress: () => onDelete(item),
+      onPress: () => onDelete?.(item),
       role: "destructive",
     },
   ];

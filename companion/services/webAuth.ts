@@ -1,10 +1,12 @@
 import { Platform } from "react-native";
 
+import type { UserProfile } from "./types/users.types";
+
 export interface WebSessionInfo {
   isLoggedIn: boolean;
   accessToken?: string;
   refreshToken?: string;
-  userInfo?: any;
+  userInfo?: UserProfile;
 }
 
 export class WebAuthService {

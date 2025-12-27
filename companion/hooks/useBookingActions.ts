@@ -242,7 +242,7 @@ export const useBookingActions = ({
               {
                 text: "Cancel Event",
                 style: "destructive",
-                onPress: (reason) => {
+                onPress: (reason?: string) => {
                   const cancellationReason = reason?.trim() || "Event cancelled by host";
                   cancelMutation(
                     { uid: booking.uid, reason: cancellationReason },

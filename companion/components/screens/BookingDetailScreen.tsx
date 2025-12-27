@@ -260,7 +260,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
                 {
                   text: "Cancel Booking",
                   style: "destructive",
-                  onPress: (reason) => {
+                  onPress: (reason?: string) => {
                     performCancelBooking(reason?.trim() || "Cancelled by host");
                   },
                 },
