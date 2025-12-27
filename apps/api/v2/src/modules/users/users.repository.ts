@@ -434,4 +434,19 @@ export class UsersRepository {
       },
     });
   }
+
+  async findVerifiedSecondaryEmail(userId: number, email: string) {
+    return this.dbRead.prisma.secondaryEmail.findUnique({
+      where: {
+        userId_email: {
+          userId: userId,
+          email: email,
+        },
+      },
+      select: {
+        id: true,
+        emailVerified: true,
+      },
+    });
+  }
 }
