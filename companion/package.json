@@ -66,6 +66,8 @@
     "expo-dev-client": "6.1.0-canary-20251216-3f01dbf",
     "expo-device": "8.0.11-canary-20251216-3f01dbf",
     "expo-glass-effect": "0.2.0-canary-20251216-3f01dbf",
+    "expo-haptics": "^15.0.8",
+    "expo-image": "^3.0.11",
     "expo-linking": "8.0.11-canary-20251216-3f01dbf",
     "expo-router": "7.0.0-canary-20251216-3f01dbf",
     "expo-secure-store": "15.0.9-canary-20251216-3f01dbf",
