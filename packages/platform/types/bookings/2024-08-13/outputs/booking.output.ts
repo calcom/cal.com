@@ -29,6 +29,11 @@ class BookingAttendee {
   @Expose()
   email!: string;
 
+  @ApiProperty({ type: String, example: "john@example.com", description: "Clean email for display purposes" })
+  @IsString()
+  @Expose()
+  displayEmail!: string;
+
   @ApiProperty({ type: String, example: "America/New_York" })
   @IsTimeZone()
   @Expose()
@@ -94,6 +99,11 @@ class BookingHost {
   @IsString()
   @Expose()
   email!: string;
+
+  @ApiProperty({ type: String, example: "jane100@example.com", description: "Clean email for display purposes" })
+  @IsString()
+  @Expose()
+  displayEmail!: string;
 
   @ApiProperty({ type: String, example: "jane100" })
   @IsString()
@@ -395,6 +405,11 @@ class ReassignedToDto {
   @IsEmail()
   @Expose()
   email!: string;
+
+  @ApiProperty({ type: String, example: "john.doe@example.com", description: "Clean email for display purposes" })
+  @IsString()
+  @Expose()
+  displayEmail!: string;
 }
 
 export class ReassignBookingOutput_2024_08_13 {

@@ -624,6 +624,91 @@ describe("Managed user bookings 2024-08-13", () => {
     });
   });
 
+  describe("displayEmail fields", () => {
+    it("should return displayEmail without CUID suffix for host", async () => {
+      const body: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 7, 10, 0, 0)).toISOString(),
+        eventTypeId: firstManagedUserEventTypeId,
+        attendee: {
+          name: "External Attendee",
+          email: "external-display-email-test@example.com",
+          timeZone: "Europe/Rome",
+          language: "en",
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const bookingData = response.body.data;
+
+      // Host email should have CUID, displayEmail should not
+      expect(bookingData.hosts[0].email).toEqual(firstManagedUser.user.email);
+      expect(bookingData.hosts[0].displayEmail).toEqual(firstManagedUserEmail);
+    });
+
+    it("should return displayEmail without CUID suffix for attendee", async () => {
+      const body: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 7, 10, 30, 0)).toISOString(),
+        eventTypeId: firstManagedUserEventTypeId,
+        attendee: {
+          name: secondManagedUser.user.name!,
+          email: secondManagedUser.user.email,
+          timeZone: secondManagedUser.user.timeZone,
+          language: secondManagedUser.user.locale,
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const bookingData = response.body.data;
+
+      // Attendee email should have CUID, displayEmail should not
+      expect(bookingData.attendees[0].email).toEqual(secondManagedUser.user.email);
+      expect(bookingData.attendees[0].displayEmail).toEqual(secondManagedUserEmail);
+
+      // bookingFieldsResponses should also have displayEmail
+      expect(bookingData.bookingFieldsResponses.email).toEqual(secondManagedUser.user.email);
+      expect(bookingData.bookingFieldsResponses.displayEmail).toEqual(secondManagedUserEmail);
+    });
+
+    it("should return displayGuests without CUID suffix", async () => {
+      const body: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 7, 11, 0, 0)).toISOString(),
+        eventTypeId: firstManagedUserEventTypeId,
+        attendee: {
+          name: "External Attendee",
+          email: "external-display-guests-test@example.com",
+          timeZone: "Europe/Rome",
+          language: "en",
+        },
+        guests: [secondManagedUser.user.email],
+        location: "https://meet.google.com/abc-def-ghi",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const bookingData = response.body.data;
+
+      // guests should have CUID, displayGuests should not
+      expect(bookingData.bookingFieldsResponses.guests).toContain(secondManagedUser.user.email);
+      expect(bookingData.bookingFieldsResponses.displayGuests).toContain(secondManagedUserEmail);
+    });
+  });
+
   describe("booking confirmation by org admin", () => {
     it("should allow org admin managed user to confirm booking using access token", async () => {
       const bookingRequiringConfirmation = await bookingsRepositoryFixture.create({

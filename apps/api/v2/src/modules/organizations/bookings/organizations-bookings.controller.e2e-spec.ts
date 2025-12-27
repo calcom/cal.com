@@ -335,6 +335,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -388,6 +389,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -441,6 +443,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: orgUserEmail,
+                displayEmail: orgUserEmail,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -494,6 +497,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: orgUserEmail2,
+                displayEmail: orgUserEmail2,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
