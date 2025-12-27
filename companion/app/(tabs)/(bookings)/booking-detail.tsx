@@ -1,11 +1,10 @@
+import { Stack, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Alert } from "react-native";
 import { BookingDetailScreen } from "../../../components/screens/BookingDetailScreen";
 import { useAuth } from "../../../contexts/AuthContext";
-import { useBookingActionModals } from "../../../hooks";
-import { CalComAPIService, type Booking } from "../../../services/calcom";
-import { getBookingActions, type BookingActionsResult } from "../../../utils/booking-actions";
-import { Stack, useLocalSearchParams } from "expo-router";
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Alert } from "react-native";
+import { type Booking, CalComAPIService } from "../../../services/calcom";
+import { type BookingActionsResult, getBookingActions } from "../../../utils/booking-actions";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -53,9 +52,6 @@ export default function BookingDetail() {
         });
     }
   }, [uid]);
-
-  // Booking action modals hook
-  const { selectedBooking: actionModalBooking } = useBookingActionModals();
 
   // Compute actions using centralized gating (same as BookingDetailScreen)
   const actions = useMemo(() => {

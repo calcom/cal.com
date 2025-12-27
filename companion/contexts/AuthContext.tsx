@@ -1,13 +1,13 @@
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { CalComAPIService } from "../services/calcom";
 import {
+  type CalComOAuthService,
   createCalComOAuthService,
-  OAuthTokens,
-  CalComOAuthService,
+  type OAuthTokens,
 } from "../services/oauthService";
 import type { UserProfile } from "../services/types/users.types";
 import { WebAuthService } from "../services/webAuth";
 import { secureStorage } from "../utils/storage";
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 /**
  * Simplified user info stored in auth context
@@ -69,7 +69,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   });
 
   // Setup refresh token function for OAuth
-  const setupRefreshTokenFunction = (service: CalComOAuthService) => {
+  const setupRefreshTokenFunction = useCallback((service: CalComOAuthService) => {
     CalComAPIService.setRefreshTokenFunction(async (refreshToken: string) => {
       const newTokens = await service.refreshAccessToken(refreshToken);
       return {
@@ -77,10 +77,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         refreshToken: newTokens.refreshToken,
       };
     });
-  };
+  }, []);
 
   // Common post-login setup: configure API service and fetch user profile
-  const setupAfterLogin = async (token: string, refreshToken?: string) => {
+  const setupAfterLogin = useCallback(async (token: string, refreshToken?: string) => {
     CalComAPIService.setAccessToken(token, refreshToken);
 
     try {
@@ -98,22 +98,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.error("Failed to fetch user profile:", profileError);
       // Don't fail login if profile fetch fails
     }
-  };
+  }, []);
 
-  const saveOAuthTokens = async (tokens: OAuthTokens) => {
-    await storage.set(OAUTH_TOKENS_KEY, JSON.stringify(tokens));
-    await storage.set(AUTH_TYPE_KEY, "oauth");
+  const saveOAuthTokens = useCallback(
+    async (tokens: OAuthTokens) => {
+      await storage.set(OAUTH_TOKENS_KEY, JSON.stringify(tokens));
+      await storage.set(AUTH_TYPE_KEY, "oauth");
 
-    if (oauthService) {
-      try {
-        await oauthService.syncTokensToExtension(tokens);
-      } catch (error) {
-        console.warn("Failed to sync tokens to extension:", error);
+      if (oauthService) {
+        try {
+          await oauthService.syncTokensToExtension(tokens);
+        } catch (error) {
+          console.warn("Failed to sync tokens to extension:", error);
+        }
       }
-    }
-  };
+    },
+    [oauthService]
+  );
 
-  const clearAuth = async () => {
+  const clearAuth = useCallback(async () => {
     await storage.removeAll([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, OAUTH_TOKENS_KEY, AUTH_TYPE_KEY]);
 
     if (oauthService) {
@@ -123,10 +126,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.warn("Failed to clear tokens from extension:", error);
       }
     }
-  };
+  }, [oauthService]);
 
   // Reset all auth state
-  const resetAuthState = () => {
+  const resetAuthState = useCallback(() => {
     setAccessToken(null);
     setRefreshToken(null);
     setUserInfo(null);
@@ -134,7 +137,94 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsWebSession(false);
     CalComAPIService.clearAuth();
     CalComAPIService.clearUserProfile();
-  };
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await clearAuth();
+      resetAuthState();
+    } catch (error) {
+      const message = getErrorMessage(error);
+      console.error("Failed to logout", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] logout failed", { message, stack: getErrorStack(error) });
+      }
+    }
+  }, [clearAuth, resetAuthState]);
+
+  // Handle OAuth authentication
+  const handleOAuthAuth = useCallback(
+    async (storedTokens: OAuthTokens) => {
+      if (!oauthService) return;
+
+      // Refresh token if expired
+      let tokens = storedTokens;
+      let tokensWereRefreshed = false;
+      if (oauthService.isTokenExpired(storedTokens) && storedTokens.refreshToken) {
+        try {
+          console.log("Access token expired, refreshing...");
+          tokens = await oauthService.refreshAccessToken(storedTokens.refreshToken);
+          await saveOAuthTokens(tokens);
+          tokensWereRefreshed = true;
+        } catch (refreshError) {
+          console.error("Failed to refresh token:", refreshError);
+          await clearAuth();
+          return;
+        }
+      }
+
+      // Set state
+      setAccessToken(tokens.accessToken);
+      setRefreshToken(tokens.refreshToken || null);
+      setIsAuthenticated(true);
+      setIsWebSession(false);
+
+      // Setup API service and refresh function
+      await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
+      if (tokens.refreshToken) {
+        setupRefreshTokenFunction(oauthService);
+      }
+
+      if (!tokensWereRefreshed) {
+        try {
+          await oauthService.syncTokensToExtension(tokens);
+        } catch (error) {
+          console.warn("Failed to sync tokens to extension on init:", error);
+        }
+      }
+    },
+    [oauthService, saveOAuthTokens, clearAuth, setupAfterLogin, setupRefreshTokenFunction]
+  );
+
+  // Handle web session authentication
+  const handleWebSessionAuth = useCallback(() => {
+    setIsWebSession(true);
+  }, []);
+
+  const checkAuthState = useCallback(async () => {
+    try {
+      const authType = (await storage.get(AUTH_TYPE_KEY)) as AuthType | null;
+      const storedOAuthTokens = await storage.get(OAUTH_TOKENS_KEY);
+      const storedTokens = storedOAuthTokens ? JSON.parse(storedOAuthTokens) : null;
+
+      if (authType === "oauth" && storedTokens && oauthService) {
+        await handleOAuthAuth(storedTokens);
+      } else if (authType === "web_session") {
+        handleWebSessionAuth();
+      }
+    } catch (error) {
+      const message = getErrorMessage(error);
+      console.error("Failed to check auth state", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] checkAuthState failed", {
+          message,
+          stack: getErrorStack(error),
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [oauthService, handleOAuthAuth, handleWebSessionAuth]);
 
   useEffect(() => {
     checkAuthState();
@@ -176,78 +266,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => {
       CalComAPIService.setTokenRefreshCallback(() => Promise.resolve());
     };
-  }, [refreshToken]);
-
-  // Handle OAuth authentication
-  const handleOAuthAuth = async (storedTokens: OAuthTokens) => {
-    if (!oauthService) return;
-
-    // Refresh token if expired
-    let tokens = storedTokens;
-    let tokensWereRefreshed = false;
-    if (oauthService.isTokenExpired(storedTokens) && storedTokens.refreshToken) {
-      try {
-        console.log("Access token expired, refreshing...");
-        tokens = await oauthService.refreshAccessToken(storedTokens.refreshToken);
-        await saveOAuthTokens(tokens);
-        tokensWereRefreshed = true;
-      } catch (refreshError) {
-        console.error("Failed to refresh token:", refreshError);
-        await clearAuth();
-        return;
-      }
-    }
-
-    // Set state
-    setAccessToken(tokens.accessToken);
-    setRefreshToken(tokens.refreshToken || null);
-    setIsAuthenticated(true);
-    setIsWebSession(false);
-
-    // Setup API service and refresh function
-    await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
-    if (tokens.refreshToken) {
-      setupRefreshTokenFunction(oauthService);
-    }
-
-    if (!tokensWereRefreshed) {
-      try {
-        await oauthService.syncTokensToExtension(tokens);
-      } catch (error) {
-        console.warn("Failed to sync tokens to extension on init:", error);
-      }
-    }
-  };
-
-  // Handle web session authentication
-  const handleWebSessionAuth = () => {
-    setIsWebSession(true);
-  };
-
-  const checkAuthState = async () => {
-    try {
-      const authType = (await storage.get(AUTH_TYPE_KEY)) as AuthType | null;
-      const storedOAuthTokens = await storage.get(OAUTH_TOKENS_KEY);
-      const storedTokens = storedOAuthTokens ? JSON.parse(storedOAuthTokens) : null;
-
-      if (authType === "oauth" && storedTokens && oauthService) {
-        await handleOAuthAuth(storedTokens);
-      } else if (authType === "web_session") {
-        handleWebSessionAuth();
-      }
-    } catch (error) {
-      const message = getErrorMessage(error);
-      console.error("Failed to check auth state", message);
-      if (__DEV__) {
-        console.debug("[AuthContext] checkAuthState failed", {
-          message,
-          stack: getErrorStack(error),
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [refreshToken, checkAuthState, logout, saveOAuthTokens]);
 
   const loginFromWebSession = async (sessionUserInfo: UserProfile) => {
     try {
@@ -320,19 +339,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       throw error;
     } finally {
       setLoading(false);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await clearAuth();
-      resetAuthState();
-    } catch (error) {
-      const message = getErrorMessage(error);
-      console.error("Failed to logout", message);
-      if (__DEV__) {
-        console.debug("[AuthContext] logout failed", { message, stack: getErrorStack(error) });
-      }
     }
   };
 

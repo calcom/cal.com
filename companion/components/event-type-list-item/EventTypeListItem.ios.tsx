@@ -1,21 +1,21 @@
-import { formatDuration } from "../../utils/formatters";
-import { getEventDuration } from "../../utils/getEventDuration";
-import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
-import { EventTypeListItemProps } from "./types";
-import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
+import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
 import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import React from "react";
-import { View, Text, Pressable } from "react-native";
+import type React from "react";
+import { Pressable, Text, View } from "react-native";
+import { formatDuration } from "../../utils/formatters";
+import { getEventDuration } from "../../utils/getEventDuration";
+import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
+import type { EventTypeListItemProps } from "./types";
 
 export const EventTypeListItem = ({
   item,
   index,
   filteredEventTypes,
-  copiedEventTypeId,
+  copiedEventTypeId: _copiedEventTypeId,
   handleEventTypePress,
-  handleEventTypeLongPress,
+  handleEventTypeLongPress: _handleEventTypeLongPress,
   handleCopyLink,
   handlePreview,
   onEdit,

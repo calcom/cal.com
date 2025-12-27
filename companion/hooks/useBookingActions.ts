@@ -1,8 +1,8 @@
-import type { Booking } from "../services/calcom";
-import { showErrorAlert } from "../utils/alerts";
 import type { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert } from "react-native";
+import type { Booking } from "../services/calcom";
+import { showErrorAlert } from "../utils/alerts";
 
 interface UseBookingActionsParams {
   router: ReturnType<typeof useRouter>;
@@ -90,7 +90,7 @@ export const useBookingActions = ({
     const currentDate = new Date(startTimeValue);
 
     // Check if the date is valid
-    if (isNaN(currentDate.getTime())) {
+    if (Number.isNaN(currentDate.getTime())) {
       showErrorAlert("Error", "Unable to reschedule: invalid booking date");
       return;
     }
@@ -126,7 +126,7 @@ export const useBookingActions = ({
     const newDateTime = new Date(dateTimeStr);
 
     // Validate the date
-    if (isNaN(newDateTime.getTime())) {
+    if (Number.isNaN(newDateTime.getTime())) {
       showErrorAlert(
         "Error",
         "Invalid date or time format. Please use YYYY-MM-DD for date and HH:MM for time."
@@ -179,7 +179,7 @@ export const useBookingActions = ({
     const newDateTime = new Date(dateTimeStr);
 
     // Validate the date
-    if (isNaN(newDateTime.getTime())) {
+    if (Number.isNaN(newDateTime.getTime())) {
       throw new Error(
         "Invalid date or time format. Please use YYYY-MM-DD for date and HH:MM for time."
       );
@@ -250,7 +250,7 @@ export const useBookingActions = ({
                       onSuccess: () => {
                         Alert.alert("Success", "Event cancelled successfully");
                       },
-                      onError: (error) => {
+                      onError: (_error) => {
                         console.error("Failed to cancel booking");
                         showErrorAlert("Error", "Failed to cancel event. Please try again.");
                       },
@@ -359,7 +359,7 @@ export const useBookingActions = ({
           setRejectReason("");
           Alert.alert("Success", "Booking rejected successfully");
         },
-        onError: (error) => {
+        onError: (_error) => {
           showErrorAlert("Error", "Failed to reject booking. Please try again.");
         },
       }
@@ -385,7 +385,7 @@ export const useBookingActions = ({
         onSuccess: () => {
           Alert.alert("Success", "Booking confirmed successfully");
         },
-        onError: (error) => {
+        onError: (_error) => {
           showErrorAlert("Error", "Failed to confirm booking. Please try again.");
         },
       }

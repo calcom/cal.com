@@ -165,7 +165,7 @@ function openAppPage(): void {
 }
 
 export default defineBackground(() => {
-  const browserType = detectBrowser();
+  const _browserType = detectBrowser();
   const browserName = getBrowserDisplayName();
 
   if (IS_DEV_MODE) {
@@ -199,7 +199,7 @@ export default defineBackground(() => {
   }
 
   if (runtimeAPI) {
-    runtimeAPI.onMessage.addListener((message, sender, sendResponse) => {
+    runtimeAPI.onMessage.addListener((message, _sender, sendResponse) => {
       if (message.action === "fetch-event-types") {
         fetchEventTypes()
           .then((eventTypes) => sendResponse({ data: eventTypes }))
@@ -375,7 +375,7 @@ async function handleExtensionOAuth(authUrl: string): Promise<string> {
         const result = identityAPI.launchWebAuthFlow({
           url: authUrl,
           interactive: true,
-        }) as Promise<string | undefined> | void;
+        }) as Promise<string | undefined> | undefined;
 
         if (result && typeof result.then === "function") {
           result

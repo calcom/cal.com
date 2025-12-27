@@ -40,8 +40,11 @@
     "ext:zip-edge-prod": "BUILD_FOR_STORE=true BROWSER_TARGET=edge wxt zip -b edge",
     "ext:build-all": "npm run ext:build && npm run ext:build-firefox && npm run ext:build-safari && npm run ext:build-edge",
     "ext:build-all-prod": "npm run ext:build-prod && npm run ext:build-firefox-prod && npm run ext:build-safari-prod && npm run ext:build-edge-prod",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "check": "biome check --write .",
+    "check:ci": "biome ci .",
     "prepare": "cd .. && husky companion/.husky"
   },
   "dependencies": {
@@ -81,21 +84,20 @@
   },
   "private": true,
   "devDependencies": {
+    "@biomejs/biome": "2.3.10",
     "@types/chrome": "^0.1.31",
     "@types/react": "19.2.3",
     "@types/react-dom": "19.2.3",
     "babel-preset-expo": "^54.0.7",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.0",
-    "prettier": "^3.2.5",
-    "prettier-plugin-tailwindcss": "^0.5.11",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.9.3",
     "wxt": "^0.20.11"
   },
   "lint-staged": {
-    "**/*.{js,jsx,ts,tsx,json,css,md}": [
-      "prettier --write"
+    "**/*.{js,jsx,ts,tsx,json}": [
+      "biome check --write --error-on-warnings --no-errors-on-unmatched"
     ]
   }
 }

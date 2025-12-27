@@ -1,34 +1,34 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { Activity, useMemo, useState } from "react";
+import {
+  ActionSheetIOS,
+  Alert,
+  FlatList,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { AppPressable } from "../../components/AppPressable";
+import { AvailabilityListItem } from "../../components/availability-list-item/AvailabilityListItem";
 import { EmptyScreen } from "../../components/EmptyScreen";
 import { FullScreenModal } from "../../components/FullScreenModal";
 import { Header } from "../../components/Header";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
-import { AvailabilityListItem } from "../../components/availability-list-item/AvailabilityListItem";
 import {
-  useSchedules,
   useCreateSchedule,
   useDeleteSchedule,
   useDuplicateSchedule,
+  useSchedules,
   useSetScheduleAsDefault,
 } from "../../hooks";
-import { CalComAPIService, Schedule } from "../../services/calcom";
+import { CalComAPIService, type Schedule } from "../../services/calcom";
 import { showErrorAlert } from "../../utils/alerts";
 import { offlineAwareRefresh } from "../../utils/network";
 import { shadows } from "../../utils/shadows";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React, { useState, useMemo, Activity } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  RefreshControl,
-  ActionSheetIOS,
-  Alert,
-  Platform,
-  TextInput,
-  ScrollView,
-} from "react-native";
 
 export interface AvailabilityListScreenProps {
   searchQuery: string;
@@ -97,11 +97,11 @@ export function AvailabilityListScreen({
   const handleScheduleLongPress = (schedule: Schedule) => {
     if (Platform.OS !== "ios") {
       // Fallback for non-iOS platforms (Android Alert supports max 3 buttons)
-      const options: Array<{
+      const options: {
         text: string;
         onPress: () => void;
         style?: "destructive" | "cancel" | "default";
-      }> = [];
+      }[] = [];
       if (!schedule.isDefault) {
         options.push({ text: "Set as default", onPress: () => handleSetAsDefault(schedule) });
       }
@@ -234,7 +234,7 @@ export function AvailabilityListScreen({
       if (userProfile.timeZone) {
         userTimezone = userProfile.timeZone;
       }
-    } catch (error) {
+    } catch {
       console.log("Could not get user timezone, using default");
     }
 
@@ -514,22 +514,20 @@ export function AvailabilityListScreen({
               <Activity
                 mode={selectedSchedule && !selectedSchedule.isDefault ? "visible" : "hidden"}
               >
-                <>
-                  <AppPressable
-                    onPress={() => {
-                      setShowActionsModal(false);
-                      if (selectedSchedule) {
-                        handleSetAsDefault(selectedSchedule);
-                      }
-                    }}
-                    className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-                  >
-                    <Ionicons name="star-outline" size={20} color="#6B7280" />
-                    <Text className="ml-3 text-base text-gray-900">Set as Default</Text>
-                  </AppPressable>
+                <AppPressable
+                  onPress={() => {
+                    setShowActionsModal(false);
+                    if (selectedSchedule) {
+                      handleSetAsDefault(selectedSchedule);
+                    }
+                  }}
+                  className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                >
+                  <Ionicons name="star-outline" size={20} color="#6B7280" />
+                  <Text className="ml-3 text-base text-gray-900">Set as Default</Text>
+                </AppPressable>
 
-                  <View className="mx-4 my-2 h-px bg-gray-200" />
-                </>
+                <View className="mx-4 my-2 h-px bg-gray-200" />
               </Activity>
 
               {/* Duplicate */}

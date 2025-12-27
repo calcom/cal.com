@@ -1,14 +1,14 @@
-import { CalComAPIService, Schedule } from "../../services/calcom";
-import { ScheduleAvailability } from "../../services/types";
-import { showErrorAlert } from "../../utils/alerts";
-import { AppPressable } from "../AppPressable";
-import { FullScreenModal } from "../FullScreenModal";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TextInput, Alert, ActivityIndicator, Switch } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, Alert, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CalComAPIService, type Schedule } from "../../services/calcom";
+import type { ScheduleAvailability } from "../../services/types";
+import { showErrorAlert } from "../../utils/alerts";
+import { AppPressable } from "../AppPressable";
+import { FullScreenModal } from "../FullScreenModal";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -84,7 +84,8 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [schedule, setSchedule] = useState<Schedule | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_schedule, setSchedule] = useState<Schedule | null>(null);
   const [scheduleName, setScheduleName] = useState("");
   const [timeZone, setTimeZone] = useState("");
   const [isDefault, setIsDefault] = useState(false);
@@ -96,11 +97,11 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
     type: "start" | "end";
   } | null>(null);
   const [overrides, setOverrides] = useState<
-    Array<{
+    {
       date: string; // Format: "2024-05-20"
       startTime: string; // Format: "12:00" or "00:00" for unavailable
       endTime: string; // Format: "14:00" or "00:00" for unavailable
-    }>
+    }[]
   >([]);
   const [showOverrideModal, setShowOverrideModal] = useState(false);
   const [editingOverride, setEditingOverride] = useState<number | null>(null);
@@ -128,13 +129,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
     "UTC",
   ];
 
-  useEffect(() => {
-    if (id) {
-      fetchSchedule();
-    }
-  }, [id]);
-
-  const fetchSchedule = async () => {
+  const fetchSchedule = useCallback(async () => {
     try {
       setLoading(true);
       const scheduleData = await CalComAPIService.getScheduleById(Number(id));
@@ -173,7 +168,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                   // If it's a number string (e.g., "0", "1")
                   if (typeof day === "string") {
                     const parsed = parseInt(day, 10);
-                    if (!isNaN(parsed) && parsed >= 0 && parsed <= 6) {
+                    if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 6) {
                       return parsed;
                     }
                   }
@@ -225,7 +220,13 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
+
+  useEffect(() => {
+    if (id) {
+      fetchSchedule();
+    }
+  }, [id, fetchSchedule]);
 
   const toggleDay = (dayIndex: number) => {
     setAvailability((prev) => {
@@ -283,7 +284,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
   ) => {
     setAvailability((prev) => {
       const newAvailability = { ...prev };
-      if (newAvailability[dayIndex] && newAvailability[dayIndex][slotIndex]) {
+      if (newAvailability[dayIndex]?.[slotIndex]) {
         const slot = { ...newAvailability[dayIndex][slotIndex] };
         if (type === "start") {
           slot.startTime = `${time}:00`;
@@ -301,11 +302,11 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
       setSaving(true);
 
       // Convert availability object back to array format with day names
-      const availabilityArray: Array<{
+      const availabilityArray: {
         days: string[]; // Day names like "Monday", "Tuesday"
         startTime: string; // Format: "09:00"
         endTime: string; // Format: "10:00"
-      }> = [];
+      }[] = [];
 
       Object.keys(availability).forEach((dayIndexStr) => {
         const dayIndex = Number(dayIndexStr);
@@ -347,7 +348,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
       Alert.alert("Success", "Schedule updated successfully", [
         { text: "OK", onPress: () => router.back() },
       ]);
-    } catch (error) {
+    } catch {
       showErrorAlert("Error", "Failed to update schedule. Please try again.");
     } finally {
       setSaving(false);
@@ -361,7 +362,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
       });
       setIsDefault(true);
       Alert.alert("Success", "Schedule set as default successfully");
-    } catch (error) {
+    } catch {
       showErrorAlert("Error", "Failed to set schedule as default. Please try again.");
     }
   };
@@ -378,7 +379,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
             Alert.alert("Success", "Schedule deleted successfully", [
               { text: "OK", onPress: () => router.back() },
             ]);
-          } catch (error) {
+          } catch {
             showErrorAlert("Error", "Failed to delete schedule. Please try again.");
           }
         },
@@ -445,7 +446,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
 
   const formatDateForDisplay = (dateStr: string): string => {
     if (!dateStr) return "";
-    const date = new Date(dateStr + "T00:00:00");
+    const date = new Date(`${dateStr}T00:00:00`);
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -518,8 +519,8 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
             <Text className="mb-3 text-xl font-bold text-[#333]">{scheduleName}</Text>
             {Object.keys(availability).length > 0 ? (
               <View>
-                {formatAvailabilityDisplay(availability).map((line, index) => (
-                  <Text key={index} className="mb-1 text-base text-[#666]">
+                {formatAvailabilityDisplay(availability).map((line) => (
+                  <Text key={line} className="mb-1 text-base text-[#666]">
                     {line}
                   </Text>
                 ))}
@@ -539,7 +540,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
 
               return (
                 <View
-                  key={dayIndex}
+                  key={day}
                   className={`mb-3 border-b border-[#E5E5EA] pb-3 ${
                     dayIndex === DAYS.length - 1 ? "mb-0 border-b-0 pb-0" : ""
                   }`}
@@ -597,7 +598,10 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                   {isEnabled && daySlots.length > 1 ? (
                     <View className="mt-2" style={{ marginLeft: 108 }}>
                       {daySlots.slice(1).map((slot, slotIndex) => (
-                        <View key={slotIndex + 1} className="mb-2 flex-row items-center gap-2">
+                        <View
+                          key={`${slotIndex}-${slot.startTime}-${slot.endTime}`}
+                          className="mb-2 flex-row items-center gap-2"
+                        >
                           <AppPressable
                             onPress={() =>
                               setShowTimePicker({
@@ -667,7 +671,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
               <View className="mb-4">
                 {overrides.map((override, index) => (
                   <View
-                    key={index}
+                    key={override.date}
                     className="mb-2 flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] p-3"
                   >
                     <View className="flex-1">
@@ -678,8 +682,8 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                         <Text className="text-sm text-[#666]">Unavailable (All day)</Text>
                       ) : (
                         <Text className="text-sm text-[#666]">
-                          {formatTime12Hour(override.startTime + ":00")} -{" "}
-                          {formatTime12Hour(override.endTime + ":00")}
+                          {formatTime12Hour(`${override.startTime}:00`)} -{" "}
+                          {formatTime12Hour(`${override.endTime}:00`)}
                         </Text>
                       )}
                     </View>
@@ -925,7 +929,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                         className="flex-1 rounded-lg border border-[#E5E5EA] bg-white px-3 py-3"
                       >
                         <Text className="text-center text-base text-[#333]">
-                          {formatTime12Hour(overrideStartTime + ":00")}
+                          {formatTime12Hour(`${overrideStartTime}:00`)}
                         </Text>
                       </AppPressable>
                       <Text className="text-base text-[#666]">-</Text>
@@ -934,7 +938,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                         className="flex-1 rounded-lg border border-[#E5E5EA] bg-white px-3 py-3"
                       >
                         <Text className="text-center text-base text-[#333]">
-                          {formatTime12Hour(overrideEndTime + ":00")}
+                          {formatTime12Hour(`${overrideEndTime}:00`)}
                         </Text>
                       </AppPressable>
                     </View>
@@ -1003,7 +1007,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                         isSelected ? "font-semibold text-[#007AFF]" : "text-[#333]"
                       }`}
                     >
-                      {formatTime12Hour(time + ":00")}
+                      {formatTime12Hour(`${time}:00`)}
                     </Text>
                   </AppPressable>
                 );

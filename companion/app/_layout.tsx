@@ -1,9 +1,9 @@
 import { Stack } from "expo-router";
-import { Platform, View, StatusBar } from "react-native";
+import { Platform, StatusBar, View } from "react-native";
+import LoginScreenComponent from "../components/LoginScreen";
+import { NetworkStatusBanner } from "../components/NetworkStatusBanner";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import { QueryProvider } from "../contexts/QueryContext";
-import { NetworkStatusBanner } from "../components/NetworkStatusBanner";
-import LoginScreen from "../components/LoginScreen";
 import "../global.css";
 
 function RootLayoutContent() {
@@ -14,7 +14,7 @@ function RootLayoutContent() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
     </Stack>
   ) : (
-    <LoginScreen />
+    <LoginScreenComponent />
   );
 
   const containerClass =

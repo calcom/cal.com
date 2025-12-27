@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
-import { View, Text, ActivityIndicator, Platform } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect } from "react";
+import { ActivityIndicator, Platform, Text, View } from "react-native";
 import { useAuth } from "../../contexts";
 
 export default function OAuthCallback() {
@@ -93,7 +93,8 @@ export default function OAuthCallback() {
         }
       }
     }
-  }, [params, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params, router, auth.userInfo]);
 
   return (
     <View className="flex-1 items-center justify-center bg-white">

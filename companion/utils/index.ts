@@ -10,76 +10,64 @@
  * ```
  */
 
-// Formatting utilities
-export { formatDuration, truncateTitle, formatAppIdToDisplayName } from "./formatters";
-
-// Storage utilities
-export {
-  secureStorage,
-  generalStorage,
-  isChromeStorageAvailable,
-  type StorageAdapter,
-} from "./storage";
-
-// Query persistence utilities
-export { createQueryPersister, clearQueryCache, getCacheMetadata } from "./queryPersister";
-
 // Alert utilities
 export { showErrorAlert } from "./alerts";
-
 // Browser utilities
 export { openInAppBrowser } from "./browser";
-
-// Network utilities
-export { isOnline } from "./network";
-
-// Slug utilities
-export { slugify } from "./slugify";
-
-// App icon utilities
-export { getAppIconUrl } from "./getAppIconUrl";
-
-// Avatar utilities
-export { getAvatarUrl } from "./getAvatarUrl";
-
 // Default location utilities
 export {
+  type DefaultLocation,
+  DefaultLocationType,
   defaultLocations,
   getDefaultLocationIconUrl,
   isDefaultLocation,
-  DefaultLocationType,
-  type DefaultLocation,
 } from "./defaultLocations";
-
-// Location helper utilities
-export {
-  formatAppIdToDisplayName as formatAppId, // Alias for backward compatibility
-  generateLocationId,
-  mapApiLocationToItem,
-  mapItemToApiLocation,
-  getLocationDisplayName,
-  getLocationIconUrl,
-  createLocationItemFromOption,
-  locationRequiresInput,
-  getLocationInputType,
-  getLocationInputPlaceholder,
-  getLocationInputLabel,
-  validateLocationItem,
-  buildLocationOptions,
-  displayNameToLocationValue,
-} from "./locationHelpers";
-
 // Event type parser utilities
 export {
   parseBufferTime,
-  parseMinimumNotice,
   parseFrequencyUnit,
+  parseMinimumNotice,
   parseSlotInterval,
 } from "./eventTypeParsers";
-
+// Formatting utilities
+export { formatAppIdToDisplayName, formatDuration, truncateTitle } from "./formatters";
+// App icon utilities
+export { getAppIconUrl } from "./getAppIconUrl";
+// Avatar utilities
+export { getAvatarUrl } from "./getAvatarUrl";
 // Gmail Google Chip parser (for extension)
 export {
-  parseGoogleChip,
   type GoogleTimeSlot,
   type ParsedGoogleChip,
+  parseGoogleChip,
 } from "./gmailGoogleChipParser";
+// Location helper utilities
+export {
+  buildLocationOptions,
+  createLocationItemFromOption,
+  displayNameToLocationValue,
+  formatAppIdToDisplayName as formatAppId, // Alias for backward compatibility
+  generateLocationId,
+  getLocationDisplayName,
+  getLocationIconUrl,
+  getLocationInputLabel,
+  getLocationInputPlaceholder,
+  getLocationInputType,
+  locationRequiresInput,
+  mapApiLocationToItem,
+  mapItemToApiLocation,
+  validateLocationItem,
+} from "./locationHelpers";
+// Network utilities
+export { isOnline } from "./network";
+// Query persistence utilities
+export { clearQueryCache, createQueryPersister, getCacheMetadata } from "./queryPersister";
+// Slug utilities
+export { slugify } from "./slugify";
+// Storage utilities
+export {
+  generalStorage,
+  isChromeStorageAvailable,
+  type StorageAdapter,
+  secureStorage,
+} from "./storage";

@@ -1,12 +1,73 @@
-import type { EventType } from "../../../services/calcom";
+import type {
+  BookingLimitsCount,
+  BookingLimitsDuration,
+  EventType,
+} from "../../../services/calcom";
 import type { LocationItem } from "../../../types/locations";
 import {
   parseBufferTime,
-  parseMinimumNotice,
   parseFrequencyUnit,
+  parseMinimumNotice,
   parseSlotInterval,
 } from "../../../utils/eventTypeParsers";
 import { mapItemToApiLocation } from "../../../utils/locationHelpers";
+
+interface LocationInput {
+  type: string;
+  integration?: string;
+  address?: string;
+  link?: string;
+  phone?: string;
+  public?: boolean;
+}
+
+interface NormalizedLocation {
+  type: string;
+  integration?: string;
+  address?: string;
+  link?: string;
+  phone?: string;
+  public?: boolean;
+}
+
+interface BookingWindow {
+  disabled?: boolean;
+  type?: string;
+  value?: number | string[];
+}
+
+interface BookerActiveBookingsLimit {
+  disabled?: boolean;
+  maximumActiveBookings?: number;
+  count?: number;
+  offerReschedule?: boolean;
+}
+
+interface RecurrenceConfig {
+  disabled?: boolean;
+  interval?: number;
+  frequency?: string;
+  occurrences?: number;
+}
+
+interface SeatsConfig {
+  disabled?: boolean;
+  seatsPerTimeSlot?: number;
+  showAttendeeInfo?: boolean;
+  showAvailabilityCount?: boolean;
+}
+
+interface BookerLayoutsConfig {
+  enabledLayouts?: string[];
+  defaultLayout?: string;
+}
+
+interface ColorsConfig {
+  lightThemeHex?: string;
+  darkThemeHex?: string;
+  lightEventTypeColor?: string;
+  darkEventTypeColor?: string;
+}
 
 interface FrequencyLimit {
   id: number;
@@ -92,7 +153,7 @@ function hasMultipleDurationsChanged(
   selectedDurations: string[],
   defaultDuration: string,
   mainDuration: string,
-  original: any
+  original: EventType | null
 ): boolean {
   const originalOptions = original?.lengthInMinutesOptions;
   const originalHasMultiple =
@@ -103,7 +164,7 @@ function hasMultipleDurationsChanged(
   if (enabled && !originalHasMultiple) return true;
 
   const currentDurations = selectedDurations.map(parseDurationString).sort((a, b) => a - b);
-  const originalDurations = [...originalOptions].sort((a: number, b: number) => a - b);
+  const originalDurations = [...(originalOptions ?? [])].sort((a: number, b: number) => a - b);
 
   if (!areEqual(currentDurations, originalDurations)) return true;
 
@@ -132,10 +193,10 @@ function areEqual(a: unknown, b: unknown): boolean {
   return keysA.every((key, index) => key === keysB[index] && areEqual(objA[key], objB[key]));
 }
 
-function normalizeLocation(loc: any): any {
+function normalizeLocation(loc: LocationInput | null): NormalizedLocation | null {
   if (!loc) return null;
 
-  const normalized: any = { type: loc.type };
+  const normalized: NormalizedLocation = { type: loc.type };
 
   if (loc.type === "integration") {
     normalized.integration = loc.integration;
@@ -155,7 +216,7 @@ function normalizeLocation(loc: any): any {
 
 function haveLocationsChanged(
   currentLocations: LocationItem[],
-  originalLocations: any[] | undefined
+  originalLocations: LocationInput[] | undefined
 ): boolean {
   if ((!originalLocations || originalLocations.length === 0) && currentLocations.length === 0) {
     return false;
@@ -164,9 +225,10 @@ function haveLocationsChanged(
   if (originalLocations && currentLocations.length !== originalLocations.length) return true;
 
   const currentMapped = currentLocations.map((loc) => normalizeLocation(mapItemToApiLocation(loc)));
-  const originalMapped = originalLocations!.map((loc) => normalizeLocation(loc));
+  const originalMapped = originalLocations?.map((loc) => normalizeLocation(loc)) ?? [];
 
-  const sortByType = (a: any, b: any) => (a?.type || "").localeCompare(b?.type || "");
+  const sortByType = (a: NormalizedLocation | null, b: NormalizedLocation | null) =>
+    (a?.type || "").localeCompare(b?.type || "");
   currentMapped.sort(sortByType);
   originalMapped.sort(sortByType);
 
@@ -176,13 +238,12 @@ function haveLocationsChanged(
 function hasBookingLimitsCountChanged(
   enabled: boolean,
   limits: FrequencyLimit[],
-  original: any
+  original: BookingLimitsCount | { disabled: true } | null | undefined
 ): boolean {
   const originalIsDisabled =
     !original ||
-    original.disabled === true ||
-    Object.keys(original).length === 0 ||
-    (Object.keys(original).length === 1 && original.disabled !== undefined);
+    ("disabled" in original && original.disabled === true) ||
+    Object.keys(original).length === 0;
 
   if (!enabled && originalIsDisabled) return false;
   if (!enabled && !originalIsDisabled) return true;
@@ -192,17 +253,17 @@ function hasBookingLimitsCountChanged(
   limits.forEach((limit) => {
     const unit = parseFrequencyUnit(limit.unit);
     if (unit) {
-      currentLimits[unit] = parseInt(limit.value) || 1;
+      currentLimits[unit] = parseInt(limit.value, 10) || 1;
     }
   });
 
   const originalLimits: Record<string, number> = {};
-  if (original) {
-    Object.keys(original).forEach((key) => {
-      if (key !== "disabled" && typeof original[key] === "number") {
-        originalLimits[key] = original[key];
-      }
-    });
+  if (original && !("disabled" in original)) {
+    const orig = original as BookingLimitsCount;
+    if (orig.day !== undefined) originalLimits.day = orig.day;
+    if (orig.week !== undefined) originalLimits.week = orig.week;
+    if (orig.month !== undefined) originalLimits.month = orig.month;
+    if (orig.year !== undefined) originalLimits.year = orig.year;
   }
 
   return !areEqual(currentLimits, originalLimits);
@@ -211,13 +272,12 @@ function hasBookingLimitsCountChanged(
 function hasBookingLimitsDurationChanged(
   enabled: boolean,
   limits: FrequencyLimit[],
-  original: any
+  original: BookingLimitsDuration | { disabled: true } | null | undefined
 ): boolean {
   const originalIsDisabled =
     !original ||
-    original.disabled === true ||
-    Object.keys(original).length === 0 ||
-    (Object.keys(original).length === 1 && original.disabled !== undefined);
+    ("disabled" in original && original.disabled === true) ||
+    Object.keys(original).length === 0;
 
   if (!enabled && originalIsDisabled) return false;
   if (!enabled && !originalIsDisabled) return true;
@@ -227,17 +287,17 @@ function hasBookingLimitsDurationChanged(
   limits.forEach((limit) => {
     const unit = parseFrequencyUnit(limit.unit);
     if (unit) {
-      currentLimits[unit] = parseInt(limit.value) || 60;
+      currentLimits[unit] = parseInt(limit.value, 10) || 60;
     }
   });
 
   const originalLimits: Record<string, number> = {};
-  if (original) {
-    Object.keys(original).forEach((key) => {
-      if (key !== "disabled" && typeof original[key] === "number") {
-        originalLimits[key] = original[key];
-      }
-    });
+  if (original && !("disabled" in original)) {
+    const orig = original as BookingLimitsDuration;
+    if (orig.day !== undefined) originalLimits.day = orig.day;
+    if (orig.week !== undefined) originalLimits.week = orig.week;
+    if (orig.month !== undefined) originalLimits.month = orig.month;
+    if (orig.year !== undefined) originalLimits.year = orig.year;
   }
 
   return !areEqual(currentLimits, originalLimits);
@@ -250,7 +310,7 @@ function hasBookingWindowChanged(
   calendarDays: boolean,
   rangeStart: string,
   rangeEnd: string,
-  original: any
+  original: BookingWindow | null | undefined
 ): boolean {
   const originalDisabled = !original || original.disabled;
 
@@ -259,14 +319,14 @@ function hasBookingWindowChanged(
   if (enabled && originalDisabled) return true;
 
   if (type === "range") {
-    if (original.type !== "range") return true;
-    const originalValue = original.value;
+    if (original?.type !== "range") return true;
+    const originalValue = original?.value;
     if (!Array.isArray(originalValue)) return true;
     return originalValue[0] !== rangeStart || originalValue[1] !== rangeEnd;
   } else {
     const expectedType = calendarDays ? "calendarDays" : "businessDays";
-    if (original.type !== expectedType) return true;
-    return original.value !== parseInt(rollingDays);
+    if (original?.type !== expectedType) return true;
+    return original?.value !== parseInt(rollingDays, 10);
   }
 }
 
@@ -274,7 +334,7 @@ function hasBookerActiveBookingsLimitChanged(
   enabled: boolean,
   value: string,
   offerReschedule: boolean,
-  original: any
+  original: BookerActiveBookingsLimit | null | undefined
 ): boolean {
   const originalDisabled = !original || original.disabled;
 
@@ -282,8 +342,8 @@ function hasBookerActiveBookingsLimitChanged(
   if (!enabled && !originalDisabled) return true;
   if (enabled && originalDisabled) return true;
 
-  const originalMax = original.maximumActiveBookings ?? original.count;
-  return originalMax !== parseInt(value) || original.offerReschedule !== offerReschedule;
+  const originalMax = original?.maximumActiveBookings ?? original?.count;
+  return originalMax !== parseInt(value, 10) || original?.offerReschedule !== offerReschedule;
 }
 
 function hasRecurrenceChanged(
@@ -291,7 +351,7 @@ function hasRecurrenceChanged(
   interval: string,
   frequency: string,
   occurrences: string,
-  original: any
+  original: RecurrenceConfig | null | undefined
 ): boolean {
   const originalDisabled = !original || original.disabled === true;
 
@@ -300,9 +360,9 @@ function hasRecurrenceChanged(
   if (enabled && originalDisabled) return true;
 
   return (
-    original.interval !== parseInt(interval) ||
-    original.frequency !== frequency ||
-    original.occurrences !== parseInt(occurrences)
+    original?.interval !== parseInt(interval, 10) ||
+    original?.frequency !== frequency ||
+    original?.occurrences !== parseInt(occurrences, 10)
   );
 }
 
@@ -311,7 +371,7 @@ function hasSeatsChanged(
   perTimeSlot: string,
   showAttendee: boolean,
   showAvailability: boolean,
-  original: any
+  original: SeatsConfig | null | undefined
 ): boolean {
   const originalDisabled = !original || original.disabled === true;
   const originalEnabled =
@@ -323,9 +383,9 @@ function hasSeatsChanged(
   if (enabled && originalDisabled) return true;
 
   return (
-    original.seatsPerTimeSlot !== parseInt(perTimeSlot) ||
-    original.showAttendeeInfo !== showAttendee ||
-    original.showAvailabilityCount !== showAvailability
+    original?.seatsPerTimeSlot !== parseInt(perTimeSlot, 10) ||
+    original?.showAttendeeInfo !== showAttendee ||
+    original?.showAvailabilityCount !== showAvailability
   );
 }
 
@@ -341,7 +401,8 @@ function mapLayoutToApi(layout: string): string {
   return mapping[layout] || layout.toLowerCase().replace("_view", "");
 }
 
-function mapLayoutFromApi(layout: string): string {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _mapLayoutFromApi(layout: string): string {
   const mapping: Record<string, string> = {
     month: "MONTH_VIEW",
     week: "WEEK_VIEW",
@@ -350,13 +411,13 @@ function mapLayoutFromApi(layout: string): string {
     WEEK_VIEW: "WEEK_VIEW",
     COLUMN_VIEW: "COLUMN_VIEW",
   };
-  return mapping[layout] || layout.toUpperCase() + "_VIEW";
+  return mapping[layout] || `${layout.toUpperCase()}_VIEW`;
 }
 
 function hasBookerLayoutsChanged(
   selectedLayouts: string[],
   defaultLayout: string,
-  original: any
+  original: BookerLayoutsConfig | null | undefined
 ): boolean {
   if (!original) return selectedLayouts.length > 0;
 
@@ -370,7 +431,11 @@ function hasBookerLayoutsChanged(
   return mapLayoutToApi(defaultLayout) !== mapLayoutToApi(originalDefault || "");
 }
 
-function hasColorsChanged(lightColor: string, darkColor: string, original: any): boolean {
+function hasColorsChanged(
+  lightColor: string,
+  darkColor: string,
+  original: ColorsConfig | null | undefined
+): boolean {
   if (!original) return lightColor !== "#292929" || darkColor !== "#FAFAFA";
   const originalLight = original.lightThemeHex || original.lightEventTypeColor;
   const originalDark = original.darkThemeHex || original.darkEventTypeColor;
@@ -381,15 +446,15 @@ function hasColorsChanged(lightColor: string, darkColor: string, original: any):
 export function buildPartialUpdatePayload(
   currentState: EventTypeFormState,
   originalData: EventType | null
-): Record<string, any> {
-  const payload: Record<string, any> = {};
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
 
   if (!originalData) {
     console.warn("buildPartialUpdatePayload called without original data");
     return {};
   }
 
-  const original = originalData as any;
+  const original = originalData;
 
   if (currentState.eventTitle !== original.title) {
     payload.title = currentState.eventTitle;
@@ -403,7 +468,7 @@ export function buildPartialUpdatePayload(
     payload.description = currentState.eventDescription || "";
   }
 
-  const currentDuration = parseInt(currentState.eventDuration);
+  const currentDuration = parseInt(currentState.eventDuration, 10);
 
   if (
     hasMultipleDurationsChanged(
@@ -496,7 +561,7 @@ export function buildPartialUpdatePayload(
       currentState.frequencyLimits.forEach((limit) => {
         const unit = parseFrequencyUnit(limit.unit);
         if (unit) {
-          limitsCount[unit] = parseInt(limit.value) || 1;
+          limitsCount[unit] = parseInt(limit.value, 10) || 1;
         }
       });
       payload.bookingLimitsCount = limitsCount;
@@ -518,7 +583,7 @@ export function buildPartialUpdatePayload(
       currentState.durationLimits.forEach((limit) => {
         const unit = parseFrequencyUnit(limit.unit);
         if (unit) {
-          limitsDuration[unit] = parseInt(limit.value) || 60;
+          limitsDuration[unit] = parseInt(limit.value, 10) || 60;
         }
       });
       payload.bookingLimitsDuration = limitsDuration;
@@ -543,7 +608,7 @@ export function buildPartialUpdatePayload(
   ) {
     if (currentState.maxActiveBookingsPerBooker) {
       payload.bookerActiveBookingsLimit = {
-        maximumActiveBookings: parseInt(currentState.maxActiveBookingsValue) || 1,
+        maximumActiveBookings: parseInt(currentState.maxActiveBookingsValue, 10) || 1,
         offerReschedule: currentState.offerReschedule,
       };
     } else {
@@ -572,7 +637,7 @@ export function buildPartialUpdatePayload(
       } else {
         payload.bookingWindow = {
           type: currentState.rollingCalendarDays ? "calendarDays" : "businessDays",
-          value: parseInt(currentState.rollingDays),
+          value: parseInt(currentState.rollingDays, 10),
         };
       }
     } else {
@@ -582,7 +647,8 @@ export function buildPartialUpdatePayload(
 
   const originalRequiresConfirmation =
     original.requiresConfirmation ||
-    (original.confirmationPolicy && !original.confirmationPolicy.disabled);
+    (original.confirmationPolicy &&
+      !("disabled" in original.confirmationPolicy && original.confirmationPolicy.disabled));
   if (currentState.requiresConfirmation !== originalRequiresConfirmation) {
     payload.requiresConfirmation = currentState.requiresConfirmation;
   }
@@ -664,7 +730,7 @@ export function buildPartialUpdatePayload(
     };
   }
 
-  const metadataChanges: Record<string, any> = {};
+  const metadataChanges: Record<string, unknown> = {};
   const originalMetadata = original.metadata || {};
 
   if (
@@ -722,8 +788,8 @@ export function buildPartialUpdatePayload(
   ) {
     if (currentState.recurringEnabled) {
       payload.recurrence = {
-        interval: parseInt(currentState.recurringInterval) || 1,
-        occurrences: parseInt(currentState.recurringOccurrences) || 12,
+        interval: parseInt(currentState.recurringInterval, 10) || 1,
+        occurrences: parseInt(currentState.recurringOccurrences, 10) || 12,
         frequency: currentState.recurringFrequency,
       };
     } else {
@@ -742,7 +808,7 @@ export function buildPartialUpdatePayload(
   ) {
     if (currentState.seatsEnabled) {
       payload.seats = {
-        seatsPerTimeSlot: parseInt(currentState.seatsPerTimeSlot) || 2,
+        seatsPerTimeSlot: parseInt(currentState.seatsPerTimeSlot, 10) || 2,
         showAttendeeInfo: currentState.showAttendeeInfo,
         showAvailabilityCount: currentState.showAvailabilityCount,
       };

@@ -89,7 +89,6 @@ export interface OAuthConfig {
 export class CalComOAuthService {
   private config: OAuthConfig;
   private codeVerifier: string | null = null;
-  private state: string | null = null;
 
   constructor(config: OAuthConfig) {
     this.config = config;
@@ -101,7 +100,6 @@ export class CalComOAuthService {
     const state = this.generateRandomBase64Url();
 
     this.codeVerifier = codeVerifier;
-    this.state = state;
 
     return { codeVerifier, codeChallenge, state };
   }
@@ -427,7 +425,6 @@ export class CalComOAuthService {
 
   clearPKCEParams(): void {
     this.codeVerifier = null;
-    this.state = null;
   }
 
   async syncTokensToExtension(tokens: OAuthTokens): Promise<void> {
@@ -618,10 +615,6 @@ function getBrowserSpecificOAuthConfig(): { clientId: string; redirectUri: strin
         clientId: process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID_EDGE || defaultClientId,
         redirectUri: process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI_EDGE || defaultRedirectUri,
       };
-
-    case "chrome":
-    case "brave":
-    case "unknown":
     default:
       // Chrome, Brave, and unknown browsers use the default configuration
       return { clientId: defaultClientId, redirectUri: defaultRedirectUri };

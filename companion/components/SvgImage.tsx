@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { View, Image } from "react-native";
+import type React from "react";
+import { useState } from "react";
+import { Image, View } from "react-native";
 import { SvgUri } from "react-native-svg";
 
 interface SvgImageProps {

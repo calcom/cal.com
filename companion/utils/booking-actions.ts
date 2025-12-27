@@ -130,7 +130,7 @@ export function normalizeBooking(booking: Booking): NormalizedBooking {
     startTime: new Date(startTimeStr),
     endTime: new Date(endTimeStr),
     location: booking.location,
-    isRecorded: (booking as any).isRecorded,
+    isRecorded: (booking as { isRecorded?: boolean }).isRecorded,
     rescheduled: booking.rescheduled,
     fromReschedule: booking.fromReschedule,
     recurringEventId: booking.recurringEventId,
@@ -138,7 +138,9 @@ export function normalizeBooking(booking: Booking): NormalizedBooking {
     user: booking.user,
     hosts: booking.hosts,
     attendees: booking.attendees,
-    seatsReferences: (booking as any).seatsReferences,
+    seatsReferences: (
+      booking as { seatsReferences?: Array<{ referenceUid: string; attendee: { email: string } }> }
+    ).seatsReferences,
     payment: booking.payment,
   };
 }

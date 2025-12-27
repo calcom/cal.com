@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
-import { Schedule } from "../../hooks";
+import type { Schedule } from "../../hooks";
 
 export interface AvailabilityListItemProps {
   item: Schedule;

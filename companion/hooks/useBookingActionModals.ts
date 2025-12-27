@@ -4,17 +4,18 @@
  * Centralized hook for managing all booking action modals and their API calls.
  * This hook is designed to be used across iOS, Android, and extension platforms.
  */
-import { useState, useCallback } from "react";
+
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
 import { Alert, Linking } from "react-native";
-import { CalComAPIService, type Booking } from "../services/calcom";
+import { queryKeys } from "../config/cache.config";
+import { type Booking, CalComAPIService } from "../services/calcom";
 import type {
+  AddGuestInput,
   BookingRecording,
   ConferencingSession,
-  AddGuestInput,
 } from "../services/types/bookings.types";
 import { showErrorAlert } from "../utils/alerts";
-import { useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "../config/cache.config";
 
 interface UseBookingActionModalsReturn {
   // Selected booking for actions
