@@ -21,6 +21,8 @@ export const substituteVariables = (
 
   let eventTypeUrl = routeValue;
 
+  const queryStringIndex = routeValue.indexOf("?");
+
   variables.forEach((variable) => {
     for (const key in response) {
       const field = fields.find((field) => field.id === key);
