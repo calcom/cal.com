@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import React from "react";
 import { Linking, Pressable, Text, TouchableOpacity, View } from "react-native";
+import type { SFSymbols7_0 } from "sf-symbols-typescript";
 import { showErrorAlert } from "../../utils/alerts";
 import { getBookingActions } from "../../utils/booking-actions";
 import { formatDate, formatTime, getHostAndAttendeesDisplay } from "../../utils/bookings-utils";
@@ -41,7 +42,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
 
   // Check if any attendee is marked as no-show
   const hasNoShowAttendee = booking.attendees?.some(
-    (att: any) => att.noShow === true || att.absent === true
+    (att: { noShow?: boolean; absent?: boolean }) => att.noShow === true || att.absent === true
   );
 
   // Use centralized action gating for consistency
@@ -58,7 +59,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
   // Define context menu actions based on booking state
   type ContextMenuAction = {
     label: string;
-    icon: string;
+    icon: SFSymbols7_0;
     onPress: () => void;
     role: "default" | "destructive";
   };
@@ -67,39 +68,39 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
     // Edit Event Section
     {
       label: "Reschedule Booking",
-      icon: "calendar",
+      icon: "calendar" as const,
       onPress: () => onReschedule?.(booking),
-      role: "default",
+      role: "default" as const,
       visible: isUpcoming && !isCancelled && !isPending && !!onReschedule,
     },
     {
       label: "Edit Location",
-      icon: "location",
+      icon: "location" as const,
       onPress: () => onEditLocation?.(booking),
-      role: "default",
+      role: "default" as const,
       visible: isUpcoming && !isCancelled && !isPending && !!onEditLocation,
     },
     {
       label: "Add Guests",
-      icon: "person.badge.plus",
+      icon: "person.badge.plus" as const,
       onPress: () => onAddGuests?.(booking),
-      role: "default",
+      role: "default" as const,
       visible: isUpcoming && !isCancelled && !isPending && !!onAddGuests,
     },
     // After Event Section
     {
       label: "View Recordings",
-      icon: "video",
+      icon: "video" as const,
       onPress: () => onViewRecordings?.(booking),
-      role: "default",
+      role: "default" as const,
       visible:
         actions.viewRecordings.visible && actions.viewRecordings.enabled && !!onViewRecordings,
     },
     {
       label: "Meeting Session Details",
-      icon: "info.circle",
+      icon: "info.circle" as const,
       onPress: () => onMeetingSessionDetails?.(booking),
-      role: "default",
+      role: "default" as const,
       visible:
         actions.meetingSessionDetails.visible &&
         actions.meetingSessionDetails.enabled &&
@@ -107,24 +108,24 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
     },
     {
       label: "Mark as No-Show",
-      icon: "eye.slash",
+      icon: "eye.slash" as const,
       onPress: () => onMarkNoShow?.(booking),
-      role: "default",
+      role: "default" as const,
       visible: actions.markNoShow.visible && actions.markNoShow.enabled && !!onMarkNoShow,
     },
     // Other Actions
     {
       label: "Report Booking",
-      icon: "flag",
+      icon: "flag" as const,
       onPress: () => onReportBooking?.(booking),
-      role: "destructive",
+      role: "destructive" as const,
       visible: !!onReportBooking,
     },
     {
       label: "Cancel Event",
-      icon: "xmark.circle",
+      icon: "xmark.circle" as const,
       onPress: () => onCancelBooking?.(booking),
-      role: "destructive",
+      role: "destructive" as const,
       visible: isUpcoming && !isCancelled && !!onCancelBooking,
     },
   ];
@@ -262,7 +263,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
               {contextMenuActions.map((action) => (
                 <Button
                   key={action.label}
-                  systemImage={action.icon as any}
+                  systemImage={action.icon}
                   onPress={action.onPress}
                   role={action.role}
                   label={action.label}

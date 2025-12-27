@@ -2,11 +2,14 @@ import type {
   AddGuestInput,
   AddGuestsResponse,
   Booking,
+  BookingLimitsCount,
+  BookingLimitsDuration,
   BookingParticipationResult,
   BookingRecording,
   BookingTranscript,
   ConferencingOption,
   ConferencingSession,
+  ConfirmationPolicy,
   CreateEventTypeInput,
   CreatePrivateLinkInput,
   CreateWebhookInput,
@@ -60,6 +63,9 @@ export type {
   PrivateLink,
   CreatePrivateLinkInput,
   UpdatePrivateLinkInput,
+  BookingLimitsCount,
+  BookingLimitsDuration,
+  ConfirmationPolicy,
 };
 
 export const getBookingParticipation = (
@@ -168,7 +174,7 @@ async function updateUserProfile(updates: {
   locale?: string;
   avatarUrl?: string;
   bio?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }): Promise<UserProfile> {
   try {
     const response = await makeRequest<{ status: string; data: UserProfile }>(
@@ -330,7 +336,7 @@ async function deleteEventType(eventTypeId: number): Promise<void> {
 
 async function createEventType(input: CreateEventTypeInput): Promise<EventType> {
   try {
-    const sanitizedInput = sanitizePayload(input as Record<string, any>);
+    const sanitizedInput = sanitizePayload(input as unknown as Record<string, unknown>);
 
     const response = await makeRequest<{ status: string; data: EventType }>(
       "/event-types",
@@ -768,35 +774,37 @@ async function getEventTypes(): Promise<EventType[]> {
   const queryString = params.toString();
   const endpoint = `/event-types${queryString ? `?${queryString}` : ""}`;
 
-  const response = await makeRequest<any>(endpoint, {}, "2024-06-14");
+  const response = await makeRequest<unknown>(endpoint, {}, "2024-06-14");
 
   // Handle different possible response structures
   let eventTypesArray: EventType[] = [];
 
   if (Array.isArray(response)) {
-    eventTypesArray = response;
+    eventTypesArray = response as EventType[];
   } else if (response && typeof response === "object") {
-    if (response.data && Array.isArray(response.data)) {
-      eventTypesArray = response.data;
-    } else if (response.eventTypes && Array.isArray(response.eventTypes)) {
-      eventTypesArray = response.eventTypes;
-    } else if (response.items && Array.isArray(response.items)) {
-      eventTypesArray = response.items;
-    } else if (response.data && typeof response.data === "object") {
-      if (response.data.eventTypes && Array.isArray(response.data.eventTypes)) {
-        eventTypesArray = response.data.eventTypes;
-      } else if (response.data.items && Array.isArray(response.data.items)) {
-        eventTypesArray = response.data.items;
+    const resp = response as Record<string, unknown>;
+    if (resp.data && Array.isArray(resp.data)) {
+      eventTypesArray = resp.data as EventType[];
+    } else if (resp.eventTypes && Array.isArray(resp.eventTypes)) {
+      eventTypesArray = resp.eventTypes as EventType[];
+    } else if (resp.items && Array.isArray(resp.items)) {
+      eventTypesArray = resp.items as EventType[];
+    } else if (resp.data && typeof resp.data === "object") {
+      const dataObj = resp.data as Record<string, unknown>;
+      if (dataObj.eventTypes && Array.isArray(dataObj.eventTypes)) {
+        eventTypesArray = dataObj.eventTypes as EventType[];
+      } else if (dataObj.items && Array.isArray(dataObj.items)) {
+        eventTypesArray = dataObj.items as EventType[];
       } else {
-        const keys = Object.keys(response.data);
+        const keys = Object.keys(dataObj);
         if (keys.length > 0) {
-          eventTypesArray = Object.values(response.data).filter((item): item is EventType =>
+          eventTypesArray = Object.values(dataObj).filter((item): item is EventType =>
             Boolean(item && typeof item === "object" && "id" in item)
-          ) as EventType[];
+          );
         }
       }
     } else {
-      const possibleArrays = Object.values(response).filter((val) => Array.isArray(val));
+      const possibleArrays = Object.values(resp).filter((val) => Array.isArray(val));
       if (possibleArrays.length > 0) {
         eventTypesArray = possibleArrays[0] as EventType[];
       }
@@ -862,37 +870,39 @@ async function getBookings(filters?: {
   const queryString = params.toString();
   const endpoint = `/bookings${queryString ? `?${queryString}` : ""}`;
 
-  const response = await makeRequest<any>(endpoint);
+  const response = await makeRequest<unknown>(endpoint);
 
   // Handle different possible response structures (same logic as event types)
   let bookingsArray: Booking[] = [];
 
   if (Array.isArray(response)) {
-    bookingsArray = response;
+    bookingsArray = response as Booking[];
   } else if (response && typeof response === "object") {
-    if (response.data && Array.isArray(response.data)) {
-      bookingsArray = response.data;
-    } else if (response.bookings && Array.isArray(response.bookings)) {
-      bookingsArray = response.bookings;
-    } else if (response.items && Array.isArray(response.items)) {
-      bookingsArray = response.items;
-    } else if (response.data && typeof response.data === "object") {
-      if (response.data.bookings && Array.isArray(response.data.bookings)) {
-        bookingsArray = response.data.bookings;
-      } else if (response.data.items && Array.isArray(response.data.items)) {
-        bookingsArray = response.data.items;
+    const resp = response as Record<string, unknown>;
+    if (resp.data && Array.isArray(resp.data)) {
+      bookingsArray = resp.data as Booking[];
+    } else if (resp.bookings && Array.isArray(resp.bookings)) {
+      bookingsArray = resp.bookings as Booking[];
+    } else if (resp.items && Array.isArray(resp.items)) {
+      bookingsArray = resp.items as Booking[];
+    } else if (resp.data && typeof resp.data === "object") {
+      const dataObj = resp.data as Record<string, unknown>;
+      if (dataObj.bookings && Array.isArray(dataObj.bookings)) {
+        bookingsArray = dataObj.bookings as Booking[];
+      } else if (dataObj.items && Array.isArray(dataObj.items)) {
+        bookingsArray = dataObj.items as Booking[];
       } else {
         // Convert object values to array as last resort
-        const keys = Object.keys(response.data);
+        const keys = Object.keys(dataObj);
         if (keys.length > 0) {
-          bookingsArray = Object.values(response.data).filter((item): item is Booking =>
+          bookingsArray = Object.values(dataObj).filter((item): item is Booking =>
             Boolean(item && typeof item === "object" && ("id" in item || "uid" in item))
-          ) as Booking[];
+          );
         }
       }
     } else {
       // Try to extract any arrays from the response
-      const possibleArrays = Object.values(response).filter((val) => Array.isArray(val));
+      const possibleArrays = Object.values(resp).filter((val) => Array.isArray(val));
       if (possibleArrays.length > 0) {
         bookingsArray = possibleArrays[0] as Booking[];
       }
@@ -976,7 +986,7 @@ async function createSchedule(input: {
   }>;
 }): Promise<Schedule> {
   try {
-    const sanitizedInput = sanitizePayload(input as Record<string, any>);
+    const sanitizedInput = sanitizePayload(input as Record<string, unknown>);
 
     const response = await makeRequest<{ status: string; data: Schedule }>(
       "/schedules",
@@ -1004,7 +1014,7 @@ async function createSchedule(input: {
 
 async function getScheduleById(scheduleId: number): Promise<Schedule | null> {
   try {
-    const response = await makeRequest<any>(
+    const response = await makeRequest<unknown>(
       `/schedules/${scheduleId}`,
       {
         headers: {
@@ -1014,12 +1024,14 @@ async function getScheduleById(scheduleId: number): Promise<Schedule | null> {
       "2024-06-11"
     );
 
-    if (response?.data) {
-      return response.data;
-    }
-
-    if (response?.id) {
-      return response;
+    if (response && typeof response === "object") {
+      const resp = response as Record<string, unknown>;
+      if (resp.data && typeof resp.data === "object") {
+        return resp.data as Schedule;
+      }
+      if (resp.id) {
+        return response as Schedule;
+      }
     }
 
     return null;
@@ -1084,8 +1096,8 @@ async function getEventTypeById(eventTypeId: number): Promise<EventType | null> 
  * - Removes keys with undefined values
  * - Recursively sanitizes nested objects
  */
-function sanitizePayload(payload: Record<string, any>): Record<string, any> {
-  const sanitized: Record<string, any> = {};
+function sanitizePayload(payload: Record<string, unknown>): Record<string, unknown> {
+  const sanitized: Record<string, unknown> = {};
 
   // Fields that should NEVER be sent as null - API expects array or omit entirely
   const arrayFields = [
@@ -1130,7 +1142,7 @@ function sanitizePayload(payload: Record<string, any>): Record<string, any> {
 
     // Recursively sanitize nested objects (but not arrays)
     if (typeof value === "object" && !Array.isArray(value)) {
-      const sanitizedNested = sanitizePayload(value);
+      const sanitizedNested = sanitizePayload(value as Record<string, unknown>);
       // Only include if the nested object has values
       if (Object.keys(sanitizedNested).length > 0) {
         sanitized[key] = sanitizedNested;
@@ -1148,7 +1160,7 @@ async function updateEventType(
   updates: Partial<CreateEventTypeInput>
 ): Promise<EventType> {
   try {
-    const sanitizedUpdates = sanitizePayload(updates as Record<string, any>);
+    const sanitizedUpdates = sanitizePayload(updates as Record<string, unknown>);
 
     const response = await makeRequest<{ status: string; data: EventType }>(
       `/event-types/${eventTypeId}`,
@@ -1195,7 +1207,7 @@ async function updateSchedule(
 ): Promise<Schedule> {
   try {
     // Sanitize the updates to remove null values
-    const sanitizedUpdates = sanitizePayload(updates as Record<string, any>);
+    const sanitizedUpdates = sanitizePayload(updates as Record<string, unknown>);
     const response = await makeRequest<{ status: string; data: Schedule }>(
       `/schedules/${scheduleId}`,
       {
@@ -1287,7 +1299,7 @@ async function getWebhooks(): Promise<Webhook[]> {
 // Create a global webhook
 async function createWebhook(input: CreateWebhookInput): Promise<Webhook> {
   try {
-    const sanitizedInput = sanitizePayload(input as Record<string, any>);
+    const sanitizedInput = sanitizePayload(input as unknown as Record<string, unknown>);
     const response = await makeRequest<{ status: string; data: Webhook }>("/webhooks", {
       method: "POST",
       headers: {
@@ -1310,7 +1322,7 @@ async function createWebhook(input: CreateWebhookInput): Promise<Webhook> {
 // Update a global webhook
 async function updateWebhook(webhookId: string, updates: UpdateWebhookInput): Promise<Webhook> {
   try {
-    const sanitizedUpdates = sanitizePayload(updates as Record<string, any>);
+    const sanitizedUpdates = sanitizePayload(updates as Record<string, unknown>);
     const response = await makeRequest<{ status: string; data: Webhook }>(
       `/webhooks/${webhookId}`,
       {
@@ -1369,7 +1381,7 @@ async function createEventTypeWebhook(
   input: CreateWebhookInput
 ): Promise<Webhook> {
   try {
-    const sanitizedInput = sanitizePayload(input as Record<string, any>);
+    const sanitizedInput = sanitizePayload(input as unknown as Record<string, unknown>);
     const response = await makeRequest<{ status: string; data: Webhook }>(
       `/event-types/${eventTypeId}/webhooks`,
       {
@@ -1399,7 +1411,7 @@ async function updateEventTypeWebhook(
   updates: UpdateWebhookInput
 ): Promise<Webhook> {
   try {
-    const sanitizedUpdates = sanitizePayload(updates as Record<string, any>);
+    const sanitizedUpdates = sanitizePayload(updates as Record<string, unknown>);
     const response = await makeRequest<{ status: string; data: Webhook }>(
       `/event-types/${eventTypeId}/webhooks/${webhookId}`,
       {
@@ -1462,7 +1474,7 @@ async function createEventTypePrivateLink(
   input: CreatePrivateLinkInput = {}
 ): Promise<PrivateLink> {
   try {
-    const sanitizedInput = sanitizePayload(input as Record<string, any>);
+    const sanitizedInput = sanitizePayload(input as Record<string, unknown>);
     const response = await makeRequest<{ status: string; data: PrivateLink }>(
       `/event-types/${eventTypeId}/private-links`,
       {
@@ -1492,7 +1504,7 @@ async function updateEventTypePrivateLink(
   updates: UpdatePrivateLinkInput
 ): Promise<PrivateLink> {
   try {
-    const sanitizedUpdates = sanitizePayload(updates as Record<string, any>);
+    const sanitizedUpdates = sanitizePayload(updates as Record<string, unknown>);
     const response = await makeRequest<{ status: string; data: PrivateLink }>(
       `/event-types/${eventTypeId}/private-links/${linkId}`,
       {

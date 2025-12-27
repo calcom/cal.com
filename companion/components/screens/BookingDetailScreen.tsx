@@ -518,7 +518,8 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
               <View>
                 {booking.attendees.map((attendee, index) => {
                   const isNoShow =
-                    (attendee as any).noShow === true || (attendee as any).absent === true;
+                    (attendee as { noShow?: boolean; absent?: boolean }).noShow === true ||
+                    (attendee as { noShow?: boolean; absent?: boolean }).absent === true;
                   return (
                     <View
                       key={attendee.email}

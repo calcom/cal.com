@@ -30,7 +30,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
 
   // Check if any attendee is marked as no-show
   const hasNoShowAttendee = booking.attendees?.some(
-    (att: any) => att.noShow === true || att.absent === true
+    (att: { noShow?: boolean; absent?: boolean }) => att.noShow === true || att.absent === true
   );
 
   return (

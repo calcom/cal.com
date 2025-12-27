@@ -206,7 +206,7 @@ export default defineContentScript({
 
     // Handle token exchange requests by forwarding to background script
     function handleTokenExchangeRequest(
-      tokenRequest: any,
+      tokenRequest: Record<string, string>,
       tokenEndpoint: string,
       state: string | undefined,
       iframeWindow: Window | null
@@ -260,7 +260,10 @@ export default defineContentScript({
       );
     }
 
-    function handleTokenSyncRequest(tokens: any, iframeWindow: Window | null) {
+    function handleTokenSyncRequest(
+      tokens: { accessToken?: string; refreshToken?: string; expiresAt?: number },
+      iframeWindow: Window | null
+    ) {
       chrome.runtime.sendMessage({ action: "sync-oauth-tokens", tokens }, (response) => {
         if (chrome.runtime.lastError) {
           console.error(
@@ -586,7 +589,13 @@ export default defineContentScript({
     // Gmail integration function
     function initGmailIntegration() {
       // Cache for event types (refreshed on page reload)
-      let eventTypesCache: any[] | null = null;
+      let eventTypesCache: Array<{
+        id: number;
+        title: string;
+        slug: string;
+        lengthInMinutes?: number;
+        description?: string;
+      }> | null = null;
       let cacheTimestamp: number | null = null;
       const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
@@ -802,7 +811,16 @@ export default defineContentScript({
               const isCacheValid =
                 eventTypesCache && cacheTimestamp && now - cacheTimestamp < CACHE_DURATION;
 
-              let eventTypes: any[] = [];
+              let eventTypes: Array<{
+                id: number;
+                title: string;
+                slug: string;
+                lengthInMinutes?: number;
+                length?: number;
+                duration?: number;
+                description?: string;
+                users?: Array<{ username?: string }>;
+              }> = [];
 
               if (isCacheValid && eventTypesCache) {
                 // Use cached data
@@ -830,8 +848,37 @@ export default defineContentScript({
                   }
                 });
 
-                if (response && (response as any).data) {
-                  eventTypes = (response as any).data;
+                if (
+                  response &&
+                  (
+                    response as {
+                      data?: Array<{
+                        id: number;
+                        title: string;
+                        slug: string;
+                        lengthInMinutes?: number;
+                        length?: number;
+                        duration?: number;
+                        description?: string;
+                        users?: Array<{ username?: string }>;
+                      }>;
+                    }
+                  ).data
+                ) {
+                  eventTypes = (
+                    response as {
+                      data: Array<{
+                        id: number;
+                        title: string;
+                        slug: string;
+                        lengthInMinutes?: number;
+                        length?: number;
+                        duration?: number;
+                        description?: string;
+                        users?: Array<{ username?: string }>;
+                      }>;
+                    }
+                  ).data;
                 } else if (Array.isArray(response)) {
                   eventTypes = response;
                 } else {
@@ -1505,7 +1552,16 @@ export default defineContentScript({
           const isCacheValid =
             eventTypesCache && cacheTimestamp && now - cacheTimestamp < CACHE_DURATION;
 
-          let eventTypes: any[] = [];
+          let eventTypes: Array<{
+            id: number;
+            title: string;
+            slug: string;
+            lengthInMinutes?: number;
+            length?: number;
+            duration?: number;
+            description?: string;
+            users?: Array<{ username?: string }>;
+          }> = [];
 
           if (isCacheValid && eventTypesCache) {
             // Use cached data
@@ -1533,8 +1589,37 @@ export default defineContentScript({
               }
             });
 
-            if (response && (response as any).data) {
-              eventTypes = (response as any).data;
+            if (
+              response &&
+              (
+                response as {
+                  data?: Array<{
+                    id: number;
+                    title: string;
+                    slug: string;
+                    lengthInMinutes?: number;
+                    length?: number;
+                    duration?: number;
+                    description?: string;
+                    users?: Array<{ username?: string }>;
+                  }>;
+                }
+              ).data
+            ) {
+              eventTypes = (
+                response as {
+                  data: Array<{
+                    id: number;
+                    title: string;
+                    slug: string;
+                    lengthInMinutes?: number;
+                    length?: number;
+                    duration?: number;
+                    description?: string;
+                    users?: Array<{ username?: string }>;
+                  }>;
+                }
+              ).data;
             } else if (Array.isArray(response)) {
               eventTypes = response;
             } else {
@@ -1924,7 +2009,10 @@ export default defineContentScript({
         }
       }
 
-      function insertEventTypeLink(eventType: any) {
+      function insertEventTypeLink(eventType: {
+        slug: string;
+        users?: Array<{ username?: string }>;
+      }) {
         // Construct the Cal.com booking link
         const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
           eventType.slug
@@ -2072,9 +2160,16 @@ export default defineContentScript({
        * Based on the email embed feature in main Cal.com codebase
        */
       function generateEmailEmbedHTML(params: {
-        eventType: any;
+        eventType: { slug: string; title?: string };
         username: string;
-        slots: any[];
+        slots: Array<{
+          isoDate: string;
+          date: string;
+          isoTimestamp: string;
+          time?: string;
+          startTime?: string;
+          endTime?: string;
+        }>;
         duration: number;
         timezone: string;
         timezoneOffset: string;
@@ -2082,7 +2177,16 @@ export default defineContentScript({
         const { eventType, username, slots, duration, timezone, timezoneOffset } = params;
 
         // Group slots by date
-        const slotsByDate: { [date: string]: any[] } = {};
+        const slotsByDate: {
+          [date: string]: Array<{
+            isoDate: string;
+            date: string;
+            isoTimestamp: string;
+            time?: string;
+            startTime?: string;
+            endTime?: string;
+          }>;
+        } = {};
         slots.forEach((slot) => {
           if (!slotsByDate[slot.isoDate]) {
             slotsByDate[slot.isoDate] = [];
@@ -2768,7 +2872,24 @@ export default defineContentScript({
               embedButton.style.opacity = "0.6";
               embedButton.style.cursor = "not-allowed";
 
-              const response: any = await new Promise((resolve, reject) => {
+              const response = await new Promise<
+                | {
+                    data?: Array<{
+                      id: number;
+                      title: string;
+                      slug: string;
+                      lengthInMinutes?: number;
+                      users?: Array<{ username?: string }>;
+                    }>;
+                  }
+                | Array<{
+                    id: number;
+                    title: string;
+                    slug: string;
+                    lengthInMinutes?: number;
+                    users?: Array<{ username?: string }>;
+                  }>
+              >((resolve, reject) => {
                 chrome.runtime.sendMessage({ action: "fetch-event-types" }, (result) => {
                   if (chrome.runtime.lastError) {
                     reject(new Error(chrome.runtime.lastError.message));
@@ -2780,9 +2901,14 @@ export default defineContentScript({
                 });
               });
 
-              const eventTypes = response?.data || (Array.isArray(response) ? response : []);
+              const eventTypes =
+                (response && "data" in response
+                  ? response.data
+                  : Array.isArray(response)
+                    ? response
+                    : []) || [];
               const matchingEventType = eventTypes.find(
-                (et: any) => et.lengthInMinutes === freshParsedData.detectedDuration
+                (et) => et.lengthInMinutes === freshParsedData.detectedDuration
               );
 
               if (!matchingEventType) {
@@ -2818,9 +2944,7 @@ export default defineContentScript({
                 // Immediately remove the Google chip and action bar
                 try {
                   chipElement.remove();
-                  if ((actionBar as any).__cleanup) {
-                    (actionBar as any).__cleanup();
-                  }
+                  (actionBar as HTMLElement & { __cleanup?: () => void }).__cleanup?.();
                   actionBar.remove();
                 } catch (removeError) {
                   console.warn("Cal.com: Failed to remove chip/action bar:", removeError);
@@ -2892,9 +3016,7 @@ export default defineContentScript({
             // Remove the action bar completely
             try {
               // Call cleanup function if it exists
-              if ((actionBar as any).__cleanup) {
-                (actionBar as any).__cleanup();
-              }
+              (actionBar as HTMLElement & { __cleanup?: () => void }).__cleanup?.();
               actionBar.remove();
             } catch (_error) {
               // Silently ignore removal errors
@@ -2943,9 +3065,7 @@ export default defineContentScript({
               if (barScheduleId === scheduleId) {
                 // This bar belongs to the current chip - remove it (we'll create a fresh one)
                 try {
-                  if ((bar as any).__cleanup) {
-                    (bar as any).__cleanup();
-                  }
+                  (bar as Element & { __cleanup?: () => void }).__cleanup?.();
                   bar.remove();
                 } catch (_e) {
                   // Ignore removal errors
@@ -2958,9 +3078,7 @@ export default defineContentScript({
                   );
                   if (!chipForBar) {
                     // Chip is gone, this is an orphaned action bar - remove it
-                    if ((bar as any).__cleanup) {
-                      (bar as any).__cleanup();
-                    }
+                    (bar as Element & { __cleanup?: () => void }).__cleanup?.();
                     bar.remove();
                   }
                   // Else: chip exists, keep this action bar (belongs to another chip)
@@ -2996,7 +3114,7 @@ export default defineContentScript({
             window.addEventListener("resize", updatePosition);
 
             // Store cleanup function
-            (actionBar as any).__cleanup = () => {
+            (actionBar as HTMLElement & { __cleanup?: () => void }).__cleanup = () => {
               window.removeEventListener("scroll", updatePosition, true);
               window.removeEventListener("resize", updatePosition);
             };
@@ -3019,7 +3137,22 @@ export default defineContentScript({
       /**
        * Show Cal.com suggestion menu for Google Calendar chip - CENTERED FULL-SCREEN MODAL
        */
-      async function showCalcomSuggestionMenu(chipElement: HTMLElement, parsedData: any) {
+      async function showCalcomSuggestionMenu(
+        chipElement: HTMLElement,
+        parsedData: {
+          detectedDuration: number;
+          slots: Array<{
+            isoDate: string;
+            date: string;
+            isoTimestamp: string;
+            time?: string;
+            startTime?: string;
+            endTime?: string;
+          }>;
+          timezone: string;
+          timezoneOffset: string;
+        }
+      ) {
         console.log(
           "Cal.com: Opening menu for",
           parsedData.detectedDuration,
@@ -3135,7 +3268,14 @@ export default defineContentScript({
 
         try {
           // Fetch event types (will use cache if available)
-          let eventTypes: any[] = [];
+          let eventTypes: Array<{
+            id: number;
+            title: string;
+            slug: string;
+            lengthInMinutes?: number;
+            description?: string;
+            users?: Array<{ username?: string }>;
+          }> = [];
 
           // Check cache first
           const now = Date.now();
@@ -3146,7 +3286,26 @@ export default defineContentScript({
             eventTypes = eventTypesCache;
           } else {
             // Fetch from background script
-            const response: any = await new Promise((resolve, reject) => {
+            const response = await new Promise<
+              | {
+                  data?: Array<{
+                    id: number;
+                    title: string;
+                    slug: string;
+                    lengthInMinutes?: number;
+                    description?: string;
+                    users?: Array<{ username?: string }>;
+                  }>;
+                }
+              | Array<{
+                  id: number;
+                  title: string;
+                  slug: string;
+                  lengthInMinutes?: number;
+                  description?: string;
+                  users?: Array<{ username?: string }>;
+                }>
+            >((resolve, reject) => {
               chrome.runtime.sendMessage({ action: "fetch-event-types" }, (response) => {
                 if (chrome.runtime.lastError) {
                   reject(new Error(chrome.runtime.lastError.message));
@@ -3158,7 +3317,7 @@ export default defineContentScript({
               });
             });
 
-            if (response?.data) {
+            if (response && "data" in response && response.data) {
               eventTypes = response.data;
             } else if (Array.isArray(response)) {
               eventTypes = response;
@@ -3178,7 +3337,7 @@ export default defineContentScript({
 
           // Filter event types by matching duration
           const matchingEventTypes = eventTypes.filter(
-            (et: any) => et.lengthInMinutes === parsedData.detectedDuration
+            (et) => et.lengthInMinutes === parsedData.detectedDuration
           );
 
           // If no matching event types, show create prompt
@@ -3332,7 +3491,7 @@ export default defineContentScript({
             `;
 
             // Create options
-            matchingEventTypes.forEach((et: any, index: number) => {
+            matchingEventTypes.forEach((et, index: number) => {
               const option = document.createElement("div");
               option.className = "dropdown-option";
               option.style.cssText = `
@@ -3419,7 +3578,7 @@ export default defineContentScript({
           const slotsContainer = document.createElement("div");
           slotsContainer.style.cssText = "padding: 12px;";
 
-          parsedData.slots.forEach((slot: any, index: number) => {
+          parsedData.slots.forEach((slot, index: number) => {
             const slotItem = document.createElement("div");
             slotItem.style.cssText = `
               padding: 14px;
@@ -3530,9 +3689,7 @@ export default defineContentScript({
                   chipElement.remove();
 
                   if (actionBar) {
-                    if ((actionBar as any).__cleanup) {
-                      (actionBar as any).__cleanup();
-                    }
+                    (actionBar as Element & { __cleanup?: () => void }).__cleanup?.();
                     actionBar.remove();
                   }
                 } catch (removeError) {
@@ -3635,7 +3792,21 @@ export default defineContentScript({
        * Parse Google Calendar scheduling chip
        * Returns null if structure has changed or parsing fails (fail gracefully)
        */
-      function parseGoogleChip(chipElement: HTMLElement): any {
+      function parseGoogleChip(chipElement: HTMLElement): {
+        scheduleId: string;
+        timezone: string;
+        timezoneOffset: string;
+        slots: Array<{
+          date: string;
+          startTime: string;
+          endTime: string;
+          durationMinutes: number;
+          isoDate: string;
+          isoTimestamp: string;
+          googleUrl: string;
+        }>;
+        detectedDuration: number;
+      } | null {
         try {
           // Validate input
           if (!chipElement || typeof chipElement.getAttribute !== "function") {
@@ -3718,7 +3889,15 @@ export default defineContentScript({
             return null;
           }
 
-          const slots: any[] = [];
+          const slots: Array<{
+            date: string;
+            startTime: string;
+            endTime: string;
+            durationMinutes: number;
+            isoDate: string;
+            isoTimestamp: string;
+            googleUrl: string;
+          }> = [];
           let detectedDuration = 60;
 
           slotLinks.forEach((link) => {

@@ -81,14 +81,22 @@ export function MarkNoShowScreen({
               // API returns "absent" field, not "noShow"
               const updatedAttendees: Attendee[] = [];
               if (updatedBooking.attendees && Array.isArray(updatedBooking.attendees)) {
-                updatedBooking.attendees.forEach((att: any) => {
-                  updatedAttendees.push({
-                    id: att.id,
-                    email: att.email,
-                    name: att.name || att.email,
-                    noShow: att.absent === true || att.noShow === true,
-                  });
-                });
+                updatedBooking.attendees.forEach(
+                  (att: {
+                    id?: number | string;
+                    email: string;
+                    name?: string;
+                    noShow?: boolean;
+                    absent?: boolean;
+                  }) => {
+                    updatedAttendees.push({
+                      id: att.id,
+                      email: att.email,
+                      name: att.name || att.email,
+                      noShow: att.absent === true || att.noShow === true,
+                    });
+                  }
+                );
               }
 
               onUpdate(updatedAttendees);

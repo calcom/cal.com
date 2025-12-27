@@ -38,7 +38,75 @@ import {
   validateLocationItem,
 } from "../utils/locationHelpers";
 
-const tabs = [
+// Type definitions for extended EventType fields not in the base type
+interface EventTypeExtended {
+  lengthInMinutesOptions?: number[];
+  disableCancelling?: boolean;
+  disableRescheduling?: boolean;
+  sendCalVideoTranscription?: boolean;
+  autoTranslate?: boolean;
+  lockedTimeZone?: string;
+  hideCalendarEventDetails?: boolean;
+  hideOrganizerEmail?: boolean;
+  color?: {
+    lightThemeHex?: string;
+    darkThemeHex?: string;
+  };
+}
+
+interface BookerActiveBookingsLimitExtended {
+  disabled?: boolean;
+  maximumActiveBookings?: number;
+  count?: number;
+  offerReschedule?: boolean;
+}
+
+interface ConfirmationPolicyExtended {
+  disabled?: boolean;
+}
+
+interface RecurrenceExtended {
+  disabled?: boolean;
+  interval?: number;
+  frequency?: string;
+  occurrences?: number;
+}
+
+interface SeatsExtended {
+  disabled?: boolean;
+  seatsPerTimeSlot?: number;
+  showAttendeeInfo?: boolean;
+  showAvailabilityCount?: boolean;
+}
+
+interface ApiLocation {
+  type: string;
+  integration?: string;
+  address?: string;
+  link?: string;
+  phone?: string;
+  public?: boolean;
+}
+
+interface CreateEventTypePayload {
+  title: string;
+  slug: string;
+  lengthInMinutes: number;
+  description?: string;
+  locations?: ReturnType<typeof mapItemToApiLocation>[];
+  scheduleId?: number;
+  hidden?: boolean;
+}
+
+type TabIconName = "link" | "calendar" | "time" | "settings" | "refresh" | "ellipsis-horizontal";
+
+interface Tab {
+  id: string;
+  label: string;
+  icon: TabIconName;
+}
+
+const tabs: Tab[] = [
   { id: "basics", label: "Basics", icon: "link" },
   { id: "availability", label: "Availability", icon: "calendar" },
   { id: "limits", label: "Limits", icon: "time" },
@@ -356,14 +424,14 @@ export default function EventTypeDetail() {
         if (eventType.lengthInMinutes) setEventDuration(eventType.lengthInMinutes.toString());
         if (eventType.hidden !== undefined) setIsHidden(eventType.hidden);
 
-        const eventTypeAny = eventType as any;
+        const eventTypeExt = eventType as EventType & EventTypeExtended;
         if (
-          eventTypeAny.lengthInMinutesOptions &&
-          Array.isArray(eventTypeAny.lengthInMinutesOptions) &&
-          eventTypeAny.lengthInMinutesOptions.length > 0
+          eventTypeExt.lengthInMinutesOptions &&
+          Array.isArray(eventTypeExt.lengthInMinutesOptions) &&
+          eventTypeExt.lengthInMinutesOptions.length > 0
         ) {
           setAllowMultipleDurations(true);
-          const durationStrings = eventTypeAny.lengthInMinutesOptions.map(
+          const durationStrings = eventTypeExt.lengthInMinutesOptions.map(
             (mins: number) => `${mins} mins`
           );
           setSelectedDurations(durationStrings);
@@ -485,7 +553,8 @@ export default function EventTypeDetail() {
         }
 
         if (eventType.bookerActiveBookingsLimit) {
-          const bookingLimit = eventType.bookerActiveBookingsLimit as any;
+          const bookingLimit =
+            eventType.bookerActiveBookingsLimit as BookerActiveBookingsLimitExtended;
           if (!("disabled" in bookingLimit)) {
             const maxBookings = bookingLimit.maximumActiveBookings ?? bookingLimit.count;
             if (maxBookings !== undefined) {
@@ -518,28 +587,26 @@ export default function EventTypeDetail() {
           }
         }
 
-        const eventTypeAnyForAdvanced = eventType as any;
-
-        if (eventTypeAnyForAdvanced.disableCancelling !== undefined) {
-          setDisableCancelling(eventTypeAnyForAdvanced.disableCancelling);
+        if (eventTypeExt.disableCancelling !== undefined) {
+          setDisableCancelling(eventTypeExt.disableCancelling);
         } else if (eventType.metadata?.disableCancelling) {
           setDisableCancelling(true);
         }
 
-        if (eventTypeAnyForAdvanced.disableRescheduling !== undefined) {
-          setDisableRescheduling(eventTypeAnyForAdvanced.disableRescheduling);
+        if (eventTypeExt.disableRescheduling !== undefined) {
+          setDisableRescheduling(eventTypeExt.disableRescheduling);
         } else if (eventType.metadata?.disableRescheduling) {
           setDisableRescheduling(true);
         }
 
-        if (eventTypeAnyForAdvanced.sendCalVideoTranscription !== undefined) {
-          setSendCalVideoTranscription(eventTypeAnyForAdvanced.sendCalVideoTranscription);
+        if (eventTypeExt.sendCalVideoTranscription !== undefined) {
+          setSendCalVideoTranscription(eventTypeExt.sendCalVideoTranscription);
         } else if (eventType.metadata?.sendCalVideoTranscription) {
           setSendCalVideoTranscription(true);
         }
 
-        if (eventTypeAnyForAdvanced.autoTranslate !== undefined) {
-          setAutoTranslate(eventTypeAnyForAdvanced.autoTranslate);
+        if (eventTypeExt.autoTranslate !== undefined) {
+          setAutoTranslate(eventTypeExt.autoTranslate);
         } else if (eventType.metadata?.autoTranslate) {
           setAutoTranslate(true);
         }
@@ -569,7 +636,7 @@ export default function EventTypeDetail() {
         }
 
         if (eventType.confirmationPolicy) {
-          const policy = eventType.confirmationPolicy as any;
+          const policy = eventType.confirmationPolicy as ConfirmationPolicyExtended;
           if (!("disabled" in policy) || policy.disabled === false) {
             setRequiresConfirmation(true);
           }
@@ -587,14 +654,14 @@ export default function EventTypeDetail() {
         if (eventType.lockTimeZoneToggleOnBookingPage !== undefined) {
           setLockTimezone(eventType.lockTimeZoneToggleOnBookingPage);
         }
-        if (eventTypeAny.lockedTimeZone) {
-          setLockedTimezone(eventTypeAny.lockedTimeZone);
+        if (eventTypeExt.lockedTimeZone) {
+          setLockedTimezone(eventTypeExt.lockedTimeZone);
         }
-        if (eventTypeAny.hideCalendarEventDetails !== undefined) {
-          setHideCalendarEventDetails(eventTypeAny.hideCalendarEventDetails);
+        if (eventTypeExt.hideCalendarEventDetails !== undefined) {
+          setHideCalendarEventDetails(eventTypeExt.hideCalendarEventDetails);
         }
-        if (eventTypeAny.hideOrganizerEmail !== undefined) {
-          setHideOrganizerEmail(eventTypeAny.hideOrganizerEmail);
+        if (eventTypeExt.hideOrganizerEmail !== undefined) {
+          setHideOrganizerEmail(eventTypeExt.hideOrganizerEmail);
         }
 
         // Load redirect URL
@@ -605,12 +672,12 @@ export default function EventTypeDetail() {
           setForwardParamsSuccessRedirect(eventType.forwardParamsSuccessRedirect);
         }
 
-        if (eventTypeAny.color) {
-          if (eventTypeAny.color.lightThemeHex) {
-            setEventTypeColorLight(eventTypeAny.color.lightThemeHex);
+        if (eventTypeExt.color) {
+          if (eventTypeExt.color.lightThemeHex) {
+            setEventTypeColorLight(eventTypeExt.color.lightThemeHex);
           }
-          if (eventTypeAny.color.darkThemeHex) {
-            setEventTypeColorDark(eventTypeAny.color.darkThemeHex);
+          if (eventTypeExt.color.darkThemeHex) {
+            setEventTypeColorDark(eventTypeExt.color.darkThemeHex);
           }
         }
         if (eventType.eventTypeColor) {
@@ -623,7 +690,7 @@ export default function EventTypeDetail() {
         }
 
         if (eventType.recurrence) {
-          const recurrence = eventType.recurrence as any;
+          const recurrence = eventType.recurrence as RecurrenceExtended;
           if (recurrence.disabled !== true && recurrence.interval && recurrence.frequency) {
             setRecurringEnabled(true);
             setRecurringInterval(recurrence.interval.toString());
@@ -636,7 +703,9 @@ export default function EventTypeDetail() {
         }
 
         if (eventType.locations && eventType.locations.length > 0) {
-          const mappedLocations = eventType.locations.map((loc: any) => mapApiLocationToItem(loc));
+          const mappedLocations = eventType.locations.map((loc: ApiLocation) =>
+            mapApiLocationToItem(loc)
+          );
           setLocations(mappedLocations);
 
           const firstLocation = eventType.locations[0];
@@ -656,7 +725,7 @@ export default function EventTypeDetail() {
         }
 
         if (eventType.seats) {
-          const seats = eventType.seats as any;
+          const seats = eventType.seats as SeatsExtended;
           const seatsAreEnabled =
             seats.disabled === false || (!("disabled" in seats) && seats.seatsPerTimeSlot);
 
@@ -871,7 +940,7 @@ export default function EventTypeDetail() {
 
       if (isCreateMode) {
         // For CREATE mode, build full payload
-        const payload: any = {
+        const payload: CreateEventTypePayload = {
           title: eventTitle,
           slug: eventSlug,
           lengthInMinutes: durationNum,
@@ -1076,7 +1145,7 @@ export default function EventTypeDetail() {
                 >
                   <View className="flex-row items-center gap-2">
                     <Ionicons
-                      name={tab.icon as any}
+                      name={tab.icon}
                       size={18}
                       color={activeTab === tab.id ? "#007AFF" : "#666"}
                     />
@@ -1122,7 +1191,7 @@ export default function EventTypeDetail() {
                 >
                   <View className="flex-row items-center gap-2">
                     <Ionicons
-                      name={tab.icon as any}
+                      name={tab.icon}
                       size={18}
                       color={activeTab === tab.id ? "#007AFF" : "#666"}
                     />

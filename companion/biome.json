@@ -32,7 +32,7 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "off",
+        "noExplicitAny": "error",
         "noArrayIndexKey": "error",
         "useIterableCallbackReturn": "error",
         "noImplicitAnyLet": "off"
