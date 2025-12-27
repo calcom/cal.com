@@ -33,7 +33,7 @@
       "recommended": true,
       "suspicious": {
         "noExplicitAny": "off",
-        "noArrayIndexKey": "off",
+        "noArrayIndexKey": "error",
         "useIterableCallbackReturn": "error",
         "noImplicitAnyLet": "off"
       },

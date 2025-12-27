@@ -270,12 +270,12 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={{ paddingVertical: 4 }}
                 >
-                  {dateOptions.map((option, index) => {
+                  {dateOptions.map((option) => {
                     const isSelected =
                       option.value.toDateString() === selectedDateTime.toDateString();
                     return (
                       <TouchableOpacity
-                        key={index}
+                        key={option.value.toISOString()}
                         className={`px-4 py-3 ${isSelected ? "bg-[#E8F4FD]" : ""}`}
                         onPress={() => {
                           const newDate = new Date(option.value);
@@ -332,13 +332,13 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={{ paddingVertical: 4 }}
                 >
-                  {timeOptions.map((option, index) => {
+                  {timeOptions.map((option) => {
                     const isSelected =
                       selectedDateTime.getHours() === option.value.hour &&
                       selectedDateTime.getMinutes() === option.value.minute;
                     return (
                       <TouchableOpacity
-                        key={index}
+                        key={option.label}
                         className={`px-4 py-3 ${isSelected ? "bg-[#E8F4FD]" : ""}`}
                         onPress={() => {
                           const newDate = new Date(selectedDateTime);

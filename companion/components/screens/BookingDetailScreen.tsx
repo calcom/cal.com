@@ -490,7 +490,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
                 ) : booking.hosts && booking.hosts.length > 0 ? (
                   booking.hosts.map((host, hostIndex) => (
                     <View
-                      key={hostIndex}
+                      key={host.email ?? host.name}
                       className={`flex-row items-start ${hostIndex > 0 ? "mt-4" : ""}`}
                     >
                       <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-black">
@@ -520,7 +520,10 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
                   const isNoShow =
                     (attendee as any).noShow === true || (attendee as any).absent === true;
                   return (
-                    <View key={index} className={`flex-row items-start ${index > 0 ? "mt-4" : ""}`}>
+                    <View
+                      key={attendee.email}
+                      className={`flex-row items-start ${index > 0 ? "mt-4" : ""}`}
+                    >
                       <View
                         className={`mr-3 h-12 w-12 items-center justify-center rounded-full ${
                           isNoShow ? "bg-[#DC2626]" : "bg-black"

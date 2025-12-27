@@ -185,7 +185,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
               <View className="overflow-hidden rounded-xl bg-white">
                 {guests.map((guest, index) => (
                   <View
-                    key={index}
+                    key={guest.email}
                     className={`flex-row items-center px-4 py-3 ${
                       index < guests.length - 1 ? "border-b border-gray-100" : ""
                     }`}

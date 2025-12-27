@@ -519,8 +519,8 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
             <Text className="mb-3 text-xl font-bold text-[#333]">{scheduleName}</Text>
             {Object.keys(availability).length > 0 ? (
               <View>
-                {formatAvailabilityDisplay(availability).map((line, index) => (
-                  <Text key={index} className="mb-1 text-base text-[#666]">
+                {formatAvailabilityDisplay(availability).map((line) => (
+                  <Text key={line} className="mb-1 text-base text-[#666]">
                     {line}
                   </Text>
                 ))}
@@ -533,14 +533,14 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
           {/* Availability Schedule */}
           <View className="rounded-2xl bg-white p-6">
             <Text className="mb-4 text-xl font-bold text-[#333]">Availability</Text>
-            {DAYS.map((_day, dayIndex) => {
+            {DAYS.map((day, dayIndex) => {
               const daySlots = availability[dayIndex] || [];
               const isEnabled = daySlots.length > 0;
               const firstSlot = daySlots[0];
 
               return (
                 <View
-                  key={dayIndex}
+                  key={day}
                   className={`mb-3 border-b border-[#E5E5EA] pb-3 ${
                     dayIndex === DAYS.length - 1 ? "mb-0 border-b-0 pb-0" : ""
                   }`}
@@ -598,7 +598,10 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                   {isEnabled && daySlots.length > 1 ? (
                     <View className="mt-2" style={{ marginLeft: 108 }}>
                       {daySlots.slice(1).map((slot, slotIndex) => (
-                        <View key={slotIndex + 1} className="mb-2 flex-row items-center gap-2">
+                        <View
+                          key={`${slot.startTime}-${slot.endTime}`}
+                          className="mb-2 flex-row items-center gap-2"
+                        >
                           <AppPressable
                             onPress={() =>
                               setShowTimePicker({
@@ -668,7 +671,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
               <View className="mb-4">
                 {overrides.map((override, index) => (
                   <View
-                    key={index}
+                    key={override.date}
                     className="mb-2 flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] p-3"
                   >
                     <View className="flex-1">
