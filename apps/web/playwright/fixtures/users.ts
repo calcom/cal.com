@@ -6,7 +6,8 @@ import { v4 } from "uuid";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import type { AppFlags } from "@calcom/features/flags/config";
+import type { AppFlags, FeatureId } from "@calcom/features/flags/config";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -253,15 +254,17 @@ const createTeamAndAddUser = async (
 
   // Enable feature flags for the team if specified
   if (teamFeatureFlags && teamFeatureFlags.length > 0) {
-    await prisma.teamFeatures.createMany({
-      data: teamFeatureFlags.map((featureFlag) => ({
-        teamId: team.id,
-        featureId: featureFlag,
-        assignedBy: "e2e-fixture",
-        assignedAt: new Date(),
-        enabled: true,
-      })),
-    });
+    const featuresRepository = new FeaturesRepository(prisma);
+    await Promise.all(
+      teamFeatureFlags.map((featureFlag) =>
+        featuresRepository.setTeamFeatureState({
+          teamId: team.id,
+          featureId: featureFlag as FeatureId,
+          state: "enabled",
+          assignedBy: "e2e-fixture",
+        })
+      )
+    );
   }
 
   return team;
@@ -423,15 +426,17 @@ export const createUsersFixture = (
       // Default to DEFAULT_USER_FEATURE_FLAGS if not specified
       const userFeatureFlags = opts?.userFeatureFlags ?? DEFAULT_USER_FEATURE_FLAGS;
       if (userFeatureFlags.length > 0) {
-        await prisma.userFeatures.createMany({
-          data: userFeatureFlags.map((featureFlag) => ({
-            userId: user.id,
-            featureId: featureFlag,
-            assignedBy: "e2e-fixture",
-            assignedAt: new Date(),
-            enabled: true,
-          })),
-        });
+        const featuresRepository = new FeaturesRepository(prisma);
+        await Promise.all(
+          userFeatureFlags.map((featureFlag) =>
+            featuresRepository.setUserFeatureState({
+              userId: user.id,
+              featureId: featureFlag as FeatureId,
+              state: "enabled",
+              assignedBy: "e2e-fixture",
+            })
+          )
+        );
       }
 
       if (scenario.hasTeam) {
