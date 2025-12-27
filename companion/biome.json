@@ -39,6 +39,7 @@
       },
       "correctness": {
         "useExhaustiveDependencies": "error",
+        "useHookAtTopLevel": "error",
         "noInvalidUseBeforeDeclaration": "off",
         "noUnusedFunctionParameters": "error",
         "noUnusedVariables": "error"
