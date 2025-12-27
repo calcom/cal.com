@@ -180,13 +180,17 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
             password: { create: { hash: hashedPassword } },
             organizationId,
           },
+          select: { id: true },
         });
       } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-          return NextResponse.json(
-            { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
-            { status: 409 }
-          );
+          const target = error.meta?.target as string[] | undefined;
+          if (target?.includes("email")) {
+            return NextResponse.json(
+              { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
+              { status: 409 }
+            );
+          }
         }
         throw error;
       }

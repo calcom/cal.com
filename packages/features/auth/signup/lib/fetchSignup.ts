@@ -39,7 +39,7 @@ export async function fetchSignup(data: SignupData, cfToken?: string): Promise<S
     return {
       ok: false,
       status: response.status,
-      error: { message: "Invalid server response" },
+      error: { message: SIGNUP_ERROR_CODES.INVALID_SERVER_RESPONSE },
     };
   }
 
