@@ -110,7 +110,10 @@ export function useSchedules() {
 export function useScheduleById(id: number | undefined) {
   return useQuery({
     queryKey: queryKeys.schedules.detail(id || 0),
-    queryFn: () => CalComAPIService.getScheduleById(id!),
+    queryFn: () => {
+      if (!id) throw new Error("id is required");
+      return CalComAPIService.getScheduleById(id);
+    },
     enabled: !!id, // Only fetch when id is provided
     staleTime: CACHE_CONFIG.schedules.staleTime,
   });

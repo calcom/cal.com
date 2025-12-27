@@ -47,7 +47,7 @@
         "noStaticOnlyClass": "off"
       },
       "style": {
-        "noNonNullAssertion": "off"
+        "noNonNullAssertion": "error"
       },
       "a11y": {
         "noStaticElementInteractions": "off"

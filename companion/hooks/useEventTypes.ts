@@ -58,7 +58,10 @@ export function useEventTypes() {
 export function useEventTypeById(id: number | undefined) {
   return useQuery({
     queryKey: queryKeys.eventTypes.detail(id || 0),
-    queryFn: () => CalComAPIService.getEventTypeById(id!),
+    queryFn: () => {
+      if (!id) throw new Error("id is required");
+      return CalComAPIService.getEventTypeById(id);
+    },
     enabled: !!id, // Only fetch when id is provided
     staleTime: CACHE_CONFIG.eventTypes.staleTime,
   });

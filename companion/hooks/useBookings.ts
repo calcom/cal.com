@@ -74,7 +74,10 @@ export function useBookings(filters?: BookingFilters) {
 export function useBookingByUid(uid: string | undefined) {
   return useQuery({
     queryKey: queryKeys.bookings.detail(uid || ""),
-    queryFn: () => CalComAPIService.getBookingByUid(uid!),
+    queryFn: () => {
+      if (!uid) throw new Error("uid is required");
+      return CalComAPIService.getBookingByUid(uid);
+    },
     enabled: !!uid, // Only fetch when uid is provided
     staleTime: CACHE_CONFIG.bookings.staleTime,
   });

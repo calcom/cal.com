@@ -802,9 +802,9 @@ export default defineContentScript({
 
               let eventTypes: any[] = [];
 
-              if (isCacheValid) {
+              if (isCacheValid && eventTypesCache) {
                 // Use cached data
-                eventTypes = eventTypesCache!;
+                eventTypes = eventTypesCache;
               } else {
                 // Check if extension context is valid
                 if (!chrome.runtime?.id) {
@@ -1501,9 +1501,9 @@ export default defineContentScript({
 
           let eventTypes: any[] = [];
 
-          if (isCacheValid) {
+          if (isCacheValid && eventTypesCache) {
             // Use cached data
-            eventTypes = eventTypesCache!;
+            eventTypes = eventTypesCache;
           } else {
             // Check if extension context is valid
             if (!chrome.runtime?.id) {
@@ -3132,8 +3132,8 @@ export default defineContentScript({
           const isCacheValid =
             eventTypesCache && cacheTimestamp && now - cacheTimestamp < CACHE_DURATION;
 
-          if (isCacheValid) {
-            eventTypes = eventTypesCache!;
+          if (isCacheValid && eventTypesCache) {
+            eventTypes = eventTypesCache;
           } else {
             // Fetch from background script
             const response: any = await new Promise((resolve, reject) => {
@@ -3479,7 +3479,9 @@ export default defineContentScript({
               console.log("Cal.com: Insert button clicked!");
               e.preventDefault();
               e.stopPropagation();
-              const slotIndex = parseInt(btn.getAttribute("data-slot-index")!, 10);
+              const slotIndexAttr = btn.getAttribute("data-slot-index");
+              if (!slotIndexAttr) return;
+              const slotIndex = parseInt(slotIndexAttr, 10);
               const slot = parsedData.slots[slotIndex];
               console.log("Cal.com: Inserting link for slot", slotIndex, slot);
 
