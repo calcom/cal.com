@@ -80,7 +80,7 @@ export const Select = <
               : size === "sm"
               ? "h-7 px-2 py-0.5"
               : "h-8 px-3 py-1",
-            props.isDisabled && "bg-subtle",
+            state.isDisabled && "bg-subtle !cursor-not-allowed !pointer-events-auto hover:border-subtle",
             "rounded-[10px]",
             "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused focus-within:ring-0 flex! **:[input]:leading-none text-sm",
             innerClassNames?.control
