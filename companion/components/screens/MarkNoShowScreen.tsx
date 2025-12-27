@@ -4,12 +4,13 @@
  * Screen content for marking attendees as no-show for a booking.
  * Used with the mark-no-show route that has native Stack.Header.
  */
+
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Booking } from "../../services/calcom";
 import { CalComAPIService } from "../../services/calcom";
-import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator, FlatList, Alert } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface Attendee {
   id?: number | string;
@@ -80,14 +81,22 @@ export function MarkNoShowScreen({
               // API returns "absent" field, not "noShow"
               const updatedAttendees: Attendee[] = [];
               if (updatedBooking.attendees && Array.isArray(updatedBooking.attendees)) {
-                updatedBooking.attendees.forEach((att: any) => {
-                  updatedAttendees.push({
-                    id: att.id,
-                    email: att.email,
-                    name: att.name || att.email,
-                    noShow: att.absent === true || att.noShow === true,
-                  });
-                });
+                updatedBooking.attendees.forEach(
+                  (att: {
+                    id?: number | string;
+                    email: string;
+                    name?: string;
+                    noShow?: boolean;
+                    absent?: boolean;
+                  }) => {
+                    updatedAttendees.push({
+                      id: att.id,
+                      email: att.email,
+                      name: att.name || att.email,
+                      noShow: att.absent === true || att.noShow === true,
+                    });
+                  }
+                );
               }
 
               onUpdate(updatedAttendees);

@@ -1,10 +1,10 @@
-import { AppPressable } from "../../../components/AppPressable";
-import AddGuestsScreen from "../../../components/screens/AddGuestsScreen";
-import type { AddGuestsScreenHandle } from "../../../components/screens/AddGuestsScreen";
-import { CalComAPIService, type Booking } from "../../../services/calcom";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Alert, ActivityIndicator, View, Text, Platform } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Alert, Platform, Text, View } from "react-native";
+import { AppPressable } from "../../../components/AppPressable";
+import type { AddGuestsScreenHandle } from "../../../components/screens/AddGuestsScreen";
+import AddGuestsScreenComponent from "../../../components/screens/AddGuestsScreen";
+import { type Booking, CalComAPIService } from "../../../services/calcom";
 
 export default function AddGuests() {
   const { uid } = useLocalSearchParams<{ uid: string }>();
@@ -99,7 +99,7 @@ export default function AddGuests() {
         </Stack.Header>
       )}
 
-      <AddGuestsScreen
+      <AddGuestsScreenComponent
         ref={addGuestsScreenRef}
         booking={booking}
         onSuccess={handleAddGuestsSuccess}

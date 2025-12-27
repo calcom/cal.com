@@ -1,6 +1,6 @@
 import React from "react";
-import { TouchableOpacity } from "react-native";
 import type { TouchableOpacityProps } from "react-native";
+import { TouchableOpacity } from "react-native";
 
 type AppPressableProps = TouchableOpacityProps & {
   className?: string;

@@ -1,7 +1,6 @@
-import { Schedule } from "../../../services/calcom";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
+import type { Schedule } from "../../../services/calcom";
 
 interface DaySchedule {
   day: string;
@@ -44,8 +43,8 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
             {props.schedulesLoading
               ? "Loading schedules..."
               : props.selectedSchedule
-              ? props.selectedSchedule.name
-              : "Select schedule"}
+                ? props.selectedSchedule.name
+                : "Select schedule"}
           </Text>
           <Ionicons name="chevron-down" size={20} color="#8E8E93" />
         </TouchableOpacity>
@@ -59,8 +58,8 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
                 <Text className="text-sm italic text-[#8E8E93]">Loading schedule details...</Text>
               </View>
             ) : props.selectedScheduleDetails ? (
-              props.getDaySchedules().map((dayInfo, index) => (
-                <View key={index} className="flex-row items-center justify-between py-4">
+              props.getDaySchedules().map((dayInfo) => (
+                <View key={dayInfo.day} className="flex-row items-center justify-between py-4">
                   <Text
                     className={`ml-2 flex-1 text-[15px] font-medium text-[#333] ${
                       !dayInfo.available ? "text-[#8E8E93] line-through" : ""

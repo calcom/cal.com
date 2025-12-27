@@ -47,7 +47,7 @@ export const formatTime = (dateString: string): string => {
   }
   try {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
+    if (Number.isNaN(date.getTime())) {
       console.warn("Invalid date string:", dateString);
       return "";
     }
@@ -74,7 +74,7 @@ export const formatDate = (dateString: string, isUpcoming: boolean): string => {
   }
   try {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
+    if (Number.isNaN(date.getTime())) {
       console.warn("Invalid date string:", dateString);
       return "";
     }
@@ -114,7 +114,7 @@ export const formatMonthYear = (dateString: string): string => {
   if (!dateString) return "";
   try {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
+    if (Number.isNaN(date.getTime())) {
       return "";
     }
     const now = new Date();
@@ -129,7 +129,7 @@ export const formatMonthYear = (dateString: string): string => {
       month: "long",
       year: "numeric",
     });
-  } catch (error) {
+  } catch (_error) {
     return "";
   }
 };
@@ -143,11 +143,11 @@ export const getMonthYearKey = (dateString: string): string => {
   if (!dateString) return "";
   try {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
+    if (Number.isNaN(date.getTime())) {
       return "";
     }
     return `${date.getFullYear()}-${date.getMonth()}`;
-  } catch (error) {
+  } catch (_error) {
     return "";
   }
 };
@@ -211,23 +211,29 @@ export const searchBookings = (bookings: Booking[], searchQuery: string): Bookin
       // Search in booking title
       booking.title?.toLowerCase().includes(searchLower) ||
       // Search in booking description
-      booking.description?.toLowerCase().includes(searchLower) ||
+      booking.description
+        ?.toLowerCase()
+        .includes(searchLower) ||
       // Search in event type title
-      booking.eventType?.title?.toLowerCase().includes(searchLower) ||
+      booking.eventType?.title
+        ?.toLowerCase()
+        .includes(searchLower) ||
       // Search in attendee names
-      (booking.attendees &&
-        booking.attendees.some((attendee) => attendee.name?.toLowerCase().includes(searchLower))) ||
+      booking.attendees?.some((attendee) => attendee.name?.toLowerCase().includes(searchLower)) ||
       // Search in attendee emails
-      (booking.attendees &&
-        booking.attendees.some((attendee) =>
-          attendee.email?.toLowerCase().includes(searchLower)
-        )) ||
+      booking.attendees?.some((attendee) => attendee.email?.toLowerCase().includes(searchLower)) ||
       // Search in location
-      booking.location?.toLowerCase().includes(searchLower) ||
+      booking.location
+        ?.toLowerCase()
+        .includes(searchLower) ||
       // Search in user name
-      booking.user?.name?.toLowerCase().includes(searchLower) ||
+      booking.user?.name
+        ?.toLowerCase()
+        .includes(searchLower) ||
       // Search in user email
-      booking.user?.email?.toLowerCase().includes(searchLower)
+      booking.user?.email
+        ?.toLowerCase()
+        .includes(searchLower)
   );
 };
 

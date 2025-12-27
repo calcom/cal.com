@@ -4,11 +4,11 @@
  * Screen content for viewing meeting session details of a Cal Video booking.
  * Used with the meeting-session-details route that has native Stack.Header.
  */
-import type { ConferencingSession } from "../../services/types/bookings.types";
+
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { View, Text, FlatList } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { ConferencingSession } from "../../services/types/bookings.types";
 
 export interface MeetingSessionDetailsScreenProps {
   sessions: ConferencingSession[];

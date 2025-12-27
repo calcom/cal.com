@@ -1,29 +1,21 @@
-import MeetingSessionDetailsScreen from "../../../components/screens/MeetingSessionDetailsScreen";
-import { CalComAPIService, type Booking } from "../../../services/calcom";
-import type { ConferencingSession } from "../../../services/types/bookings.types";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
-import { Alert, ActivityIndicator, View, Platform } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Platform, View } from "react-native";
+import MeetingSessionDetailsScreenComponent from "../../../components/screens/MeetingSessionDetailsScreen";
+import { CalComAPIService } from "../../../services/calcom";
+import type { ConferencingSession } from "../../../services/types/bookings.types";
 
 export default function MeetingSessionDetails() {
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const router = useRouter();
-  const [booking, setBooking] = useState<Booking | null>(null);
   const [sessions, setSessions] = useState<ConferencingSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (uid) {
       setIsLoading(true);
-      Promise.all([
-        CalComAPIService.getBookingByUid(uid),
-        CalComAPIService.getConferencingSessions(uid).catch((error) => {
-          console.error("Failed to load sessions:", error);
-          return [];
-        }),
-      ])
-        .then(([bookingData, sessionsData]) => {
-          setBooking(bookingData);
+      CalComAPIService.getConferencingSessions(uid)
+        .then((sessionsData) => {
           setSessions(sessionsData);
         })
         .catch(() => {
@@ -78,7 +70,7 @@ export default function MeetingSessionDetails() {
         </Stack.Header>
       )}
 
-      <MeetingSessionDetailsScreen sessions={sessions} />
+      <MeetingSessionDetailsScreenComponent sessions={sessions} />
     </>
   );
 }

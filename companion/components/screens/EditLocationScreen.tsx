@@ -13,23 +13,24 @@
  * Integration-based locations (Cal Video, Google Meet, Zoom) are NOT
  * supported for updating existing bookings via the current API.
  */
-import type { Booking } from "../../services/calcom";
-import { CalComAPIService } from "../../services/calcom";
+
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import {
-  View,
+  Alert,
+  FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
   Text,
   TextInput,
-  Alert,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   TouchableOpacity,
-  Modal,
-  FlatList,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { Booking } from "../../services/calcom";
+import { CalComAPIService } from "../../services/calcom";
 
 export const LOCATION_TYPES = {
   link: {
@@ -151,7 +152,6 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
         case "phone":
           locationPayload = { type: "phone", phone: trimmedValue };
           break;
-        case "address":
         default:
           locationPayload = { type: "address", address: trimmedValue };
       }

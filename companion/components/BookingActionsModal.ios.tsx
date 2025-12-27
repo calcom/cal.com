@@ -4,13 +4,13 @@
  * iOS-specific modal for booking actions with Glass UI styling.
  * This provides a native iOS action sheet experience with Glass UI design.
  */
+
+import { Ionicons } from "@expo/vector-icons";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Booking } from "../services/calcom";
 import type { BookingActionsResult } from "../utils/booking-actions";
 import { FullScreenModal } from "./FullScreenModal";
-import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export interface BookingActionsModalProps {
   visible: boolean;

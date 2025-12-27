@@ -1,50 +1,48 @@
-import { CalComAPIService, UserProfile } from "../services/calcom";
+import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import { useCallback, useEffect, useState } from "react";
+import {
+  ActionSheetIOS,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CalComAPIService, type UserProfile } from "../services/calcom";
 import { openInAppBrowser } from "../utils/browser";
 import { getAvatarUrl } from "../utils/getAvatarUrl";
 import { CalComLogo } from "./CalComLogo";
 import { FullScreenModal } from "./FullScreenModal";
-import { Ionicons } from "@expo/vector-icons";
-import * as Clipboard from "expo-clipboard";
-import { useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
-  Platform,
-  ActionSheetIOS,
-  Alert,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function Header() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  useEffect(() => {
-    fetchUserProfile();
-  }, []);
-
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     try {
       const profile = await CalComAPIService.getUserProfile();
       setUserProfile(profile);
-    } catch (error) {
+    } catch (err) {
       console.error("Failed to fetch user profile");
       if (__DEV__) {
-        const message = error instanceof Error ? error.message : String(error);
-        const stack = error instanceof Error ? error.stack : undefined;
+        const message = err instanceof Error ? err.message : String(err);
+        const stack = err instanceof Error ? err.stack : undefined;
         console.debug("[Header] fetchUserProfile failed", { message, stack });
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, [fetchUserProfile]);
 
   // Build public page URL
   const publicPageUrl = userProfile?.username ? `https://cal.com/${userProfile.username}` : null;
@@ -60,11 +58,11 @@ export function Header() {
     try {
       await Clipboard.setStringAsync(publicPageUrl);
       Alert.alert("Link Copied!", "Your public page link has been copied to clipboard.");
-    } catch (error) {
+    } catch (err) {
       console.error("Failed to copy public page link");
       if (__DEV__) {
-        const message = error instanceof Error ? error.message : String(error);
-        const stack = error instanceof Error ? error.stack : undefined;
+        const message = err instanceof Error ? err.message : String(err);
+        const stack = err instanceof Error ? err.stack : undefined;
         console.debug("[Header] copyPublicPageLink failed", { message, stack });
       }
       Alert.alert("Error", "Failed to copy link. Please try again.");

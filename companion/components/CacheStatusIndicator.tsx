@@ -9,9 +9,8 @@
  * to provide users with transparency about data freshness.
  */
 
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, Text, View } from "react-native";
 import { useQueryContext } from "../contexts/QueryContext";
 
 /**
