@@ -9,6 +9,7 @@ import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/inde
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeService } from "@/modules/stripe/stripe.service";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsMembershipsService } from "@/modules/teams/memberships/services/teams-memberships.service";
 import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
 import { TeamsSchedulesController } from "@/modules/teams/schedules/controllers/teams-schedules.controller";
@@ -34,6 +35,7 @@ import { Module } from "@nestjs/common";
     CredentialsRepository,
     OrganizationsRepository,
     TeamsSchedulesService,
+    TeamsEventTypesRepository,
     OrganizationsTeamsRepository,
     SchedulesRepository_2024_06_11,
   ],
