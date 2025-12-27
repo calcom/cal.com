@@ -594,16 +594,15 @@ export const InfiniteEventTypeList = ({
                           <ButtonGroup combined>
                             {!isManagedEventType && (
                               <>
-                                <Tooltip content={t("preview")}>
-                                  <Button
-                                    data-testid="preview-link-button"
-                                    color="secondary"
-                                    target="_blank"
-                                    variant="icon"
-                                    href={calLink}
-                                    StartIcon="external-link"
-                                  />
-                                </Tooltip>
+                                <Button
+                                  data-testid="preview-link-button"
+                                  color="secondary"
+                                  target="_blank"
+                                  variant="icon"
+                                  href={calLink}
+                                  StartIcon="external-link"
+                                  tooltip={t("preview")}
+                                />
 
                                 <Tooltip content={t("copy_link")}>
                                   <Button
