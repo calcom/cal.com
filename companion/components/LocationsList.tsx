@@ -3,27 +3,27 @@
  * Reusable component for displaying and managing multiple event type locations
  */
 
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  Modal,
-  ScrollView,
-  Platform,
-  ActionSheetIOS,
-} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-import { SvgImage } from "./SvgImage";
-import { LocationItem, LocationOptionGroup } from "../types/locations";
+import type React from "react";
+import { useState } from "react";
 import {
-  locationRequiresInput,
-  getLocationInputPlaceholder,
-  getLocationInputLabel,
+  ActionSheetIOS,
+  Modal,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import type { LocationItem, LocationOptionGroup } from "../types/locations";
+import {
   createLocationItemFromOption,
+  getLocationInputLabel,
+  getLocationInputPlaceholder,
+  locationRequiresInput,
 } from "../utils/locationHelpers";
+import { SvgImage } from "./SvgImage";
 
 interface LocationsListProps {
   /** Array of current locations */
@@ -67,7 +67,7 @@ export const LocationsList: React.FC<LocationsListProps> = ({
 
   const handleAddLocation = () => {
     if (Platform.OS === "ios") {
-      const allOptions: Array<{ label: string; value: string }> = [];
+      const allOptions: { label: string; value: string }[] = [];
       locationOptions.forEach((group) => {
         group.options.forEach((option) => {
           if (!isLocationAlreadyAdded(locations, option.value)) {
@@ -161,7 +161,7 @@ export const LocationsList: React.FC<LocationsListProps> = ({
       {/* Locations List */}
       {locations.length > 0 ? (
         <View className="mb-3 space-y-2">
-          {locations.map((location, index) => (
+          {locations.map((location, _index) => (
             <View key={location.id} className="rounded-lg border border-gray-200 bg-white p-3">
               <View className="flex-row items-center justify-between">
                 <View className="flex-1 flex-row items-center">

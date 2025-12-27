@@ -7,10 +7,10 @@
  * - Shows again on next disconnect
  */
 
-import React, { useEffect, useState, useRef } from "react";
-import { View, Text, TouchableOpacity, Modal, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
+import NetInfo, { type NetInfoState } from "@react-native-community/netinfo";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Animated, Modal, Text, TouchableOpacity, View } from "react-native";
 
 export function NetworkStatusBanner() {
   const [showModal, setShowModal] = useState(false);
@@ -20,11 +20,11 @@ export function NetworkStatusBanner() {
   const previousOfflineRef = useRef<boolean | null>(null);
   const userDismissedRef = useRef(false);
 
-  const checkIfOffline = (state: NetInfoState): boolean => {
+  const checkIfOffline = useCallback((state: NetInfoState): boolean => {
     if (state.isConnected === false) return true;
     if (state.isInternetReachable === false) return true;
     return false;
-  };
+  }, []);
 
   useEffect(() => {
     const handleNetworkChange = (state: NetInfoState) => {
@@ -57,7 +57,7 @@ export function NetworkStatusBanner() {
     // Listen for changes
     const unsubscribe = NetInfo.addEventListener(handleNetworkChange);
     return () => unsubscribe();
-  }, []);
+  }, [checkIfOffline]);
 
   useEffect(() => {
     if (showModal) {

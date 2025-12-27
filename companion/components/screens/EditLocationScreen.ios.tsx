@@ -4,15 +4,16 @@
  * iOS-specific implementation with native context menu for location type selection.
  * Uses @expo/ui/swift-ui ContextMenu for the glass UI feel.
  */
+
+import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
+import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
+import { Ionicons } from "@expo/vector-icons";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
+import { Alert, KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Booking } from "../../services/calcom";
 import { CalComAPIService } from "../../services/calcom";
-import { Ionicons } from "@expo/vector-icons";
-import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
-import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
-import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
-import { View, Text, TextInput, Alert, ScrollView, KeyboardAvoidingView } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Location types configuration
 export const LOCATION_TYPES = {
@@ -148,7 +149,6 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
         case "phone":
           locationPayload = { type: "phone", phone: trimmedValue };
           break;
-        case "address":
         default:
           locationPayload = { type: "address", address: trimmedValue };
       }

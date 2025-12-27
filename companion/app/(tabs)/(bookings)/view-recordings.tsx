@@ -1,9 +1,9 @@
-import ViewRecordingsScreen from "../../../components/screens/ViewRecordingsScreen";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Platform, View } from "react-native";
+import ViewRecordingsScreenComponent from "../../../components/screens/ViewRecordingsScreen";
 import { CalComAPIService } from "../../../services/calcom";
 import type { BookingRecording } from "../../../services/types/bookings.types";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
-import { Alert, ActivityIndicator, View, Platform } from "react-native";
 
 export default function ViewRecordings() {
   const { uid } = useLocalSearchParams<{ uid: string }>();
@@ -69,7 +69,7 @@ export default function ViewRecordings() {
         </Stack.Header>
       )}
 
-      <ViewRecordingsScreen recordings={recordings} />
+      <ViewRecordingsScreenComponent recordings={recordings} />
     </>
   );
 }

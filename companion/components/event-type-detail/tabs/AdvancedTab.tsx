@@ -1,6 +1,5 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity, Switch, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Alert, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 import { openInAppBrowser } from "../../../utils/browser";
 

@@ -1,14 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
-import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, TextInput } from "react-native";
-
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
+import { useState } from "react";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { BookingListScreen } from "../../../components/booking-list-screen/BookingListScreen";
+import { Header } from "../../../components/Header";
+import { useActiveBookingFilter } from "../../../hooks/useActiveBookingFilter";
 import type { EventType } from "../../../services/calcom";
 import { CalComAPIService } from "../../../services/calcom";
-import { Header } from "../../../components/Header";
-import { BookingListScreen } from "../../../components/booking-list-screen/BookingListScreen";
-import { useActiveBookingFilter } from "../../../hooks/useActiveBookingFilter";
 
 export default function Bookings() {
   const [searchQuery, setSearchQuery] = useState("");

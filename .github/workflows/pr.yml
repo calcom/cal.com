@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - gh-actions-test-branch
+
   workflow_dispatch:
 
 permissions:
@@ -139,6 +140,13 @@ jobs:
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
+  api-v2-unit-test:
+    name: Tests
+    needs: [prepare, deps]
+    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/api-v2-unit-tests.yml
+    secrets: inherit
+
   setup-db:
     name: Setup Database
     needs: [prepare, deps]
@@ -252,6 +260,7 @@ jobs:
         lint,
         type-check,
         unit-test,
+        api-v2-unit-test,
         check-api-v2-breaking-changes,
         integration-test,
         build,
@@ -276,10 +285,11 @@ jobs:
           (
             needs.prepare.outputs.has-files-requiring-all-checks == 'true' &&
             (
-              needs.lint.result != 'success' ||
-              needs.type-check.result != 'success' ||
-              needs.unit-test.result != 'success' ||
-              needs.check-api-v2-breaking-changes.result != 'success' ||
+            needs.lint.result != 'success' ||
+            needs.type-check.result != 'success' ||
+            needs.unit-test.result != 'success' ||
+            needs.api-v2-unit-test.result != 'success' ||
+            needs.check-api-v2-breaking-changes.result != 'success' ||
               needs.build.result != 'success' ||
               needs.build-api-v1.result != 'success' ||
               needs.build-api-v2.result != 'success' ||

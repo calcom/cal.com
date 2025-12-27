@@ -1,14 +1,22 @@
-import MarkNoShowScreen from "../../../components/screens/MarkNoShowScreen";
-import { CalComAPIService, type Booking } from "../../../services/calcom";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
-import { Alert, ActivityIndicator, View, Platform } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Platform, View } from "react-native";
+import MarkNoShowScreenComponent from "../../../components/screens/MarkNoShowScreen";
+import { type Booking, CalComAPIService } from "../../../services/calcom";
 
 interface Attendee {
   id?: number | string;
   email: string;
   name: string;
   noShow?: boolean;
+}
+
+interface BookingAttendee {
+  id?: number | string;
+  email: string;
+  name?: string;
+  noShow?: boolean;
+  absent?: boolean;
 }
 
 export default function MarkNoShow() {
@@ -27,7 +35,7 @@ export default function MarkNoShow() {
           // API may return "absent" or "noShow" depending on endpoint version
           const bookingAttendees: Attendee[] = [];
           if (bookingData.attendees && Array.isArray(bookingData.attendees)) {
-            bookingData.attendees.forEach((att: any) => {
+            bookingData.attendees.forEach((att: BookingAttendee) => {
               bookingAttendees.push({
                 id: att.id,
                 email: att.email,
@@ -90,7 +98,7 @@ export default function MarkNoShow() {
         </Stack.Header>
       )}
 
-      <MarkNoShowScreen
+      <MarkNoShowScreenComponent
         booking={booking}
         attendees={attendees}
         onUpdate={setAttendees}
@@ -98,7 +106,7 @@ export default function MarkNoShow() {
           setBooking(updatedBooking);
           const updatedAttendees: Attendee[] = [];
           if (updatedBooking.attendees && Array.isArray(updatedBooking.attendees)) {
-            updatedBooking.attendees.forEach((att: any) => {
+            updatedBooking.attendees.forEach((att: BookingAttendee) => {
               updatedAttendees.push({
                 id: att.id,
                 email: att.email,

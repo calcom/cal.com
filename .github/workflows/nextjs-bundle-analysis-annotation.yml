@@ -18,7 +18,7 @@ jobs:
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-build
       - name: Download base branch bundle stats
-        uses: dawidd6/action-download-artifact@v2
+        uses: dawidd6/action-download-artifact@v6
         if: success()
         with:
           workflow: nextjs-bundle-analysis.yml
