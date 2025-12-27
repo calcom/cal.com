@@ -23,6 +23,7 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { buildLegacyRequest } from "@calcom/web/lib/buildLegacyCtx";
 
+import { SIGNUP_ERROR_CODES } from "../constants";
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import {
   findTokenByToken,
@@ -167,29 +168,29 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     });
     if (team) {
       const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
-      const user = await prisma.user.upsert({
-        where: { email },
-        update: {
-          username,
-          emailVerified: new Date(Date.now()),
-          identityProvider: IdentityProvider.CAL,
-          password: {
-            upsert: {
-              create: { hash: hashedPassword },
-              update: { hash: hashedPassword },
-            },
-          },
-          organizationId,
-        },
-        create: {
+
+      // Check if user already exists to prevent password overwrite
+      const existingUserCount = await prisma.user.count({
+        where: { email: email.toLowerCase() },
+      });
+      if (existingUserCount > 0) {
+        return NextResponse.json(
+          { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
+          { status: 409 }
+        );
+      }
+
+      const user = await prisma.user.create({
+        data: {
           username,
           email,
+          emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
           password: { create: { hash: hashedPassword } },
           organizationId,
         },
       });
-      // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies
+
       await createOrUpdateMemberships({
         user,
         team,

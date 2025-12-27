@@ -13,6 +13,7 @@ import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
+import { SIGNUP_ERROR_CODES } from "../constants";
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import { prefillAvatar } from "../utils/prefillAvatar";
 import {
@@ -89,30 +90,30 @@ export default async function handler(body: Record<string, string>) {
       }
 
       const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
-      const user = await prisma.user.upsert({
+
+      // Check if user already exists to prevent password overwrite
+      const existingUserCount = await prisma.user.count({
         where: { email: userEmail },
-        update: {
-          username: correctedUsername,
-          password: {
-            upsert: {
-              create: { hash: hashedPassword },
-              update: { hash: hashedPassword },
-            },
-          },
-          emailVerified: new Date(Date.now()),
-          identityProvider: IdentityProvider.CAL,
-          organizationId,
-        },
-        create: {
+      });
+      if (existingUserCount > 0) {
+        return NextResponse.json(
+          { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
+          { status: 409 }
+        );
+      }
+
+      const user = await prisma.user.create({
+        data: {
           username: correctedUsername,
           email: userEmail,
           password: { create: { hash: hashedPassword } },
+          emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
           organizationId,
         },
       });
 
-      const { membership } = await createOrUpdateMemberships({
+      await createOrUpdateMemberships({
         user,
         team,
       });
@@ -146,20 +147,18 @@ export default async function handler(body: Record<string, string>) {
         );
       }
     }
-    await prisma.user.upsert({
+
+    // Check if user already exists to prevent password overwrite
+    const existingUserCount = await prisma.user.count({
       where: { email: userEmail },
-      update: {
-        username: correctedUsername,
-        password: {
-          upsert: {
-            create: { hash: hashedPassword },
-            update: { hash: hashedPassword },
-          },
-        },
-        emailVerified: new Date(Date.now()),
-        identityProvider: IdentityProvider.CAL,
-      },
-      create: {
+    });
+
+    if (existingUserCount > 0) {
+      return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
+    }
+
+    await prisma.user.create({
+      data: {
         username: correctedUsername,
         email: userEmail,
         password: { create: { hash: hashedPassword } },
