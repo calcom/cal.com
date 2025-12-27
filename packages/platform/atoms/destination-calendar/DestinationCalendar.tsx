@@ -1,6 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label } from "@calcom/ui/components/form";
 import type { ReminderMinutes } from "@calcom/trpc/server/routers/viewer/calendars/setDestinationReminder.schema";
+import { Label } from "@calcom/ui/components/form";
 
 import { cn } from "../src/lib/utils";
 import type { DestinationCalendarProps } from "./DestinationCalendarSelector";
@@ -22,7 +22,7 @@ type DestinationCalendarSettingsProps = DestinationCalendarProps & {
   classNames?: string;
   classNamesObject?: DestinationCalendarClassNames;
   onReminderChange?: ((value: ReminderMinutes) => void) | null;
-  reminderValue?: ReminderMinutes;
+  reminderValue: ReminderMinutes;
   isReminderPending?: boolean;
 };
 
@@ -41,7 +41,7 @@ export const DestinationCalendarSettings = (props: DestinationCalendarSettingsPr
       )}>
       <DestinationCalendarSettingsHeading classNames={props.classNamesObject?.header} />
       <div className="border-t">
-        <div className="border-subtle flex w-full flex-col stack-y-3 border-y-0 p-6">
+        <div className="border-subtle stack-y-3 flex w-full flex-col border-y-0 p-6">
           <div>
             <Label className="text-default mb-0 font-medium">{t("add_events_to")}</Label>
             <DestinationCalendarSelector {...props} />

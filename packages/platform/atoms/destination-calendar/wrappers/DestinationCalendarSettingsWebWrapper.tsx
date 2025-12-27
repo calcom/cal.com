@@ -51,7 +51,7 @@ export const DestinationCalendarSettingsWebWrapper = () => {
         hidePlaceholder
         onChange={mutation.mutate}
         onReminderChange={handleReminderChange}
-        reminderValue={calendars.data.destinationCalendar.customCalendarReminder ?? 10}
+        reminderValue={(calendars.data.destinationCalendar.customCalendarReminder ?? 10) as ReminderMinutes}
         isReminderPending={reminderMutation.isPending}
       />
     </AtomsWrapper>
