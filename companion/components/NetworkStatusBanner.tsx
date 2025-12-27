@@ -9,7 +9,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import NetInfo, { type NetInfoState } from "@react-native-community/netinfo";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Modal, Text, TouchableOpacity, View } from "react-native";
 
 export function NetworkStatusBanner() {
@@ -20,11 +20,11 @@ export function NetworkStatusBanner() {
   const previousOfflineRef = useRef<boolean | null>(null);
   const userDismissedRef = useRef(false);
 
-  const checkIfOffline = (state: NetInfoState): boolean => {
+  const checkIfOffline = useCallback((state: NetInfoState): boolean => {
     if (state.isConnected === false) return true;
     if (state.isInternetReachable === false) return true;
     return false;
-  };
+  }, []);
 
   useEffect(() => {
     const handleNetworkChange = (state: NetInfoState) => {

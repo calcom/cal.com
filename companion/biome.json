@@ -38,7 +38,7 @@
         "noImplicitAnyLet": "off"
       },
       "correctness": {
-        "useExhaustiveDependencies": "off",
+        "useExhaustiveDependencies": "error",
         "noInvalidUseBeforeDeclaration": "off",
         "noUnusedFunctionParameters": "error",
         "noUnusedVariables": "error"

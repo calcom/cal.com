@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   Animated,
@@ -294,7 +294,23 @@ export default function EventTypeDetail() {
     );
   };
 
-  const fetchSchedules = async () => {
+  const fetchScheduleDetails = useCallback(async (scheduleId: number) => {
+    try {
+      setScheduleDetailsLoading(true);
+      const scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
+      setSelectedScheduleDetails(scheduleDetails);
+      if (scheduleDetails?.timeZone) {
+        setSelectedTimezone(scheduleDetails.timeZone);
+      }
+    } catch (error) {
+      console.error("Failed to fetch schedule details:", error);
+      setSelectedScheduleDetails(null);
+    } finally {
+      setScheduleDetailsLoading(false);
+    }
+  }, []);
+
+  const fetchSchedules = useCallback(async () => {
     try {
       setSchedulesLoading(true);
       const schedulesData = await CalComAPIService.getSchedules();
@@ -311,25 +327,9 @@ export default function EventTypeDetail() {
     } finally {
       setSchedulesLoading(false);
     }
-  };
+  }, [fetchScheduleDetails]);
 
-  const fetchScheduleDetails = async (scheduleId: number) => {
-    try {
-      setScheduleDetailsLoading(true);
-      const scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
-      setSelectedScheduleDetails(scheduleDetails);
-      if (scheduleDetails?.timeZone) {
-        setSelectedTimezone(scheduleDetails.timeZone);
-      }
-    } catch (error) {
-      console.error("Failed to fetch schedule details:", error);
-      setSelectedScheduleDetails(null);
-    } finally {
-      setScheduleDetailsLoading(false);
-    }
-  };
-
-  const fetchConferencingOptions = async () => {
+  const fetchConferencingOptions = useCallback(async () => {
     try {
       setConferencingLoading(true);
       const options = await CalComAPIService.getConferencingOptions();
@@ -339,9 +339,9 @@ export default function EventTypeDetail() {
     } finally {
       setConferencingLoading(false);
     }
-  };
+  }, []);
 
-  const fetchEventTypeData = async () => {
+  const fetchEventTypeData = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -677,7 +677,7 @@ export default function EventTypeDetail() {
     } catch (error) {
       console.error("Failed to fetch event type data:", error);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     if (activeTab === "availability") {
@@ -686,18 +686,13 @@ export default function EventTypeDetail() {
     if (activeTab === "basics") {
       fetchConferencingOptions();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, fetchConferencingOptions, fetchSchedules]);
 
   useEffect(() => {
     // Fetch event type data and conferencing options on initial load
     fetchEventTypeData();
     fetchConferencingOptions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    fetchConferencingOptions, // Fetch event type data and conferencing options on initial load
-    fetchEventTypeData,
-  ]);
+  }, [fetchConferencingOptions, fetchEventTypeData]);
 
   useEffect(() => {
     const fetchUsername = async () => {

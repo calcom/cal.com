@@ -69,7 +69,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   });
 
   // Setup refresh token function for OAuth
-  const setupRefreshTokenFunction = (service: CalComOAuthService) => {
+  const setupRefreshTokenFunction = useCallback((service: CalComOAuthService) => {
     CalComAPIService.setRefreshTokenFunction(async (refreshToken: string) => {
       const newTokens = await service.refreshAccessToken(refreshToken);
       return {
@@ -77,10 +77,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         refreshToken: newTokens.refreshToken,
       };
     });
-  };
+  }, []);
 
   // Common post-login setup: configure API service and fetch user profile
-  const setupAfterLogin = async (token: string, refreshToken?: string) => {
+  const setupAfterLogin = useCallback(async (token: string, refreshToken?: string) => {
     CalComAPIService.setAccessToken(token, refreshToken);
 
     try {
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.error("Failed to fetch user profile:", profileError);
       // Don't fail login if profile fetch fails
     }
-  };
+  }, []);
 
   const saveOAuthTokens = useCallback(
     async (tokens: OAuthTokens) => {
