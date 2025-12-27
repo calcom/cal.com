@@ -230,7 +230,7 @@ function RollingLimitRadioItem({
             )}
             placeholder="30"
             disabled={isDisabled}
-            min={0}
+            min={1}
             max={rollingExcludeUnavailableDays ? ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK : undefined}
             {...formMethods.register("periodDays", { valueAsNumber: true })}
           />
@@ -302,19 +302,19 @@ const MinimumBookingNoticeInput = React.forwardRef<
     value: DurationType;
     label: string;
   }[] = [
-    {
-      label: t("minutes"),
-      value: "minutes",
-    },
-    {
-      label: t("hours"),
-      value: "hours",
-    },
-    {
-      label: t("days"),
-      value: "days",
-    },
-  ];
+      {
+        label: t("minutes"),
+        value: "minutes",
+      },
+      {
+        label: t("hours"),
+        value: "hours",
+      },
+      {
+        label: t("days"),
+        value: "days",
+      },
+    ];
 
   const [minimumBookingNoticeDisplayValues, setMinimumBookingNoticeDisplayValues] = useState<{
     type: DurationType;

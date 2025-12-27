@@ -18,11 +18,13 @@ const useMoveToNextMonthOnNoAvailability = ({
   nonEmptyScheduleDays,
   onMonthChange,
   isLoading,
+  periodData,
 }: {
   browsingDate: Dayjs;
   nonEmptyScheduleDays: string[];
   isLoading: boolean;
   onMonthChange: (date: Dayjs) => void;
+  periodData?: PeriodData;
 }) => {
   if (isLoading) {
     return {
@@ -44,6 +46,21 @@ const useMoveToNextMonthOnNoAvailability = ({
     if (currentMonth != browsingMonth || nonEmptyScheduleDaysInBrowsingMonth.length) {
       return;
     }
+
+
+    if (periodData?.periodType === "ROLLING" && periodData.periodDays) {
+      const today = dayjs();
+      const daysToAdd = Math.max(0, periodData.periodDays - 1);
+      const maxBookableDate = periodData.periodCountCalendarDays
+        ? today.add(daysToAdd, "day")
+        : today.businessDaysAdd(daysToAdd);
+      const nextMonthStart = browsingDate.add(1, "month").startOf("month");
+
+      if (nextMonthStart.isAfter(maxBookableDate, "day")) {
+        return;
+      }
+    }
+
     onMonthChange(browsingDate.add(1, "month"));
   };
   return {
@@ -95,14 +112,6 @@ export const DatePicker = ({
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(slots);
   const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
-  const { moveToNextMonthOnNoAvailability } = useMoveToNextMonthOnNoAvailability({
-    browsingDate,
-    nonEmptyScheduleDays,
-    onMonthChange,
-    isLoading: isLoading ?? true,
-  });
-  moveToNextMonthOnNoAvailability();
-
   // Determine if this is a compact sidebar view based on layout
   const isCompact = layout !== "month_view" && layout !== "mobile";
 
@@ -122,6 +131,16 @@ export const DatePicker = ({
       periodCountCalendarDays: event.data.periodCountCalendarDays,
     }),
   };
+
+  const { moveToNextMonthOnNoAvailability } = useMoveToNextMonthOnNoAvailability({
+    browsingDate,
+    nonEmptyScheduleDays,
+    onMonthChange,
+    isLoading: isLoading ?? true,
+    periodData,
+  });
+  moveToNextMonthOnNoAvailability();
+
   return (
     <DatePickerComponent
       customClassNames={{
