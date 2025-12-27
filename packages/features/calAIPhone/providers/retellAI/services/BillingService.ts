@@ -59,7 +59,7 @@ export class BillingService {
     }
 
     // Create Stripe checkout session for phone number subscription
-    const checkoutSession = await stripe.checkout.sessions.create({
+    const checkoutSession = await stripe().checkout.sessions.create({
       customer: stripeCustomerId,
       mode: "subscription",
       line_items: [
@@ -150,7 +150,7 @@ export class BillingService {
       });
 
       try {
-        await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
+        await stripe().subscriptions.cancel(phoneNumber.stripeSubscriptionId);
       } catch (error) {
         const parsedError = stripeErrorSchema.safeParse(error);
         if (parsedError.success && parsedError.data.raw.code === "resource_missing") {

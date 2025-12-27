@@ -14,7 +14,7 @@ export class StripeService {
     let hasPaymentFailed = false;
     if (checkoutSessionId) {
       try {
-        const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+        const session = await stripe().checkout.sessions.retrieve(checkoutSessionId);
         if (typeof session.customer !== "string") {
           return {
             valid: false,
@@ -34,7 +34,7 @@ export class StripeService {
     }
 
     try {
-      const customer = await stripe.customers.retrieve(customerId);
+      const customer = await stripe().customers.retrieve(customerId);
       if (customer.deleted) {
         return {
           valid: false,

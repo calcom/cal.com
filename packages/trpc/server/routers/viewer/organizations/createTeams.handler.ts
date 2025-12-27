@@ -288,7 +288,7 @@ async function moveTeam({
 async function tryToCancelSubscription(subscriptionId: string) {
   try {
     log.debug("Canceling stripe subscription", safeStringify({ subscriptionId }));
-    return await stripe.subscriptions.cancel(subscriptionId);
+    return await stripe().subscriptions.cancel(subscriptionId);
   } catch (error) {
     log.error("Error while cancelling stripe subscription", error);
   }
