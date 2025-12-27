@@ -49,19 +49,23 @@ const createMockCredential = (overrides: Record<string, unknown> = {}) => ({
 });
 
 describe("googleWorkspace.handler", () => {
-  beforeEach(() => {
+  let prisma: Awaited<typeof import("@calcom/prisma")>["prisma"];
+  let getAppKeysFromSlug: Awaited<typeof import("@calcom/app-store/_utils/getAppKeysFromSlug")>["default"];
+  let handlers: typeof import("./googleWorkspace.handler");
+
+  beforeEach(async () => {
     vi.clearAllMocks();
+    ({ prisma } = await import("@calcom/prisma"));
+    getAppKeysFromSlug = (await import("@calcom/app-store/_utils/getAppKeysFromSlug")).default;
+    handlers = await import("./googleWorkspace.handler");
   });
 
   describe("checkForGWorkspace", () => {
     it("queries credentials filtered by current user id", async () => {
-      const { prisma } = await import("@calcom/prisma");
-      const { checkForGWorkspace } = await import("./googleWorkspace.handler");
-
       const mockContext = createMockContext({ id: 42 });
       vi.mocked(prisma.credential.findFirst).mockResolvedValue(null);
 
-      await checkForGWorkspace(mockContext);
+      await handlers.checkForGWorkspace(mockContext);
 
       expect(prisma.credential.findFirst).toHaveBeenCalledWith({
         where: {
@@ -72,24 +76,18 @@ describe("googleWorkspace.handler", () => {
     });
 
     it("returns credential id when found", async () => {
-      const { prisma } = await import("@calcom/prisma");
-      const { checkForGWorkspace } = await import("./googleWorkspace.handler");
-
       const mockCredential = createMockCredential({ id: 123 });
       vi.mocked(prisma.credential.findFirst).mockResolvedValue(mockCredential);
 
-      const result = await checkForGWorkspace(createMockContext());
+      const result = await handlers.checkForGWorkspace(createMockContext());
 
       expect(result).toEqual({ id: 123 });
     });
 
     it("returns undefined id when no credential found", async () => {
-      const { prisma } = await import("@calcom/prisma");
-      const { checkForGWorkspace } = await import("./googleWorkspace.handler");
-
       vi.mocked(prisma.credential.findFirst).mockResolvedValue(null);
 
-      const result = await checkForGWorkspace(createMockContext());
+      const result = await handlers.checkForGWorkspace(createMockContext());
 
       expect(result).toEqual({ id: undefined });
     });
@@ -97,10 +95,6 @@ describe("googleWorkspace.handler", () => {
 
   describe("getUsersFromGWorkspace", () => {
     it("queries credentials filtered by current user id", async () => {
-      const { prisma } = await import("@calcom/prisma");
-      const getAppKeysFromSlug = (await import("@calcom/app-store/_utils/getAppKeysFromSlug")).default;
-      const { getUsersFromGWorkspace } = await import("./googleWorkspace.handler");
-
       const mockContext = createMockContext({ id: 99 });
 
       vi.mocked(getAppKeysFromSlug).mockResolvedValue({
@@ -109,7 +103,9 @@ describe("googleWorkspace.handler", () => {
       });
       vi.mocked(prisma.credential.findFirst).mockResolvedValue(null);
 
-      await expect(getUsersFromGWorkspace(mockContext)).rejects.toThrow("No workspace credentials found");
+      await expect(handlers.getUsersFromGWorkspace(mockContext)).rejects.toThrow(
+        "No workspace credentials found"
+      );
 
       expect(prisma.credential.findFirst).toHaveBeenCalledWith({
         where: {
@@ -120,41 +116,32 @@ describe("googleWorkspace.handler", () => {
     });
 
     it("throws error when Google client_id is missing", async () => {
-      const getAppKeysFromSlug = (await import("@calcom/app-store/_utils/getAppKeysFromSlug")).default;
-      const { getUsersFromGWorkspace } = await import("./googleWorkspace.handler");
-
       vi.mocked(getAppKeysFromSlug).mockResolvedValue({});
 
-      await expect(getUsersFromGWorkspace(createMockContext())).rejects.toThrow("Google client_id missing.");
+      await expect(handlers.getUsersFromGWorkspace(createMockContext())).rejects.toThrow(
+        "Google client_id missing."
+      );
     });
 
     it("throws error when no credentials found for user", async () => {
-      const { prisma } = await import("@calcom/prisma");
-      const getAppKeysFromSlug = (await import("@calcom/app-store/_utils/getAppKeysFromSlug")).default;
-      const { getUsersFromGWorkspace } = await import("./googleWorkspace.handler");
-
       vi.mocked(getAppKeysFromSlug).mockResolvedValue({
         client_id: "mock_client_id",
         client_secret: "mock_client_secret",
       });
       vi.mocked(prisma.credential.findFirst).mockResolvedValue(null);
 
-      await expect(getUsersFromGWorkspace(createMockContext())).rejects.toThrow(
+      await expect(handlers.getUsersFromGWorkspace(createMockContext())).rejects.toThrow(
         "No workspace credentials found"
       );
     });
-
   });
 
   describe("removeCurrentGoogleWorkspaceConnection", () => {
     it("deletes credentials filtered by current user id", async () => {
-      const { prisma } = await import("@calcom/prisma");
-      const { removeCurrentGoogleWorkspaceConnection } = await import("./googleWorkspace.handler");
-
       const mockContext = createMockContext({ id: 55 });
       vi.mocked(prisma.credential.deleteMany).mockResolvedValue({ count: 1 });
 
-      await removeCurrentGoogleWorkspaceConnection(mockContext);
+      await handlers.removeCurrentGoogleWorkspaceConnection(mockContext);
 
       expect(prisma.credential.deleteMany).toHaveBeenCalledWith({
         where: {
@@ -165,12 +152,9 @@ describe("googleWorkspace.handler", () => {
     });
 
     it("returns count of deleted credentials", async () => {
-      const { prisma } = await import("@calcom/prisma");
-      const { removeCurrentGoogleWorkspaceConnection } = await import("./googleWorkspace.handler");
-
       vi.mocked(prisma.credential.deleteMany).mockResolvedValue({ count: 2 });
 
-      const result = await removeCurrentGoogleWorkspaceConnection(createMockContext());
+      const result = await handlers.removeCurrentGoogleWorkspaceConnection(createMockContext());
 
       expect(result).toEqual({ deleted: 2 });
     });
