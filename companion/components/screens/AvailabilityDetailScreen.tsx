@@ -599,7 +599,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                     <View className="mt-2" style={{ marginLeft: 108 }}>
                       {daySlots.slice(1).map((slot, slotIndex) => (
                         <View
-                          key={`${slot.startTime}-${slot.endTime}`}
+                          key={`${slotIndex}-${slot.startTime}-${slot.endTime}`}
                           className="mb-2 flex-row items-center gap-2"
                         >
                           <AppPressable

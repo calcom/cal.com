@@ -18,8 +18,8 @@ export function Tooltip({ text, children }: TooltipProps) {
   };
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Tooltip wrapper only shows/hides content on hover, not a clickable element
     <span
-      role="tooltip"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{ position: "relative", display: "inline-flex" }}
@@ -27,6 +27,7 @@ export function Tooltip({ text, children }: TooltipProps) {
       {children}
       {showTooltip ? (
         <span
+          role="tooltip"
           style={{
             position: "absolute",
             left: "50%",

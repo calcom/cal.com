@@ -260,10 +260,10 @@ function hasBookingLimitsCountChanged(
   const originalLimits: Record<string, number> = {};
   if (original && !("disabled" in original)) {
     const orig = original as BookingLimitsCount;
-    if (orig.day !== undefined) originalLimits.PER_DAY = orig.day;
-    if (orig.week !== undefined) originalLimits.PER_WEEK = orig.week;
-    if (orig.month !== undefined) originalLimits.PER_MONTH = orig.month;
-    if (orig.year !== undefined) originalLimits.PER_YEAR = orig.year;
+    if (orig.day !== undefined) originalLimits.day = orig.day;
+    if (orig.week !== undefined) originalLimits.week = orig.week;
+    if (orig.month !== undefined) originalLimits.month = orig.month;
+    if (orig.year !== undefined) originalLimits.year = orig.year;
   }
 
   return !areEqual(currentLimits, originalLimits);
@@ -294,10 +294,10 @@ function hasBookingLimitsDurationChanged(
   const originalLimits: Record<string, number> = {};
   if (original && !("disabled" in original)) {
     const orig = original as BookingLimitsDuration;
-    if (orig.day !== undefined) originalLimits.PER_DAY = orig.day;
-    if (orig.week !== undefined) originalLimits.PER_WEEK = orig.week;
-    if (orig.month !== undefined) originalLimits.PER_MONTH = orig.month;
-    if (orig.year !== undefined) originalLimits.PER_YEAR = orig.year;
+    if (orig.day !== undefined) originalLimits.day = orig.day;
+    if (orig.week !== undefined) originalLimits.week = orig.week;
+    if (orig.month !== undefined) originalLimits.month = orig.month;
+    if (orig.year !== undefined) originalLimits.year = orig.year;
   }
 
   return !areEqual(currentLimits, originalLimits);
