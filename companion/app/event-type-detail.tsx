@@ -1,4 +1,36 @@
+import { AdvancedTab } from "../components/event-type-detail/tabs/AdvancedTab";
+import { AvailabilityTab } from "../components/event-type-detail/tabs/AvailabilityTab";
+import { BasicsTab } from "../components/event-type-detail/tabs/BasicsTab";
+import { LimitsTab } from "../components/event-type-detail/tabs/LimitsTab";
+import { RecurringTab } from "../components/event-type-detail/tabs/RecurringTab";
+import {
+  formatDuration,
+  truncateTitle,
+  formatAppIdToDisplayName,
+} from "../components/event-type-detail/utils";
+import {
+  buildPartialUpdatePayload,
+  hasChanges,
+} from "../components/event-type-detail/utils/buildPartialUpdatePayload";
+import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
+import { LocationItem, LocationOptionGroup } from "../types/locations";
+import { showErrorAlert } from "../utils/alerts";
+import { openInAppBrowser } from "../utils/browser";
+import {
+  parseBufferTime,
+  parseMinimumNotice,
+  parseFrequencyUnit,
+  parseSlotInterval,
+} from "../utils/eventTypeParsers";
+import {
+  mapApiLocationToItem,
+  mapItemToApiLocation,
+  buildLocationOptions,
+  validateLocationItem,
+} from "../utils/locationHelpers";
+import { slugify } from "../utils/slugify";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { useRouter, useLocalSearchParams, Stack } from "expo-router";
 import React, { useState, useEffect } from "react";
@@ -15,40 +47,7 @@ import {
   Image,
   Platform,
 } from "react-native";
-import * as Clipboard from "expo-clipboard";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
-import { showErrorAlert } from "../utils/alerts";
-import { openInAppBrowser } from "../utils/browser";
-import { LocationItem, LocationOptionGroup } from "../types/locations";
-import {
-  mapApiLocationToItem,
-  mapItemToApiLocation,
-  buildLocationOptions,
-  validateLocationItem,
-} from "../utils/locationHelpers";
-import {
-  parseBufferTime,
-  parseMinimumNotice,
-  parseFrequencyUnit,
-  parseSlotInterval,
-} from "../utils/eventTypeParsers";
-import { slugify } from "../utils/slugify";
-import { BasicsTab } from "../components/event-type-detail/tabs/BasicsTab";
-import { AvailabilityTab } from "../components/event-type-detail/tabs/AvailabilityTab";
-import { LimitsTab } from "../components/event-type-detail/tabs/LimitsTab";
-import { AdvancedTab } from "../components/event-type-detail/tabs/AdvancedTab";
-import { RecurringTab } from "../components/event-type-detail/tabs/RecurringTab";
-import {
-  formatDuration,
-  truncateTitle,
-  formatAppIdToDisplayName,
-} from "../components/event-type-detail/utils";
-import {
-  buildPartialUpdatePayload,
-  hasChanges,
-} from "../components/event-type-detail/utils/buildPartialUpdatePayload";
 
 const tabs = [
   { id: "basics", label: "Basics", icon: "link" },
@@ -223,7 +222,11 @@ export default function EventTypeDetail() {
   ];
 
   const getLocationOptionsForDropdown = (): LocationOptionGroup[] => {
-    return buildLocationOptions(conferencingOptions);
+    // Filter out conferencing options with null appId
+    const validOptions = conferencingOptions.filter(
+      (opt): opt is ConferencingOption & { appId: string } => opt.appId !== null
+    );
+    return buildLocationOptions(validOptions);
   };
 
   const handleAddLocation = (location: LocationItem) => {
@@ -334,7 +337,7 @@ export default function EventTypeDetail() {
       setScheduleDetailsLoading(true);
       const scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
       setSelectedScheduleDetails(scheduleDetails);
-      if (scheduleDetails.timeZone) {
+      if (scheduleDetails?.timeZone) {
         setSelectedTimezone(scheduleDetails.timeZone);
       }
     } catch (error) {
@@ -422,7 +425,7 @@ export default function EventTypeDetail() {
         // Load booking frequency limits
         if (eventType.bookingLimitsCount && !("disabled" in eventType.bookingLimitsCount)) {
           setLimitBookingFrequency(true);
-          const limits = [];
+          const limits: Array<{ id: number; value: string; unit: string }> = [];
           let idCounter = 1;
           if (eventType.bookingLimitsCount.day) {
             limits.push({
@@ -460,7 +463,7 @@ export default function EventTypeDetail() {
         // Load duration limits
         if (eventType.bookingLimitsDuration && !("disabled" in eventType.bookingLimitsDuration)) {
           setLimitTotalDuration(true);
-          const limits = [];
+          const limits: Array<{ id: number; value: string; unit: string }> = [];
           let idCounter = 1;
           if (eventType.bookingLimitsDuration.day) {
             limits.push({
@@ -561,11 +564,13 @@ export default function EventTypeDetail() {
         }
 
         if (eventType.metadata) {
-          if (eventType.metadata.calendarEventName) {
-            setCalendarEventName(eventType.metadata.calendarEventName);
+          const calendarEventNameValue = eventType.metadata.calendarEventName;
+          if (typeof calendarEventNameValue === "string") {
+            setCalendarEventName(calendarEventNameValue);
           }
-          if (eventType.metadata.addToCalendarEmail) {
-            setAddToCalendarEmail(eventType.metadata.addToCalendarEmail);
+          const addToCalendarEmailValue = eventType.metadata.addToCalendarEmail;
+          if (typeof addToCalendarEmailValue === "string") {
+            setAddToCalendarEmail(addToCalendarEmailValue);
           }
         }
 
@@ -1048,7 +1053,9 @@ export default function EventTypeDetail() {
             </Text>
 
             <TouchableOpacity
-              className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${saving ? "opacity-60" : ""}`}
+              className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${
+                saving ? "opacity-60" : ""
+              }`}
               onPress={handleSave}
               disabled={saving}
             >
@@ -1093,7 +1100,9 @@ export default function EventTypeDetail() {
                       color={activeTab === tab.id ? "#007AFF" : "#666"}
                     />
                     <Text
-                      className={`text-base font-medium ${activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"}`}
+                      className={`text-base font-medium ${
+                        activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"
+                      }`}
                     >
                       {tab.label}
                     </Text>
@@ -1137,7 +1146,9 @@ export default function EventTypeDetail() {
                       color={activeTab === tab.id ? "#007AFF" : "#666"}
                     />
                     <Text
-                      className={`text-base font-medium ${activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"}`}
+                      className={`text-base font-medium ${
+                        activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"
+                      }`}
                     >
                       {tab.label}
                     </Text>
@@ -1209,7 +1220,9 @@ export default function EventTypeDetail() {
                       onPress={() => toggleDurationSelection(duration)}
                     >
                       <Text
-                        className={`text-base text-[#333] ${selectedDurations.includes(duration) ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedDurations.includes(duration) ? "font-semibold" : ""
+                        }`}
                       >
                         {duration}
                       </Text>
@@ -1256,7 +1269,9 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${defaultDuration === duration ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        defaultDuration === duration ? "font-semibold" : ""
+                      }`}
                     >
                       {duration}
                     </Text>
@@ -1298,7 +1313,9 @@ export default function EventTypeDetail() {
                   >
                     <View className="flex-1 flex-row items-center justify-between">
                       <Text
-                        className={`text-base text-[#333] ${selectedSchedule?.id === schedule.id ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedSchedule?.id === schedule.id ? "font-semibold" : ""
+                        }`}
                       >
                         {schedule.name}
                       </Text>
@@ -1364,7 +1381,12 @@ export default function EventTypeDetail() {
                       }}
                     >
                       <Text
-                        className={`text-base text-[#333] ${selectedTimezone === tz || (selectedScheduleDetails?.timeZone === tz && !selectedTimezone) ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedTimezone === tz ||
+                          (selectedScheduleDetails?.timeZone === tz && !selectedTimezone)
+                            ? "font-semibold"
+                            : ""
+                        }`}
                       >
                         {tz}
                       </Text>
@@ -1406,7 +1428,9 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${beforeEventBuffer === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        beforeEventBuffer === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
@@ -1446,7 +1470,9 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${afterEventBuffer === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        afterEventBuffer === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
@@ -1486,7 +1512,9 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${minimumNoticeUnit === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        minimumNoticeUnit === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
@@ -1618,7 +1646,9 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${slotInterval === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        slotInterval === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
@@ -1658,7 +1688,9 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base capitalize text-[#333] ${recurringFrequency === option ? "font-semibold" : ""}`}
+                      className={`text-base capitalize text-[#333] ${
+                        recurringFrequency === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option === "weekly" ? "week" : option === "monthly" ? "month" : "year"}
                     </Text>
@@ -1678,7 +1710,7 @@ export default function EventTypeDetail() {
               schedulesLoading={schedulesLoading}
               scheduleDetailsLoading={scheduleDetailsLoading}
               selectedScheduleDetails={selectedScheduleDetails}
-              getDaySchedule={getDaySchedule}
+              getDaySchedules={getDaySchedule}
               formatTime={formatTime}
               selectedTimezone={selectedTimezone}
             />

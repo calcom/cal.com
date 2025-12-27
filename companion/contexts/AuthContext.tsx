@@ -1,20 +1,32 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { WebAuthService } from "../services/webAuth";
 import { CalComAPIService } from "../services/calcom";
 import {
   createCalComOAuthService,
   OAuthTokens,
   CalComOAuthService,
 } from "../services/oauthService";
+import type { UserProfile } from "../services/types/users.types";
+import { WebAuthService } from "../services/webAuth";
 import { secureStorage } from "../utils/storage";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+
+/**
+ * Simplified user info stored in auth context
+ * Contains only the essential fields needed for the app
+ */
+interface AuthUserInfo {
+  id: number;
+  email: string;
+  name: string;
+  username: string;
+}
 
 interface AuthContextType {
   isAuthenticated: boolean;
   accessToken: string | null;
   refreshToken: string | null;
-  userInfo: any;
+  userInfo: AuthUserInfo | null;
   isWebSession: boolean;
-  loginFromWebSession: (userInfo: any) => Promise<void>;
+  loginFromWebSession: (userInfo: UserProfile) => Promise<void>;
   loginWithOAuth: () => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
@@ -36,11 +48,15 @@ interface AuthProviderProps {
 // Use the shared secure storage adapter
 const storage = secureStorage;
 
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : String(error);
+const getErrorStack = (error: unknown) => (error instanceof Error ? error.stack : undefined);
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfo, setUserInfo] = useState<AuthUserInfo | null>(null);
   const [isWebSession, setIsWebSession] = useState(false);
   const [loading, setLoading] = useState(true);
   const [oauthService] = useState(() => {
@@ -143,7 +159,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           newRefreshToken || refreshToken || undefined
         );
       } catch (error) {
-        console.error("Failed to handle token refresh:", error);
+        const message = getErrorMessage(error);
+        console.error("Failed to handle token refresh", message);
+        if (__DEV__) {
+          console.debug("[AuthContext] token refresh handler failed", {
+            message,
+            stack: getErrorStack(error),
+          });
+        }
         await logout();
       }
     };
@@ -213,15 +236,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
         handleWebSessionAuth();
       }
     } catch (error) {
-      console.error("Failed to check auth state:", error);
+      const message = getErrorMessage(error);
+      console.error("Failed to check auth state", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] checkAuthState failed", {
+          message,
+          stack: getErrorStack(error),
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const loginFromWebSession = async (sessionUserInfo: any) => {
+  const loginFromWebSession = async (sessionUserInfo: UserProfile) => {
     try {
-      setUserInfo(sessionUserInfo);
+      setUserInfo({
+        id: sessionUserInfo.id,
+        email: sessionUserInfo.email,
+        name: sessionUserInfo.name,
+        username: sessionUserInfo.username,
+      });
       setIsAuthenticated(true);
       setIsWebSession(true);
       await storage.set(AUTH_TYPE_KEY, "web_session");
@@ -234,7 +269,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
       }
     } catch (error) {
-      console.error("Failed to login from web session:", error);
+      const message = getErrorMessage(error);
+      console.error("Failed to login from web session", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] loginFromWebSession failed", {
+          message,
+          stack: getErrorStack(error),
+        });
+      }
       throw error;
     }
   };
@@ -267,7 +309,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Clear PKCE parameters
       oauthService.clearPKCEParams();
     } catch (error) {
-      console.error("OAuth login failed:", error);
+      const message = getErrorMessage(error);
+      console.error("OAuth login failed", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] loginWithOAuth failed", {
+          message,
+          stack: getErrorStack(error),
+        });
+      }
       throw error;
     } finally {
       setLoading(false);
@@ -279,7 +328,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await clearAuth();
       resetAuthState();
     } catch (error) {
-      console.error("Failed to logout:", error);
+      const message = getErrorMessage(error);
+      console.error("Failed to logout", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] logout failed", { message, stack: getErrorStack(error) });
+      }
     }
   };
 
