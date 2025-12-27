@@ -147,7 +147,8 @@ const _sendScheduledEmailsAndSMS = async (
                   title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
                 }),
               },
-              attendee
+              attendee,
+              formattedCalEvent.seatsShowAttendees ?? false
             )
         );
       })
