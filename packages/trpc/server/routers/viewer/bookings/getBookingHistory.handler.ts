@@ -3,19 +3,19 @@ import type { TFunction } from "i18next";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { TRPCError } from "@trpc/server";
 
-import { getBookingAuditViewerService } from "@calcom/features/booking-audit/di/BookingAuditViewerService.container";
+import { getBookingHistoryViewerService } from "@calcom/features/booking-audit/di/BookingHistoryViewerService.container";
 import { BookingAuditErrorCode, BookingAuditPermissionError } from "@calcom/features/booking-audit/lib/service/BookingAuditAccessService";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
 import type { TrpcSessionUser } from "../../../types";
-import type { TGetAuditLogsInputSchema } from "./getAuditLogs.schema";
+import type { TGetBookingHistoryInputSchema } from "./getBookingHistory.schema";
 
-type GetAuditLogsOptions = {
+type GetBookingHistoryOptions = {
     ctx: {
         user: NonNullable<TrpcSessionUser>;
         prisma: PrismaClient;
     };
-    input: TGetAuditLogsInputSchema;
+    input: TGetBookingHistoryInputSchema;
 };
 
 const getErrorMessage = (code: BookingAuditErrorCode, t: TFunction): string => {
@@ -35,15 +35,15 @@ const getErrorMessage = (code: BookingAuditErrorCode, t: TFunction): string => {
     }
 };
 
-export const getAuditLogsHandler = async ({ ctx, input }: GetAuditLogsOptions) => {
+export const getBookingHistoryHandler = async ({ ctx, input }: GetBookingHistoryOptions) => {
     const { user } = ctx;
     const { bookingUid } = input;
 
     const t = await getTranslation(user.locale ?? "en", "common");
-    const bookingAuditViewerService = getBookingAuditViewerService();
+    const bookingHistoryViewerService = getBookingHistoryViewerService();
 
     try {
-        const result = await bookingAuditViewerService.getAuditLogsForBooking({
+        const result = await bookingHistoryViewerService.getHistoryForBooking({
             bookingUid,
             userId: user.id,
             userEmail: user.email,
@@ -62,4 +62,3 @@ export const getAuditLogsHandler = async ({ ctx, input }: GetAuditLogsOptions) =
         throw error;
     }
 };
-
