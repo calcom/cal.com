@@ -100,8 +100,8 @@ Getting info about the bbb instance
 
 export const bbbInstanceInfoSchema = z.object({
   returncode: z.literal("SUCCESS"),
-  version: z.string(), // BBB API returns version as string e.g. "2.0"
-  apiVersion: z.string(), // BBB API returns apiVersion as string e.g. "2.0"
+  version: z.union([z.string(), z.number()]).transform(String), // XML parser may return number
+  apiVersion: z.union([z.string(), z.number()]).transform(String), // XML parser may return number
   bbbVersion: z.string().optional(), // Optional - may be empty on some versions
   graphqlWebsocketUrl: z.string().optional(), // Only available on BBB 2.5+ with GraphQL enabled
   graphqlApiUrl: z.string().optional(), // Only available on BBB 2.5+ with GraphQL enabled
