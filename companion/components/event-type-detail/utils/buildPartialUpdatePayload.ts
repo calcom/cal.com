@@ -401,7 +401,6 @@ function mapLayoutToApi(layout: string): string {
   return mapping[layout] || layout.toLowerCase().replace("_view", "");
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _mapLayoutFromApi(layout: string): string {
   const mapping: Record<string, string> = {
     month: "MONTH_VIEW",

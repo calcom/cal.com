@@ -28,6 +28,7 @@ export function Header() {
     try {
       const profile = await CalComAPIService.getUserProfile();
       setUserProfile(profile);
+      setLoading(false);
     } catch (err) {
       console.error("Failed to fetch user profile");
       if (__DEV__) {
@@ -35,7 +36,6 @@ export function Header() {
         const stack = err instanceof Error ? err.stack : undefined;
         console.debug("[Header] fetchUserProfile failed", { message, stack });
       }
-    } finally {
       setLoading(false);
     }
   }, []);

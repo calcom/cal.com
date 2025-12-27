@@ -91,9 +91,9 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
       try {
         await CalComAPIService.addGuests(booking.uid, guests);
         Alert.alert("Success", "Guests added successfully", [{ text: "OK", onPress: onSuccess }]);
+        setIsSaving(false);
       } catch (error) {
         Alert.alert("Error", error instanceof Error ? error.message : "Failed to add guests");
-      } finally {
         setIsSaving(false);
       }
     }, [booking, guests, onSuccess]);

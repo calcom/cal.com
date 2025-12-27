@@ -93,7 +93,6 @@ export default function OAuthCallback() {
         }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, router, auth.userInfo]);
 
   return (
