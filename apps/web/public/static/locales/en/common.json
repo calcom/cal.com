@@ -432,6 +432,7 @@
   "default_reminder": "Default reminder",
   "default_reminder_description": "Set the default reminder time for events added to your Google Calendar.",
   "remind_minutes_before": "{{count}} minutes before",
+  "just_in_time": "Just in time",
   "reminder_updated": "Reminder updated",
   "error_updating_reminder": "Failed to update reminder",
   "add_another_calendar": "Add another calendar",
