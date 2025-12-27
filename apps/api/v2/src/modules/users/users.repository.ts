@@ -22,8 +22,6 @@ export class UsersRepository {
     oAuthClientId: string,
     isPlatformManaged: boolean
   ) {
-    this.formatInput(user);
-
     return this.dbWrite.prisma.user.create({
       data: {
         ...user,
@@ -227,8 +225,6 @@ export class UsersRepository {
   }
 
   async update(userId: number, updateData: UpdateManagedUserInput) {
-    this.formatInput(updateData);
-
     return this.dbWrite.prisma.user.update({
       where: { id: userId },
       data: updateData,
@@ -257,12 +253,6 @@ export class UsersRepository {
     });
   }
 
-  formatInput(userInput: CreateManagedUserInput | UpdateManagedUserInput) {
-    if (userInput.weekStart) {
-      userInput.weekStart = userInput.weekStart;
-    }
-  }
-
   setDefaultSchedule(userId: number, scheduleId: number) {
     return this.dbWrite.prisma.user.update({
       where: { id: userId },
@@ -278,6 +268,14 @@ export class UsersRepository {
     if (!user?.defaultScheduleId) return null;
 
     return user?.defaultScheduleId;
+  }
+
+  async getUsersScheduleDefaultIds(userIds: number[]): Promise<Map<number, number | null>> {
+    const users = await this.dbRead.prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, defaultScheduleId: true },
+    });
+    return new Map(users.map((user) => [user.id, user.defaultScheduleId]));
   }
 
   async getOrganizationUsers(organizationId: number) {
