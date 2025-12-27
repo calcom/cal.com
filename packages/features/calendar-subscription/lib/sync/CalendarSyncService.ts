@@ -1,6 +1,9 @@
+import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
+import { getRegularBookingService } from "@calcom/features/bookings/di/RegularBookingService.container";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSyncService"] });
@@ -62,17 +65,33 @@ export class CalendarSyncService {
     log.debug("cancelBooking", { event });
     const [bookingUid] = event.iCalUID?.split("@") ?? [undefined];
     if (!bookingUid) {
-      log.debug("Unable to sync, booking not found");
+      log.debug("Unable to sync, booking UID not found in iCalUID");
       return;
     }
 
     const booking = await this.deps.bookingRepository.findBookingByUidWithEventType({ bookingUid });
     if (!booking) {
-      log.debug("Unable to sync, booking not found");
+      log.debug("Unable to sync, booking not found in database", { bookingUid });
       return;
     }
 
-    // todo handle cancel booking
+    try {
+      await handleCancelBooking({
+        userId: booking.userId!,
+        bookingData: {
+          uid: booking.uid,
+          cancellationReason: "Cancelled on user's calendar",
+          cancelledBy: booking.userPrimaryEmail!,
+          // Skip calendar event deletion to avoid infinite loops
+          // (Google/Office365 → Cal.com → Google/Office365 → ...)
+          skipCalendarSyncTaskCancellation: true,
+        },
+      });
+      log.info("Successfully cancelled booking from calendar sync", { bookingUid });
+    } catch (error) {
+      // Log error but don't block - calendar change should still be reflected
+      log.error("Failed to cancel booking from calendar sync", { bookingUid, error: safeStringify(error) });
+    }
   }
 
   /**
@@ -83,16 +102,38 @@ export class CalendarSyncService {
     log.debug("rescheduleBooking", { event });
     const [bookingUid] = event.iCalUID?.split("@") ?? [undefined];
     if (!bookingUid) {
-      log.debug("Unable to sync, booking not found");
+      log.debug("Unable to sync, booking UID not found in iCalUID");
       return;
     }
 
     const booking = await this.deps.bookingRepository.findBookingByUidWithEventType({ bookingUid });
     if (!booking) {
-      log.debug("Unable to sync, booking not found");
+      log.debug("Unable to sync, booking not found in database", { bookingUid });
       return;
     }
 
-    // todo handle update booking
+    try {
+      const regularBookingService = getRegularBookingService();
+      await regularBookingService.createBooking({
+        bookingData: {
+          eventTypeId: booking.eventTypeId!,
+          start: event.start?.toISOString() ?? booking.startTime.toISOString(),
+          end: event.end?.toISOString() ?? booking.endTime.toISOString(),
+          timeZone: event.timeZone ?? "UTC",
+          language: "en",
+          metadata: {},
+          rescheduleUid: booking.uid,
+        },
+        bookingMeta: {
+          // Skip calendar event creation to avoid infinite loops
+          // (Google/Office365 → Cal.com → Google/Office365 → ...)
+          skipCalendarSyncTaskCreation: true,
+        },
+      });
+      log.info("Successfully rescheduled booking from calendar sync", { bookingUid });
+    } catch (error) {
+      // Log error but don't block - calendar change should still be reflected
+      log.error("Failed to reschedule booking from calendar sync", { bookingUid, error: safeStringify(error) });
+    }
   }
 }
