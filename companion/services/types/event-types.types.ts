@@ -218,7 +218,13 @@ export interface EventType {
   }>;
 
   // Metadata
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
+
+  // Booking action settings (may also be in metadata)
+  disableRescheduling?: boolean;
+  disableCancelling?: boolean;
+  minimumRescheduleNotice?: number;
+  allowReschedulingPastBookings?: boolean;
 }
 
 export interface CreateEventTypeInput {
@@ -279,7 +285,7 @@ export interface CreateEventTypeInput {
   lockTimeZoneToggleOnBookingPage?: boolean;
   successRedirectUrl?: string;
   forwardParamsSuccessRedirect?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface GetEventTypesResponse {

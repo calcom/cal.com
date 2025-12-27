@@ -433,8 +433,8 @@ function WorkflowPage({
           await validateAndSubmitWorkflow(values);
         }}>
         <div className="flex h-full min-h-screen w-full flex-col">
-          <div className="bg-default border-muted flex w-full items-center justify-between border-b px-4 py-2">
-            <div className="border-muted flex items-center gap-2">
+          <div className="bg-default border-muted flex w-full items-center justify-between border-b px-2 py-2 sm:px-4">
+            <div className="border-muted flex min-w-0 items-center gap-2">
               <Button
                 color="secondary"
                 size="sm"
@@ -459,12 +459,13 @@ function WorkflowPage({
                     autoFocus
                   />
                 ) : (
-                  <div className="group flex items-center gap-1">
-                    <span
-                      className="text-default hover:bg-cal-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded p-1 text-sm font-semibold leading-none"
-                      onClick={() => setIsEditingName(true)}>
-                      {watchedName ? watchedName : isPending ? t("loading") : t("untitled")}
-                    </span>
+                  <div className="group flex min-w-0 items-center gap-1">
+
+                      <span
+                        className="text-default hover:bg-cal-muted min-w-0 cursor-pointer truncate whitespace-nowrap rounded p-1 text-sm font-semibold leading-none sm:min-w-[100px]"
+                        onClick={() => setIsEditingName(true)}>
+                        {watchedName ? watchedName : isPending ? t("loading") : t("untitled")}
+                      </span>
                     <Button
                       variant="icon"
                       color="minimal"
@@ -480,24 +481,26 @@ function WorkflowPage({
                 )}
               </div>
               {workflow && workflow.team && (
-                <Badge className="ml-4 mt-1" variant="gray">
+                <Badge className="ml-2 text-xs" variant="gray">
                   {workflow.team.name}
                 </Badge>
               )}
               {permissions.readOnly && (
-                <Badge className="ml-4 mt-1" variant="gray">
+                <Badge className="ml-2 text-xs" variant="gray">
                   {t("readonly")}
                 </Badge>
               )}
             </div>
 
-            <div className="border-muted flex justify-end gap-2">
+            <div className="flex justify-end gap-2">
               <Tooltip sideOffset={4} content={t("delete")} side="bottom">
                 <Button
                   color="destructive"
                   type="button"
+                  size="sm"
                   StartIcon="trash-2"
                   data-testid="delete-button"
+                  className="ml-3"
                   onClick={() => {
                     setDeleteDialogOpen(true);
                   }}
@@ -509,6 +512,7 @@ function WorkflowPage({
                 disabled={permissions.readOnly || updateMutation.isPending}
                 data-testid="save-workflow"
                 type="submit"
+                size="sm"
                 color="primary">
                 {t("save")}
               </Button>
