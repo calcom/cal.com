@@ -83,6 +83,39 @@ function EventTypeSingleLayout({
     translate: t,
     formMethods,
   });
+
+  const watchedValues = formMethods.watch();
+  
+  const isSaveDisabled = useMemo(() => {
+    const { isDirty, dirtyFields, defaultValues } = formMethods.formState;
+    const dirtyFieldsCount = Object.keys(dirtyFields || {}).length;
+    
+    if (!isDirty || dirtyFieldsCount === 0) {
+      return true;
+    }
+    
+    // edge case for "description" field specially
+    const currentDescription = formMethods.getValues("description");
+    const defaultDescription = defaultValues?.description;
+    
+    if (dirtyFieldsCount === 1 && dirtyFields.description) {
+      const isEmptyTransition = 
+        (currentDescription === "" && defaultDescription === undefined) ||
+        (currentDescription === undefined && defaultDescription === "");
+      
+      if (isEmptyTransition) {
+        return true;
+      }
+    }
+    
+    return false;
+  }, [
+    formMethods.formState.isDirty,
+    formMethods.formState.dirtyFields,
+    formMethods.formState.defaultValues,
+    watchedValues,
+  ]);
+
   const EventTypeTabs = tabsNavigation;
   const permalink = `${bookerUrl}/${
     team ? `${!team.parentId ? "team/" : ""}${team.slug}` : formMethods.getValues("users")[0].username
@@ -96,6 +129,7 @@ function EventTypeSingleLayout({
   const [Shell] = useMemo(() => {
     return isPlatform ? [PlatformShell] : [WebShell];
   }, [isPlatform]);
+  
   const teamId = eventType.team?.id;
 
   return (
@@ -269,7 +303,7 @@ function EventTypeSingleLayout({
             className="ml-4 lg:ml-0"
             type="submit"
             loading={isUpdateMutationLoading}
-            disabled={!formMethods.formState.isDirty}
+            disabled={isSaveDisabled}
             data-testid="update-eventtype"
             form="event-type-form">
             {t("save")}
