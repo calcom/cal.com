@@ -2,7 +2,11 @@
   "extends": "@calcom/tsconfig/react-library.json",
   "compilerOptions": {
     "resolveJsonModule": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "paths": {
+      "@coss/ui/*": ["../coss-ui/src/*"]
+    }
   },
   "include": [
     "../types/window.d.ts",

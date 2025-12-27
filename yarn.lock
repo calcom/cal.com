@@ -3318,6 +3318,7 @@ __metadata:
     "@calcom/eslint-config": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/tsconfig": "workspace:*"
+    "@coss/ui": "workspace:*"
     "@formkit/auto-animate": "npm:1.0.0-beta.5"
     "@lexical/code": "npm:0.9.0"
     "@lexical/html": "npm:0.9.0"
