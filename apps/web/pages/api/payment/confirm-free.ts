@@ -95,7 +95,7 @@ async function confirmFreePayment(input: z.infer<typeof schema>) {
       });
     }
     if (lockedPayment.success) {
-      return { ok: true as const, paymentId: lockedPayment.id, bookingId: lockedPayment.bookingId };
+      return { ok: true as const, alreadyProcessed: true as const };
     }
     if (lockedPayment.refunded) {
       throw new HttpError({
@@ -185,14 +185,13 @@ async function confirmFreePayment(input: z.infer<typeof schema>) {
 
     return {
       ok: true as const,
+      alreadyProcessed: false as const,
       paymentId: lockedPayment.id,
       bookingId: lockedPayment.bookingId,
     };
   });
 
-  if (!locked.ok) {
-    return { ok: true };
-  }
+  if (locked.alreadyProcessed) return { ok: true };
 
   try {
     await handlePaymentSuccess(locked.paymentId, locked.bookingId);
