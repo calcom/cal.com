@@ -2,6 +2,7 @@
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Select } from "@calcom/ui/components/form";
+import type { ReminderMinutes } from "@calcom/trpc/server/routers/viewer/calendars/setDestinationReminder.schema";
 
 const REMINDER_OPTIONS = [
   { value: 0, label: "just_in_time" },
@@ -11,8 +12,8 @@ const REMINDER_OPTIONS = [
 ];
 
 interface DestinationReminderSelectorProps {
-  value: number;
-  onChange: (value: number) => void;
+  value: ReminderMinutes;
+  onChange: (value: ReminderMinutes) => void;
   isPending?: boolean;
 }
 

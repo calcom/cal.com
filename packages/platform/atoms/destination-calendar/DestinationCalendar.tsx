@@ -1,5 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label } from "@calcom/ui/components/form";
+import type { ReminderMinutes } from "@calcom/trpc/server/routers/viewer/calendars/setDestinationReminder.schema";
 
 import { cn } from "../src/lib/utils";
 import type { DestinationCalendarProps } from "./DestinationCalendarSelector";
@@ -20,8 +21,8 @@ export type DestinationCalendarClassNames = {
 type DestinationCalendarSettingsProps = DestinationCalendarProps & {
   classNames?: string;
   classNamesObject?: DestinationCalendarClassNames;
-  onReminderChange?: ((value: number) => void) | null;
-  reminderValue?: number;
+  onReminderChange?: ((value: ReminderMinutes) => void) | null;
+  reminderValue?: ReminderMinutes;
   isReminderPending?: boolean;
 };
 

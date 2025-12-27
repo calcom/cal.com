@@ -77,6 +77,7 @@ export class CalendarsServiceMock {
         domainWideDelegationCredentialId: null,
         createdAt: new Date(),
         updatedAt: new Date(),
+        customCalendarReminder: 10,
       },
     } satisfies Awaited<ReturnType<typeof CalendarsService.prototype.getCalendars>>;
   }
