@@ -3010,7 +3010,7 @@ __metadata:
     class-validator: "npm:0.14.3"
     libphonenumber-js: "npm:1.10.49"
     luxon: "npm:3.4.4"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   languageName: unknown
   linkType: soft
 
@@ -3368,7 +3368,7 @@ __metadata:
     tailwind-merge: "npm:1.13.2"
     typescript: "npm:5.9.2"
     uuid: "npm:11.1.0"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   peerDependencies:
     react-dom: 18.2.0
   languageName: unknown
