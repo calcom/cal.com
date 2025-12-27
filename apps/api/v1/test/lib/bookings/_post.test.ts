@@ -245,7 +245,9 @@ describe("POST /api/bookings", () => {
 
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
-        body: {},
+        body: {
+          eventTypeId: 2,
+        },
       });
 
       await handler(req, res);
