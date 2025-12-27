@@ -126,7 +126,7 @@ describe("BBBApi", () => {
       const result = await api.createMeeting("test-meeting", "Test");
 
       expect(result.success).toBe(false);
-      if (!result.success) {
+      if (!result.success && "error" in result) {
         expect(result.error).toBe(bbbError.INVALID_CHECKSUM);
       }
     });
@@ -138,7 +138,7 @@ describe("BBBApi", () => {
       const result = await api.createMeeting("test-meeting", "Test");
 
       expect(result.success).toBe(false);
-      if (!result.success) {
+      if (!result.success && "error" in result) {
         expect(result.error).toBe(bbbError.CANNOT_REACH_SERVER);
       }
     });
@@ -215,7 +215,7 @@ describe("BBBApi", () => {
       const result = await api.createMeeting("test", "Test");
 
       expect(result.success).toBe(false);
-      if (!result.success) {
+      if (!result.success && "error" in result) {
         expect(result.error).toBe(bbbError.CANNOT_REACH_SERVER);
       }
     });
@@ -230,7 +230,7 @@ describe("BBBApi", () => {
       const result = await api.createMeeting("test", "Test");
 
       expect(result.success).toBe(false);
-      if (!result.success) {
+      if (!result.success && "error" in result) {
         expect(result.error).toBe(bbbError.INVALID_XML_FORMAT);
       }
     });
