@@ -187,7 +187,7 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
   return videoAdapter?.createMeeting(calEvent);
 };
 
-export const createInstantMeetingWithCalVideo = async (endTime: string) => {
+export const createInstantMeetingWithCalVideo = async (endTime: string, bookingUid: string) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
@@ -207,7 +207,7 @@ export const createInstantMeetingWithCalVideo = async (endTime: string) => {
       delegationCredentialId: null,
     },
   ]);
-  return videoAdapter?.createInstantCalVideoRoom?.(endTime);
+  return videoAdapter?.createInstantCalVideoRoom?.(endTime, bookingUid);
 };
 
 const getRecordingsOfCalVideoByRoomName = async (

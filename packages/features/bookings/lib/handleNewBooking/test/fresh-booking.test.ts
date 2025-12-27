@@ -269,6 +269,131 @@ describe("handleNewBooking", () => {
       timeout
     );
 
+    test(
+      `should store internalProviderUrl in BookingReference.meetingUrl while webhook receives the public Cal.com URL
+          1. BookingReference.meetingUrl should have the internal provider URL (e.g., Daily.co URL)
+          2. Webhook videoCallData.url should have the public Cal.com URL
+    `,
+      async () => {
+        const handleNewBooking = getNewBookingHandler();
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: "google_calendar",
+            externalId: "organizer@google-calendar.com",
+          },
+        });
+
+        await createBookingScenario(
+          getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          })
+        );
+
+        const internalDailyUrl = "https://meetco.daily.co/MOCK_ROOM";
+        const publicCalVideoUrl = `${WEBAPP_URL}/video/mock-booking-uid`;
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: publicCalVideoUrl,
+            internalProviderUrl: internalDailyUrl,
+          },
+        });
+
+        await mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+          },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            user: organizer.username,
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+          },
+        });
+
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+        });
+
+        // Verify BookingReference.meetingUrl has the internal Daily.co URL (for video embed)
+        await expectBookingToBeInDatabase({
+          description: "",
+          uid: createdBooking.uid!,
+          eventTypeId: mockBookingData.eventTypeId,
+          status: BookingStatus.ACCEPTED,
+          references: [
+            {
+              type: appStoreMetadata.dailyvideo.type,
+              uid: "MOCK_ID",
+              meetingId: "MOCK_ID",
+              meetingPassword: "MOCK_PASS",
+              meetingUrl: internalDailyUrl,
+            },
+            {
+              type: appStoreMetadata.googlecalendar.type,
+              uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+              meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+              meetingPassword: "MOCK_PASSWORD",
+            },
+          ],
+          iCalUID: createdBooking.iCalUID,
+        });
+
+        // Verify webhook receives the public Cal.com URL (not the internal Daily.co URL)
+        expectBookingCreatedWebhookToHaveBeenFired({
+          booker,
+          organizer,
+          location: BookingLocations.CalVideo,
+          subscriberUrl: "http://my-webhook.example.com",
+          videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
+        });
+      },
+      timeout
+    );
+
     describe("Calendar events should be created in the appropriate calendar", () => {
       test(
         `should create a successful booking in the first connected calendar i.e. using the first credential(in the scenario when there is no event-type or organizer destination calendar)
