@@ -59,6 +59,15 @@ export class EventTypeWorkflowActivationOutputDto {
   @Expose()
   @IsArray()
   activeOnEventTypeIds?: number[];
+
+  @ApiPropertyOptional({
+    description:
+      "List of Organization Team IDs the workflow is active on (returned for organization-level workflows)",
+    example: [101, 202],
+  })
+  @Expose()
+  @IsArray()
+  activeOnTeamIds?: number[];
 }
 
 // --- Main Workflow Output DTO ---
