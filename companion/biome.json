@@ -44,13 +44,13 @@
         "noUnusedVariables": "off"
       },
       "complexity": {
-        "noStaticOnlyClass": "off"
+        "noStaticOnlyClass": "error"
       },
       "style": {
         "noNonNullAssertion": "error"
       },
       "a11y": {
-        "noStaticElementInteractions": "off"
+        "noStaticElementInteractions": "error"
       }
     }
   },

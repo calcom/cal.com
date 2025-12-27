@@ -19,6 +19,7 @@ export function Tooltip({ text, children }: TooltipProps) {
 
   return (
     <span
+      role="tooltip"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{ position: "relative", display: "inline-flex" }}
