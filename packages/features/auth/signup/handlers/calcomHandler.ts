@@ -17,7 +17,7 @@ import logger from "@calcom/lib/logger";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
 import { getTrackingFromCookies } from "@calcom/lib/tracking";
-import { prisma } from "@calcom/prisma";
+import { prisma, Prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
@@ -169,27 +169,27 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     if (team) {
       const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
 
-      // Check if user already exists to prevent password overwrite
-      const existingUserCount = await prisma.user.count({
-        where: { email: email.toLowerCase() },
-      });
-      if (existingUserCount > 0) {
-        return NextResponse.json(
-          { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
-          { status: 409 }
-        );
+      let user;
+      try {
+        user = await prisma.user.create({
+          data: {
+            username,
+            email,
+            emailVerified: new Date(Date.now()),
+            identityProvider: IdentityProvider.CAL,
+            password: { create: { hash: hashedPassword } },
+            organizationId,
+          },
+        });
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+          return NextResponse.json(
+            { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
+            { status: 409 }
+          );
+        }
+        throw error;
       }
-
-      const user = await prisma.user.create({
-        data: {
-          username,
-          email,
-          emailVerified: new Date(Date.now()),
-          identityProvider: IdentityProvider.CAL,
-          password: { create: { hash: hashedPassword } },
-          organizationId,
-        },
-      });
 
       await createOrUpdateMemberships({
         user,

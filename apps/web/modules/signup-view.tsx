@@ -262,7 +262,7 @@ export default function Signup({
             const { error } = await stripe.redirectToCheckout({
               sessionId: result.error.checkoutSessionId,
             });
-            console.warn(error.message);
+            if (error) console.warn(error.message);
           }
           return;
         }
@@ -305,7 +305,7 @@ export default function Signup({
       setTurnstileKey((k) => k + 1);
       formMethods.setValue("cfToken", undefined);
 
-      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+      const errorMessage = err instanceof Error ? err.message : t("unexpected_error_try_again");
 
       if (errorMessage === INVALID_CLOUDFLARE_TOKEN_ERROR) {
         return;

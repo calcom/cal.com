@@ -34,6 +34,15 @@ export async function fetchSignup(data: SignupData, cfToken?: string): Promise<S
     body: JSON.stringify(data),
   });
 
+  const contentType = response.headers.get("content-type");
+  if (!contentType?.includes("application/json")) {
+    return {
+      ok: false,
+      status: response.status,
+      error: { message: "Invalid server response" },
+    };
+  }
+
   const json = (await response.json()) as SignupResponse;
 
   if (!response.ok) {

@@ -1,26 +1,28 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 import { SIGNUP_ERROR_CODES } from "../constants";
 import { fetchSignup, isUserAlreadyExistsError, hasCheckoutSession } from "./fetchSignup";
 
-const createSuccessResponse = (data = { message: "Created user" }) => ({
-  ok: true,
-  json: () => Promise.resolve(data),
-});
-
-const createErrorResponse = (status: number, error: { message: string; checkoutSessionId?: string }) => ({
-  ok: false,
-  status,
-  json: () => Promise.resolve(error),
-});
+function createJsonResponse(json: unknown, status = 200) {
+  return new Response(JSON.stringify(json), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
+}
 
 describe("fetchSignup", () => {
+  let fetchSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
-    vi.restoreAllMocks();
+    fetchSpy = vi.spyOn(global, "fetch");
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
   });
 
   it("returns success when signup completes", async () => {
-    global.fetch = vi.fn().mockResolvedValue(createSuccessResponse());
+    fetchSpy.mockResolvedValue(createJsonResponse({ message: "Created user" }));
 
     const result = await fetchSignup({
       email: "test@example.com",
@@ -32,9 +34,7 @@ describe("fetchSignup", () => {
   });
 
   it("returns error with status code when signup fails", async () => {
-    global.fetch = vi.fn().mockResolvedValue(
-      createErrorResponse(409, { message: "Username is already taken" })
-    );
+    fetchSpy.mockResolvedValue(createJsonResponse({ message: "Username is already taken" }, 409));
 
     const result = await fetchSignup({
       email: "test@example.com",
