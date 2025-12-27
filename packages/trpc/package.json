@@ -19,7 +19,9 @@
     "@trpc/next": "11.0.0-next-beta.222",
     "@trpc/react-query": "11.0.0-next-beta.222",
     "@trpc/server": "11.0.0-next-beta.222",
+    "cookie": "0.7.2",
     "superjson": "1.9.1",
+    "uuid": "8.3.2",
     "zod": "3.25.76"
   },
   "peerDependencies": {
@@ -29,6 +31,8 @@
   },
   "devDependencies": {
     "@calcom/eslint-config": "workspace:*",
+    "@types/cookie": "0.6.0",
+    "@types/uuid": "8.3.4",
     "typescript": "5.9.2"
   }
 }

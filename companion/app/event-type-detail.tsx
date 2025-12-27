@@ -222,7 +222,11 @@ export default function EventTypeDetail() {
   ];
 
   const getLocationOptionsForDropdown = (): LocationOptionGroup[] => {
-    return buildLocationOptions(conferencingOptions);
+    // Filter out conferencing options with null appId
+    const validOptions = conferencingOptions.filter(
+      (opt): opt is ConferencingOption & { appId: string } => opt.appId !== null
+    );
+    return buildLocationOptions(validOptions);
   };
 
   const handleAddLocation = (location: LocationItem) => {
@@ -333,7 +337,7 @@ export default function EventTypeDetail() {
       setScheduleDetailsLoading(true);
       const scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
       setSelectedScheduleDetails(scheduleDetails);
-      if (scheduleDetails.timeZone) {
+      if (scheduleDetails?.timeZone) {
         setSelectedTimezone(scheduleDetails.timeZone);
       }
     } catch (error) {
@@ -421,7 +425,7 @@ export default function EventTypeDetail() {
         // Load booking frequency limits
         if (eventType.bookingLimitsCount && !("disabled" in eventType.bookingLimitsCount)) {
           setLimitBookingFrequency(true);
-          const limits = [];
+          const limits: Array<{ id: number; value: string; unit: string }> = [];
           let idCounter = 1;
           if (eventType.bookingLimitsCount.day) {
             limits.push({
@@ -459,7 +463,7 @@ export default function EventTypeDetail() {
         // Load duration limits
         if (eventType.bookingLimitsDuration && !("disabled" in eventType.bookingLimitsDuration)) {
           setLimitTotalDuration(true);
-          const limits = [];
+          const limits: Array<{ id: number; value: string; unit: string }> = [];
           let idCounter = 1;
           if (eventType.bookingLimitsDuration.day) {
             limits.push({

@@ -119,15 +119,6 @@
     "vitest-fetch-mock": "0.3.0",
     "vitest-mock-extended": "2.0.2"
   },
-  "dependencies": {
-    "@daily-co/daily-js": "0.83.1",
-    "@evyweb/ioctopus": "1.2.0",
-    "@vercel/functions": "1.4.0",
-    "city-timezones": "1.2.1",
-    "date-fns": "3.6.0",
-    "date-fns-tz": "3.2.0",
-    "p-limit": "6.2.0"
-  },
   "resolutions": {
     "types-ramda": "0.29.4",
     "@apidevtools/json-schema-ref-parser": "9.0.9",
