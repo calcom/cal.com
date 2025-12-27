@@ -111,7 +111,9 @@ export const secureStorage = {
       });
     }
     if (Platform.OS === "web") {
-      keys.forEach((key) => localStorage.removeItem(key));
+      for (const key of keys) {
+        localStorage.removeItem(key);
+      }
       return;
     }
     await Promise.all(keys.map((key) => SecureStore.deleteItemAsync(key)));

@@ -839,7 +839,9 @@ async function getBookings(filters?: {
   const params = new URLSearchParams();
 
   if (filters?.status?.length) {
-    filters.status.forEach((status) => params.append("status", status));
+    for (const status of filters.status) {
+      params.append("status", status);
+    }
   }
   if (filters?.fromDate) {
     params.append("fromDate", filters.fromDate);

@@ -718,7 +718,9 @@ export default defineContentScript({
               document.addEventListener("click", function closeMenu(e) {
                 if (!menu.contains(e.target as Node)) {
                   // Clean up all tooltips
-                  tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+                  for (const tooltip of tooltipsToCleanup) {
+                    tooltip.remove();
+                  }
                   menu.remove();
                   document.removeEventListener("click", closeMenu);
                 }
@@ -1164,7 +1166,9 @@ export default defineContentScript({
 
               if (isAuthError) {
                 // Not logged in - open sidebar directly
-                tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+                for (const tooltip of tooltipsToCleanup) {
+                  tooltip.remove();
+                }
                 menu.remove();
                 openSidebar();
                 return;
@@ -1208,7 +1212,9 @@ export default defineContentScript({
                     closeBtn.style.background = "#F3F4F6";
                   });
                   closeBtn.addEventListener("click", () => {
-                    tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+                    for (const tooltip of tooltipsToCleanup) {
+                      tooltip.remove();
+                    }
                     menu.remove();
                   });
                 }
@@ -1862,7 +1868,9 @@ export default defineContentScript({
 
           if (isAuthError) {
             // Not logged in - open sidebar directly
-            tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+            for (const tooltip of tooltipsToCleanup) {
+              tooltip.remove();
+            }
             menu.remove();
             openCalSidebar();
             return;
@@ -1906,7 +1914,9 @@ export default defineContentScript({
                 closeBtn.style.background = "#F3F4F6";
               });
               closeBtn.addEventListener("click", () => {
-                tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+                for (const tooltip of tooltipsToCleanup) {
+                  tooltip.remove();
+                }
                 menu.remove();
               });
             }

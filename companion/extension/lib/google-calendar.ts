@@ -689,7 +689,9 @@ function showConfirmDialog(
  */
 function showAlert(message: string, type: "error" | "success" | "info" = "info"): void {
   // Remove existing alerts
-  document.querySelectorAll(".cal-noshow-alert").forEach((el) => el.remove());
+  for (const el of document.querySelectorAll(".cal-noshow-alert")) {
+    el.remove();
+  }
 
   const alert = document.createElement("div");
   alert.className = `cal-noshow-alert ${type}`;

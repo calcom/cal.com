@@ -34,7 +34,7 @@
       "suspicious": {
         "noExplicitAny": "off",
         "noArrayIndexKey": "off",
-        "useIterableCallbackReturn": "off",
+        "useIterableCallbackReturn": "error",
         "noImplicitAnyLet": "off"
       },
       "correctness": {
