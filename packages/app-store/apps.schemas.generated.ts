@@ -22,6 +22,7 @@ import { appDataSchema as insihts_zod_ts } from "./insihts/zod";
 import { appDataSchema as intercom_zod_ts } from "./intercom/zod";
 import { appDataSchema as jelly_zod_ts } from "./jelly/zod";
 import { appDataSchema as jitsivideo_zod_ts } from "./jitsivideo/zod";
+import { appDataSchema as kmeet_zod_ts } from "./kmeet/zod";
 import { appDataSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
 import { appDataSchema as make_zod_ts } from "./make/zod";
 import { appDataSchema as matomo_zod_ts } from "./matomo/zod";
@@ -74,6 +75,7 @@ export const appDataSchemas = {
   intercom: intercom_zod_ts,
   jelly: jelly_zod_ts,
   jitsivideo: jitsivideo_zod_ts,
+  kmeet: kmeet_zod_ts,
   larkcalendar: larkcalendar_zod_ts,
   make: make_zod_ts,
   matomo: matomo_zod_ts,
