@@ -116,6 +116,7 @@ const tabs: Tab[] = [
 ];
 
 export default function EventTypeDetail() {
+  "use no memo";
   const router = useRouter();
   const { id, title, description, duration, slug } = useLocalSearchParams<{
     id: string;
@@ -136,11 +137,8 @@ export default function EventTypeDetail() {
   const [username, setUsername] = useState("username");
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
   const [locations, setLocations] = useState<LocationItem[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_locationAddress, setLocationAddress] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_locationLink, setLocationLink] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_locationPhone, setLocationPhone] = useState("");
   const [selectedDurations, setSelectedDurations] = useState<string[]>([]);
   const [defaultDuration, setDefaultDuration] = useState("");
@@ -363,24 +361,24 @@ export default function EventTypeDetail() {
   };
 
   const fetchScheduleDetails = useCallback(async (scheduleId: number) => {
+    setScheduleDetailsLoading(true);
     try {
-      setScheduleDetailsLoading(true);
       const scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
       setSelectedScheduleDetails(scheduleDetails);
       if (scheduleDetails?.timeZone) {
         setSelectedTimezone(scheduleDetails.timeZone);
       }
+      setScheduleDetailsLoading(false);
     } catch (error) {
       console.error("Failed to fetch schedule details:", error);
       setSelectedScheduleDetails(null);
-    } finally {
       setScheduleDetailsLoading(false);
     }
   }, []);
 
   const fetchSchedules = useCallback(async () => {
+    setSchedulesLoading(true);
     try {
-      setSchedulesLoading(true);
       const schedulesData = await CalComAPIService.getSchedules();
       setSchedules(schedulesData);
 
@@ -390,21 +388,21 @@ export default function EventTypeDetail() {
         setSelectedSchedule(defaultSchedule);
         await fetchScheduleDetails(defaultSchedule.id);
       }
+      setSchedulesLoading(false);
     } catch (error) {
       console.error("Failed to fetch schedules:", error);
-    } finally {
       setSchedulesLoading(false);
     }
   }, [fetchScheduleDetails]);
 
   const fetchConferencingOptions = useCallback(async () => {
+    setConferencingLoading(true);
     try {
-      setConferencingLoading(true);
       const options = await CalComAPIService.getConferencingOptions();
       setConferencingOptions(options);
+      setConferencingLoading(false);
     } catch (error) {
       console.error("Failed to fetch conferencing options:", error);
-    } finally {
       setConferencingLoading(false);
     }
   }, []);
@@ -878,13 +876,14 @@ export default function EventTypeDetail() {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
+          const eventTypeId = parseInt(id, 10);
+
+          if (Number.isNaN(eventTypeId)) {
+            showErrorAlert("Error", "Invalid event type ID");
+            return;
+          }
+
           try {
-            const eventTypeId = parseInt(id, 10);
-
-            if (Number.isNaN(eventTypeId)) {
-              throw new Error("Invalid event type ID");
-            }
-
             await CalComAPIService.deleteEventType(eventTypeId);
 
             Alert.alert("Success", "Event type deleted successfully", [
@@ -935,9 +934,8 @@ export default function EventTypeDetail() {
     // Detect create vs update mode
     const isCreateMode = id === "new";
 
+    setSaving(true);
     try {
-      setSaving(true);
-
       if (isCreateMode) {
         // For CREATE mode, build full payload
         const payload: CreateEventTypePayload = {
@@ -968,6 +966,7 @@ export default function EventTypeDetail() {
             onPress: () => router.back(),
           },
         ]);
+        setSaving(false);
       } else {
         // For UPDATE mode, use partial update - only send changed fields
         const currentFormState = {
@@ -1050,6 +1049,7 @@ export default function EventTypeDetail() {
 
         if (Object.keys(payload).length === 0) {
           Alert.alert("No Changes", "No changes were made to the event type.");
+          setSaving(false);
           return;
         }
 
@@ -1057,12 +1057,12 @@ export default function EventTypeDetail() {
         Alert.alert("Success", "Event type updated successfully");
         // Refresh event type data to sync with server
         await fetchEventTypeData();
+        setSaving(false);
       }
     } catch (error) {
       console.error("Failed to save event type:", error);
       const action = isCreateMode ? "create" : "update";
       showErrorAlert("Error", `Failed to ${action} event type. Please try again.`);
-    } finally {
       setSaving(false);
     }
   };

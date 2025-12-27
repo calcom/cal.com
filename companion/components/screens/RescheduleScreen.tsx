@@ -38,6 +38,7 @@ export interface RescheduleScreenHandle {
 
 export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScreenProps>(
   function RescheduleScreen({ booking, onSuccess, onSavingChange }, ref) {
+    "use no memo";
     const insets = useSafeAreaInsets();
     const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -79,13 +80,13 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
         Alert.alert("Success", "Booking rescheduled successfully", [
           { text: "OK", onPress: onSuccess },
         ]);
+        setIsSaving(false);
       } catch (error) {
         console.error("[RescheduleScreen] Failed to reschedule:", error);
         Alert.alert(
           "Error",
           error instanceof Error ? error.message : "Failed to reschedule booking"
         );
-      } finally {
         setIsSaving(false);
       }
     }, [booking, selectedDateTime, reason, onSuccess]);

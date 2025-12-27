@@ -53,6 +53,7 @@ const getErrorMessage = (error: unknown) =>
 const getErrorStack = (error: unknown) => (error instanceof Error ? error.stack : undefined);
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  "use no memo";
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
@@ -212,6 +213,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } else if (authType === "web_session") {
         handleWebSessionAuth();
       }
+      setLoading(false);
     } catch (error) {
       const message = getErrorMessage(error);
       console.error("Failed to check auth state", message);
@@ -221,7 +223,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           stack: getErrorStack(error),
         });
       }
-    } finally {
       setLoading(false);
     }
   }, [oauthService, handleOAuthAuth, handleWebSessionAuth]);
@@ -305,9 +306,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       throw new Error("OAuth service not available. Please check your configuration.");
     }
 
+    setLoading(true);
     try {
-      setLoading(true);
-
       const tokens = await oauthService.startAuthorizationFlow();
 
       // Save tokens
@@ -327,7 +327,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Clear PKCE parameters
       oauthService.clearPKCEParams();
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       const message = getErrorMessage(error);
       console.error("OAuth login failed", message);
       if (__DEV__) {
@@ -337,8 +339,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
       }
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
