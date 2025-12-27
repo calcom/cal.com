@@ -7,7 +7,7 @@
     "dev": "PORT=4321 next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "biome lint .",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
@@ -21,7 +21,6 @@
     "react-select": "5.8.0"
   },
   "devDependencies": {
-    "@calcom/eslint-config": "workspace:*",
     "@playwright/test": "1.57.0",
     "@tailwindcss/postcss": "4.1.15",
     "@types/node": "20.17.23",

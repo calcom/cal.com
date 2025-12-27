@@ -26,10 +26,9 @@
     "react": "18.2.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.8",
     "@types/react": "18.0.26",
     "chokidar": "3.6.0",
-    "eslint-plugin-react": "7.37.5",
-    "eslint-plugin-react-hooks": "4.6.0",
     "ts-node": "10.9.2",
     "typescript": "5.9.2"
   }

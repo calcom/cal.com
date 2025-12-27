@@ -7,7 +7,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "lint": "eslint .",
+    "lint": "biome lint .",
     "dev:trigger": "npx trigger.dev@latest dev --analyze",
     "deploy:trigger": "npx trigger.dev@latest deploy"
   },
