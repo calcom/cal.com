@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActionSheetIOS,
   ActivityIndicator,
@@ -26,7 +26,7 @@ export function Header() {
 
   useEffect(() => {
     fetchUserProfile();
-  }, []);
+  }, [fetchUserProfile]);
 
   const fetchUserProfile = async () => {
     try {

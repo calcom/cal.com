@@ -1,4 +1,4 @@
-import React, { createContext, type ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 import { CalComAPIService } from "../services/calcom";
 import {
   type CalComOAuthService,
@@ -176,7 +176,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => {
       CalComAPIService.setTokenRefreshCallback(() => Promise.resolve());
     };
-  }, [refreshToken]);
+  }, [refreshToken, checkAuthState, logout, saveOAuthTokens]);
 
   // Handle OAuth authentication
   const handleOAuthAuth = async (storedTokens: OAuthTokens) => {

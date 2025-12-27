@@ -10,11 +10,7 @@ import type {
   LocationOption,
   LocationOptionGroup,
 } from "../types/locations";
-import {
-  DefaultLocationType,
-  defaultLocations,
-  getDefaultLocationIconUrl,
-} from "./defaultLocations";
+import { DefaultLocationType, defaultLocations } from "./defaultLocations";
 import { formatAppIdToDisplayName } from "./formatters";
 import { getAppIconUrl } from "./getAppIconUrl";
 

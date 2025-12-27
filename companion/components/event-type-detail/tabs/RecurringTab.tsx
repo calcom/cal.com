@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
 import { Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { openInAppBrowser } from "../../../utils/browser";
 
@@ -79,7 +78,7 @@ export function RecurringTab({
                       setRecurringInterval("1");
                       return;
                     }
-                    const num = parseInt(numericValue);
+                    const num = parseInt(numericValue, 10);
                     if (num >= 1 && num <= 20) {
                       setRecurringInterval(numericValue);
                     }
@@ -113,7 +112,7 @@ export function RecurringTab({
                       setRecurringOccurrences("1");
                       return;
                     }
-                    const num = parseInt(numericValue);
+                    const num = parseInt(numericValue, 10);
                     if (num >= 1) {
                       setRecurringOccurrences(numericValue);
                     }

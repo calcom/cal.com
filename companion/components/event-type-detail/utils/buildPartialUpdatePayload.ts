@@ -164,7 +164,7 @@ function haveLocationsChanged(
   if (originalLocations && currentLocations.length !== originalLocations.length) return true;
 
   const currentMapped = currentLocations.map((loc) => normalizeLocation(mapItemToApiLocation(loc)));
-  const originalMapped = originalLocations!.map((loc) => normalizeLocation(loc));
+  const originalMapped = originalLocations?.map((loc) => normalizeLocation(loc));
 
   const sortByType = (a: any, b: any) => (a?.type || "").localeCompare(b?.type || "");
   currentMapped.sort(sortByType);
@@ -192,7 +192,7 @@ function hasBookingLimitsCountChanged(
   limits.forEach((limit) => {
     const unit = parseFrequencyUnit(limit.unit);
     if (unit) {
-      currentLimits[unit] = parseInt(limit.value) || 1;
+      currentLimits[unit] = parseInt(limit.value, 10) || 1;
     }
   });
 
@@ -227,7 +227,7 @@ function hasBookingLimitsDurationChanged(
   limits.forEach((limit) => {
     const unit = parseFrequencyUnit(limit.unit);
     if (unit) {
-      currentLimits[unit] = parseInt(limit.value) || 60;
+      currentLimits[unit] = parseInt(limit.value, 10) || 60;
     }
   });
 
@@ -266,7 +266,7 @@ function hasBookingWindowChanged(
   } else {
     const expectedType = calendarDays ? "calendarDays" : "businessDays";
     if (original.type !== expectedType) return true;
-    return original.value !== parseInt(rollingDays);
+    return original.value !== parseInt(rollingDays, 10);
   }
 }
 
@@ -283,7 +283,7 @@ function hasBookerActiveBookingsLimitChanged(
   if (enabled && originalDisabled) return true;
 
   const originalMax = original.maximumActiveBookings ?? original.count;
-  return originalMax !== parseInt(value) || original.offerReschedule !== offerReschedule;
+  return originalMax !== parseInt(value, 10) || original.offerReschedule !== offerReschedule;
 }
 
 function hasRecurrenceChanged(
@@ -300,9 +300,9 @@ function hasRecurrenceChanged(
   if (enabled && originalDisabled) return true;
 
   return (
-    original.interval !== parseInt(interval) ||
+    original.interval !== parseInt(interval, 10) ||
     original.frequency !== frequency ||
-    original.occurrences !== parseInt(occurrences)
+    original.occurrences !== parseInt(occurrences, 10)
   );
 }
 
@@ -323,7 +323,7 @@ function hasSeatsChanged(
   if (enabled && originalDisabled) return true;
 
   return (
-    original.seatsPerTimeSlot !== parseInt(perTimeSlot) ||
+    original.seatsPerTimeSlot !== parseInt(perTimeSlot, 10) ||
     original.showAttendeeInfo !== showAttendee ||
     original.showAvailabilityCount !== showAvailability
   );
@@ -342,7 +342,7 @@ function mapLayoutToApi(layout: string): string {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function mapLayoutFromApi(layout: string): string {
+function _mapLayoutFromApi(layout: string): string {
   const mapping: Record<string, string> = {
     month: "MONTH_VIEW",
     week: "WEEK_VIEW",
@@ -351,7 +351,7 @@ function mapLayoutFromApi(layout: string): string {
     WEEK_VIEW: "WEEK_VIEW",
     COLUMN_VIEW: "COLUMN_VIEW",
   };
-  return mapping[layout] || layout.toUpperCase() + "_VIEW";
+  return mapping[layout] || `${layout.toUpperCase()}_VIEW`;
 }
 
 function hasBookerLayoutsChanged(
@@ -404,7 +404,7 @@ export function buildPartialUpdatePayload(
     payload.description = currentState.eventDescription || "";
   }
 
-  const currentDuration = parseInt(currentState.eventDuration);
+  const currentDuration = parseInt(currentState.eventDuration, 10);
 
   if (
     hasMultipleDurationsChanged(
@@ -497,7 +497,7 @@ export function buildPartialUpdatePayload(
       currentState.frequencyLimits.forEach((limit) => {
         const unit = parseFrequencyUnit(limit.unit);
         if (unit) {
-          limitsCount[unit] = parseInt(limit.value) || 1;
+          limitsCount[unit] = parseInt(limit.value, 10) || 1;
         }
       });
       payload.bookingLimitsCount = limitsCount;
@@ -519,7 +519,7 @@ export function buildPartialUpdatePayload(
       currentState.durationLimits.forEach((limit) => {
         const unit = parseFrequencyUnit(limit.unit);
         if (unit) {
-          limitsDuration[unit] = parseInt(limit.value) || 60;
+          limitsDuration[unit] = parseInt(limit.value, 10) || 60;
         }
       });
       payload.bookingLimitsDuration = limitsDuration;
@@ -544,7 +544,7 @@ export function buildPartialUpdatePayload(
   ) {
     if (currentState.maxActiveBookingsPerBooker) {
       payload.bookerActiveBookingsLimit = {
-        maximumActiveBookings: parseInt(currentState.maxActiveBookingsValue) || 1,
+        maximumActiveBookings: parseInt(currentState.maxActiveBookingsValue, 10) || 1,
         offerReschedule: currentState.offerReschedule,
       };
     } else {
@@ -573,7 +573,7 @@ export function buildPartialUpdatePayload(
       } else {
         payload.bookingWindow = {
           type: currentState.rollingCalendarDays ? "calendarDays" : "businessDays",
-          value: parseInt(currentState.rollingDays),
+          value: parseInt(currentState.rollingDays, 10),
         };
       }
     } else {
@@ -723,8 +723,8 @@ export function buildPartialUpdatePayload(
   ) {
     if (currentState.recurringEnabled) {
       payload.recurrence = {
-        interval: parseInt(currentState.recurringInterval) || 1,
-        occurrences: parseInt(currentState.recurringOccurrences) || 12,
+        interval: parseInt(currentState.recurringInterval, 10) || 1,
+        occurrences: parseInt(currentState.recurringOccurrences, 10) || 12,
         frequency: currentState.recurringFrequency,
       };
     } else {
@@ -743,7 +743,7 @@ export function buildPartialUpdatePayload(
   ) {
     if (currentState.seatsEnabled) {
       payload.seats = {
-        seatsPerTimeSlot: parseInt(currentState.seatsPerTimeSlot) || 2,
+        seatsPerTimeSlot: parseInt(currentState.seatsPerTimeSlot, 10) || 2,
         showAttendeeInfo: currentState.showAttendeeInfo,
         showAvailabilityCount: currentState.showAvailabilityCount,
       };

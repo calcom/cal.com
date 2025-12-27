@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
 import { Animated, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 interface FrequencyLimit {
@@ -119,7 +118,7 @@ export function LimitsTab(props: LimitsTabProps) {
               value={props.minimumNoticeValue}
               onChangeText={(text) => {
                 const numericValue = text.replace(/[^0-9]/g, "");
-                const num = parseInt(numericValue) || 0;
+                const num = parseInt(numericValue, 10) || 0;
                 if (num >= 0) {
                   props.setMinimumNoticeValue(numericValue || "0");
                 }
@@ -192,7 +191,7 @@ export function LimitsTab(props: LimitsTabProps) {
                     value={limit.value}
                     onChangeText={(text) => {
                       const numericValue = text.replace(/[^0-9]/g, "");
-                      const num = parseInt(numericValue) || 0;
+                      const num = parseInt(numericValue, 10) || 0;
                       if (num >= 0) {
                         props.updateFrequencyLimit(limit.id, "value", numericValue || "0");
                       }
@@ -292,7 +291,7 @@ export function LimitsTab(props: LimitsTabProps) {
                       value={limit.value}
                       onChangeText={(text) => {
                         const numericValue = text.replace(/[^0-9]/g, "");
-                        const num = parseInt(numericValue) || 0;
+                        const num = parseInt(numericValue, 10) || 0;
                         if (num >= 0) {
                           props.updateDurationLimit(limit.id, "value", numericValue || "0");
                         }
@@ -358,7 +357,7 @@ export function LimitsTab(props: LimitsTabProps) {
                 value={props.maxActiveBookingsValue}
                 onChangeText={(text) => {
                   const numericValue = text.replace(/[^0-9]/g, "");
-                  const num = parseInt(numericValue) || 0;
+                  const num = parseInt(numericValue, 10) || 0;
                   if (num >= 0) {
                     props.setMaxActiveBookingsValue(numericValue || "1");
                   }

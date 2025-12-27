@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
 import { Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 import { LocationsList } from "../../../components/LocationsList";

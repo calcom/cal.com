@@ -161,7 +161,7 @@ export const LocationsList: React.FC<LocationsListProps> = ({
       {/* Locations List */}
       {locations.length > 0 ? (
         <View className="mb-3 space-y-2">
-          {locations.map((location, index) => (
+          {locations.map((location, _index) => (
             <View key={location.id} className="rounded-lg border border-gray-200 bg-white p-3">
               <View className="flex-row items-center justify-between">
                 <View className="flex-1 flex-row items-center">

@@ -521,7 +521,7 @@ export default defineContentScript({
     }
 
     // Listen for extension icon click
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       // Skip debug-log messages to avoid infinite loop
       if (message.action === "icon-clicked") {
         if (isClosed) {
@@ -774,7 +774,7 @@ export default defineContentScript({
             return tooltip;
           }
 
-          function openCalSidebar() {
+          function _openCalSidebar() {
             // Open Cal.com sidebar or quick schedule flow
             if (isClosed) {
               // Trigger sidebar open
@@ -817,7 +817,7 @@ export default defineContentScript({
                     chrome.runtime.sendMessage({ action: "fetch-event-types" }, (response) => {
                       if (chrome.runtime.lastError) {
                         reject(new Error(chrome.runtime.lastError.message));
-                      } else if (response && response.error) {
+                      } else if (response?.error) {
                         reject(new Error(response.error));
                       } else {
                         resolve(response);
@@ -945,7 +945,7 @@ export default defineContentScript({
                   tooltipsToCleanup.push(contentTooltip);
 
                   // Show/hide tooltip
-                  contentWrapper.addEventListener("mouseenter", (e) => {
+                  contentWrapper.addEventListener("mouseenter", (_e) => {
                     const rect = contentWrapper.getBoundingClientRect();
                     // Shift right to better center on the visible content
                     contentTooltip.style.left = `${rect.left + rect.width / 2 + 80}px`;
@@ -1147,7 +1147,7 @@ export default defineContentScript({
 
                   menu.appendChild(menuItem);
                 });
-              } catch (forEachError) {
+              } catch (_forEachError) {
                 menu.innerHTML = `
                   <div style="padding: 16px; text-align: center; color: #ea4335;">
                     Error displaying event types
@@ -1243,7 +1243,7 @@ export default defineContentScript({
             }
           }
 
-          function copyEventTypeLink(eventType: {
+          function _copyEventTypeLink(eventType: {
             slug: string;
             users?: Array<{ username?: string }>;
           }): void {
@@ -1289,7 +1289,7 @@ export default defineContentScript({
             const selection = window.getSelection();
             if (!selection || selection.rangeCount === 0) {
               // If no selection, append to the end
-              const textNode = document.createTextNode(" " + text + " ");
+              const textNode = document.createTextNode(` ${text} `);
               composeBody.appendChild(textNode);
 
               // Move cursor after inserted text
@@ -1307,7 +1307,7 @@ export default defineContentScript({
             range.deleteContents();
 
             // Create a text node with the link (with spaces around it)
-            const textNode = document.createTextNode(" " + text + " ");
+            const textNode = document.createTextNode(` ${text} `);
             range.insertNode(textNode);
 
             // Move cursor after inserted text
@@ -1492,7 +1492,7 @@ export default defineContentScript({
         }
       }
 
-      async function fetchEventTypes(menu: HTMLElement, tooltipsToCleanup: HTMLElement[]) {
+      async function _fetchEventTypes(menu: HTMLElement, tooltipsToCleanup: HTMLElement[]) {
         try {
           // Check cache first
           const now = Date.now();
@@ -1516,7 +1516,7 @@ export default defineContentScript({
                 chrome.runtime.sendMessage({ action: "fetch-event-types" }, (response) => {
                   if (chrome.runtime.lastError) {
                     reject(new Error(chrome.runtime.lastError.message));
-                  } else if (response && response.error) {
+                  } else if (response?.error) {
                     reject(new Error(response.error));
                   } else {
                     resolve(response);
@@ -1644,7 +1644,7 @@ export default defineContentScript({
               tooltipsToCleanup.push(contentTooltip);
 
               // Show/hide tooltip
-              contentWrapper.addEventListener("mouseenter", (e) => {
+              contentWrapper.addEventListener("mouseenter", (_e) => {
                 const rect = contentWrapper.getBoundingClientRect();
                 contentTooltip.style.left = `${rect.left + rect.width / 2 + 80}px`;
                 contentTooltip.style.top = `${rect.top + 35}px`;
@@ -1845,7 +1845,7 @@ export default defineContentScript({
 
               menu.appendChild(menuItem);
             });
-          } catch (forEachError) {
+          } catch (_forEachError) {
             menu.innerHTML = `
               <div style="padding: 16px; text-align: center; color: #ea4335;">
                 Error displaying event types
@@ -1959,7 +1959,7 @@ export default defineContentScript({
         const selection = window.getSelection();
         if (!selection || selection.rangeCount === 0) {
           // If no selection, append to the end
-          const textNode = document.createTextNode(" " + text + " ");
+          const textNode = document.createTextNode(` ${text} `);
           messageInput.appendChild(textNode);
 
           // Move cursor after inserted text
@@ -1977,7 +1977,7 @@ export default defineContentScript({
         range.deleteContents();
 
         // Create a text node with the link (with spaces around it)
-        const textNode = document.createTextNode(" " + text + " ");
+        const textNode = document.createTextNode(` ${text} `);
         range.insertNode(textNode);
 
         // Move cursor after inserted text
@@ -2261,7 +2261,7 @@ export default defineContentScript({
             console.warn("Cal.com: Failed to insert HTML at cursor:", insertError);
             return false;
           }
-        } catch (error) {
+        } catch (_error) {
           console.error("Cal.com: Critical error inserting HTML");
           return false;
         }
@@ -2324,7 +2324,7 @@ export default defineContentScript({
           const selection = window.getSelection();
           if (!selection || selection.rangeCount === 0) {
             try {
-              const textNode = document.createTextNode(" " + text + " ");
+              const textNode = document.createTextNode(` ${text} `);
               composeBody.appendChild(textNode);
               const range = document.createRange();
               range.setStartAfter(textNode);
@@ -2341,7 +2341,7 @@ export default defineContentScript({
           try {
             const range = selection.getRangeAt(0);
             range.deleteContents();
-            const textNode = document.createTextNode(" " + text + " ");
+            const textNode = document.createTextNode(` ${text} `);
             range.insertNode(textNode);
             range.setStartAfter(textNode);
             range.collapse(true);
@@ -2414,7 +2414,7 @@ export default defineContentScript({
             try {
               notification.style.opacity = "1";
               notification.style.transform = "translateY(0)";
-            } catch (e) {
+            } catch (_e) {
               // Ignore animation errors
             }
           });
@@ -2426,11 +2426,11 @@ export default defineContentScript({
               setTimeout(() => {
                 try {
                   notification.remove();
-                } catch (e) {
+                } catch (_e) {
                   // Ignore removal errors
                 }
               }, 200);
-            } catch (e) {
+            } catch (_e) {
               // Ignore animation errors
             }
           }, 3000);
@@ -2445,7 +2445,7 @@ export default defineContentScript({
        */
       function watchForGoogleChips() {
         try {
-          const observer = new MutationObserver((mutations) => {
+          const observer = new MutationObserver((_mutations) => {
             try {
               const chips = document.querySelectorAll(
                 ".gmail_chip.gmail_ad_hoc_v2_content:not([data-calcom-chip-processed])"
@@ -2489,7 +2489,7 @@ export default defineContentScript({
               console.warn("Cal.com: Failed to find existing chips:", error);
             }
           }, 1000);
-        } catch (error) {
+        } catch (_error) {
           // Critical failure - log but don't break Gmail
           console.error("Cal.com: Failed to initialize chip watcher");
         }
@@ -2557,7 +2557,7 @@ export default defineContentScript({
             console.log(`Cal.com: 🔄 Chip updated - ${parsedData.detectedDuration}min`);
             try {
               existingActionBar.remove();
-            } catch (e) {
+            } catch (_e) {
               // Silently ignore removal errors
             }
           }
@@ -2578,11 +2578,11 @@ export default defineContentScript({
                   actionBar?.remove();
                   // Recreate action bar with new data
                   handleGoogleChipDetected(chipElement);
-                } catch (e) {
+                } catch (_e) {
                   // Silently ignore recreation errors
                 }
               }
-            } catch (error) {
+            } catch (_error) {
               // Silently ignore observer errors - expected during DOM updates
             }
           });
@@ -2594,7 +2594,7 @@ export default defineContentScript({
               attributes: true,
               attributeFilter: ["data-ad-hoc-v2-params"],
             });
-          } catch (error) {
+          } catch (_error) {
             // Silently ignore observer setup errors
           }
 
@@ -2762,7 +2762,7 @@ export default defineContentScript({
                 chrome.runtime.sendMessage({ action: "fetch-event-types" }, (result) => {
                   if (chrome.runtime.lastError) {
                     reject(new Error(chrome.runtime.lastError.message));
-                  } else if (result && result.error) {
+                  } else if (result?.error) {
                     reject(new Error(result.error));
                   } else {
                     resolve(result);
@@ -2886,7 +2886,7 @@ export default defineContentScript({
                 (actionBar as any).__cleanup();
               }
               actionBar.remove();
-            } catch (error) {
+            } catch (_error) {
               // Silently ignore removal errors
             }
           });
@@ -2916,7 +2916,7 @@ export default defineContentScript({
 
                 actionBar.style.top = `${top}px`;
                 actionBar.style.left = `${left}px`;
-              } catch (error) {
+              } catch (_error) {
                 // Silently ignore positioning errors
               }
             };
@@ -2937,7 +2937,7 @@ export default defineContentScript({
                     (bar as any).__cleanup();
                   }
                   bar.remove();
-                } catch (e) {
+                } catch (_e) {
                   // Ignore removal errors
                 }
               } else {
@@ -2954,7 +2954,7 @@ export default defineContentScript({
                     bar.remove();
                   }
                   // Else: chip exists, keep this action bar (belongs to another chip)
-                } catch (e) {
+                } catch (_e) {
                   // Ignore errors when checking
                 }
               }
@@ -2976,7 +2976,7 @@ export default defineContentScript({
                 // Chip removed, clean up
                 try {
                   actionBar.remove();
-                } catch (e) {
+                } catch (_e) {
                   // Ignore
                 }
               }
@@ -2990,16 +2990,16 @@ export default defineContentScript({
               window.removeEventListener("scroll", updatePosition, true);
               window.removeEventListener("resize", updatePosition);
             };
-          } catch (error) {
+          } catch (_error) {
             console.error("Cal.com: Failed to create or insert action bar");
             // Clean up if something failed
             try {
               actionBar.remove();
-            } catch (e) {
+            } catch (_e) {
               // Ignore cleanup errors
             }
           }
-        } catch (error) {
+        } catch (_error) {
           // Catch-all to prevent breaking Gmail UI
           console.error("Cal.com: Error handling Google chip");
           return;
@@ -3140,7 +3140,7 @@ export default defineContentScript({
               chrome.runtime.sendMessage({ action: "fetch-event-types" }, (response) => {
                 if (chrome.runtime.lastError) {
                   reject(new Error(chrome.runtime.lastError.message));
-                } else if (response && response.error) {
+                } else if (response?.error) {
                   reject(new Error(response.error));
                 } else {
                   resolve(response);
@@ -3148,7 +3148,7 @@ export default defineContentScript({
               });
             });
 
-            if (response && response.data) {
+            if (response?.data) {
               eventTypes = response.data;
             } else if (Array.isArray(response)) {
               eventTypes = response;
@@ -3479,7 +3479,7 @@ export default defineContentScript({
               console.log("Cal.com: Insert button clicked!");
               e.preventDefault();
               e.stopPropagation();
-              const slotIndex = parseInt(btn.getAttribute("data-slot-index")!);
+              const slotIndex = parseInt(btn.getAttribute("data-slot-index")!, 10);
               const slot = parsedData.slots[slotIndex];
               console.log("Cal.com: Inserting link for slot", slotIndex, slot);
 
@@ -3642,7 +3642,7 @@ export default defineContentScript({
 
           console.log(
             "Cal.com: Valid chip detected - Schedule ID:",
-            scheduleId?.slice(0, 20) + "..."
+            `${scheduleId?.slice(0, 20)}...`
           );
 
           // Parse timezone (non-critical - fallback to UTC if structure changed)
@@ -3669,7 +3669,7 @@ export default defineContentScript({
                 tzMatch = paramsAttr.match(/\\"([^\\]+)\\"\]/);
               }
 
-              if (tzMatch && tzMatch[1]) {
+              if (tzMatch?.[1]) {
                 timezone = tzMatch[1]; // e.g., "Asia/Kolkata"
                 console.log("Cal.com: ✅ Parsed IANA timezone from data attribute:", timezone);
               } else {
@@ -3722,18 +3722,18 @@ export default defineContentScript({
               if (!slotStartTime || !slotDurationMinutes) return;
 
               const durationMinutes = parseInt(slotDurationMinutes, 10);
-              if (isNaN(durationMinutes) || durationMinutes <= 0) return;
+              if (Number.isNaN(durationMinutes) || durationMinutes <= 0) return;
 
               detectedDuration = durationMinutes;
 
               const startTimestamp = parseInt(slotStartTime, 10);
-              if (isNaN(startTimestamp)) return;
+              if (Number.isNaN(startTimestamp)) return;
 
               const startDate = new Date(startTimestamp);
               const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
 
               // Validate dates
-              if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return;
+              if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return;
 
               const dateOptions: Intl.DateTimeFormatOptions = {
                 weekday: "short",

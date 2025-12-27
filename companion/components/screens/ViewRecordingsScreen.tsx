@@ -7,7 +7,6 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
-import React from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BookingRecording } from "../../services/types/bookings.types";

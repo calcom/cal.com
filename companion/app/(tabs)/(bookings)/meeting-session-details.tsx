@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Platform, View } from "react-native";
 import MeetingSessionDetailsScreenComponent from "../../../components/screens/MeetingSessionDetailsScreen";
 import { CalComAPIService } from "../../../services/calcom";

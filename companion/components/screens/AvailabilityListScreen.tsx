@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { Activity, useMemo, useState } from "react";
+import { Activity, useMemo, useState } from "react";
 import {
   ActionSheetIOS,
   Alert,
@@ -514,22 +514,20 @@ export function AvailabilityListScreen({
               <Activity
                 mode={selectedSchedule && !selectedSchedule.isDefault ? "visible" : "hidden"}
               >
-                <>
-                  <AppPressable
-                    onPress={() => {
-                      setShowActionsModal(false);
-                      if (selectedSchedule) {
-                        handleSetAsDefault(selectedSchedule);
-                      }
-                    }}
-                    className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-                  >
-                    <Ionicons name="star-outline" size={20} color="#6B7280" />
-                    <Text className="ml-3 text-base text-gray-900">Set as Default</Text>
-                  </AppPressable>
+                <AppPressable
+                  onPress={() => {
+                    setShowActionsModal(false);
+                    if (selectedSchedule) {
+                      handleSetAsDefault(selectedSchedule);
+                    }
+                  }}
+                  className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                >
+                  <Ionicons name="star-outline" size={20} color="#6B7280" />
+                  <Text className="ml-3 text-base text-gray-900">Set as Default</Text>
+                </AppPressable>
 
-                  <View className="mx-4 my-2 h-px bg-gray-200" />
-                </>
+                <View className="mx-4 my-2 h-px bg-gray-200" />
               </Activity>
 
               {/* Duplicate */}

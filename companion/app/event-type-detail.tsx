@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Animated,
@@ -69,11 +69,11 @@ export default function EventTypeDetail() {
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
   const [locations, setLocations] = useState<LocationItem[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [locationAddress, setLocationAddress] = useState("");
+  const [_locationAddress, setLocationAddress] = useState("");
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [locationLink, setLocationLink] = useState("");
+  const [_locationLink, setLocationLink] = useState("");
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [locationPhone, setLocationPhone] = useState("");
+  const [_locationPhone, setLocationPhone] = useState("");
   const [selectedDurations, setSelectedDurations] = useState<string[]>([]);
   const [defaultDuration, setDefaultDuration] = useState("");
   const [showDurationDropdown, setShowDurationDropdown] = useState(false);
@@ -345,7 +345,7 @@ export default function EventTypeDetail() {
     if (!id) return;
 
     try {
-      const eventType = await CalComAPIService.getEventTypeById(parseInt(id));
+      const eventType = await CalComAPIService.getEventTypeById(parseInt(id, 10));
       if (eventType) {
         setEventTypeData(eventType);
 
@@ -687,14 +687,17 @@ export default function EventTypeDetail() {
       fetchConferencingOptions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [activeTab, fetchConferencingOptions, fetchSchedules]);
 
   useEffect(() => {
     // Fetch event type data and conferencing options on initial load
     fetchEventTypeData();
     fetchConferencingOptions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [
+    fetchConferencingOptions, // Fetch event type data and conferencing options on initial load
+    fetchEventTypeData,
+  ]);
 
   useEffect(() => {
     const fetchUsername = async () => {
@@ -812,9 +815,9 @@ export default function EventTypeDetail() {
         style: "destructive",
         onPress: async () => {
           try {
-            const eventTypeId = parseInt(id);
+            const eventTypeId = parseInt(id, 10);
 
-            if (isNaN(eventTypeId)) {
+            if (Number.isNaN(eventTypeId)) {
               throw new Error("Invalid event type ID");
             }
 
@@ -848,8 +851,8 @@ export default function EventTypeDetail() {
       return;
     }
 
-    const durationNum = parseInt(eventDuration);
-    if (isNaN(durationNum) || durationNum <= 0) {
+    const durationNum = parseInt(eventDuration, 10);
+    if (Number.isNaN(durationNum) || durationNum <= 0) {
       Alert.alert("Error", "Duration must be a positive number");
       return;
     }
@@ -986,7 +989,7 @@ export default function EventTypeDetail() {
           return;
         }
 
-        await CalComAPIService.updateEventType(parseInt(id), payload);
+        await CalComAPIService.updateEventType(parseInt(id, 10), payload);
         Alert.alert("Success", "Event type updated successfully");
         // Refresh event type data to sync with server
         await fetchEventTypeData();

@@ -49,7 +49,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
     useEffect(() => {
       if (booking?.startTime) {
         const bookingDate = new Date(booking.startTime);
-        if (!isNaN(bookingDate.getTime())) {
+        if (!Number.isNaN(bookingDate.getTime())) {
           setSelectedDateTime(bookingDate);
           setReason("");
         }

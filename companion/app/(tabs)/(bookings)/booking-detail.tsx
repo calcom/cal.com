@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert } from "react-native";
 import { BookingDetailScreen } from "../../../components/screens/BookingDetailScreen";
 import { useAuth } from "../../../contexts/AuthContext";

@@ -1,7 +1,7 @@
 import type { NativeStackHeaderItemMenuAction } from "@react-navigation/native-stack";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { BookingListScreen } from "../../../components/booking-list-screen/BookingListScreen";
 import { useEventTypes } from "../../../hooks";

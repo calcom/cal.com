@@ -8,7 +8,7 @@
  * - Cross-platform compatibility (mobile + extension)
  */
 
-import { onlineManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { onlineManager, QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import React, { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Platform } from "react-native";

@@ -11,12 +11,8 @@ import type {
   CreatePrivateLinkInput,
   CreateWebhookInput,
   EventType,
-  GetBookingsResponse,
   GetConferencingSessionsResponse,
-  GetEventTypesResponse,
   GetRecordingsResponse,
-  GetScheduleResponse,
-  GetSchedulesResponse,
   GetTranscriptsResponse,
   MarkAbsentRequest,
   MarkAbsentResponse,
@@ -149,20 +145,16 @@ export class CalComAPIService {
 
   // Get current user profile
   static async getCurrentUser(): Promise<UserProfile> {
-    try {
-      const response = await CalComAPIService.makeRequest<{ status: string; data: UserProfile }>(
-        "/me",
-        {
-          headers: {
-            "cal-api-version": "2024-06-11",
-          },
+    const response = await CalComAPIService.makeRequest<{ status: string; data: UserProfile }>(
+      "/me",
+      {
+        headers: {
+          "cal-api-version": "2024-06-11",
         },
-        "2024-06-11"
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+      },
+      "2024-06-11"
+    );
+    return response.data;
   }
 
   // Update current user profile
@@ -192,7 +184,7 @@ export class CalComAPIService {
         "2024-06-11"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         // Update cached profile
         CalComAPIService.userProfile = response.data;
         return response.data;
@@ -248,9 +240,9 @@ export class CalComAPIService {
       const responseText = await response.text();
 
       try {
-        const responseJson = JSON.parse(responseText);
-      } catch (parseError) {}
-    } catch (error) {}
+        const _responseJson = JSON.parse(responseText);
+      } catch (_parseError) {}
+    } catch (_error) {}
   }
 
   private static async makeRequest<T>(
@@ -280,7 +272,7 @@ export class CalComAPIService {
       try {
         const errorJson = JSON.parse(errorBody);
         errorMessage = errorJson?.error?.message || errorJson?.message || response.statusText;
-      } catch (parseError) {
+      } catch (_parseError) {
         // If JSON parsing fails, use the raw error body
         errorMessage = errorBody || response.statusText;
       }
@@ -353,7 +345,7 @@ export class CalComAPIService {
         "2024-06-14"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -366,27 +358,23 @@ export class CalComAPIService {
 
   // Cancel a booking
   static async cancelBooking(bookingUid: string, cancellationReason?: string): Promise<void> {
-    try {
-      const body: { cancellationReason?: string } = {};
-      if (cancellationReason) {
-        body.cancellationReason = cancellationReason;
-      }
-
-      await CalComAPIService.makeRequest(
-        `/bookings/${bookingUid}/cancel`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "cal-api-version": "2024-08-13",
-          },
-          body: JSON.stringify(body),
-        },
-        "2024-08-13"
-      );
-    } catch (error) {
-      throw error;
+    const body: { cancellationReason?: string } = {};
+    if (cancellationReason) {
+      body.cancellationReason = cancellationReason;
     }
+
+    await CalComAPIService.makeRequest(
+      `/bookings/${bookingUid}/cancel`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "cal-api-version": "2024-08-13",
+        },
+        body: JSON.stringify(body),
+      },
+      "2024-08-13"
+    );
   }
 
   static async rescheduleBooking(
@@ -415,7 +403,7 @@ export class CalComAPIService {
         "2024-08-13"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -444,7 +432,7 @@ export class CalComAPIService {
         "2024-08-13"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -475,7 +463,7 @@ export class CalComAPIService {
         "2024-08-13"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -515,7 +503,7 @@ export class CalComAPIService {
         "2024-08-13"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -551,7 +539,7 @@ export class CalComAPIService {
         "2024-08-13"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -585,7 +573,7 @@ export class CalComAPIService {
         "2024-08-13"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -622,7 +610,7 @@ export class CalComAPIService {
         "2024-08-13"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -651,7 +639,7 @@ export class CalComAPIService {
         "2024-08-13"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -692,7 +680,7 @@ export class CalComAPIService {
         "2024-08-13"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -733,7 +721,7 @@ export class CalComAPIService {
         "2024-08-13"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -757,69 +745,65 @@ export class CalComAPIService {
   }
 
   static async getEventTypes(): Promise<EventType[]> {
+    // Get current user to extract username
+    let username: string | undefined;
     try {
-      // Get current user to extract username
-      let username: string | undefined;
-      try {
-        const currentUser = await CalComAPIService.getCurrentUser();
-        // Extract username from response
-        if (currentUser?.username) {
-          username = currentUser.username;
-        }
-      } catch (error) {}
-
-      // Build query string with username and sorting
-      const params = new URLSearchParams();
-      if (username) {
-        params.append("username", username);
+      const currentUser = await CalComAPIService.getCurrentUser();
+      // Extract username from response
+      if (currentUser?.username) {
+        username = currentUser.username;
       }
-      // Sort by creation date descending (newer first) to match main codebase behavior
-      // Main codebase uses position: "desc", id: "desc" - since API doesn't expose position,
-      // we use sortCreatedAt: "desc" for similar behavior (newer event types first)
-      params.append("sortCreatedAt", "desc");
+    } catch (_error) {}
 
-      const queryString = params.toString();
-      const endpoint = `/event-types${queryString ? `?${queryString}` : ""}`;
-
-      const response = await CalComAPIService.makeRequest<any>(endpoint, {}, "2024-06-14");
-
-      // Handle different possible response structures
-      let eventTypesArray: EventType[] = [];
-
-      if (Array.isArray(response)) {
-        eventTypesArray = response;
-      } else if (response && typeof response === "object") {
-        if (response.data && Array.isArray(response.data)) {
-          eventTypesArray = response.data;
-        } else if (response.eventTypes && Array.isArray(response.eventTypes)) {
-          eventTypesArray = response.eventTypes;
-        } else if (response.items && Array.isArray(response.items)) {
-          eventTypesArray = response.items;
-        } else if (response.data && typeof response.data === "object") {
-          if (response.data.eventTypes && Array.isArray(response.data.eventTypes)) {
-            eventTypesArray = response.data.eventTypes;
-          } else if (response.data.items && Array.isArray(response.data.items)) {
-            eventTypesArray = response.data.items;
-          } else {
-            const keys = Object.keys(response.data);
-            if (keys.length > 0) {
-              eventTypesArray = Object.values(response.data).filter((item): item is EventType =>
-                Boolean(item && typeof item === "object" && "id" in item)
-              ) as EventType[];
-            }
-          }
-        } else {
-          const possibleArrays = Object.values(response).filter((val) => Array.isArray(val));
-          if (possibleArrays.length > 0) {
-            eventTypesArray = possibleArrays[0] as EventType[];
-          }
-        }
-      }
-
-      return eventTypesArray;
-    } catch (error) {
-      throw error;
+    // Build query string with username and sorting
+    const params = new URLSearchParams();
+    if (username) {
+      params.append("username", username);
     }
+    // Sort by creation date descending (newer first) to match main codebase behavior
+    // Main codebase uses position: "desc", id: "desc" - since API doesn't expose position,
+    // we use sortCreatedAt: "desc" for similar behavior (newer event types first)
+    params.append("sortCreatedAt", "desc");
+
+    const queryString = params.toString();
+    const endpoint = `/event-types${queryString ? `?${queryString}` : ""}`;
+
+    const response = await CalComAPIService.makeRequest<any>(endpoint, {}, "2024-06-14");
+
+    // Handle different possible response structures
+    let eventTypesArray: EventType[] = [];
+
+    if (Array.isArray(response)) {
+      eventTypesArray = response;
+    } else if (response && typeof response === "object") {
+      if (response.data && Array.isArray(response.data)) {
+        eventTypesArray = response.data;
+      } else if (response.eventTypes && Array.isArray(response.eventTypes)) {
+        eventTypesArray = response.eventTypes;
+      } else if (response.items && Array.isArray(response.items)) {
+        eventTypesArray = response.items;
+      } else if (response.data && typeof response.data === "object") {
+        if (response.data.eventTypes && Array.isArray(response.data.eventTypes)) {
+          eventTypesArray = response.data.eventTypes;
+        } else if (response.data.items && Array.isArray(response.data.items)) {
+          eventTypesArray = response.data.items;
+        } else {
+          const keys = Object.keys(response.data);
+          if (keys.length > 0) {
+            eventTypesArray = Object.values(response.data).filter((item): item is EventType =>
+              Boolean(item && typeof item === "object" && "id" in item)
+            ) as EventType[];
+          }
+        }
+      } else {
+        const possibleArrays = Object.values(response).filter((val) => Array.isArray(val));
+        if (possibleArrays.length > 0) {
+          eventTypesArray = possibleArrays[0] as EventType[];
+        }
+      }
+    }
+
+    return eventTypesArray;
   }
 
   static async getBookingByUid(bookingUid: string): Promise<Booking> {
@@ -833,7 +817,7 @@ export class CalComAPIService {
         },
         "2024-08-13"
       );
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
       throw new Error("Invalid response from get booking API");
@@ -851,138 +835,130 @@ export class CalComAPIService {
     limit?: number;
     offset?: number;
   }): Promise<Booking[]> {
-    try {
-      // Build query parameters
-      const params = new URLSearchParams();
+    // Build query parameters
+    const params = new URLSearchParams();
 
-      if (filters?.status?.length) {
-        filters.status.forEach((status) => params.append("status", status));
-      }
-      if (filters?.fromDate) {
-        params.append("fromDate", filters.fromDate);
-      }
-      if (filters?.toDate) {
-        params.append("toDate", filters.toDate);
-      }
-      if (filters?.eventTypeId) {
-        params.append("eventTypeId", filters.eventTypeId.toString());
-      }
-      if (filters?.limit) {
-        params.append("limit", filters.limit.toString());
-      }
-      if (filters?.offset) {
-        params.append("offset", filters.offset.toString());
-      }
+    if (filters?.status?.length) {
+      filters.status.forEach((status) => params.append("status", status));
+    }
+    if (filters?.fromDate) {
+      params.append("fromDate", filters.fromDate);
+    }
+    if (filters?.toDate) {
+      params.append("toDate", filters.toDate);
+    }
+    if (filters?.eventTypeId) {
+      params.append("eventTypeId", filters.eventTypeId.toString());
+    }
+    if (filters?.limit) {
+      params.append("limit", filters.limit.toString());
+    }
+    if (filters?.offset) {
+      params.append("offset", filters.offset.toString());
+    }
 
-      const queryString = params.toString();
-      const endpoint = `/bookings${queryString ? `?${queryString}` : ""}`;
+    const queryString = params.toString();
+    const endpoint = `/bookings${queryString ? `?${queryString}` : ""}`;
 
-      const response = await CalComAPIService.makeRequest<any>(endpoint);
+    const response = await CalComAPIService.makeRequest<any>(endpoint);
 
-      // Handle different possible response structures (same logic as event types)
-      let bookingsArray: Booking[] = [];
+    // Handle different possible response structures (same logic as event types)
+    let bookingsArray: Booking[] = [];
 
-      if (Array.isArray(response)) {
-        bookingsArray = response;
-      } else if (response && typeof response === "object") {
-        if (response.data && Array.isArray(response.data)) {
-          bookingsArray = response.data;
-        } else if (response.bookings && Array.isArray(response.bookings)) {
-          bookingsArray = response.bookings;
-        } else if (response.items && Array.isArray(response.items)) {
-          bookingsArray = response.items;
-        } else if (response.data && typeof response.data === "object") {
-          if (response.data.bookings && Array.isArray(response.data.bookings)) {
-            bookingsArray = response.data.bookings;
-          } else if (response.data.items && Array.isArray(response.data.items)) {
-            bookingsArray = response.data.items;
-          } else {
-            // Convert object values to array as last resort
-            const keys = Object.keys(response.data);
-            if (keys.length > 0) {
-              bookingsArray = Object.values(response.data).filter((item): item is Booking =>
-                Boolean(item && typeof item === "object" && ("id" in item || "uid" in item))
-              ) as Booking[];
-            }
-          }
+    if (Array.isArray(response)) {
+      bookingsArray = response;
+    } else if (response && typeof response === "object") {
+      if (response.data && Array.isArray(response.data)) {
+        bookingsArray = response.data;
+      } else if (response.bookings && Array.isArray(response.bookings)) {
+        bookingsArray = response.bookings;
+      } else if (response.items && Array.isArray(response.items)) {
+        bookingsArray = response.items;
+      } else if (response.data && typeof response.data === "object") {
+        if (response.data.bookings && Array.isArray(response.data.bookings)) {
+          bookingsArray = response.data.bookings;
+        } else if (response.data.items && Array.isArray(response.data.items)) {
+          bookingsArray = response.data.items;
         } else {
-          // Try to extract any arrays from the response
-          const possibleArrays = Object.values(response).filter((val) => Array.isArray(val));
-          if (possibleArrays.length > 0) {
-            bookingsArray = possibleArrays[0] as Booking[];
+          // Convert object values to array as last resort
+          const keys = Object.keys(response.data);
+          if (keys.length > 0) {
+            bookingsArray = Object.values(response.data).filter((item): item is Booking =>
+              Boolean(item && typeof item === "object" && ("id" in item || "uid" in item))
+            ) as Booking[];
           }
         }
+      } else {
+        // Try to extract any arrays from the response
+        const possibleArrays = Object.values(response).filter((val) => Array.isArray(val));
+        if (possibleArrays.length > 0) {
+          bookingsArray = possibleArrays[0] as Booking[];
+        }
       }
-
-      // Get current user to filter bookings
-      let currentUser;
-      try {
-        currentUser = await CalComAPIService.getCurrentUser();
-      } catch (error) {
-        return bookingsArray;
-      }
-
-      // Extract user info from response
-      let userId: number | undefined;
-      let userEmail: string | undefined;
-
-      if (currentUser) {
-        userId = currentUser.id;
-        userEmail = currentUser.email;
-      }
-
-      // Filter bookings to only show ones where the current user is participating
-      const userBookings = bookingsArray.filter((booking) => {
-        const { isOrganizer, isHost, isAttendee, isParticipating } = getBookingParticipation(
-          booking,
-          userId,
-          userEmail
-        );
-
-        return isParticipating;
-      });
-
-      return userBookings;
-    } catch (error) {
-      throw error;
     }
+
+    // Get current user to filter bookings
+    let currentUser;
+    try {
+      currentUser = await CalComAPIService.getCurrentUser();
+    } catch (_error) {
+      return bookingsArray;
+    }
+
+    // Extract user info from response
+    let userId: number | undefined;
+    let userEmail: string | undefined;
+
+    if (currentUser) {
+      userId = currentUser.id;
+      userEmail = currentUser.email;
+    }
+
+    // Filter bookings to only show ones where the current user is participating
+    const userBookings = bookingsArray.filter((booking) => {
+      const { isOrganizer, isHost, isAttendee, isParticipating } = getBookingParticipation(
+        booking,
+        userId,
+        userEmail
+      );
+
+      return isParticipating;
+    });
+
+    return userBookings;
   }
 
   // Get all schedules
   static async getSchedules(): Promise<Schedule[]> {
-    try {
-      const response = await CalComAPIService.makeRequest<{ status: string; data: Schedule[] }>(
-        "/schedules",
-        {
-          headers: {
-            "cal-api-version": "2024-06-11", // Override version for schedules
-          },
+    const response = await CalComAPIService.makeRequest<{ status: string; data: Schedule[] }>(
+      "/schedules",
+      {
+        headers: {
+          "cal-api-version": "2024-06-11", // Override version for schedules
         },
-        "2024-06-11"
-      );
+      },
+      "2024-06-11"
+    );
 
-      let schedulesArray: Schedule[] = [];
+    let schedulesArray: Schedule[] = [];
 
-      // Handle response structure: { status: "success", data: [...] }
-      if (
-        response &&
-        response.status === "success" &&
-        response.data &&
-        Array.isArray(response.data)
-      ) {
-        schedulesArray = response.data;
-      } else if (Array.isArray(response)) {
-        // Fallback: response might be array directly
-        schedulesArray = response;
-      } else if (response && response.data && Array.isArray(response.data)) {
-        // Fallback: response.data might be array
-        schedulesArray = response.data;
-      }
-
-      return schedulesArray;
-    } catch (error) {
-      throw error;
+    // Handle response structure: { status: "success", data: [...] }
+    if (
+      response &&
+      response.status === "success" &&
+      response.data &&
+      Array.isArray(response.data)
+    ) {
+      schedulesArray = response.data;
+    } else if (Array.isArray(response)) {
+      // Fallback: response might be array directly
+      schedulesArray = response;
+    } else if (response?.data && Array.isArray(response.data)) {
+      // Fallback: response.data might be array
+      schedulesArray = response.data;
     }
+
+    return schedulesArray;
   }
 
   // Create a new schedule
@@ -1017,7 +993,7 @@ export class CalComAPIService {
         "2024-06-11"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -1040,11 +1016,11 @@ export class CalComAPIService {
         "2024-06-11"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
-      if (response && response.id) {
+      if (response?.id) {
         return response;
       }
 
@@ -1063,7 +1039,7 @@ export class CalComAPIService {
         data: ConferencingOption[];
       }>("/conferencing");
 
-      if (response && response.data && Array.isArray(response.data)) {
+      if (response?.data && Array.isArray(response.data)) {
         return response.data;
       }
 
@@ -1083,7 +1059,7 @@ export class CalComAPIService {
         "2024-06-14"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -1189,7 +1165,7 @@ export class CalComAPIService {
         "2024-06-14"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -1235,7 +1211,7 @@ export class CalComAPIService {
         "2024-06-11"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -1260,7 +1236,7 @@ export class CalComAPIService {
         "2024-06-11"
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -1301,7 +1277,7 @@ export class CalComAPIService {
         "/webhooks"
       );
 
-      if (response && response.data && Array.isArray(response.data)) {
+      if (response?.data && Array.isArray(response.data)) {
         return response.data;
       }
 
@@ -1327,7 +1303,7 @@ export class CalComAPIService {
         }
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -1353,7 +1329,7 @@ export class CalComAPIService {
         }
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -1383,7 +1359,7 @@ export class CalComAPIService {
         `/event-types/${eventTypeId}/webhooks`
       );
 
-      if (response && response.data && Array.isArray(response.data)) {
+      if (response?.data && Array.isArray(response.data)) {
         return response.data;
       }
 
@@ -1412,7 +1388,7 @@ export class CalComAPIService {
         }
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -1442,7 +1418,7 @@ export class CalComAPIService {
         }
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -1476,7 +1452,7 @@ export class CalComAPIService {
         `/event-types/${eventTypeId}/private-links`
       );
 
-      if (response && response.data && Array.isArray(response.data)) {
+      if (response?.data && Array.isArray(response.data)) {
         return response.data;
       }
 
@@ -1505,7 +1481,7 @@ export class CalComAPIService {
         }
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 
@@ -1535,7 +1511,7 @@ export class CalComAPIService {
         }
       );
 
-      if (response && response.data) {
+      if (response?.data) {
         return response.data;
       }
 

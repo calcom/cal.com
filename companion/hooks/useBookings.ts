@@ -107,7 +107,7 @@ export function useCancelBooking() {
         queryKey: queryKeys.bookings.detail(variables.uid),
       });
     },
-    onError: (error) => {
+    onError: (_error) => {
       console.error("Failed to cancel booking");
     },
   });
@@ -151,7 +151,7 @@ export function useRescheduleBooking() {
         queryKey: queryKeys.bookings.detail(variables.uid),
       });
     },
-    onError: (error) => {
+    onError: (_error) => {
       console.error("Failed to reschedule booking");
     },
   });
@@ -183,7 +183,7 @@ export function useConfirmBooking() {
         queryKey: queryKeys.bookings.detail(variables.uid),
       });
     },
-    onError: (error) => {
+    onError: (_error) => {
       console.error("Failed to confirm booking");
     },
   });
@@ -216,7 +216,7 @@ export function useDeclineBooking() {
         queryKey: queryKeys.bookings.detail(variables.uid),
       });
     },
-    onError: (error) => {
+    onError: (_error) => {
       console.error("Failed to decline booking");
     },
   });

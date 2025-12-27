@@ -9,7 +9,7 @@ import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
 import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import { Alert, KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Booking } from "../../services/calcom";
@@ -149,7 +149,6 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
         case "phone":
           locationPayload = { type: "phone", phone: trimmedValue };
           break;
-        case "address":
         default:
           locationPayload = { type: "address", address: trimmedValue };
       }

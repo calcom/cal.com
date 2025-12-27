@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Platform, ScrollView, Text, View } from "react-native";
 import { useAuth } from "../../contexts/AuthContext";
 import { type Booking, CalComAPIService } from "../../services/calcom";
@@ -334,7 +334,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
       fetchBooking();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uid]);
+  }, [uid, fetchBooking]);
 
   // Expose action handlers to parent component (for iOS header menu)
   useEffect(() => {

@@ -1,5 +1,4 @@
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
-import React from "react";
 import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
 
 interface LoadingSpinnerProps {

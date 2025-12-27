@@ -438,7 +438,7 @@ export function initLinkedInIntegration() {
         );
         menu.appendChild(menuItem);
       });
-    } catch (error) {
+    } catch (_error) {
       menu.innerHTML = `
         <div style="padding: 16px; text-align: center; color: #ea4335;">
           Error displaying event types

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { BookingListScreen } from "../../../components/booking-list-screen/BookingListScreen";
 import { Header } from "../../../components/Header";

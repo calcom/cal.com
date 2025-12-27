@@ -146,7 +146,7 @@ export function useCreateSchedule() {
       // Optionally, add the new schedule to cache immediately
       queryClient.setQueryData(queryKeys.schedules.detail(newSchedule.id), newSchedule);
     },
-    onError: (error) => {
+    onError: (_error) => {
       console.error("Failed to create schedule");
     },
   });
@@ -180,7 +180,7 @@ export function useUpdateSchedule() {
       // Update the specific schedule in cache
       queryClient.setQueryData(queryKeys.schedules.detail(variables.id), updatedSchedule);
     },
-    onError: (error) => {
+    onError: (_error) => {
       console.error("Failed to update schedule");
     },
   });
@@ -207,7 +207,7 @@ export function useSetScheduleAsDefault() {
       // Invalidate all schedules to update the default flag
       queryClient.invalidateQueries({ queryKey: queryKeys.schedules.all });
     },
-    onError: (error) => {
+    onError: (_error) => {
       console.error("Failed to set schedule as default");
     },
   });
@@ -247,7 +247,7 @@ export function useDeleteSchedule() {
 
       return { previousSchedules };
     },
-    onError: (error, _deletedId, context) => {
+    onError: (_error, _deletedId, context) => {
       // Rollback on error
       if (context?.previousSchedules) {
         queryClient.setQueryData(queryKeys.schedules.lists(), context.previousSchedules);
@@ -282,7 +282,7 @@ export function useDuplicateSchedule() {
       // Invalidate the list to include the duplicated schedule
       queryClient.invalidateQueries({ queryKey: queryKeys.schedules.lists() });
     },
-    onError: (error) => {
+    onError: (_error) => {
       console.error("Failed to duplicate schedule");
     },
   });

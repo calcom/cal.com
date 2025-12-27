@@ -13,7 +13,7 @@ export function AuthTokenProvider({ children }: { children: React.ReactNode }) {
     } else {
       CalComAPIService.clearAuth();
     }
-  }, [isAuthenticated, accessToken, isWebSession]);
+  }, [isAuthenticated, accessToken]);
 
   return <>{children}</>;
 }

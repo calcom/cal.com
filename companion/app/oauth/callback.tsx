@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { ActivityIndicator, Platform, Text, View } from "react-native";
 import { useAuth } from "../../contexts";
 
@@ -94,7 +94,7 @@ export default function OAuthCallback() {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params, router]);
+  }, [params, router, auth.userInfo]);
 
   return (
     <View className="flex-1 items-center justify-center bg-white">

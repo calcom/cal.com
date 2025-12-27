@@ -61,7 +61,7 @@ export class WebAuthService {
       }
 
       return { isLoggedIn: false };
-    } catch (error) {
+    } catch (_error) {
       return { isLoggedIn: false };
     }
   }
@@ -85,7 +85,7 @@ export class WebAuthService {
       if (sessionResponse.ok) {
         const sessionData = await sessionResponse.json();
 
-        if (sessionData && sessionData.user) {
+        if (sessionData?.user) {
           // User is logged in via web session
           return {
             isLoggedIn: true,
@@ -126,7 +126,7 @@ export class WebAuthService {
       if (dashboardResponse.ok) {
         const dashboardData = await dashboardResponse.json();
 
-        if (dashboardData && dashboardData.result && dashboardData.result.data) {
+        if (dashboardData?.result?.data) {
           return {
             isLoggedIn: true,
             userInfo: dashboardData.result.data,
@@ -135,7 +135,7 @@ export class WebAuthService {
       }
 
       return { isLoggedIn: false };
-    } catch (error) {
+    } catch (_error) {
       return { isLoggedIn: false };
     }
   }
@@ -176,7 +176,7 @@ export class WebAuthService {
       }
 
       return {};
-    } catch (error) {
+    } catch (_error) {
       return {};
     }
   }

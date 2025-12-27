@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, type Schedule } from "../../services/calcom";
@@ -134,7 +134,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
       fetchSchedule();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, fetchSchedule]);
 
   const fetchSchedule = async () => {
     try {
@@ -175,7 +175,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                   // If it's a number string (e.g., "0", "1")
                   if (typeof day === "string") {
                     const parsed = parseInt(day, 10);
-                    if (!isNaN(parsed) && parsed >= 0 && parsed <= 6) {
+                    if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 6) {
                       return parsed;
                     }
                   }
@@ -285,7 +285,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
   ) => {
     setAvailability((prev) => {
       const newAvailability = { ...prev };
-      if (newAvailability[dayIndex] && newAvailability[dayIndex][slotIndex]) {
+      if (newAvailability[dayIndex]?.[slotIndex]) {
         const slot = { ...newAvailability[dayIndex][slotIndex] };
         if (type === "start") {
           slot.startTime = `${time}:00`;
@@ -447,7 +447,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
 
   const formatDateForDisplay = (dateStr: string): string => {
     if (!dateStr) return "";
-    const date = new Date(dateStr + "T00:00:00");
+    const date = new Date(`${dateStr}T00:00:00`);
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -534,7 +534,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
           {/* Availability Schedule */}
           <View className="rounded-2xl bg-white p-6">
             <Text className="mb-4 text-xl font-bold text-[#333]">Availability</Text>
-            {DAYS.map((day, dayIndex) => {
+            {DAYS.map((_day, dayIndex) => {
               const daySlots = availability[dayIndex] || [];
               const isEnabled = daySlots.length > 0;
               const firstSlot = daySlots[0];
@@ -680,8 +680,8 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                         <Text className="text-sm text-[#666]">Unavailable (All day)</Text>
                       ) : (
                         <Text className="text-sm text-[#666]">
-                          {formatTime12Hour(override.startTime + ":00")} -{" "}
-                          {formatTime12Hour(override.endTime + ":00")}
+                          {formatTime12Hour(`${override.startTime}:00`)} -{" "}
+                          {formatTime12Hour(`${override.endTime}:00`)}
                         </Text>
                       )}
                     </View>
@@ -927,7 +927,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                         className="flex-1 rounded-lg border border-[#E5E5EA] bg-white px-3 py-3"
                       >
                         <Text className="text-center text-base text-[#333]">
-                          {formatTime12Hour(overrideStartTime + ":00")}
+                          {formatTime12Hour(`${overrideStartTime}:00`)}
                         </Text>
                       </AppPressable>
                       <Text className="text-base text-[#666]">-</Text>
@@ -936,7 +936,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                         className="flex-1 rounded-lg border border-[#E5E5EA] bg-white px-3 py-3"
                       >
                         <Text className="text-center text-base text-[#333]">
-                          {formatTime12Hour(overrideEndTime + ":00")}
+                          {formatTime12Hour(`${overrideEndTime}:00`)}
                         </Text>
                       </AppPressable>
                     </View>
@@ -1005,7 +1005,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                         isSelected ? "font-semibold text-[#007AFF]" : "text-[#333]"
                       }`}
                     >
-                      {formatTime12Hour(time + ":00")}
+                      {formatTime12Hour(`${time}:00`)}
                     </Text>
                   </AppPressable>
                 );

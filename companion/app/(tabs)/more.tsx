@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Header } from "../../components/Header";
 import { LogoutConfirmModal } from "../../components/LogoutConfirmModal";

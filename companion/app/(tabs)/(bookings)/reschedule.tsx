@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Platform, Text, View } from "react-native";
 import { AppPressable } from "../../../components/AppPressable";
 import type { RescheduleScreenHandle } from "../../../components/screens/RescheduleScreen";

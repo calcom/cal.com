@@ -15,7 +15,7 @@
  */
 
 import { Ionicons } from "@expo/vector-icons";
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -152,7 +152,6 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
         case "phone":
           locationPayload = { type: "phone", phone: trimmedValue };
           break;
-        case "address":
         default:
           locationPayload = { type: "address", address: trimmedValue };
       }

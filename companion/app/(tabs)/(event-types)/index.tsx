@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActionSheetIOS,
   Alert,
@@ -116,7 +116,7 @@ export default function EventTypes() {
     return eventTypes.filter(
       (eventType) =>
         eventType.title.toLowerCase().includes(searchLower) ||
-        (eventType.description && eventType.description.toLowerCase().includes(searchLower))
+        eventType.description?.toLowerCase().includes(searchLower)
     );
   }, [eventTypes, searchQuery]);
 
@@ -194,7 +194,7 @@ export default function EventTypes() {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleShare = async (eventType: EventType) => {
+  const _handleShare = async (eventType: EventType) => {
     try {
       const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
       await Share.share({
@@ -352,8 +352,8 @@ export default function EventTypes() {
       return;
     }
 
-    const duration = parseInt(newEventDuration);
-    if (isNaN(duration) || duration <= 0) {
+    const duration = parseInt(newEventDuration, 10);
+    if (Number.isNaN(duration) || duration <= 0) {
       Alert.alert("Error", "Please enter a valid duration");
       return;
     }

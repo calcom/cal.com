@@ -9,7 +9,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import NetInfo, { type NetInfoState } from "@react-native-community/netinfo";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Animated, Modal, Text, TouchableOpacity, View } from "react-native";
 
 export function NetworkStatusBanner() {
@@ -57,7 +57,7 @@ export function NetworkStatusBanner() {
     // Listen for changes
     const unsubscribe = NetInfo.addEventListener(handleNetworkChange);
     return () => unsubscribe();
-  }, []);
+  }, [checkIfOffline]);
 
   useEffect(() => {
     if (showModal) {

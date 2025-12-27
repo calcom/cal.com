@@ -6,7 +6,7 @@
  */
 
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import { useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Booking } from "../../services/calcom";

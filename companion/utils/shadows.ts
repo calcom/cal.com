@@ -20,7 +20,7 @@ export function createShadow(config: ShadowConfig = {}): ViewStyle {
   } = config;
 
   if (Platform.OS === "web") {
-    const alpha = Math.round(opacity * 255)
+    const _alpha = Math.round(opacity * 255)
       .toString(16)
       .padStart(2, "0");
     return {
