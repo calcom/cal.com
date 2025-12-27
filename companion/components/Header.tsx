@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActionSheetIOS,
   ActivityIndicator,
@@ -24,11 +24,7 @@ export function Header() {
   const [loading, setLoading] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  useEffect(() => {
-    fetchUserProfile();
-  }, [fetchUserProfile]);
-
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     try {
       const profile = await CalComAPIService.getUserProfile();
       setUserProfile(profile);
@@ -42,7 +38,11 @@ export function Header() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, [fetchUserProfile]);
 
   // Build public page URL
   const publicPageUrl = userProfile?.username ? `https://cal.com/${userProfile.username}` : null;

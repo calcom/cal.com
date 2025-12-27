@@ -100,7 +100,6 @@ export class CalComOAuthService {
     const state = this.generateRandomBase64Url();
 
     this.codeVerifier = codeVerifier;
-    this.state = state;
 
     return { codeVerifier, codeChallenge, state };
   }
@@ -426,7 +425,6 @@ export class CalComOAuthService {
 
   clearPKCEParams(): void {
     this.codeVerifier = null;
-    this.state = null;
   }
 
   async syncTokensToExtension(tokens: OAuthTokens): Promise<void> {

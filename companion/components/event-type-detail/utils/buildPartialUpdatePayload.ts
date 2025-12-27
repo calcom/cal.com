@@ -164,7 +164,7 @@ function haveLocationsChanged(
   if (originalLocations && currentLocations.length !== originalLocations.length) return true;
 
   const currentMapped = currentLocations.map((loc) => normalizeLocation(mapItemToApiLocation(loc)));
-  const originalMapped = originalLocations?.map((loc) => normalizeLocation(loc));
+  const originalMapped = originalLocations?.map((loc) => normalizeLocation(loc)) ?? [];
 
   const sortByType = (a: any, b: any) => (a?.type || "").localeCompare(b?.type || "");
   currentMapped.sort(sortByType);

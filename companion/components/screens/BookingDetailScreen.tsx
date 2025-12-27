@@ -329,39 +329,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
     });
   }, [booking, router]);
 
-  useEffect(() => {
-    if (uid) {
-      fetchBooking();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uid, fetchBooking]);
-
-  // Expose action handlers to parent component (for iOS header menu)
-  useEffect(() => {
-    if (booking && onActionsReady) {
-      onActionsReady({
-        openRescheduleModal,
-        openEditLocationModal,
-        openAddGuestsModal,
-        openViewRecordingsModal,
-        openMeetingSessionDetailsModal,
-        openMarkNoShowModal,
-        handleCancelBooking,
-      });
-    }
-  }, [
-    booking,
-    onActionsReady,
-    openRescheduleModal,
-    openEditLocationModal,
-    openAddGuestsModal,
-    openViewRecordingsModal,
-    openMeetingSessionDetailsModal,
-    handleCancelBooking,
-    openMarkNoShowModal,
-  ]);
-
-  const fetchBooking = async () => {
+  const fetchBooking = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -395,7 +363,38 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
     } finally {
       setLoading(false);
     }
-  };
+  }, [uid, router]);
+
+  useEffect(() => {
+    if (uid) {
+      fetchBooking();
+    }
+  }, [uid, fetchBooking]);
+
+  // Expose action handlers to parent component (for iOS header menu)
+  useEffect(() => {
+    if (booking && onActionsReady) {
+      onActionsReady({
+        openRescheduleModal,
+        openEditLocationModal,
+        openAddGuestsModal,
+        openViewRecordingsModal,
+        openMeetingSessionDetailsModal,
+        openMarkNoShowModal,
+        handleCancelBooking,
+      });
+    }
+  }, [
+    booking,
+    onActionsReady,
+    openRescheduleModal,
+    openEditLocationModal,
+    openAddGuestsModal,
+    openViewRecordingsModal,
+    openMeetingSessionDetailsModal,
+    handleCancelBooking,
+    openMarkNoShowModal,
+  ]);
 
   const handleJoinMeeting = () => {
     if (!booking?.location) return;

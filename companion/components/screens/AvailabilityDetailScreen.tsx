@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, type Schedule } from "../../services/calcom";
@@ -129,14 +129,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
     "UTC",
   ];
 
-  useEffect(() => {
-    if (id) {
-      fetchSchedule();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, fetchSchedule]);
-
-  const fetchSchedule = async () => {
+  const fetchSchedule = useCallback(async () => {
     try {
       setLoading(true);
       const scheduleData = await CalComAPIService.getScheduleById(Number(id));
@@ -227,7 +220,13 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
+
+  useEffect(() => {
+    if (id) {
+      fetchSchedule();
+    }
+  }, [id, fetchSchedule]);
 
   const toggleDay = (dayIndex: number) => {
     setAvailability((prev) => {
