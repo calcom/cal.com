@@ -1,15 +1,14 @@
-import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
-import prisma from "@calcom/prisma";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import type { User } from "@calcom/prisma/client";
 
+import { UserDeletionService } from "../services/userDeletionService";
+import { UsersRepository } from "../users.repository";
+
 export async function deleteUser(user: Pick<User, "id" | "email" | "metadata">) {
-  // If 2FA is disabled or totpCode is valid then delete the user from stripe and database
-  await deleteStripeCustomer(user).catch(console.warn);
-  // Remove my account
-  // TODO: Move this to Repository pattern.
-  await prisma.user.delete({
-    where: {
-      id: user.id,
-    },
+  const userDeletionService = new UserDeletionService({
+    usersRepository: new UsersRepository(),
+    credentialRepository: CredentialRepository,
   });
+
+  await userDeletionService.deleteUser(user);
 }
