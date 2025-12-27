@@ -4,7 +4,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Select } from "@calcom/ui/components/form";
 import type { ReminderMinutes } from "@calcom/trpc/server/routers/viewer/calendars/setDestinationReminder.schema";
 
-const REMINDER_OPTIONS = [
+const REMINDER_OPTIONS: Array<{ value: ReminderMinutes; label: string }> = [
   { value: 0, label: "just_in_time" },
   { value: 10, label: "remind_minutes_before" },
   { value: 30, label: "remind_minutes_before" },
