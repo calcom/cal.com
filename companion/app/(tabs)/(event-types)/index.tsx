@@ -193,7 +193,6 @@ export default function EventTypes() {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handleShare = async (eventType: EventType) => {
     try {
       const link = await CalComAPIService.buildEventTypeLink(eventType.slug);

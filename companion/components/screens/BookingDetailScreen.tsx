@@ -29,44 +29,33 @@ const EMPTY_ACTIONS: BookingActionsResult = {
 // Format date: "Tuesday, November 25, 2025"
 const formatDateFull = (dateString: string): string => {
   if (!dateString) return "";
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  } catch {
-    return "";
-  }
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 };
 
 // Format time: "9:40pm - 10:00pm"
 const formatTime12Hour = (dateString: string): string => {
   if (!dateString) return "";
-  try {
-    const date = new Date(dateString);
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const period = hours >= 12 ? "pm" : "am";
-    const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-    const minStr = minutes.toString().padStart(2, "0");
-    return `${hour12}:${minStr}${period}`;
-  } catch {
-    return "";
-  }
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "";
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const period = hours >= 12 ? "pm" : "am";
+  const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  const minStr = minutes.toString().padStart(2, "0");
+  return `${hour12}:${minStr}${period}`;
 };
 
 // Get timezone from date string
-const getTimezone = (dateString: string): string => {
-  if (!dateString) return "";
-  try {
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    return timeZone;
-  } catch {
-    return "";
-  }
+const getTimezone = (_dateString: string): string => {
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return timeZone || "";
 };
 
 // Get initials from a name(e.g., "Keith Williams" -> "KW", "Dhairyashil Shinde" -> "DS")
@@ -187,6 +176,7 @@ export interface BookingDetailScreenProps {
 }
 
 export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreenProps) {
+  "use no memo";
   const router = useRouter();
   const { userInfo } = useAuth();
 
@@ -224,6 +214,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
             onPress: () => router.back(),
           },
         ]);
+        setIsCancelling(false);
       } catch (error) {
         console.error("Failed to cancel booking");
         if (__DEV__) {
@@ -231,7 +222,6 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
           console.debug("[BookingDetailScreen] cancelBooking failed", { message });
         }
         showErrorAlert("Error", "Failed to cancel booking. Please try again.");
-      } finally {
         setIsCancelling(false);
       }
     },
@@ -330,9 +320,9 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   }, [booking, router]);
 
   const fetchBooking = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
       const bookingData = await CalComAPIService.getBookingByUid(uid);
       // Avoid logging booking payloads: they may contain PII (names/emails/notes).
       if (__DEV__) {
@@ -345,6 +335,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
         });
       }
       setBooking(bookingData);
+      setLoading(false);
     } catch (err) {
       console.error("Error fetching booking");
       if (__DEV__) {
@@ -360,7 +351,6 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
       } else {
         router.back();
       }
-    } finally {
       setLoading(false);
     }
   }, [uid, router]);

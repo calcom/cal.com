@@ -79,12 +79,12 @@ export interface AvailabilityDetailScreenProps {
 }
 
 export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) {
+  "use no memo";
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_schedule, setSchedule] = useState<Schedule | null>(null);
   const [scheduleName, setScheduleName] = useState("");
   const [timeZone, setTimeZone] = useState("");
@@ -130,8 +130,8 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
   ];
 
   const fetchSchedule = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const scheduleData = await CalComAPIService.getScheduleById(Number(id));
 
       if (scheduleData) {
@@ -208,6 +208,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
           setOverrides([]);
         }
       }
+      setLoading(false);
     } catch (error) {
       // Avoid logging raw error objects from API calls (may contain sensitive response data).
       console.error("Error fetching schedule");
@@ -217,7 +218,6 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
       }
       showErrorAlert("Error", "Failed to load schedule. Please try again.");
       router.back();
-    } finally {
       setLoading(false);
     }
   }, [id, router]);
@@ -298,9 +298,8 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
   };
 
   const handleSave = async () => {
+    setSaving(true);
     try {
-      setSaving(true);
-
       // Convert availability object back to array format with day names
       const availabilityArray: {
         days: string[]; // Day names like "Monday", "Tuesday"
@@ -348,9 +347,9 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
       Alert.alert("Success", "Schedule updated successfully", [
         { text: "OK", onPress: () => router.back() },
       ]);
+      setSaving(false);
     } catch {
       showErrorAlert("Error", "Failed to update schedule. Please try again.");
-    } finally {
       setSaving(false);
     }
   };

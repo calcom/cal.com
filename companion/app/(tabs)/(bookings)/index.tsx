@@ -31,14 +31,14 @@ export default function Bookings() {
   };
 
   const fetchEventTypes = async () => {
+    setEventTypesLoading(true);
     try {
-      setEventTypesLoading(true);
       const types = await CalComAPIService.getEventTypes();
       setEventTypes(types);
+      setEventTypesLoading(false);
     } catch (err) {
       console.error("Error fetching event types:", err);
       // Error is logged but not displayed to user for event type filter
-    } finally {
       setEventTypesLoading(false);
     }
   };

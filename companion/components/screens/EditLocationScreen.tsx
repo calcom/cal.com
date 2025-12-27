@@ -162,10 +162,10 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
         Alert.alert("Success", "Location updated successfully", [
           { text: "OK", onPress: onSuccess },
         ]);
+        setIsSaving(false);
       } catch (error) {
         console.error("[EditLocationScreen] Failed to update location:", error);
         Alert.alert("Error", error instanceof Error ? error.message : "Failed to update location");
-      } finally {
         setIsSaving(false);
       }
     }, [booking, selectedType, inputValue, onSuccess]);
