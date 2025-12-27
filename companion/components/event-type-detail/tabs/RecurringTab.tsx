@@ -27,7 +27,7 @@ export function RecurringTab({
   recurringInterval,
   setRecurringInterval,
   recurringFrequency,
-  setRecurringFrequency,
+  setRecurringFrequency: _setRecurringFrequency,
   recurringOccurrences,
   setRecurringOccurrences,
   setShowFrequencyDropdown,

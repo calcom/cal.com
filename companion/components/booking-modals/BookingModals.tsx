@@ -71,11 +71,11 @@ interface BookingModalsProps {
 }
 
 export const BookingModals: React.FC<BookingModalsProps> = ({
-  showRescheduleModal,
-  rescheduleBooking,
-  isRescheduling,
-  onRescheduleClose,
-  onRescheduleSubmit,
+  showRescheduleModal: _showRescheduleModal,
+  rescheduleBooking: _rescheduleBooking,
+  isRescheduling: _isRescheduling,
+  onRescheduleClose: _onRescheduleClose,
+  onRescheduleSubmit: _onRescheduleSubmit,
   showRejectModal,
   rejectReason,
   isDeclining,

@@ -40,7 +40,7 @@
       "correctness": {
         "useExhaustiveDependencies": "off",
         "noInvalidUseBeforeDeclaration": "off",
-        "noUnusedFunctionParameters": "off",
+        "noUnusedFunctionParameters": "error",
         "noUnusedVariables": "off"
       },
       "complexity": {

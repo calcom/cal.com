@@ -20,7 +20,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
   onLongPress,
   onConfirm,
   onReject,
-  onActionsPress,
+  onActionsPress: _onActionsPress,
   onReschedule,
   onEditLocation,
   onAddGuests,
