@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { AppDataProps } from "@lib/apps/[slug]/getStaticProps";
@@ -67,7 +67,7 @@ function SingleAppPage(props: AppDataProps) {
       body={
         <>
           { }
-          <div dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(source.content) }} />
+          <div dangerouslySetInnerHTML={{ __html: markdownToSafeHTMLClient(source.content) }} />
         </>
       }
     />
