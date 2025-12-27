@@ -1,4 +1,4 @@
-import { prisma } from "@calcom/prisma";
+import { getBookingRepository } from "@calcom/features/di/containers/Booking";
 
 import type { TGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
 
@@ -8,26 +8,14 @@ type GetBookingAttendeesOptions = {
 };
 
 export const getBookingAttendeesHandler = async ({ ctx: _ctx, input }: GetBookingAttendeesOptions) => {
-  const bookingSeat = await prisma.bookingSeat.findUniqueOrThrow({
-    where: {
-      referenceUid: input.seatReferenceUid,
-    },
-    select: {
-      booking: {
-        select: {
-          _count: {
-            select: {
-              seatsReferences: true,
-            },
-          },
-        },
-      },
-    },
+  const bookingRepository = getBookingRepository();
+  const count = await bookingRepository.countSeatReferencesByReferenceUid({
+    referenceUid: input.seatReferenceUid,
   });
 
-  if (!bookingSeat) {
+  if (count === null) {
     throw new Error("Booking not found");
   }
 
-  return bookingSeat.booking._count.seatsReferences;
+  return count;
 };
