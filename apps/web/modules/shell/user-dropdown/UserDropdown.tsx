@@ -47,11 +47,12 @@ export function UserDropdown({ small }: UserDropdownProps) {
     //@ts-ignore
     const Beacon = window.Beacon;
     // window.Beacon is defined when user actually opens up HelpScout and username is available here. On every re-render update session info, so that it is always latest.
-    Beacon &&
+    if(Beacon) {
       Beacon("session-data", {
         username: user?.username || "Unknown",
         screenResolution: `${screen.width}x${screen.height}`,
       });
+    }
   });
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -143,16 +144,6 @@ export function UserDropdown({ small }: UserDropdownProps) {
                       }
                       href="/settings/my-account/profile">
                       {t("my_profile")}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <DropdownItem
-                      type="button"
-                      CustomStartIcon={
-                        <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
-                      }
-                      href="/settings/my-account/general">
-                      {t("my_settings")}
                     </DropdownItem>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
