@@ -131,6 +131,9 @@ export class InputEventTypesService_2024_06_14 {
       disableGuests,
       bookerActiveBookingsLimit,
       slug,
+      disableRescheduling,
+      disableCancelling,
+      calVideoSettings,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -155,6 +158,10 @@ export class InputEventTypesService_2024_06_14 {
       multipleDuration: lengthInMinutesOptions,
     };
 
+    const disableReschedulingTransformed = this.transformInputDisableRescheduling(disableRescheduling);
+    const disableCancellingTransformed = this.transformInputDisableCancelling(disableCancelling);
+    const calVideoSettingsTransformed = this.transformInputCalVideoSettings(calVideoSettings);
+
     const eventType = {
       ...rest,
       slug: slugifiedSlug,
@@ -176,6 +183,9 @@ export class InputEventTypesService_2024_06_14 {
       eventName: customName,
       useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
       ...maxActiveBookingsPerBooker,
+      ...disableReschedulingTransformed,
+      ...disableCancellingTransformed,
+      ...calVideoSettingsTransformed,
     };
 
     return eventType;
@@ -215,6 +225,9 @@ export class InputEventTypesService_2024_06_14 {
       disableGuests,
       bookerActiveBookingsLimit,
       slug,
+      disableRescheduling,
+      disableCancelling,
+      calVideoSettings,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
@@ -247,6 +260,16 @@ export class InputEventTypesService_2024_06_14 {
       ...(lengthInMinutesOptions !== undefined ? { multipleDuration: lengthInMinutesOptions } : {}),
     };
 
+    const disableReschedulingTransformed = disableRescheduling
+      ? this.transformInputDisableRescheduling(disableRescheduling)
+      : {};
+    const disableCancellingTransformed = disableCancelling
+      ? this.transformInputDisableCancelling(disableCancelling)
+      : {};
+    const calVideoSettingsTransformed = calVideoSettings
+      ? this.transformInputCalVideoSettings(calVideoSettings)
+      : {};
+
     const eventType = {
       ...rest,
       ...(slug ? { slug: slugifyLenient(slug) } : {}),
@@ -270,6 +293,9 @@ export class InputEventTypesService_2024_06_14 {
       eventName: customName,
       useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
       ...maxActiveBookingsPerBooker,
+      ...disableReschedulingTransformed,
+      ...disableCancellingTransformed,
+      ...calVideoSettingsTransformed,
     };
 
     return eventType;
@@ -601,5 +627,61 @@ export class InputEventTypesService_2024_06_14 {
       throw new BadRequestException(`${appSlug} not connected.`);
     }
     return foundApp.credential;
+  }
+
+  transformInputDisableRescheduling(disableRescheduling: CreateEventTypeInput_2024_06_14["disableRescheduling"]) {
+    if (!disableRescheduling) {
+      return {};
+    }
+
+    // If disabled is true, rescheduling is always disabled
+    if (disableRescheduling.disabled === true) {
+      return {
+        disableRescheduling: true,
+        minimumRescheduleNotice: null,
+      };
+    }
+
+    // If minutesBefore is set, use it for conditional disable
+    if (disableRescheduling.minutesBefore && disableRescheduling.minutesBefore > 0) {
+      return {
+        disableRescheduling: false,
+        minimumRescheduleNotice: disableRescheduling.minutesBefore,
+      };
+    }
+
+    // Otherwise rescheduling is not disabled
+    return {
+      disableRescheduling: false,
+      minimumRescheduleNotice: null,
+    };
+  }
+
+  transformInputDisableCancelling(disableCancelling: CreateEventTypeInput_2024_06_14["disableCancelling"]) {
+    if (!disableCancelling) {
+      return {};
+    }
+
+    return {
+      disableCancelling: disableCancelling.disabled === true,
+    };
+  }
+
+  transformInputCalVideoSettings(calVideoSettings: CreateEventTypeInput_2024_06_14["calVideoSettings"]) {
+    if (!calVideoSettings) {
+      return {};
+    }
+
+    // Extract sendTranscriptionEmails from calVideoSettings and map to canSendCalVideoTranscriptionEmails
+    const { sendTranscriptionEmails, ...restCalVideoSettings } = calVideoSettings;
+
+    const hasOtherSettings = Object.keys(restCalVideoSettings).length > 0;
+
+    return {
+      ...(hasOtherSettings ? { calVideoSettings: restCalVideoSettings } : {}),
+      ...(sendTranscriptionEmails !== undefined
+        ? { canSendCalVideoTranscriptionEmails: sendTranscriptionEmails }
+        : {}),
+    };
   }
 }
