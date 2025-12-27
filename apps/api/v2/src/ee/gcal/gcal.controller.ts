@@ -2,6 +2,7 @@ import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GcalAuthUrlOutput } from "@/ee/gcal/outputs/auth-url.output";
 import { GcalCheckOutput } from "@/ee/gcal/outputs/check.output";
 import { GcalSaveRedirectOutput } from "@/ee/gcal/outputs/save-redirect.output";
+import { extractBearerToken } from "@/lib/api-key";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GCalService } from "@/modules/apps/services/gcal.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -62,7 +63,7 @@ export class GcalController {
     @Req() req: Request
   ): Promise<GcalAuthUrlOutput> {
     const oAuth2Client = await this.gcalService.getOAuthClient(this.redirectUri);
-    const accessToken = authorization.replace("Bearer ", "");
+    const accessToken = extractBearerToken(authorization);
     const origin = req.get("origin") ?? req.get("host");
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
