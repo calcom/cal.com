@@ -212,27 +212,31 @@ function EventTypeSingleLayout({
               <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent style={{ minWidth: "200px" }}>
-              <DropdownMenuItem className="focus:ring-muted">
-                <DropdownItem
-                  target="_blank"
-                  type="button"
-                  StartIcon="external-link"
-                  href={permalink}
-                  rel="noreferrer">
-                  {t("preview")}
-                </DropdownItem>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="focus:ring-muted">
-                <DropdownItem
-                  type="button"
-                  StartIcon="link"
-                  onClick={() => {
-                    navigator.clipboard.writeText(permalink);
-                    showToast("Link copied!", "success");
-                  }}>
-                  {t("copy_link")}
-                </DropdownItem>
-              </DropdownMenuItem>
+              {!isPlatform && (
+                <>
+                  <DropdownMenuItem className="focus:ring-muted">
+                    <DropdownItem
+                      target="_blank"
+                      type="button"
+                      StartIcon="external-link"
+                      href={permalink}
+                      rel="noreferrer">
+                      {t("preview")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="focus:ring-muted">
+                    <DropdownItem
+                      type="button"
+                      StartIcon="link"
+                      onClick={() => {
+                        navigator.clipboard.writeText(permalink);
+                        showToast("Link copied!", "success");
+                      }}>
+                      {t("copy_link")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                </>
+              )}
               {allowDelete && (
                 <DropdownMenuItem className="focus:ring-muted">
                   <DropdownItem
