@@ -9,12 +9,13 @@
  *
  * Note: iOS uses BookingActionsModal.ios.tsx with native Glass UI styling.
  */
+
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import type { Booking } from "../services/calcom";
 import type { BookingActionsResult } from "../utils/booking-actions";
 import { FullScreenModal } from "./FullScreenModal";
-import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 
 export interface BookingActionsModalProps {
   visible: boolean;

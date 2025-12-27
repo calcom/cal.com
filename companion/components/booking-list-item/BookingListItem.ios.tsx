@@ -1,16 +1,15 @@
-import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { View, Text, TouchableOpacity, Linking, Pressable } from "react-native";
-import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
+import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
 import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
+import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-
-import type { BookingListItemProps } from "./types";
-import { SvgImage } from "../SvgImage";
-import { getMeetingInfo } from "../../utils/meetings-utils";
-import { formatTime, formatDate, getHostAndAttendeesDisplay } from "../../utils/bookings-utils";
+import React from "react";
+import { Linking, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { showErrorAlert } from "../../utils/alerts";
 import { getBookingActions } from "../../utils/booking-actions";
+import { formatDate, formatTime, getHostAndAttendeesDisplay } from "../../utils/bookings-utils";
+import { getMeetingInfo } from "../../utils/meetings-utils";
+import { SvgImage } from "../SvgImage";
+import type { BookingListItemProps } from "./types";
 
 export const BookingListItem: React.FC<BookingListItemProps> = ({
   booking,

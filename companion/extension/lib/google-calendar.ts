@@ -289,7 +289,7 @@ function isEventInPast(eventElement: Element): boolean {
     // Short date format: "Dec 20, 2024"
     /(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})/i,
     // Numeric format: "12/20/2024" or "20/12/2024"
-    /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/,
+    /(\d{1,2})[/-](\d{1,2})[/-](\d{4})/,
   ];
 
   const months: Record<string, number> = {

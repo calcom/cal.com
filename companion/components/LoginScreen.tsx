@@ -1,10 +1,10 @@
+import React from "react";
+import { Platform, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../contexts/AuthContext";
 import { showErrorAlert } from "../utils/alerts";
 import { openInAppBrowser } from "../utils/browser";
 import { CalComLogo } from "./CalComLogo";
-import React from "react";
-import { View, Text, TouchableOpacity, Platform } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function LoginScreen() {
   const { loginWithOAuth, loading } = useAuth();

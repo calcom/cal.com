@@ -1,31 +1,30 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { Activity, useMemo, useState } from "react";
-import { View, Text, FlatList, RefreshControl, ScrollView, Alert } from "react-native";
-
-import type { Booking, EventType } from "../../services/calcom";
-import { LoadingSpinner } from "../LoadingSpinner";
-import { EmptyScreen } from "../EmptyScreen";
-import { BookingListItem } from "../booking-list-item/BookingListItem";
-import { BookingModals } from "../booking-modals/BookingModals";
+import { Alert, FlatList, RefreshControl, ScrollView, Text, View } from "react-native";
 import { useAuth } from "../../contexts/AuthContext";
 import {
+  type BookingFilter,
+  useBookingActions,
   useBookings,
   useCancelBooking,
   useConfirmBooking,
   useDeclineBooking,
   useRescheduleBooking,
-  useBookingActions,
-  type BookingFilter,
 } from "../../hooks";
-import { offlineAwareRefresh } from "../../utils/network";
+import type { Booking, EventType } from "../../services/calcom";
+import type { ListItem } from "../../utils/bookings-utils";
 import {
+  filterByEventType,
   getEmptyStateContent,
   groupBookingsByMonth,
   searchBookings,
-  filterByEventType,
 } from "../../utils/bookings-utils";
-import type { ListItem } from "../../utils/bookings-utils";
+import { offlineAwareRefresh } from "../../utils/network";
+import { BookingListItem } from "../booking-list-item/BookingListItem";
+import { BookingModals } from "../booking-modals/BookingModals";
+import { EmptyScreen } from "../EmptyScreen";
+import { LoadingSpinner } from "../LoadingSpinner";
 
 interface BookingListScreenProps {
   // Platform-specific header rendering

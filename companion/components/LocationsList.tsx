@@ -3,27 +3,27 @@
  * Reusable component for displaying and managing multiple event type locations
  */
 
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  Modal,
-  ScrollView,
-  Platform,
-  ActionSheetIOS,
-} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-import { SvgImage } from "./SvgImage";
-import { LocationItem, LocationOptionGroup } from "../types/locations";
+import type React from "react";
+import { useState } from "react";
 import {
-  locationRequiresInput,
-  getLocationInputPlaceholder,
-  getLocationInputLabel,
+  ActionSheetIOS,
+  Modal,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import type { LocationItem, LocationOptionGroup } from "../types/locations";
+import {
   createLocationItemFromOption,
+  getLocationInputLabel,
+  getLocationInputPlaceholder,
+  locationRequiresInput,
 } from "../utils/locationHelpers";
+import { SvgImage } from "./SvgImage";
 
 interface LocationsListProps {
   /** Array of current locations */

@@ -7,10 +7,10 @@
  * - Shows again on next disconnect
  */
 
-import React, { useEffect, useState, useRef } from "react";
-import { View, Text, TouchableOpacity, Modal, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
+import NetInfo, { type NetInfoState } from "@react-native-community/netinfo";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Modal, Text, TouchableOpacity, View } from "react-native";
 
 export function NetworkStatusBanner() {
   const [showModal, setShowModal] = useState(false);

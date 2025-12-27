@@ -1,6 +1,6 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity, Switch, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { Animated, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 interface FrequencyLimit {
   id: number;

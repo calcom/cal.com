@@ -1,22 +1,22 @@
-import { CalComAPIService, UserProfile } from "../services/calcom";
+import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import React, { useEffect, useState } from "react";
+import {
+  ActionSheetIOS,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CalComAPIService, type UserProfile } from "../services/calcom";
 import { openInAppBrowser } from "../utils/browser";
 import { getAvatarUrl } from "../utils/getAvatarUrl";
 import { CalComLogo } from "./CalComLogo";
 import { FullScreenModal } from "./FullScreenModal";
-import { Ionicons } from "@expo/vector-icons";
-import * as Clipboard from "expo-clipboard";
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
-  Platform,
-  ActionSheetIOS,
-  Alert,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function Header() {
   const insets = useSafeAreaInsets();

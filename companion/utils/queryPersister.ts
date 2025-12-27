@@ -4,7 +4,7 @@
  * Uses the shared storage adapter from utils/storage.ts for cross-platform support.
  */
 
-import type { Persister, PersistedClient } from "@tanstack/react-query-persist-client";
+import type { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
 import { CACHE_CONFIG } from "../config/cache.config";
 import { generalStorage } from "./storage";
 

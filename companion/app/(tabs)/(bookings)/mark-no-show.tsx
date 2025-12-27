@@ -1,8 +1,8 @@
-import MarkNoShowScreenComponent from "../../../components/screens/MarkNoShowScreen";
-import { CalComAPIService, type Booking } from "../../../services/calcom";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
-import { Alert, ActivityIndicator, View, Platform } from "react-native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Platform, View } from "react-native";
+import MarkNoShowScreenComponent from "../../../components/screens/MarkNoShowScreen";
+import { type Booking, CalComAPIService } from "../../../services/calcom";
 
 interface Attendee {
   id?: number | string;

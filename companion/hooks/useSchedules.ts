@@ -8,9 +8,10 @@
  * - Optimistic updates for mutations
  * - Cache invalidation on create/update/delete
  */
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
-import { CalComAPIService, Schedule } from "../services/calcom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { CalComAPIService, type Schedule } from "../services/calcom";
 
 /**
  * Sort schedules: default first, then alphabetically by name

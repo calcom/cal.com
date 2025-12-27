@@ -17,7 +17,7 @@ export class WebAuthService {
 
   // Get cookies from the browser
   static getCookies(): { [key: string]: string } {
-    if (!this.isWeb()) return {};
+    if (!WebAuthService.isWeb()) return {};
 
     const cookies: { [key: string]: string } = {};
     if (typeof document !== "undefined") {
@@ -33,13 +33,13 @@ export class WebAuthService {
 
   // Check for Cal.com session cookies
   static async checkCalComSession(): Promise<WebSessionInfo> {
-    if (!this.isWeb()) {
+    if (!WebAuthService.isWeb()) {
       return { isLoggedIn: false };
     }
 
     try {
       // Check for common Cal.com session cookies
-      const cookies = this.getCookies();
+      const cookies = WebAuthService.getCookies();
 
       // Look for Cal.com authentication cookies
       // Common patterns: next-auth.session-token, __Secure-next-auth.session-token, etc.
@@ -56,7 +56,7 @@ export class WebAuthService {
 
       if (foundSessionCookie) {
         // Try to validate the session with Cal.com API
-        const sessionInfo = await this.validateWebSession();
+        const sessionInfo = await WebAuthService.validateWebSession();
         return sessionInfo;
       }
 
@@ -68,7 +68,7 @@ export class WebAuthService {
 
   // Validate web session by calling Cal.com API with cookies
   static async validateWebSession(): Promise<WebSessionInfo> {
-    if (!this.isWeb()) {
+    if (!WebAuthService.isWeb()) {
       return { isLoggedIn: false };
     }
 
@@ -142,7 +142,7 @@ export class WebAuthService {
 
   // Try to get API tokens from web session
   static async getTokensFromWebSession(): Promise<{ accessToken?: string; refreshToken?: string }> {
-    if (!this.isWeb()) {
+    if (!WebAuthService.isWeb()) {
       return {};
     }
 
@@ -183,7 +183,7 @@ export class WebAuthService {
 
   // Redirect to Cal.com web login instead of using WebView
   static redirectToWebLogin(): void {
-    if (!this.isWeb()) return;
+    if (!WebAuthService.isWeb()) return;
 
     // For web, redirect directly to Cal.com login
     const currentUrl = window.location.href;

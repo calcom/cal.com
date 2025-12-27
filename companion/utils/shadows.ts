@@ -1,4 +1,4 @@
-import { Platform, ViewStyle } from "react-native";
+import { Platform, type ViewStyle } from "react-native";
 
 interface ShadowConfig {
   color?: string;

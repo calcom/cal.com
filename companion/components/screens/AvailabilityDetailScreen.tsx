@@ -1,14 +1,14 @@
-import { CalComAPIService, Schedule } from "../../services/calcom";
-import { ScheduleAvailability } from "../../services/types";
-import { showErrorAlert } from "../../utils/alerts";
-import { AppPressable } from "../AppPressable";
-import { FullScreenModal } from "../FullScreenModal";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TextInput, Alert, ActivityIndicator, Switch } from "react-native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CalComAPIService, type Schedule } from "../../services/calcom";
+import type { ScheduleAvailability } from "../../services/types";
+import { showErrorAlert } from "../../utils/alerts";
+import { AppPressable } from "../AppPressable";
+import { FullScreenModal } from "../FullScreenModal";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];

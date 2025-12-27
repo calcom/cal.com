@@ -1,13 +1,13 @@
+import React, { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 import { CalComAPIService } from "../services/calcom";
 import {
+  type CalComOAuthService,
   createCalComOAuthService,
-  OAuthTokens,
-  CalComOAuthService,
+  type OAuthTokens,
 } from "../services/oauthService";
 import type { UserProfile } from "../services/types/users.types";
 import { WebAuthService } from "../services/webAuth";
 import { secureStorage } from "../utils/storage";
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 /**
  * Simplified user info stored in auth context

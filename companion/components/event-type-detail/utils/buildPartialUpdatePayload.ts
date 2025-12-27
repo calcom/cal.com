@@ -2,8 +2,8 @@ import type { EventType } from "../../../services/calcom";
 import type { LocationItem } from "../../../types/locations";
 import {
   parseBufferTime,
-  parseMinimumNotice,
   parseFrequencyUnit,
+  parseMinimumNotice,
   parseSlotInterval,
 } from "../../../utils/eventTypeParsers";
 import { mapItemToApiLocation } from "../../../utils/locationHelpers";

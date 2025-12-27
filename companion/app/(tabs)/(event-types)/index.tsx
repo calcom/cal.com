@@ -1,16 +1,33 @@
+import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { Stack, useRouter } from "expo-router";
+import React, { useMemo, useState } from "react";
+import {
+  ActionSheetIOS,
+  Alert,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  Share,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { EmptyScreen } from "../../../components/EmptyScreen";
+import { EventTypeListItem } from "../../../components/event-type-list-item/EventTypeListItem";
 import { FullScreenModal } from "../../../components/FullScreenModal";
 import { Header } from "../../../components/Header";
 import { LoadingSpinner } from "../../../components/LoadingSpinner";
-import { EventTypeListItem } from "../../../components/event-type-list-item/EventTypeListItem";
 import {
-  useEventTypes,
   useCreateEventType,
   useDeleteEventType,
   useDuplicateEventType,
+  useEventTypes,
   useUsername,
 } from "../../../hooks";
-import { CalComAPIService, EventType } from "../../../services/calcom";
+import { CalComAPIService, type EventType } from "../../../services/calcom";
 import { showErrorAlert } from "../../../utils/alerts";
 import { openInAppBrowser } from "../../../utils/browser";
 import { getEventDuration } from "../../../utils/getEventDuration";
@@ -18,23 +35,6 @@ import { offlineAwareRefresh } from "../../../utils/network";
 import { normalizeMarkdown } from "../../../utils/normalizeMarkdown";
 import { shadows } from "../../../utils/shadows";
 import { slugify } from "../../../utils/slugify";
-import { Ionicons } from "@expo/vector-icons";
-import * as Clipboard from "expo-clipboard";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Stack, useRouter } from "expo-router";
-import React, { useState, useMemo } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  TextInput,
-  ActionSheetIOS,
-  Share,
-  Alert,
-  Platform,
-} from "react-native";
 
 export default function EventTypes() {
   const router = useRouter();

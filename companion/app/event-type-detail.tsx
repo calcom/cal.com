@@ -1,3 +1,20 @@
+import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  Animated,
+  Modal,
+  Platform,
+  ScrollView,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AdvancedTab } from "../components/event-type-detail/tabs/AdvancedTab";
 import { AvailabilityTab } from "../components/event-type-detail/tabs/AvailabilityTab";
 import { BasicsTab } from "../components/event-type-detail/tabs/BasicsTab";
@@ -5,33 +22,21 @@ import { LimitsTab } from "../components/event-type-detail/tabs/LimitsTab";
 import { RecurringTab } from "../components/event-type-detail/tabs/RecurringTab";
 import { truncateTitle } from "../components/event-type-detail/utils";
 import { buildPartialUpdatePayload } from "../components/event-type-detail/utils/buildPartialUpdatePayload";
-import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
-import { LocationItem, LocationOptionGroup } from "../types/locations";
+import {
+  CalComAPIService,
+  type ConferencingOption,
+  type EventType,
+  type Schedule,
+} from "../services/calcom";
+import type { LocationItem, LocationOptionGroup } from "../types/locations";
 import { showErrorAlert } from "../utils/alerts";
 import { openInAppBrowser } from "../utils/browser";
 import {
+  buildLocationOptions,
   mapApiLocationToItem,
   mapItemToApiLocation,
-  buildLocationOptions,
   validateLocationItem,
 } from "../utils/locationHelpers";
-import { Ionicons } from "@expo/vector-icons";
-import * as Clipboard from "expo-clipboard";
-import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
-import { useRouter, useLocalSearchParams, Stack } from "expo-router";
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Switch,
-  Modal,
-  Alert,
-  Animated,
-  Platform,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const tabs = [
   { id: "basics", label: "Basics", icon: "link" },

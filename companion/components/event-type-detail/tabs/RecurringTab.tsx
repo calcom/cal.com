@@ -1,6 +1,6 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity, Switch } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { openInAppBrowser } from "../../../utils/browser";
 
 interface RecurringTabProps {

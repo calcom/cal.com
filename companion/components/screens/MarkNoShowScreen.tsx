@@ -4,12 +4,13 @@
  * Screen content for marking attendees as no-show for a booking.
  * Used with the mark-no-show route that has native Stack.Header.
  */
-import type { Booking } from "../../services/calcom";
-import { CalComAPIService } from "../../services/calcom";
+
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator, FlatList, Alert } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { Booking } from "../../services/calcom";
+import { CalComAPIService } from "../../services/calcom";
 
 interface Attendee {
   id?: number | string;

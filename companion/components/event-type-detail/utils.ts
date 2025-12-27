@@ -5,11 +5,9 @@
  * New code should import directly from the source files.
  */
 
-// Re-export partial update utilities
-export { buildPartialUpdatePayload, hasChanges } from "./utils/buildPartialUpdatePayload";
-
 // Re-export formatting utilities from centralized location
-export { formatDuration, truncateTitle, formatAppIdToDisplayName } from "../../utils/formatters";
-
+export { formatAppIdToDisplayName, formatDuration, truncateTitle } from "../../utils/formatters";
 // Re-export location utilities from centralized location
 export { displayNameToLocationValue } from "../../utils/locationHelpers";
+// Re-export partial update utilities
+export { buildPartialUpdatePayload, hasChanges } from "./utils/buildPartialUpdatePayload";

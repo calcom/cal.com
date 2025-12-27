@@ -1,12 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { View, Text, TouchableOpacity, Linking } from "react-native";
-
-import type { BookingListItemProps } from "./types";
-import { SvgImage } from "../SvgImage";
-import { getMeetingInfo } from "../../utils/meetings-utils";
-import { formatTime, formatDate, getHostAndAttendeesDisplay } from "../../utils/bookings-utils";
+import type React from "react";
+import { Linking, Text, TouchableOpacity, View } from "react-native";
 import { showErrorAlert } from "../../utils/alerts";
+import { formatDate, formatTime, getHostAndAttendeesDisplay } from "../../utils/bookings-utils";
+import { getMeetingInfo } from "../../utils/meetings-utils";
+import { SvgImage } from "../SvgImage";
+import type { BookingListItemProps } from "./types";
 
 export const BookingListItem: React.FC<BookingListItemProps> = ({
   booking,

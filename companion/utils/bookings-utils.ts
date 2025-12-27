@@ -211,9 +211,13 @@ export const searchBookings = (bookings: Booking[], searchQuery: string): Bookin
       // Search in booking title
       booking.title?.toLowerCase().includes(searchLower) ||
       // Search in booking description
-      booking.description?.toLowerCase().includes(searchLower) ||
+      booking.description
+        ?.toLowerCase()
+        .includes(searchLower) ||
       // Search in event type title
-      booking.eventType?.title?.toLowerCase().includes(searchLower) ||
+      booking.eventType?.title
+        ?.toLowerCase()
+        .includes(searchLower) ||
       // Search in attendee names
       (booking.attendees &&
         booking.attendees.some((attendee) => attendee.name?.toLowerCase().includes(searchLower))) ||
@@ -223,11 +227,17 @@ export const searchBookings = (bookings: Booking[], searchQuery: string): Bookin
           attendee.email?.toLowerCase().includes(searchLower)
         )) ||
       // Search in location
-      booking.location?.toLowerCase().includes(searchLower) ||
+      booking.location
+        ?.toLowerCase()
+        .includes(searchLower) ||
       // Search in user name
-      booking.user?.name?.toLowerCase().includes(searchLower) ||
+      booking.user?.name
+        ?.toLowerCase()
+        .includes(searchLower) ||
       // Search in user email
-      booking.user?.email?.toLowerCase().includes(searchLower)
+      booking.user?.email
+        ?.toLowerCase()
+        .includes(searchLower)
   );
 };
 

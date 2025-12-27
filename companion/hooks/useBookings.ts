@@ -8,9 +8,10 @@
  * - Optimistic updates for mutations
  * - Cache invalidation on mutations
  */
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
-import { CalComAPIService, Booking } from "../services/calcom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { type Booking, CalComAPIService } from "../services/calcom";
 
 /**
  * Filter options for fetching bookings

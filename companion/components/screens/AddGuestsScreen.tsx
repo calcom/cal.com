@@ -4,21 +4,22 @@
  * Screen content for adding guests to a booking.
  * Used with the add-guests route that has native Stack.Header.
  */
-import type { Booking } from "../../services/calcom";
-import { CalComAPIService } from "../../services/calcom";
+
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import {
-  View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { Booking } from "../../services/calcom";
+import { CalComAPIService } from "../../services/calcom";
 
 export interface AddGuestsScreenProps {
   booking: Booking | null;

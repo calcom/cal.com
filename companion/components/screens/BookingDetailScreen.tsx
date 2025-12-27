@@ -1,18 +1,18 @@
-import { CalComAPIService, Booking } from "../../services/calcom";
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, Alert, Platform, ScrollView, Text, View } from "react-native";
 import { useAuth } from "../../contexts/AuthContext";
+import { type Booking, CalComAPIService } from "../../services/calcom";
 import { showErrorAlert } from "../../utils/alerts";
-import { getBookingActions, type BookingActionsResult } from "../../utils/booking-actions";
+import { type BookingActionsResult, getBookingActions } from "../../utils/booking-actions";
 import { openInAppBrowser } from "../../utils/browser";
-import { getDefaultLocationIconUrl, defaultLocations } from "../../utils/defaultLocations";
+import { defaultLocations, getDefaultLocationIconUrl } from "../../utils/defaultLocations";
 import { formatAppIdToDisplayName } from "../../utils/formatters";
 import { getAppIconUrl } from "../../utils/getAppIconUrl";
 import { AppPressable } from "../AppPressable";
 import { BookingActionsModal } from "../BookingActionsModal";
 import { SvgImage } from "../SvgImage";
-import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { View, Text, ScrollView, Alert, ActivityIndicator, Platform } from "react-native";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {

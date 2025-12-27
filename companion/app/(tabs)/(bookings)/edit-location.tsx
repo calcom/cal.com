@@ -1,10 +1,10 @@
-import { AppPressable } from "../../../components/AppPressable";
-import EditLocationScreenComponent from "../../../components/screens/EditLocationScreen";
-import type { EditLocationScreenHandle } from "../../../components/screens/EditLocationScreen";
-import { CalComAPIService, type Booking } from "../../../services/calcom";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Alert, ActivityIndicator, View, Text, Platform } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Alert, Platform, Text, View } from "react-native";
+import { AppPressable } from "../../../components/AppPressable";
+import type { EditLocationScreenHandle } from "../../../components/screens/EditLocationScreen";
+import EditLocationScreenComponent from "../../../components/screens/EditLocationScreen";
+import { type Booking, CalComAPIService } from "../../../services/calcom";
 
 export default function EditLocation() {
   const { uid } = useLocalSearchParams<{ uid: string }>();

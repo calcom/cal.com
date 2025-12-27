@@ -1,32 +1,32 @@
 import type {
-  EventType,
-  CreateEventTypeInput,
-  GetEventTypesResponse,
-  Booking,
-  GetBookingsResponse,
-  BookingParticipationResult,
-  Schedule,
-  GetSchedulesResponse,
-  GetScheduleResponse,
-  UserProfile,
-  ConferencingOption,
-  Webhook,
-  CreateWebhookInput,
-  UpdateWebhookInput,
-  PrivateLink,
-  CreatePrivateLinkInput,
-  UpdatePrivateLinkInput,
-  MarkAbsentRequest,
-  MarkAbsentResponse,
   AddGuestInput,
   AddGuestsResponse,
-  UpdateLocationResponse,
+  Booking,
+  BookingParticipationResult,
   BookingRecording,
-  GetRecordingsResponse,
-  ConferencingSession,
-  GetConferencingSessionsResponse,
   BookingTranscript,
+  ConferencingOption,
+  ConferencingSession,
+  CreateEventTypeInput,
+  CreatePrivateLinkInput,
+  CreateWebhookInput,
+  EventType,
+  GetBookingsResponse,
+  GetConferencingSessionsResponse,
+  GetEventTypesResponse,
+  GetRecordingsResponse,
+  GetScheduleResponse,
+  GetSchedulesResponse,
   GetTranscriptsResponse,
+  MarkAbsentRequest,
+  MarkAbsentResponse,
+  PrivateLink,
+  Schedule,
+  UpdateLocationResponse,
+  UpdatePrivateLinkInput,
+  UpdateWebhookInput,
+  UserProfile,
+  Webhook,
 } from "./types";
 
 const API_BASE_URL = "https://api.cal.com/v2";
@@ -150,7 +150,7 @@ export class CalComAPIService {
   // Get current user profile
   static async getCurrentUser(): Promise<UserProfile> {
     try {
-      const response = await this.makeRequest<{ status: string; data: UserProfile }>(
+      const response = await CalComAPIService.makeRequest<{ status: string; data: UserProfile }>(
         "/me",
         {
           headers: {
@@ -179,7 +179,7 @@ export class CalComAPIService {
     metadata?: Record<string, any>;
   }): Promise<UserProfile> {
     try {
-      const response = await this.makeRequest<{ status: string; data: UserProfile }>(
+      const response = await CalComAPIService.makeRequest<{ status: string; data: UserProfile }>(
         "/me",
         {
           method: "PATCH",
@@ -194,7 +194,7 @@ export class CalComAPIService {
 
       if (response && response.data) {
         // Update cached profile
-        this.userProfile = response.data;
+        CalComAPIService.userProfile = response.data;
         return response.data;
       }
 
@@ -207,29 +207,29 @@ export class CalComAPIService {
 
   // Get and cache user profile
   static async getUserProfile(): Promise<UserProfile> {
-    if (this.userProfile) {
-      return this.userProfile;
+    if (CalComAPIService.userProfile) {
+      return CalComAPIService.userProfile;
     }
 
-    this.userProfile = await this.getCurrentUser();
-    return this.userProfile;
+    CalComAPIService.userProfile = await CalComAPIService.getCurrentUser();
+    return CalComAPIService.userProfile;
   }
 
   // Get cached username or fetch if not available
   static async getUsername(): Promise<string> {
-    const profile = await this.getUserProfile();
+    const profile = await CalComAPIService.getUserProfile();
     return profile.username;
   }
 
   // Build shareable link for event type
   static async buildEventTypeLink(eventTypeSlug: string): Promise<string> {
-    const username = await this.getUsername();
+    const username = await CalComAPIService.getUsername();
     return `https://cal.com/${username}/${eventTypeSlug}`;
   }
 
   // Clear cached profile (useful for logout)
   static clearUserProfile(): void {
-    this.userProfile = null;
+    CalComAPIService.userProfile = null;
   }
 
   // Test function for bookings API specifically
@@ -239,7 +239,7 @@ export class CalComAPIService {
 
       const response = await fetch(url, {
         headers: {
-          Authorization: this.getAuthHeader(),
+          Authorization: CalComAPIService.getAuthHeader(),
           "Content-Type": "application/json",
           "cal-api-version": "2024-08-13",
         },
@@ -264,7 +264,7 @@ export class CalComAPIService {
     const response = await fetch(url, {
       ...options,
       headers: {
-        Authorization: this.getAuthHeader(),
+        Authorization: CalComAPIService.getAuthHeader(),
         "Content-Type": "application/json",
         "cal-api-version": apiVersion,
         ...options.headers,
@@ -300,10 +300,10 @@ export class CalComAPIService {
             await tokenRefreshCallback(newTokens.accessToken, newTokens.refreshToken);
 
             // Retry the original request with the new token
-            return this.makeRequest<T>(endpoint, options, apiVersion, true);
+            return CalComAPIService.makeRequest<T>(endpoint, options, apiVersion, true);
           } catch (refreshError) {
             console.error("Token refresh failed:", refreshError);
-            this.clearAuth();
+            CalComAPIService.clearAuth();
             throw new Error("Authentication failed. Please sign in again.");
           }
         }
@@ -323,7 +323,7 @@ export class CalComAPIService {
 
   static async deleteEventType(eventTypeId: number): Promise<void> {
     try {
-      await this.makeRequest(
+      await CalComAPIService.makeRequest(
         `/event-types/${eventTypeId}`,
         {
           method: "DELETE",
@@ -338,9 +338,9 @@ export class CalComAPIService {
 
   static async createEventType(input: CreateEventTypeInput): Promise<EventType> {
     try {
-      const sanitizedInput = this.sanitizePayload(input as Record<string, any>);
+      const sanitizedInput = CalComAPIService.sanitizePayload(input as Record<string, any>);
 
-      const response = await this.makeRequest<{ status: string; data: EventType }>(
+      const response = await CalComAPIService.makeRequest<{ status: string; data: EventType }>(
         "/event-types",
         {
           method: "POST",
@@ -372,7 +372,7 @@ export class CalComAPIService {
         body.cancellationReason = cancellationReason;
       }
 
-      await this.makeRequest(
+      await CalComAPIService.makeRequest(
         `/bookings/${bookingUid}/cancel`,
         {
           method: "POST",
@@ -402,7 +402,7 @@ export class CalComAPIService {
         input,
       });
 
-      const response = await this.makeRequest<{ status: string; data: Booking }>(
+      const response = await CalComAPIService.makeRequest<{ status: string; data: Booking }>(
         `/bookings/${bookingUid}/reschedule`,
         {
           method: "POST",
@@ -432,7 +432,7 @@ export class CalComAPIService {
 
   static async confirmBooking(bookingUid: string): Promise<Booking> {
     try {
-      const response = await this.makeRequest<{ status: string; data: Booking }>(
+      const response = await CalComAPIService.makeRequest<{ status: string; data: Booking }>(
         `/bookings/${bookingUid}/confirm`,
         {
           method: "POST",
@@ -462,7 +462,7 @@ export class CalComAPIService {
         body.reason = reason;
       }
 
-      const response = await this.makeRequest<{ status: string; data: Booking }>(
+      const response = await CalComAPIService.makeRequest<{ status: string; data: Booking }>(
         `/bookings/${bookingUid}/decline`,
         {
           method: "POST",
@@ -502,7 +502,7 @@ export class CalComAPIService {
         attendees: [{ email: attendeeEmail, absent }],
       };
 
-      const response = await this.makeRequest<MarkAbsentResponse>(
+      const response = await CalComAPIService.makeRequest<MarkAbsentResponse>(
         `/bookings/${bookingUid}/mark-absent`,
         {
           method: "POST",
@@ -538,7 +538,7 @@ export class CalComAPIService {
    */
   static async addGuests(bookingUid: string, guests: AddGuestInput[]): Promise<Booking> {
     try {
-      const response = await this.makeRequest<AddGuestsResponse>(
+      const response = await CalComAPIService.makeRequest<AddGuestsResponse>(
         `/bookings/${bookingUid}/guests`,
         {
           method: "POST",
@@ -572,7 +572,7 @@ export class CalComAPIService {
    */
   static async updateLocation(bookingUid: string, location: string): Promise<Booking> {
     try {
-      const response = await this.makeRequest<UpdateLocationResponse>(
+      const response = await CalComAPIService.makeRequest<UpdateLocationResponse>(
         `/bookings/${bookingUid}/location`,
         {
           method: "PATCH",
@@ -609,7 +609,7 @@ export class CalComAPIService {
     location: { type: string; [key: string]: string }
   ): Promise<Booking> {
     try {
-      const response = await this.makeRequest<UpdateLocationResponse>(
+      const response = await CalComAPIService.makeRequest<UpdateLocationResponse>(
         `/bookings/${bookingUid}/location`,
         {
           method: "PATCH",
@@ -641,7 +641,7 @@ export class CalComAPIService {
    */
   static async getRecordings(bookingUid: string): Promise<BookingRecording[]> {
     try {
-      const response = await this.makeRequest<GetRecordingsResponse>(
+      const response = await CalComAPIService.makeRequest<GetRecordingsResponse>(
         `/bookings/${bookingUid}/recordings`,
         {
           headers: {
@@ -682,7 +682,7 @@ export class CalComAPIService {
    */
   static async getConferencingSessions(bookingUid: string): Promise<ConferencingSession[]> {
     try {
-      const response = await this.makeRequest<GetConferencingSessionsResponse>(
+      const response = await CalComAPIService.makeRequest<GetConferencingSessionsResponse>(
         `/bookings/${bookingUid}/conferencing-sessions`,
         {
           headers: {
@@ -723,7 +723,7 @@ export class CalComAPIService {
    */
   static async getTranscripts(bookingUid: string): Promise<BookingTranscript[]> {
     try {
-      const response = await this.makeRequest<GetTranscriptsResponse>(
+      const response = await CalComAPIService.makeRequest<GetTranscriptsResponse>(
         `/bookings/${bookingUid}/transcripts`,
         {
           headers: {
@@ -761,7 +761,7 @@ export class CalComAPIService {
       // Get current user to extract username
       let username: string | undefined;
       try {
-        const currentUser = await this.getCurrentUser();
+        const currentUser = await CalComAPIService.getCurrentUser();
         // Extract username from response
         if (currentUser?.username) {
           username = currentUser.username;
@@ -781,7 +781,7 @@ export class CalComAPIService {
       const queryString = params.toString();
       const endpoint = `/event-types${queryString ? `?${queryString}` : ""}`;
 
-      const response = await this.makeRequest<any>(endpoint, {}, "2024-06-14");
+      const response = await CalComAPIService.makeRequest<any>(endpoint, {}, "2024-06-14");
 
       // Handle different possible response structures
       let eventTypesArray: EventType[] = [];
@@ -824,7 +824,7 @@ export class CalComAPIService {
 
   static async getBookingByUid(bookingUid: string): Promise<Booking> {
     try {
-      const response = await this.makeRequest<{ status: string; data: Booking }>(
+      const response = await CalComAPIService.makeRequest<{ status: string; data: Booking }>(
         `/bookings/${bookingUid}`,
         {
           headers: {
@@ -877,7 +877,7 @@ export class CalComAPIService {
       const queryString = params.toString();
       const endpoint = `/bookings${queryString ? `?${queryString}` : ""}`;
 
-      const response = await this.makeRequest<any>(endpoint);
+      const response = await CalComAPIService.makeRequest<any>(endpoint);
 
       // Handle different possible response structures (same logic as event types)
       let bookingsArray: Booking[] = [];
@@ -917,7 +917,7 @@ export class CalComAPIService {
       // Get current user to filter bookings
       let currentUser;
       try {
-        currentUser = await this.getCurrentUser();
+        currentUser = await CalComAPIService.getCurrentUser();
       } catch (error) {
         return bookingsArray;
       }
@@ -951,7 +951,7 @@ export class CalComAPIService {
   // Get all schedules
   static async getSchedules(): Promise<Schedule[]> {
     try {
-      const response = await this.makeRequest<{ status: string; data: Schedule[] }>(
+      const response = await CalComAPIService.makeRequest<{ status: string; data: Schedule[] }>(
         "/schedules",
         {
           headers: {
@@ -1002,9 +1002,9 @@ export class CalComAPIService {
     }>;
   }): Promise<Schedule> {
     try {
-      const sanitizedInput = this.sanitizePayload(input as Record<string, any>);
+      const sanitizedInput = CalComAPIService.sanitizePayload(input as Record<string, any>);
 
-      const response = await this.makeRequest<{ status: string; data: Schedule }>(
+      const response = await CalComAPIService.makeRequest<{ status: string; data: Schedule }>(
         "/schedules",
         {
           method: "POST",
@@ -1030,7 +1030,7 @@ export class CalComAPIService {
 
   static async getScheduleById(scheduleId: number): Promise<Schedule | null> {
     try {
-      const response = await this.makeRequest<any>(
+      const response = await CalComAPIService.makeRequest<any>(
         `/schedules/${scheduleId}`,
         {
           headers: {
@@ -1058,9 +1058,10 @@ export class CalComAPIService {
   // Get conferencing options
   static async getConferencingOptions(): Promise<ConferencingOption[]> {
     try {
-      const response = await this.makeRequest<{ status: string; data: ConferencingOption[] }>(
-        "/conferencing"
-      );
+      const response = await CalComAPIService.makeRequest<{
+        status: string;
+        data: ConferencingOption[];
+      }>("/conferencing");
 
       if (response && response.data && Array.isArray(response.data)) {
         return response.data;
@@ -1076,7 +1077,7 @@ export class CalComAPIService {
   // Get a single event type by ID
   static async getEventTypeById(eventTypeId: number): Promise<EventType | null> {
     try {
-      const response = await this.makeRequest<{ status: string; data: EventType }>(
+      const response = await CalComAPIService.makeRequest<{ status: string; data: EventType }>(
         `/event-types/${eventTypeId}`,
         {},
         "2024-06-14"
@@ -1155,7 +1156,7 @@ export class CalComAPIService {
 
       // Recursively sanitize nested objects (but not arrays)
       if (typeof value === "object" && !Array.isArray(value)) {
-        const sanitizedNested = this.sanitizePayload(value);
+        const sanitizedNested = CalComAPIService.sanitizePayload(value);
         // Only include if the nested object has values
         if (Object.keys(sanitizedNested).length > 0) {
           sanitized[key] = sanitizedNested;
@@ -1173,9 +1174,9 @@ export class CalComAPIService {
     updates: Partial<CreateEventTypeInput>
   ): Promise<EventType> {
     try {
-      const sanitizedUpdates = this.sanitizePayload(updates as Record<string, any>);
+      const sanitizedUpdates = CalComAPIService.sanitizePayload(updates as Record<string, any>);
 
-      const response = await this.makeRequest<{ status: string; data: EventType }>(
+      const response = await CalComAPIService.makeRequest<{ status: string; data: EventType }>(
         `/event-types/${eventTypeId}`,
         {
           method: "PATCH",
@@ -1220,8 +1221,8 @@ export class CalComAPIService {
   ): Promise<Schedule> {
     try {
       // Sanitize the updates to remove null values
-      const sanitizedUpdates = this.sanitizePayload(updates as Record<string, any>);
-      const response = await this.makeRequest<{ status: string; data: Schedule }>(
+      const sanitizedUpdates = CalComAPIService.sanitizePayload(updates as Record<string, any>);
+      const response = await CalComAPIService.makeRequest<{ status: string; data: Schedule }>(
         `/schedules/${scheduleId}`,
         {
           method: "PATCH",
@@ -1248,7 +1249,7 @@ export class CalComAPIService {
   // Duplicate a schedule
   static async duplicateSchedule(scheduleId: number): Promise<Schedule> {
     try {
-      const response = await this.makeRequest<{ status: string; data: Schedule }>(
+      const response = await CalComAPIService.makeRequest<{ status: string; data: Schedule }>(
         `/atoms/schedules/${scheduleId}/duplicate`,
         {
           method: "POST",
@@ -1273,7 +1274,7 @@ export class CalComAPIService {
   // Delete a schedule
   static async deleteSchedule(scheduleId: number): Promise<void> {
     try {
-      await this.makeRequest<{ status: string }>(
+      await CalComAPIService.makeRequest<{ status: string }>(
         `/schedules/${scheduleId}`,
         {
           method: "DELETE",
@@ -1296,7 +1297,9 @@ export class CalComAPIService {
   // Get all global webhooks
   static async getWebhooks(): Promise<Webhook[]> {
     try {
-      const response = await this.makeRequest<{ status: string; data: Webhook[] }>("/webhooks");
+      const response = await CalComAPIService.makeRequest<{ status: string; data: Webhook[] }>(
+        "/webhooks"
+      );
 
       if (response && response.data && Array.isArray(response.data)) {
         return response.data;
@@ -1312,14 +1315,17 @@ export class CalComAPIService {
   // Create a global webhook
   static async createWebhook(input: CreateWebhookInput): Promise<Webhook> {
     try {
-      const sanitizedInput = this.sanitizePayload(input as Record<string, any>);
-      const response = await this.makeRequest<{ status: string; data: Webhook }>("/webhooks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(sanitizedInput),
-      });
+      const sanitizedInput = CalComAPIService.sanitizePayload(input as Record<string, any>);
+      const response = await CalComAPIService.makeRequest<{ status: string; data: Webhook }>(
+        "/webhooks",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(sanitizedInput),
+        }
+      );
 
       if (response && response.data) {
         return response.data;
@@ -1335,8 +1341,8 @@ export class CalComAPIService {
   // Update a global webhook
   static async updateWebhook(webhookId: string, updates: UpdateWebhookInput): Promise<Webhook> {
     try {
-      const sanitizedUpdates = this.sanitizePayload(updates as Record<string, any>);
-      const response = await this.makeRequest<{ status: string; data: Webhook }>(
+      const sanitizedUpdates = CalComAPIService.sanitizePayload(updates as Record<string, any>);
+      const response = await CalComAPIService.makeRequest<{ status: string; data: Webhook }>(
         `/webhooks/${webhookId}`,
         {
           method: "PATCH",
@@ -1361,7 +1367,7 @@ export class CalComAPIService {
   // Delete a global webhook
   static async deleteWebhook(webhookId: string): Promise<void> {
     try {
-      await this.makeRequest(`/webhooks/${webhookId}`, {
+      await CalComAPIService.makeRequest(`/webhooks/${webhookId}`, {
         method: "DELETE",
       });
     } catch (error) {
@@ -1373,7 +1379,7 @@ export class CalComAPIService {
   // Get webhooks for a specific event type
   static async getEventTypeWebhooks(eventTypeId: number): Promise<Webhook[]> {
     try {
-      const response = await this.makeRequest<{ status: string; data: Webhook[] }>(
+      const response = await CalComAPIService.makeRequest<{ status: string; data: Webhook[] }>(
         `/event-types/${eventTypeId}/webhooks`
       );
 
@@ -1394,8 +1400,8 @@ export class CalComAPIService {
     input: CreateWebhookInput
   ): Promise<Webhook> {
     try {
-      const sanitizedInput = this.sanitizePayload(input as Record<string, any>);
-      const response = await this.makeRequest<{ status: string; data: Webhook }>(
+      const sanitizedInput = CalComAPIService.sanitizePayload(input as Record<string, any>);
+      const response = await CalComAPIService.makeRequest<{ status: string; data: Webhook }>(
         `/event-types/${eventTypeId}/webhooks`,
         {
           method: "POST",
@@ -1424,8 +1430,8 @@ export class CalComAPIService {
     updates: UpdateWebhookInput
   ): Promise<Webhook> {
     try {
-      const sanitizedUpdates = this.sanitizePayload(updates as Record<string, any>);
-      const response = await this.makeRequest<{ status: string; data: Webhook }>(
+      const sanitizedUpdates = CalComAPIService.sanitizePayload(updates as Record<string, any>);
+      const response = await CalComAPIService.makeRequest<{ status: string; data: Webhook }>(
         `/event-types/${eventTypeId}/webhooks/${webhookId}`,
         {
           method: "PATCH",
@@ -1450,7 +1456,7 @@ export class CalComAPIService {
   // Delete an event type webhook
   static async deleteEventTypeWebhook(eventTypeId: number, webhookId: string): Promise<void> {
     try {
-      await this.makeRequest(`/event-types/${eventTypeId}/webhooks/${webhookId}`, {
+      await CalComAPIService.makeRequest(`/event-types/${eventTypeId}/webhooks/${webhookId}`, {
         method: "DELETE",
       });
     } catch (error) {
@@ -1466,7 +1472,7 @@ export class CalComAPIService {
   // Get all private links for an event type
   static async getEventTypePrivateLinks(eventTypeId: number): Promise<PrivateLink[]> {
     try {
-      const response = await this.makeRequest<{ status: string; data: PrivateLink[] }>(
+      const response = await CalComAPIService.makeRequest<{ status: string; data: PrivateLink[] }>(
         `/event-types/${eventTypeId}/private-links`
       );
 
@@ -1487,8 +1493,8 @@ export class CalComAPIService {
     input: CreatePrivateLinkInput = {}
   ): Promise<PrivateLink> {
     try {
-      const sanitizedInput = this.sanitizePayload(input as Record<string, any>);
-      const response = await this.makeRequest<{ status: string; data: PrivateLink }>(
+      const sanitizedInput = CalComAPIService.sanitizePayload(input as Record<string, any>);
+      const response = await CalComAPIService.makeRequest<{ status: string; data: PrivateLink }>(
         `/event-types/${eventTypeId}/private-links`,
         {
           method: "POST",
@@ -1517,8 +1523,8 @@ export class CalComAPIService {
     updates: UpdatePrivateLinkInput
   ): Promise<PrivateLink> {
     try {
-      const sanitizedUpdates = this.sanitizePayload(updates as Record<string, any>);
-      const response = await this.makeRequest<{ status: string; data: PrivateLink }>(
+      const sanitizedUpdates = CalComAPIService.sanitizePayload(updates as Record<string, any>);
+      const response = await CalComAPIService.makeRequest<{ status: string; data: PrivateLink }>(
         `/event-types/${eventTypeId}/private-links/${linkId}`,
         {
           method: "PATCH",
@@ -1543,7 +1549,7 @@ export class CalComAPIService {
   // Delete a private link
   static async deleteEventTypePrivateLink(eventTypeId: number, linkId: number): Promise<void> {
     try {
-      await this.makeRequest(`/event-types/${eventTypeId}/private-links/${linkId}`, {
+      await CalComAPIService.makeRequest(`/event-types/${eventTypeId}/private-links/${linkId}`, {
         method: "DELETE",
       });
     } catch (error) {
