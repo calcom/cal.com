@@ -13,7 +13,9 @@ const CUSTOM_EMAIL_VALIDATION_ERROR_MSG = "email_validation_error";
 const CUSTOM_URL_VALIDATION_ERROR_MSG = "url_validation_error";
 const CUSTOM_EMAIL_EXCLUDED_ERROR_MSG = "exclude_emails_match_found_error_message";
 const CUSTOM_EMAIL_REQUIRED_ERROR_MSG = "require_emails_no_match_found_error_message";
-const ZOD_REQUIRED_FIELD_ERROR_MSG = "Required";
+// In zod v4, the default error message for missing required fields changed from "Required" to "Invalid input: expected X, received Y"
+// We use a regex pattern to match both old and new formats
+const ZOD_REQUIRED_FIELD_ERROR_MSG = /Required|Invalid input/;
 
 describe("getBookingResponsesSchema", () => {
   test(`should parse booking responses`, async ({}) => {
@@ -116,12 +118,8 @@ describe("getBookingResponsesSchema", () => {
         expect(parsedResponsesWithJustName.success).toBe(false);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
-        expect(parsedResponsesWithJustName.error.issues[0]).toEqual(
-          expect.objectContaining({
-            path: ["email"],
-            message: ZOD_REQUIRED_FIELD_ERROR_MSG,
-          })
-        );
+        expect(parsedResponsesWithJustName.error.issues[0].path).toEqual(["email"]);
+        expect(parsedResponsesWithJustName.error.issues[0].message).toMatch(ZOD_REQUIRED_FIELD_ERROR_MSG);
 
         const parsedResponsesWithJustEmail = await schema.safeParseAsync({
           email: "john@example.com",

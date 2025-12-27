@@ -50,7 +50,8 @@ describe("POST /api/selected-calendars", () => {
       await handler(req, res);
 
       expect(res.statusCode).toBe(400);
-      expect(JSON.parse(res._getData()).message).toBe("invalid_type in 'externalId': Required");
+      // In zod v4, the error message format changed from "Required" to "Invalid input: expected X, received Y"
+      expect(JSON.parse(res._getData()).message).toMatch(/invalid_type in 'externalId': /);
     });
   });
 
