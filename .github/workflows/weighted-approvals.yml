@@ -1,0 +1,23 @@
+name: Weighted Approvals
+
+on:
+  pull_request_review:
+    types: [submitted, dismissed]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: weighted-dev/approvals@v1
+        with:
+          # For team membership checks, prefer a PAT with read:org:
+          #   WEIGHTED_APPROVALS_TOKEN
+          github-token: ${{ secrets.WEIGHTED_APPROVALS_TOKEN || secrets.GITHUB_TOKEN }}
+          config-path: .github/weighted-approvals.yml
