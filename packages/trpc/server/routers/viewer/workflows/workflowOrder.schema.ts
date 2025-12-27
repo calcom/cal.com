@@ -4,6 +4,6 @@ export type TWorkflowOrderInputSchema = {
   ids: number[];
 };
 
-export const ZWorkflowOrderInputSchema: z.ZodType<TWorkflowOrderInputSchema> = z.object({
+export const ZWorkflowOrderInputSchema = z.object({
   ids: z.array(z.number()),
 });

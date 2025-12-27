@@ -21,8 +21,10 @@ export type ParseRefreshTokenResponse<S extends z.ZodTypeAny> =
   | z.infer<S>
   | z.infer<typeof minimumTokenResponseSchema>;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const parseRefreshTokenResponse = (response: any, schema: z.ZodTypeAny) => {
+const parseRefreshTokenResponse = <S extends z.ZodTypeAny>(
+  response: unknown,
+  schema: S
+): ParseRefreshTokenResponse<S> => {
   let refreshTokenResponse;
   const credentialSyncingEnabled =
     APP_CREDENTIAL_SHARING_ENABLED && process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT;
@@ -36,11 +38,13 @@ const parseRefreshTokenResponse = (response: any, schema: z.ZodTypeAny) => {
     throw new Error("Invalid refreshed tokens were returned");
   }
 
-  if (!refreshTokenResponse.data.refresh_token && credentialSyncingEnabled) {
-    refreshTokenResponse.data.refresh_token = "refresh_token";
+  // In zod v4, safeParse with ZodTypeAny returns data as unknown, so we cast to the expected type
+  const data = refreshTokenResponse.data as ParseRefreshTokenResponse<S>;
+  if (!(data as Record<string, unknown>).refresh_token && credentialSyncingEnabled) {
+    (data as Record<string, unknown>).refresh_token = "refresh_token";
   }
 
-  return refreshTokenResponse.data;
+  return data;
 };
 
 export default parseRefreshTokenResponse;

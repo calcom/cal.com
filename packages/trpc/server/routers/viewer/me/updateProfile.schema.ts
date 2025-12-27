@@ -9,7 +9,7 @@ export type TUpdateUserMetadataAllowedKeys = {
   defaultBookerLayouts?: z.infer<typeof bookerLayouts>;
 };
 
-export const updateUserMetadataAllowedKeys: z.ZodType<TUpdateUserMetadataAllowedKeys> = z.object({
+export const updateUserMetadataAllowedKeys = z.object({
   sessionTimeout: z.number().optional(), // Minutes
   defaultBookerLayouts: bookerLayouts.optional(),
 });
@@ -84,7 +84,7 @@ export type TUpdateProfileInputSchema = {
   }[];
 };
 
-export const ZUpdateProfileInputSchema: z.ZodType<TUpdateProfileInputSchema, z.ZodTypeDef, TUpdateProfileInputSchemaInput> = z.object({
+export const ZUpdateProfileInputSchema = z.object({
   username: z.string().optional(),
   name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
   email: z.string().optional(),

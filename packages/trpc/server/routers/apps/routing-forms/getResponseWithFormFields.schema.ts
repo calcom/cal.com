@@ -4,6 +4,6 @@ export type TFormByResponseIdInputSchema = {
   formResponseId: number;
 };
 
-export const ZFormByResponseIdInputSchema: z.ZodType<TFormByResponseIdInputSchema> = z.object({
+export const ZFormByResponseIdInputSchema = z.object({
   formResponseId: z.number(),
 });

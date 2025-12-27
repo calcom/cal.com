@@ -4,6 +4,6 @@ export type THasEditPermissionForUserSchema = {
   memberId: number;
 };
 
-export const ZHasEditPermissionForUserSchema: z.ZodType<THasEditPermissionForUserSchema> = z.object({
+export const ZHasEditPermissionForUserSchema = z.object({
   memberId: z.number(),
 });

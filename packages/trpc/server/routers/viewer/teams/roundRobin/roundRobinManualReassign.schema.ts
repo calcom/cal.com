@@ -6,7 +6,7 @@ export type TRoundRobinManualReassignInputSchema = {
   reassignReason?: string;
 };
 
-export const ZRoundRobinManualReassignInputSchema: z.ZodType<TRoundRobinManualReassignInputSchema> = z.object({
+export const ZRoundRobinManualReassignInputSchema = z.object({
   bookingId: z.number(),
   teamMemberId: z.number(),
   reassignReason: z.string().optional(),

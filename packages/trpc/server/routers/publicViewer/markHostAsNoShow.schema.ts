@@ -5,7 +5,7 @@ export type TNoShowInputSchema = {
   noShowHost: boolean;
 };
 
-export const ZMarkHostAsNoShowInputSchema: z.ZodType<TNoShowInputSchema> = z.object({
+export const ZMarkHostAsNoShowInputSchema = z.object({
   bookingUid: z.string(),
   noShowHost: z.boolean(),
 });

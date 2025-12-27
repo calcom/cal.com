@@ -6,7 +6,7 @@ export type TListInputSchema = {
   includeOnlyEventTypeWorkflows: boolean;
 };
 
-export const ZListInputSchema: z.ZodType<TListInputSchema> = z.object({
+export const ZListInputSchema = z.object({
   teamId: z.number().optional(),
   userId: z.number().optional(),
   includeOnlyEventTypeWorkflows: z.boolean(),

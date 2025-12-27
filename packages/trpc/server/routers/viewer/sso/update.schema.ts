@@ -5,7 +5,7 @@ export type TUpdateInputSchema = {
   teamId: number | null;
 };
 
-export const ZUpdateInputSchema: z.ZodType<TUpdateInputSchema> = z.object({
+export const ZUpdateInputSchema = z.object({
   encodedRawMetadata: z.string(),
   teamId: z.union([z.number(), z.null()]),
 });

@@ -1934,7 +1934,7 @@ __metadata:
     uuid: "npm:8.3.2"
     winston: "npm:3.17.0"
     winston-transport: "npm:4.9.0"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   languageName: unknown
   linkType: soft
 
@@ -1965,7 +1965,7 @@ __metadata:
     typescript: "npm:5.9.2"
     tzdata: "npm:1.0.40"
     uuid: "npm:8.3.2"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   languageName: unknown
   linkType: soft
 
@@ -2318,7 +2318,7 @@ __metadata:
     "@sendgrid/mail": "npm:7.7.0"
     libphonenumber-js: "npm:^1.11.18"
     twilio: "npm:3.84.1"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   languageName: unknown
   linkType: soft
 
@@ -2577,7 +2577,7 @@ __metadata:
     react-dom: 18.2.0
     react-is: ^18.2.0
     stripe: ^9.0.0 || ^15.0.0
-    zod: ^3.0.0
+    zod: ^4.0.0
   languageName: unknown
   linkType: soft
 
@@ -3010,7 +3010,7 @@ __metadata:
     class-validator: "npm:0.14.3"
     libphonenumber-js: "npm:1.10.49"
     luxon: "npm:3.4.4"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   languageName: unknown
   linkType: soft
 
@@ -3057,8 +3057,8 @@ __metadata:
     prisma-kysely: "npm:2.2.0"
     ts-node: "npm:10.9.2"
     uuid: "npm:8.3.2"
-    zod: "npm:3.25.76"
-    zod-prisma-types: "npm:3.2.4"
+    zod: "npm:4.2.1"
+    zod-prisma-types: "npm:3.3.10"
   languageName: unknown
   linkType: soft
 
@@ -3211,7 +3211,7 @@ __metadata:
     stripe: "npm:9.16.0"
     ts-node: "npm:10.9.2"
     uuid: "npm:8.3.2"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   languageName: unknown
   linkType: soft
 
@@ -3277,7 +3277,7 @@ __metadata:
     superjson: "npm:1.9.1"
     typescript: "npm:5.9.2"
     uuid: "npm:8.3.2"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   peerDependencies:
     next: ">=14.0.0"
     react: ^18.0.0 || ^19.0.0
@@ -3368,7 +3368,7 @@ __metadata:
     tailwind-merge: "npm:1.13.2"
     typescript: "npm:5.9.2"
     uuid: "npm:11.1.0"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   peerDependencies:
     react-dom: 18.2.0
   languageName: unknown
@@ -3576,7 +3576,7 @@ __metadata:
     turndown: "npm:7.2.0"
     typescript: "npm:5.9.2"
     uuid: "npm:8.3.2"
-    zod: "npm:3.25.76"
+    zod: "npm:4.2.1"
   languageName: unknown
   linkType: soft
 
@@ -10407,6 +10407,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/debug@npm:7.2.0":
+  version: 7.2.0
+  resolution: "@prisma/debug@npm:7.2.0"
+  checksum: 10/1051e524922e3a5df58326b0826a6e6cb1c1945b36355621bf7f489f4fa8577ea027ac2faa4a1c8e6666d4d6d726b882c3f5e8ff28d72952bb468144a9dc37d0
+  languageName: node
+  linkType: hard
+
 "@prisma/dmmf@npm:6.15.0":
   version: 6.15.0
   resolution: "@prisma/dmmf@npm:6.15.0"
@@ -10418,6 +10425,13 @@ __metadata:
   version: 6.16.2
   resolution: "@prisma/dmmf@npm:6.16.2"
   checksum: 10/9541d22f4a11ee6df17232693866b1303a504ecf78a7c46b2d1137d83afd9597e1e37fb7e8bd376d20b86452251c109977ac57fa51ea6c815300f05587a94e67
+  languageName: node
+  linkType: hard
+
+"@prisma/dmmf@npm:7.2.0, @prisma/dmmf@npm:^7.0.1":
+  version: 7.2.0
+  resolution: "@prisma/dmmf@npm:7.2.0"
+  checksum: 10/c555e275e07c8f8d7f79592edf5ddfdd5b769c7f94259057941585cce9a3a19d96e6fa765c8f60430484245626102896cfb8682912cf086eb76639082a557aed
   languageName: node
   linkType: hard
 
@@ -10590,7 +10604,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/generator-helper@npm:6.16.2, @prisma/generator-helper@npm:^6.3.0":
+"@prisma/generator-helper@npm:6.16.2":
   version: 6.16.2
   resolution: "@prisma/generator-helper@npm:6.16.2"
   dependencies:
@@ -10598,6 +10612,17 @@ __metadata:
     "@prisma/dmmf": "npm:6.16.2"
     "@prisma/generator": "npm:6.16.2"
   checksum: 10/0e9f274016c9fadd6a34a8d47f0eda5e2bc2a2cf58c86a9e41da026851513fffbff2360fcff8a5899d94af145c734fb9d9a6ae09580a6acf90a49e9e9d6dfb90
+  languageName: node
+  linkType: hard
+
+"@prisma/generator-helper@npm:^7.0.1":
+  version: 7.2.0
+  resolution: "@prisma/generator-helper@npm:7.2.0"
+  dependencies:
+    "@prisma/debug": "npm:7.2.0"
+    "@prisma/dmmf": "npm:7.2.0"
+    "@prisma/generator": "npm:7.2.0"
+  checksum: 10/2a4ba5c721dc8d7a716f3f5fd56623d35c26b25b1902d3a0f58599d63ac1ee7450975714a652f2af8018541b315b75003f8ad368ab690b3dcd9644615a616e81
   languageName: node
   linkType: hard
 
@@ -10612,6 +10637,13 @@ __metadata:
   version: 6.16.2
   resolution: "@prisma/generator@npm:6.16.2"
   checksum: 10/961062d8a15e88333516ed69be8ddd07b171ebfa6fbe7f4d32f51f834c2324dc81aeef7094775f0bb16b07c0c7ccf3361a67b34c25d71893a3e31431fd2ef994
+  languageName: node
+  linkType: hard
+
+"@prisma/generator@npm:7.2.0":
+  version: 7.2.0
+  resolution: "@prisma/generator@npm:7.2.0"
+  checksum: 10/75e50066792dba3782793c51ed7ec8b021fd76270cc4e2f4b2a7fa51e7f54be6cbf2ef1ffbfb6b95d8dacf43e8240d40bb41bcb310baa6292ae2054b965df704
   languageName: node
   linkType: hard
 
@@ -20585,10 +20617,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"code-block-writer@npm:^12.0.0":
-  version: 12.0.0
-  resolution: "code-block-writer@npm:12.0.0"
-  checksum: 10/7dc531e652b4654f6e0487923df74cda7294da01c6ac225f523256c6ae5f7f4eb5c4dc7902a9e64b81dba4b22e7d843454ed71a59954d31aa8656184c6c0c8ff
+"code-block-writer@npm:^13.0.3":
+  version: 13.0.3
+  resolution: "code-block-writer@npm:13.0.3"
+  checksum: 10/771546224f38610eecee0598e83c9e0f86dcd600ea316dbf27c2cfebaab4fed51b042325aa460b8e0f131fac5c1de208f6610a1ddbffe4b22e76f9b5256707cb
   languageName: node
   linkType: hard
 
@@ -42775,20 +42807,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod-prisma-types@npm:3.2.4":
-  version: 3.2.4
-  resolution: "zod-prisma-types@npm:3.2.4"
+"zod-prisma-types@npm:3.3.10":
+  version: 3.3.10
+  resolution: "zod-prisma-types@npm:3.3.10"
   dependencies:
-    "@prisma/generator-helper": "npm:^6.3.0"
-    code-block-writer: "npm:^12.0.0"
+    "@prisma/dmmf": "npm:^7.0.1"
+    "@prisma/generator-helper": "npm:^7.0.1"
+    code-block-writer: "npm:^13.0.3"
     lodash: "npm:^4.17.21"
-    zod: "npm:^3.24.1"
+    zod: "npm:^4.1.11"
   peerDependencies:
-    "@prisma/client": ^4.x.x || ^5.x.x || ^6.x.x
-    prisma: ^4.x.x || ^5.x.x || ^6.x.x
+    "@prisma/client": ^4.x.x || ^5.x.x || ^6.x.x || ^7.x.x
+    prisma: ^4.x.x || ^5.x.x || ^6.x.x || ^7.x.x
+    zod: ^3.25.0 || ^4.0.0
   bin:
     zod-prisma-types: dist/bin.js
-  checksum: 10/efee5f138ca36108eba876df49819de9c94a4c7e64aca42f5af0082af1026182e1cc55720bb4512962818f4cd3f30c913d175e88740d8a0af1cc499c03094188
+  checksum: 10/6d433c07900dfc1a4223a86a92b7a0a31b29f7d6959d83996d276c8a9c8fbc87fa33d44d85bd811c100b5d16d41ab8ac6c4a949aa67c8abeabff88292920f33a
   languageName: node
   linkType: hard
 
@@ -42810,10 +42844,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:3.25.76, zod@npm:^3.20.0, zod@npm:^3.20.2, zod@npm:^3.23.8, zod@npm:^3.24.1":
+"zod@npm:3.25.76, zod@npm:^3.20.0, zod@npm:^3.20.2, zod@npm:^3.23.8":
   version: 3.25.76
   resolution: "zod@npm:3.25.76"
   checksum: 10/f0c963ec40cd96858451d1690404d603d36507c1fc9682f2dae59ab38b578687d542708a7fdbf645f77926f78c9ed558f57c3d3aa226c285f798df0c4da16995
+  languageName: node
+  linkType: hard
+
+"zod@npm:4.2.1, zod@npm:^4.1.11":
+  version: 4.2.1
+  resolution: "zod@npm:4.2.1"
+  checksum: 10/f21d106ce31e0f24040aa13b13fdd1300fcc8119622b28ca1b1b726ff70b75190dbcfeb927d34f19174683afa298e5df4d806f622abe9b037a0aadb9cdef6443
   languageName: node
   linkType: hard
 

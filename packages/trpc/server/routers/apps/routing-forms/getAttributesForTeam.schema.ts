@@ -4,6 +4,6 @@ export type TGetAttributesForTeamInputSchema = {
   teamId: number;
 };
 
-export const ZGetAttributesForTeamInputSchema: z.ZodType<TGetAttributesForTeamInputSchema> = z.object({
+export const ZGetAttributesForTeamInputSchema = z.object({
   teamId: z.number(),
 });

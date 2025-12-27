@@ -4,6 +4,6 @@ export type TAddSecondaryEmailInputSchema = {
   email: string;
 };
 
-export const ZAddSecondaryEmailInputSchema: z.ZodType<TAddSecondaryEmailInputSchema> = z.object({
+export const ZAddSecondaryEmailInputSchema = z.object({
   email: z.string(),
 });

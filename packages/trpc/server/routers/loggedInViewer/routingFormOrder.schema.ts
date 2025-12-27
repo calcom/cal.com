@@ -4,6 +4,6 @@ export type TRoutingFormOrderInputSchema = {
   ids: string[];
 };
 
-export const ZRoutingFormOrderInputSchema: z.ZodType<TRoutingFormOrderInputSchema> = z.object({
+export const ZRoutingFormOrderInputSchema = z.object({
   ids: z.array(z.string()),
 });

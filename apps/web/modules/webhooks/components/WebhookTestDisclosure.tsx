@@ -44,7 +44,7 @@ export default function WebhookTestDisclosure() {
             } catch (error) {
               //this catches invalid subscriberUrl before calling the mutation
               if (error instanceof ZodError) {
-                const errorMessage = error.errors.map((e) => e.message).join(", ");
+                const errorMessage = error.issues.map((e) => e.message).join(", ");
                 showToast(errorMessage, "error");
               } else {
                 showToast(t("unexpected_error_try_again"), "error");

@@ -4,6 +4,6 @@ export type TFindInputSchema = {
   bookingUid?: string;
 };
 
-export const ZFindInputSchema: z.ZodType<TFindInputSchema> = z.object({
+export const ZFindInputSchema = z.object({
   bookingUid: z.string().optional(),
 });

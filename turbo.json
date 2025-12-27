@@ -324,6 +324,7 @@
     },
     "@calcom/trpc#build": {
       "dependsOn": ["@calcom/prisma#post-install"],
+      "inputs": ["$TURBO_DEFAULT$", "**/*.ts", "../prisma/zod/**", "../prisma/generated/**"],
       "outputs": ["./types"]
     },
     "@calcom/web#build": {

@@ -4,6 +4,6 @@ export type TEventTypeOrderInputSchema = {
   ids: number[];
 };
 
-export const ZEventTypeOrderInputSchema: z.ZodType<TEventTypeOrderInputSchema> = z.object({
+export const ZEventTypeOrderInputSchema = z.object({
   ids: z.array(z.number()),
 });

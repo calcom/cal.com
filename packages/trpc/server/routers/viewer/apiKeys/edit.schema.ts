@@ -6,7 +6,7 @@ export type TEditInputSchema = {
   expiresAt?: Date;
 };
 
-export const ZEditInputSchema: z.ZodType<TEditInputSchema> = z.object({
+export const ZEditInputSchema = z.object({
   id: z.string(),
   note: z.string().optional().nullish(),
   expiresAt: z.date().optional(),

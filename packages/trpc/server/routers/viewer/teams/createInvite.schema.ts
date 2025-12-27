@@ -5,7 +5,7 @@ export type TCreateInviteInputSchema = {
   token?: string;
 };
 
-export const ZCreateInviteInputSchema: z.ZodType<TCreateInviteInputSchema> = z.object({
+export const ZCreateInviteInputSchema = z.object({
   teamId: z.number(),
   token: z.string().optional(),
 });

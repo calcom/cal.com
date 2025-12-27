@@ -10,7 +10,7 @@ export type TGetMemberAvailabilityInputSchema = {
   dateTo: string;
 };
 
-export const ZGetMemberAvailabilityInputSchema: z.ZodType<TGetMemberAvailabilityInputSchema> = z.object({
+export const ZGetMemberAvailabilityInputSchema = z.object({
   teamId: z.number(),
   memberId: z.number(),
   timezone: timeZoneSchema,

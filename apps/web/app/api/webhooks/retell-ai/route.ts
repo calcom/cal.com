@@ -29,8 +29,8 @@ const RetellWebhookSchema = z.object({
       start_timestamp: z.number(),
       end_timestamp: z.number().optional(),
       disconnection_reason: z.string().optional(),
-      metadata: z.record(z.any()).optional(),
-      retell_llm_dynamic_variables: z.record(z.any()).optional(),
+            metadata: z.record(z.string(), z.any()).optional(),
+            retell_llm_dynamic_variables: z.record(z.string(), z.any()).optional(),
       transcript: z.string().optional(),
       opt_out_sensitive_data_storage: z.boolean().optional(),
       call_cost: z
@@ -56,7 +56,7 @@ const RetellWebhookSchema = z.object({
           in_voicemail: z.boolean().optional(),
           user_sentiment: z.string().optional(),
           call_successful: z.boolean().optional(),
-          custom_analysis_data: z.record(z.any()).optional(),
+          custom_analysis_data: z.record(z.string(), z.any()).optional(),
         })
         .optional(),
     })

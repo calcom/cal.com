@@ -6,7 +6,7 @@ export type TAddMembersToEventTypes = {
   eventTypeIds: number[];
 };
 
-export const ZAddMembersToEventTypes: z.ZodType<TAddMembersToEventTypes> = z.object({
+export const ZAddMembersToEventTypes = z.object({
   userIds: z.array(z.number()),
   teamId: z.number(),
   eventTypeIds: z.array(z.number()),

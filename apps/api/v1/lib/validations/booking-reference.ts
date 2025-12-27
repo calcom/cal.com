@@ -1,4 +1,6 @@
-import { denullishShape } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
+
+import { denullish } from "@calcom/prisma/zod-utils";
 import { BookingReferenceSchema } from "@calcom/prisma/zod/modelSchema/BookingReferenceSchema";
 
 export const schemaBookingReferenceBaseBodyParams = BookingReferenceSchema.pick({
@@ -22,7 +24,8 @@ export const schemaBookingReferenceReadPublic = BookingReferenceSchema.pick({
   deleted: true,
 });
 
+/** Denullish bookingId individually to preserve type inference in zod v4 */
 export const schemaBookingCreateBodyParams = BookingReferenceSchema.omit({ id: true, bookingId: true })
-  .merge(denullishShape(BookingReferenceSchema.pick({ bookingId: true })))
+  .merge(z.object({ bookingId: denullish(BookingReferenceSchema.shape.bookingId) }))
   .strict();
 export const schemaBookingEditBodyParams = schemaBookingCreateBodyParams.partial();

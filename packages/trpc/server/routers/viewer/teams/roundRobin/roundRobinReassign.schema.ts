@@ -5,7 +5,7 @@ export type TRoundRobinReassignInputSchema = {
   bookingId: number;
 };
 
-export const ZRoundRobinReassignInputSchema: z.ZodType<TRoundRobinReassignInputSchema> = z.object({
+export const ZRoundRobinReassignInputSchema = z.object({
   teamId: z.number(),
   bookingId: z.number(),
 });

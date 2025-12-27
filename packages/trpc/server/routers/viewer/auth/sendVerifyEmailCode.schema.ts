@@ -7,7 +7,7 @@ export type TSendVerifyEmailCodeSchema = {
   isVerifyingEmail?: boolean;
 };
 
-export const ZSendVerifyEmailCodeSchema: z.ZodType<TSendVerifyEmailCodeSchema> = z.object({
+export const ZSendVerifyEmailCodeSchema = z.object({
   email: z.string().min(1),
   username: z.string().optional(),
   language: z.string(),

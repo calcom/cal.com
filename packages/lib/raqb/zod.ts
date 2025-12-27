@@ -40,7 +40,7 @@ export const raqbChildSchema = z.object({
 
 // The actual schema of children1 is quite complex, we don't want to worry about that at the moment.
 const raqbChildren1Schema = z
-  .record(raqbChildSchema)
+  .record(z.string(), raqbChildSchema)
   // .catch((ctx) => {
   //   console.error("Failed to parse raqbChildren1Schema:", ctx.error);
   //   return ctx.input;

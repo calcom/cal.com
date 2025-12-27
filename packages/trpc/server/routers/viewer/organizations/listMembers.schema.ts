@@ -18,7 +18,7 @@ export type TListMembersSchema = {
   oAuthClientId?: string;
 };
 
-export const ZListMembersInputSchema: z.ZodType<TListMembersSchema> = z.object({
+export const ZListMembersInputSchema = z.object({
   limit: z.number().min(1).max(100),
   offset: z.number(),
   searchTerm: z.string().optional(),
