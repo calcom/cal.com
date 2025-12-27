@@ -12,6 +12,8 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
+import { advanceTo, clear } from "jest-date-mock";
+import { Settings } from "luxon";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -19,6 +21,7 @@ import { MembershipRepositoryFixture } from "test/fixtures/repository/membership
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { SelectedSlotRepositoryFixture } from "test/fixtures/repository/selected-slot.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
@@ -39,8 +42,9 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
+    let selectedSlotRepositoryFixture: SelectedSlotRepositoryFixture;
 
-    const sharedUsername = `slots-2024-09-04-shared-username-${randomString()}`;
+    const sharedUsername= `slots-2024-09-04-shared-username-${randomString()}`;
     const sharedEventTypeSlug = `slots-2024-09-04-shared-event-type-slug-${randomString()}`;
 
     const orgUserEmailOne = `slots-2024-09-04-org-user-one-${randomString()}@api.com`;
@@ -92,6 +96,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
+      selectedSlotRepositoryFixture = new SelectedSlotRepositoryFixture(moduleRef);
 
       organization = await organizationsRepositoryFixture.create({
         name: orgSlug,
@@ -226,6 +231,26 @@ describe("Slots 2024-09-04 Endpoints", () => {
       bootstrap(app as NestExpressApplication);
 
       await app.init();
+    });
+
+    // Set system time to 2050-09-04 so that the 2050-09-05 to 2050-09-09 date range
+    // is within 1 year from "now" and doesn't get clamped by the date range limit
+    // We need to mock both jest-date-mock (for new Date()) and Luxon's Settings.now (for DateTime.utc())
+    let originalSettingsNow: typeof Settings.now;
+    beforeEach(() => {
+      const mockDate = new Date("2050-09-04T00:00:00.000Z");
+      advanceTo(mockDate);
+      originalSettingsNow = Settings.now;
+      Settings.now = () => mockDate.getTime();
+    });
+
+    afterEach(async () => {
+      clear();
+      Settings.now = originalSettingsNow;
+      // Clean up any slot reservations that may have been created during the test
+      // This ensures tests don't interfere with each other even if a test fails mid-execution
+      await selectedSlotRepositoryFixture.deleteByEventTypeId(collectiveEventTypeId);
+      await selectedSlotRepositoryFixture.deleteByEventTypeId(roundRobinEventTypeId);
     });
 
     describe("org and non org user have the same username and event type slug", () => {
