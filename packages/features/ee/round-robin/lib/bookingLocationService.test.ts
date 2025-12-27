@@ -180,6 +180,7 @@ describe("BookingLocationService", () => {
         });
 
         // With zod v4, appSlug defaults to "daily-video", but if the app lookup fails, result is null
+        expect(getAppFromSlug).toHaveBeenCalledWith("daily-video");
         expect(result).toBeNull();
       });
     });
