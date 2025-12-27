@@ -41,7 +41,7 @@
         "useExhaustiveDependencies": "off",
         "noInvalidUseBeforeDeclaration": "off",
         "noUnusedFunctionParameters": "error",
-        "noUnusedVariables": "off"
+        "noUnusedVariables": "error"
       },
       "complexity": {
         "noStaticOnlyClass": "error"

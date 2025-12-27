@@ -916,11 +916,12 @@ async function getBookings(filters?: {
 
   // Filter bookings to only show ones where the current user is participating
   const userBookings = bookingsArray.filter((booking) => {
-    const { isOrganizer, isHost, isAttendee, isParticipating } = getBookingParticipation(
-      booking,
-      userId,
-      userEmail
-    );
+    const {
+      isOrganizer: _isOrganizer,
+      isHost: _isHost,
+      isAttendee: _isAttendee,
+      isParticipating,
+    } = getBookingParticipation(booking, userId, userEmail);
 
     return isParticipating;
   });
