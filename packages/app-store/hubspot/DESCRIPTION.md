@@ -9,3 +9,4 @@ Features:
 
 - Creates a meeting in HubSpot for one or many attendees
 - Attendees that don't exist in HubSpot, gets created first to associate them in the meeting
+- Updates meeting outcome to "No Show" in HubSpot when a booking is marked as no-show in Cal.com
