@@ -1,15 +1,15 @@
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
-import { PrismaAttributeOptionRepository } from "@calcom/lib/server/repository/PrismaAttributeOptionRepository";
-import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
-import { findAssignmentsForMember } from "@calcom/lib/service/attribute/server/utils";
 import type {
   AttributeId,
   AttributeName,
   BulkAttributeAssigner,
   AttributeOptionAssignment,
-} from "@calcom/lib/service/attribute/types";
+} from "@calcom/app-store/routing-forms/types/types";
+import { findAssignmentsForMember } from "@calcom/features/attributes/lib/utils";
+import { PrismaAttributeOptionRepository } from "@calcom/features/attributes/repositories/PrismaAttributeOptionRepository";
+import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import {
   doesSupportMultipleValues,
   isAssignmentForLockedAttribute,

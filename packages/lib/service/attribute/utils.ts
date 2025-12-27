@@ -4,7 +4,7 @@
 import slugify from "@calcom/lib/slugify";
 import { AttributeType } from "@calcom/prisma/enums";
 
-import type { AttributeOptionAssignment, BulkAttributeAssigner } from "./types";
+import type { AttributeOptionAssignment, BulkAttributeAssigner } from "@calcom/app-store/routing-forms/types/types";
 
 /**
  * What is a pool?

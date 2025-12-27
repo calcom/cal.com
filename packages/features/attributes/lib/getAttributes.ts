@@ -1,13 +1,13 @@
 // TODO: Queries in this file are not optimized. Need to optimize them.
+import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
+import type { AttributeId, AttributeOptionValueWithType } from "@calcom/app-store/routing-forms/types/types";
+import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
+import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { AttributeToUser } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
-
-import { PrismaAttributeRepository } from "../../../server/repository/PrismaAttributeRepository";
-import { PrismaAttributeToUserRepository } from "../../../server/repository/PrismaAttributeToUserRepository";
-import type { AttributeId } from "../types";
 
 type UserId = number;
 type OrgMembershipId = number;
@@ -28,18 +28,6 @@ type AssignmentForTheTeam = {
   };
 };
 
-export type Attribute = {
-  name: string;
-  slug: string;
-  type: AttributeType;
-  id: string;
-  options: {
-    id: string;
-    value: string;
-    slug: string;
-  }[];
-};
-
 type FullAttribute = {
   name: string;
   slug: string;
@@ -54,21 +42,6 @@ type FullAttribute = {
   }[];
 };
 
-export type AttributeOptionValue = {
-  value: string;
-  isGroup: boolean;
-  contains: {
-    id: string;
-    slug: string;
-    value: string;
-  }[];
-};
-
-export type AttributeOptionValueWithType = {
-  type: Attribute["type"];
-  attributeOption: AttributeOptionValue | AttributeOptionValue[];
-};
-
 async function _findMembershipsForBothOrgAndTeam({ orgId, teamId }: { orgId: number; teamId: number }) {
   const memberships = await prisma.membership.findMany({
     where: {
@@ -80,7 +53,10 @@ async function _findMembershipsForBothOrgAndTeam({ orgId, teamId }: { orgId: num
 
   type Membership = (typeof memberships)[number];
 
-  const { teamMemberships, orgMemberships } = memberships.reduce(
+  const { teamMemberships, orgMemberships } = memberships.reduce<{
+    teamMemberships: Membership[];
+    orgMemberships: Membership[];
+  }>(
     (acc, membership) => {
       if (membership.teamId === teamId) {
         acc.teamMemberships.push(membership);
@@ -89,7 +65,7 @@ async function _findMembershipsForBothOrgAndTeam({ orgId, teamId }: { orgId: num
       }
       return acc;
     },
-    { teamMemberships: [] as Membership[], orgMemberships: [] as Membership[] }
+    { teamMemberships: [], orgMemberships: [] }
   );
 
   return {

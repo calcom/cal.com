@@ -1,9 +1,8 @@
+import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import logger from "@calcom/lib/logger";
 import type { dynamicFieldValueOperands, dynamicFieldValueOperandsResponse } from "@calcom/lib/raqb/types";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
-import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
-
-import { caseInsensitive } from "./utils";
+import { caseInsensitive } from "@calcom/lib/raqb/utils";
 
 // Type for JSON values that can be in the query
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };

@@ -7,7 +7,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -18,11 +17,12 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 
 import { getRoutedUrl } from "./getRoutedUrl";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
+import { handleResponse } from "./handleResponse";
 
 // Mock dependencies
 vi.mock("./getUrlSearchParamsToForward");
+vi.mock("./handleResponse");
 vi.mock("@calcom/lib/checkRateLimitAndThrowError");
-vi.mock("@calcom/app-store/routing-forms/lib/handleResponse");
 vi.mock("@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository");
 vi.mock("@calcom/features/users/repositories/UserRepository", () => {
   return {

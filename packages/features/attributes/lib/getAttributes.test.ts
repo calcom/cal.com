@@ -1,11 +1,11 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, beforeEach } from "vitest";
 
+import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import type { AttributeOption } from "@calcom/prisma/client";
 import { AttributeType, MembershipRole } from "@calcom/prisma/enums";
 
-import type { Attribute } from "./getAttributes";
 import { getAttributesForTeam, getAttributesAssignmentData, getUsersAttributes } from "./getAttributes";
 
 // Helper functions to create test data
