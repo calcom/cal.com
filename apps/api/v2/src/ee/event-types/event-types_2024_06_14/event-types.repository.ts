@@ -58,13 +58,37 @@ export class EventTypesRepository_2024_06_14 {
     });
   }
 
+  private readonly usersInclude = {
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      avatarUrl: true,
+      brandColor: true,
+      darkBrandColor: true,
+      weekStart: true,
+      metadata: true,
+      organization: {
+        select: { slug: true },
+      },
+      profiles: {
+        select: {
+          username: true,
+          organization: {
+            select: { slug: true },
+          },
+        },
+      },
+    },
+  };
+
   async getUserEventType(userId: number, eventTypeId: number) {
     return this.dbRead.prisma.eventType.findFirst({
       where: {
         id: eventTypeId,
         userId,
       },
-      include: { users: true, schedule: true, destinationCalendar: true },
+      include: { users: this.usersInclude, schedule: true, destinationCalendar: true },
     });
   }
 
@@ -74,7 +98,7 @@ export class EventTypesRepository_2024_06_14 {
         userId,
       },
       ...(sortCreatedAt && { orderBy: { id: sortCreatedAt } }),
-      include: { users: true, schedule: true, destinationCalendar: true },
+      include: { users: this.usersInclude, schedule: true, destinationCalendar: true },
     });
   }
 
@@ -85,14 +109,19 @@ export class EventTypesRepository_2024_06_14 {
         hidden: false,
       },
       ...(sortCreatedAt && { orderBy: { id: sortCreatedAt } }),
-      include: { users: true, schedule: true, destinationCalendar: true },
+      include: { users: this.usersInclude, schedule: true, destinationCalendar: true },
     });
   }
 
   async getEventTypeById(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
-      include: { users: true, schedule: true, destinationCalendar: true, calVideoSettings: true },
+      include: {
+        users: this.usersInclude,
+        schedule: true,
+        destinationCalendar: true,
+        calVideoSettings: true,
+      },
     });
   }
 
@@ -100,7 +129,7 @@ export class EventTypesRepository_2024_06_14 {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
       include: {
-        users: true,
+        users: this.usersInclude,
         schedule: true,
         destinationCalendar: true,
         calVideoSettings: true,
@@ -140,7 +169,7 @@ export class EventTypesRepository_2024_06_14 {
           slug: slug,
         },
       },
-      include: { users: true, schedule: true, destinationCalendar: true },
+      include: { users: this.usersInclude, schedule: true, destinationCalendar: true },
     });
   }
 

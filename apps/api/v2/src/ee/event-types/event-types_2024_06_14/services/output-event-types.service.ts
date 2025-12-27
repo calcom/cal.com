@@ -23,6 +23,7 @@ import {
   getBookingFieldsWithSystemFields,
 } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema, parseEventTypeColor } from "@calcom/platform-libraries/event-types";
+import { getBookerBaseUrlSync } from "@calcom/platform-libraries/organizations";
 import type {
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
@@ -32,10 +33,38 @@ import type {
   OutputUnknownBookingField_2024_06_14,
   OutputBookingField_2024_06_14,
 } from "@calcom/platform-types";
-import type { EventType, User, Schedule, DestinationCalendar, CalVideoSettings } from "@calcom/prisma/client";
+import type {
+  EventType,
+  Schedule,
+  DestinationCalendar,
+  CalVideoSettings,
+  Prisma,
+} from "@calcom/prisma/client";
+
+type UserProfile = {
+  username: string;
+  organization: { slug: string | null } | null;
+};
+
+type UserWithOrganization = {
+  id: number;
+  name: string | null;
+  username: string | null;
+  avatarUrl: string | null;
+  brandColor: string | null;
+  darkBrandColor: string | null;
+  weekStart: string;
+  metadata: Prisma.JsonValue;
+  organization?: { slug: string | null } | null;
+  profiles?: UserProfile[];
+};
+
+type EnrichedUser = Omit<UserWithOrganization, "profiles"> & {
+  profile: UserProfile | null;
+};
 
 type EventTypeRelations = {
-  users: User[];
+  users: UserWithOrganization[];
   schedule: Schedule | null;
   destinationCalendar?: DestinationCalendar | null;
   calVideoSettings?: CalVideoSettings | null;
@@ -168,6 +197,7 @@ export class OutputEventTypesService_2024_06_14 {
     } as TransformFutureBookingsLimitSchema_2024_06_14);
     const destinationCalendar = this.transformDestinationCalendar(databaseEventType.destinationCalendar);
     const bookerActiveBookingsLimit = this.transformBookerActiveBookingsLimit(databaseEventType);
+    const bookingUrl = this.buildBookingUrl(databaseEventType.users, slug);
 
     return {
       id,
@@ -214,6 +244,7 @@ export class OutputEventTypesService_2024_06_14 {
       hidden,
       bookingRequiresAuthentication,
       bookerActiveBookingsLimit,
+      bookingUrl,
     };
   }
 
@@ -311,7 +342,7 @@ export class OutputEventTypesService_2024_06_14 {
     return EventTypeMetaDataSchema.parse(metadata);
   }
 
-  transformUsers(users: User[]) {
+  transformUsers(users: UserWithOrganization[]) {
     return users.map((user) => {
       const metadata = user.metadata ? userMetadata.parse(user.metadata) : {};
       return {
@@ -372,6 +403,42 @@ export class OutputEventTypesService_2024_06_14 {
       seatsShowAttendees: !!seatsShowAttendees,
       seatsShowAvailabilityCount: !!seatsShowAvailabilityCount,
     });
+  }
+
+  enrichUserWithProfile(user: UserWithOrganization): EnrichedUser {
+    const profile = user.profiles?.[0] ?? null;
+
+    if (profile) {
+      return {
+        ...user,
+        username: profile.username,
+        profile,
+      };
+    }
+
+    return {
+      ...user,
+      profile: user.organization ? { username: user.username ?? "", organization: user.organization } : null,
+    };
+  }
+
+  buildBookingUrl(users: UserWithOrganization[], slug: string): string {
+    const firstUser = users[0];
+    if (!firstUser) {
+      return "";
+    }
+
+    const enrichedUser = this.enrichUserWithProfile(firstUser);
+    const username = enrichedUser.username;
+
+    if (!username) {
+      return "";
+    }
+
+    const orgSlug = enrichedUser.profile?.organization?.slug ?? null;
+    const baseUrl = getBookerBaseUrlSync(orgSlug).replace(/\/$/, "");
+
+    return `${baseUrl}/${username}/${slug}`;
   }
 
   getResponseEventTypesWithoutHiddenFields(
