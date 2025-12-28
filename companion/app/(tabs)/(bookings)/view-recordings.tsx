@@ -4,6 +4,7 @@ import { ActivityIndicator, Alert, Platform, View } from "react-native";
 import ViewRecordingsScreenComponent from "@/components/screens/ViewRecordingsScreen";
 import { CalComAPIService } from "@/services/calcom";
 import type { BookingRecording } from "@/services/types/bookings.types";
+import { safeLogError } from "@/utils/safeLogger";
 
 export default function ViewRecordings() {
   const { uid } = useLocalSearchParams<{ uid: string }>();
@@ -17,7 +18,7 @@ export default function ViewRecordings() {
       CalComAPIService.getRecordings(uid)
         .then(setRecordings)
         .catch((error) => {
-          console.error("Failed to load recordings:", error);
+          safeLogError("Failed to load recordings:", error);
           Alert.alert("Error", "Failed to load recordings");
           router.back();
         })

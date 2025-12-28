@@ -1,3 +1,6 @@
+import { fetchWithTimeout } from "@/utils/network";
+import { safeLogError, safeLogInfo } from "@/utils/safeLogger";
+
 import type {
   AddGuestInput,
   AddGuestsResponse,
@@ -29,6 +32,8 @@ import type {
 } from "./types";
 
 const API_BASE_URL = "https://api.cal.com/v2";
+
+const REQUEST_TIMEOUT_MS = 30000;
 
 // Authentication configuration
 interface AuthConfig {
@@ -235,20 +240,30 @@ async function testRawBookingsAPI(): Promise<void> {
   try {
     const url = `${API_BASE_URL}/bookings?status=upcoming&status=unconfirmed&limit=50`;
 
-    const response = await fetch(url, {
-      headers: {
-        Authorization: getAuthHeader(),
-        "Content-Type": "application/json",
-        "cal-api-version": "2024-08-13",
+    const response = await fetchWithTimeout(
+      url,
+      {
+        headers: {
+          Authorization: getAuthHeader(),
+          "Content-Type": "application/json",
+          "cal-api-version": "2024-08-13",
+        },
       },
-    });
+      REQUEST_TIMEOUT_MS
+    );
 
     const responseText = await response.text();
 
     try {
-      const _responseJson = JSON.parse(responseText);
-    } catch (_parseError) {}
-  } catch (_error) {}
+      if (responseText?.trim()) {
+        const _responseJson = JSON.parse(responseText);
+      }
+    } catch (_parseError) {
+      safeLogError("[CalComAPIService] Failed to parse bookings response");
+    }
+  } catch (_error) {
+    safeLogError("[CalComAPIService] testRawBookingsAPI failed");
+  }
 }
 
 async function makeRequest<T>(
@@ -259,15 +274,19 @@ async function makeRequest<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: getAuthHeader(),
-      "Content-Type": "application/json",
-      "cal-api-version": apiVersion,
-      ...options.headers,
+  const response = await fetchWithTimeout(
+    url,
+    {
+      ...options,
+      headers: {
+        Authorization: getAuthHeader(),
+        "Content-Type": "application/json",
+        "cal-api-version": apiVersion,
+        ...options.headers,
+      },
     },
-  });
+    REQUEST_TIMEOUT_MS
+  );
 
   if (!response.ok) {
     const errorBody = await response.text();
@@ -300,7 +319,7 @@ async function makeRequest<T>(
           // Retry the original request with the new token
           return makeRequest<T>(endpoint, options, apiVersion, true);
         } catch (refreshError) {
-          console.error("Token refresh failed:", refreshError);
+          safeLogError("Token refresh failed:", refreshError);
           clearAuth();
           throw new Error("Authentication failed. Please sign in again.");
         }
@@ -329,7 +348,7 @@ async function deleteEventType(eventTypeId: number): Promise<void> {
       "2024-06-14"
     );
   } catch (error) {
-    console.error("Delete API error");
+    safeLogError("Delete API error");
     throw error;
   }
 }
@@ -391,7 +410,7 @@ async function rescheduleBooking(
   }
 ): Promise<Booking> {
   try {
-    console.log("[CalComAPIService] rescheduleBooking request:", {
+    safeLogInfo("[CalComAPIService] rescheduleBooking request:", {
       bookingUid,
       input,
     });
@@ -415,10 +434,10 @@ async function rescheduleBooking(
 
     throw new Error("Invalid response from reschedule booking API");
   } catch (error) {
-    console.error("[CalComAPIService] rescheduleBooking error:", error);
+    safeLogError("[CalComAPIService] rescheduleBooking error:", error);
     if (error instanceof Error) {
-      console.error("[CalComAPIService] Error message:", error.message);
-      console.error("[CalComAPIService] Error stack:", error.stack);
+      safeLogError("[CalComAPIService] Error message:", error.message);
+      safeLogError("[CalComAPIService] Error stack:", error.stack);
     }
     throw error;
   }
@@ -444,7 +463,7 @@ async function confirmBooking(bookingUid: string): Promise<Booking> {
 
     throw new Error("Invalid response from confirm booking API");
   } catch (error) {
-    console.error("confirmBooking error");
+    safeLogError("confirmBooking error");
     throw error;
   }
 }
@@ -622,7 +641,7 @@ async function updateLocationV2(
 
     throw new Error("Invalid response from update location API");
   } catch (error) {
-    console.error("[CalComAPIService] updateLocationV2 error:", error);
+    safeLogError("[CalComAPIService] updateLocationV2 error:", error);
     throw error;
   }
 }
