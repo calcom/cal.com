@@ -336,8 +336,11 @@ export default function EventTypes() {
       return;
     }
 
-    // Auto-generate slug from title
     const autoSlug = slugify(newEventTitle.trim());
+    if (!autoSlug) {
+      Alert.alert("Error", "Title must contain at least one letter or number");
+      return;
+    }
 
     createEventTypeMutation(
       {

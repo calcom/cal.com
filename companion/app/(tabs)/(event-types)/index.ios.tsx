@@ -250,8 +250,11 @@ export default function EventTypesIOS() {
               return;
             }
 
-            // Auto-generate slug from title
             const autoSlug = slugify(title.trim());
+            if (!autoSlug) {
+              Alert.alert("Error", "Title must contain at least one letter or number");
+              return;
+            }
 
             createEventTypeMutation(
               {
