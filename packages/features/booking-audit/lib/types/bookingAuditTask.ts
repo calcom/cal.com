@@ -1,24 +1,13 @@
 import { z } from "zod";
 
-import { ActorSchema } from "@calcom/features/bookings/lib/types/actor";
-import { CreatedAuditActionService } from "../actions/CreatedAuditActionService";
-import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
-import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
-import { CancelledAuditActionService } from "../actions/CancelledAuditActionService";
-import { RescheduleRequestedAuditActionService } from "../actions/RescheduleRequestedAuditActionService";
-import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
-import { HostNoShowUpdatedAuditActionService } from "../actions/HostNoShowUpdatedAuditActionService";
-import { RejectedAuditActionService } from "../actions/RejectedAuditActionService";
-import { AttendeeRemovedAuditActionService } from "../actions/AttendeeRemovedAuditActionService";
-import { ReassignmentAuditActionService } from "../actions/ReassignmentAuditActionService";
-import { LocationChangedAuditActionService } from "../actions/LocationChangedAuditActionService";
-import { AttendeeNoShowUpdatedAuditActionService } from "../actions/AttendeeNoShowUpdatedAuditActionService";
+import { PiiFreeActorSchema } from "../../../bookings/lib/types/actor";
+import { ActionSourceSchema } from "./actionSource";
 
 /**
  * Supported booking audit actions
  * Used for runtime validation of action field
  */
-export const BookingAuditActionSchema = z.enum([
+const BookingAuditActionSchema = z.enum([
     "CREATED",
     "RESCHEDULED",
     "ACCEPTED",
@@ -31,47 +20,55 @@ export const BookingAuditActionSchema = z.enum([
     "REASSIGNMENT",
     "LOCATION_CHANGED",
     "ATTENDEE_NO_SHOW_UPDATED",
+    "SEAT_BOOKED",
+    "SEAT_RESCHEDULED",
 ]);
 
 export type BookingAuditAction = z.infer<typeof BookingAuditActionSchema>;
 
-type AuditActionData<T extends { TYPE: string; latestFieldsSchema: z.ZodType }> = {
-    action: T["TYPE"];
-    data: z.infer<T["latestFieldsSchema"]>;
-};
+const actionAgnosticDataSchema = z.unknown();
 
-/**
- * Producer action data type - discriminated union for type-safe queueing
- * Used by the legacy queueAudit method for backwards compatibility
- */
-export type BookingAuditTaskProducerActionData =
-    | AuditActionData<typeof CreatedAuditActionService>
-    | AuditActionData<typeof RescheduledAuditActionService>
-    | AuditActionData<typeof AcceptedAuditActionService>
-    | AuditActionData<typeof CancelledAuditActionService>
-    | AuditActionData<typeof RescheduleRequestedAuditActionService>
-    | AuditActionData<typeof AttendeeAddedAuditActionService>
-    | AuditActionData<typeof HostNoShowUpdatedAuditActionService>
-    | AuditActionData<typeof RejectedAuditActionService>
-    | AuditActionData<typeof AttendeeRemovedAuditActionService>
-    | AuditActionData<typeof ReassignmentAuditActionService>
-    | AuditActionData<typeof LocationChangedAuditActionService>
-    | AuditActionData<typeof AttendeeNoShowUpdatedAuditActionService>;
-
-/**
- * Lean base schema for booking audit task payload
- * 
- * Uses `data: z.unknown()` to avoid large discriminated union.
- * The consumer parses with this first, then validates `data` 
- * with the action-specific schema based on the `action` field.
- */
-export const BookingAuditTaskBaseSchema = z.object({
+const bookingAuditPayloadSchema = z.object({
     bookingUid: z.string(),
-    actor: ActorSchema,
+    data: actionAgnosticDataSchema,
+});
+
+export const SingleBookingAuditTaskConsumerSchema = z.object({
+    isBulk: z.literal(false),
+    ...bookingAuditPayloadSchema.shape,
+    actor: PiiFreeActorSchema,
     organizationId: z.number().nullable(),
     timestamp: z.number(),
     action: BookingAuditActionSchema,
-    data: z.unknown(),
+    source: ActionSourceSchema.default("UNKNOWN"),
+    operationId: z.string(),
 });
 
-export type BookingAuditTaskBasePayload = z.infer<typeof BookingAuditTaskBaseSchema>;
+export type SingleBookingAuditTaskConsumerPayload = z.infer<typeof SingleBookingAuditTaskConsumerSchema>;
+
+/**
+ * Bulk booking audit task payload schema
+ * 
+ * Used for operations that affect multiple bookings in a single action.
+ * Contains an array of bookings, each with bookingUid and action-specific data.
+ * All bookings share the same actor, organizationId, timestamp, action, source, and operationId.
+ */
+export const BulkBookingAuditTaskConsumerSchema = z.object({
+    isBulk: z.literal(true),
+    bookings: z.array(bookingAuditPayloadSchema).min(1),
+    actor: PiiFreeActorSchema,
+    organizationId: z.number().nullable(),
+    timestamp: z.number(),
+    action: BookingAuditActionSchema,
+    source: ActionSourceSchema.default("UNKNOWN"),
+    operationId: z.string(),
+});
+
+export type BulkBookingAuditTaskConsumerPayload = z.infer<typeof BulkBookingAuditTaskConsumerSchema>;
+
+export const BookingAuditTaskConsumerSchema = z.discriminatedUnion("isBulk", [
+    SingleBookingAuditTaskConsumerSchema,
+    BulkBookingAuditTaskConsumerSchema,
+]);
+
+export type BookingAuditTaskConsumerPayload = z.infer<typeof BookingAuditTaskConsumerSchema>;

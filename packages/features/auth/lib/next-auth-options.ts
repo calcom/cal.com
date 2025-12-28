@@ -12,7 +12,10 @@ import GoogleProvider from "next-auth/providers/google";
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import type { TrackingData } from "@calcom/lib/tracking";
+import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
@@ -36,7 +39,6 @@ import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { Membership, Team } from "@calcom/prisma/client";
@@ -47,6 +49,7 @@ import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
 import { ErrorCode } from "./ErrorCode";
 import { dub } from "./dub";
+import { validateSamlAccountConversion } from "./samlAccountLinking";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
 
@@ -315,6 +318,10 @@ if (isSAMLLoginEnabled) {
       lastName?: string;
       email?: string;
       locale?: string;
+      requested?: {
+        tenant?: string;
+        product?: string;
+      };
     }) => {
       log.debug("BoxyHQ:profile", safeStringify({ profile }));
       const userRepo = new UserRepository(prisma);
@@ -329,6 +336,8 @@ if (isSAMLLoginEnabled) {
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
         locale: profile.locale,
+        // Pass SAML tenant for domain authority checks in signIn callback
+        samlTenant: profile.requested?.tenant,
         ...(user ? { profile: user.allProfiles[0] } : {}),
       };
     },
@@ -449,9 +458,12 @@ const mapIdentityProvider = (providerName: string) => {
 
 export const getOptions = ({
   getDubId,
+  getTrackingData,
 }: {
   /** so we can extract the Dub cookie in both pages and app routers */
   getDubId: () => string | undefined;
+  /** Ad tracking data for Stripe customer metadata */
+  getTrackingData: () => TrackingData;
 }): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -589,14 +601,14 @@ export const getOptions = ({
           org:
             profileOrg && !profileOrg.isPlatform
               ? {
-                  id: profileOrg.id,
-                  name: profileOrg.name,
-                  slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
-                  logoUrl: profileOrg.logoUrl,
-                  fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
-                  domainSuffix: subdomainSuffix(),
-                  role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
-                }
+                id: profileOrg.id,
+                name: profileOrg.name,
+                slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                logoUrl: profileOrg.logoUrl,
+                fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
+                domainSuffix: subdomainSuffix(),
+                role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
+              }
               : null,
         } as JWT;
       };
@@ -939,6 +951,15 @@ export const getOptions = ({
             existingUserWithEmail.emailVerified &&
             existingUserWithEmail.identityProvider !== IdentityProvider.CAL
           ) {
+            // Verify SAML IdP is authoritative before auto-merge
+            if (idP === IdentityProvider.SAML) {
+              const samlTenant = (user as { samlTenant?: string }).samlTenant;
+              const validation = await validateSamlAccountConversion(samlTenant, user.email, "SelfHosted→SAML");
+              if (!validation.allowed) {
+                return validation.errorUrl;
+              }
+            }
+
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail.email);
             } else {
@@ -952,6 +973,15 @@ export const getOptions = ({
             !existingUserWithEmail.emailVerified &&
             !existingUserWithEmail.username
           ) {
+            // Verify SAML IdP is authoritative before claiming invited user
+            if (idP === IdentityProvider.SAML) {
+              const samlTenant = (user as { samlTenant?: string }).samlTenant;
+              const validation = await validateSamlAccountConversion(samlTenant, user.email, "Invite→SAML");
+              if (!validation.allowed) {
+                return validation.errorUrl;
+              }
+            }
+
             await prisma.user.update({
               where: {
                 email: existingUserWithEmail.email,
@@ -981,6 +1011,15 @@ export const getOptions = ({
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
+            // Verify SAML IdP is authoritative before converting account
+            if (idP === IdentityProvider.SAML) {
+              const samlTenant = (user as { samlTenant?: string }).samlTenant;
+              const validation = await validateSamlAccountConversion(samlTenant, user.email, "CAL→SAML");
+              if (!validation.allowed) {
+                return validation.errorUrl;
+              }
+            }
+
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
@@ -1002,6 +1041,13 @@ export const getOptions = ({
             existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
             idP === IdentityProvider.SAML
           ) {
+            // Verify SAML IdP is authoritative before converting account
+            const samlTenant = (user as { samlTenant?: string }).samlTenant;
+            const validation = await validateSamlAccountConversion(samlTenant, user.email, "Google→SAML");
+            if (!validation.allowed) {
+              return validation.errorUrl;
+            }
+
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
@@ -1025,11 +1071,12 @@ export const getOptions = ({
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
         try {
+          const newUsername = orgId ? slugify(orgUsername) : usernameSlug(user.name);
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
               // prevent conflicts for users with the same name.
-              username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
+              username: newUsername,
               emailVerified: new Date(Date.now()),
               name: user.name,
               ...(user.image && { avatarUrl: user.image }),
@@ -1052,6 +1099,40 @@ export const getOptions = ({
             user.email
           );
           await calcomAdapter.linkAccount(linkAccountNewUserData);
+
+          waitUntil(
+            (async () => {
+              try {
+                const tracking = getTrackingData();
+                const billingService = getBillingProviderService();
+                const customer = await billingService.createCustomer({
+                  email: newUser.email,
+                  metadata: {
+                    email: newUser.email,
+                    username: newUser.username ?? newUsername,
+                    ...(tracking.googleAds?.gclid && {
+                      gclid: tracking.googleAds.gclid,
+                      campaignId: tracking.googleAds.campaignId,
+                    }),
+                    ...(tracking.linkedInAds?.liFatId && {
+                      liFatId: tracking.linkedInAds.liFatId,
+                      linkedInCampaignId: tracking.linkedInAds.campaignId,
+                    }),
+                  },
+                });
+                await prisma.user.update({
+                  where: { id: newUser.id },
+                  data: {
+                    metadata: {
+                      stripeCustomerId: customer.stripeCustomerId,
+                    },
+                  },
+                });
+              } catch (err) {
+                log.error("Failed to create Stripe customer with tracking", err);
+              }
+            })()
+          );
 
           if (account.twoFactorEnabled) {
             return loginWithTotp(newUser.email);

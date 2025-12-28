@@ -1,11 +1,11 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { Header } from "../../components/Header";
-import { useAuth } from "../../contexts/AuthContext";
-import { showErrorAlert } from "../../utils/alerts";
-import { openInAppBrowser } from "../../utils/browser";
+import { useState } from "react";
+import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Header } from "@/components/Header";
+import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
+import { useAuth } from "@/contexts/AuthContext";
+import { showErrorAlert } from "@/utils/alerts";
+import { openInAppBrowser } from "@/utils/browser";
 
 interface MoreMenuItem {
   name: string;
@@ -16,25 +16,38 @@ interface MoreMenuItem {
 }
 
 export default function More() {
-  const router = useRouter();
   const { logout } = useAuth();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const performLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Logout error", message);
+      if (__DEV__) {
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[More] logout failed", { message, stack });
+      }
+      showErrorAlert("Error", "Failed to sign out. Please try again.");
+    }
+  };
 
   const handleSignOut = () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Sign Out",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await logout();
-          } catch (error) {
-            console.error("Logout error:", error);
-            showErrorAlert("Error", "Failed to sign out. Please try again.");
-          }
+    if (Platform.OS === "web") {
+      // Use modal for web/extension since Alert.alert doesn't work
+      setShowLogoutModal(true);
+    } else {
+      // Use native Alert for iOS/Android
+      Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Sign Out",
+          style: "destructive",
+          onPress: performLogout,
         },
-      },
-    ]);
+      ]);
+    }
   };
 
   const menuItems: MoreMenuItem[] = [
@@ -88,7 +101,7 @@ export default function More() {
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.name}
-              onPress={item.href ? () => router.push(item.href!) : item.onPress}
+              onPress={item.onPress}
               className={`flex-row items-center justify-between bg-white px-5 py-5 active:bg-[#F8F9FA] ${
                 index < menuItems.length - 1 ? "border-b border-[#E5E5EA]" : ""
               }`}
@@ -129,6 +142,16 @@ export default function More() {
           </Text>
         </Text>
       </ScrollView>
+
+      {/* Logout Confirmation Modal for Web */}
+      <LogoutConfirmModal
+        visible={showLogoutModal}
+        onConfirm={() => {
+          setShowLogoutModal(false);
+          performLogout();
+        }}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </View>
   );
 }

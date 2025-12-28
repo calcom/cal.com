@@ -10,6 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import { BookingListContainer } from "../components/BookingListContainer";
+import { useBookingsShellHeadingVisibility } from "../hooks/useBookingsShellHeadingVisibility";
 import { useBookingsView } from "../hooks/useBookingsView";
 import type { validStatuses } from "../lib/validStatuses";
 
@@ -69,6 +70,8 @@ export default function Bookings(props: BookingsProps) {
 
 function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsProps) {
   const [view] = useBookingsView({ bookingsV3Enabled });
+
+  useBookingsShellHeadingVisibility({ visible: view === "list" });
 
   return (
     <div className={classNames(view === "calendar" && "-mb-8")}>

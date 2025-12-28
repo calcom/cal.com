@@ -1,9 +1,9 @@
 import { Stack } from "expo-router";
-import { Platform, View, StatusBar } from "react-native";
-import { AuthProvider, useAuth } from "../contexts/AuthContext";
-import { QueryProvider } from "../contexts/QueryContext";
-import { NetworkStatusBanner } from "../components/NetworkStatusBanner";
-import LoginScreen from "../components/LoginScreen";
+import { Platform, StatusBar, View } from "react-native";
+import LoginScreenComponent from "@/components/LoginScreen";
+import { NetworkStatusBanner } from "@/components/NetworkStatusBanner";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { QueryProvider } from "@/contexts/QueryContext";
 import "../global.css";
 
 function RootLayoutContent() {
@@ -14,7 +14,7 @@ function RootLayoutContent() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
     </Stack>
   ) : (
-    <LoginScreen />
+    <LoginScreenComponent />
   );
 
   const containerClass =
@@ -27,14 +27,16 @@ function RootLayoutContent() {
       ? {
           width: 400,
           flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          pointerEvents: "auto",
+          display: "flex" as const,
+          flexDirection: "column" as const,
         }
       : { flex: 1 };
 
   return (
-    <View style={containerStyle} className={containerClass}>
+    <View
+      style={[containerStyle, Platform.OS === "web" && { pointerEvents: "auto" as const }]}
+      className={containerClass}
+    >
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {content}
       <NetworkStatusBanner />
