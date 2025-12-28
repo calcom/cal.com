@@ -1,10 +1,11 @@
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import { Platform } from "react-native";
 import { AvailabilityListScreen } from "@/components/screens/AvailabilityListScreen";
 
 export default function Availability() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
 
@@ -21,8 +22,18 @@ export default function Availability() {
       >
         <Stack.Header.Title large>Availability</Stack.Header.Title>
         <Stack.Header.Right>
-          <Stack.Header.Button onPress={handleCreateNew} tintColor="#000" variant="prominent">
-            New
+          {/* New Menu */}
+          <Stack.Header.Menu>
+            <Stack.Header.Icon sf="plus" />
+
+            <Stack.Header.MenuAction icon="clock" onPress={handleCreateNew}>
+              New Availability
+            </Stack.Header.MenuAction>
+          </Stack.Header.Menu>
+
+          {/* Profile Button */}
+          <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
+            <Stack.Header.Icon sf="person.circle.fill" />
           </Stack.Header.Button>
         </Stack.Header.Right>
         <Stack.Header.SearchBar

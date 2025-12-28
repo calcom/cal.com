@@ -36,7 +36,7 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Label>Availability</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="more">
+      <NativeTabs.Trigger name="(more)">
         <NativeTabs.Trigger.Icon
           sf="ellipsis"
           src={<VectorIcon family={MaterialCommunityIcons} name="dots-horizontal" />}
@@ -96,7 +96,7 @@ function WebTabs() {
       />
 
       <Tabs.Screen
-        name="more"
+        name="(more)"
         options={{
           title: "More",
           tabBarIcon: ({ color, focused }) => (
