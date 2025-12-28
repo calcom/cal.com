@@ -1,41 +1,40 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
-import React, { useState, useMemo, Activity } from "react";
+import { useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  TextInput,
   ActionSheetIOS,
-  Share,
   Alert,
   Platform,
+  RefreshControl,
+  ScrollView,
+  Share,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import * as Clipboard from "expo-clipboard";
-
-import { CalComAPIService, EventType } from "../../../services/calcom";
-import { Header } from "../../../components/Header";
-import { FullScreenModal } from "../../../components/FullScreenModal";
-import { LoadingSpinner } from "../../../components/LoadingSpinner";
-import { EmptyScreen } from "../../../components/EmptyScreen";
-import { slugify } from "../../../utils/slugify";
-import { showErrorAlert } from "../../../utils/alerts";
-import { shadows } from "../../../utils/shadows";
-import { EventTypeListItem } from "../../../components/event-type-list-item/EventTypeListItem";
-import { offlineAwareRefresh } from "../../../utils/network";
-import { openInAppBrowser } from "../../../utils/browser";
+import { EmptyScreen } from "@/components/EmptyScreen";
+import { EventTypeListItem } from "@/components/event-type-list-item/EventTypeListItem";
+import { FullScreenModal } from "@/components/FullScreenModal";
+import { Header } from "@/components/Header";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
-  useEventTypes,
   useCreateEventType,
   useDeleteEventType,
   useDuplicateEventType,
+  useEventTypes,
   useUsername,
-} from "../../../hooks";
-import { getEventDuration } from "../../../utils/getEventDuration";
-import { normalizeMarkdown } from "../../../utils/normalizeMarkdown";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
+} from "@/hooks";
+import { CalComAPIService, type EventType } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
+import { openInAppBrowser } from "@/utils/browser";
+import { getEventDuration } from "@/utils/getEventDuration";
+import { offlineAwareRefresh } from "@/utils/network";
+import { normalizeMarkdown } from "@/utils/normalizeMarkdown";
+import { shadows } from "@/utils/shadows";
+import { slugify } from "@/utils/slugify";
 
 export default function EventTypes() {
   const router = useRouter();
@@ -117,7 +116,7 @@ export default function EventTypes() {
     return eventTypes.filter(
       (eventType) =>
         eventType.title.toLowerCase().includes(searchLower) ||
-        (eventType.description && eventType.description.toLowerCase().includes(searchLower))
+        eventType.description?.toLowerCase().includes(searchLower)
     );
   }, [eventTypes, searchQuery]);
 
@@ -185,7 +184,7 @@ export default function EventTypes() {
       } else {
         Alert.alert("Link Copied", "Event type link copied!");
       }
-    } catch (error) {
+    } catch {
       if (Platform.OS === "web") {
         showToastMessage("Failed to copy link");
       } else {
@@ -194,14 +193,14 @@ export default function EventTypes() {
     }
   };
 
-  const handleShare = async (eventType: EventType) => {
+  const _handleShare = async (eventType: EventType) => {
     try {
       const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
       await Share.share({
         message: `Book a meeting: ${eventType.title}`,
         url: link,
       });
-    } catch (error) {
+    } catch {
       showErrorAlert("Error", "Failed to share link. Please try again.");
     }
   };
@@ -314,7 +313,7 @@ export default function EventTypes() {
         // For mobile, use in-app browser
         await openInAppBrowser(link, "event type preview");
       }
-    } catch (error) {
+    } catch {
       console.error("Failed to open preview");
       if (Platform.OS === "web") {
         showToastMessage("Failed to open preview");
@@ -352,8 +351,8 @@ export default function EventTypes() {
       return;
     }
 
-    const duration = parseInt(newEventDuration);
-    if (isNaN(duration) || duration <= 0) {
+    const duration = parseInt(newEventDuration, 10);
+    if (Number.isNaN(duration) || duration <= 0) {
       Alert.alert("Error", "Please enter a valid duration");
       return;
     }
@@ -398,9 +397,7 @@ export default function EventTypes() {
   if (loading) {
     return (
       <View className="flex-1 bg-gray-100">
-        <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
-          <Header />
-        </Activity>
+        {Platform.OS === "web" && <Header />}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <LoadingSpinner size="large" />
         </View>
@@ -411,9 +408,7 @@ export default function EventTypes() {
   if (error) {
     return (
       <View className="flex-1 bg-gray-100">
-        <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
-          <Header />
-        </Activity>
+        {Platform.OS === "web" && <Header />}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <Ionicons name="alert-circle" size={64} color="#FF3B30" />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
@@ -431,9 +426,7 @@ export default function EventTypes() {
   if (eventTypes.length === 0) {
     return (
       <View className="flex-1 bg-gray-100">
-        <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
-          <Header />
-        </Activity>
+        {Platform.OS === "web" && <Header />}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <EmptyScreen
             icon="link-outline"
@@ -450,28 +443,30 @@ export default function EventTypes() {
   if (filteredEventTypes.length === 0 && searchQuery.trim() !== "") {
     return (
       <View className="flex-1 bg-gray-100">
-        <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
-          <Header />
-          <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-            <TextInput
-              className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-              placeholder="Search event types"
-              placeholderTextColor="#9CA3AF"
-              value={searchQuery}
-              onChangeText={handleSearch}
-              autoCapitalize="none"
-              autoCorrect={false}
-              clearButtonMode="while-editing"
-            />
-            <TouchableOpacity
-              className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-              onPress={handleCreateNew}
-            >
-              <Ionicons name="add" size={18} color="#fff" />
-              <Text className="text-base font-semibold text-white">New</Text>
-            </TouchableOpacity>
-          </View>
-        </Activity>
+        {Platform.OS === "web" && (
+          <>
+            <Header />
+            <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
+              <TextInput
+                className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
+                placeholder="Search event types"
+                placeholderTextColor="#9CA3AF"
+                value={searchQuery}
+                onChangeText={handleSearch}
+                autoCapitalize="none"
+                autoCorrect={false}
+                clearButtonMode="while-editing"
+              />
+              <TouchableOpacity
+                className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+                onPress={handleCreateNew}
+              >
+                <Ionicons name="add" size={18} color="#fff" />
+                <Text className="text-base font-semibold text-white">New</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <EmptyScreen
             icon="search-outline"
@@ -503,28 +498,30 @@ export default function EventTypes() {
           barTintColor="#fff"
         />
       </Stack.Header>
-      <Activity mode={Platform.OS === "web" || Platform.OS === "android" ? "visible" : "hidden"}>
-        <Header />
-        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-          <TextInput
-            className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-            placeholder="Search event types"
-            placeholderTextColor="#9CA3AF"
-            value={searchQuery}
-            onChangeText={handleSearch}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-          />
-          <TouchableOpacity
-            className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-            onPress={handleCreateNew}
-          >
-            <Ionicons name="add" size={18} color="#fff" />
-            <Text className="text-base font-semibold text-white">New</Text>
-          </TouchableOpacity>
-        </View>
-      </Activity>
+      {(Platform.OS === "web" || Platform.OS === "android") && (
+        <>
+          <Header />
+          <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
+            <TextInput
+              className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
+              placeholder="Search event types"
+              placeholderTextColor="#9CA3AF"
+              value={searchQuery}
+              onChangeText={handleSearch}
+              autoCapitalize="none"
+              autoCorrect={false}
+              clearButtonMode="while-editing"
+            />
+            <TouchableOpacity
+              className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+              onPress={handleCreateNew}
+            >
+              <Ionicons name="add" size={18} color="#fff" />
+              <Text className="text-base font-semibold text-white">New</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
 
       <ScrollView
         style={{ backgroundColor: "white" }}
