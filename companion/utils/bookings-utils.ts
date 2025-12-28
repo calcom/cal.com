@@ -50,7 +50,7 @@ export const formatTime = (dateString: string): string => {
   try {
     const date = new Date(dateString);
     if (Number.isNaN(date.getTime())) {
-      safeLogWarn("Invalid date string provided to formatTime");
+      safeLogWarn("Invalid date string provided to formatTime", { dateString });
       return "";
     }
     return date.toLocaleTimeString("en-US", {
@@ -77,7 +77,7 @@ export const formatDate = (dateString: string, isUpcoming: boolean): string => {
   try {
     const date = new Date(dateString);
     if (Number.isNaN(date.getTime())) {
-      safeLogWarn("Invalid date string provided to formatDate");
+      safeLogWarn("Invalid date string provided to formatDate", { dateString });
       return "";
     }
     const bookingYear = date.getFullYear();

@@ -18,8 +18,7 @@
       "deploymentTarget": "18.0",
       "bundleIdentifier": "com.calcom.companion",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "NSFileProtectionComplete": true
+        "ITSAppUsesNonExemptEncryption": false
       },
       "entitlements": {
         "com.apple.developer.default-data-protection": "NSFileProtectionComplete"

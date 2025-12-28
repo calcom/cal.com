@@ -337,11 +337,11 @@ async function testRawBookingsAPI(): Promise<void> {
     if (responseText?.trim()) {
       const _responseJson = safeParseJson(responseText);
       if (!_responseJson) {
-        safeLogError("[CalComAPIService] Failed to parse bookings response");
+        safeLogError("[CalComAPIService] Failed to parse bookings response", { responseText });
       }
     }
   } catch (_error) {
-    safeLogError("[CalComAPIService] testRawBookingsAPI failed");
+    safeLogError("[CalComAPIService] testRawBookingsAPI failed", { error: _error });
   }
 }
 
@@ -427,7 +427,7 @@ async function deleteEventType(eventTypeId: number): Promise<void> {
       "2024-06-14"
     );
   } catch (error) {
-    safeLogError("Delete API error");
+    safeLogError("Delete API error", { error, eventTypeId });
     throw error;
   }
 }
@@ -542,7 +542,7 @@ async function confirmBooking(bookingUid: string): Promise<Booking> {
 
     throw new Error("Invalid response from confirm booking API");
   } catch (error) {
-    safeLogError("confirmBooking error");
+    safeLogError("confirmBooking error", { error, bookingUid });
     throw error;
   }
 }

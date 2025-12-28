@@ -146,6 +146,7 @@ function safeParseErrorJson(
       obj.error === undefined ||
       (typeof obj.error === "object" &&
         obj.error !== null &&
+        !Array.isArray(obj.error) &&
         ((obj.error as Record<string, unknown>).message === undefined ||
           typeof (obj.error as Record<string, unknown>).message === "string"));
 

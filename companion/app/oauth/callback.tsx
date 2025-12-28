@@ -27,7 +27,7 @@ export default function OAuthCallback() {
     // Handle OAuth error response
     if (error) {
       const errorMessage = errorDescription || error || "OAuth authorization failed";
-      safeLogError("OAuth error occurred");
+      safeLogError("OAuth error occurred", { error, errorDescription });
 
       if (typeof window !== "undefined") {
         if (window.opener) {
@@ -76,7 +76,7 @@ export default function OAuthCallback() {
         }
       }
     } else {
-      safeLogError("No authorization code or state in OAuth callback");
+      safeLogError("No authorization code or state in OAuth callback", { code, state });
 
       // Handle error case
       if (typeof window !== "undefined") {

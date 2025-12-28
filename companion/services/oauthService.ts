@@ -465,7 +465,7 @@ export class CalComOAuthService {
         if (event.data.success) {
           resolve();
         } else {
-          safeLogWarn("Failed to sync tokens to extension");
+          safeLogWarn("Failed to sync tokens to extension", event.data.error);
           resolve();
         }
       };
@@ -509,7 +509,7 @@ export class CalComOAuthService {
         if (event.data.success) {
           resolve();
         } else {
-          safeLogWarn("Failed to clear tokens from extension");
+          safeLogWarn("Failed to clear tokens from extension", event.data.error);
           resolve();
         }
       };

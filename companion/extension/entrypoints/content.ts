@@ -2829,7 +2829,7 @@ export default defineContentScript({
             if (freshParsedData && freshParsedData.slots.length > 0) {
               showCalcomSuggestionMenu(chipElement, freshParsedData);
             } else {
-              devLog.log(" Failed to parse fresh data or no slots found");
+              devLog.log("Failed to parse fresh data or no slots found");
             }
           });
 
@@ -3129,7 +3129,7 @@ export default defineContentScript({
               window.removeEventListener("resize", updatePosition);
             };
           } catch (_error) {
-            devLog.error(" Failed to create or insert action bar");
+            devLog.error("Failed to create or insert action bar");
             // Clean up if something failed
             try {
               actionBar.remove();
@@ -3139,7 +3139,7 @@ export default defineContentScript({
           }
         } catch (_error) {
           // Catch-all to prevent breaking Gmail UI
-          devLog.error(" Error handling Google chip");
+          devLog.error("Error handling Google chip");
           return;
         }
       }
@@ -3174,7 +3174,7 @@ export default defineContentScript({
         // Remove existing menu if any (to support reopening with new data)
         const existingBackdrop = document.querySelector(".cal-companion-google-chip-backdrop");
         if (existingBackdrop) {
-          devLog.log(" Removing existing backdrop");
+          devLog.log("Removing existing backdrop");
           existingBackdrop.remove();
           // Wait a tick to ensure DOM is updated before creating new menu
           await new Promise((resolve) => setTimeout(resolve, 0));
@@ -3399,7 +3399,7 @@ export default defineContentScript({
                 "success"
               );
 
-              devLog.log(" Opening create URL:", createUrl);
+              devLog.log("Opening create URL:", createUrl);
             });
 
             createBtn?.addEventListener("mouseenter", (e) => {
@@ -3535,7 +3535,7 @@ export default defineContentScript({
                   selectedText.textContent = `${et.title} (${et.lengthInMinutes}min)`;
                 }
                 optionsContainer.style.display = "none";
-                devLog.log(" Event type changed to:", et.slug);
+                devLog.log("Event type changed to:", et.slug);
               });
 
               optionsContainer.appendChild(option);
@@ -3629,7 +3629,7 @@ export default defineContentScript({
 
             // Hover effect on entire slot item
             slotItem.addEventListener("mouseenter", () => {
-              devLog.log(" Mouse entered slot", index);
+              devLog.log("Mouse entered slot", index);
               slotItem.style.borderColor = "#000";
               slotItem.style.backgroundColor = "#f8f9fa";
               const btn = slotItem.querySelector(".insert-slot-btn") as HTMLElement;
@@ -3651,18 +3651,18 @@ export default defineContentScript({
           // Add event listeners for insert buttons
           const insertButtons = menu.querySelectorAll(".insert-slot-btn");
 
-          devLog.log(" Found", insertButtons.length, "insert buttons");
+          devLog.log("Found", insertButtons.length, "insert buttons");
 
           insertButtons.forEach((btn) => {
             btn.addEventListener("click", (e) => {
-              devLog.log(" Insert button clicked!");
+              devLog.log("Insert button clicked!");
               e.preventDefault();
               e.stopPropagation();
               const slotIndexAttr = btn.getAttribute("data-slot-index");
               if (!slotIndexAttr) return;
               const slotIndex = parseInt(slotIndexAttr, 10);
               const slot = parsedData.slots[slotIndex];
-              devLog.log(" Inserting link for slot", slotIndex, slot);
+              devLog.log("Inserting link for slot", slotIndex, slot);
 
               // Get selected event type from the tracked index
               const selectedEventType = matchingEventTypes[selectedEventTypeIndex];
@@ -3678,7 +3678,7 @@ export default defineContentScript({
               });
               const calcomUrl = `${baseUrl}?${params.toString()}`;
 
-              devLog.log(" Generated URL:", calcomUrl);
+              devLog.log("Generated URL:", calcomUrl);
 
               // Insert link into Gmail compose (pass chipElement to target the correct compose window)
               const inserted = insertGmailText(calcomUrl, chipElement);
@@ -3703,7 +3703,7 @@ export default defineContentScript({
                     actionBar.remove();
                   }
                 } catch (removeError) {
-                  devLog.warn(" Failed to remove chip/action bar:", removeError);
+                  devLog.warn("Failed to remove chip/action bar:", removeError);
                 }
               } else {
                 showGmailNotification("Failed to insert link", "error");
@@ -3820,7 +3820,7 @@ export default defineContentScript({
         try {
           // Validate input
           if (!chipElement || typeof chipElement.getAttribute !== "function") {
-            devLog.warn(" Invalid chip element passed to parser");
+            devLog.warn("Invalid chip element passed to parser");
             return null;
           }
 
@@ -3842,7 +3842,7 @@ export default defineContentScript({
           try {
             // First, try to get the IANA timezone from data-ad-hoc-v2-params
             const paramsAttr = chipElement.getAttribute("data-ad-hoc-v2-params");
-            devLog.log(" data-ad-hoc-v2-params:", paramsAttr);
+            devLog.log("data-ad-hoc-v2-params:", paramsAttr);
 
             if (paramsAttr) {
               // The timezone is at the end of the params string, like: "Asia/Kolkata"
@@ -3861,12 +3861,12 @@ export default defineContentScript({
 
               if (tzMatch?.[1]) {
                 timezone = tzMatch[1]; // e.g., "Asia/Kolkata"
-                devLog.log(" ✅ Parsed IANA timezone from data attribute:", timezone);
+                devLog.log("Parsed IANA timezone from data attribute:", timezone);
               } else {
-                devLog.warn(" ⚠️ Failed to extract timezone from params attribute");
+                devLog.warn("Failed to extract timezone from params attribute");
               }
             } else {
-              devLog.warn(" ⚠️ No data-ad-hoc-v2-params attribute found");
+              devLog.warn("No data-ad-hoc-v2-params attribute found");
             }
 
             // Also get the display timezone and offset from the UI text
@@ -3875,11 +3875,11 @@ export default defineContentScript({
 
             if (timezoneMatch) {
               timezoneOffset = timezoneMatch[3]?.trim() || "GMT+00:00";
-              devLog.log(" Parsed timezone offset from UI:", timezoneOffset);
+              devLog.log("Parsed timezone offset from UI:", timezoneOffset);
             }
           } catch (tzError) {
             // Non-critical error - continue with default timezone
-            devLog.warn(" Failed to parse timezone, using UTC:", tzError);
+            devLog.warn("Failed to parse timezone, using UTC:", tzError);
           }
 
           // Find all time slot links - critical for functionality
