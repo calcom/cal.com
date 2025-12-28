@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
-import { View, Text, ActivityIndicator, Platform } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { useAuth } from "../../contexts";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect } from "react";
+import { ActivityIndicator, Platform, Text, View } from "react-native";
+import { useAuth } from "@/contexts";
 
 export default function OAuthCallback() {
   const router = useRouter();
@@ -11,7 +11,7 @@ export default function OAuthCallback() {
   useEffect(() => {
     if (Platform.OS === "android") {
       if (auth.userInfo) {
-        router.replace("/(tabs)");
+        router.replace("/");
       }
     }
 
@@ -45,7 +45,7 @@ export default function OAuthCallback() {
             window.localStorage.setItem(`oauth_callback_error_${state}`, errorMessage);
             window.localStorage.setItem(`oauth_callback_error_code_${state}`, error);
           }
-          router.replace("/(tabs)");
+          router.replace("/");
         }
       }
       return;
@@ -71,7 +71,7 @@ export default function OAuthCallback() {
           window.close();
         } else {
           // Redirect to main app
-          router.replace("/(tabs)");
+          router.replace("/");
         }
       }
     } else {
@@ -89,11 +89,11 @@ export default function OAuthCallback() {
           );
           window.close();
         } else {
-          router.replace("/(tabs)");
+          router.replace("/");
         }
       }
     }
-  }, [params, router]);
+  }, [params, router, auth.userInfo]);
 
   return (
     <View className="flex-1 items-center justify-center bg-white">

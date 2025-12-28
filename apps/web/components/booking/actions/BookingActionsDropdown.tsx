@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { z } from "zod";
 
 import { MeetingSessionDetailsDialog } from "@calcom/features/ee/video/MeetingSessionDetailsDialog";
-import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
+import ViewRecordingsDialog from "~/ee/video/ViewRecordingsDialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";

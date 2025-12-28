@@ -1,56 +1,112 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
-import { useRouter, useLocalSearchParams, Stack } from "expo-router";
-import React, { useState, useEffect } from "react";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Switch,
-  Modal,
   Alert,
   Animated,
-  Image,
+  Modal,
   Platform,
+  ScrollView,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import * as Clipboard from "expo-clipboard";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
-import { showErrorAlert } from "../utils/alerts";
-import { openInAppBrowser } from "../utils/browser";
-import { LocationItem, LocationOptionGroup } from "../types/locations";
+import { AdvancedTab } from "@/components/event-type-detail/tabs/AdvancedTab";
+import { AvailabilityTab } from "@/components/event-type-detail/tabs/AvailabilityTab";
+import { BasicsTab } from "@/components/event-type-detail/tabs/BasicsTab";
+import { LimitsTab } from "@/components/event-type-detail/tabs/LimitsTab";
+import { RecurringTab } from "@/components/event-type-detail/tabs/RecurringTab";
+import { truncateTitle } from "@/components/event-type-detail/utils";
+import { buildPartialUpdatePayload } from "@/components/event-type-detail/utils/buildPartialUpdatePayload";
 import {
+  CalComAPIService,
+  type ConferencingOption,
+  type EventType,
+  type Schedule,
+} from "@/services/calcom";
+import type { LocationItem, LocationOptionGroup } from "@/types/locations";
+import { showErrorAlert } from "@/utils/alerts";
+import { openInAppBrowser } from "@/utils/browser";
+import {
+  buildLocationOptions,
   mapApiLocationToItem,
   mapItemToApiLocation,
-  buildLocationOptions,
   validateLocationItem,
-} from "../utils/locationHelpers";
-import {
-  parseBufferTime,
-  parseMinimumNotice,
-  parseFrequencyUnit,
-  parseSlotInterval,
-} from "../utils/eventTypeParsers";
-import { slugify } from "../utils/slugify";
-import { BasicsTab } from "../components/event-type-detail/tabs/BasicsTab";
-import { AvailabilityTab } from "../components/event-type-detail/tabs/AvailabilityTab";
-import { LimitsTab } from "../components/event-type-detail/tabs/LimitsTab";
-import { AdvancedTab } from "../components/event-type-detail/tabs/AdvancedTab";
-import { RecurringTab } from "../components/event-type-detail/tabs/RecurringTab";
-import {
-  formatDuration,
-  truncateTitle,
-  formatAppIdToDisplayName,
-} from "../components/event-type-detail/utils";
-import {
-  buildPartialUpdatePayload,
-  hasChanges,
-} from "../components/event-type-detail/utils/buildPartialUpdatePayload";
+} from "@/utils/locationHelpers";
 
-const tabs = [
+// Type definitions for extended EventType fields not in the base type
+interface EventTypeExtended {
+  lengthInMinutesOptions?: number[];
+  disableCancelling?: boolean;
+  disableRescheduling?: boolean;
+  sendCalVideoTranscription?: boolean;
+  autoTranslate?: boolean;
+  lockedTimeZone?: string;
+  hideCalendarEventDetails?: boolean;
+  hideOrganizerEmail?: boolean;
+  color?: {
+    lightThemeHex?: string;
+    darkThemeHex?: string;
+  };
+}
+
+interface BookerActiveBookingsLimitExtended {
+  disabled?: boolean;
+  maximumActiveBookings?: number;
+  count?: number;
+  offerReschedule?: boolean;
+}
+
+interface ConfirmationPolicyExtended {
+  disabled?: boolean;
+}
+
+interface RecurrenceExtended {
+  disabled?: boolean;
+  interval?: number;
+  frequency?: string;
+  occurrences?: number;
+}
+
+interface SeatsExtended {
+  disabled?: boolean;
+  seatsPerTimeSlot?: number;
+  showAttendeeInfo?: boolean;
+  showAvailabilityCount?: boolean;
+}
+
+interface ApiLocation {
+  type: string;
+  integration?: string;
+  address?: string;
+  link?: string;
+  phone?: string;
+  public?: boolean;
+}
+
+interface CreateEventTypePayload {
+  title: string;
+  slug: string;
+  lengthInMinutes: number;
+  description?: string;
+  locations?: ReturnType<typeof mapItemToApiLocation>[];
+  scheduleId?: number;
+  hidden?: boolean;
+}
+
+type TabIconName = "link" | "calendar" | "time" | "settings" | "refresh" | "ellipsis-horizontal";
+
+interface Tab {
+  id: string;
+  label: string;
+  icon: TabIconName;
+}
+
+const tabs: Tab[] = [
   { id: "basics", label: "Basics", icon: "link" },
   { id: "availability", label: "Availability", icon: "calendar" },
   { id: "limits", label: "Limits", icon: "time" },
@@ -60,14 +116,13 @@ const tabs = [
 ];
 
 export default function EventTypeDetail() {
+  "use no memo";
   const router = useRouter();
-  const { id, title, description, duration, price, currency, slug } = useLocalSearchParams<{
+  const { id, title, description, duration, slug } = useLocalSearchParams<{
     id: string;
     title: string;
     description?: string;
     duration: string;
-    price?: string;
-    currency?: string;
     slug?: string;
   }>();
 
@@ -82,9 +137,9 @@ export default function EventTypeDetail() {
   const [username, setUsername] = useState("username");
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
   const [locations, setLocations] = useState<LocationItem[]>([]);
-  const [locationAddress, setLocationAddress] = useState("");
-  const [locationLink, setLocationLink] = useState("");
-  const [locationPhone, setLocationPhone] = useState("");
+  const [_locationAddress, setLocationAddress] = useState("");
+  const [_locationLink, setLocationLink] = useState("");
+  const [_locationPhone, setLocationPhone] = useState("");
   const [selectedDurations, setSelectedDurations] = useState<string[]>([]);
   const [defaultDuration, setDefaultDuration] = useState("");
   const [showDurationDropdown, setShowDurationDropdown] = useState(false);
@@ -129,8 +184,6 @@ export default function EventTypeDetail() {
   const [rollingCalendarDays, setRollingCalendarDays] = useState(false);
   const [rangeStartDate, setRangeStartDate] = useState("");
   const [rangeEndDate, setRangeEndDate] = useState("");
-  const [offsetStartTimes, setOffsetStartTimes] = useState(false);
-  const [offsetStartValue, setOffsetStartValue] = useState("0");
 
   // Advanced tab state
   const [calendarEventName, setCalendarEventName] = useState("");
@@ -223,7 +276,11 @@ export default function EventTypeDetail() {
   ];
 
   const getLocationOptionsForDropdown = (): LocationOptionGroup[] => {
-    return buildLocationOptions(conferencingOptions);
+    // Filter out conferencing options with null appId
+    const validOptions = conferencingOptions.filter(
+      (opt): opt is ConferencingOption & { appId: string } => opt.appId !== null
+    );
+    return buildLocationOptions(validOptions);
   };
 
   const handleAddLocation = (location: LocationItem) => {
@@ -238,13 +295,6 @@ export default function EventTypeDetail() {
     setLocations((prev) =>
       prev.map((loc) => (loc.id === locationId ? { ...loc, ...updates } : loc))
     );
-  };
-
-  const getSelectedLocationIconUrl = (): string | null => {
-    if (locations.length > 0) {
-      return locations[0].iconUrl;
-    }
-    return null;
   };
 
   const toggleDurationSelection = (duration: string) => {
@@ -310,9 +360,25 @@ export default function EventTypeDetail() {
     );
   };
 
-  const fetchSchedules = async () => {
+  const fetchScheduleDetails = useCallback(async (scheduleId: number) => {
+    setScheduleDetailsLoading(true);
     try {
-      setSchedulesLoading(true);
+      const scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
+      setSelectedScheduleDetails(scheduleDetails);
+      if (scheduleDetails?.timeZone) {
+        setSelectedTimezone(scheduleDetails.timeZone);
+      }
+      setScheduleDetailsLoading(false);
+    } catch (error) {
+      console.error("Failed to fetch schedule details:", error);
+      setSelectedScheduleDetails(null);
+      setScheduleDetailsLoading(false);
+    }
+  }, []);
+
+  const fetchSchedules = useCallback(async () => {
+    setSchedulesLoading(true);
+    try {
       const schedulesData = await CalComAPIService.getSchedules();
       setSchedules(schedulesData);
 
@@ -322,46 +388,30 @@ export default function EventTypeDetail() {
         setSelectedSchedule(defaultSchedule);
         await fetchScheduleDetails(defaultSchedule.id);
       }
+      setSchedulesLoading(false);
     } catch (error) {
       console.error("Failed to fetch schedules:", error);
-    } finally {
       setSchedulesLoading(false);
     }
-  };
+  }, [fetchScheduleDetails]);
 
-  const fetchScheduleDetails = async (scheduleId: number) => {
+  const fetchConferencingOptions = useCallback(async () => {
+    setConferencingLoading(true);
     try {
-      setScheduleDetailsLoading(true);
-      const scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
-      setSelectedScheduleDetails(scheduleDetails);
-      if (scheduleDetails.timeZone) {
-        setSelectedTimezone(scheduleDetails.timeZone);
-      }
-    } catch (error) {
-      console.error("Failed to fetch schedule details:", error);
-      setSelectedScheduleDetails(null);
-    } finally {
-      setScheduleDetailsLoading(false);
-    }
-  };
-
-  const fetchConferencingOptions = async () => {
-    try {
-      setConferencingLoading(true);
       const options = await CalComAPIService.getConferencingOptions();
       setConferencingOptions(options);
+      setConferencingLoading(false);
     } catch (error) {
       console.error("Failed to fetch conferencing options:", error);
-    } finally {
       setConferencingLoading(false);
     }
-  };
+  }, []);
 
-  const fetchEventTypeData = async () => {
+  const fetchEventTypeData = useCallback(async () => {
     if (!id) return;
 
     try {
-      const eventType = await CalComAPIService.getEventTypeById(parseInt(id));
+      const eventType = await CalComAPIService.getEventTypeById(parseInt(id, 10));
       if (eventType) {
         setEventTypeData(eventType);
 
@@ -372,14 +422,14 @@ export default function EventTypeDetail() {
         if (eventType.lengthInMinutes) setEventDuration(eventType.lengthInMinutes.toString());
         if (eventType.hidden !== undefined) setIsHidden(eventType.hidden);
 
-        const eventTypeAny = eventType as any;
+        const eventTypeExt = eventType as EventType & EventTypeExtended;
         if (
-          eventTypeAny.lengthInMinutesOptions &&
-          Array.isArray(eventTypeAny.lengthInMinutesOptions) &&
-          eventTypeAny.lengthInMinutesOptions.length > 0
+          eventTypeExt.lengthInMinutesOptions &&
+          Array.isArray(eventTypeExt.lengthInMinutesOptions) &&
+          eventTypeExt.lengthInMinutesOptions.length > 0
         ) {
           setAllowMultipleDurations(true);
-          const durationStrings = eventTypeAny.lengthInMinutesOptions.map(
+          const durationStrings = eventTypeExt.lengthInMinutesOptions.map(
             (mins: number) => `${mins} mins`
           );
           setSelectedDurations(durationStrings);
@@ -422,7 +472,7 @@ export default function EventTypeDetail() {
         // Load booking frequency limits
         if (eventType.bookingLimitsCount && !("disabled" in eventType.bookingLimitsCount)) {
           setLimitBookingFrequency(true);
-          const limits = [];
+          const limits: { id: number; value: string; unit: string }[] = [];
           let idCounter = 1;
           if (eventType.bookingLimitsCount.day) {
             limits.push({
@@ -460,7 +510,7 @@ export default function EventTypeDetail() {
         // Load duration limits
         if (eventType.bookingLimitsDuration && !("disabled" in eventType.bookingLimitsDuration)) {
           setLimitTotalDuration(true);
-          const limits = [];
+          const limits: { id: number; value: string; unit: string }[] = [];
           let idCounter = 1;
           if (eventType.bookingLimitsDuration.day) {
             limits.push({
@@ -501,7 +551,8 @@ export default function EventTypeDetail() {
         }
 
         if (eventType.bookerActiveBookingsLimit) {
-          const bookingLimit = eventType.bookerActiveBookingsLimit as any;
+          const bookingLimit =
+            eventType.bookerActiveBookingsLimit as BookerActiveBookingsLimitExtended;
           if (!("disabled" in bookingLimit)) {
             const maxBookings = bookingLimit.maximumActiveBookings ?? bookingLimit.count;
             if (maxBookings !== undefined) {
@@ -534,38 +585,38 @@ export default function EventTypeDetail() {
           }
         }
 
-        const eventTypeAnyForAdvanced = eventType as any;
-
-        if (eventTypeAnyForAdvanced.disableCancelling !== undefined) {
-          setDisableCancelling(eventTypeAnyForAdvanced.disableCancelling);
+        if (eventTypeExt.disableCancelling !== undefined) {
+          setDisableCancelling(eventTypeExt.disableCancelling);
         } else if (eventType.metadata?.disableCancelling) {
           setDisableCancelling(true);
         }
 
-        if (eventTypeAnyForAdvanced.disableRescheduling !== undefined) {
-          setDisableRescheduling(eventTypeAnyForAdvanced.disableRescheduling);
+        if (eventTypeExt.disableRescheduling !== undefined) {
+          setDisableRescheduling(eventTypeExt.disableRescheduling);
         } else if (eventType.metadata?.disableRescheduling) {
           setDisableRescheduling(true);
         }
 
-        if (eventTypeAnyForAdvanced.sendCalVideoTranscription !== undefined) {
-          setSendCalVideoTranscription(eventTypeAnyForAdvanced.sendCalVideoTranscription);
+        if (eventTypeExt.sendCalVideoTranscription !== undefined) {
+          setSendCalVideoTranscription(eventTypeExt.sendCalVideoTranscription);
         } else if (eventType.metadata?.sendCalVideoTranscription) {
           setSendCalVideoTranscription(true);
         }
 
-        if (eventTypeAnyForAdvanced.autoTranslate !== undefined) {
-          setAutoTranslate(eventTypeAnyForAdvanced.autoTranslate);
+        if (eventTypeExt.autoTranslate !== undefined) {
+          setAutoTranslate(eventTypeExt.autoTranslate);
         } else if (eventType.metadata?.autoTranslate) {
           setAutoTranslate(true);
         }
 
         if (eventType.metadata) {
-          if (eventType.metadata.calendarEventName) {
-            setCalendarEventName(eventType.metadata.calendarEventName);
+          const calendarEventNameValue = eventType.metadata.calendarEventName;
+          if (typeof calendarEventNameValue === "string") {
+            setCalendarEventName(calendarEventNameValue);
           }
-          if (eventType.metadata.addToCalendarEmail) {
-            setAddToCalendarEmail(eventType.metadata.addToCalendarEmail);
+          const addToCalendarEmailValue = eventType.metadata.addToCalendarEmail;
+          if (typeof addToCalendarEmailValue === "string") {
+            setAddToCalendarEmail(addToCalendarEmailValue);
           }
         }
 
@@ -583,7 +634,7 @@ export default function EventTypeDetail() {
         }
 
         if (eventType.confirmationPolicy) {
-          const policy = eventType.confirmationPolicy as any;
+          const policy = eventType.confirmationPolicy as ConfirmationPolicyExtended;
           if (!("disabled" in policy) || policy.disabled === false) {
             setRequiresConfirmation(true);
           }
@@ -601,14 +652,14 @@ export default function EventTypeDetail() {
         if (eventType.lockTimeZoneToggleOnBookingPage !== undefined) {
           setLockTimezone(eventType.lockTimeZoneToggleOnBookingPage);
         }
-        if (eventTypeAny.lockedTimeZone) {
-          setLockedTimezone(eventTypeAny.lockedTimeZone);
+        if (eventTypeExt.lockedTimeZone) {
+          setLockedTimezone(eventTypeExt.lockedTimeZone);
         }
-        if (eventTypeAny.hideCalendarEventDetails !== undefined) {
-          setHideCalendarEventDetails(eventTypeAny.hideCalendarEventDetails);
+        if (eventTypeExt.hideCalendarEventDetails !== undefined) {
+          setHideCalendarEventDetails(eventTypeExt.hideCalendarEventDetails);
         }
-        if (eventTypeAny.hideOrganizerEmail !== undefined) {
-          setHideOrganizerEmail(eventTypeAny.hideOrganizerEmail);
+        if (eventTypeExt.hideOrganizerEmail !== undefined) {
+          setHideOrganizerEmail(eventTypeExt.hideOrganizerEmail);
         }
 
         // Load redirect URL
@@ -619,12 +670,12 @@ export default function EventTypeDetail() {
           setForwardParamsSuccessRedirect(eventType.forwardParamsSuccessRedirect);
         }
 
-        if (eventTypeAny.color) {
-          if (eventTypeAny.color.lightThemeHex) {
-            setEventTypeColorLight(eventTypeAny.color.lightThemeHex);
+        if (eventTypeExt.color) {
+          if (eventTypeExt.color.lightThemeHex) {
+            setEventTypeColorLight(eventTypeExt.color.lightThemeHex);
           }
-          if (eventTypeAny.color.darkThemeHex) {
-            setEventTypeColorDark(eventTypeAny.color.darkThemeHex);
+          if (eventTypeExt.color.darkThemeHex) {
+            setEventTypeColorDark(eventTypeExt.color.darkThemeHex);
           }
         }
         if (eventType.eventTypeColor) {
@@ -637,7 +688,7 @@ export default function EventTypeDetail() {
         }
 
         if (eventType.recurrence) {
-          const recurrence = eventType.recurrence as any;
+          const recurrence = eventType.recurrence as RecurrenceExtended;
           if (recurrence.disabled !== true && recurrence.interval && recurrence.frequency) {
             setRecurringEnabled(true);
             setRecurringInterval(recurrence.interval.toString());
@@ -650,7 +701,9 @@ export default function EventTypeDetail() {
         }
 
         if (eventType.locations && eventType.locations.length > 0) {
-          const mappedLocations = eventType.locations.map((loc: any) => mapApiLocationToItem(loc));
+          const mappedLocations = eventType.locations.map((loc: ApiLocation) =>
+            mapApiLocationToItem(loc)
+          );
           setLocations(mappedLocations);
 
           const firstLocation = eventType.locations[0];
@@ -670,7 +723,7 @@ export default function EventTypeDetail() {
         }
 
         if (eventType.seats) {
-          const seats = eventType.seats as any;
+          const seats = eventType.seats as SeatsExtended;
           const seatsAreEnabled =
             seats.disabled === false || (!("disabled" in seats) && seats.seatsPerTimeSlot);
 
@@ -691,7 +744,7 @@ export default function EventTypeDetail() {
     } catch (error) {
       console.error("Failed to fetch event type data:", error);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     if (activeTab === "availability") {
@@ -700,13 +753,13 @@ export default function EventTypeDetail() {
     if (activeTab === "basics") {
       fetchConferencingOptions();
     }
-  }, [activeTab]);
+  }, [activeTab, fetchConferencingOptions, fetchSchedules]);
 
   useEffect(() => {
     // Fetch event type data and conferencing options on initial load
     fetchEventTypeData();
     fetchConferencingOptions();
-  }, [id]);
+  }, [fetchConferencingOptions, fetchEventTypeData]);
 
   useEffect(() => {
     const fetchUsername = async () => {
@@ -740,7 +793,7 @@ export default function EventTypeDetail() {
         minute: "2-digit",
         hour12: true,
       });
-    } catch (error) {
+    } catch {
       return time; // Return original if parsing fails
     }
   };
@@ -823,13 +876,14 @@ export default function EventTypeDetail() {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
+          const eventTypeId = parseInt(id, 10);
+
+          if (Number.isNaN(eventTypeId)) {
+            showErrorAlert("Error", "Invalid event type ID");
+            return;
+          }
+
           try {
-            const eventTypeId = parseInt(id);
-
-            if (isNaN(eventTypeId)) {
-              throw new Error("Invalid event type ID");
-            }
-
             await CalComAPIService.deleteEventType(eventTypeId);
 
             Alert.alert("Success", "Event type deleted successfully", [
@@ -860,8 +914,8 @@ export default function EventTypeDetail() {
       return;
     }
 
-    const durationNum = parseInt(eventDuration);
-    if (isNaN(durationNum) || durationNum <= 0) {
+    const durationNum = parseInt(eventDuration, 10);
+    if (Number.isNaN(durationNum) || durationNum <= 0) {
       Alert.alert("Error", "Duration must be a positive number");
       return;
     }
@@ -880,12 +934,11 @@ export default function EventTypeDetail() {
     // Detect create vs update mode
     const isCreateMode = id === "new";
 
+    setSaving(true);
     try {
-      setSaving(true);
-
       if (isCreateMode) {
         // For CREATE mode, build full payload
-        const payload: any = {
+        const payload: CreateEventTypePayload = {
           title: eventTitle,
           slug: eventSlug,
           lengthInMinutes: durationNum,
@@ -913,6 +966,7 @@ export default function EventTypeDetail() {
             onPress: () => router.back(),
           },
         ]);
+        setSaving(false);
       } else {
         // For UPDATE mode, use partial update - only send changed fields
         const currentFormState = {
@@ -995,19 +1049,20 @@ export default function EventTypeDetail() {
 
         if (Object.keys(payload).length === 0) {
           Alert.alert("No Changes", "No changes were made to the event type.");
+          setSaving(false);
           return;
         }
 
-        await CalComAPIService.updateEventType(parseInt(id), payload);
+        await CalComAPIService.updateEventType(parseInt(id, 10), payload);
         Alert.alert("Success", "Event type updated successfully");
         // Refresh event type data to sync with server
         await fetchEventTypeData();
+        setSaving(false);
       }
     } catch (error) {
       console.error("Failed to save event type:", error);
       const action = isCreateMode ? "create" : "update";
       showErrorAlert("Error", `Failed to ${action} event type. Please try again.`);
-    } finally {
       setSaving(false);
     }
   };
@@ -1048,7 +1103,9 @@ export default function EventTypeDetail() {
             </Text>
 
             <TouchableOpacity
-              className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${saving ? "opacity-60" : ""}`}
+              className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${
+                saving ? "opacity-60" : ""
+              }`}
               onPress={handleSave}
               disabled={saving}
             >
@@ -1088,12 +1145,14 @@ export default function EventTypeDetail() {
                 >
                   <View className="flex-row items-center gap-2">
                     <Ionicons
-                      name={tab.icon as any}
+                      name={tab.icon}
                       size={18}
                       color={activeTab === tab.id ? "#007AFF" : "#666"}
                     />
                     <Text
-                      className={`text-base font-medium ${activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"}`}
+                      className={`text-base font-medium ${
+                        activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"
+                      }`}
                     >
                       {tab.label}
                     </Text>
@@ -1132,12 +1191,14 @@ export default function EventTypeDetail() {
                 >
                   <View className="flex-row items-center gap-2">
                     <Ionicons
-                      name={tab.icon as any}
+                      name={tab.icon}
                       size={18}
                       color={activeTab === tab.id ? "#007AFF" : "#666"}
                     />
                     <Text
-                      className={`text-base font-medium ${activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"}`}
+                      className={`text-base font-medium ${
+                        activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"
+                      }`}
                     >
                       {tab.label}
                     </Text>
@@ -1209,7 +1270,9 @@ export default function EventTypeDetail() {
                       onPress={() => toggleDurationSelection(duration)}
                     >
                       <Text
-                        className={`text-base text-[#333] ${selectedDurations.includes(duration) ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedDurations.includes(duration) ? "font-semibold" : ""
+                        }`}
                       >
                         {duration}
                       </Text>
@@ -1256,7 +1319,9 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${defaultDuration === duration ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        defaultDuration === duration ? "font-semibold" : ""
+                      }`}
                     >
                       {duration}
                     </Text>
@@ -1298,7 +1363,9 @@ export default function EventTypeDetail() {
                   >
                     <View className="flex-1 flex-row items-center justify-between">
                       <Text
-                        className={`text-base text-[#333] ${selectedSchedule?.id === schedule.id ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedSchedule?.id === schedule.id ? "font-semibold" : ""
+                        }`}
                       >
                         {schedule.name}
                       </Text>
@@ -1364,7 +1431,12 @@ export default function EventTypeDetail() {
                       }}
                     >
                       <Text
-                        className={`text-base text-[#333] ${selectedTimezone === tz || (selectedScheduleDetails?.timeZone === tz && !selectedTimezone) ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedTimezone === tz ||
+                          (selectedScheduleDetails?.timeZone === tz && !selectedTimezone)
+                            ? "font-semibold"
+                            : ""
+                        }`}
                       >
                         {tz}
                       </Text>
@@ -1406,7 +1478,9 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${beforeEventBuffer === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        beforeEventBuffer === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
@@ -1446,7 +1520,9 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${afterEventBuffer === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        afterEventBuffer === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
@@ -1486,7 +1562,9 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${minimumNoticeUnit === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        minimumNoticeUnit === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
@@ -1618,7 +1696,9 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${slotInterval === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        slotInterval === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
@@ -1658,7 +1738,9 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base capitalize text-[#333] ${recurringFrequency === option ? "font-semibold" : ""}`}
+                      className={`text-base capitalize text-[#333] ${
+                        recurringFrequency === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option === "weekly" ? "week" : option === "monthly" ? "month" : "year"}
                     </Text>
@@ -1957,3 +2039,4 @@ export default function EventTypeDetail() {
     </>
   );
 }
+// test unused variable
