@@ -3,9 +3,9 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack } from "expo-router";
 import { useState } from "react";
 
-import { BookingListScreen } from "../../../components/booking-list-screen/BookingListScreen";
-import { useEventTypes } from "../../../hooks";
-import { useActiveBookingFilter } from "../../../hooks/useActiveBookingFilter";
+import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
+import { useEventTypes } from "@/hooks";
+import { useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
 
 export default function Bookings() {
   const [searchQuery, setSearchQuery] = useState("");

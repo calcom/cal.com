@@ -12,8 +12,8 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import { Alert, KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { Booking } from "../../services/calcom";
-import { CalComAPIService } from "../../services/calcom";
+import type { Booking } from "@/services/calcom";
+import { CalComAPIService } from "@/services/calcom";
 
 // Location types configuration
 export const LOCATION_TYPES = {

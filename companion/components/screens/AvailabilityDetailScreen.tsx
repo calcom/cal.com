@@ -4,11 +4,11 @@ import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CalComAPIService, type Schedule } from "../../services/calcom";
-import type { ScheduleAvailability } from "../../services/types";
-import { showErrorAlert } from "../../utils/alerts";
-import { AppPressable } from "../AppPressable";
-import { FullScreenModal } from "../FullScreenModal";
+import { AppPressable } from "@/components/AppPressable";
+import { FullScreenModal } from "@/components/FullScreenModal";
+import { CalComAPIService, type Schedule } from "@/services/calcom";
+import type { ScheduleAvailability } from "@/services/types";
+import { showErrorAlert } from "@/utils/alerts";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];

@@ -16,13 +16,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import type { LocationItem, LocationOptionGroup } from "../types/locations";
+import type { LocationItem, LocationOptionGroup } from "@/types/locations";
 import {
   createLocationItemFromOption,
   getLocationInputLabel,
   getLocationInputPlaceholder,
   locationRequiresInput,
-} from "../utils/locationHelpers";
+} from "@/utils/locationHelpers";
 import { SvgImage } from "./SvgImage";
 
 interface LocationsListProps {

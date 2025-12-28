@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
-import type { Schedule } from "../../hooks";
-import { colors } from "../../theme/colors";
+import type { Schedule } from "@/hooks";
 
 interface ScheduleNameProps {
   name: string;
@@ -54,7 +53,7 @@ interface TimeZoneRowProps {
 export function TimeZoneRow({ timeZone }: TimeZoneRowProps) {
   return (
     <View className="mt-2 flex-row items-center">
-      <Ionicons name="globe-outline" size={14} color={colors.text.secondary} />
+      <Ionicons name="globe-outline" size={14} color="#666666" />
       <Text className="ml-1.5 text-sm text-cal-text-secondary">{timeZone}</Text>
     </View>
   );
@@ -81,7 +80,7 @@ export function ScheduleActionsButton({
         setShowActionsModal(true);
       }}
     >
-      <Ionicons name="ellipsis-horizontal" size={18} color={colors.text.emphasis} />
+      <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
     </TouchableOpacity>
   );
 }

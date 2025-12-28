@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
-import type { Schedule } from "../../../services/calcom";
+import type { Schedule } from "@/services/calcom";
 
 interface DaySchedule {
   day: string;

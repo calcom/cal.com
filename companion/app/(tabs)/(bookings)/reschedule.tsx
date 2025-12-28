@@ -1,10 +1,10 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Platform, Text, View } from "react-native";
-import { AppPressable } from "../../../components/AppPressable";
-import type { RescheduleScreenHandle } from "../../../components/screens/RescheduleScreen";
-import RescheduleScreenComponent from "../../../components/screens/RescheduleScreen";
-import { type Booking, CalComAPIService } from "../../../services/calcom";
+import { AppPressable } from "@/components/AppPressable";
+import type { RescheduleScreenHandle } from "@/components/screens/RescheduleScreen";
+import RescheduleScreenComponent from "@/components/screens/RescheduleScreen";
+import { type Booking, CalComAPIService } from "@/services/calcom";
 
 export default function Reschedule() {
   const { uid } = useLocalSearchParams<{ uid: string }>();

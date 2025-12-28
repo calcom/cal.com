@@ -1,9 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import type { EventType } from "../../services/types/event-types.types";
-import { colors } from "../../theme/colors";
-import { Tooltip } from "../Tooltip";
+import { Tooltip } from "@/components/Tooltip";
+import type { EventType } from "@/services/types/event-types.types";
 
 interface EventTypeTitleProps {
   title: string;
@@ -37,7 +36,7 @@ interface DurationBadgeProps {
 export function DurationBadge({ formattedDuration }: DurationBadgeProps) {
   return (
     <View className="mt-2 flex-row items-center self-start rounded-lg border border-cal-border bg-cal-border px-2 py-1">
-      <Ionicons name="time-outline" size={14} color={colors.brand.black} />
+      <Ionicons name="time-outline" size={14} color="#000000" />
       <Text className="ml-1.5 text-xs font-semibold text-cal-brand-black">{formattedDuration}</Text>
     </View>
   );
@@ -92,7 +91,7 @@ export function EventTypeActions({
           style={{ width: 32, height: 32 }}
           onPress={() => handlePreview(item)}
         >
-          <Ionicons name="open-outline" size={18} color={colors.text.emphasis} />
+          <Ionicons name="open-outline" size={18} color="#3C3F44" />
         </TouchableOpacity>
       </Tooltip>
       <Tooltip text={copiedEventTypeId === item.id ? "Copied!" : "Copy link"}>
@@ -102,14 +101,14 @@ export function EventTypeActions({
           onPress={() => handleCopyLink(item)}
         >
           {copiedEventTypeId === item.id ? (
-            <Ionicons name="checkmark" size={18} color={colors.accent.success} />
+            <Ionicons name="checkmark" size={18} color="#34C759" />
           ) : (
             <Svg
               width="18"
               height="18"
               viewBox="0 0 24 24"
               fill="none"
-              stroke={colors.text.emphasis}
+              stroke="#3C3F44"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -126,7 +125,7 @@ export function EventTypeActions({
           style={{ width: 32, height: 32 }}
           onPress={() => handleEventTypeLongPress(item)}
         >
-          <Ionicons name="ellipsis-horizontal" size={18} color={colors.text.emphasis} />
+          <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
         </TouchableOpacity>
       </Tooltip>
     </View>

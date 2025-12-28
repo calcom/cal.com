@@ -1,7 +1,7 @@
-import type { EventType } from "../../services/types/event-types.types";
-import { formatDuration } from "../../utils/formatters";
-import { getEventDuration } from "../../utils/getEventDuration";
-import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
+import type { EventType } from "@/services/types/event-types.types";
+import { formatDuration } from "@/utils/formatters";
+import { getEventDuration } from "@/utils/getEventDuration";
+import { normalizeMarkdown } from "@/utils/normalizeMarkdown";
 
 export interface EventTypeListItemData {
   duration: number;

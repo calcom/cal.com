@@ -8,4 +8,4 @@ export {
   createQueryPersister,
   getCacheMetadata,
   storage,
-} from "../utils/queryPersister";
+} from "@/utils/queryPersister";

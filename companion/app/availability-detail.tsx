@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams } from "expo-router";
-import { AvailabilityDetailScreen } from "../components/screens/AvailabilityDetailScreen";
+import { AvailabilityDetailScreen } from "@/components/screens/AvailabilityDetailScreen";
 
 export default function AvailabilityDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();

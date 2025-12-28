@@ -1,9 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Linking, Text, TouchableOpacity, View } from "react-native";
-import type { Booking } from "../../services/calcom";
-import { colors } from "../../theme/colors";
-import { showErrorAlert } from "../../utils/alerts";
-import { SvgImage } from "../SvgImage";
+import { SvgImage } from "@/components/SvgImage";
+import type { Booking } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
 import type { BookingListItemData } from "./useBookingListItemData";
 
 interface TimeAndDateRowProps {
@@ -81,7 +80,7 @@ export function HostAndAttendees({
       <Text className="text-sm text-cal-text">{hostAndAttendeesDisplay}</Text>
       {hasNoShowAttendee && (
         <View className="ml-2 flex-row items-center rounded-full bg-[#FEE2E2] px-1.5 py-0.5">
-          <Ionicons name="eye-off" size={10} color={colors.accent.destructive} />
+          <Ionicons name="eye-off" size={10} color="#DC2626" />
           <Text className="ml-0.5 text-[10px] font-medium text-cal-accent-destructive">
             No-show
           </Text>
@@ -115,12 +114,7 @@ export function MeetingLink({ meetingInfo }: MeetingLinkProps) {
         {meetingInfo.iconUrl ? (
           <SvgImage uri={meetingInfo.iconUrl} width={16} height={16} style={{ marginRight: 6 }} />
         ) : (
-          <Ionicons
-            name="videocam"
-            size={16}
-            color={colors.accent.DEFAULT}
-            style={{ marginRight: 6 }}
-          />
+          <Ionicons name="videocam" size={16} color="#007AFF" style={{ marginRight: 6 }} />
         )}
         <Text className="text-sm font-medium text-cal-accent">{meetingInfo.label}</Text>
       </TouchableOpacity>
@@ -161,7 +155,7 @@ export function ConfirmRejectButtons({
           onConfirm(booking);
         }}
       >
-        <Ionicons name="checkmark" size={16} color={colors.text.emphasis} />
+        <Ionicons name="checkmark" size={16} color="#3C3F44" />
         <Text className="ml-1 text-sm font-medium text-cal-text-emphasis">Confirm</Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -177,7 +171,7 @@ export function ConfirmRejectButtons({
           onReject(booking);
         }}
       >
-        <Ionicons name="close" size={16} color={colors.text.emphasis} />
+        <Ionicons name="close" size={16} color="#3C3F44" />
         <Text className="ml-1 text-sm font-medium text-cal-text-emphasis">Reject</Text>
       </TouchableOpacity>
     </>

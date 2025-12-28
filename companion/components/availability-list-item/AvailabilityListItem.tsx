@@ -1,5 +1,5 @@
 import { TouchableOpacity, View } from "react-native";
-import type { Schedule } from "../../hooks";
+import type { Schedule } from "@/hooks";
 import {
   AvailabilitySlots,
   ScheduleActionsButton,

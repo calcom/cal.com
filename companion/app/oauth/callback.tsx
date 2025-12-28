@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, Platform, Text, View } from "react-native";
-import { useAuth } from "../../contexts";
+import { useAuth } from "@/contexts";
 
 export default function OAuthCallback() {
   const router = useRouter();

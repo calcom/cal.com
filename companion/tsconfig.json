@@ -10,7 +10,6 @@
       "@/utils/*": ["./utils/*"],
       "@/services/*": ["./services/*"],
       "@/contexts/*": ["./contexts/*"],
-      "@/theme/*": ["./theme/*"],
       "@/config/*": ["./config/*"],
       "@/types/*": ["./types/*"]
     }

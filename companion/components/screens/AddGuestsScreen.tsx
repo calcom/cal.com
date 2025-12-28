@@ -18,8 +18,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { Booking } from "../../services/calcom";
-import { CalComAPIService } from "../../services/calcom";
+import type { Booking } from "@/services/calcom";
+import { CalComAPIService } from "@/services/calcom";
 
 export interface AddGuestsScreenProps {
   booking: Booking | null;

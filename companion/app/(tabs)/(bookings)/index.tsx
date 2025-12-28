@@ -3,11 +3,11 @@ import SegmentedControl from "@react-native-segmented-control/segmented-control"
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
-import { BookingListScreen } from "../../../components/booking-list-screen/BookingListScreen";
-import { Header } from "../../../components/Header";
-import { useActiveBookingFilter } from "../../../hooks/useActiveBookingFilter";
-import type { EventType } from "../../../services/calcom";
-import { CalComAPIService } from "../../../services/calcom";
+import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
+import { Header } from "@/components/Header";
+import { useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
+import type { EventType } from "@/services/calcom";
+import { CalComAPIService } from "@/services/calcom";
 
 export default function Bookings() {
   const [searchQuery, setSearchQuery] = useState("");

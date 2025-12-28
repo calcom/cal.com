@@ -1,9 +1,9 @@
 import { Stack } from "expo-router";
 import { Platform, StatusBar, View } from "react-native";
-import LoginScreenComponent from "../components/LoginScreen";
-import { NetworkStatusBanner } from "../components/NetworkStatusBanner";
-import { AuthProvider, useAuth } from "../contexts/AuthContext";
-import { QueryProvider } from "../contexts/QueryContext";
+import LoginScreenComponent from "@/components/LoginScreen";
+import { NetworkStatusBanner } from "@/components/NetworkStatusBanner";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { QueryProvider } from "@/contexts/QueryContext";
 import "../global.css";
 
 function RootLayoutContent() {

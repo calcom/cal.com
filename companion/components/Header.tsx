@@ -12,9 +12,9 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CalComAPIService, type UserProfile } from "../services/calcom";
-import { openInAppBrowser } from "../utils/browser";
-import { getAvatarUrl } from "../utils/getAvatarUrl";
+import { CalComAPIService, type UserProfile } from "@/services/calcom";
+import { openInAppBrowser } from "@/utils/browser";
+import { getAvatarUrl } from "@/utils/getAvatarUrl";
 import { CalComLogo } from "./CalComLogo";
 import { FullScreenModal } from "./FullScreenModal";
 

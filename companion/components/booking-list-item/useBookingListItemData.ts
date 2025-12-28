@@ -1,6 +1,6 @@
-import type { Booking } from "../../services/calcom";
-import { formatDate, formatTime, getHostAndAttendeesDisplay } from "../../utils/bookings-utils";
-import { getMeetingInfo } from "../../utils/meetings-utils";
+import type { Booking } from "@/services/calcom";
+import { formatDate, formatTime, getHostAndAttendeesDisplay } from "@/utils/bookings-utils";
+import { getMeetingInfo } from "@/utils/meetings-utils";
 
 export interface BookingListItemData {
   startTime: string;

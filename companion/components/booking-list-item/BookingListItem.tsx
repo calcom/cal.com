@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import type React from "react";
 import { TouchableOpacity, View } from "react-native";
-import { colors } from "../../theme/colors";
 import {
   BadgesRow,
   BookingDescription,
@@ -74,7 +73,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
             onActionsPress(booking);
           }}
         >
-          <Ionicons name="ellipsis-horizontal" size={18} color={colors.text.emphasis} />
+          <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
         </TouchableOpacity>
       </View>
     </View>

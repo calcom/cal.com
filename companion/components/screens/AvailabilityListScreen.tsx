@@ -12,23 +12,23 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { AppPressable } from "../../components/AppPressable";
-import { AvailabilityListItem } from "../../components/availability-list-item/AvailabilityListItem";
-import { EmptyScreen } from "../../components/EmptyScreen";
-import { FullScreenModal } from "../../components/FullScreenModal";
-import { Header } from "../../components/Header";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { AppPressable } from "@/components/AppPressable";
+import { AvailabilityListItem } from "@/components/availability-list-item/AvailabilityListItem";
+import { EmptyScreen } from "@/components/EmptyScreen";
+import { FullScreenModal } from "@/components/FullScreenModal";
+import { Header } from "@/components/Header";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
   useCreateSchedule,
   useDeleteSchedule,
   useDuplicateSchedule,
   useSchedules,
   useSetScheduleAsDefault,
-} from "../../hooks";
-import { CalComAPIService, type Schedule } from "../../services/calcom";
-import { showErrorAlert } from "../../utils/alerts";
-import { offlineAwareRefresh } from "../../utils/network";
-import { shadows } from "../../utils/shadows";
+} from "@/hooks";
+import { CalComAPIService, type Schedule } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
+import { offlineAwareRefresh } from "@/utils/network";
+import { shadows } from "@/utils/shadows";
 
 export interface AvailabilityListScreenProps {
   searchQuery: string;

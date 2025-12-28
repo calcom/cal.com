@@ -15,26 +15,26 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { EmptyScreen } from "../../../components/EmptyScreen";
-import { EventTypeListItem } from "../../../components/event-type-list-item/EventTypeListItem";
-import { FullScreenModal } from "../../../components/FullScreenModal";
-import { Header } from "../../../components/Header";
-import { LoadingSpinner } from "../../../components/LoadingSpinner";
+import { EmptyScreen } from "@/components/EmptyScreen";
+import { EventTypeListItem } from "@/components/event-type-list-item/EventTypeListItem";
+import { FullScreenModal } from "@/components/FullScreenModal";
+import { Header } from "@/components/Header";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
   useCreateEventType,
   useDeleteEventType,
   useDuplicateEventType,
   useEventTypes,
   useUsername,
-} from "../../../hooks";
-import { CalComAPIService, type EventType } from "../../../services/calcom";
-import { showErrorAlert } from "../../../utils/alerts";
-import { openInAppBrowser } from "../../../utils/browser";
-import { getEventDuration } from "../../../utils/getEventDuration";
-import { offlineAwareRefresh } from "../../../utils/network";
-import { normalizeMarkdown } from "../../../utils/normalizeMarkdown";
-import { shadows } from "../../../utils/shadows";
-import { slugify } from "../../../utils/slugify";
+} from "@/hooks";
+import { CalComAPIService, type EventType } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
+import { openInAppBrowser } from "@/utils/browser";
+import { getEventDuration } from "@/utils/getEventDuration";
+import { offlineAwareRefresh } from "@/utils/network";
+import { normalizeMarkdown } from "@/utils/normalizeMarkdown";
+import { shadows } from "@/utils/shadows";
+import { slugify } from "@/utils/slugify";
 
 export default function EventTypes() {
   const router = useRouter();

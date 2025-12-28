@@ -1,9 +1,9 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Platform, View } from "react-native";
-import MeetingSessionDetailsScreenComponent from "../../../components/screens/MeetingSessionDetailsScreen";
-import { CalComAPIService } from "../../../services/calcom";
-import type { ConferencingSession } from "../../../services/types/bookings.types";
+import MeetingSessionDetailsScreenComponent from "@/components/screens/MeetingSessionDetailsScreen";
+import { CalComAPIService } from "@/services/calcom";
+import type { ConferencingSession } from "@/services/types/bookings.types";
 
 export default function MeetingSessionDetails() {
   const { uid } = useLocalSearchParams<{ uid: string }>();

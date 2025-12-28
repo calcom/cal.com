@@ -4,7 +4,7 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import React from "react";
 import { Pressable, View } from "react-native";
 import type { SFSymbols7_0 } from "sf-symbols-typescript";
-import { getBookingActions } from "../../utils/booking-actions";
+import { getBookingActions } from "@/utils/booking-actions";
 import {
   BadgesRow,
   BookingDescription,

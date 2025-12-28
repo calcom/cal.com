@@ -8,7 +8,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { FlatList, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { ConferencingSession } from "../../services/types/bookings.types";
+import type { ConferencingSession } from "@/services/types/bookings.types";
 
 export interface MeetingSessionDetailsScreenProps {
   sessions: ConferencingSession[];

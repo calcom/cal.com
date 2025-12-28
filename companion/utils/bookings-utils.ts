@@ -1,5 +1,5 @@
-import type { BookingFilter } from "../hooks";
-import type { Booking } from "../services/calcom";
+import type { BookingFilter } from "@/hooks";
+import type { Booking } from "@/services/calcom";
 
 export const getEmptyStateContent = (activeFilter: BookingFilter) => {
   switch (activeFilter) {
