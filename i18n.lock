@@ -311,6 +311,7 @@ checksums:
     unconfirmed: a9cb4019bbb8bec185d170f199d19aa9
     guests: 756a3f36da0e6efd1408771b7f6b7633
     guest: 2aec6d6ebe0d9a1db0a5c8cd5a98b8c3
+    attendee: a22f05db9dbc4d4ed81acc8582cee94e
     web_conferencing_details_to_follow: de8fbfde846f5ee46e8403c09082b0f4
     confirmation: ebb1337db939a809134360c04d4fc13a
     cancellation: e44a818c58bdd9d63ca519f3e70a0fd2
@@ -2888,6 +2889,7 @@ checksums:
     field_identifiers_as_variables: 9f6c1036e8141f7395b20f605c1250b6
     field_identifiers_as_variables_with_example: 87ae50996eaecebd0f20caf83f1625a8
     account_already_linked: 26bea87b637a83247e0975aefc091bda
+    no_default_calendar: f6c8e1edd05e92daa9488131cfe9695c
     send_email: 0ef83c0bb40de25921a9ee7fa05babec
     cal_ai_phone_call_action: c7cb094eec2df48e1741afde2283da13
     call_to_confirm_booking: 1c1929934d2f3b120b354c463920452d
@@ -3831,6 +3833,8 @@ checksums:
     webhook_attendee_email: 84ba9a09117d2ee1b6ccb1c91dde5598
     webhook_attendee_timezone: 28b44fac88a7af5de712b4170d4e4920
     webhook_attendee_locale: dd37c0674bd20bf0bddc2d951c567877
+    webhook_version: 549abf03a44b42b7e350d7a6932c3dbc
+    webhook_version_docs: c30016888db5a54c67a43e0a7233fcd8
     webhook_team_name: 8bb3366631903cb55a91cc7bd0e0c62c
     webhook_team_members: 114f7a3657f4a5701f6f5c95854633e7
     webhook_video_call_url: 624f25ce42822b089ef424e2a329815d
@@ -4057,6 +4061,9 @@ checksums:
     no_available_users_found_input: b2dce054c1a3729a54d140081fc368c9
     repeats_num_times: 2922c26890f54267a1a46998795ceca6
     view_booking_details: 8a7a3bff65f2509d23a349854f544c64
+    cannot_delete_event_type: 4adb66aa5de55e9c11697ed4b0fcae59
+    delete_event_type_confirmation: c7130f60c67779778ae10d8189310e22
+    error_loading_event_types: f7ce3b0b581defe99104954e27053a1f
     recurring_booking_description: bc353364a8a090d44f25af5a47d196c1
     team_bio: 718f10405bce9618f9de982a1a2be6f5
     team_bio_placeholder: 2b7dc894e123f876c5eee946ce523cab
@@ -4106,11 +4113,48 @@ checksums:
     booking_response: ba179fb41d5cf7717c2136f578e72dc8
     list_view: bef8472e5c2cd4fb3b93313e02592a72
     calendar_view: 662fb27a9c1c08836c17bbf98d17bc62
+    holidays: efdb01f2053293b5cd5616a64ac45105
+    holidays_description: f9b122d5c9d51c33f14830fb33a1ea84
+    country_for_holidays: dfe8d0d9b88c4b659ffcc7ee4a91f078
+    select_country: 66388f03cbcc36fd81849a22682c2eb5
+    no_holidays: eb2d16cfc05077be418fa1e57a033e4e
+    holidays_list: efdb01f2053293b5cd5616a64ac45105
+    no_holidays_selected: 120fb391b616e3a62dd3206777278e07
+    select_country_to_see_holidays: 6c1bd0d9f369acfc6cb91842f76e67aa
+    holiday_settings_updated: bffb4429ba1709228bb004016ef5c246
+    holiday_no_availability: 99b1c23410955216c548cdabff7ee286
+    holiday_booking_conflict_warning_one: 456a74650e8b74a0984d3d22c1dd69a2
+    holiday_booking_conflict_warning_other: 6c0fba20f71e4f35db59656d302ac823
+    holiday_overlap_info: 9bf56136627dd3f446a9b26eafcd0af6
+    holiday_overlap_message_single: 496bf015280eb4bab029193024ed618a
+    holiday_overlap_message_multiple: 40af38820c9d94e76e4b0014e547fac3
+    no_holidays_found_for_country: 470698dc893b90d7a8cbb9a58697f884
+    booking_count_one: 1000698b75d4912758e8bd020cd7edf2
+    booking_count_other: 41334f3d2b0b992d271b0fb55e5a682a
+    and_more_holidays_with_conflicts_one: e8dc676506dbdd90cc90866c9c9ef598
+    and_more_holidays_with_conflicts_other: 0d8baa4a87bce9d0c675c3623596e76b
     assignment_reason: 2903818c2b550f7e29ac5dc18d6dae71
     saved: 6554b923011266821d74e06e013a40e6
     booking_history: 13b6582720003c3a8dc623f883ea212b
     booking_history_description: 3c31ae749b7267090d5bee01c0cdc83b
-    audit_action/created: 6045b4ff97fb7dca19ebadfa2e34a700
+    booking_audit_action/created: 6045b4ff97fb7dca19ebadfa2e34a700
+    booking_audit_action/cancelled: a2bf1284fcc69487979e3c21bd5e840b
+    booking_audit_action/rescheduled: 5ec0e2cc68ea2e2f9006f718d0077f20
+    booking_audit_action/rescheduled_from: a2aef6d70f04066b472df4c3291ae542
+    booking_audit_action/accepted: ea2ed23f35f8b090b5a994ac64ec588a
+    booking_audit_action/reschedule_requested: 4447bc49bf1842dad7e421bc250acc0e
+    booking_audit_action/attendee_added: 209658a8acb4fc65f42e274d1776a138
+    booking_audit_action/host_no_show_updated: 9b925d2e65a282c7bcf854ce12d0b71d
+    booking_audit_action/rejected: 30202c9a9a2093021b0e9a1c61717fe9
+    booking_audit_action/attendee_removed: 90dbec3438c51fccd26748bff57ea920
+    booking_audit_action/reassignment: 07f514f09d63bef53b7bf1f4e2625cee
+    booking_audit_action/booking_reassigned_to_host: 9eb99d1201d75ac0366daf0f09bc360a
+    booking_audit_action/location_changed: d4ff279b6400ad9c1b37517597976351
+    booking_audit_action/location_changed_from_to: 904f21db3689a531957b1e8a28b2e3d7
+    booking_audit_action/attendee_no_show_updated: 7e40f434f5eaa7801834bd8e9b3882d7
+    booking_audit_action/type: 39fc6aaaa71126c54e4e0b1240cfc944
+    booking_audit_action/assignmentType_manual: a2b0a30df1960410a290e0fa6cff2652
+    booking_audit_action/assignmentType_roundRobin: 5400ab8b8ee0b110b4b69950a8ff07df
     error_loading_booking_logs: feda9ea6cc7e2a363c10d473e71d4dc5
     no_audit_logs_found: 394ad0c0a33bcf8cd2819b2b9cdc5ab2
     hide_details: 51086404511c662af46ac4e54838f38f
@@ -4119,4 +4163,11 @@ checksums:
     timestamp: dca66baee66b56fa66e399798d9e4976
     json: ee6f06302cf03eb777f1eb17b37da029
     hubspot_ignore_guests: f56d10682d9a637a4bec42abcd212a35
+    saml_idp_not_authoritative_error: 63ce1ec43651e25afd2621cf52b80022
+    audit_logs_organization_required: 4726fedc1d1395faa9ead2f5299a2793
+    audit_logs_booking_not_found_or_permission_denied: 63a3cf5a18de5763400965601fbea996
+    audit_logs_booking_has_no_owner: 8c49e6b9e6bbc33755be65292d4883ee
+    audit_logs_owner_not_in_organization: da40f768f9f5fddd92f62b8a311f9c91
+    audit_logs_permission_denied: 716699ace78429109227cabdb4f63fb2
+    audit_logs_permission_check_error: 879663fdd0f7b3fdc47c606adea2d164
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
