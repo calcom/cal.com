@@ -27,6 +27,11 @@
     "react-i18next": "12.3.1",
     "stripe": "9.16.0"
   },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "zod": "^3.0.0"
+  },
   "devDependencies": {
     "@calcom/eslint-config": "workspace:*",
     "@calcom/types": "workspace:*"
