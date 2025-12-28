@@ -1,7 +1,7 @@
+import { useState } from "react";
+import { Alert, Platform, Text, TouchableOpacity } from "react-native";
 import { useAuth } from "../contexts/AuthContext";
 import { LogoutConfirmModal } from "./LogoutConfirmModal";
-import React, { useState } from "react";
-import { TouchableOpacity, Text, Alert, Platform } from "react-native";
 
 interface LogoutButtonProps {
   className?: string;

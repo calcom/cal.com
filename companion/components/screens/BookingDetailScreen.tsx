@@ -1,20 +1,18 @@
-import { CalComAPIService, Booking } from "../../services/calcom";
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, Alert, Platform, ScrollView, Text, View } from "react-native";
 import { useAuth } from "../../contexts/AuthContext";
-import { useBookingActionModals } from "../../hooks";
+import { type Booking, CalComAPIService } from "../../services/calcom";
 import { showErrorAlert } from "../../utils/alerts";
-import { getBookingActions, type BookingActionsResult } from "../../utils/booking-actions";
+import { type BookingActionsResult, getBookingActions } from "../../utils/booking-actions";
 import { openInAppBrowser } from "../../utils/browser";
-import { getDefaultLocationIconUrl, defaultLocations } from "../../utils/defaultLocations";
+import { defaultLocations, getDefaultLocationIconUrl } from "../../utils/defaultLocations";
 import { formatAppIdToDisplayName } from "../../utils/formatters";
 import { getAppIconUrl } from "../../utils/getAppIconUrl";
 import { AppPressable } from "../AppPressable";
 import { BookingActionsModal } from "../BookingActionsModal";
 import { SvgImage } from "../SvgImage";
-import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { View, Text, ScrollView, Alert, ActivityIndicator, Platform } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -31,47 +29,36 @@ const EMPTY_ACTIONS: BookingActionsResult = {
 // Format date: "Tuesday, November 25, 2025"
 const formatDateFull = (dateString: string): string => {
   if (!dateString) return "";
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  } catch (error) {
-    return "";
-  }
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 };
 
 // Format time: "9:40pm - 10:00pm"
 const formatTime12Hour = (dateString: string): string => {
   if (!dateString) return "";
-  try {
-    const date = new Date(dateString);
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const period = hours >= 12 ? "pm" : "am";
-    const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-    const minStr = minutes.toString().padStart(2, "0");
-    return `${hour12}:${minStr}${period}`;
-  } catch (error) {
-    return "";
-  }
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "";
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const period = hours >= 12 ? "pm" : "am";
+  const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  const minStr = minutes.toString().padStart(2, "0");
+  return `${hour12}:${minStr}${period}`;
 };
 
 // Get timezone from date string
-const getTimezone = (dateString: string): string => {
-  if (!dateString) return "";
-  try {
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    return timeZone;
-  } catch (error) {
-    return "";
-  }
+const getTimezone = (_dateString: string): string => {
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return timeZone || "";
 };
 
-// Get initials from a name (e.g., "Keith Williams" -> "KW", "Dhairyashil Shinde" -> "DS")
+// Get initials from a name(e.g., "Keith Williams" -> "KW", "Dhairyashil Shinde" -> "DS")
 const getInitials = (name: string): string => {
   if (!name) return "";
   const parts = name.trim().split(/\s+/);
@@ -189,8 +176,8 @@ export interface BookingDetailScreenProps {
 }
 
 export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreenProps) {
+  "use no memo";
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { userInfo } = useAuth();
 
   const [loading, setLoading] = useState(true);
@@ -227,6 +214,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
             onPress: () => router.back(),
           },
         ]);
+        setIsCancelling(false);
       } catch (error) {
         console.error("Failed to cancel booking");
         if (__DEV__) {
@@ -234,7 +222,6 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
           console.debug("[BookingDetailScreen] cancelBooking failed", { message });
         }
         showErrorAlert("Error", "Failed to cancel booking. Please try again.");
-      } finally {
         setIsCancelling(false);
       }
     },
@@ -260,7 +247,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
                 {
                   text: "Cancel Booking",
                   style: "destructive",
-                  onPress: (reason) => {
+                  onPress: (reason?: string) => {
                     performCancelBooking(reason?.trim() || "Cancelled by host");
                   },
                 },
@@ -332,11 +319,47 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
     });
   }, [booking, router]);
 
+  const fetchBooking = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const bookingData = await CalComAPIService.getBookingByUid(uid);
+      // Avoid logging booking payloads: they may contain PII (names/emails/notes).
+      if (__DEV__) {
+        console.debug("[BookingDetailScreen] booking fetched", {
+          uid: bookingData.uid,
+          status: bookingData.status,
+          hostCount: bookingData.hosts?.length ?? (bookingData.user ? 1 : 0),
+          attendeeCount: bookingData.attendees?.length ?? 0,
+          hasRecurringEventId: Boolean(bookingData.recurringEventId),
+        });
+      }
+      setBooking(bookingData);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching booking");
+      if (__DEV__) {
+        const message = err instanceof Error ? err.message : String(err);
+        const stack = err instanceof Error ? err.stack : undefined;
+        console.debug("[BookingDetailScreen] fetchBooking failed", { message, stack });
+      }
+      setError("Failed to load booking. Please try again.");
+      if (__DEV__) {
+        Alert.alert("Error", "Failed to load booking. Please try again.", [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } else {
+        router.back();
+      }
+      setLoading(false);
+    }
+  }, [uid, router]);
+
   useEffect(() => {
     if (uid) {
       fetchBooking();
     }
-  }, [uid]);
+  }, [uid, fetchBooking]);
 
   // Expose action handlers to parent component (for iOS header menu)
   useEffect(() => {
@@ -362,42 +385,6 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
     handleCancelBooking,
     openMarkNoShowModal,
   ]);
-
-  const fetchBooking = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const bookingData = await CalComAPIService.getBookingByUid(uid);
-      // Avoid logging booking payloads: they may contain PII (names/emails/notes).
-      if (__DEV__) {
-        console.debug("[BookingDetailScreen] booking fetched", {
-          uid: bookingData.uid,
-          status: bookingData.status,
-          hostCount: bookingData.hosts?.length ?? (bookingData.user ? 1 : 0),
-          attendeeCount: bookingData.attendees?.length ?? 0,
-          hasRecurringEventId: Boolean(bookingData.recurringEventId),
-        });
-      }
-      setBooking(bookingData);
-    } catch (err) {
-      console.error("Error fetching booking");
-      if (__DEV__) {
-        const message = err instanceof Error ? err.message : String(err);
-        const stack = err instanceof Error ? err.stack : undefined;
-        console.debug("[BookingDetailScreen] fetchBooking failed", { message, stack });
-      }
-      setError("Failed to load booking. Please try again.");
-      if (__DEV__) {
-        Alert.alert("Error", "Failed to load booking. Please try again.", [
-          { text: "OK", onPress: () => router.back() },
-        ]);
-      } else {
-        router.back();
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleJoinMeeting = () => {
     if (!booking?.location) return;
@@ -493,7 +480,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
                 ) : booking.hosts && booking.hosts.length > 0 ? (
                   booking.hosts.map((host, hostIndex) => (
                     <View
-                      key={hostIndex}
+                      key={host.email ?? host.name}
                       className={`flex-row items-start ${hostIndex > 0 ? "mt-4" : ""}`}
                     >
                       <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-black">
@@ -521,9 +508,13 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
               <View>
                 {booking.attendees.map((attendee, index) => {
                   const isNoShow =
-                    (attendee as any).noShow === true || (attendee as any).absent === true;
+                    (attendee as { noShow?: boolean; absent?: boolean }).noShow === true ||
+                    (attendee as { noShow?: boolean; absent?: boolean }).absent === true;
                   return (
-                    <View key={index} className={`flex-row items-start ${index > 0 ? "mt-4" : ""}`}>
+                    <View
+                      key={attendee.email}
+                      className={`flex-row items-start ${index > 0 ? "mt-4" : ""}`}
+                    >
                       <View
                         className={`mr-3 h-12 w-12 items-center justify-center rounded-full ${
                           isNoShow ? "bg-[#DC2626]" : "bg-black"

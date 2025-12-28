@@ -1,21 +1,21 @@
-import { formatDuration } from "../../utils/formatters";
-import { getEventDuration } from "../../utils/getEventDuration";
-import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
-import { EventTypeListItemProps } from "./types";
-import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
+import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
 import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import React from "react";
-import { View, Text, Pressable } from "react-native";
+import type React from "react";
+import { Pressable, Text, View } from "react-native";
+import { formatDuration } from "../../utils/formatters";
+import { getEventDuration } from "../../utils/getEventDuration";
+import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
+import type { EventTypeListItemProps } from "./types";
 
 export const EventTypeListItem = ({
   item,
   index,
   filteredEventTypes,
-  copiedEventTypeId,
+  copiedEventTypeId: _copiedEventTypeId,
   handleEventTypePress,
-  handleEventTypeLongPress,
+  handleEventTypeLongPress: _handleEventTypeLongPress,
   handleCopyLink,
   handlePreview,
   onEdit,
@@ -49,19 +49,19 @@ export const EventTypeListItem = ({
     {
       label: "Edit",
       icon: "pencil",
-      onPress: () => onEdit(item),
+      onPress: () => onEdit?.(item),
       role: "default",
     },
     {
       label: "Duplicate",
       icon: "square.on.square",
-      onPress: () => onDuplicate(item),
+      onPress: () => onDuplicate?.(item),
       role: "default",
     },
     {
       label: "Delete",
       icon: "trash",
-      onPress: () => onDelete(item),
+      onPress: () => onDelete?.(item),
       role: "destructive",
     },
   ];

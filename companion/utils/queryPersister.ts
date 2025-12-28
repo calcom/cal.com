@@ -4,7 +4,7 @@
  * Uses the shared storage adapter from utils/storage.ts for cross-platform support.
  */
 
-import type { Persister, PersistedClient } from "@tanstack/react-query-persist-client";
+import type { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
 import { CACHE_CONFIG } from "../config/cache.config";
 import { generalStorage } from "./storage";
 
@@ -51,7 +51,7 @@ export const createQueryPersister = (): Persister => {
         const client = JSON.parse(serialized) as PersistedClient;
 
         // Validate timestamp exists and is a valid number
-        if (typeof client.timestamp !== "number" || isNaN(client.timestamp)) {
+        if (typeof client.timestamp !== "number" || Number.isNaN(client.timestamp)) {
           console.warn("[QueryPersister] Invalid or missing timestamp, discarding cache");
           await storage.removeItem(storageKey);
           return undefined;
@@ -122,7 +122,7 @@ export const getCacheMetadata = async (): Promise<{
     const client = JSON.parse(serialized) as PersistedClient;
 
     // Validate timestamp exists and is a valid number
-    if (typeof client.timestamp !== "number" || isNaN(client.timestamp)) {
+    if (typeof client.timestamp !== "number" || Number.isNaN(client.timestamp)) {
       return { exists: true, isExpired: true }; // Treat invalid timestamp as expired
     }
 

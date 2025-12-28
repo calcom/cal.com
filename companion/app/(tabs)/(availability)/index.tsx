@@ -1,8 +1,8 @@
-import { AvailabilityListScreen } from "../../../components/screens/AvailabilityListScreen";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Platform } from "react-native";
+import { AvailabilityListScreen } from "../../../components/screens/AvailabilityListScreen";
 
 export default function Availability() {
   const [searchQuery, setSearchQuery] = useState("");

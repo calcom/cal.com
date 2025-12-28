@@ -4,12 +4,12 @@
  * Screen content for viewing recordings of a Cal Video booking.
  * Used with the view-recordings route that has native Stack.Header.
  */
-import type { BookingRecording } from "../../services/types/bookings.types";
+
 import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
-import React from "react";
-import { View, Text, TouchableOpacity, FlatList } from "react-native";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { BookingRecording } from "../../services/types/bookings.types";
 
 export interface ViewRecordingsScreenProps {
   recordings: BookingRecording[];

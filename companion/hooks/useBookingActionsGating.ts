@@ -4,15 +4,16 @@
  * This hook provides the booking actions state using the centralized gating utility.
  * It computes which actions are visible and enabled for a given booking.
  */
+
+import { useMemo } from "react";
 import type { Booking } from "../services/calcom";
 import type { EventType } from "../services/types/event-types.types";
 import {
-  normalizeBooking,
-  getBookingActions,
   type BookingActionsResult,
+  getBookingActions,
   type NormalizedBooking,
+  normalizeBooking,
 } from "../utils/booking-actions";
-import { useMemo } from "react";
 
 interface UseBookingActionsGatingParams {
   booking: Booking | null;

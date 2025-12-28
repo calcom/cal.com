@@ -1,9 +1,10 @@
-import type { AvailabilityListItemProps } from "./AvailabilityListItem";
-import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
+import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
 import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Pressable, Text, View } from "react-native";
+import type { SFSymbols7_0 } from "sf-symbols-typescript";
+import type { AvailabilityListItemProps } from "./AvailabilityListItem";
 
 export const AvailabilityListItem = ({
   item: schedule,
@@ -14,7 +15,7 @@ export const AvailabilityListItem = ({
 }: AvailabilityListItemProps) => {
   const scheduleActions: {
     label: string;
-    icon: any;
+    icon: SFSymbols7_0;
     onPress: () => void;
     role: "default" | "destructive";
   }[] = [
@@ -22,7 +23,7 @@ export const AvailabilityListItem = ({
       ? [
           {
             label: "Set as Default",
-            icon: "star",
+            icon: "star" as const,
             onPress: () => onSetAsDefault(schedule),
             role: "default" as const,
           },
@@ -30,15 +31,15 @@ export const AvailabilityListItem = ({
       : []),
     {
       label: "Duplicate",
-      icon: "square.on.square",
+      icon: "square.on.square" as const,
       onPress: () => onDuplicate?.(schedule),
-      role: "default",
+      role: "default" as const,
     },
     {
       label: "Delete",
-      icon: "trash",
+      icon: "trash" as const,
       onPress: () => onDelete?.(schedule),
-      role: "destructive",
+      role: "destructive" as const,
     },
   ];
 

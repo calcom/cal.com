@@ -1,12 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { View, Text, TouchableOpacity, Linking } from "react-native";
-
-import type { BookingListItemProps } from "./types";
-import { SvgImage } from "../SvgImage";
-import { getMeetingInfo } from "../../utils/meetings-utils";
-import { formatTime, formatDate, getHostAndAttendeesDisplay } from "../../utils/bookings-utils";
+import type React from "react";
+import { Linking, Text, TouchableOpacity, View } from "react-native";
 import { showErrorAlert } from "../../utils/alerts";
+import { formatDate, formatTime, getHostAndAttendeesDisplay } from "../../utils/bookings-utils";
+import { getMeetingInfo } from "../../utils/meetings-utils";
+import { SvgImage } from "../SvgImage";
+import type { BookingListItemProps } from "./types";
 
 export const BookingListItem: React.FC<BookingListItemProps> = ({
   booking,
@@ -31,7 +30,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
 
   // Check if any attendee is marked as no-show
   const hasNoShowAttendee = booking.attendees?.some(
-    (att: any) => att.noShow === true || att.absent === true
+    (att: { noShow?: boolean; absent?: boolean }) => att.noShow === true || att.absent === true
   );
 
   return (
@@ -69,7 +68,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
         {/* Description */}
         {booking.description ? (
           <Text className="mb-2 text-sm leading-5 text-[#666]" numberOfLines={1}>
-            &quot;{booking.description}&quot;
+            "{booking.description}"
           </Text>
         ) : null}
         {/* Host and Attendees */}
