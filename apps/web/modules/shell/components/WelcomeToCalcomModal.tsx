@@ -30,8 +30,8 @@ export function WelcomeToCalcomModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeModal()}>
-      <DialogContent size="default" className="!p-0">
-        <div className="flex flex-col gap-4 p-6">
+      <DialogContent size="default" className="p-0!">
+        <div className="flex max-h-[80vh] flex-col gap-4 overflow-y-auto p-6">
           <div className="flex flex-col items-center gap-1">
             <Logo className="h-10 w-auto" />
           </div>
@@ -99,7 +99,7 @@ export function WelcomeToCalcomModal() {
           </div>
         </div>
 
-        <div className="bg-muted border-subtle mt-6 flex items-center justify-between rounded-b-2xl border-t px-8 py-6">
+        <div className="bg-muted border-subtle flex shrink-0 items-center justify-between rounded-b-2xl border-t px-8 py-6">
           <Button
             color="minimal"
             href="https://cal.com/docs"

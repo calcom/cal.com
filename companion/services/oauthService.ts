@@ -59,9 +59,10 @@ async function getExtensionSessionToken(): Promise<string | null> {
       clearTimeout(timeoutId);
       window.removeEventListener("message", messageHandler);
 
-      extensionSessionToken = event.data.sessionToken || "";
+      const token = event.data.sessionToken || "";
+      extensionSessionToken = token;
       sessionTokenPromise = null;
-      resolve(extensionSessionToken);
+      resolve(token);
     };
 
     window.addEventListener("message", messageHandler);
@@ -88,7 +89,6 @@ export interface OAuthConfig {
 export class CalComOAuthService {
   private config: OAuthConfig;
   private codeVerifier: string | null = null;
-  private state: string | null = null;
 
   constructor(config: OAuthConfig) {
     this.config = config;
@@ -100,7 +100,6 @@ export class CalComOAuthService {
     const state = this.generateRandomBase64Url();
 
     this.codeVerifier = codeVerifier;
-    this.state = state;
 
     return { codeVerifier, codeChallenge, state };
   }
@@ -253,10 +252,8 @@ export class CalComOAuthService {
       }
 
       // Try Firefox/Safari browser.identity API (Promise-based)
-      // @ts-ignore - Firefox/Safari use browser namespace
-      if (typeof browser !== "undefined" && browser.identity) {
+      if (typeof browser !== "undefined" && browser?.identity) {
         try {
-          // @ts-ignore - Firefox/Safari browser.identity returns Promise
           browser.identity
             .launchWebAuthFlow({ url: authUrl, interactive: true })
             .then((responseUrl: string | undefined) => {
@@ -428,7 +425,6 @@ export class CalComOAuthService {
 
   clearPKCEParams(): void {
     this.codeVerifier = null;
-    this.state = null;
   }
 
   async syncTokensToExtension(tokens: OAuthTokens): Promise<void> {
@@ -553,7 +549,6 @@ function detectBrowserType(): BrowserType {
   const userAgent = navigator.userAgent.toLowerCase();
 
   // Check for Brave first (it identifies as Chrome but has Brave-specific properties)
-  // @ts-ignore - Brave adds this to navigator
   if (navigator.brave && typeof navigator.brave.isBrave === "function") {
     return "brave";
   }
@@ -620,10 +615,6 @@ function getBrowserSpecificOAuthConfig(): { clientId: string; redirectUri: strin
         clientId: process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID_EDGE || defaultClientId,
         redirectUri: process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI_EDGE || defaultRedirectUri,
       };
-
-    case "chrome":
-    case "brave":
-    case "unknown":
     default:
       // Chrome, Brave, and unknown browsers use the default configuration
       return { clientId: defaultClientId, redirectUri: defaultRedirectUri };

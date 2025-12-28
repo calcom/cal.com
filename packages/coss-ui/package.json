@@ -16,14 +16,14 @@
     "registry:pull": "ts-node ../../scripts/pull-coss-ui-components.ts"
   },
   "dependencies": {
-    "@base-ui/react": "^1.0.0",
+    "@base-ui/react": "1.0.0",
     "class-variance-authority": "0.7.1",
-    "clsx": "^2.1.1",
+    "clsx": "2.1.1",
     "lucide-react": "0.555.0",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "3.4.0"
   },
   "devDependencies": {
-    "ts-node": "^10.9.2",
+    "ts-node": "10.9.2",
     "tsc-absolute": "1.0.0",
     "typescript": "5.9.0-beta"
   }

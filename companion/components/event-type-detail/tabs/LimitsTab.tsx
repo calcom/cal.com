@@ -1,6 +1,5 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity, Switch, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Animated, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 interface FrequencyLimit {
   id: number;
@@ -36,7 +35,7 @@ interface LimitsTabProps {
   toggleBookingFrequency: (value: boolean) => void;
   frequencyAnimationValue: Animated.Value;
   frequencyLimits: FrequencyLimit[];
-  updateFrequencyLimit: (id: number, field: string, value: string) => void;
+  updateFrequencyLimit: (id: number, field: "value" | "unit", value: string) => void;
   setShowFrequencyUnitDropdown: (id: number) => void;
   removeFrequencyLimit: (id: number) => void;
   addFrequencyLimit: () => void;
@@ -50,7 +49,7 @@ interface LimitsTabProps {
   toggleTotalDuration: (value: boolean) => void;
   durationAnimationValue: Animated.Value;
   durationLimits: DurationLimit[];
-  updateDurationLimit: (id: number, field: string, value: string) => void;
+  updateDurationLimit: (id: number, field: "value" | "unit", value: string) => void;
   setShowDurationUnitDropdown: (id: number) => void;
   removeDurationLimit: (id: number) => void;
   addDurationLimit: () => void;
@@ -119,7 +118,7 @@ export function LimitsTab(props: LimitsTabProps) {
               value={props.minimumNoticeValue}
               onChangeText={(text) => {
                 const numericValue = text.replace(/[^0-9]/g, "");
-                const num = parseInt(numericValue) || 0;
+                const num = parseInt(numericValue, 10) || 0;
                 if (num >= 0) {
                   props.setMinimumNoticeValue(numericValue || "0");
                 }
@@ -192,7 +191,7 @@ export function LimitsTab(props: LimitsTabProps) {
                     value={limit.value}
                     onChangeText={(text) => {
                       const numericValue = text.replace(/[^0-9]/g, "");
-                      const num = parseInt(numericValue) || 0;
+                      const num = parseInt(numericValue, 10) || 0;
                       if (num >= 0) {
                         props.updateFrequencyLimit(limit.id, "value", numericValue || "0");
                       }
@@ -292,7 +291,7 @@ export function LimitsTab(props: LimitsTabProps) {
                       value={limit.value}
                       onChangeText={(text) => {
                         const numericValue = text.replace(/[^0-9]/g, "");
-                        const num = parseInt(numericValue) || 0;
+                        const num = parseInt(numericValue, 10) || 0;
                         if (num >= 0) {
                           props.updateDurationLimit(limit.id, "value", numericValue || "0");
                         }
@@ -358,7 +357,7 @@ export function LimitsTab(props: LimitsTabProps) {
                 value={props.maxActiveBookingsValue}
                 onChangeText={(text) => {
                   const numericValue = text.replace(/[^0-9]/g, "");
-                  const num = parseInt(numericValue) || 0;
+                  const num = parseInt(numericValue, 10) || 0;
                   if (num >= 0) {
                     props.setMaxActiveBookingsValue(numericValue || "1");
                   }

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 
 interface TooltipProps {
   text: string;
@@ -17,6 +18,7 @@ export function Tooltip({ text, children }: TooltipProps) {
   };
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Tooltip wrapper only shows/hides content on hover, not a clickable element
     <span
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -25,6 +27,7 @@ export function Tooltip({ text, children }: TooltipProps) {
       {children}
       {showTooltip ? (
         <span
+          role="tooltip"
           style={{
             position: "absolute",
             left: "50%",
