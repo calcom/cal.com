@@ -4,6 +4,8 @@ import { shallow } from "zustand/shallow";
 import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
+import { formatIntervalLimits } from "@calcom/lib/intervalLimits/utils";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Sheet, SheetContent, SheetBody, SheetHeader, SheetFooter } from "@calcom/ui/components/sheet";
@@ -46,7 +48,7 @@ export function EditUserSheet({
     }
   );
 
-  const { data: usersAttributes, isPending: usersAttributesPending } =
+  const { data: usersAttributes, isPending: _usersAttributesPending } =
     trpc.viewer.attributes.getByUserId.useQuery(
       {
         // @ts-expect-error We know it exists as it is only called when selectedUser is defined
@@ -62,6 +64,9 @@ export function EditUserSheet({
   const schedulesNames = loadedUser?.schedules && loadedUser?.schedules.map((s) => s.name);
   const teamNames =
     loadedUser?.teams && loadedUser?.teams.map((t) => `${t.name} ${!t.accepted ? "(pending)" : ""}`);
+  const bookingLimitsFormatted = loadedUser?.bookingLimits
+    ? formatIntervalLimits(parseBookingLimit(loadedUser?.bookingLimits), t)
+    : null;
 
   return (
     <Sheet
@@ -113,6 +118,13 @@ export function EditUserSheet({
                       value={!schedulesNames || schedulesNames.length === 0 ? "" : schedulesNames}
                       icon="calendar"
                     />
+                    {bookingLimitsFormatted && (
+                      <DisplayInfo
+                        label={t("booking_limits")}
+                        value={bookingLimitsFormatted}
+                        icon="calendar"
+                      />
+                    )}
                   </div>
                   {canViewAttributes && usersAttributes && usersAttributes?.length > 0 && (
                     <div className="mt-4 flex flex-col">
