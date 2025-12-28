@@ -43,14 +43,72 @@ async function fetchWithTimeout(
  * Safely parse JSON with validation for OAuthTokens
  */
 function safeParseOAuthTokens(jsonString: string): OAuthTokens | null {
-  try {
-    const parsed = JSON.parse(jsonString);
-    // Validate that it has the expected structure
-    if (parsed && typeof parsed === "object" && typeof parsed.accessToken === "string") {
-      return parsed as OAuthTokens;
-    }
-    devLog.warn("Invalid OAuth tokens structure");
+  if (typeof jsonString !== "string" || !jsonString.trim()) {
     return null;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(jsonString);
+
+    // Validate it's a plain object (not null, array, or primitive)
+    if (
+      parsed === null ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed) ||
+      Object.getPrototypeOf(parsed) !== Object.prototype
+    ) {
+      devLog.warn("Invalid OAuth tokens structure - not a plain object");
+      return null;
+    }
+
+    const obj = parsed as Record<string, unknown>;
+
+    // Validate required fields: accessToken and tokenType must be strings
+    if (typeof obj.accessToken !== "string") {
+      devLog.warn("Invalid OAuth tokens structure - missing accessToken");
+      return null;
+    }
+
+    if (typeof obj.tokenType !== "string") {
+      devLog.warn("Invalid OAuth tokens structure - missing tokenType");
+      return null;
+    }
+
+    // Validate optional fields have correct types if present
+    if (obj.refreshToken !== undefined && typeof obj.refreshToken !== "string") {
+      devLog.warn("Invalid OAuth tokens structure - invalid refreshToken type");
+      return null;
+    }
+
+    if (obj.expiresAt !== undefined && typeof obj.expiresAt !== "number") {
+      devLog.warn("Invalid OAuth tokens structure - invalid expiresAt type");
+      return null;
+    }
+
+    if (obj.scope !== undefined && typeof obj.scope !== "string") {
+      devLog.warn("Invalid OAuth tokens structure - invalid scope type");
+      return null;
+    }
+
+    // Construct validated OAuthTokens object
+    const tokens: OAuthTokens = {
+      accessToken: obj.accessToken,
+      tokenType: obj.tokenType,
+    };
+
+    if (typeof obj.refreshToken === "string") {
+      tokens.refreshToken = obj.refreshToken;
+    }
+
+    if (typeof obj.expiresAt === "number") {
+      tokens.expiresAt = obj.expiresAt;
+    }
+
+    if (typeof obj.scope === "string") {
+      tokens.scope = obj.scope;
+    }
+
+    return tokens;
   } catch (error) {
     devLog.warn("Failed to parse OAuth tokens:", error);
     return null;
@@ -58,16 +116,45 @@ function safeParseOAuthTokens(jsonString: string): OAuthTokens | null {
 }
 
 /**
- * Safely parse JSON error response
+ * Safely parse JSON error response with structure validation.
+ * Validates the expected error response structure before returning.
  */
 function safeParseErrorJson(
   jsonString: string
 ): { error?: { message?: string }; message?: string } | null {
+  if (typeof jsonString !== "string" || !jsonString.trim()) {
+    return null;
+  }
+
   try {
-    const parsed = JSON.parse(jsonString);
-    if (parsed && typeof parsed === "object") {
-      return parsed as { error?: { message?: string }; message?: string };
+    const parsed: unknown = JSON.parse(jsonString);
+
+    // Validate it's a plain object
+    if (
+      parsed === null ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed) ||
+      Object.getPrototypeOf(parsed) !== Object.prototype
+    ) {
+      return null;
     }
+
+    const obj = parsed as Record<string, unknown>;
+
+    // Validate expected error structure - must have error or message property with correct types
+    const hasValidErrorProp =
+      obj.error === undefined ||
+      (typeof obj.error === "object" &&
+        obj.error !== null &&
+        ((obj.error as Record<string, unknown>).message === undefined ||
+          typeof (obj.error as Record<string, unknown>).message === "string"));
+
+    const hasValidMessageProp = obj.message === undefined || typeof obj.message === "string";
+
+    if (hasValidErrorProp && hasValidMessageProp) {
+      return obj as { error?: { message?: string }; message?: string };
+    }
+
     return null;
   } catch {
     return null;

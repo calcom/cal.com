@@ -36,14 +36,33 @@ const API_BASE_URL = "https://api.cal.com/v2";
 const REQUEST_TIMEOUT_MS = 30000;
 
 /**
- * Safely parse JSON response with validation
+ * Safely parse JSON response with structure validation.
+ * Validates that the input is a non-null object before returning.
+ * This prevents prototype pollution and ensures type safety.
  */
-function safeParseJson(jsonString: string): unknown {
+function safeParseJson(jsonString: string): Record<string, unknown> | null {
+  if (typeof jsonString !== "string" || !jsonString.trim()) {
+    return null;
+  }
+
   try {
-    const parsed = JSON.parse(jsonString);
-    if (parsed && typeof parsed === "object") {
-      return parsed;
+    const parsed: unknown = JSON.parse(jsonString);
+
+    // Validate it's a plain object (not null, array, or primitive)
+    if (
+      parsed !== null &&
+      typeof parsed === "object" &&
+      !Array.isArray(parsed) &&
+      Object.getPrototypeOf(parsed) === Object.prototype
+    ) {
+      return parsed as Record<string, unknown>;
     }
+
+    // Also accept arrays as valid JSON responses
+    if (Array.isArray(parsed)) {
+      return { data: parsed } as Record<string, unknown>;
+    }
+
     return null;
   } catch {
     return null;
@@ -51,16 +70,45 @@ function safeParseJson(jsonString: string): unknown {
 }
 
 /**
- * Safely parse JSON error response
+ * Safely parse JSON error response with structure validation.
+ * Validates the expected error response structure before returning.
  */
 function safeParseErrorJson(
   jsonString: string
 ): { error?: { message?: string }; message?: string } | null {
+  if (typeof jsonString !== "string" || !jsonString.trim()) {
+    return null;
+  }
+
   try {
-    const parsed = JSON.parse(jsonString);
-    if (parsed && typeof parsed === "object") {
-      return parsed as { error?: { message?: string }; message?: string };
+    const parsed: unknown = JSON.parse(jsonString);
+
+    // Validate it's a plain object
+    if (
+      parsed === null ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed) ||
+      Object.getPrototypeOf(parsed) !== Object.prototype
+    ) {
+      return null;
     }
+
+    const obj = parsed as Record<string, unknown>;
+
+    // Validate expected error structure - must have error or message property with correct types
+    const hasValidErrorProp =
+      obj.error === undefined ||
+      (typeof obj.error === "object" &&
+        obj.error !== null &&
+        ((obj.error as Record<string, unknown>).message === undefined ||
+          typeof (obj.error as Record<string, unknown>).message === "string"));
+
+    const hasValidMessageProp = obj.message === undefined || typeof obj.message === "string";
+
+    if (hasValidErrorProp && hasValidMessageProp) {
+      return obj as { error?: { message?: string }; message?: string };
+    }
+
     return null;
   } catch {
     return null;
