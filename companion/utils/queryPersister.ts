@@ -6,6 +6,7 @@
 
 import type { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
 import { CACHE_CONFIG } from "@/config/cache.config";
+import { safeLogWarn } from "./safeLogger";
 import { generalStorage } from "./storage";
 
 // Use the shared general storage adapter for cache persistence
@@ -33,7 +34,7 @@ export const createQueryPersister = (): Persister => {
         const serialized = JSON.stringify(client);
         await storage.setItem(storageKey, serialized);
       } catch (error) {
-        console.warn("[QueryPersister] Failed to persist client:", error);
+        safeLogWarn("[QueryPersister] Failed to persist client:", error);
         // Fail silently - persistence is a nice-to-have, not critical
       }
     },
@@ -52,7 +53,7 @@ export const createQueryPersister = (): Persister => {
 
         // Validate timestamp exists and is a valid number
         if (typeof client.timestamp !== "number" || Number.isNaN(client.timestamp)) {
-          console.warn("[QueryPersister] Invalid or missing timestamp, discarding cache");
+          safeLogWarn("[QueryPersister] Invalid or missing timestamp, discarding cache");
           await storage.removeItem(storageKey);
           return undefined;
         }
@@ -68,7 +69,7 @@ export const createQueryPersister = (): Persister => {
 
         return client;
       } catch (error) {
-        console.warn("[QueryPersister] Failed to restore client:", error);
+        safeLogWarn("[QueryPersister] Failed to restore client:", error);
         // If restoration fails, start fresh
         return undefined;
       }
@@ -81,7 +82,7 @@ export const createQueryPersister = (): Persister => {
       try {
         await storage.removeItem(storageKey);
       } catch (error) {
-        console.warn("[QueryPersister] Failed to remove client:", error);
+        safeLogWarn("[QueryPersister] Failed to remove client:", error);
       }
     },
   };
@@ -100,7 +101,7 @@ export const clearQueryCache = async (): Promise<void> => {
   try {
     await storage.removeItem(CACHE_CONFIG.persistence.storageKey);
   } catch (error) {
-    console.warn("[QueryPersister] Failed to clear cache:", error);
+    safeLogWarn("[QueryPersister] Failed to clear cache:", error);
   }
 };
 
@@ -136,7 +137,7 @@ export const getCacheMetadata = async (): Promise<{
       isExpired: age > CACHE_CONFIG.persistence.maxAge,
     };
   } catch (error) {
-    console.warn("[QueryPersister] Failed to get cache metadata:", error);
+    safeLogWarn("[QueryPersister] Failed to get cache metadata:", error);
     return null;
   }
 };

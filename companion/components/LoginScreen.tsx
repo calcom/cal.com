@@ -42,7 +42,7 @@ export function LoginScreen() {
           disabled={loading}
           className="flex-row items-center justify-center rounded-2xl py-[18px]"
           style={[
-            { backgroundColor: loading ? "#9CA3AF" : "#111827" },
+            { backgroundColor: loading ? "#9CA3AF" : "#000000" },
             Platform.select({
               web: {
                 boxShadow: loading ? "none" : "0 4px 12px rgba(0, 0, 0, 0.2)",
