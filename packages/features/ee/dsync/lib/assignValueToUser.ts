@@ -10,6 +10,8 @@ import { PrismaAttributeRepository } from "@calcom/features/attributes/repositor
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import prisma from "@calcom/prisma";
+
 import {
   doesSupportMultipleValues,
   isAssignmentForLockedAttribute,
@@ -17,8 +19,7 @@ import {
   isAssignmentSame,
   buildSlugFromValue,
   canSetValueBeyondOptions,
-} from "@calcom/lib/service/attribute/utils";
-import prisma from "@calcom/prisma";
+} from "./assignValueToUserUtils";
 
 const log = logger.getSubLogger({ prefix: ["entity/attribute"] });
 
