@@ -1,15 +1,86 @@
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
-import { Platform } from "react-native";
+import { Alert, Platform } from "react-native";
 import { AvailabilityListScreen } from "@/components/screens/AvailabilityListScreen";
+import { useCreateSchedule } from "@/hooks";
+import { CalComAPIService } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
 
 export default function Availability() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const { mutate: createScheduleMutation } = useCreateSchedule();
 
   const handleCreateNew = () => {
-    setShowCreateModal(true);
+    // Use native iOS Alert.prompt for a native look
+    Alert.prompt(
+      "Add a new schedule",
+      "Create a new availability schedule.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Continue",
+          onPress: async (name?: string) => {
+            if (!name?.trim()) {
+              Alert.alert("Error", "Please enter a schedule name");
+              return;
+            }
+
+            // Get user's timezone (default to America/New_York if not available)
+            let userTimezone = "America/New_York";
+            try {
+              const userProfile = await CalComAPIService.getUserProfile();
+              if (userProfile.timeZone) {
+                userTimezone = userProfile.timeZone;
+              }
+            } catch {
+              console.log("Could not get user timezone, using default");
+            }
+
+            // Create schedule with Monday-Friday 9 AM - 5 PM default
+            createScheduleMutation(
+              {
+                name: name.trim(),
+                timeZone: userTimezone,
+                isDefault: false,
+                availability: [
+                  {
+                    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                    startTime: "09:00",
+                    endTime: "17:00",
+                  },
+                ],
+              },
+              {
+                onSuccess: (newSchedule) => {
+                  // Navigate to edit the newly created schedule
+                  router.push({
+                    pathname: "/availability-detail",
+                    params: {
+                      id: newSchedule.id.toString(),
+                    },
+                  });
+                },
+                onError: (error) => {
+                  const message = error instanceof Error ? error.message : String(error);
+                  console.error("Failed to create schedule", message);
+                  if (__DEV__) {
+                    const stack = error instanceof Error ? error.stack : undefined;
+                    console.debug("[Availability] createSchedule failed", { message, stack });
+                  }
+                  showErrorAlert("Error", "Failed to create schedule. Please try again.");
+                },
+              }
+            );
+          },
+        },
+      ],
+      "plain-text",
+      "",
+      "default"
+    );
   };
 
   return (
@@ -21,8 +92,18 @@ export default function Availability() {
       >
         <Stack.Header.Title large>Availability</Stack.Header.Title>
         <Stack.Header.Right>
-          <Stack.Header.Button onPress={handleCreateNew} tintColor="#000" variant="prominent">
-            New
+          {/* New Menu */}
+          <Stack.Header.Menu>
+            <Stack.Header.Icon sf="plus" />
+
+            <Stack.Header.MenuAction icon="clock" onPress={handleCreateNew}>
+              New Availability
+            </Stack.Header.MenuAction>
+          </Stack.Header.Menu>
+
+          {/* Profile Button */}
+          <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
+            <Stack.Header.Icon sf="person.circle.fill" />
           </Stack.Header.Button>
         </Stack.Header.Right>
         <Stack.Header.SearchBar

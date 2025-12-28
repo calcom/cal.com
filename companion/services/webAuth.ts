@@ -1,6 +1,10 @@
 import { Platform } from "react-native";
 
+import { fetchWithTimeout } from "@/utils/network";
+
 import type { UserProfile } from "./types/users.types";
+
+const REQUEST_TIMEOUT_MS = 30000;
 
 export interface WebSessionInfo {
   isLoggedIn: boolean;
@@ -73,13 +77,17 @@ async function validateWebSession(): Promise<WebSessionInfo> {
 
   try {
     // First try to call the NextAuth session endpoint
-    const sessionResponse = await fetch("https://app.cal.com/api/auth/session", {
-      method: "GET",
-      credentials: "include", // Include cookies
-      headers: {
-        "Content-Type": "application/json",
+    const sessionResponse = await fetchWithTimeout(
+      "https://app.cal.com/api/auth/session",
+      {
+        method: "GET",
+        credentials: "include", // Include cookies
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+      REQUEST_TIMEOUT_MS
+    );
 
     if (sessionResponse.ok) {
       const sessionData = await sessionResponse.json();
@@ -94,13 +102,17 @@ async function validateWebSession(): Promise<WebSessionInfo> {
     }
 
     // Try the internal Cal.com me endpoint (this might work with cookies)
-    const meResponse = await fetch("https://app.cal.com/api/me", {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
+    const meResponse = await fetchWithTimeout(
+      "https://app.cal.com/api/me",
+      {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+      REQUEST_TIMEOUT_MS
+    );
 
     if (meResponse.ok) {
       const userData = await meResponse.json();
@@ -114,13 +126,17 @@ async function validateWebSession(): Promise<WebSessionInfo> {
     }
 
     // Try to check if user is logged in by attempting to access a protected page
-    const dashboardResponse = await fetch("https://app.cal.com/api/trpc/viewer.me", {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
+    const dashboardResponse = await fetchWithTimeout(
+      "https://app.cal.com/api/trpc/viewer.me",
+      {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+      REQUEST_TIMEOUT_MS
+    );
 
     if (dashboardResponse.ok) {
       const dashboardData = await dashboardResponse.json();

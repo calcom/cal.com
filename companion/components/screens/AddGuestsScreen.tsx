@@ -20,6 +20,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Booking } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
+import { safeLogError } from "@/utils/safeLogger";
 
 export interface AddGuestsScreenProps {
   booking: Booking | null;
@@ -93,7 +94,8 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
         Alert.alert("Success", "Guests added successfully", [{ text: "OK", onPress: onSuccess }]);
         setIsSaving(false);
       } catch (error) {
-        Alert.alert("Error", error instanceof Error ? error.message : "Failed to add guests");
+        safeLogError("[AddGuestsScreen] Failed to add guests:", error);
+        Alert.alert("Error", "Failed to add guests. Please try again.");
         setIsSaving(false);
       }
     }, [booking, guests, onSuccess]);
