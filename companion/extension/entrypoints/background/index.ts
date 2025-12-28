@@ -13,6 +13,68 @@ const devLog = {
 };
 
 /**
+ * Request timeout in milliseconds (30 seconds)
+ */
+const REQUEST_TIMEOUT_MS = 30000;
+
+/**
+ * Fetch with timeout to prevent hanging requests
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs: number = REQUEST_TIMEOUT_MS
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
+ * Safely parse JSON with validation for OAuthTokens
+ */
+function safeParseOAuthTokens(jsonString: string): OAuthTokens | null {
+  try {
+    const parsed = JSON.parse(jsonString);
+    // Validate that it has the expected structure
+    if (parsed && typeof parsed === "object" && typeof parsed.accessToken === "string") {
+      return parsed as OAuthTokens;
+    }
+    devLog.warn("Invalid OAuth tokens structure");
+    return null;
+  } catch (error) {
+    devLog.warn("Failed to parse OAuth tokens:", error);
+    return null;
+  }
+}
+
+/**
+ * Safely parse JSON error response
+ */
+function safeParseErrorJson(
+  jsonString: string
+): { error?: { message?: string }; message?: string } | null {
+  try {
+    const parsed = JSON.parse(jsonString);
+    if (parsed && typeof parsed === "object") {
+      return parsed as { error?: { message?: string }; message?: string };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Browser type enum (inlined to avoid import issues in service worker)
  */
 enum BrowserType {
@@ -427,7 +489,7 @@ async function handleTokenExchange(
 
   const body = new URLSearchParams(tokenRequest);
 
-  const response = await fetch(tokenEndpoint, {
+  const response = await fetchWithTimeout(tokenEndpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -520,7 +582,7 @@ async function validateTokens(tokens: OAuthTokens): Promise<boolean> {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/me`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/me`, {
       headers: {
         Authorization: `Bearer ${tokens.accessToken}`,
         "Content-Type": "application/json",
@@ -547,7 +609,7 @@ async function getAuthHeader(): Promise<string> {
   if (storageAPI?.local) {
     const result = await storageAPI.local.get(["cal_oauth_tokens"]);
     const oauthTokens = result.cal_oauth_tokens
-      ? (JSON.parse(result.cal_oauth_tokens as string) as OAuthTokens)
+      ? safeParseOAuthTokens(result.cal_oauth_tokens as string)
       : null;
 
     if (oauthTokens?.accessToken) {
@@ -566,7 +628,7 @@ async function getAuthHeader(): Promise<string> {
 async function fetchEventTypes(): Promise<unknown[]> {
   const authHeader = await getAuthHeader();
 
-  const userResponse = await fetch(`${API_BASE_URL}/me`, {
+  const userResponse = await fetchWithTimeout(`${API_BASE_URL}/me`, {
     headers: {
       Authorization: authHeader,
       "Content-Type": "application/json",
@@ -588,7 +650,7 @@ async function fetchEventTypes(): Promise<unknown[]> {
   const queryString = params.toString();
   const endpoint = `${API_BASE_URL}/event-types${queryString ? `?${queryString}` : ""}`;
 
-  const response = await fetch(endpoint, {
+  const response = await fetchWithTimeout(endpoint, {
     headers: {
       Authorization: authHeader,
       "Content-Type": "application/json",
@@ -628,7 +690,7 @@ async function checkAuthStatus(): Promise<boolean> {
   try {
     const result = await storageAPI.local.get(["cal_oauth_tokens"]);
     const oauthTokens = result.cal_oauth_tokens
-      ? (JSON.parse(result.cal_oauth_tokens as string) as OAuthTokens)
+      ? safeParseOAuthTokens(result.cal_oauth_tokens as string)
       : null;
 
     return Boolean(oauthTokens?.accessToken);
@@ -644,7 +706,7 @@ async function checkAuthStatus(): Promise<boolean> {
 async function getBookingStatus(bookingUid: string): Promise<Booking> {
   const authHeader = await getAuthHeader();
 
-  const response = await fetch(`${API_BASE_URL}/bookings/${bookingUid}`, {
+  const response = await fetchWithTimeout(`${API_BASE_URL}/bookings/${bookingUid}`, {
     method: "GET",
     headers: {
       Authorization: authHeader,
@@ -657,10 +719,10 @@ async function getBookingStatus(bookingUid: string): Promise<Booking> {
     const errorBody = await response.text();
     let errorMessage = response.statusText;
 
-    try {
-      const errorJson = JSON.parse(errorBody);
+    const errorJson = safeParseErrorJson(errorBody);
+    if (errorJson) {
       errorMessage = errorJson?.error?.message || errorJson?.message || response.statusText;
-    } catch {
+    } else {
       errorMessage = errorBody || response.statusText;
     }
 
@@ -691,7 +753,7 @@ async function markAttendeeNoShow(
 ): Promise<Booking> {
   const authHeader = await getAuthHeader();
 
-  const response = await fetch(`${API_BASE_URL}/bookings/${bookingUid}/mark-absent`, {
+  const response = await fetchWithTimeout(`${API_BASE_URL}/bookings/${bookingUid}/mark-absent`, {
     method: "POST",
     headers: {
       Authorization: authHeader,
@@ -707,10 +769,10 @@ async function markAttendeeNoShow(
     const errorBody = await response.text();
     let errorMessage = response.statusText;
 
-    try {
-      const errorJson = JSON.parse(errorBody);
+    const errorJson = safeParseErrorJson(errorBody);
+    if (errorJson) {
       errorMessage = errorJson?.error?.message || errorJson?.message || response.statusText;
-    } catch {
+    } else {
       errorMessage = errorBody || response.statusText;
     }
 

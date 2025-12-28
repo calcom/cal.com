@@ -35,6 +35,38 @@ const API_BASE_URL = "https://api.cal.com/v2";
 
 const REQUEST_TIMEOUT_MS = 30000;
 
+/**
+ * Safely parse JSON response with validation
+ */
+function safeParseJson(jsonString: string): unknown {
+  try {
+    const parsed = JSON.parse(jsonString);
+    if (parsed && typeof parsed === "object") {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Safely parse JSON error response
+ */
+function safeParseErrorJson(
+  jsonString: string
+): { error?: { message?: string }; message?: string } | null {
+  try {
+    const parsed = JSON.parse(jsonString);
+    if (parsed && typeof parsed === "object") {
+      return parsed as { error?: { message?: string }; message?: string };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 // Authentication configuration
 interface AuthConfig {
   accessToken?: string;
@@ -254,12 +286,11 @@ async function testRawBookingsAPI(): Promise<void> {
 
     const responseText = await response.text();
 
-    try {
-      if (responseText?.trim()) {
-        const _responseJson = JSON.parse(responseText);
+    if (responseText?.trim()) {
+      const _responseJson = safeParseJson(responseText);
+      if (!_responseJson) {
+        safeLogError("[CalComAPIService] Failed to parse bookings response");
       }
-    } catch (_parseError) {
-      safeLogError("[CalComAPIService] Failed to parse bookings response");
     }
   } catch (_error) {
     safeLogError("[CalComAPIService] testRawBookingsAPI failed");
@@ -294,10 +325,10 @@ async function makeRequest<T>(
     // Parse error for better user messages
     let errorMessage = response.statusText;
 
-    try {
-      const errorJson = JSON.parse(errorBody);
+    const errorJson = safeParseErrorJson(errorBody);
+    if (errorJson) {
       errorMessage = errorJson?.error?.message || errorJson?.message || response.statusText;
-    } catch (_parseError) {
+    } else {
       // If JSON parsing fails, use the raw error body
       errorMessage = errorBody || response.statusText;
     }
