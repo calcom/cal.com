@@ -28,10 +28,8 @@ async function joinHandler(req: NextApiRequest, res: NextApiResponse) {
         },
       },
       booking: {
-        where: {
-          status: BookingStatus.ACCEPTED,
-        },
         select: {
+          status: true,
           title: true,
           eventType: {
             select: {
@@ -60,6 +58,10 @@ async function joinHandler(req: NextApiRequest, res: NextApiResponse) {
 
   if (!data || !data.booking || !data.credential)
     throw new HttpError({ statusCode: 400, message: "Meeting not found" });
+
+  // Validate booking status - only allow joining accepted bookings
+  if (data.booking.status !== BookingStatus.ACCEPTED)
+    throw new HttpError({ statusCode: 400, message: "Booking is not confirmed" });
 
   const isOwner =
     data?.booking.eventType?.userId === req.session?.user?.id ||

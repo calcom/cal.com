@@ -49,8 +49,8 @@ const withFetch = async (url: string, init?: RequestInit | undefined) => {
   if (schema.data.response.messageKey === "checksumError") {
     throw new BBBError(bbbError.INVALID_CHECKSUM);
   } else {
-    // log.info(`[BBB] unhandled error from server: ${JSON.stringify(schema.data.response)}`);
-    throw new BBBError(bbbError.INVALID_XML_FORMAT);
+    log.warn(`[BBB] server error: ${schema.data.response.messageKey} - ${schema.data.response.message}`);
+    throw new BBBError(bbbError.SERVER_ERROR, schema.data.response.message);
   }
 };
 

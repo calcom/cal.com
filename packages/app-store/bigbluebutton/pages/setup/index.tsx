@@ -56,7 +56,7 @@ export default function BBBSetup() {
           </div>
           <div className="ml-2 ltr:mr-2 rtl:ml-2 md:ml-5">
             <div className="text-default">{t("set_up_your_integration", { appName: "BigBlueButton" })}</div>
-            <div className="mt-1 text-xl">Connect to BigBlueButton:</div>
+            <div className="mt-1 text-xl">{t("connect_to_app", { appName: "BigBlueButton" })}</div>
 
             <Form
               className="mt-5"
@@ -104,7 +104,7 @@ export default function BBBSetup() {
                 name="secret"
                 render={({ field: { value, onChange } }) => (
                   <>
-                    <Label className="text-emphasis mt-6">Shared secret</Label>
+                    <Label className="text-emphasis mt-6">{t("shared_secret")}</Label>
                     <PasswordField required value={value} onChange={onChange} />
                   </>
                 )}
@@ -114,7 +114,7 @@ export default function BBBSetup() {
                 name="hash"
                 render={({ field: { value, onChange } }) => (
                   <>
-                    <Label className="text-emphasis mt-6">Checksum algorithm</Label>
+                    <Label className="text-emphasis mt-6">{t("checksum_algorithm")}</Label>
                     <Select<{ label: string; value: string }>
                       className="capitalize"
                       required

@@ -157,10 +157,12 @@ export enum bbbError {
   NETWORK_ERROR,
   INVALID_CHECKSUM,
   INVALID_XML_FORMAT,
+  SERVER_ERROR,
 }
 export const bbbErrorMessages: Record<bbbError, string> = {
   [bbbError.CANNOT_REACH_SERVER]: "Seems like the BigBlueButton server is unreachable",
   [bbbError.NETWORK_ERROR]: "A network error occurred",
   [bbbError.INVALID_CHECKSUM]: "Checksums do not match",
   [bbbError.INVALID_XML_FORMAT]: "Invalid XML format returned from the server",
+  [bbbError.SERVER_ERROR]: "The BigBlueButton server returned an error",
 };
