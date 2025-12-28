@@ -2,6 +2,19 @@
 import { initGoogleCalendarIntegration } from "../lib/google-calendar";
 import { initLinkedInIntegration } from "../lib/linkedin";
 
+/**
+ * Development-only logging utility for content scripts.
+ * In production builds, these logs are suppressed to prevent sensitive data exposure.
+ */
+const IS_DEV_MODE =
+  typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development";
+
+const devLog = {
+  log: (...args: unknown[]) => IS_DEV_MODE && console.log("[Cal.com]", ...args),
+  warn: (...args: unknown[]) => IS_DEV_MODE && console.warn("[Cal.com]", ...args),
+  error: (...args: unknown[]) => IS_DEV_MODE && console.error("[Cal.com]", ...args),
+};
+
 export default defineContentScript({
   matches: ["<all_urls>"],
   main() {
@@ -94,11 +107,11 @@ export default defineContentScript({
 
       const validateSessionToken = (providedToken: string | undefined): boolean => {
         if (!iframeSessionValidated) {
-          console.warn("Cal.com: Session not validated yet");
+          devLog.warn("Session not validated yet");
           return false;
         }
         if (providedToken !== sessionToken) {
-          console.warn("Cal.com: Invalid session token");
+          devLog.warn("Invalid session token");
           return false;
         }
         return true;
@@ -165,7 +178,7 @@ export default defineContentScript({
         { action: "start-extension-oauth", authUrl: authUrl },
         (response) => {
           if (chrome.runtime.lastError) {
-            console.error(
+            devLog.error(
               "Failed to communicate with background script:",
               chrome.runtime.lastError.message
             );
@@ -221,7 +234,7 @@ export default defineContentScript({
         },
         (response) => {
           if (chrome.runtime.lastError) {
-            console.error(
+            devLog.error(
               "Failed to communicate with background script:",
               chrome.runtime.lastError.message
             );
@@ -266,7 +279,7 @@ export default defineContentScript({
     ) {
       chrome.runtime.sendMessage({ action: "sync-oauth-tokens", tokens }, (response) => {
         if (chrome.runtime.lastError) {
-          console.error(
+          devLog.error(
             "Failed to communicate with background script:",
             chrome.runtime.lastError.message
           );
@@ -295,7 +308,7 @@ export default defineContentScript({
     function handleClearTokensRequest(iframeWindow: Window | null) {
       chrome.runtime.sendMessage({ action: "clear-oauth-tokens" }, (response) => {
         if (chrome.runtime.lastError) {
-          console.error(
+          devLog.error(
             "Failed to communicate with background script:",
             chrome.runtime.lastError.message
           );
@@ -2292,7 +2305,7 @@ export default defineContentScript({
         try {
           // Validate input
           if (!html || typeof html !== "string") {
-            console.warn("Cal.com: Invalid HTML to insert");
+            devLog.warn("Invalid HTML to insert");
             return false;
           }
 
@@ -2322,7 +2335,7 @@ export default defineContentScript({
           }
 
           if (!composeBody) {
-            console.warn("Cal.com: Gmail compose field not found");
+            devLog.warn("Gmail compose field not found");
             return false;
           }
 
@@ -2330,7 +2343,7 @@ export default defineContentScript({
           try {
             (composeBody as HTMLElement).focus();
           } catch (focusError) {
-            console.warn("Cal.com: Failed to focus compose field:", focusError);
+            devLog.warn("Failed to focus compose field:", focusError);
           }
 
           const selection = window.getSelection();
@@ -2342,7 +2355,7 @@ export default defineContentScript({
               composeBody.appendChild(tempDiv);
               return true;
             } catch (appendError) {
-              console.warn("Cal.com: Failed to append HTML:", appendError);
+              devLog.warn("Failed to append HTML:", appendError);
               return false;
             }
           }
@@ -2372,11 +2385,11 @@ export default defineContentScript({
 
             return true;
           } catch (insertError) {
-            console.warn("Cal.com: Failed to insert HTML at cursor:", insertError);
+            devLog.warn("Failed to insert HTML at cursor:", insertError);
             return false;
           }
         } catch (_error) {
-          console.error("Cal.com: Critical error inserting HTML");
+          devLog.error("Critical error inserting HTML");
           return false;
         }
       }
@@ -2390,7 +2403,7 @@ export default defineContentScript({
         try {
           // Validate input
           if (!text || typeof text !== "string") {
-            console.warn("Cal.com: Invalid text to insert");
+            devLog.warn("Invalid text to insert");
             return false;
           }
 
@@ -2423,7 +2436,7 @@ export default defineContentScript({
           }
 
           if (!composeBody) {
-            console.warn("Cal.com: Gmail compose field not found (structure may have changed)");
+            devLog.warn("Gmail compose field not found (structure may have changed)");
             return false;
           }
 
@@ -2431,7 +2444,7 @@ export default defineContentScript({
           try {
             (composeBody as HTMLElement).focus();
           } catch (focusError) {
-            console.warn("Cal.com: Failed to focus compose field:", focusError);
+            devLog.warn("Failed to focus compose field:", focusError);
             // Continue anyway - might still work
           }
 
@@ -2447,7 +2460,7 @@ export default defineContentScript({
               selection?.addRange(range);
               return true;
             } catch (appendError) {
-              console.warn("Cal.com: Failed to append text (fallback method):", appendError);
+              devLog.warn("Failed to append text (fallback method):", appendError);
               return false;
             }
           }
@@ -2465,14 +2478,11 @@ export default defineContentScript({
             composeBody.dispatchEvent(new Event("change", { bubbles: true }));
             return true;
           } catch (insertError) {
-            console.warn("Cal.com: Failed to insert text at cursor:", insertError);
+            devLog.warn("Failed to insert text at cursor:", insertError);
             return false;
           }
         } catch (error) {
-          console.error(
-            "Cal.com: Critical error inserting text (Gmail structure may have changed):",
-            error
-          );
+          devLog.error("Critical error inserting text (Gmail structure may have changed):", error);
           return false;
         }
       }
@@ -2550,7 +2560,7 @@ export default defineContentScript({
           }, 3000);
         } catch (error) {
           // Silently fail - notifications are non-critical
-          console.warn("Cal.com: Failed to show notification:", error);
+          devLog.warn("Failed to show notification:", error);
         }
       }
 
@@ -2571,12 +2581,12 @@ export default defineContentScript({
                   handleGoogleChipDetected(chip as HTMLElement);
                 } catch (error) {
                   // Silently fail for individual chips to prevent breaking other chips
-                  console.warn("Cal.com: Failed to process chip:", error);
+                  devLog.warn("Failed to process chip:", error);
                 }
               });
             } catch (error) {
               // Silently fail to prevent Gmail UI from breaking
-              console.warn("Cal.com: Failed to detect chips:", error);
+              devLog.warn("Failed to detect chips:", error);
             }
           });
 
@@ -2596,16 +2606,16 @@ export default defineContentScript({
                   chip.setAttribute("data-calcom-chip-processed", "true");
                   handleGoogleChipDetected(chip as HTMLElement);
                 } catch (error) {
-                  console.warn("Cal.com: Failed to process existing chip:", error);
+                  devLog.warn("Failed to process existing chip:", error);
                 }
               });
             } catch (error) {
-              console.warn("Cal.com: Failed to find existing chips:", error);
+              devLog.warn("Failed to find existing chips:", error);
             }
           }, 1000);
         } catch (_error) {
           // Critical failure - log but don't break Gmail
-          console.error("Cal.com: Failed to initialize chip watcher");
+          devLog.error("Failed to initialize chip watcher");
         }
       }
 
@@ -2614,11 +2624,11 @@ export default defineContentScript({
        */
       function handleGoogleChipDetected(chipElement: HTMLElement) {
         try {
-          console.log("Cal.com: handleGoogleChipDetected called");
+          devLog.log("handleGoogleChipDetected called");
 
           // Validate chip element exists and is in DOM
           if (!chipElement || !chipElement.isConnected) {
-            console.warn("Cal.com: Invalid or disconnected chip element");
+            devLog.warn("Invalid or disconnected chip element");
             return;
           }
 
@@ -2638,8 +2648,8 @@ export default defineContentScript({
             return;
           }
 
-          console.log(
-            `Cal.com: ✅ Google chip detected - ${parsedData.slots.length} slot${
+          devLog.log(
+            `✅ Google chip detected - ${parsedData.slots.length} slot${
               parsedData.slots.length > 1 ? "s" : ""
             } (${parsedData.detectedDuration}min)`
           );
@@ -2668,7 +2678,7 @@ export default defineContentScript({
               return;
             }
             // Something changed - remove old action bar and create new one
-            console.log(`Cal.com: 🔄 Chip updated - ${parsedData.detectedDuration}min`);
+            devLog.log(`🔄 Chip updated - ${parsedData.detectedDuration}min`);
             try {
               existingActionBar.remove();
             } catch (_e) {
@@ -2687,7 +2697,7 @@ export default defineContentScript({
 
               // Check if schedule ID changed (this changes when time range or duration changes)
               if (currentScheduleId && newScheduleId && currentScheduleId !== newScheduleId) {
-                console.log(`Cal.com: 🔄 Time range/duration changed`);
+                devLog.log(`🔄 Time range/duration changed`);
                 try {
                   actionBar?.remove();
                   // Recreate action bar with new data
@@ -2811,15 +2821,15 @@ export default defineContentScript({
             e.stopPropagation();
             // Re-parse the chip to get fresh data (in case it changed)
             const freshParsedData = parseGoogleChip(chipElement);
-            console.log(
-              "Cal.com: Suggest Links clicked, fresh parsed data:",
+            devLog.log(
+              "Suggest Links clicked, fresh parsed data:",
               freshParsedData?.detectedDuration,
               "min"
             );
             if (freshParsedData && freshParsedData.slots.length > 0) {
               showCalcomSuggestionMenu(chipElement, freshParsedData);
             } else {
-              console.log("Cal.com: Failed to parse fresh data or no slots found");
+              devLog.log("Failed to parse fresh data or no slots found");
             }
           });
 
@@ -2854,8 +2864,8 @@ export default defineContentScript({
 
             // Re-parse the chip to get fresh data
             const freshParsedData = parseGoogleChip(chipElement);
-            console.log(
-              "Cal.com: Insert Embed clicked, fresh parsed data:",
+            devLog.log(
+              "Insert Embed clicked, fresh parsed data:",
               freshParsedData?.detectedDuration,
               "min"
             );
@@ -2939,7 +2949,7 @@ export default defineContentScript({
 
               if (inserted) {
                 showGmailNotification("Cal.com embed inserted!", "success");
-                console.log("Cal.com: ✅ Email embed inserted successfully");
+                devLog.log("Email embed inserted successfully");
 
                 // Immediately remove the Google chip and action bar
                 try {
@@ -2947,7 +2957,7 @@ export default defineContentScript({
                   (actionBar as HTMLElement & { __cleanup?: () => void }).__cleanup?.();
                   actionBar.remove();
                 } catch (removeError) {
-                  console.warn("Cal.com: Failed to remove chip/action bar:", removeError);
+                  devLog.warn("Failed to remove chip/action bar:", removeError);
                 }
               } else {
                 showGmailNotification("Failed to insert embed", "error");
@@ -2957,7 +2967,7 @@ export default defineContentScript({
               embedButton.style.opacity = "1";
               embedButton.style.cursor = "pointer";
             } catch (error) {
-              console.error("Cal.com: Failed to insert embed");
+              devLog.error("Failed to insert embed");
 
               // Check if this is the "Extension context invalidated" error
               const isContextInvalidated =
@@ -3119,7 +3129,7 @@ export default defineContentScript({
               window.removeEventListener("resize", updatePosition);
             };
           } catch (_error) {
-            console.error("Cal.com: Failed to create or insert action bar");
+            devLog.error("Failed to create or insert action bar");
             // Clean up if something failed
             try {
               actionBar.remove();
@@ -3129,7 +3139,7 @@ export default defineContentScript({
           }
         } catch (_error) {
           // Catch-all to prevent breaking Gmail UI
-          console.error("Cal.com: Error handling Google chip");
+          devLog.error("Error handling Google chip");
           return;
         }
       }
@@ -3153,8 +3163,8 @@ export default defineContentScript({
           timezoneOffset: string;
         }
       ) {
-        console.log(
-          "Cal.com: Opening menu for",
+        devLog.log(
+          "Opening menu for",
           parsedData.detectedDuration,
           "min with",
           parsedData.slots.length,
@@ -3164,7 +3174,7 @@ export default defineContentScript({
         // Remove existing menu if any (to support reopening with new data)
         const existingBackdrop = document.querySelector(".cal-companion-google-chip-backdrop");
         if (existingBackdrop) {
-          console.log("Cal.com: Removing existing backdrop");
+          devLog.log("Removing existing backdrop");
           existingBackdrop.remove();
           // Wait a tick to ensure DOM is updated before creating new menu
           await new Promise((resolve) => setTimeout(resolve, 0));
@@ -3389,7 +3399,7 @@ export default defineContentScript({
                 "success"
               );
 
-              console.log("Cal.com: Opening create URL:", createUrl);
+              devLog.log("Opening create URL:", createUrl);
             });
 
             createBtn?.addEventListener("mouseenter", (e) => {
@@ -3525,7 +3535,7 @@ export default defineContentScript({
                   selectedText.textContent = `${et.title} (${et.lengthInMinutes}min)`;
                 }
                 optionsContainer.style.display = "none";
-                console.log("Cal.com: Event type changed to:", et.slug);
+                devLog.log("Event type changed to:", et.slug);
               });
 
               optionsContainer.appendChild(option);
@@ -3619,7 +3629,7 @@ export default defineContentScript({
 
             // Hover effect on entire slot item
             slotItem.addEventListener("mouseenter", () => {
-              console.log("Cal.com: Mouse entered slot", index);
+              devLog.log("Mouse entered slot", index);
               slotItem.style.borderColor = "#000";
               slotItem.style.backgroundColor = "#f8f9fa";
               const btn = slotItem.querySelector(".insert-slot-btn") as HTMLElement;
@@ -3641,18 +3651,18 @@ export default defineContentScript({
           // Add event listeners for insert buttons
           const insertButtons = menu.querySelectorAll(".insert-slot-btn");
 
-          console.log("Cal.com: Found", insertButtons.length, "insert buttons");
+          devLog.log("Found", insertButtons.length, "insert buttons");
 
           insertButtons.forEach((btn) => {
             btn.addEventListener("click", (e) => {
-              console.log("Cal.com: Insert button clicked!");
+              devLog.log("Insert button clicked!");
               e.preventDefault();
               e.stopPropagation();
               const slotIndexAttr = btn.getAttribute("data-slot-index");
               if (!slotIndexAttr) return;
               const slotIndex = parseInt(slotIndexAttr, 10);
               const slot = parsedData.slots[slotIndex];
-              console.log("Cal.com: Inserting link for slot", slotIndex, slot);
+              devLog.log("Inserting link for slot", slotIndex, slot);
 
               // Get selected event type from the tracked index
               const selectedEventType = matchingEventTypes[selectedEventTypeIndex];
@@ -3668,7 +3678,7 @@ export default defineContentScript({
               });
               const calcomUrl = `${baseUrl}?${params.toString()}`;
 
-              console.log("Cal.com: Generated URL:", calcomUrl);
+              devLog.log("Generated URL:", calcomUrl);
 
               // Insert link into Gmail compose (pass chipElement to target the correct compose window)
               const inserted = insertGmailText(calcomUrl, chipElement);
@@ -3693,7 +3703,7 @@ export default defineContentScript({
                     actionBar.remove();
                   }
                 } catch (removeError) {
-                  console.warn("Cal.com: Failed to remove chip/action bar:", removeError);
+                  devLog.warn("Failed to remove chip/action bar:", removeError);
                 }
               } else {
                 showGmailNotification("Failed to insert link", "error");
@@ -3701,7 +3711,7 @@ export default defineContentScript({
             });
           });
         } catch (error) {
-          console.error("Error showing Cal.com suggestion menu");
+          devLog.error("Error showing suggestion menu");
           loadingDiv.remove();
 
           const errorMessage = error instanceof Error ? error.message : "";
@@ -3810,7 +3820,7 @@ export default defineContentScript({
         try {
           // Validate input
           if (!chipElement || typeof chipElement.getAttribute !== "function") {
-            console.warn("Cal.com: Invalid chip element passed to parser");
+            devLog.warn("Invalid chip element passed to parser");
             return null;
           }
 
@@ -3823,10 +3833,7 @@ export default defineContentScript({
             return null;
           }
 
-          console.log(
-            "Cal.com: Valid chip detected - Schedule ID:",
-            `${scheduleId?.slice(0, 20)}...`
-          );
+          devLog.log("Valid chip detected - Schedule ID:", `${scheduleId?.slice(0, 20)}...`);
 
           // Parse timezone (non-critical - fallback to UTC if structure changed)
           let timezone = "UTC";
@@ -3835,7 +3842,7 @@ export default defineContentScript({
           try {
             // First, try to get the IANA timezone from data-ad-hoc-v2-params
             const paramsAttr = chipElement.getAttribute("data-ad-hoc-v2-params");
-            console.log("Cal.com: data-ad-hoc-v2-params:", paramsAttr);
+            devLog.log("data-ad-hoc-v2-params:", paramsAttr);
 
             if (paramsAttr) {
               // The timezone is at the end of the params string, like: "Asia/Kolkata"
@@ -3854,12 +3861,12 @@ export default defineContentScript({
 
               if (tzMatch?.[1]) {
                 timezone = tzMatch[1]; // e.g., "Asia/Kolkata"
-                console.log("Cal.com: ✅ Parsed IANA timezone from data attribute:", timezone);
+                devLog.log("Parsed IANA timezone from data attribute:", timezone);
               } else {
-                console.warn("Cal.com: ⚠️ Failed to extract timezone from params attribute");
+                devLog.warn("Failed to extract timezone from params attribute");
               }
             } else {
-              console.warn("Cal.com: ⚠️ No data-ad-hoc-v2-params attribute found");
+              devLog.warn("No data-ad-hoc-v2-params attribute found");
             }
 
             // Also get the display timezone and offset from the UI text
@@ -3868,11 +3875,11 @@ export default defineContentScript({
 
             if (timezoneMatch) {
               timezoneOffset = timezoneMatch[3]?.trim() || "GMT+00:00";
-              console.log("Cal.com: Parsed timezone offset from UI:", timezoneOffset);
+              devLog.log("Parsed timezone offset from UI:", timezoneOffset);
             }
           } catch (tzError) {
             // Non-critical error - continue with default timezone
-            console.warn("Cal.com: Failed to parse timezone, using UTC:", tzError);
+            devLog.warn("Failed to parse timezone, using UTC:", tzError);
           }
 
           // Find all time slot links - critical for functionality
@@ -3880,7 +3887,7 @@ export default defineContentScript({
           try {
             slotLinks = Array.from(chipElement.querySelectorAll("a[href*='slotStartTime']"));
           } catch (error) {
-            console.warn("Cal.com: Failed to find slot links:", error);
+            devLog.warn("Failed to find slot links:", error);
             return null;
           }
 
@@ -3955,7 +3962,7 @@ export default defineContentScript({
               });
             } catch (slotError) {
               // Skip individual slot if it fails - don't break entire parsing
-              console.warn("Cal.com: Failed to parse individual slot:", slotError);
+              devLog.warn("Failed to parse individual slot:", slotError);
             }
           });
 
@@ -3964,8 +3971,8 @@ export default defineContentScript({
             return null;
           }
 
-          console.log(
-            `Cal.com: ✅ Parsed chip - ${slots.length} slots, ${detectedDuration}min, timezone: ${timezone}`
+          devLog.log(
+            `Parsed chip - ${slots.length} slots, ${detectedDuration}min, timezone: ${timezone}`
           );
 
           return {
@@ -3977,10 +3984,7 @@ export default defineContentScript({
           };
         } catch (error) {
           // Critical error in parsing - fail gracefully without breaking Gmail
-          console.warn(
-            "Cal.com: Failed to parse Google chip (Gmail structure may have changed):",
-            error
-          );
+          devLog.warn("Failed to parse Google chip (Gmail structure may have changed):", error);
           return null;
         }
       }
@@ -3996,9 +4000,9 @@ export default defineContentScript({
     if (window.location.hostname === "mail.google.com") {
       try {
         initGmailIntegration();
-        console.log("Cal.com: Gmail integration initialized successfully");
+        devLog.log("Gmail integration initialized successfully");
       } catch (error) {
-        console.error("Cal.com: Failed to initialize Gmail integration", error);
+        devLog.error("Failed to initialize Gmail integration", error);
       }
     }
 
@@ -4006,9 +4010,9 @@ export default defineContentScript({
     if (window.location.hostname === "www.linkedin.com") {
       try {
         initLinkedInIntegration();
-        console.log("Cal.com: LinkedIn integration initialized successfully");
+        devLog.log("LinkedIn integration initialized successfully");
       } catch (error) {
-        console.error("Cal.com: Failed to initialize LinkedIn integration", error);
+        devLog.error("Failed to initialize LinkedIn integration", error);
       }
     }
 
@@ -4016,9 +4020,9 @@ export default defineContentScript({
     if (window.location.hostname === "calendar.google.com") {
       try {
         initGoogleCalendarIntegration();
-        console.log("Cal.com: Google Calendar integration initialized successfully");
+        devLog.log("Google Calendar integration initialized successfully");
       } catch (error) {
-        console.error("Cal.com: Failed to initialize Google Calendar integration", error);
+        devLog.error("Failed to initialize Google Calendar integration", error);
       }
     }
   },
