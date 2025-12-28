@@ -280,7 +280,6 @@ export function EditForm({
               <AttributesList selectedUserId={selectedUser?.id} />
             </>
           )}
-          <Divider />
           <Controller
             name="bookingLimits"
             control={form.control}
