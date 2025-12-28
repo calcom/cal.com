@@ -1,9 +1,9 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Platform, View } from "react-native";
-import ViewRecordingsScreenComponent from "../../../components/screens/ViewRecordingsScreen";
-import { CalComAPIService } from "../../../services/calcom";
-import type { BookingRecording } from "../../../services/types/bookings.types";
+import ViewRecordingsScreenComponent from "@/components/screens/ViewRecordingsScreen";
+import { CalComAPIService } from "@/services/calcom";
+import type { BookingRecording } from "@/services/types/bookings.types";
 
 export default function ViewRecordings() {
   const { uid } = useLocalSearchParams<{ uid: string }>();

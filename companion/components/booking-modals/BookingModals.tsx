@@ -10,11 +10,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-import type { Booking, EventType } from "../../services/calcom";
-import { type BookingActionsResult, getBookingActions } from "../../utils/booking-actions";
-import { BookingActionsModal } from "../BookingActionsModal";
-import { FullScreenModal } from "../FullScreenModal";
+import { BookingActionsModal } from "@/components/BookingActionsModal";
+import { FullScreenModal } from "@/components/FullScreenModal";
+import type { Booking, EventType } from "@/services/calcom";
+import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 
 // Empty actions result for when no booking is selected
 const EMPTY_ACTIONS: BookingActionsResult = {

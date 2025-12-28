@@ -2,17 +2,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Platform, ScrollView, Text, View } from "react-native";
-import { useAuth } from "../../contexts/AuthContext";
-import { type Booking, CalComAPIService } from "../../services/calcom";
-import { showErrorAlert } from "../../utils/alerts";
-import { type BookingActionsResult, getBookingActions } from "../../utils/booking-actions";
-import { openInAppBrowser } from "../../utils/browser";
-import { defaultLocations, getDefaultLocationIconUrl } from "../../utils/defaultLocations";
-import { formatAppIdToDisplayName } from "../../utils/formatters";
-import { getAppIconUrl } from "../../utils/getAppIconUrl";
-import { AppPressable } from "../AppPressable";
-import { BookingActionsModal } from "../BookingActionsModal";
-import { SvgImage } from "../SvgImage";
+import { AppPressable } from "@/components/AppPressable";
+import { BookingActionsModal } from "@/components/BookingActionsModal";
+import { SvgImage } from "@/components/SvgImage";
+import { useAuth } from "@/contexts/AuthContext";
+import { type Booking, CalComAPIService } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
+import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
+import { openInAppBrowser } from "@/utils/browser";
+import { defaultLocations, getDefaultLocationIconUrl } from "@/utils/defaultLocations";
+import { formatAppIdToDisplayName } from "@/utils/formatters";
+import { getAppIconUrl } from "@/utils/getAppIconUrl";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {

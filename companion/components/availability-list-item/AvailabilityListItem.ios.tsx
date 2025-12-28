@@ -1,10 +1,10 @@
 import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
 import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
-import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import type { SFSymbols7_0 } from "sf-symbols-typescript";
 import type { AvailabilityListItemProps } from "./AvailabilityListItem";
+import { AvailabilitySlots, ScheduleName, TimeZoneRow } from "./AvailabilityListItemParts";
 
 export const AvailabilityListItem = ({
   item: schedule,
@@ -45,7 +45,7 @@ export const AvailabilityListItem = ({
 
   return (
     <View
-      className="border-b border-[#E5E5EA] bg-white"
+      className="border-b border-cal-border bg-cal-bg"
       style={{ paddingHorizontal: 16, paddingVertical: 16 }}
     >
       <View className="flex-row items-center">
@@ -55,42 +55,15 @@ export const AvailabilityListItem = ({
           accessibilityRole="button"
         >
           <View>
-            <View className="mb-1 flex-row flex-wrap items-center">
-              <Text className="text-base font-semibold text-[#333]">{schedule.name}</Text>
-              {schedule.isDefault && (
-                <View className="ml-2 rounded bg-[#666] px-2 py-0.5">
-                  <Text className="text-xs font-semibold text-white">Default</Text>
-                </View>
-              )}
-            </View>
-
-            {schedule.availability && schedule.availability.length > 0 ? (
-              <View>
-                {schedule.availability.map((slot, slotIndex) => (
-                  <View
-                    key={`${schedule.id}-${slot.days.join("-")}-${slotIndex}`}
-                    className={slotIndex > 0 ? "mt-2" : ""}
-                  >
-                    <Text className="text-sm text-[#666]">
-                      {slot.days.join(", ")} {slot.startTime} - {slot.endTime}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <Text className="text-sm text-[#666]">No availability set</Text>
-            )}
-
-            <View className="mt-2 flex-row items-center">
-              <Ionicons name="globe-outline" size={14} color="#666" />
-              <Text className="ml-1.5 text-sm text-[#666]">{schedule.timeZone}</Text>
-            </View>
+            <ScheduleName name={schedule.name} isDefault={schedule.isDefault} />
+            <AvailabilitySlots availability={schedule.availability} scheduleId={schedule.id} />
+            <TimeZoneRow timeZone={schedule.timeZone} />
           </View>
         </Pressable>
 
         {/* Three dots menu - fixed hit target so it doesn't get squeezed off-screen */}
         <View
-          className="items-center justify-center rounded-lg border border-[#E5E5EA]"
+          className="items-center justify-center rounded-lg border border-cal-border"
           style={{ width: 32, height: 32 }}
         >
           <Host matchContents>

@@ -20,6 +20,8 @@
         "expo-dev-client": "6.1.0-canary-20251216-3f01dbf",
         "expo-device": "8.0.11-canary-20251216-3f01dbf",
         "expo-glass-effect": "0.2.0-canary-20251216-3f01dbf",
+        "expo-haptics": "^15.0.8",
+        "expo-image": "^3.0.11",
         "expo-linking": "8.0.11-canary-20251216-3f01dbf",
         "expo-router": "7.0.0-canary-20251216-3f01dbf",
         "expo-secure-store": "15.0.9-canary-20251216-3f01dbf",
@@ -1050,6 +1052,10 @@
     "expo-font": ["expo-font@14.0.10", "", { "dependencies": { "fontfaceobserver": "^2.1.0" }, "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-UqyNaaLKRpj4pKAP4HZSLnuDQqueaO5tB1c/NWu5vh1/LF9ulItyyg2kF/IpeOp0DeOLk0GY0HrIXaKUMrwB+Q=="],
 
     "expo-glass-effect": ["expo-glass-effect@0.2.0-canary-20251216-3f01dbf", "", { "peerDependencies": { "expo": "55.0.0-canary-20251216-3f01dbf", "react": "*", "react-native": "*" } }, "sha512-n1L+Y8Gr0ZjuIu+NYZuoggBaSi7djXLbVfGxjebbe6OJczHCni06vnmDo2Zz/N2g7vqzBxZZeV/5OXo2v3YBYA=="],
+
+    "expo-haptics": ["expo-haptics@15.0.8", "", { "peerDependencies": { "expo": "*" } }, "sha512-lftutojy8Qs8zaDzzjwM3gKHFZ8bOOEZDCkmh2Ddpe95Ra6kt2izeOfOfKuP/QEh0MZ1j9TfqippyHdRd1ZM9g=="],
+
+    "expo-image": ["expo-image@3.0.11", "", { "peerDependencies": { "expo": "*", "react": "*", "react-native": "*", "react-native-web": "*" }, "optionalPeers": ["react-native-web"] }, "sha512-4TudfUCLgYgENv+f48omnU8tjS2S0Pd9EaON5/s1ZUBRwZ7K8acEr4NfvLPSaeXvxW24iLAiyQ7sV7BXQH3RoA=="],
 
     "expo-json-utils": ["expo-json-utils@0.15.1-canary-20251216-3f01dbf", "", {}, "sha512-4pU8mIFJSXZq0jOdTEUz68SKZCKYreISzqRyFVQ5AflWyGDmZhVFgAN5jbwuzNTMhcG7+mRnWkkrOemr1aSpbg=="],
 

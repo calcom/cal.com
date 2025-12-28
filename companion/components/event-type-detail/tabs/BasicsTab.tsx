@@ -1,9 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-import { LocationsList } from "../../../components/LocationsList";
-import type { LocationItem, LocationOptionGroup } from "../../../types/locations";
-import { slugify } from "../../../utils/slugify";
+import { LocationsList } from "@/components/LocationsList";
+import type { LocationItem, LocationOptionGroup } from "@/types/locations";
+import { slugify } from "@/utils/slugify";
 
 interface BasicsTabProps {
   // Title, description, URL

@@ -19,8 +19,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { Booking } from "../../services/calcom";
-import { CalComAPIService } from "../../services/calcom";
+import type { Booking } from "@/services/calcom";
+import { CalComAPIService } from "@/services/calcom";
 
 // Note: @expo/ui DateTimePicker components are not yet stable
 // Using a simple inline picker approach instead

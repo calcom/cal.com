@@ -11,8 +11,8 @@
  * Deferred:
  * - report, reroute, reassign, charge_card
  */
-import type { Booking } from "../services/types/bookings.types";
-import type { EventType } from "../services/types/event-types.types";
+import type { Booking } from "@/services/types/bookings.types";
+import type { EventType } from "@/services/types/event-types.types";
 
 // ============================================================================
 // Types

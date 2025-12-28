@@ -15,28 +15,28 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AdvancedTab } from "../components/event-type-detail/tabs/AdvancedTab";
-import { AvailabilityTab } from "../components/event-type-detail/tabs/AvailabilityTab";
-import { BasicsTab } from "../components/event-type-detail/tabs/BasicsTab";
-import { LimitsTab } from "../components/event-type-detail/tabs/LimitsTab";
-import { RecurringTab } from "../components/event-type-detail/tabs/RecurringTab";
-import { truncateTitle } from "../components/event-type-detail/utils";
-import { buildPartialUpdatePayload } from "../components/event-type-detail/utils/buildPartialUpdatePayload";
+import { AdvancedTab } from "@/components/event-type-detail/tabs/AdvancedTab";
+import { AvailabilityTab } from "@/components/event-type-detail/tabs/AvailabilityTab";
+import { BasicsTab } from "@/components/event-type-detail/tabs/BasicsTab";
+import { LimitsTab } from "@/components/event-type-detail/tabs/LimitsTab";
+import { RecurringTab } from "@/components/event-type-detail/tabs/RecurringTab";
+import { truncateTitle } from "@/components/event-type-detail/utils";
+import { buildPartialUpdatePayload } from "@/components/event-type-detail/utils/buildPartialUpdatePayload";
 import {
   CalComAPIService,
   type ConferencingOption,
   type EventType,
   type Schedule,
-} from "../services/calcom";
-import type { LocationItem, LocationOptionGroup } from "../types/locations";
-import { showErrorAlert } from "../utils/alerts";
-import { openInAppBrowser } from "../utils/browser";
+} from "@/services/calcom";
+import type { LocationItem, LocationOptionGroup } from "@/types/locations";
+import { showErrorAlert } from "@/utils/alerts";
+import { openInAppBrowser } from "@/utils/browser";
 import {
   buildLocationOptions,
   mapApiLocationToItem,
   mapItemToApiLocation,
   validateLocationItem,
-} from "../utils/locationHelpers";
+} from "@/utils/locationHelpers";
 
 // Type definitions for extended EventType fields not in the base type
 interface EventTypeExtended {

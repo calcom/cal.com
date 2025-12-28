@@ -6,14 +6,14 @@
  */
 
 import { useMemo } from "react";
-import type { Booking } from "../services/calcom";
-import type { EventType } from "../services/types/event-types.types";
+import type { Booking } from "@/services/calcom";
+import type { EventType } from "@/services/types/event-types.types";
 import {
   type BookingActionsResult,
   getBookingActions,
   type NormalizedBooking,
   normalizeBooking,
-} from "../utils/booking-actions";
+} from "@/utils/booking-actions";
 
 interface UseBookingActionsGatingParams {
   booking: Booking | null;

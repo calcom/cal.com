@@ -1,13 +1,16 @@
 import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
 import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
-import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import type React from "react";
-import { Pressable, Text, View } from "react-native";
-import { formatDuration } from "../../utils/formatters";
-import { getEventDuration } from "../../utils/getEventDuration";
-import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
+import { Pressable, View } from "react-native";
+import {
+  DurationBadge,
+  EventTypeDescription,
+  EventTypeTitle,
+  PriceAndConfirmationBadges,
+} from "./EventTypeListItemParts";
 import type { EventTypeListItemProps } from "./types";
+import { useEventTypeListItemData } from "./useEventTypeListItemData";
 
 export const EventTypeListItem = ({
   item,
@@ -22,7 +25,8 @@ export const EventTypeListItem = ({
   onDuplicate,
   onDelete,
 }: EventTypeListItemProps) => {
-  const duration = getEventDuration(item);
+  const { formattedDuration, normalizedDescription, hasPrice, formattedPrice } =
+    useEventTypeListItemData(item);
   const isLast = index === filteredEventTypes.length - 1;
 
   type ButtonSystemImage = React.ComponentProps<typeof Button>["systemImage"];
@@ -67,7 +71,9 @@ export const EventTypeListItem = ({
   ];
 
   return (
-    <View className={`bg-white active:bg-[#F8F9FA] ${!isLast ? "border-b border-[#E5E5EA]" : ""}`}>
+    <View
+      className={`bg-cal-bg active:bg-cal-bg-secondary ${!isLast ? "border-b border-cal-border" : ""}`}
+    >
       <View className="flex-shrink-1 flex-row items-center justify-between">
         <Pressable
           onPress={() => handleEventTypePress(item)}
@@ -75,35 +81,14 @@ export const EventTypeListItem = ({
           className="flex-grow"
         >
           <View className="mr-4 flex-1">
-            <View className="mb-1 flex-row items-center">
-              <Text className="flex-1 text-base font-semibold text-[#333]">{item.title} </Text>
-            </View>
-            {item.description ? (
-              <Text className="mb-2 mt-0.5 text-sm leading-5 text-[#666]" numberOfLines={2}>
-                {normalizeMarkdown(item.description)}
-              </Text>
-            ) : null}
-            <View className="mt-2 flex-row items-center self-start rounded-lg border border-[#E5E5EA] bg-[#E5E5EA] px-2 py-1">
-              <Ionicons name="time-outline" size={14} color="#000" />
-              <Text className="ml-1.5 text-xs font-semibold text-black">
-                {formatDuration(duration)}
-              </Text>
-            </View>
-            {(item.price != null && item.price > 0) || item.requiresConfirmation ? (
-              <View className="mt-2 flex-row items-center gap-3">
-                {item.price != null && item.price > 0 ? (
-                  <Text className="text-sm font-medium text-[#34C759]">
-                    {item.currency || "$"}
-                    {item.price}
-                  </Text>
-                ) : null}
-                {item.requiresConfirmation ? (
-                  <View className="rounded bg-[#FF9500] px-2 py-0.5">
-                    <Text className="text-xs font-medium text-white">Requires Confirmation</Text>
-                  </View>
-                ) : null}
-              </View>
-            ) : null}
+            <EventTypeTitle title={item.title} />
+            <EventTypeDescription normalizedDescription={normalizedDescription} />
+            <DurationBadge formattedDuration={formattedDuration} />
+            <PriceAndConfirmationBadges
+              hasPrice={hasPrice}
+              formattedPrice={formattedPrice}
+              requiresConfirmation={item.requiresConfirmation}
+            />
           </View>
         </Pressable>
 

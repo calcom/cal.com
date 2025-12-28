@@ -1,8 +1,8 @@
 import { Platform, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAuth } from "../contexts/AuthContext";
-import { showErrorAlert } from "../utils/alerts";
-import { openInAppBrowser } from "../utils/browser";
+import { useAuth } from "@/contexts/AuthContext";
+import { showErrorAlert } from "@/utils/alerts";
+import { openInAppBrowser } from "@/utils/browser";
 import { CalComLogo } from "./CalComLogo";
 
 export function LoginScreen() {

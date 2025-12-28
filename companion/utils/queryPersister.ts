@@ -5,7 +5,7 @@
  */
 
 import type { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
-import { CACHE_CONFIG } from "../config/cache.config";
+import { CACHE_CONFIG } from "@/config/cache.config";
 import { generalStorage } from "./storage";
 
 // Use the shared general storage adapter for cache persistence

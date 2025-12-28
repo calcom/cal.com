@@ -1,11 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { Header } from "../../components/Header";
-import { LogoutConfirmModal } from "../../components/LogoutConfirmModal";
-import { useAuth } from "../../contexts/AuthContext";
-import { showErrorAlert } from "../../utils/alerts";
-import { openInAppBrowser } from "../../utils/browser";
+import { Header } from "@/components/Header";
+import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
+import { useAuth } from "@/contexts/AuthContext";
+import { showErrorAlert } from "@/utils/alerts";
+import { openInAppBrowser } from "@/utils/browser";
 
 interface MoreMenuItem {
   name: string;
