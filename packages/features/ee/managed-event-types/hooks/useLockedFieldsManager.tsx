@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import { default as get } from "lodash/get";
 import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
@@ -19,7 +19,7 @@ export const LockedSwitch = (
   [fieldState, setFieldState]: [Record<string, boolean>, Dispatch<SetStateAction<Record<string, boolean>>>],
   fieldName: string,
   setUnlockedFields: (fieldName: string, val: boolean | undefined) => void,
-  options = { simple: false }
+  _options = { simple: false }
 ) => {
   return isManagedEventType ? (
     <Switch
@@ -100,6 +100,7 @@ const useLockedFieldsManager = ({
 }) => {
   const { setValue, getValues } = formMethods;
   const [fieldStates, setFieldStates] = useState<Record<string, boolean>>({});
+  const pendingFields = useRef<Set<string>>(new Set());
 
   const metadata = eventTypeMetaDataSchemaWithoutApps.parse(eventType.metadata);
 
@@ -111,6 +112,29 @@ const useLockedFieldsManager = ({
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
   const isChildrenManagedEventType =
     metadata?.managedEventConfig !== undefined && eventType.schedulingType !== SchedulingType.MANAGED;
+
+  // Lazy initialize field states after render to avoid setState during render
+  useEffect(() => {
+    const fieldsToInit = Array.from(pendingFields.current);
+
+    if (fieldsToInit.length > 0) {
+      const newStates: Record<string, boolean> = {};
+
+      fieldsToInit.forEach((fieldName) => {
+        // Double-check: state might have been updated by another instance
+        if (typeof fieldStates[fieldName] === "undefined") {
+          newStates[fieldName] = getLockedInitState(fieldName);
+        }
+      });
+
+      if (Object.keys(newStates).length > 0) {
+        setFieldStates((prev) => ({ ...prev, ...newStates }));
+      }
+
+      // Clear only the fields we processed
+      fieldsToInit.forEach((f) => pendingFields.current.delete(f));
+    }
+  });
 
   const setUnlockedFields = (fieldName: string, val: boolean | undefined) => {
     const path = "metadata.managedEventConfig.unlockedFields";
@@ -149,15 +173,13 @@ const useLockedFieldsManager = ({
 
   const useShouldLockIndicator = (fieldName: string, options?: { simple: true }) => {
     if (typeof fieldStates[fieldName] === "undefined") {
-      setFieldStates({
-        ...fieldStates,
-        [fieldName]: getLockedInitState(fieldName),
-      });
+      pendingFields.current.add(fieldName);
     }
+    const isLocked = fieldStates[fieldName] ?? getLockedInitState(fieldName);
     return LockedIndicator(
       isChildrenManagedEventType,
       isManagedEventType,
-      [fieldStates, setFieldStates],
+      [{ ...fieldStates, [fieldName]: isLocked }, setFieldStates],
       translate,
       fieldName,
       setUnlockedFields,
@@ -167,12 +189,9 @@ const useLockedFieldsManager = ({
 
   const useLockedLabel = (fieldName: string, options?: { simple: true }) => {
     if (typeof fieldStates[fieldName] === "undefined") {
-      setFieldStates({
-        ...fieldStates,
-        [fieldName]: getLockedInitState(fieldName),
-      });
+      pendingFields.current.add(fieldName);
     }
-    const isLocked = fieldStates[fieldName];
+    const isLocked = fieldStates[fieldName] ?? getLockedInitState(fieldName);
     return {
       disabled:
         !isManagedEventType &&
@@ -185,29 +204,25 @@ const useLockedFieldsManager = ({
 
   const useLockedSwitch = (fieldName: string, options = { simple: false }) => {
     if (typeof fieldStates[fieldName] === "undefined") {
-      setFieldStates({
-        ...fieldStates,
-        [fieldName]: getLockedInitState(fieldName),
-      });
+      pendingFields.current.add(fieldName);
     }
+    const isLocked = fieldStates[fieldName] ?? getLockedInitState(fieldName);
     return () =>
-      LockedSwitch(isManagedEventType, [fieldStates, setFieldStates], fieldName, setUnlockedFields, options);
+      LockedSwitch(isManagedEventType, [{ ...fieldStates, [fieldName]: isLocked }, setFieldStates], fieldName, setUnlockedFields, options);
   };
 
   const useShouldLockDisableProps = (fieldName: string, options?: { simple: true }) => {
     if (typeof fieldStates[fieldName] === "undefined") {
-      setFieldStates({
-        ...fieldStates,
-        [fieldName]: getLockedInitState(fieldName),
-      });
+      pendingFields.current.add(fieldName);
     }
+    const isLocked = fieldStates[fieldName] ?? getLockedInitState(fieldName);
     return {
       disabled:
         !isManagedEventType &&
         metadata?.managedEventConfig !== undefined &&
         unlockedFields[fieldName as keyof Omit<Prisma.EventTypeSelect, "id">] === undefined,
       LockedIcon: useShouldLockIndicator(fieldName, options),
-      isLocked: fieldStates[fieldName],
+      isLocked,
     };
   };
 
