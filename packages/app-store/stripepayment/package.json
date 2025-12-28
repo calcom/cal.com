@@ -19,13 +19,9 @@
     "@calcom/types": "workspace:*",
     "@stripe/react-stripe-js": "1.10.0",
     "@stripe/stripe-js": "1.35.0",
+    "stripe": "9.16.0",
     "uuid": "8.3.2",
     "zod": "3.25.76"
-  },
-  "peerDependencies": {
-    "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0",
-    "stripe": "^9.0.0 || ^15.0.0"
   },
   "devDependencies": {
     "@calcom/types": "workspace:*",
