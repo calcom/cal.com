@@ -180,8 +180,9 @@ test.describe("Team", () => {
 
     await invitedMember.apiLogin();
     await page.goto(`/teams`);
+    const response2Promise = page.waitForResponse("/api/trpc/teams/acceptOrLeave?batch=1");
     await page.getByTestId(`accept-invitation-${team.id}`).first().click();
-    const response2 = await page.waitForResponse("/api/trpc/teams/acceptOrLeave?batch=1");
+    const response2 = await response2Promise;
     expect(response2.status()).toBe(200);
     await page.goto(`/event-types`);
 
