@@ -1,4 +1,4 @@
-name: Manually Delete Blacksmith Cache
+name: Delete Blacksmith Cache
 on:
   workflow_dispatch:
     inputs:
@@ -6,8 +6,12 @@ on:
         description: "Blacksmith Cache Key to Delete"
         required: true
         type: string
+  pull_request:
+    types: [closed]
+
 jobs:
   manually-delete-blacksmith-cache:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -15,3 +19,26 @@ jobs:
       - uses: useblacksmith/cache-delete@v1
         with:
           cache_key: ${{ inputs.cache_key }}
+
+  delete-yarn-install-cache-on-pr-close:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Delete yarn-install caches for this PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          echo "Deleting yarn-install caches for PR #${PR_NUMBER}..."
+
+          # List all caches and filter by those ending with the PR number
+          gh cache list --json key --jq '.[].key' | while read -r cache_key; do
+            if [[ "$cache_key" =~ -${PR_NUMBER}$ ]]; then
+              echo "Deleting cache: $cache_key"
+              gh cache delete "$cache_key" || true
+            fi
+          done
+
+          echo "Cache cleanup complete for PR #${PR_NUMBER}"
