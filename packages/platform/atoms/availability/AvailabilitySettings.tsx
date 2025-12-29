@@ -679,7 +679,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 </div>
               </div>
               {enableOverrides && (
-                <div className="border-subtle rounded-md border">
+                <div className="border-subtle rounded-md border mb-6">
                   <BookerStoreProvider>
                     <DateOverride
                       isDryRun={isDryRun}

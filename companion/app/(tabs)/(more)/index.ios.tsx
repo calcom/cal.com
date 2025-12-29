@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { Header } from "@/components/Header";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { showErrorAlert } from "@/utils/alerts";
@@ -16,6 +17,7 @@ interface MoreMenuItem {
 }
 
 export default function More() {
+  const router = useRouter();
   const { logout } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
@@ -34,30 +36,17 @@ export default function More() {
   };
 
   const handleSignOut = () => {
-    if (Platform.OS === "web") {
-      // Use modal for web/extension since Alert.alert doesn't work
-      setShowLogoutModal(true);
-    } else {
-      // Use native Alert for iOS/Android
-      Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Sign Out",
-          style: "destructive",
-          onPress: performLogout,
-        },
-      ]);
-    }
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: performLogout,
+      },
+    ]);
   };
 
   const menuItems: MoreMenuItem[] = [
-    {
-      name: "Profile",
-      icon: "person-outline",
-      isExternal: true,
-      onPress: () =>
-        openInAppBrowser("https://app.cal.com/settings/my-account/profile", "Profile page"),
-    },
     {
       name: "Apps",
       icon: "grid-outline",
@@ -91,11 +80,27 @@ export default function More() {
   ];
 
   return (
-    <View className="flex-1 bg-[#f8f9fa]">
-      <Header />
+    <>
+      {/* iOS Native Header with Glass UI */}
+      <Stack.Header
+        style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
+        blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
+      >
+        <Stack.Header.Title large>More</Stack.Header.Title>
+        <Stack.Header.Right>
+          {/* Profile Button */}
+          <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
+            <Stack.Header.Icon sf="person.circle.fill" />
+          </Stack.Header.Button>
+        </Stack.Header.Right>
+      </Stack.Header>
+
+      {/* Content */}
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 90 }}
+        style={{ backgroundColor: "#f8f9fa" }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="automatic"
       >
         <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
           {menuItems.map((item, index) => (
@@ -143,7 +148,7 @@ export default function More() {
         </Text>
       </ScrollView>
 
-      {/* Logout Confirmation Modal for Web */}
+      {/* Logout Confirmation Modal - kept for consistency */}
       <LogoutConfirmModal
         visible={showLogoutModal}
         onConfirm={() => {
@@ -152,6 +157,6 @@ export default function More() {
         }}
         onCancel={() => setShowLogoutModal(false)}
       />
-    </View>
+    </>
   );
 }
