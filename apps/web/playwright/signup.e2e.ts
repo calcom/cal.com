@@ -9,6 +9,7 @@ import { test } from "./lib/fixtures";
 import { localize } from "./lib/localize";
 import { getEmailsReceivedByUser } from "./lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./team/expects";
+import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -38,6 +39,7 @@ test.describe("Signup Main Page Test", async () => {
   });
 
   test("Continue with SAML button must exist / work", async ({ page }) => {
+    test.skip(!isSAMLLoginEnabled, "Skipping due to SAML login being disabled");
     const button = page.getByTestId("continue-with-saml-button");
     await expect(button).toBeVisible();
     await expect(button).toBeEnabled();
