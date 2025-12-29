@@ -395,7 +395,7 @@ export default function EventTypes() {
       <View className="flex-1 bg-gray-100">
         {Platform.OS === "web" && <Header />}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="alert-circle" size={64} color="#FF3B30" />
+          <Ionicons name="alert-circle" size={64} color="#800020" />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
             Unable to load event types
           </Text>
