@@ -7,7 +7,7 @@
   "scripts": {
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
-    "lint:report": "biome lint --reporter json --reporter-path ../../lint-results/app-store.json ."
+    "lint:report": "biome lint --reporter json . > ../../lint-results/lib.json"
   },
   "dependencies": {
     "@calcom/config": "workspace:*",

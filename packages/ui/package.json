@@ -65,7 +65,7 @@
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint:fix": "biome lint --write .",
-    "lint:report": "biome lint --reporter json --reporter-path ../../lint-results/ui.json .",
+    "lint:report": "biome lint --reporter json . > ../../lint-results/ui.json",
     "dx": "node ./scripts/build-icons.mjs",
     "dev": "node ./scripts/build-icons.mjs",
     "build": "node ./scripts/build-icons.mjs",

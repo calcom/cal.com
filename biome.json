@@ -67,30 +67,38 @@
     }
   },
   "overrides": [
-    {
-      "includes": ["packages/lib/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
-      "linter": {
-        "rules": {
-          "style": {
-            "noRestrictedImports": {
-              "level": "error",
-              "options": {
-                "patterns": [
-                  {
-                    "group": ["../app-store/**"],
-                    "message": "lib package should not import from app-store to avoid circular dependencies."
-                  },
-                  {
-                    "group": ["../features/**"],
-                    "message": "lib package should not import from features to avoid circular dependencies."
+        {
+          "includes": ["packages/lib/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+          "linter": {
+            "rules": {
+              "style": {
+                "noRestrictedImports": {
+                  "level": "error",
+                  "options": {
+                    "patterns": [
+                      {
+                        "group": ["../app-store/**"],
+                        "message": "lib package should not import from app-store to avoid circular dependencies."
+                      },
+                      {
+                        "group": ["../features/**"],
+                        "message": "lib package should not import from features to avoid circular dependencies."
+                      },
+                      {
+                        "group": ["../trpc/**"],
+                        "message": "lib package should not import from trpc to avoid circular dependencies."
+                      },
+                      {
+                        "group": ["@trpc/server"],
+                        "message": "lib package should not import from @trpc/server to avoid circular dependencies."
+                      }
+                    ]
                   }
-                ]
+                }
               }
             }
           }
-        }
-      }
-    },
+        },
     {
       "includes": ["packages/app-store/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
       "linter": {
@@ -115,26 +123,46 @@
         }
       }
     },
-    {
-      "includes": ["packages/features/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
-      "linter": {
-        "rules": {
-          "style": {
-            "noRestrictedImports": {
-              "level": "error",
-              "options": {
-                "patterns": [
-                  {
-                    "group": ["../trpc/**"],
-                    "message": "features package should not import from trpc to avoid circular dependencies."
+        {
+          "includes": ["packages/features/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+          "linter": {
+            "rules": {
+              "style": {
+                "noRestrictedImports": {
+                  "level": "error",
+                  "options": {
+                    "patterns": [
+                      {
+                        "group": ["../trpc/**"],
+                        "message": "features package should not import from trpc to avoid circular dependencies."
+                      }
+                    ]
                   }
-                ]
+                }
               }
             }
           }
-        }
-      }
-    },
+        },
+        {
+          "includes": ["packages/trpc/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+          "linter": {
+            "rules": {
+              "style": {
+                "noRestrictedImports": {
+                  "level": "error",
+                  "options": {
+                    "patterns": [
+                      {
+                        "group": ["../apps/web/**"],
+                        "message": "trpc package should not import from apps/web to avoid circular dependencies."
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
     {
       "includes": ["companion/**/*.{ts,tsx,js,jsx}"],
       "javascript": {
