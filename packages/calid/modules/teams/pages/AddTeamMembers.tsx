@@ -175,7 +175,7 @@ const AddTeamMembers = () => {
               });
             }
           }}>
-          <div className="flex flex-col gap-2 md:flex-row md:justify-between md:space-x-2">
+          <div className="flex flex-col gap-2 md:flex-row md:gap-2">
             <div className="w-full md:flex-1">
               <Controller
                 name="email"
@@ -197,7 +197,7 @@ const AddTeamMembers = () => {
                 )}
               />
             </div>
-            <div className="w-full">
+            <div className="w-full md:flex-1">
               <Controller
                 name="role"
                 control={formMethods.control}
