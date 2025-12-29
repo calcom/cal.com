@@ -15,6 +15,10 @@ on:
     inputs:
       RELEASE_TAG:
         description: "v{Major}.{Minor}.{Patch}"
+      PUSH_IMAGE:
+        description: "Push the Docker image to DockerHub"
+        type: boolean
+        default: true
 
 jobs:
   release-amd64:
@@ -39,7 +43,7 @@ jobs:
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
-          push-image: "true"
+          push-image: ${{ github.event_name == 'push' && 'true' || inputs.PUSH_IMAGE }}
           use-as-latest: "true"
 
       - name: Notify Slack on Success
@@ -86,7 +90,7 @@ jobs:
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
-          push-image: "true"
+          push-image: ${{ github.event_name == 'push' && 'true' || inputs.PUSH_IMAGE }}
 
       - name: Notify Slack on Success
         if: success()
