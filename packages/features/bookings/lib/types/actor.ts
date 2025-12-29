@@ -136,3 +136,18 @@ export function buildActorEmail({ identifier, actorType }: { identifier: string,
 }
 
 export const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";
+
+/**
+ * Schema for booking audit context - cross-cutting concerns like impersonation
+ * This is separate from action-specific data because impersonation is orthogonal to the action type
+ */
+export const BookingAuditContextSchema = z.object({
+  /**
+   * UUID of the user being impersonated (acting as)
+   * When an admin impersonates a user, this stores the impersonated user's UUID
+   * The actor field stores the admin's UUID (who actually performed the action)
+   */
+  actingAsUserUuid: z.string().optional(),
+});
+
+export type BookingAuditContext = z.infer<typeof BookingAuditContextSchema>;

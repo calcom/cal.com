@@ -54,6 +54,7 @@ async function handler(req: NextApiRequest & { userId?: number; traceContext: Tr
       hostname: req.headers.host || "",
       forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
       traceContext: req.traceContext,
+      impersonatedByUserUuid: session?.user?.impersonatedBy?.uuid,
     },
   });
 

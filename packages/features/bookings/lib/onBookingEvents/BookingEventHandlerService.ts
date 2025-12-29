@@ -17,7 +17,7 @@ import type { ActionSource } from "@calcom/features/booking-audit/lib/types/acti
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { Actor } from "../types/actor";
+import type { Actor, BookingAuditContext } from "../types/actor";
 import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types";
 
 interface BookingEventHandlerDeps {
@@ -32,6 +32,7 @@ interface OnBookingCreatedParams {
   auditData: CreatedAuditData;
   source: ActionSource;
   operationId?: string | null;
+  context?: BookingAuditContext;
 }
 
 interface OnBookingRescheduledParams {
@@ -40,6 +41,7 @@ interface OnBookingRescheduledParams {
   auditData: RescheduledAuditData;
   source: ActionSource;
   operationId?: string | null;
+  context?: BookingAuditContext;
 }
 
 interface BaseBookingEventParams<TAuditData> {
@@ -74,7 +76,7 @@ export class BookingEventHandlerService {
   }
 
   async onBookingCreated(params: OnBookingCreatedParams) {
-    const { payload, actor, auditData, source, operationId } = params;
+    const { payload, actor, auditData, source, operationId, context } = params;
     this.log.debug("onBookingCreated", safeStringify(payload));
     if (payload.config.isDryRun) {
       return;
@@ -87,11 +89,12 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
   async onBookingRescheduled(params: OnBookingRescheduledParams) {
-    const { payload, actor, auditData, source, operationId } = params;
+    const { payload, actor, auditData, source, operationId, context } = params;
     this.log.debug("onBookingRescheduled", safeStringify(payload));
     if (payload.config.isDryRun) {
       return;
@@ -106,6 +109,7 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
