@@ -45,7 +45,7 @@ jobs:
   e2e:
     timeout-minutes: 20
     name: E2E (${{ matrix.shard }}/${{ strategy.job-total }})
-    runs-on: blacksmith-8vcpu-ubuntu-2404
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     services:
       postgres:
         image: postgres:13
