@@ -88,4 +88,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results-api-v2-shard-${{ matrix.shard }}
-          path: test-results
+          path: apps/api/v2/test-results
+          if-no-files-found: ignore
+          retention-days: 7
