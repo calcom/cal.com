@@ -11,9 +11,34 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
     ...BasicConfig.widgets,
     phone: {
       ...BasicConfig.widgets.text,
+      valuePlaceholder: "Enter phone number",
     },
     email: {
       ...BasicConfig.widgets.text,
+      valuePlaceholder: "Enter email",
+    },
+    address: {
+      ...BasicConfig.widgets.text,
+      valuePlaceholder: "Enter address",
+    },
+    url: {
+      ...BasicConfig.widgets.text,
+      valuePlaceholder: "Enter URL",
+    },
+    multiemail: {
+      ...BasicConfig.widgets.text,
+      valuePlaceholder: "Enter email",
+    },
+    boolean: {
+      ...BasicConfig.widgets.select,
+      type: "select",
+      valuePlaceholder: "Select value",
+    },
+    checkbox: {
+      ...BasicConfig.widgets.multiselect,
+    },
+    radio: {
+      ...BasicConfig.widgets.select,
     },
   };
   return widgetsWithoutFactory;
@@ -40,6 +65,49 @@ function getTypes(configFor: ConfigFor) {
       ...BasicConfig.types.text,
       widgets: {
         ...BasicConfig.types.text.widgets,
+      },
+    },
+    address: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    url: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    multiemail: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    boolean: {
+      defaultOperator: "select_equals",
+      mainWidget: "boolean",
+      widgets: {
+        boolean: {
+          operators: ["select_equals", "select_not_equals"],
+        },
+      },
+    },
+    checkbox: {
+      ...BasicConfig.types.multiselect,
+      widgets: {
+        ...BasicConfig.types.multiselect.widgets,
+        multiselect: {
+          ...BasicConfig.types.multiselect.widgets.multiselect,
+          operators: [...multiSelectOperators],
+        },
+      },
+    },
+    radio: {
+      ...BasicConfig.types.select,
+      widgets: {
+        ...BasicConfig.types.select.widgets,
       },
     },
     multiselect: {

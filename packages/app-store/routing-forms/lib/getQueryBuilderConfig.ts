@@ -1,7 +1,7 @@
 import { AttributeType } from "@calcom/prisma/enums";
 
 import type { RoutingForm, Attribute } from "../types/types";
-import { FieldTypes, RoutingFormFieldType } from "./FieldTypes";
+import { FieldTypes, isValidRoutingFormFieldType, isFieldTypeWithOptions } from "./FieldTypes";
 import { AttributesInitialConfig, FormFieldsInitialConfig } from "./InitialConfig";
 import { getUIOptionsForSelect } from "./selectOptions";
 
@@ -28,12 +28,12 @@ type RaqbConfigFields = Record<
   }
 >;
 
-// FIXME: Add TS Magic to ensure all types of attributes are mapped to RoutingFormFieldType
-const attributeTypesMap = new Map<keyof typeof AttributeType, RoutingFormFieldType>([
-  [AttributeType.SINGLE_SELECT, RoutingFormFieldType.SINGLE_SELECT],
-  [AttributeType.MULTI_SELECT, RoutingFormFieldType.MULTI_SELECT],
-  [AttributeType.TEXT, RoutingFormFieldType.TEXT],
-  [AttributeType.NUMBER, RoutingFormFieldType.NUMBER],
+// Map attribute types to field types for query builder
+const attributeTypesMap = new Map<keyof typeof AttributeType, string>([
+  [AttributeType.SINGLE_SELECT, "select"],
+  [AttributeType.MULTI_SELECT, "multiselect"],
+  [AttributeType.TEXT, "text"],
+  [AttributeType.NUMBER, "number"],
 ]);
 
 export type FormFieldsQueryBuilderConfigWithRaqbFields = ReturnType<
@@ -50,9 +50,8 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
     if ("routerField" in field) {
       field = field.routerField;
     }
-    // We can assert the type because otherwise we throw 'Unsupported field type' error
-    const fieldType = field.type as (typeof FieldTypes)[number]["value"];
-    if (FieldTypes.map((f) => f.value).includes(fieldType)) {
+    const fieldType = field.type;
+    if (isValidRoutingFormFieldType(fieldType)) {
       const options = getUIOptionsForSelect(field);
 
       const widget = FormFieldsInitialConfig.widgets[fieldType];
@@ -64,7 +63,7 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
         valueSources: ["value"],
         fieldSettings: {
           // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
-          listValues: fieldType === "select" || fieldType === "multiselect" ? options : undefined,
+          listValues: isFieldTypeWithOptions(fieldType) ? options : undefined,
         },
       };
     } else {
@@ -135,9 +134,8 @@ export function getQueryBuilderConfigForAttributes({
   const transformedAttributes = transformAttributesToCompatibleFormat(attributes);
   const fields: RaqbConfigFields = {};
   transformedAttributes.forEach((attribute) => {
-    const attributeType = attribute.type as (typeof FieldTypes)[number]["value"];
-    if (FieldTypes.map((f) => f.value).includes(attributeType)) {
-      // We can assert the type because otherwise we throw 'Unsupported field type' error
+    const attributeType = attribute.type;
+    if (isValidRoutingFormFieldType(attributeType)) {
       const widget = FormFieldsInitialConfig.widgets[attributeType];
       const widgetType = widget.type;
       const valueOfFieldOptions = (() => {
@@ -157,8 +155,7 @@ export function getQueryBuilderConfigForAttributes({
         valueSources: ["value"],
         fieldSettings: {
           // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
-          listValues:
-            attributeType === "select" || attributeType === "multiselect" ? attributeOptions : undefined,
+          listValues: isFieldTypeWithOptions(attributeType) ? attributeOptions : undefined,
         },
       };
     } else {
