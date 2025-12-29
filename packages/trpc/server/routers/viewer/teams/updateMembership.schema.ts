@@ -6,7 +6,7 @@ export type TUpdateMembershipInputSchema = {
   disableImpersonation: boolean;
 };
 
-export const ZUpdateMembershipInputSchema: z.ZodType<TUpdateMembershipInputSchema> = z.object({
+export const ZUpdateMembershipInputSchema = z.object({
   teamId: z.number(),
   memberId: z.number(),
   disableImpersonation: z.boolean(),

@@ -1,9 +1,7 @@
 import z from "zod";
 
-export type TDeleteFormInputSchema = {
-  id: string;
-};
-
-export const ZDeleteFormInputSchema: z.ZodType<TDeleteFormInputSchema> = z.object({
+export const ZDeleteFormInputSchema = z.object({
   id: z.string(),
 });
+
+export type TDeleteFormInputSchema = z.input<typeof ZDeleteFormInputSchema>;

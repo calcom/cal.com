@@ -6,6 +6,6 @@ export type TSamlTenantProductInputSchema = {
   email: string;
 };
 
-export const ZSamlTenantProductInputSchema: z.ZodType<TSamlTenantProductInputSchema> = z.object({
+export const ZSamlTenantProductInputSchema = z.object({
   email: emailSchema,
 });

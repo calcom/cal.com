@@ -14,27 +14,22 @@ const requiredFields = z.object({
   templateType: templateTypeEnum,
 });
 
+// In zod v4, we apply transform first then optional to preserve correct input/output types
 export const createPhoneCallSchema = requiredFields.merge(
   z.object({
     schedulerName: z.string().min(1).optional().nullable(),
     guestName: z
       .string()
-      .optional()
-      .transform((val) => {
-        return val ? val : undefined;
-      }),
+      .transform((val) => (val ? val : undefined))
+      .optional(),
     guestEmail: z
       .string()
-      .optional()
-      .transform((val) => {
-        return val ? val : undefined;
-      }),
+      .transform((val) => (val ? val : undefined))
+      .optional(),
     guestCompany: z
       .string()
-      .optional()
-      .transform((val) => {
-        return val ? val : undefined;
-      }),
+      .transform((val) => (val ? val : undefined))
+      .optional(),
     beginMessage: z.string().optional(),
     generalPrompt: z.string().optional(),
   })
@@ -116,9 +111,9 @@ const FieldSchema = z.object({
   variableName: z.string().optional(),
 });
 
-const FieldsSchema = z.array(FieldSchema);
+const _FieldsSchema = z.array(FieldSchema);
 
-export type Fields = z.infer<typeof FieldsSchema>;
+export type Fields = z.infer<typeof _FieldsSchema>;
 
 export const ZCreateRetellLLMSchema = z
   .object({

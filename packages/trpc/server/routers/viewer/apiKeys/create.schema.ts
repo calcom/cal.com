@@ -8,7 +8,7 @@ export type TCreateInputSchema = {
   teamId?: number;
 };
 
-export const ZCreateInputSchema: z.ZodType<TCreateInputSchema> = z.object({
+export const ZCreateInputSchema = z.object({
   note: z.string().optional().nullish(),
   expiresAt: z.date().optional().nullable(),
   neverExpires: z.boolean().optional(),

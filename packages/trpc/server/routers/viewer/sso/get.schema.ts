@@ -4,6 +4,6 @@ export type TGetInputSchema = {
   teamId: number | null;
 };
 
-export const ZGetInputSchema: z.ZodType<TGetInputSchema> = z.object({
+export const ZGetInputSchema = z.object({
   teamId: z.union([z.number(), z.null()]),
 });

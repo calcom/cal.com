@@ -1,15 +1,7 @@
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
-import type {
-  AnyZodObject,
-  objectInputType,
-  objectOutputType,
-  ZodNullableDef,
-  ZodOptionalDef,
-  ZodRawShape,
-  ZodTypeAny,
-} from "zod";
+import type { ZodRawShape } from "zod";
 
 import type { Prisma } from "./client";
 import { EventTypeCustomInputType } from "./enums";
@@ -121,7 +113,7 @@ const raqbChildSchema = z.object({
     .optional(),
 });
 
-const raqbChildren1Schema = z.record(raqbChildSchema).superRefine((children1, ctx) => {
+const raqbChildren1Schema = z.record(z.string(), raqbChildSchema).superRefine((children1, ctx) => {
   if (!children1) return;
   const isObject = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null;
@@ -580,7 +572,7 @@ export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),
   })
-  .and(z.record(z.string()))
+  .and(z.record(z.string(), z.string()))
   .nullable()
   .describe("BookingMetadata");
 
@@ -675,40 +667,37 @@ export const DeploymentTheme = z
   })
   .optional();
 
-export type ZodDenullish<T extends ZodTypeAny> = T extends ZodNullable<infer U> | ZodOptional<infer U>
-  ? ZodDenullish<U>
-  : T;
+// In zod v4, the type system has changed significantly
+// Simplified type definitions to work with zod v4's internal types
+ 
+export type ZodDenullish<T> = T extends ZodNullable<infer U> | ZodOptional<infer U> ? ZodDenullish<U> : T;
 
+// In zod v4, ZodRawShape requires string keys only, so we use Extract to filter out number/symbol keys
 export type ZodDenullishShape<T extends ZodRawShape> = {
-  [k in keyof T]: ZodDenullish<T[k]>;
+  [K in keyof T & string]: ZodDenullish<T[K]>;
 };
 
-export const denullish = <T extends ZodTypeAny>(schema: T): ZodDenullish<T> =>
+ 
+export const denullish = <T>(schema: T): ZodDenullish<T> =>
   (schema instanceof ZodNullable || schema instanceof ZodOptional
-    ? denullish((schema._def as ZodNullableDef | ZodOptionalDef).innerType)
+    ? // In zod v4, access innerType via unwrap()
+      denullish(schema.unwrap())
     : schema) as ZodDenullish<T>;
-
-type UnknownKeysParam = "passthrough" | "strict" | "strip";
 
 /**
  * @see https://github.com/3x071c/lsg-remix/blob/e2a9592ba3ec5103556f2cf307c32f08aeaee32d/app/lib/util/zod.ts
+ * In zod v4, we return ZodObject<any> because zod v4's internal type constraints are too strict for mapped types
  */
-export function denullishShape<
-  T extends ZodRawShape,
-  UnknownKeys extends UnknownKeysParam = "strip",
-  Catchall extends ZodTypeAny = ZodTypeAny,
-  Output = objectOutputType<T, Catchall>,
-  Input = objectInputType<T, Catchall>
->(
-  obj: ZodObject<T, UnknownKeys, Catchall, Output, Input>
-): ZodObject<ZodDenullishShape<T>, UnknownKeys, Catchall> {
-  const a = entries(obj.shape).map(([field, schema]) => [field, denullish(schema)] as const) as {
-    [K in keyof T]: [K, ZodDenullish<T[K]>];
-  }[keyof T][];
-  return new ZodObject({
-    ...obj._def,
-    shape: () => fromEntries(a) as unknown as ZodDenullishShape<T>, // TODO: Safely assert type
-  });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function denullishShape<T extends ZodRawShape>(obj: ZodObject<T>): ZodObject<any> {
+  const shape = obj.shape;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const newShape: Record<string, any> = {};
+  for (const [field, schema] of Object.entries(shape)) {
+    newShape[field] = denullish(schema);
+  }
+  // In zod v4, use z.object() to create new ZodObject
+  return z.object(newShape);
 }
 
 /**
@@ -777,14 +766,15 @@ export const optionToValueSchema = <T extends z.ZodTypeAny>(valueSchema: T) =>
  * @url https://github.com/colinhacks/zod/discussions/1655#discussioncomment-4367368
  */
 export const getParserWithGeneric =
-  <T extends AnyZodObject>(valueSchema: T) =>
+  <T extends ZodObject<ZodRawShape>>(valueSchema: T) =>
   <Data>(data: Data) => {
-    type Output = z.infer<T>;
+    type Output = z.output<T>;
     type SimpleFormValues = string | number | null | undefined;
-    return valueSchema.parse(data) as {
-      // TODO: Invesitage why this broke on zod 3.22.2 upgrade
-      [key in keyof Data]: Data[key] extends SimpleFormValues ? Data[key] : Output[key];
+    // In zod v4, we need to intersect keyof Data with keyof Output to ensure type safety
+    type Result = Output & {
+      [K in keyof Data & keyof Output]: Data[K] extends SimpleFormValues ? Data[K] : Output[K];
     };
+    return valueSchema.parse(data) as Result;
   };
 export const sendDailyVideoRecordingEmailsSchema = z.object({
   recordingId: z.string(),
@@ -1123,6 +1113,7 @@ export const baseFieldSchema = z.object({
    */
   optionsInputs: z
     .record(
+      z.string(),
       z.object({
         // Support all types as needed
         // Must be a subset of `fieldTypeEnum`.TODO: Enforce it in TypeScript
@@ -1158,6 +1149,7 @@ export const baseFieldSchema = z.object({
 
 export const variantsConfigSchema = z.object({
   variants: z.record(
+    z.string(),
     z.object({
       /**
        * Variant Fields schema for a variant of the main field.
@@ -1215,4 +1207,4 @@ export const fieldSchema = baseFieldSchema.merge(
 );
 
 export const eventTypeBookingFields = z.array(fieldSchema);
-export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;
+export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.enum;

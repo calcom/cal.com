@@ -9,7 +9,7 @@ export type TUpdateInternalNotesPresetsInputSchema = {
   }[];
 };
 
-export const ZUpdateInternalNotesPresetsInputSchema: z.ZodType<TUpdateInternalNotesPresetsInputSchema> = z.object({
+export const ZUpdateInternalNotesPresetsInputSchema = z.object({
   teamId: z.number(),
   presets: z.array(
     z.object({

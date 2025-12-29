@@ -4,6 +4,6 @@ export type TGetVerifiedEmailsInputSchema = {
   teamId?: number;
 };
 
-export const ZGetVerifiedEmailsInputSchema: z.ZodType<TGetVerifiedEmailsInputSchema> = z.object({
+export const ZGetVerifiedEmailsInputSchema = z.object({
   teamId: z.number().optional(),
 });

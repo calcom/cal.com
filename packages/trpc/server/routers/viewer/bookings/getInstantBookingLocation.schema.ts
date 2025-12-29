@@ -4,6 +4,6 @@ export type TInstantBookingInputSchema = {
   bookingId: number;
 };
 
-export const ZInstantBookingInputSchema: z.ZodType<TInstantBookingInputSchema> = z.object({
+export const ZInstantBookingInputSchema = z.object({
   bookingId: z.number(),
 });

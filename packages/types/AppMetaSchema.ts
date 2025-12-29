@@ -27,7 +27,7 @@ const appDataSchema = z
               .object({
                 src: z.string().optional(),
                 content: z.string().optional(),
-                attrs: z.record(z.any()).optional(),
+                attrs: z.record(z.string(), z.any()).optional(),
               })
               .passthrough()
           )

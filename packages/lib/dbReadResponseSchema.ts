@@ -13,6 +13,6 @@ export const dbReadResponseSchema = z.union([
     optionValue: z.string(),
     value: z.string(),
   }),
-  // For variantsConfig case
-  z.record(z.string()),
+    // For variantsConfig case
+    z.record(z.string(), z.string()),
 ]);

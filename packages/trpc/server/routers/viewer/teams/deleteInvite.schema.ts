@@ -4,6 +4,6 @@ export type TDeleteInviteInputSchema = {
   token: string;
 };
 
-export const ZDeleteInviteInputSchema: z.ZodType<TDeleteInviteInputSchema> = z.object({
+export const ZDeleteInviteInputSchema = z.object({
   token: z.string(),
 });

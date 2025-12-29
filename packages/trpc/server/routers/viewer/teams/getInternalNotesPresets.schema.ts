@@ -4,6 +4,6 @@ export type TGetInternalNotesPresetsInputSchema = {
   teamId: number;
 };
 
-export const ZGetInternalNotesPresetsInputSchema: z.ZodType<TGetInternalNotesPresetsInputSchema> = z.object({
+export const ZGetInternalNotesPresetsInputSchema = z.object({
   teamId: z.number(),
 });

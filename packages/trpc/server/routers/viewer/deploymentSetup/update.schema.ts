@@ -5,7 +5,7 @@ export type TUpdateInputSchema = {
   signatureToken?: string;
 };
 
-export const ZUpdateInputSchema: z.ZodType<TUpdateInputSchema> = z.object({
+export const ZUpdateInputSchema = z.object({
   licenseKey: z.string().optional(),
   signatureToken: z.string().optional(),
 });

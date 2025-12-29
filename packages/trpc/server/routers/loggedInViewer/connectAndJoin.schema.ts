@@ -4,6 +4,6 @@ export type TConnectAndJoinInputSchema = {
   token: string;
 };
 
-export const ZConnectAndJoinInputSchema: z.ZodType<TConnectAndJoinInputSchema> = z.object({
+export const ZConnectAndJoinInputSchema = z.object({
   token: z.string(),
 });

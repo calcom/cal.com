@@ -4,6 +4,6 @@ export type TGetBookingAttendeesInputSchema = {
   seatReferenceUid: string;
 };
 
-export const ZGetBookingAttendeesInputSchema: z.ZodType<TGetBookingAttendeesInputSchema> = z.object({
+export const ZGetBookingAttendeesInputSchema = z.object({
   seatReferenceUid: z.string().uuid(),
 });

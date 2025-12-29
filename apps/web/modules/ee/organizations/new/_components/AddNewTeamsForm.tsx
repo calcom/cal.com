@@ -98,7 +98,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
             values: {
               teams: [],
             },
-            errors: error.formErrors.fieldErrors,
+            errors: error.flatten().fieldErrors,
           };
         }
         return { values: {}, errors: { teams: { message: "Error validating input" } } };

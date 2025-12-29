@@ -1,4 +1,4 @@
-import type { SomeZodObject, z } from "zod";
+import type { ZodObject, z, ZodRawShape } from "zod";
 
 import objectKeys from "./objectKeys";
 
@@ -12,7 +12,7 @@ import objectKeys from "./objectKeys";
  * const newMetadata = mergeMetadata({ someKey: "someValue" });
  * prisma.team.update({ ..., data: { metadata: newMetadata } });
  */
-export function getMetadataHelpers<T extends SomeZodObject>(schema: T, rawMetadata: unknown) {
+export function getMetadataHelpers<T extends ZodObject<ZodRawShape>>(schema: T, rawMetadata: unknown) {
   const metadata = schema.parse(rawMetadata) as z.infer<T>;
   return {
     metadata,

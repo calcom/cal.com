@@ -10,7 +10,7 @@ export const ZImportInputSchema = z.object({
   sipTrunkAuthPassword: z.string().optional(),
   nickname: z.string().optional(),
   teamId: z.number().optional(),
-  agentId: z.string({ required_error: "agentId is required" }).min(1, "agentId is required"),
+  agentId: z.string({ error: "agentId is required" }).min(1, "agentId is required"),
 });
 
 export type TImportInputSchema = z.infer<typeof ZImportInputSchema>;

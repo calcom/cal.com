@@ -5,7 +5,7 @@ export type TGetInputSchema = {
   isOrg?: boolean;
 };
 
-export const ZGetSchema: z.ZodType<TGetInputSchema> = z.object({
+export const ZGetSchema = z.object({
   teamId: z.number(),
   isOrg: z.boolean().optional(),
 });

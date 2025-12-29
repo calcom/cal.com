@@ -4,6 +4,6 @@ export type TCreateInputSchema = {
   teamId?: number;
 };
 
-export const ZCreateInputSchema: z.ZodType<TCreateInputSchema> = z.object({
+export const ZCreateInputSchema = z.object({
   teamId: z.number().optional(),
 });

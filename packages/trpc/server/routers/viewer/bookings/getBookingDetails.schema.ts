@@ -4,6 +4,6 @@ export type TGetBookingDetailsInputSchema = {
   uid: string;
 };
 
-export const ZGetBookingDetailsInputSchema: z.ZodType<TGetBookingDetailsInputSchema> = z.object({
+export const ZGetBookingDetailsInputSchema = z.object({
   uid: z.string(),
 });

@@ -5,6 +5,7 @@ import { zodNonRouterRoute } from "@calcom/routing-forms/zod";
 export const ZFindTeamMembersMatchingAttributeLogicOfRouteInputSchema = z.object({
   formId: z.string(),
   response: z.record(
+    z.string(),
     z.object({
       label: z.string(),
       value: z.union([z.string(), z.number(), z.array(z.string())]),

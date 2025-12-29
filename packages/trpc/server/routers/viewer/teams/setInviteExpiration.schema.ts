@@ -5,7 +5,7 @@ export type TSetInviteExpirationInputSchema = {
   expiresInDays?: number;
 };
 
-export const ZSetInviteExpirationInputSchema: z.ZodType<TSetInviteExpirationInputSchema> = z.object({
+export const ZSetInviteExpirationInputSchema = z.object({
   token: z.string(),
   expiresInDays: z.number().optional(),
 });
