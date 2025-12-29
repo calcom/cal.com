@@ -11,10 +11,8 @@ import type {
   ZodTypeAny,
 } from "zod";
 
-import { EventTypeCustomInputType } from "@calcom/prisma/enums";
-
 import type { Prisma } from "./client";
-
+import { EventTypeCustomInputType } from "./enums";
 
 /** @see https://github.com/colinhacks/zod/issues/3155#issuecomment-2060045794 */
 export const emailRegex =
@@ -123,46 +121,44 @@ const raqbChildSchema = z.object({
     .optional(),
 });
 
-const raqbChildren1Schema = z
-  .record(raqbChildSchema)
-  .superRefine((children1, ctx) => {
-    if (!children1) return;
-    const isObject = (value: unknown): value is Record<string, unknown> =>
-      typeof value === "object" && value !== null;
-    Object.entries(children1).forEach(([, _rule]) => {
-      const rule = _rule as unknown;
-      if (!isObject(rule) || rule.type !== "rule") return;
-      if (!isObject(rule.properties)) return;
+const raqbChildren1Schema = z.record(raqbChildSchema).superRefine((children1, ctx) => {
+  if (!children1) return;
+  const isObject = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null;
+  Object.entries(children1).forEach(([, _rule]) => {
+    const rule = _rule as unknown;
+    if (!isObject(rule) || rule.type !== "rule") return;
+    if (!isObject(rule.properties)) return;
 
-      const value = rule.properties.value || [];
-      const valueSrc = rule.properties.valueSrc;
-      if (!(value instanceof Array) || !(valueSrc instanceof Array)) {
-        return;
-      }
+    const value = rule.properties.value || [];
+    const valueSrc = rule.properties.valueSrc;
+    if (!(value instanceof Array) || !(valueSrc instanceof Array)) {
+      return;
+    }
 
-      if (!valueSrc.length) {
-        // If valueSrc is empty, value could be empty for operators like is_empty, is_not_empty
-        return;
-      }
+    if (!valueSrc.length) {
+      // If valueSrc is empty, value could be empty for operators like is_empty, is_not_empty
+      return;
+    }
 
-      // MultiSelect array can be 2D array
-      const flattenedValues = value.flat();
+    // MultiSelect array can be 2D array
+    const flattenedValues = value.flat();
 
-      const validValues = flattenedValues.filter((value: unknown) => {
-        // Might want to restrict it to filter out null and empty string as well. But for now we know that Prisma errors only for undefined values when saving it in JSON field
-        // Also, it is possible that RAQB has some requirements to support null or empty string values.
-        if (value === undefined) return false;
-        return true;
-      });
-
-      if (!validValues.length) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Looks like you are trying to create a rule with no value",
-        });
-      }
+    const validValues = flattenedValues.filter((value: unknown) => {
+      // Might want to restrict it to filter out null and empty string as well. But for now we know that Prisma errors only for undefined values when saving it in JSON field
+      // Also, it is possible that RAQB has some requirements to support null or empty string values.
+      if (value === undefined) return false;
+      return true;
     });
+
+    if (!validValues.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Looks like you are trying to create a rule with no value",
+      });
+    }
   });
+});
 
 const raqbQueryValueSchema = z.union([
   z.object({
@@ -180,7 +176,6 @@ const raqbQueryValueSchema = z.union([
 ]);
 
 const zodAttributesQueryValue = raqbQueryValueSchema;
-
 
 // Let's not import 118kb just to get an enum
 export enum Frequency {
@@ -331,7 +326,18 @@ export const bookingResponses = z
 
 export type BookingResponses = z.infer<typeof bookingResponses>;
 
-export const eventTypeLocations = z.array(
+export type EventTypeLocation = {
+  type: string;
+  address?: string;
+  link?: string;
+  displayLocationPublicly?: boolean;
+  hostPhoneNumber?: string;
+  credentialId?: number;
+  teamName?: string;
+  customLabel?: string;
+};
+
+export const eventTypeLocations: z.ZodType<EventTypeLocation[]> = z.array(
   z.object({
     // TODO: Couldn't find a way to make it a union of types from App Store locations
     // Creating a dynamic union by iterating over the object doesn't seem to make TS happy
@@ -810,6 +816,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   availability: true,
   recurringEvent: true,
   customInputs: true,
+  minimumRescheduleNotice: true,
   disableGuests: true,
   disableCancelling: true,
   disableRescheduling: true,
@@ -869,6 +876,81 @@ export const unlockedManagedEventTypeProps = {
   scheduleId: allManagedEventTypeProps.scheduleId,
   destinationCalendar: allManagedEventTypeProps.destinationCalendar,
 };
+
+// Zod-compatible version of allManagedEventTypeProps that only includes scalar fields
+// (excludes Prisma relation fields like children, users, webhooks, availability, etc.)
+// This is used with EventTypeSchema.pick() which requires exact key matching
+// IMPORTANT: This must match the scalar fields in allManagedEventTypeProps exactly
+export const allManagedEventTypePropsForZod = {
+  title: true,
+  description: true,
+  interfaceLanguage: true,
+  isInstantEvent: true,
+  instantMeetingParameters: true,
+  instantMeetingExpiryTimeOffsetInSeconds: true,
+  currency: true,
+  periodDays: true,
+  position: true,
+  price: true,
+  slug: true,
+  length: true,
+  offsetStart: true,
+  locations: true,
+  hidden: true,
+  recurringEvent: true,
+  minimumRescheduleNotice: true,
+  disableGuests: true,
+  disableCancelling: true,
+  disableRescheduling: true,
+  allowReschedulingCancelledBookings: true,
+  requiresConfirmation: true,
+  canSendCalVideoTranscriptionEmails: true,
+  requiresConfirmationForFreeEmail: true,
+  requiresConfirmationWillBlockSlot: true,
+  eventName: true,
+  metadata: true,
+  hideCalendarNotes: true,
+  hideCalendarEventDetails: true,
+  minimumBookingNotice: true,
+  beforeEventBuffer: true,
+  afterEventBuffer: true,
+  successRedirectUrl: true,
+  seatsPerTimeSlot: true,
+  seatsShowAttendees: true,
+  seatsShowAvailabilityCount: true,
+  forwardParamsSuccessRedirect: true,
+  periodType: true,
+  periodStartDate: true,
+  periodEndDate: true,
+  periodCountCalendarDays: true,
+  bookingLimits: true,
+  onlyShowFirstAvailableSlot: true,
+  showOptimizedSlots: true,
+  slotInterval: true,
+  scheduleId: true,
+  bookingFields: true,
+  durationLimits: true,
+  maxActiveBookingsPerBooker: true,
+  maxActiveBookingPerBookerOfferReschedule: true,
+  lockTimeZoneToggleOnBookingPage: true,
+  lockedTimeZone: true,
+  requiresBookerEmailVerification: true,
+  assignAllTeamMembers: true,
+  isRRWeightsEnabled: true,
+  eventTypeColor: true,
+  allowReschedulingPastBookings: true,
+  hideOrganizerEmail: true,
+  rescheduleWithSameRoundRobinHost: true,
+  maxLeadThreshold: true,
+  customReplyToEmail: true,
+  bookingRequiresAuthentication: true,
+} as const;
+
+// Zod-compatible version of unlockedManagedEventTypeProps
+export const unlockedManagedEventTypePropsForZod = {
+  locations: true,
+  scheduleId: true,
+} as const;
 
 export const emailSchema = emailRegexSchema;
 
@@ -953,16 +1035,30 @@ export const fieldTypeEnum = z.enum([
 export type FieldType = z.infer<typeof fieldTypeEnum>;
 
 export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => {
-  const allDomains = val.split(",").map((dom) => dom.trim());
+  // Allow empty input: field is optional at the form level but may come through as empty string
+  if (val.trim() === "") return;
 
-  const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/i;
+  const allDomains = val
+    .split(",")
+    .map((dom) => dom.trim())
+    .filter(Boolean);
 
-  /*
-  Valid patterns - [ example, example.anything, anyone@example.anything ]
-  Invalid patterns - Patterns involving capital letter [ Example, Example.anything, Anyone@example.anything ]
-*/
+  // If user entered only separators/commas, treat as invalid input
+  if (allDomains.length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Enter valid domain or email",
+    });
+    return;
+  }
 
-  const isValid = !allDomains.some((domain) => !regex.test(domain));
+  // Accept forms: domain-only, `@domain`, or `local@domain`
+  // - Domain labels: alnum, hyphens allowed internally, no leading/trailing hyphen
+  // - Require at least one dot and end with an alpha TLD of length ≥2
+  const EMAIL_OR_DOMAIN_PATTERN =
+    /^(?:[a-z0-9._+'-]+@|@)?(?:[a-z]{2,}|(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,})$/i;
+
+  const isValid = allDomains.every((entry) => EMAIL_OR_DOMAIN_PATTERN.test(entry));
 
   if (!isValid) {
     ctx.addIssue({

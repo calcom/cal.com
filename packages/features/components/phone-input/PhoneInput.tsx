@@ -77,12 +77,12 @@ function BasePhoneInput({
         onChange(`+${val}`);
       }}
       containerClass={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
+        "hover:border-emphasis focus-within:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-0 focus-within:ring-brand-default disabled:cursor-not-allowed",
         className
       )}
       inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
-      buttonClass="text-emphasis !bg-default hover:!bg-emphasis"
-      searchClass="!text-default !bg-default hover:!bg-emphasis"
+      buttonClass="text-emphasis !bg-default"
+      searchClass="!text-default !bg-default"
       dropdownClass="!text-default !bg-default"
       inputStyle={{ width: "inherit", border: 0 }}
       searchStyle={{
@@ -128,13 +128,13 @@ function BasePhoneInputWeb({
         onChange(`+${val}`);
       }}
       containerClass={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
+        "hover:border-emphasis focus-within:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-0 focus-within:ring-brand-default disabled:cursor-not-allowed",
         className
       )}
       inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
-      buttonClass="text-emphasis !bg-default hover:!bg-emphasis"
+      buttonClass="text-emphasis !bg-default"
       buttonStyle={{ ...flagButtonStyle }}
-      searchClass="!text-default !bg-default hover:!bg-emphasis"
+      searchClass="!text-default !bg-default"
       dropdownClass="!text-default !bg-default"
       inputStyle={{ width: "inherit", border: 0, ...inputStyle }}
       searchStyle={{
