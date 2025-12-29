@@ -185,9 +185,16 @@ test.describe("Team", () => {
     const [invitedMemberContext, invitedMemberPage] = await invitedMember.apiLoginOnNewBrowser(browser);
     await invitedMemberPage.goto(`/teams`);
     // Wait for the accept button to be visible before clicking
-    await expect(invitedMemberPage.getByTestId(`accept-invitation-${team.id}`)).toBeVisible();
-    await invitedMemberPage.getByTestId(`accept-invitation-${team.id}`).click();
-    const response = await invitedMemberPage.waitForResponse("/api/trpc/teams/acceptOrLeave?batch=1");
+    // Use dashboard-shell scope to avoid strict mode violation when multiple accept buttons exist (e.g., mobile/desktop variants)
+    const acceptButton = invitedMemberPage
+      .getByTestId("dashboard-shell")
+      .getByTestId(`accept-invitation-${team.id}`);
+    await expect(acceptButton).toBeVisible();
+    // Set up response wait before clicking to avoid missing fast responses
+    const [response] = await Promise.all([
+      invitedMemberPage.waitForResponse("/api/trpc/teams/acceptOrLeave?batch=1"),
+      acceptButton.click(),
+    ]);
     expect(response.status()).toBe(200);
     await invitedMemberPage.goto(`/event-types`);
 
