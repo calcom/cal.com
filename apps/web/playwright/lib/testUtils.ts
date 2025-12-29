@@ -480,6 +480,9 @@ export async function gotoBookingPage(page: Page) {
   const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
 
   await page.goto(previewLink ?? "");
+  await page.waitForURL((url) => {
+    return url.searchParams.get("overlayCalendar") === "true";
+  });
 }
 
 export async function saveEventType(page: Page) {
