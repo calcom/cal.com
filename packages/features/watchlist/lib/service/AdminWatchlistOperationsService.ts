@@ -4,6 +4,7 @@ import logger from "@calcom/lib/logger";
 import { BookingReportStatus } from "@calcom/prisma/enums";
 
 import { WatchlistErrors } from "../errors/WatchlistErrors";
+import type { ScheduleBlockingService } from "./ScheduleBlockingService";
 import type {
   DeleteWatchlistEntryInput,
   DeleteWatchlistEntryResult,
@@ -43,6 +44,7 @@ export interface BulkDismissReportsResult {
 type Deps = {
   watchlistRepo: WatchlistRepository;
   bookingReportRepo: PrismaBookingReportRepository;
+  scheduleBlockingService?: ScheduleBlockingService;
 };
 
 export class AdminWatchlistOperationsService extends WatchlistOperationsService {

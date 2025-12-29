@@ -245,6 +245,12 @@ export class WatchlistRepository implements IWatchlistRepository {
     });
   }
 
+  async findEntryById(id: string): Promise<WatchlistEntry | null> {
+    return this.prismaClient.watchlist.findUnique({
+      where: { id },
+    });
+  }
+
   async deleteEntry(id: string, userId: number): Promise<void> {
     const existing = await this.prismaClient.watchlist.findUnique({
       where: { id },

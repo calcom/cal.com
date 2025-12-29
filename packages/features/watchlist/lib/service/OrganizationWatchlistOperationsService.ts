@@ -5,6 +5,7 @@ import type { WatchlistRepository } from "@calcom/features/watchlist/lib/reposit
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { WatchlistErrors } from "../errors/WatchlistErrors";
+import type { ScheduleBlockingService } from "./ScheduleBlockingService";
 import type {
   AddReportsToWatchlistInput,
   AddReportsToWatchlistResult,
@@ -21,6 +22,7 @@ type Deps = {
   bookingReportRepo: PrismaBookingReportRepository;
   permissionCheckService: PermissionCheckService;
   organizationId: number;
+  scheduleBlockingService?: ScheduleBlockingService;
 };
 
 export class OrganizationWatchlistOperationsService extends WatchlistOperationsService {

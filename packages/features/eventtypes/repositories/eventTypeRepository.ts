@@ -1343,6 +1343,7 @@ export class EventTypeRepository {
               },
             },
             timeZone: true,
+            blockedByWatchlist: true,
           },
         },
         availability: {
@@ -1378,6 +1379,7 @@ export class EventTypeRepository {
                 },
                 timeZone: true,
                 id: true,
+                blockedByWatchlist: true,
               },
             },
           },
@@ -1460,6 +1462,7 @@ export class EventTypeRepository {
                 },
                 timeZone: true,
                 id: true,
+                blockedByWatchlist: true,
               },
             },
           },
@@ -1482,6 +1485,7 @@ export class EventTypeRepository {
               },
             },
             timeZone: true,
+            blockedByWatchlist: true,
           },
         },
         availability: {

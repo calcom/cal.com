@@ -924,6 +924,8 @@ model Schedule {
   timeZone             String?
   availability         Availability[]
   Host                 Host[]
+  // When true, this schedule returns no availability. Used by watchlist blocking.
+  blockedByWatchlist   Boolean        @default(false)
 
   @@index([userId])
 }

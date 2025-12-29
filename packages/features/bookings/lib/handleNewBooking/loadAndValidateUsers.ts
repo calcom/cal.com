@@ -133,14 +133,22 @@ const _loadAndValidateUsers = async ({
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
-  // Determine if users are locked
-  const containsBlockedUser = await checkIfUsersAreBlocked({
-    users,
-    organizationId: null,
-    span: sentrySpan,
-  });
+  // For team events (Round Robin, Collective), blocked users are handled gracefully
+  // by returning empty availability from their schedules (blockedByWatchlist flag).
+  const isTeamEvent =
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+    eventType.schedulingType === SchedulingType.COLLECTIVE;
 
-  if (containsBlockedUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+  if (!isTeamEvent) {
+    // Determine if users are locked - only fail for solo events
+    const containsBlockedUser = await checkIfUsersAreBlocked({
+      users,
+      organizationId: null,
+      span: sentrySpan,
+    });
+
+    if (containsBlockedUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+  }
 
   // map fixed users
   users = users.map((user) => ({

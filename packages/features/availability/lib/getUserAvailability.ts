@@ -370,6 +370,24 @@ export class UserAvailabilityService {
     // if no schedules set by or for a user, use fallbackSchedule
     const schedule = potentialSchedule ?? fallbackSchedule;
 
+    // If schedule is blocked by watchlist, return empty availability
+    // This allows blocked users to be gracefully excluded from team events
+    if ("blockedByWatchlist" in schedule && schedule.blockedByWatchlist) {
+      log.debug(
+        `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Schedule blocked by watchlist, returning empty availability`
+      );
+      return {
+        busy: [],
+        timeZone: schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing,
+        dateRanges: [],
+        oooExcludedDateRanges: [],
+        workingHours: [],
+        dateOverrides: [],
+        currentSeats: null,
+        datesOutOfOffice: undefined,
+      };
+    }
+
     const bookingLimits =
       eventType?.bookingLimits &&
       typeof eventType.bookingLimits === "object" &&

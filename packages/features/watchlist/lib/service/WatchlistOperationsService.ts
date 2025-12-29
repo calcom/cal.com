@@ -7,6 +7,7 @@ import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
 
 import { WatchlistErrors } from "../errors/WatchlistErrors";
 import { extractDomainFromEmail, normalizeEmail } from "../utils/normalization";
+import type { ScheduleBlockingService } from "./ScheduleBlockingService";
 
 export interface AddReportsToWatchlistInput {
   reportIds: string[];
@@ -53,6 +54,7 @@ export interface WatchlistOperationsScope {
 type Deps = {
   watchlistRepo: WatchlistRepository;
   bookingReportRepo: PrismaBookingReportRepository;
+  scheduleBlockingService?: ScheduleBlockingService;
 };
 
 export abstract class WatchlistOperationsService {
@@ -138,6 +140,20 @@ export abstract class WatchlistOperationsService {
       status: "BLOCKED",
     });
 
+    // Block schedules for users matching the blocked emails/domains
+    if (this.deps.scheduleBlockingService) {
+      const uniqueValues = [...new Set(normalizedValues.values())];
+
+      if (input.type === WatchlistType.EMAIL) {
+        await this.deps.scheduleBlockingService.blockSchedulesByEmails(uniqueValues);
+      } else {
+        // For domains, each domain is typically unique per report
+        for (const domain of uniqueValues) {
+          await this.deps.scheduleBlockingService.blockSchedulesByDomain(domain);
+        }
+      }
+    }
+
     return {
       success: true,
       message: `Successfully added ${results.length} report(s) to watchlist`,
@@ -152,15 +168,31 @@ export abstract class WatchlistOperationsService {
 
     this.validateEmailOrDomain(input.type, input.value);
 
+    const normalizedValue = input.value.toLowerCase();
+
     const entry = await this.deps.watchlistRepo.createEntryIfNotExists({
       type: input.type,
-      value: input.value.toLowerCase(),
+      value: normalizedValue,
       organizationId: scope.organizationId,
       action: WatchlistAction.BLOCK,
       description: input.description,
       userId: input.userId,
       isGlobal: scope.isGlobal,
     });
+
+    // Block schedules for users matching this email/domain
+    if (this.deps.scheduleBlockingService) {
+      try {
+        await this.deps.scheduleBlockingService.handleWatchlistBlock(input.type, normalizedValue);
+      } catch (error) {
+        this.log.error("Failed to block schedules after watchlist entry creation", {
+          entryId: entry.id,
+          type: input.type,
+          value: normalizedValue,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
 
     return {
       success: true,
@@ -169,7 +201,29 @@ export abstract class WatchlistOperationsService {
   }
 
   async deleteWatchlistEntry(input: DeleteWatchlistEntryInput): Promise<DeleteWatchlistEntryResult> {
+    const entryDetails = await this.deps.watchlistRepo.findEntryById(input.entryId);
+
+    if (!entryDetails) {
+      throw WatchlistErrors.notFound("Watchlist entry not found");
+    }
+
+    const { type, value } = entryDetails;
+
     await this.deps.watchlistRepo.deleteEntry(input.entryId, input.userId);
+
+    // Unblock schedules for users matching this email/domain
+    if (this.deps.scheduleBlockingService) {
+      try {
+        await this.deps.scheduleBlockingService.handleWatchlistUnblock(type, value);
+      } catch (error) {
+        this.log.error("Failed to unblock schedules after watchlist entry deletion", {
+          entryId: input.entryId,
+          type,
+          value,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
 
     return {
       success: true,

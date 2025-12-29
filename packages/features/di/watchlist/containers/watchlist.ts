@@ -20,6 +20,7 @@ import type { GlobalBlockingService } from "@calcom/features/watchlist/lib/servi
 import type { OrganizationBlockingService } from "@calcom/features/watchlist/lib/service/OrganizationBlockingService";
 import { OrganizationWatchlistOperationsService } from "@calcom/features/watchlist/lib/service/OrganizationWatchlistOperationsService";
 import { OrganizationWatchlistQueryService } from "@calcom/features/watchlist/lib/service/OrganizationWatchlistQueryService";
+import { ScheduleBlockingService } from "@calcom/features/watchlist/lib/service/ScheduleBlockingService";
 import type { WatchlistAuditService } from "@calcom/features/watchlist/lib/service/WatchlistAuditService";
 import type { WatchlistService } from "@calcom/features/watchlist/lib/service/WatchlistService";
 import { prisma } from "@calcom/prisma";
@@ -77,10 +78,12 @@ export async function getWatchlistFeature(): Promise<WatchlistFeature> {
 export function getAdminWatchlistOperationsService(): AdminWatchlistOperationsService {
   const watchlistRepo = new WatchlistRepository(prisma);
   const bookingReportRepo = new PrismaBookingReportRepository(prisma);
+  const scheduleBlockingService = new ScheduleBlockingService(prisma);
 
   return new AdminWatchlistOperationsService({
     watchlistRepo,
     bookingReportRepo,
+    scheduleBlockingService,
   });
 }
 
@@ -90,12 +93,14 @@ export function getOrganizationWatchlistOperationsService(
   const watchlistRepo = new WatchlistRepository(prisma);
   const bookingReportRepo = new PrismaBookingReportRepository(prisma);
   const permissionCheckService = new PermissionCheckService();
+  const scheduleBlockingService = new ScheduleBlockingService(prisma);
 
   return new OrganizationWatchlistOperationsService({
     watchlistRepo,
     bookingReportRepo,
     permissionCheckService,
     organizationId,
+    scheduleBlockingService,
   });
 }
 

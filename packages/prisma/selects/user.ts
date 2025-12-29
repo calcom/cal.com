@@ -24,6 +24,7 @@ export const availabilityUserSelect = {
       },
       timeZone: true,
       id: true,
+      blockedByWatchlist: true,
     },
   },
   availability: true,
