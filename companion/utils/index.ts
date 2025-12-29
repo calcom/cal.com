@@ -59,9 +59,11 @@ export {
   validateLocationItem,
 } from "./locationHelpers";
 // Network utilities
-export { isOnline } from "./network";
+export { fetchWithTimeout, isOnline } from "./network";
 // Query persistence utilities
 export { clearQueryCache, createQueryPersister, getCacheMetadata } from "./queryPersister";
+// Safe logging utilities
+export { getSafeErrorMessage, safeLogError, safeLogInfo, safeLogWarn } from "./safeLogger";
 // Slug utilities
 export { slugify } from "./slugify";
 // Storage utilities
