@@ -61,7 +61,7 @@ const CreateNewTeamPage = () => {
   return (
     <>
       <Form
-        form={formMethods.control}
+        form={formMethods}
         {...formMethods}
         onSubmit={(values) => {
           if (!createTeam.isPending) {
@@ -72,23 +72,26 @@ const CreateNewTeamPage = () => {
           <FormField
             name="name"
             control={formMethods.control}
-            rules={{ required: "Team name is required" }}
-            render={({ field: { value } }) => (
+            rules={{ required: t("team_name_is_required") }}
+            render={({ field: { value, onChange }, fieldState: { error } }) => (
               <>
                 <TextField
                   name="name"
                   placeholder="OneHash Tech Ltd."
                   label="Team name"
                   value={value}
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const next = e?.target.value;
-                    formMethods.setValue("name", next);
+                    onChange(next);
                     if (formMethods.formState.touchedFields["slug"] === undefined) {
                       formMethods.setValue("slug", slugify(next));
                     }
                   }}
                   autoComplete="off"
                   data-testid="team-name"
+                  required
+                  showAsteriskIndicator
+                  error={error?.message}
                 />
               </>
             )}
@@ -99,21 +102,21 @@ const CreateNewTeamPage = () => {
           <FormField
             name="slug"
             control={formMethods.control}
-            rules={{ required: "Team URL is required" }}
-            render={({ field: { value } }) => (
+            rules={{ required: t("team_url_is_required") }}
+            render={({ field: { value, onChange }, fieldState: { error } }) => (
               <>
                 <TextField
                   name="slug"
                   placeholder="onehash"
                   label="Team URL"
                   value={value}
-                  onChange={(e) => {
-                    formMethods.setValue("slug", slugify(e?.target.value, true), {
-                      shouldTouch: true,
-                    });
-                    formMethods.clearErrors("slug");
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    onChange(slugify(e?.target.value, true));
                   }}
                   data-testid="team-slug"
+                  required
+                  showAsteriskIndicator
+                  error={error?.message}
                 />
               </>
             )}

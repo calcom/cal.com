@@ -10,7 +10,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "../icon/Icon";
 import { Label } from "../label";
 import { Tooltip } from "../tooltip";
-import { HintsOrErrors } from "./hint-or-errors";
 import type { InputProps, InputFieldProps, TextFieldProps } from "./types";
 
 export const inputStyles = cva(
