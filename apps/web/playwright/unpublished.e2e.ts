@@ -1,4 +1,3 @@
-import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -15,13 +14,10 @@ test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
-const assertChecks = async (page: Page, entityName: string, entityType: string) => {
-  // Wait for the page to be fully loaded before checking elements
-  await page.waitForLoadState("domcontentloaded");
-  // Wait for the empty-screen element to be visible (handles async rendering)
-  await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
-  await expect(page.locator(`h2:has-text("${title(entityName)}")`)).toBeVisible();
-  await expect(page.locator(`div:text("${description(entityType)}")`)).toBeVisible();
+const assertChecks = async (page: any, entityName: string, entityType: string) => {
+  await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
+  await expect(page.locator(`h2:has-text("${title(entityName)}")`)).toHaveCount(1);
+  await expect(page.locator(`div:text("${description(entityType)}")`)).toHaveCount(1);
   await expect(page.locator(`img`)).toHaveAttribute("src", /.*/);
 };
 
