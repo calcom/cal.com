@@ -245,6 +245,9 @@ export function BookingDetailScreen({
   useEffect(() => {
     if (uid) {
       fetchBooking();
+    } else {
+      setLoading(false);
+      setError("Invalid booking ID");
     }
   }, [uid, fetchBooking]);
 
