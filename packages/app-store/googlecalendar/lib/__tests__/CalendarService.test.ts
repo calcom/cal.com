@@ -18,13 +18,10 @@ import { expect, test, beforeEach, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
 import logger from "@calcom/lib/logger";
+import { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import BuildCalendarService, { createGoogleCalendarServiceWithGoogleType } from "../CalendarService";
-import {
-  createMockJWTInstance,
-  createCredentialForCalendarService,
-} from "./utils";
-import { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
+import { createMockJWTInstance, createCredentialForCalendarService } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["CalendarService.test"] });
 
@@ -46,7 +43,7 @@ const mockCredential: CredentialForCalendarServiceWithEmail = {
   appId: "google-calendar",
   type: "google_calendar",
   key: {
-    access_token: "<INVALID_TOKEN>"
+    access_token: "<INVALID_TOKEN>",
   },
   user: {
     email: "user@example.com",
@@ -59,7 +56,6 @@ const mockCredential: CredentialForCalendarServiceWithEmail = {
 
 describe("getAvailability", () => {
   test("returns availability for selected calendars", async () => {
-
     const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
     const mockedBusyTimes1 = [
