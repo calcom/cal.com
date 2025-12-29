@@ -93,7 +93,7 @@ jobs:
           E2E_TEST_CALCOM_GCAL_KEYS: ${{ secrets.E2E_TEST_CALCOM_GCAL_KEYS }}
       - uses: ./.github/actions/cache-build
       - name: Run Tests
-        run: yarn e2e:app-store
+        run: yarn e2e:app-store --workers=4
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4

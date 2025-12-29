@@ -79,7 +79,7 @@ jobs:
       - uses: ./.github/actions/cache-build
       - name: Run Tests
         run: |
-          yarn e2e:embed-react
+          yarn e2e:embed-react --workers=4
           yarn workspace @calcom/embed-react packaged:tests
       - name: Upload Test Results
         if: ${{ always() }}

@@ -86,7 +86,7 @@ jobs:
       - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/cache-build
       - name: Run Tests
-        run: yarn e2e:embed
+        run: yarn e2e:embed --workers=4
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
