@@ -14170,6 +14170,16 @@ hr {}
   --booker-main-width: 480px;
 }
 
+.\[--booker-main-width\:340px\] {
+  --booker-main-width: 380px;
+}
+
+@media (min-width: 1024px) {
+  [class*="lg:[--booker-main-width:480px]"] {
+    --booker-main-width: 480px;
+  }
+}
+  
 .\[--booker-meta-width\:240px\] {
   --booker-meta-width: 240px;
 }
