@@ -26,7 +26,7 @@ export const DestinationReminderSelector = ({
 
   const options = REMINDER_OPTIONS.map((opt) => ({
     value: opt.value,
-    label: opt.label === "just_in_time" ? t(opt.label) : t(opt.label, { count: opt.value }),
+    label: t(opt.label, { count: opt.value }),
   }));
 
   const selectedOption = options.find((opt) => opt.value === value) || options[0];
