@@ -1,15 +1,13 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
   "root": true,
-  "formatter": {
-    "includes": [
-      "**/*",
-      "!packages/app-store/*.generated.*",
-      "!packages/app-store/**/*.generated.*",
-      "!packages/ui/components/icon/dynamicIconImports.tsx",
-      "!apps/api/v1/tests",
-      "!apps/api/v1/templates"
-    ],
+    "formatter": {
+      "includes": [
+        "**/*",
+        "!packages/ui/components/icon/dynamicIconImports.tsx",
+        "!apps/api/v1/tests",
+        "!apps/api/v1/templates"
+      ],
     "lineWidth": 110,
     "indentStyle": "space",
     "indentWidth": 2,
