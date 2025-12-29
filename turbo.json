@@ -327,7 +327,7 @@
       "outputs": ["./types"]
     },
     "@calcom/web#build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "copy-app-store-static"],
       "outputs": [".next/**"],
       "env": [
         "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL",
