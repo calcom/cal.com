@@ -10,7 +10,7 @@ export const getByTableColumnText = (page: Page, columnId: string, text: string)
  * Add a filter from the filter dropdown
  */
 export async function addFilter(page: Page, columnId: string) {
-  await page.getByTestId("add-filter-button").click();
+  await page.getByTestId("add-filter-button").first().click();
   await page.getByTestId(`add-filter-item-${columnId}`).click();
 }
 
