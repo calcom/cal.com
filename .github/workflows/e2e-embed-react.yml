@@ -45,7 +45,7 @@ jobs:
   e2e-embed:
     timeout-minutes: 20
     name: E2E Embed React
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: blacksmith-4vcpu-ubuntu-2404-arm
     services:
       postgres:
         image: postgres:13

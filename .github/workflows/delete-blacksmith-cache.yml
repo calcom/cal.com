@@ -8,7 +8,7 @@ on:
         type: string
 jobs:
   manually-delete-blacksmith-cache:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v4

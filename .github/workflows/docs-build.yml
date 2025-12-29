@@ -9,7 +9,7 @@ jobs:
     name: Build Docs
     permissions:
       contents: read
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout

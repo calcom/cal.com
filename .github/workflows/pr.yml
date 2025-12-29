@@ -20,7 +20,7 @@ concurrency:
 jobs:
   prepare:
     name: Prepare
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     permissions:
       pull-requests: read
     outputs:
@@ -277,7 +277,7 @@ jobs:
         e2e-app-store,
       ]
     if: always()
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     steps:
       - name: fail if conditional jobs failed
         run: exit 1
