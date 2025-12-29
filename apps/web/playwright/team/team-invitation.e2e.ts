@@ -134,6 +134,7 @@ test.describe("Team", () => {
   });
 
   test("Invited member is assigned to existing managed event, after invitation is accepted", async ({
+    browser,
     page,
     users,
   }) => {
@@ -169,15 +170,29 @@ test.describe("Team", () => {
     await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
     await page.getByText(t("send_invite")).click();
 
-    await invitedMember.apiLogin();
-    await page.goto(`/teams`);
-    await page.getByTestId(`accept-invitation-${team.id}`).click();
-    const response = await page.waitForResponse("/api/trpc/teams/acceptOrLeave?batch=1");
+    // Wait for the membership/invitation to be created in the database before switching users
+    await expect(async () => {
+      const membership = await prisma.membership.findFirst({
+        where: {
+          userId: invitedMember.id,
+          teamId: team.id,
+        },
+      });
+      expect(membership).toBeTruthy();
+    }).toPass({ timeout: 10000 });
+
+    // Use a new browser context for the invited member to avoid session state issues
+    const [invitedMemberContext, invitedMemberPage] = await invitedMember.apiLoginOnNewBrowser(browser);
+    await invitedMemberPage.goto(`/teams`);
+    // Wait for the accept button to be visible before clicking
+    await expect(invitedMemberPage.getByTestId(`accept-invitation-${team.id}`)).toBeVisible();
+    await invitedMemberPage.getByTestId(`accept-invitation-${team.id}`).click();
+    const response = await invitedMemberPage.waitForResponse("/api/trpc/teams/acceptOrLeave?batch=1");
     expect(response.status()).toBe(200);
-    await page.goto(`/event-types`);
+    await invitedMemberPage.goto(`/event-types`);
 
     //ensure managed event-type is created for the invited member
-    await expect(page.locator(`text="${teamEventSlugAndTitle}"`)).toBeVisible();
+    await expect(invitedMemberPage.locator(`text="${teamEventSlugAndTitle}"`)).toBeVisible();
 
     //ensure the new event-type created for invited member is child of team event-type
     const parentEventType = await prisma.eventType.findFirst({
@@ -190,6 +205,10 @@ test.describe("Team", () => {
       },
     });
     expect(parentEventType?.children.find((et) => et.userId === invitedMember.id)).toBeTruthy();
+
+    // Clean up the browser context
+    await invitedMemberPage.close();
+    await invitedMemberContext.close();
   });
 
   test("Auto-accept invitation for existing user", async ({ browser, page, users, emails }) => {
