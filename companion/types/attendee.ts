@@ -1,4 +1,4 @@
-import type { Booking } from "../services/types/bookings.types";
+import type { Booking } from "@/services/types/bookings.types";
 
 /**
  * Attendee type extracted from Booking for reuse across the codebase.

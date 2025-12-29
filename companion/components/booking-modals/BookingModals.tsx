@@ -1,19 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useMemo } from "react";
+import type React from "react";
+import { useMemo } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
   ActivityIndicator,
   Alert,
   ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-
-import type { Booking, EventType } from "../../services/calcom";
-import { getBookingActions, type BookingActionsResult } from "../../utils/booking-actions";
-import { FullScreenModal } from "../FullScreenModal";
-import { BookingActionsModal } from "../BookingActionsModal";
+import { BookingActionsModal } from "@/components/BookingActionsModal";
+import { FullScreenModal } from "@/components/FullScreenModal";
+import type { Booking, EventType } from "@/services/calcom";
+import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 
 // Empty actions result for when no booking is selected
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -70,11 +70,11 @@ interface BookingModalsProps {
 }
 
 export const BookingModals: React.FC<BookingModalsProps> = ({
-  showRescheduleModal,
-  rescheduleBooking,
-  isRescheduling,
-  onRescheduleClose,
-  onRescheduleSubmit,
+  showRescheduleModal: _showRescheduleModal,
+  rescheduleBooking: _rescheduleBooking,
+  isRescheduling: _isRescheduling,
+  onRescheduleClose: _onRescheduleClose,
+  onRescheduleSubmit: _onRescheduleSubmit,
   showRejectModal,
   rejectReason,
   isDeclining,
