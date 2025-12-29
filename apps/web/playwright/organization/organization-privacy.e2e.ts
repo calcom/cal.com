@@ -49,15 +49,15 @@ test.describe("Organization - Privacy", () => {
     await page.goto(`/settings/organizations/${org.slug}/members`);
     await page.waitForLoadState("domcontentloaded");
 
-    const tableLocator = await page.getByTestId("user-list-data-table");
+    const tableLocator = page.getByTestId("user-list-data-table").first();
 
     await expect(tableLocator).toBeVisible();
 
     await memberInOrg.apiLogin();
     await page.goto(`/settings/organizations/${org.slug}/members`);
     await page.waitForLoadState("domcontentloaded");
-    const userDataTable = await page.getByTestId("user-list-data-table");
-    const membersPrivacyWarning = await page.getByTestId("members-privacy-warning");
+    const userDataTable = page.getByTestId("user-list-data-table").first();
+    const membersPrivacyWarning = page.getByTestId("members-privacy-warning").first();
     await expect(userDataTable).toBeHidden();
     await expect(membersPrivacyWarning).toBeVisible();
   });

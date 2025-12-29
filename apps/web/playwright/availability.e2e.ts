@@ -149,7 +149,7 @@ test.describe("Availability", () => {
     await page.getByTestId("availablity-title").click();
     // change availability name
     await page.getByTestId("availablity-title").fill("Working Hours test");
-    await expect(page.getByTestId("subtitle")).toBeVisible();
+    await expect(page.getByTestId("subtitle").first()).toBeVisible();
     await page.getByTestId(sunday).getByRole("switch").click();
     await page.getByTestId(monday).first().click();
     await page.getByTestId(wednesday).getByRole("switch").click();
