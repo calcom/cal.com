@@ -636,7 +636,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                             onPress={() => removeTimeSlot(dayIndex, slotIndex + 1)}
                             className="p-1"
                           >
-                            <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                            <Ionicons name="trash-outline" size={20} color="#800020" />
                           </AppPressable>
                         </View>
                       ))}
@@ -691,7 +691,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                         <Ionicons name="pencil-outline" size={20} color="#007AFF" />
                       </AppPressable>
                       <AppPressable onPress={() => handleDeleteOverride(index)} className="p-2">
-                        <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                        <Ionicons name="trash-outline" size={20} color="#800020" />
                       </AppPressable>
                     </View>
                   </View>
@@ -747,7 +747,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                 className="h-11 w-11 items-center justify-center"
                 onPress={handleDelete}
               >
-                <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                <Ionicons name="trash-outline" size={20} color="#800020" />
               </AppPressable>
             </GlassView>
           </View>

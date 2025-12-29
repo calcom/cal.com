@@ -176,7 +176,6 @@ export interface BookingDetailScreenProps {
 }
 
 export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreenProps) {
-  "use no memo";
   const router = useRouter();
   const { userInfo } = useAuth();
 
@@ -322,26 +321,36 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const fetchBooking = useCallback(async () => {
     setLoading(true);
     setError(null);
+    let bookingData: Booking | null = null;
+    let fetchError: Error | null = null;
+
     try {
-      const bookingData = await CalComAPIService.getBookingByUid(uid);
-      // Avoid logging booking payloads: they may contain PII (names/emails/notes).
+      bookingData = await CalComAPIService.getBookingByUid(uid);
+    } catch (err) {
+      fetchError = err instanceof Error ? err : new Error(String(err));
+    }
+
+    if (bookingData) {
       if (__DEV__) {
+        const hostCount = bookingData.hosts?.length ?? (bookingData.user ? 1 : 0);
+        const attendeeCount = bookingData.attendees?.length ?? 0;
         console.debug("[BookingDetailScreen] booking fetched", {
           uid: bookingData.uid,
           status: bookingData.status,
-          hostCount: bookingData.hosts?.length ?? (bookingData.user ? 1 : 0),
-          attendeeCount: bookingData.attendees?.length ?? 0,
+          hostCount,
+          attendeeCount,
           hasRecurringEventId: Boolean(bookingData.recurringEventId),
         });
       }
       setBooking(bookingData);
       setLoading(false);
-    } catch (err) {
+    } else {
       console.error("Error fetching booking");
-      if (__DEV__) {
-        const message = err instanceof Error ? err.message : String(err);
-        const stack = err instanceof Error ? err.stack : undefined;
-        console.debug("[BookingDetailScreen] fetchBooking failed", { message, stack });
+      if (__DEV__ && fetchError) {
+        console.debug("[BookingDetailScreen] fetchBooking failed", {
+          message: fetchError.message,
+          stack: fetchError.stack,
+        });
       }
       setError("Failed to load booking. Please try again.");
       if (__DEV__) {
@@ -358,6 +367,9 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   useEffect(() => {
     if (uid) {
       fetchBooking();
+    } else {
+      setLoading(false);
+      setError("Invalid booking ID");
     }
   }, [uid, fetchBooking]);
 
@@ -407,7 +419,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   if (error || !booking) {
     return (
       <View className="flex-1 items-center justify-center bg-[#f8f9fa] p-5">
-        <Ionicons name="alert-circle" size={64} color="#FF3B30" />
+        <Ionicons name="alert-circle" size={64} color="#800020" />
         <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
           {error || "Booking not found"}
         </Text>

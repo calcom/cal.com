@@ -275,15 +275,15 @@ export const formatDateTime = (dateString: string): string => {
  */
 export const getStatusColor = (status: string): string => {
   // API v2 2024-08-13 returns status in lowercase, so normalize to uppercase for comparison
-  const normalizedStatus = status.toUpperCase();
+  const normalizedStatus = status.toLowerCase();
   switch (normalizedStatus) {
-    case "ACCEPTED":
+    case "accepted":
       return "#34C759";
-    case "PENDING":
+    case "pending":
       return "#FF9500";
-    case "CANCELLED":
+    case "cancelled":
       return "#FF3B30";
-    case "REJECTED":
+    case "rejected":
       return "#FF3B30";
     default:
       return "#666";

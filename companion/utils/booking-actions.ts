@@ -11,7 +11,7 @@
  * Deferred:
  * - report, reroute, reassign, charge_card
  */
-import type { Booking } from "@/services/types/bookings.types";
+import type { Booking, BookingStatus } from "@/services/types/bookings.types";
 import type { EventType } from "@/services/types/event-types.types";
 
 // ============================================================================
@@ -102,7 +102,7 @@ export interface NormalizedBooking {
   }>;
 }
 
-export type BookingStatus = "ACCEPTED" | "PENDING" | "CANCELLED" | "REJECTED";
+export type { BookingStatus } from "@/services/types/bookings.types";
 
 // ============================================================================
 // Normalization Functions
@@ -110,13 +110,12 @@ export type BookingStatus = "ACCEPTED" | "PENDING" | "CANCELLED" | "REJECTED";
 
 /**
  * Normalizes a booking object from API response to a consistent format.
- * - Normalizes status to uppercase
+ * - Normalizes status to lowercase (API v2 format)
  * - Converts time strings to Date objects
  * - Ensures consistent field names
  */
 export function normalizeBooking(booking: Booking): NormalizedBooking {
-  // Normalize status to uppercase (API v2 may return lowercase)
-  const status = (booking.status?.toUpperCase() || "PENDING") as BookingStatus;
+  const status = (booking.status?.toLowerCase() || "pending") as BookingStatus;
 
   // Normalize times - prefer startTime/endTime, fallback to start/end
   const startTimeStr = booking.startTime || booking.start || "";
@@ -177,28 +176,28 @@ export function isBookingOngoing(booking: NormalizedBooking, now: Date = new Dat
  * Check if booking is cancelled.
  */
 export function isBookingCancelled(booking: NormalizedBooking): boolean {
-  return booking.status === "CANCELLED";
+  return booking.status === "cancelled";
 }
 
 /**
  * Check if booking is rejected.
  */
 export function isBookingRejected(booking: NormalizedBooking): boolean {
-  return booking.status === "REJECTED";
+  return booking.status === "rejected";
 }
 
 /**
  * Check if booking is pending (unconfirmed).
  */
 export function isBookingPending(booking: NormalizedBooking): boolean {
-  return booking.status === "PENDING";
+  return booking.status === "pending";
 }
 
 /**
  * Check if booking is confirmed (accepted).
  */
 export function isBookingConfirmed(booking: NormalizedBooking): boolean {
-  return booking.status === "ACCEPTED";
+  return booking.status === "accepted";
 }
 
 // ============================================================================

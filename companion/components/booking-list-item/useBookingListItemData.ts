@@ -24,9 +24,9 @@ export function useBookingListItemData(booking: Booking, userEmail?: string): Bo
   const startTime = booking.start || booking.startTime || "";
   const endTime = booking.end || booking.endTime || "";
   const isUpcoming = new Date(endTime) >= new Date();
-  const isPending = booking.status?.toUpperCase() === "PENDING";
-  const isCancelled = booking.status?.toUpperCase() === "CANCELLED";
-  const isRejected = booking.status?.toUpperCase() === "REJECTED";
+  const isPending = booking.status?.toLowerCase() === "pending";
+  const isCancelled = booking.status?.toLowerCase() === "cancelled";
+  const isRejected = booking.status?.toLowerCase() === "rejected";
 
   const hostAndAttendeesDisplay = getHostAndAttendeesDisplay(booking, userEmail);
   const meetingInfo = getMeetingInfo(booking.location);

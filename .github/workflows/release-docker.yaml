@@ -14,7 +14,12 @@ on:
   workflow_dispatch:
     inputs:
       RELEASE_TAG:
-        description: "v{Major}.{Minor}.{Patch}"
+        description: "Tag to build (e.g., v6.0.5)"
+        required: true
+      PUSH_IMAGE:
+        description: "Push the Docker image to DockerHub"
+        type: boolean
+        default: true
 
 jobs:
   release-amd64:
@@ -23,9 +28,16 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.RELEASE_TAG || github.ref }}
 
       - name: "Determine tag"
-        run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "RELEASE_TAG=${{ inputs.RELEASE_TAG }}" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          fi
 
       - name: Build and test Docker image
         uses: ./.github/actions/docker-build-and-test
@@ -39,7 +51,7 @@ jobs:
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
-          push-image: "true"
+          push-image: ${{ (github.event_name == 'push' || inputs.PUSH_IMAGE) && 'true' || 'false' }}
           use-as-latest: "true"
 
       - name: Notify Slack on Success
@@ -70,9 +82,16 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.RELEASE_TAG || github.ref }}
 
       - name: "Determine tag"
-        run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "RELEASE_TAG=${{ inputs.RELEASE_TAG }}" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          fi
 
       - name: Build and test Docker image
         uses: ./.github/actions/docker-build-and-test
@@ -86,7 +105,7 @@ jobs:
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
-          push-image: "true"
+          push-image: ${{ (github.event_name == 'push' || inputs.PUSH_IMAGE) && 'true' || 'false' }}
 
       - name: Notify Slack on Success
         if: success()

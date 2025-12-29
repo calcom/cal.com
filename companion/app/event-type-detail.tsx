@@ -2029,7 +2029,7 @@ export default function EventTypeDetail() {
                   className="h-11 w-11 items-center justify-center"
                   onPress={handleDelete}
                 >
-                  <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                  <Ionicons name="trash-outline" size={20} color="#800020" />
                 </TouchableOpacity>
               </GlassView>
             </View>

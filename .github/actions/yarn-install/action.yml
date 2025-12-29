@@ -43,7 +43,9 @@ runs:
       id: yarn-nm-cache
       uses: actions/cache@v4
       with:
-        path: "**/node_modules/"
+        path: |
+          **/node_modules/
+          !**/.next/node_modules/
         key: ${{ runner.os }}-yarn-nm-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
 
     # Invalidated on yarn.lock changes
