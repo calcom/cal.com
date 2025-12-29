@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import dayjs from "@calcom/dayjs";
 import { AvailabilitySchema } from "@calcom/prisma/zod/modelSchema/AvailabilitySchema";
 import { ScheduleSchema } from "@calcom/prisma/zod/modelSchema/ScheduleSchema";
 
@@ -35,8 +34,8 @@ export const schemaSchedulePublic = z
         .transform((v) =>
           v.map((item) => ({
             ...item,
-            startTime: dayjs.utc(item.startTime).format("HH:mm:ss"),
-            endTime: dayjs.utc(item.endTime).format("HH:mm:ss"),
+            startTime: new Date(item.startTime).toISOString(),
+            endTime: new Date(item.endTime).toISOString(),
           }))
         )
         .optional(),
