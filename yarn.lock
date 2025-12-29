@@ -2546,6 +2546,7 @@ __metadata:
     react-select: "npm:5.8.0"
     react-sticky-box: "npm:2.0.4"
     recharts: "npm:3.0.2"
+    stripe: "npm:9.16.0"
     stripe-event-types: "npm:3.1.0"
     trigger.dev: "npm:4.1.0"
     web-push: "npm:3.6.7"
