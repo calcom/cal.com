@@ -4,21 +4,23 @@
  * Screen content for adding guests to a booking.
  * Used with the add-guests route that has native Stack.Header.
  */
-import type { Booking } from "../../services/calcom";
-import { CalComAPIService } from "../../services/calcom";
+
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import {
-  View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { Booking } from "@/services/calcom";
+import { CalComAPIService } from "@/services/calcom";
+import { safeLogError } from "@/utils/safeLogger";
 
 export interface AddGuestsScreenProps {
   booking: Booking | null;
@@ -41,7 +43,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
     const insets = useSafeAreaInsets();
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
-    const [guests, setGuests] = useState<Array<{ email: string; name?: string }>>([]);
+    const [guests, setGuests] = useState<{ email: string; name?: string }[]>([]);
     const [isSaving, setIsSaving] = useState(false);
 
     // Notify parent of saving state changes
@@ -90,9 +92,10 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
       try {
         await CalComAPIService.addGuests(booking.uid, guests);
         Alert.alert("Success", "Guests added successfully", [{ text: "OK", onPress: onSuccess }]);
+        setIsSaving(false);
       } catch (error) {
-        Alert.alert("Error", error instanceof Error ? error.message : "Failed to add guests");
-      } finally {
+        safeLogError("[AddGuestsScreen] Failed to add guests:", error);
+        Alert.alert("Error", "Failed to add guests. Please try again.");
         setIsSaving(false);
       }
     }, [booking, guests, onSuccess]);
@@ -184,7 +187,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
               <View className="overflow-hidden rounded-xl bg-white">
                 {guests.map((guest, index) => (
                   <View
-                    key={index}
+                    key={guest.email}
                     className={`flex-row items-center px-4 py-3 ${
                       index < guests.length - 1 ? "border-b border-gray-100" : ""
                     }`}
@@ -203,7 +206,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       disabled={isSaving}
                     >
-                      <Ionicons name="close-circle-outline" size={24} color="#FF3B30" />
+                      <Ionicons name="close-circle-outline" size={24} color="#800020" />
                     </TouchableOpacity>
                   </View>
                 ))}
