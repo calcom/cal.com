@@ -1,17 +1,17 @@
-name: Manually Delete BuildJet Cache
+name: Manually Delete Blacksmith Cache
 on:
   workflow_dispatch:
     inputs:
       cache_key:
-        description: "BuildJet Cache Key to Delete"
+        description: "Blacksmith Cache Key to Delete"
         required: true
         type: string
 jobs:
-  manually-delete-buildjet-cache:
-    runs-on: buildjet-2vcpu-ubuntu-2204
+  manually-delete-blacksmith-cache:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: buildjet/cache-delete@v1
+      - uses: useblacksmith/cache-delete@v1
         with:
           cache_key: ${{ inputs.cache_key }}

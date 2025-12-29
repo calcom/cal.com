@@ -22,6 +22,10 @@
     "lucide-react": "0.555.0",
     "tailwind-merge": "3.4.0"
   },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
   "devDependencies": {
     "ts-node": "10.9.2",
     "tsc-absolute": "1.0.0",

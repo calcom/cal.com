@@ -19,7 +19,7 @@ on:
 jobs:
   release-amd64:
     name: "Release AMD64"
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: checkout
         uses: actions/checkout@v4
