@@ -32,7 +32,17 @@ const config: Config = {
   },
   setupFiles: ["<rootDir>/test/setEnvVars.ts", "jest-date-mock"],
   setupFilesAfterEnv: ["<rootDir>/test/jest.setup-e2e.ts"],
-  reporters: ["default", "jest-summarizing-reporter"],
+  reporters: [
+    "default",
+    "jest-summarizing-reporter",
+    [
+      "jest-junit",
+      {
+        outputDirectory: "./test-results",
+        outputName: "junit.xml",
+      },
+    ],
+  ],
   workerIdleMemoryLimit: "512MB",
   maxWorkers,
   testPathIgnorePatterns: ["/dist/", "/node_modules/"],

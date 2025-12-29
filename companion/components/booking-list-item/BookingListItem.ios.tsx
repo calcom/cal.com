@@ -1,5 +1,5 @@
 import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
-import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
+import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import React from "react";
 import { Pressable, View } from "react-native";
@@ -23,7 +23,6 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
   isConfirming,
   isDeclining,
   onPress,
-  onLongPress,
   onConfirm,
   onReject,
   onActionsPress: _onActionsPress,
@@ -139,23 +138,53 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
 
   return (
     <View className="border-b border-cal-border bg-cal-bg">
-      <Pressable
-        onPress={() => onPress(booking)}
-        onLongPress={() => onLongPress(booking)}
-        style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
-        className="active:bg-cal-bg-secondary"
+      {/* Native iOS Context Menu for long-press */}
+      <Host matchContents>
+        <ContextMenu
+          modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
+          activationMethod="longPress"
+        >
+          <ContextMenu.Items>
+            {contextMenuActions.map((action) => (
+              <Button
+                key={action.label}
+                systemImage={action.icon}
+                onPress={action.onPress}
+                role={action.role}
+                label={action.label}
+              />
+            ))}
+          </ContextMenu.Items>
+          <ContextMenu.Trigger>
+            <Pressable
+              onPress={() => onPress(booking)}
+              style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
+              className="active:bg-cal-bg-secondary"
+            >
+              <TimeAndDateRow
+                formattedDate={formattedDate}
+                formattedTimeRange={formattedTimeRange}
+              />
+              <BadgesRow isPending={isPending} />
+              <BookingTitle
+                title={booking.title}
+                isCancelled={isCancelled}
+                isRejected={isRejected}
+              />
+              <BookingDescription description={booking.description} />
+              <HostAndAttendees
+                hostAndAttendeesDisplay={hostAndAttendeesDisplay}
+                hasNoShowAttendee={hasNoShowAttendee}
+              />
+              <MeetingLink meetingInfo={meetingInfo} />
+            </Pressable>
+          </ContextMenu.Trigger>
+        </ContextMenu>
+      </Host>
+      <View
+        className="flex-row items-center justify-end"
+        style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}
       >
-        <TimeAndDateRow formattedDate={formattedDate} formattedTimeRange={formattedTimeRange} />
-        <BadgesRow isPending={isPending} />
-        <BookingTitle title={booking.title} isCancelled={isCancelled} isRejected={isRejected} />
-        <BookingDescription description={booking.description} />
-        <HostAndAttendees
-          hostAndAttendeesDisplay={hostAndAttendeesDisplay}
-          hasNoShowAttendee={hasNoShowAttendee}
-        />
-        <MeetingLink meetingInfo={meetingInfo} />
-      </Pressable>
-      <View className="flex-row items-center justify-end gap-2">
         <ConfirmRejectButtons
           booking={booking}
           isPending={isPending}
@@ -168,7 +197,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
         {/* iOS Context Menu */}
         <Host matchContents>
           <ContextMenu
-            modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"), padding()]}
+            modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
             activationMethod="singlePress"
           >
             <ContextMenu.Items>
