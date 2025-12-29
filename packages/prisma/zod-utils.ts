@@ -11,9 +11,8 @@ import type {
   ZodTypeAny,
 } from "zod";
 
-import { EventTypeCustomInputType } from "@calcom/prisma/enums";
-
 import type { Prisma } from "./client";
+import { EventTypeCustomInputType } from "./enums";
 
 /** @see https://github.com/colinhacks/zod/issues/3155#issuecomment-2060045794 */
 export const emailRegex =
@@ -1056,7 +1055,8 @@ export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => 
   // Accept forms: domain-only, `@domain`, or `local@domain`
   // - Domain labels: alnum, hyphens allowed internally, no leading/trailing hyphen
   // - Require at least one dot and end with an alpha TLD of length ≥2
-  const EMAIL_OR_DOMAIN_PATTERN = /^(?:[a-z0-9._+'-]+@|@)?(?:[a-z]{2,}|(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,})$/i;
+  const EMAIL_OR_DOMAIN_PATTERN =
+    /^(?:[a-z0-9._+'-]+@|@)?(?:[a-z]{2,}|(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,})$/i;
 
   const isValid = allDomains.every((entry) => EMAIL_OR_DOMAIN_PATTERN.test(entry));
 
