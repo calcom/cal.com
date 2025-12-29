@@ -10,7 +10,11 @@ export default function TabLayout() {
 
   return (
     <NativeTabs
-      disableTransparentOnScrollEdge={true} // Used to prevent transparent background on iOS 18 and older
+      tintColor="#000000" // Base tint color (black for selected)
+      labelStyle={{
+        default: { color: "#8E8E93", fontSize: 8.5 }, // Gray text when unselected
+        selected: { color: "#000000", fontSize: 10 }, // Black text when selected
+      }}
     >
       <NativeTabs.Trigger name="(event-types)">
         <NativeTabs.Trigger.Icon
@@ -30,15 +34,15 @@ export default function TabLayout() {
 
       <NativeTabs.Trigger name="(availability)">
         <NativeTabs.Trigger.Icon
-          sf="clock"
+          sf={{ default: "clock", selected: "clock.fill" }}
           src={<VectorIcon family={MaterialCommunityIcons} name="clock" />}
         />
         <NativeTabs.Trigger.Label>Availability</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="more">
+      <NativeTabs.Trigger name="(more)">
         <NativeTabs.Trigger.Icon
-          sf="ellipsis"
+          sf={{ default: "ellipsis", selected: "ellipsis" }}
           src={<VectorIcon family={MaterialCommunityIcons} name="dots-horizontal" />}
         />
         <NativeTabs.Trigger.Label>More</NativeTabs.Trigger.Label>
@@ -96,7 +100,7 @@ function WebTabs() {
       />
 
       <Tabs.Screen
-        name="more"
+        name="(more)"
         options={{
           title: "More",
           tabBarIcon: ({ color, focused }) => (
