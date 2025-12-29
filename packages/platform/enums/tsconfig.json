@@ -1,12 +1,13 @@
 {
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
-    "target": "ES5",
+    "target": "ES2021",
+    "module": "CommonJS",
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "baseUrl": "./",
     "outDir": "./dist"
   },
-  "include": ["."],
+  "include": ["src", "index.ts", "monorepo.ts"],
   "exclude": ["dist", "**/node_modules/**"]
 }
