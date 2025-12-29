@@ -113,7 +113,7 @@ test.describe("Availability", () => {
 
   test("Schedule listing", async ({ page }) => {
     await test.step("Can add a new schedule", async () => {
-      await page.getByTestId("new-schedule").click();
+      await page.getByTestId("new-schedule").first().click();
       await page.locator('[id="name"]').fill("More working hours");
       page.locator('[type="submit"]').click();
       await expect(page.getByTestId("availablity-title")).toHaveValue("More working hours");
