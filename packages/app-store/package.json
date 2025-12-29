@@ -24,8 +24,13 @@
     "@calcom/zoomvideo": "workspace:*",
     "lodash": "4.17.21",
     "qs-stringify": "1.2.1",
-    "react-i18next": "12.3.1",
-    "stripe": "9.16.0"
+    "react-i18next": "12.3.1"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "stripe": "^9.0.0 || ^15.0.0",
+    "zod": "^3.0.0"
   },
   "devDependencies": {
     "@calcom/eslint-config": "workspace:*",

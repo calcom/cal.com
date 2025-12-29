@@ -300,7 +300,9 @@ export function initLinkedInIntegration() {
     setTimeout(() => {
       const closeMenu = (evt: MouseEvent) => {
         if (!menu.contains(evt.target as Node) && evt.target !== button) {
-          tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+          for (const tooltip of tooltipsToCleanup) {
+            tooltip.remove();
+          }
           menu.remove();
           document.removeEventListener("click", closeMenu);
         }
@@ -438,7 +440,7 @@ export function initLinkedInIntegration() {
         );
         menu.appendChild(menuItem);
       });
-    } catch (error) {
+    } catch (_error) {
       menu.innerHTML = `
         <div style="padding: 16px; text-align: center; color: #ea4335;">
           Error displaying event types
@@ -674,7 +676,9 @@ export function initLinkedInIntegration() {
       errorMessage.includes("authentication");
 
     if (isAuthError) {
-      tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+      for (const tooltip of tooltipsToCleanup) {
+        tooltip.remove();
+      }
       menu.remove();
       openCalSidebar();
       return;
@@ -714,7 +718,9 @@ export function initLinkedInIntegration() {
         closeBtn.style.background = "#F3F4F6";
       });
       closeBtn.addEventListener("click", () => {
-        tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+        for (const tooltip of tooltipsToCleanup) {
+          tooltip.remove();
+        }
         menu.remove();
       });
     }
