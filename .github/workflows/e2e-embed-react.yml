@@ -45,7 +45,7 @@ jobs:
   e2e-embed:
     timeout-minutes: 20
     name: E2E Embed React
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     services:
       postgres:
         image: postgres:13
@@ -79,7 +79,7 @@ jobs:
       - uses: ./.github/actions/cache-build
       - name: Run Tests
         run: |
-          yarn e2e:embed-react
+          yarn e2e:embed-react --workers=4
           yarn workspace @calcom/embed-react packaged:tests
       - name: Upload Test Results
         if: ${{ always() }}

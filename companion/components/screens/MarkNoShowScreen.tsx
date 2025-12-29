@@ -4,12 +4,13 @@
  * Screen content for marking attendees as no-show for a booking.
  * Used with the mark-no-show route that has native Stack.Header.
  */
-import type { Booking } from "../../services/calcom";
-import { CalComAPIService } from "../../services/calcom";
+
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator, FlatList, Alert } from "react-native";
+import { useState } from "react";
+import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { Booking } from "@/services/calcom";
+import { CalComAPIService } from "@/services/calcom";
 
 interface Attendee {
   id?: number | string;
@@ -50,6 +51,7 @@ export function MarkNoShowScreen({
   onUpdate,
   onBookingUpdate,
 }: MarkNoShowScreenProps) {
+  "use no memo";
   const insets = useSafeAreaInsets();
   const safeAttendees = Array.isArray(attendees) ? attendees : [];
   const [processingEmail, setProcessingEmail] = useState<string | null>(null);
@@ -69,8 +71,8 @@ export function MarkNoShowScreen({
           text: "Confirm",
           style: isCurrentlyNoShow ? "default" : "destructive",
           onPress: async () => {
+            setProcessingEmail(attendee.email);
             try {
-              setProcessingEmail(attendee.email);
               const updatedBooking = await CalComAPIService.markAbsent(
                 booking.uid,
                 attendee.email,
@@ -80,14 +82,22 @@ export function MarkNoShowScreen({
               // API returns "absent" field, not "noShow"
               const updatedAttendees: Attendee[] = [];
               if (updatedBooking.attendees && Array.isArray(updatedBooking.attendees)) {
-                updatedBooking.attendees.forEach((att: any) => {
-                  updatedAttendees.push({
-                    id: att.id,
-                    email: att.email,
-                    name: att.name || att.email,
-                    noShow: att.absent === true || att.noShow === true,
-                  });
-                });
+                updatedBooking.attendees.forEach(
+                  (att: {
+                    id?: number | string;
+                    email: string;
+                    name?: string;
+                    noShow?: boolean;
+                    absent?: boolean;
+                  }) => {
+                    updatedAttendees.push({
+                      id: att.id,
+                      email: att.email,
+                      name: att.name || att.email,
+                      noShow: att.absent === true || att.noShow === true,
+                    });
+                  }
+                );
               }
 
               onUpdate(updatedAttendees);
@@ -102,6 +112,7 @@ export function MarkNoShowScreen({
                   isCurrentlyNoShow ? "unmarked as no-show" : "marked as no-show"
                 }`
               );
+              setProcessingEmail(null);
             } catch (error) {
               console.error("[MarkNoShowScreen] Failed to mark no-show:", error);
               if (__DEV__) {
@@ -116,7 +127,6 @@ export function MarkNoShowScreen({
                 });
               }
               Alert.alert("Error", error instanceof Error ? error.message : `Failed to ${action}`);
-            } finally {
               setProcessingEmail(null);
             }
           },
