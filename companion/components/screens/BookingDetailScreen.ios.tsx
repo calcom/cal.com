@@ -32,7 +32,6 @@ const formatTimeCalendarStyle = (startDateString: string, endDateString: string)
     const minutes = date.getMinutes();
     const period = hours >= 12 ? "PM" : "AM";
     const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-    // Only show minutes if not :00
     if (minutes === 0) {
       return `${hour12} ${period}`;
     }
@@ -303,45 +302,35 @@ export function BookingDetailScreen({
   const isRecurring =
     booking.recurringEventId || (booking as { recurringBookingUid?: string }).recurringBookingUid;
 
-  // Calculate or use provided duration
   const duration = booking.duration || calculateDuration(startTime, endTime);
   const durationFormatted = duration > 0 ? formatDuration(duration) : null;
 
-  // Event type info
   const eventTypeSlug = booking.eventType?.slug;
 
-  // Count all participants (hosts + attendees + guests)
   const hostsCount = booking.hosts?.length || (booking.user ? 1 : 0);
   const attendeesCount = booking.attendees?.length || 0;
   const guestsCount = booking.guests?.length || 0;
   const totalParticipants = hostsCount + attendeesCount + guestsCount;
 
-  // Determine if booking is in the past
   const isPastBooking = new Date(endTime) < new Date();
 
-  // Normalize status to lowercase for comparison
   const normalizedStatus = booking.status.toLowerCase();
 
-  // Helper to get attendee status icon and color
   const getAttendeeStatusIcon = (attendee: { noShow?: boolean; absent?: boolean }) => {
     const isNoShow = attendee.noShow || attendee.absent;
 
-    // For past bookings, show no-show status if applicable
     if (isPastBooking && isNoShow) {
       return { name: "close-circle" as const, color: "#FF3B30", label: "No-show" };
     }
 
-    // For pending bookings, show question mark
     if (normalizedStatus === "pending") {
       return { name: "help-circle" as const, color: "#8E8E93", label: "Pending" };
     }
 
-    // For cancelled/rejected bookings
     if (normalizedStatus === "cancelled" || normalizedStatus === "rejected") {
       return { name: "close-circle-outline" as const, color: "#8E8E93", label: null };
     }
 
-    // For accepted bookings (upcoming or past without no-show)
     return { name: "checkmark-circle" as const, color: "#34C759", label: null };
   };
 
@@ -487,7 +476,6 @@ export function BookingDetailScreen({
         {(() => {
           if (!booking.bookingFieldsResponses) return null;
 
-          // Filter out fields that shouldn't be displayed
           const excludedKeys = [
             "location",
             "guests",
@@ -502,21 +490,15 @@ export function BookingDetailScreen({
 
           const displayableEntries = Object.entries(booking.bookingFieldsResponses).filter(
             ([key, value]) => {
-              // Skip excluded keys
               if (excludedKeys.includes(key)) return false;
 
-              // Skip empty values
               if (value === null || value === undefined || value === "") return false;
 
-              // Skip empty arrays
               if (Array.isArray(value) && value.length === 0) return false;
 
-              // Skip objects that look like integration configs
               if (typeof value === "object" && !Array.isArray(value) && value !== null) {
                 const obj = value as Record<string, unknown>;
-                // Skip if it has "value" and "optionValue" keys (integration config)
                 if ("value" in obj && "optionValue" in obj) return false;
-                // Skip if it's an empty object
                 if (Object.keys(obj).length === 0) return false;
               }
 
@@ -533,7 +515,6 @@ export function BookingDetailScreen({
                   Booking Details
                 </Text>
                 {displayableEntries.map(([key, value], index) => {
-                  // Format the value for display
                   let displayValue: string;
                   if (typeof value === "string") {
                     displayValue = value;
@@ -544,11 +525,9 @@ export function BookingDetailScreen({
                   } else if (typeof value === "number") {
                     displayValue = String(value);
                   } else {
-                    // Skip complex objects
                     return null;
                   }
 
-                  // Format the key for display (camelCase to Title Case)
                   const displayKey = key
                     .replace(/([A-Z])/g, " $1")
                     .replace(/^./, (str) => str.toUpperCase())
