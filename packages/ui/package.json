@@ -97,7 +97,7 @@
     "@wojtekmaj/react-daterange-picker": "3.4.0",
     "class-variance-authority": "0.4.0",
     "classnames": "2.3.1",
-    "cmdk": "0.2.0",
+    "cmdk": "1.1.1",
     "cmk": "0.1.1",
     "date-fns": "3.6.0",
     "downshift": "6.1.9",
