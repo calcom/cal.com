@@ -125,6 +125,7 @@ const getEventTypesFromDBSelect = {
       id: true,
       availability: true,
       timeZone: true,
+      blockedByWatchlist: true,
     },
   },
   hosts: {
@@ -154,6 +155,7 @@ const getEventTypesFromDBSelect = {
           },
           timeZone: true,
           id: true,
+          blockedByWatchlist: true,
         },
       },
     },

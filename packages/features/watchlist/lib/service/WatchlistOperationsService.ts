@@ -142,7 +142,7 @@ export abstract class WatchlistOperationsService {
 
     // Block schedules for users matching the blocked emails/domains
     if (this.deps.scheduleBlockingService) {
-      const uniqueValues = [...new Set(normalizedValues.values())];
+      const uniqueValues = Array.from(new Set(Array.from(normalizedValues.values())));
 
       if (input.type === WatchlistType.EMAIL) {
         await this.deps.scheduleBlockingService.blockSchedulesByEmails(uniqueValues);
