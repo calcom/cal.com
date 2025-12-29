@@ -31,7 +31,7 @@ jobs:
   e2e:
     timeout-minutes: 20
     name: E2E API v2 (${{ matrix.shard }}/${{ strategy.job-total }})
-    runs-on: buildjet-16vcpu-ubuntu-2204
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     services:
       postgres:
         image: postgres:13
