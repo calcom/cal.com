@@ -455,13 +455,13 @@ test.describe("Booking on different layouts", () => {
 
   test("Book on week layout", async ({ page }) => {
     // Click first event type
-    await page.click('[data-testid="event-type-link"]');
+    await page.locator('[data-testid="event-type-link"]').first().click();
 
     await page.click('[data-testid="toggle-group-item-week_view"]');
 
     await page.click('[data-testid="incrementMonth"]');
 
-    await page.locator('[data-testid="calendar-empty-cell"]').nth(0).click();
+    await page.locator('[data-testid="calendar-empty-cell"]').nth(1).click();
 
     // Fill what is this meeting about? name email and notes
     await page.locator('[name="name"]').fill("Test name");
@@ -476,13 +476,13 @@ test.describe("Booking on different layouts", () => {
 
   test("Book on column layout", async ({ page }) => {
     // Click first event type
-    await page.click('[data-testid="event-type-link"]');
+    await page.locator('[data-testid="event-type-link"]').first().click();
 
     await page.click('[data-testid="toggle-group-item-column_view"]');
 
     await page.click('[data-testid="incrementMonth"]');
 
-    await page.locator('[data-testid="time"]').nth(0).click();
+    await page.locator('[data-testid="time"]').nth(1).click();
 
     // Fill what is this meeting about? name email and notes
     await page.locator('[name="name"]').fill("Test name");
