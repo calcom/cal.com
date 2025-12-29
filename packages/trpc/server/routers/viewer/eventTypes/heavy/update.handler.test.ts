@@ -2,28 +2,7 @@ import { describe, it, expect } from "vitest";
 
 import { Prisma } from "@calcom/prisma/client";
 
-/**
- * Tests for the bookingFields null handling transformation in update.handler.ts
- *
- * The update handler should convert `bookingFields: null` to `Prisma.DbNull`
- * to properly clear the JSON field in the database.
- *
- * This transformation is necessary because:
- * 1. Prisma requires `Prisma.DbNull` to set a JSON column to database NULL
- * 2. Passing `null` directly would not properly clear the field
- *
- * The transformation logic in update.handler.ts:
- * ```
- * bookingFields:
- *   bookingFields === null ? Prisma.DbNull : (bookingFields as Prisma.InputJsonValue | undefined),
- * ```
- */
 describe("bookingFields null to Prisma.DbNull transformation", () => {
-  /**
-   * Helper function that mirrors the transformation logic in update.handler.ts
-   * This allows us to test the transformation in isolation without mocking
-   * the entire handler's dependencies.
-   */
   function transformBookingFields(
     bookingFields: null | undefined | Prisma.InputJsonValue
   ): typeof Prisma.DbNull | Prisma.InputJsonValue | undefined {
