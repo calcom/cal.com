@@ -42,6 +42,11 @@ jobs:
             const pr = context.payload.pull_request;
 
             if (!pr) {
+              if (context.eventName === 'workflow_dispatch') {
+                console.log('workflow_dispatch event - assuming trusted (manual trigger)');
+                core.setOutput('is-trusted', true);
+                return;
+              }
               console.log('No pull request context found');
               core.setOutput('is-trusted', false);
               return;
