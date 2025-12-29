@@ -32,8 +32,17 @@ export interface Booking {
     name: string;
     timeZone: string;
     noShow?: boolean;
+    absent?: boolean; // Alternative field name from API
   }>;
-  status: "ACCEPTED" | "PENDING" | "CANCELLED" | "REJECTED";
+  status:
+    | "ACCEPTED"
+    | "PENDING"
+    | "CANCELLED"
+    | "REJECTED"
+    | "accepted"
+    | "pending"
+    | "cancelled"
+    | "rejected";
   paid?: boolean;
   payment?: Array<{
     id: number;
@@ -49,6 +58,16 @@ export interface Booking {
   cancellationReason?: string;
   rejectionReason?: string;
   responses?: Record<string, unknown>;
+  // Additional fields from API
+  guests?: string[];
+  bookingFieldsResponses?: Record<string, unknown>;
+  rescheduledFromUid?: string;
+  rescheduledToUid?: string;
+  reschedulingReason?: string;
+  cancelledByEmail?: string;
+  absentHost?: boolean;
+  duration?: number;
+  meetingUrl?: string;
 }
 
 export interface GetBookingsResponse {
