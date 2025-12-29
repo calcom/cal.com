@@ -10,7 +10,7 @@ concurrency:
 jobs:
   i18n:
     name: Run i18n
-    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       actions: write
       contents: write

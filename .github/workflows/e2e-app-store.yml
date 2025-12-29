@@ -45,7 +45,7 @@ jobs:
   e2e-app-store:
     timeout-minutes: 20
     name: E2E App Store
-    runs-on: blacksmith-4vcpu-ubuntu-2404-arm
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     services:
       postgres:
         image: postgres:13

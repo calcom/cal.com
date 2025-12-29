@@ -6,7 +6,7 @@ on:
 
 jobs:
   cleanup:
-    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Check out code
         uses: actions/checkout@v4
