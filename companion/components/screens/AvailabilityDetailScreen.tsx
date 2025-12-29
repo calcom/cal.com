@@ -4,11 +4,11 @@ import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CalComAPIService, type Schedule } from "../../services/calcom";
-import type { ScheduleAvailability } from "../../services/types";
-import { showErrorAlert } from "../../utils/alerts";
-import { AppPressable } from "../AppPressable";
-import { FullScreenModal } from "../FullScreenModal";
+import { AppPressable } from "@/components/AppPressable";
+import { FullScreenModal } from "@/components/FullScreenModal";
+import { CalComAPIService, type Schedule } from "@/services/calcom";
+import type { ScheduleAvailability } from "@/services/types";
+import { showErrorAlert } from "@/utils/alerts";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -636,7 +636,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                             onPress={() => removeTimeSlot(dayIndex, slotIndex + 1)}
                             className="p-1"
                           >
-                            <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                            <Ionicons name="trash-outline" size={20} color="#800020" />
                           </AppPressable>
                         </View>
                       ))}
@@ -691,7 +691,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                         <Ionicons name="pencil-outline" size={20} color="#007AFF" />
                       </AppPressable>
                       <AppPressable onPress={() => handleDeleteOverride(index)} className="p-2">
-                        <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                        <Ionicons name="trash-outline" size={20} color="#800020" />
                       </AppPressable>
                     </View>
                   </View>
@@ -747,7 +747,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                 className="h-11 w-11 items-center justify-center"
                 onPress={handleDelete}
               >
-                <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                <Ionicons name="trash-outline" size={20} color="#800020" />
               </AppPressable>
             </GlassView>
           </View>

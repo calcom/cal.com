@@ -10,8 +10,8 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
-import { CalComAPIService, type Schedule } from "../services/calcom";
+import { CACHE_CONFIG, queryKeys } from "@/config/cache.config";
+import { CalComAPIService, type Schedule } from "@/services/calcom";
 
 /**
  * Sort schedules: default first, then alphabetically by name

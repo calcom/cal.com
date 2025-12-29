@@ -1,10 +1,10 @@
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert } from "react-native";
-import { BookingDetailScreen } from "../../../components/screens/BookingDetailScreen";
-import { useAuth } from "../../../contexts/AuthContext";
-import { type Booking, CalComAPIService } from "../../../services/calcom";
-import { type BookingActionsResult, getBookingActions } from "../../../utils/booking-actions";
+import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
+import { useAuth } from "@/contexts/AuthContext";
+import { type Booking, CalComAPIService } from "@/services/calcom";
+import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {

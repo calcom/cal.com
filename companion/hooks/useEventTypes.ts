@@ -10,8 +10,8 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
-import { CalComAPIService, type CreateEventTypeInput, type EventType } from "../services/calcom";
+import { CACHE_CONFIG, queryKeys } from "@/config/cache.config";
+import { CalComAPIService, type CreateEventTypeInput, type EventType } from "@/services/calcom";
 
 /**
  * Hook to fetch all event types

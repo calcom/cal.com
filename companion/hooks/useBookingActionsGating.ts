@@ -6,14 +6,14 @@
  */
 
 import { useMemo } from "react";
-import type { Booking } from "../services/calcom";
-import type { EventType } from "../services/types/event-types.types";
+import type { Booking } from "@/services/calcom";
+import type { EventType } from "@/services/types/event-types.types";
 import {
   type BookingActionsResult,
   getBookingActions,
   type NormalizedBooking,
   normalizeBooking,
-} from "../utils/booking-actions";
+} from "@/utils/booking-actions";
 
 interface UseBookingActionsGatingParams {
   booking: Booking | null;
@@ -111,10 +111,10 @@ export function useBookingStatusFlags(booking: Booking | null) {
       isUpcoming,
       isPast,
       isOngoing,
-      isCancelled: normalized.status === "CANCELLED",
-      isRejected: normalized.status === "REJECTED",
-      isPending: normalized.status === "PENDING",
-      isConfirmed: normalized.status === "ACCEPTED",
+      isCancelled: normalized.status === "cancelled",
+      isRejected: normalized.status === "rejected",
+      isPending: normalized.status === "pending",
+      isConfirmed: normalized.status === "accepted",
     };
   }, [booking]);
 }

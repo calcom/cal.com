@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Alert, Platform, Text, TouchableOpacity } from "react-native";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { LogoutConfirmModal } from "./LogoutConfirmModal";
 
 interface LogoutButtonProps {

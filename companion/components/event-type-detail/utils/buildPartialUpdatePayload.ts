@@ -1,16 +1,12 @@
-import type {
-  BookingLimitsCount,
-  BookingLimitsDuration,
-  EventType,
-} from "../../../services/calcom";
-import type { LocationItem } from "../../../types/locations";
+import type { BookingLimitsCount, BookingLimitsDuration, EventType } from "@/services/calcom";
+import type { LocationItem } from "@/types/locations";
 import {
   parseBufferTime,
   parseFrequencyUnit,
   parseMinimumNotice,
   parseSlotInterval,
-} from "../../../utils/eventTypeParsers";
-import { mapItemToApiLocation } from "../../../utils/locationHelpers";
+} from "@/utils/eventTypeParsers";
+import { mapItemToApiLocation } from "@/utils/locationHelpers";
 
 interface LocationInput {
   type: string;

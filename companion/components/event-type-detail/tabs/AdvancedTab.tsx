@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Alert, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-import { openInAppBrowser } from "../../../utils/browser";
+import { openInAppBrowser } from "@/utils/browser";
 
 interface ConfigureOnWebCardProps {
   title: string;

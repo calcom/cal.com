@@ -1,8 +1,8 @@
 import type { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert } from "react-native";
-import type { Booking } from "../services/calcom";
-import { showErrorAlert } from "../utils/alerts";
+import type { Booking } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
 
 interface UseBookingActionsParams {
   router: ReturnType<typeof useRouter>;

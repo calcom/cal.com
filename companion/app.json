@@ -19,6 +19,9 @@
       "bundleIdentifier": "com.calcom.companion",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.developer.default-data-protection": "NSFileProtectionComplete"
       }
     },
     "android": {
@@ -28,7 +31,8 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.calcom.companion",
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "usesCleartextTraffic": false
     },
     "web": {
       "favicon": "./assets/favicon.png",
