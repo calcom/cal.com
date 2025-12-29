@@ -1,9 +1,10 @@
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack } from "expo-router";
-import { Platform, View, StatusBar } from "react-native";
-import { AuthProvider, useAuth } from "../contexts/AuthContext";
-import { QueryProvider } from "../contexts/QueryContext";
-import { NetworkStatusBanner } from "../components/NetworkStatusBanner";
-import LoginScreen from "../components/LoginScreen";
+import { Platform, StatusBar, View } from "react-native";
+import LoginScreenComponent from "@/components/LoginScreen";
+import { NetworkStatusBanner } from "@/components/NetworkStatusBanner";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { QueryProvider } from "@/contexts/QueryContext";
 import "../global.css";
 
 function RootLayoutContent() {
@@ -12,9 +13,36 @@ function RootLayoutContent() {
   const content = isAuthenticated ? (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="profile-sheet"
+        options={{
+          headerShown: true,
+          headerTransparent: Platform.OS === "ios",
+          headerLargeTitle: false,
+          title: Platform.OS === "ios" ? "You" : "Profile",
+          presentation:
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
+          // iOS-specific sheet options (ignored on Android)
+          sheetGrabberVisible: Platform.OS === "ios",
+          sheetAllowedDetents: Platform.OS === "ios" ? [0.6, 0.9] : undefined,
+          sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
+          contentStyle: {
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#FFFFFF",
+          },
+          headerStyle: {
+            backgroundColor: Platform.OS === "ios" ? "transparent" : "#FFFFFF",
+          },
+          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+        }}
+      />
     </Stack>
   ) : (
-    <LoginScreen />
+    <LoginScreenComponent />
   );
 
   const containerClass =
