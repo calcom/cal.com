@@ -1,3 +1,5 @@
+export type BookingStatus = "accepted" | "pending" | "cancelled" | "rejected";
+
 export interface Booking {
   id: number;
   uid: string;
@@ -32,17 +34,9 @@ export interface Booking {
     name: string;
     timeZone: string;
     noShow?: boolean;
-    absent?: boolean; // Alternative field name from API
+    absent?: boolean;
   }>;
-  status:
-    | "ACCEPTED"
-    | "PENDING"
-    | "CANCELLED"
-    | "REJECTED"
-    | "accepted"
-    | "pending"
-    | "cancelled"
-    | "rejected";
+  status: BookingStatus;
   paid?: boolean;
   payment?: Array<{
     id: number;
