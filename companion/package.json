@@ -58,7 +58,7 @@
     "@tanstack/react-query": "5.62.0",
     "@tanstack/react-query-persist-client": "5.62.0",
     "base64-js": "1.5.1",
-    "expo": "55.0.0-canary-20251216-3f01dbf",
+    "expo": "54.0.7",
     "expo-auth-session": "7.0.11-canary-20251216-3f01dbf",
     "expo-clipboard": "8.0.9-canary-20251216-3f01dbf",
     "expo-constants": "18.1.0-canary-20251216-3f01dbf",
@@ -74,13 +74,13 @@
     "expo-status-bar": "3.0.10-canary-20251216-3f01dbf",
     "expo-web-browser": "15.0.11-canary-20251216-3f01dbf",
     "nativewind": "4.2.1",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
     "react-native": "0.83.0",
     "react-native-context-menu-view": "1.20.0",
-    "react-native-gesture-handler": "~2.28.0",
-    "react-native-reanimated": "~4.2.0",
-    "react-native-safe-area-context": "~5.6.0",
+    "react-native-gesture-handler": "2.28.0",
+    "react-native-reanimated": "4.2.0",
+    "react-native-safe-area-context": "5.6.2",
     "react-native-screens": "4.19.0",
     "react-native-svg": "15.12.1",
     "react-native-web": "0.21.2",
@@ -94,8 +94,6 @@
     "@types/react-dom": "19.2.3",
     "babel-plugin-react-compiler": "19.0.0-beta-af1b7da-20250417",
     "babel-preset-expo": "54.0.7",
-    "eslint": "9",
-    "eslint-plugin-react-compiler": "19.0.0-beta-af1b7da-20250417",
     "husky": "9.0.11",
     "lint-staged": "15.2.0",
     "tailwindcss": "3.4.17",
@@ -104,8 +102,8 @@
     "wxt": "0.20.11"
   },
   "lint-staged": {
-    "**/*.{js,jsx,ts,tsx,json}": [
-      "biome check --write --error-on-warnings --no-errors-on-unmatched"
+    "**/*.{js,jsx,ts,tsx,json,css,md}": [
+      "biome format --write"
     ]
   }
 }
