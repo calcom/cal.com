@@ -14,6 +14,7 @@ import { Alert, KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Booking } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
+import { safeLogError } from "@/utils/safeLogger";
 
 // Location types configuration
 export const LOCATION_TYPES = {
@@ -161,8 +162,8 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
         ]);
         setIsSaving(false);
       } catch (error) {
-        console.error("[EditLocationScreen] Failed to update location:", error);
-        Alert.alert("Error", error instanceof Error ? error.message : "Failed to update location");
+        safeLogError("[EditLocationScreen] Failed to update location:", error);
+        Alert.alert("Error", "Failed to update location. Please try again.");
         setIsSaving(false);
       }
     }, [booking, selectedType, inputValue, onSuccess]);

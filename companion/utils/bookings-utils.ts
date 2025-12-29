@@ -1,6 +1,8 @@
 import type { BookingFilter } from "@/hooks";
 import type { Booking } from "@/services/calcom";
 
+import { safeLogError, safeLogWarn } from "./safeLogger";
+
 export const getEmptyStateContent = (activeFilter: BookingFilter) => {
   switch (activeFilter) {
     case "upcoming":
@@ -48,7 +50,7 @@ export const formatTime = (dateString: string): string => {
   try {
     const date = new Date(dateString);
     if (Number.isNaN(date.getTime())) {
-      console.warn("Invalid date string:", dateString);
+      safeLogWarn("Invalid date string provided to formatTime", { dateString });
       return "";
     }
     return date.toLocaleTimeString("en-US", {
@@ -57,7 +59,7 @@ export const formatTime = (dateString: string): string => {
       hour12: true,
     });
   } catch (error) {
-    console.error("Error formatting time:", error, dateString);
+    safeLogError("Error formatting time:", error);
     return "";
   }
 };
@@ -75,7 +77,7 @@ export const formatDate = (dateString: string, isUpcoming: boolean): string => {
   try {
     const date = new Date(dateString);
     if (Number.isNaN(date.getTime())) {
-      console.warn("Invalid date string:", dateString);
+      safeLogWarn("Invalid date string provided to formatDate", { dateString });
       return "";
     }
     const bookingYear = date.getFullYear();
@@ -100,7 +102,7 @@ export const formatDate = (dateString: string, isUpcoming: boolean): string => {
       });
     }
   } catch (error) {
-    console.error("Error formatting date:", error, dateString);
+    safeLogError("Error formatting date:", error);
     return "";
   }
 };

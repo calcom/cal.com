@@ -37,6 +37,7 @@ import {
   mapItemToApiLocation,
   validateLocationItem,
 } from "@/utils/locationHelpers";
+import { safeLogError } from "@/utils/safeLogger";
 
 // Type definitions for extended EventType fields not in the base type
 interface EventTypeExtended {
@@ -370,7 +371,7 @@ export default function EventTypeDetail() {
       }
       setScheduleDetailsLoading(false);
     } catch (error) {
-      console.error("Failed to fetch schedule details:", error);
+      safeLogError("Failed to fetch schedule details:", error);
       setSelectedScheduleDetails(null);
       setScheduleDetailsLoading(false);
     }
@@ -390,7 +391,7 @@ export default function EventTypeDetail() {
       }
       setSchedulesLoading(false);
     } catch (error) {
-      console.error("Failed to fetch schedules:", error);
+      safeLogError("Failed to fetch schedules:", error);
       setSchedulesLoading(false);
     }
   }, [fetchScheduleDetails]);
@@ -402,7 +403,7 @@ export default function EventTypeDetail() {
       setConferencingOptions(options);
       setConferencingLoading(false);
     } catch (error) {
-      console.error("Failed to fetch conferencing options:", error);
+      safeLogError("Failed to fetch conferencing options:", error);
       setConferencingLoading(false);
     }
   }, []);
@@ -742,7 +743,7 @@ export default function EventTypeDetail() {
         }
       }
     } catch (error) {
-      console.error("Failed to fetch event type data:", error);
+      safeLogError("Failed to fetch event type data:", error);
     }
   }, [id]);
 
@@ -767,7 +768,7 @@ export default function EventTypeDetail() {
         const userUsername = await CalComAPIService.getUsername();
         setUsername(userUsername);
       } catch (error) {
-        console.error("Failed to fetch username:", error);
+        safeLogError("Failed to fetch username:", error);
       }
     };
     fetchUsername();
@@ -851,7 +852,7 @@ export default function EventTypeDetail() {
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
       await openInAppBrowser(link, "event type preview");
     } catch (error) {
-      console.error("Failed to generate preview link:", error);
+      safeLogError("Failed to generate preview link:", error);
       showErrorAlert("Error", "Failed to generate preview link. Please try again.");
     }
   };
@@ -864,7 +865,7 @@ export default function EventTypeDetail() {
       await Clipboard.setStringAsync(link);
       Alert.alert("Success", "Link copied!");
     } catch (error) {
-      console.error("Failed to copy link:", error);
+      safeLogError("Failed to copy link:", error);
       showErrorAlert("Error", "Failed to copy link. Please try again.");
     }
   };
@@ -893,9 +894,8 @@ export default function EventTypeDetail() {
               },
             ]);
           } catch (error) {
-            console.error("Failed to delete event type:", error);
-            const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-            showErrorAlert("Error", `Failed to delete event type: ${errorMessage}`);
+            safeLogError("Failed to delete event type:", error);
+            showErrorAlert("Error", "Failed to delete event type. Please try again.");
           }
         },
       },
@@ -1060,7 +1060,7 @@ export default function EventTypeDetail() {
         setSaving(false);
       }
     } catch (error) {
-      console.error("Failed to save event type:", error);
+      safeLogError("Failed to save event type:", error);
       const action = isCreateMode ? "create" : "update";
       showErrorAlert("Error", `Failed to ${action} event type. Please try again.`);
       setSaving(false);
