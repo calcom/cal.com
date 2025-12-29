@@ -33,7 +33,10 @@ test.describe("Team", () => {
       await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-      await page.getByText(t("send_invite")).click();
+      const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
+      await page.getByTestId("invite-new-member-button").click();
+      const response = await submitPromise;
+      expect(response.status()).toBe(200);
       const inviteLink = await expectInvitationEmailToBeReceived(
         page,
         emails,
@@ -119,7 +122,10 @@ test.describe("Team", () => {
       await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-      await page.getByText(t("send_invite")).click();
+      const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
+      await page.getByTestId("invite-new-member-button").click();
+      const response = await submitPromise;
+      expect(response.status()).toBe(200);
       await expectInvitationEmailToBeReceived(
         page,
         emails,
@@ -134,7 +140,6 @@ test.describe("Team", () => {
   });
 
   test("Invited member is assigned to existing managed event, after invitation is accepted", async ({
-    browser,
     page,
     users,
   }) => {
@@ -168,38 +173,20 @@ test.describe("Team", () => {
     await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
     await page.getByTestId("new-member-button").click();
     await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
-    await page.getByText(t("send_invite")).click();
-
-    // Wait for the membership/invitation to be created in the database before switching users
-    await expect(async () => {
-      const membership = await prisma.membership.findFirst({
-        where: {
-          userId: invitedMember.id,
-          teamId: team.id,
-        },
-      });
-      expect(membership).toBeTruthy();
-    }).toPass({ timeout: 10000 });
-
-    // Use a new browser context for the invited member to avoid session state issues
-    const [invitedMemberContext, invitedMemberPage] = await invitedMember.apiLoginOnNewBrowser(browser);
-    await invitedMemberPage.goto(`/teams`);
-    // Wait for the accept button to be visible before clicking
-    // Use dashboard-shell scope to avoid strict mode violation when multiple accept buttons exist (e.g., mobile/desktop variants)
-    const acceptButton = invitedMemberPage
-      .getByTestId("dashboard-shell")
-      .getByTestId(`accept-invitation-${team.id}`);
-    await expect(acceptButton).toBeVisible();
-    // Set up response wait before clicking to avoid missing fast responses
-    const [response] = await Promise.all([
-      invitedMemberPage.waitForResponse("/api/trpc/teams/acceptOrLeave?batch=1"),
-      acceptButton.click(),
-    ]);
+    const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
+    await page.getByTestId("invite-new-member-button").click();
+    const response = await submitPromise;
     expect(response.status()).toBe(200);
-    await invitedMemberPage.goto(`/event-types`);
+
+    await invitedMember.apiLogin();
+    await page.goto(`/teams`);
+    await page.getByTestId(`accept-invitation-${team.id}`).click();
+    const response2 = await page.waitForResponse("/api/trpc/teams/acceptOrLeave?batch=1");
+    expect(response2.status()).toBe(200);
+    await page.goto(`/event-types`);
 
     //ensure managed event-type is created for the invited member
-    await expect(invitedMemberPage.locator(`text="${teamEventSlugAndTitle}"`)).toBeVisible();
+    await expect(page.locator(`text="${teamEventSlugAndTitle}"`)).toBeVisible();
 
     //ensure the new event-type created for invited member is child of team event-type
     const parentEventType = await prisma.eventType.findFirst({
@@ -212,10 +199,6 @@ test.describe("Team", () => {
       },
     });
     expect(parentEventType?.children.find((et) => et.userId === invitedMember.id)).toBeTruthy();
-
-    // Clean up the browser context
-    await invitedMemberPage.close();
-    await invitedMemberContext.close();
   });
 
   test("Auto-accept invitation for existing user", async ({ browser, page, users, emails }) => {
@@ -237,7 +220,10 @@ test.describe("Team", () => {
       await page.waitForTimeout(500);
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUser.email);
-      await page.getByText(t("send_invite")).click();
+      const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
+      await page.getByTestId("invite-new-member-button").click();
+      const response = await submitPromise;
+      expect(response.status()).toBe(200);
 
       inviteLink = await expectInvitationEmailToBeReceived(
         page,
@@ -301,7 +287,10 @@ test.describe("Team", () => {
       await page.waitForTimeout(500);
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUser.email);
-      await page.getByText(t("send_invite")).click();
+      const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
+      await page.getByTestId("invite-new-member-button").click();
+      const response = await submitPromise;
+      expect(response.status()).toBe(200);
 
       inviteLink = await expectInvitationEmailToBeReceived(
         page,
