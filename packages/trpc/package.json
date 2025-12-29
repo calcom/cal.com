@@ -14,7 +14,6 @@
     "build:react": "yarn tsc --project tsconfig.react.json"
   },
   "dependencies": {
-    "@tanstack/react-query": "5.17.19",
     "@trpc/client": "11.0.0-next-beta.222",
     "@trpc/next": "11.0.0-next-beta.222",
     "@trpc/react-query": "11.0.0-next-beta.222",
@@ -25,12 +24,14 @@
     "zod": "3.25.76"
   },
   "peerDependencies": {
+    "@tanstack/react-query": "^5.0.0",
     "next": ">=14.0.0",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
     "@calcom/eslint-config": "workspace:*",
+    "@tanstack/react-query": "5.17.19",
     "@types/cookie": "0.6.0",
     "@types/uuid": "8.3.4",
     "typescript": "5.9.2"
