@@ -13,6 +13,8 @@
   "complete_onboarding_flow_payment": "3. If not already added, add a credit card to complete subscription to Meta Cloud API to be able to send messages.",
   "skip_sharing_chat": "4. Sharing chat history is optional and not used by us. You can opt to not share if prompted.",
   "connect_whatsapp_business": "Whatsapp Business",
+  "create_templates": "Create templates",
+  "sync_templates": "Sync templates",
   "change_file": "Change file",
   "sync_failed": "Failed to sync templates",
   "successfully_synced": "Successfully synced templates",
@@ -3702,5 +3704,6 @@
   "template": "Template",
   "choose_file": "Choose file",
   "drop_file_here_or": "Drop file here or",
-  "file_limit": "File limit: {{max}}"
+  "file_limit": "File limit: {{max}}",
+  "uploading": "Uploading..."
 }
