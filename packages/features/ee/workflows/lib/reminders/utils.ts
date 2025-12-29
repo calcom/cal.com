@@ -115,6 +115,33 @@ export const getAttendeeToBeUsedInSMS = (
   return attendeeToBeUsedInSMS;
 };
 
+/**
+ * Replaces cloaked links in HTML content with visible URLs.
+ * This ensures recipients can see the actual destination of links,
+ * helping them identify potentially malicious URLs.
+ *
+ * Transforms: <a href="https://example.com">Click here</a>
+ * Into: <a href="https://example.com">https://example.com</a>
+ */
+export const replaceCloakedLinksInHtml = (html: string): string => {
+  // Match anchor tags with href attribute
+  // Captures: full match, href value, link text
+  const anchorRegex = /<a\s+([^>]*href=["']([^"']+)["'][^>]*)>([^<]*)<\/a>/gi;
+
+  return html.replace(anchorRegex, (match, attributes, href, linkText) => {
+    // If the link text is already the URL (or very similar), keep it as is
+    const normalizedHref = href.toLowerCase().replace(/\/$/, "");
+    const normalizedText = linkText.toLowerCase().trim().replace(/\/$/, "");
+
+    if (normalizedText === normalizedHref || normalizedText === normalizedHref.replace(/^https?:\/\//, "")) {
+      return match;
+    }
+
+    // Replace the link text with the actual URL
+    return `<a ${attributes}>${href}</a>`;
+  });
+};
+
 export const shouldUseTwilio = (trigger: WorkflowTriggerEvents, scheduledDate: dayjs.Dayjs | null) => {
   if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(trigger)) {
     return true;
