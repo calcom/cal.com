@@ -1912,6 +1912,7 @@ __metadata:
     ioredis: "npm:5.3.2"
     jest: "npm:29.7.0"
     jest-date-mock: "npm:1.0.10"
+    jest-junit: "npm:^16.0.0"
     lodash: "npm:4.17.21"
     luxon: "npm:3.4.4"
     nest-winston: "npm:1.9.4"
@@ -28173,6 +28174,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jest-junit@npm:^16.0.0":
+  version: 16.0.0
+  resolution: "jest-junit@npm:16.0.0"
+  dependencies:
+    mkdirp: "npm:^1.0.4"
+    strip-ansi: "npm:^6.0.1"
+    uuid: "npm:^8.3.2"
+    xml: "npm:^1.0.1"
+  checksum: 10/2c33ee8bfd0c83b9aa1f8ba5905084890d5f519d294ccc2829d778ac860d5adffffec75d930f44f1d498aa8370c783e0aa6a632d947fb7e81205f0e7b926669d
+  languageName: node
+  linkType: hard
+
 "jest-leak-detector@npm:^29.7.0":
   version: 29.7.0
   resolution: "jest-leak-detector@npm:29.7.0"
@@ -42474,6 +42487,13 @@ __metadata:
     sax: "npm:>=0.6.0"
     xmlbuilder: "npm:~11.0.0"
   checksum: 10/52896ef39429f860f32471dd7bb2b89ef25b7e15528e3a4366de0bd5e55a251601565e7814763e70f9e75310c3afe649a42b8826442b74b41eff8a0ae333fccc
+  languageName: node
+  linkType: hard
+
+"xml@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "xml@npm:1.0.1"
+  checksum: 10/6c4c31a1308e45732e5ac6b50edbca0e8f7abe5cb5de10215d8e3c688819fe7c7706e056f6fb59b1a23fdf1000c2d7a8bba0a89e94aa1796cd2376d9a5ba401e
   languageName: node
   linkType: hard
 
