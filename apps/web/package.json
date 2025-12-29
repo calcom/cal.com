@@ -18,7 +18,7 @@
     "sentry:release": "NODE_OPTIONS='--max-old-space-size=6144' node scripts/create-sentry-release.js",
     "copy-static": "turbo run copy-app-store-static",
     "copy-app-store-static": "node scripts/copy-app-store-static.js",
-    "build": "turbo run copy-app-store-static && next build && yarn sentry:release",
+    "build": "next build && yarn sentry:release",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
