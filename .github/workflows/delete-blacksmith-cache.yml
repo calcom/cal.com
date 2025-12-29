@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
       - uses: useblacksmith/cache-delete@v1
         with:
-          cache_key: ${{ inputs.cache_key }}
+          key: ${{ inputs.cache_key }}
 
   delete-yarn-install-cache-on-pr-close:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -26,19 +26,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Delete yarn-install caches for this PR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          echo "Deleting yarn-install caches for PR #${PR_NUMBER}..."
-
-          # List all caches and filter by those ending with the PR number
-          gh cache list --json key --jq '.[].key' | while read -r cache_key; do
-            if [[ "$cache_key" =~ -${PR_NUMBER}$ ]]; then
-              echo "Deleting cache: $cache_key"
-              gh cache delete "$cache_key" || true
-            fi
-          done
-
-          echo "Cache cleanup complete for PR #${PR_NUMBER}"
+      - name: Delete yarn-download-cache
+        uses: useblacksmith/cache-delete@v1
+        with:
+          key: yarn-download-cache-${{ hashFiles('yarn.lock') }}-${{ github.event.pull_request.number }}
+      - name: Delete yarn-nm-cache
+        uses: useblacksmith/cache-delete@v1
+        with:
+          key: Linux-yarn-nm-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}-${{ github.event.pull_request.number }}
+      - name: Delete yarn-install-state-cache
+        uses: useblacksmith/cache-delete@v1
+        with:
+          key: Linux-yarn-install-state-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}-${{ github.event.pull_request.number }}
