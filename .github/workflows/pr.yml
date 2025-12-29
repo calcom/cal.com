@@ -17,8 +17,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}${{ github.event_name == 'pull_request_review' && github.event.review.state != 'approved' && '-noop' || '' }}
+  cancel-in-progress: ${{ github.event_name != 'pull_request_review' || github.event.review.state == 'approved' }}
 
 jobs:
   # Security gate: Check if PR is from a trusted contributor or has been approved by a core team member
@@ -403,7 +403,7 @@ jobs:
           echo "::error::This PR is from an external contributor and requires approval from a core team member before CI can run."
           echo "A maintainer with write access must approve this PR to trigger CI checks."
           exit 1
-        if: needs.trust-check.outputs.is-trusted != 'true'
+        if: needs.trust-check.outputs.is-trusted != 'true' && needs.trust-check.result == 'success'
       - name: fail if conditional jobs failed
         run: exit 1
         if: |
