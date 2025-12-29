@@ -122,13 +122,18 @@ export const getAttendeeToBeUsedInSMS = (
  *
  * Transforms: <a href="https://example.com">Click here</a>
  * Into: <a href="https://example.com">https://example.com</a>
+ *
+ * Also handles nested HTML tags like: <a href="https://example.com"><b>Click here</b></a>
  */
 export const replaceCloakedLinksInHtml = (html: string): string => {
   // Match anchor tags with href attribute
-  // Captures: full match, href value, link text
-  const anchorRegex = /<a\s+([^>]*href=["']([^"']+)["'][^>]*)>([^<]*)<\/a>/gi;
+  // Captures: attributes with href, href value, inner content (including nested HTML)
+  const anchorRegex = /<a\s+([^>]*href=["']([^"']+)["'][^>]*)>([\s\S]*?)<\/a>/gi;
 
-  return html.replace(anchorRegex, (match, attributes, href, linkText) => {
+  return html.replace(anchorRegex, (match, attributes, href, innerContent) => {
+    // Strip HTML tags from inner content to get plain text for comparison
+    const linkText = innerContent.replace(/<[^>]*>/g, "");
+
     // If the link text is already the URL (or very similar), keep it as is
     const normalizedHref = href.toLowerCase().replace(/\/$/, "");
     const normalizedText = linkText.toLowerCase().trim().replace(/\/$/, "");
