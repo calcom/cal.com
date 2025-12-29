@@ -43,7 +43,7 @@ jobs:
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
-          push-image: ${{ github.event_name == 'push' && 'true' || inputs.PUSH_IMAGE }}
+          push-image: ${{ (github.event_name == 'push' || inputs.PUSH_IMAGE) && 'true' || 'false' }}
           use-as-latest: "true"
 
       - name: Notify Slack on Success
@@ -90,7 +90,7 @@ jobs:
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
-          push-image: ${{ github.event_name == 'push' && 'true' || inputs.PUSH_IMAGE }}
+          push-image: ${{ (github.event_name == 'push' || inputs.PUSH_IMAGE) && 'true' || 'false' }}
 
       - name: Notify Slack on Success
         if: success()
