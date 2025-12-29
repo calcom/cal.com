@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
+import logger from "@calcom/lib/logger";
 import {
   CalendarAppDelegationCredentialConfigurationError,
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -38,7 +39,6 @@ const getO365VideoAppKeys = async () => {
 };
 
 const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenantId): VideoApiAdapter => {
-  console.log("TeamsVideoApiAdapter--credential: ", credential);
   let azureUserId: string | null;
   const tokenResponse = oAuthManagerHelper.getTokenObjectFromCredential(credential);
 
@@ -251,11 +251,8 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       return Promise.resolve([]);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      console.log("=======>createMeeting: ");
-
+      logger.debug("Creating Teams meeting", { eventType: event.type });
       const url = `${await getUserEndpoint()}/onlineMeetings`;
-      console.log("urllllllllllll: ", url);
-      console.log("translateEvent(event): ", translateEvent(event));
       const resultString = await auth
         .requestRaw({
           url,
@@ -271,9 +268,11 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
         throw new HttpError({
           statusCode: 500,
-          message: `Error creating MS Teams meeting: ${resultObject.error.message}`,
+          message: `Error creating MS Teams meeting: ${resultObject.error?.message || "missing required fields in response"}`,
         });
       }
+
+      logger.debug("Teams meeting created", { meetingId: resultObject.id });
 
       return Promise.resolve({
         type: "office365_video",
