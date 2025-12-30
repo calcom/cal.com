@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "PORT=5100 next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "biome lint ."
+    "start": "next start"
   },
   "dependencies": {
     "@calcom/atoms": "workspace:*",

@@ -30,6 +30,7 @@
     "uuid": "8.3.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.3.10",
     "@calcom/tsconfig": "workspace:*",
     "@calcom/types": "workspace:*",
     "@faker-js/faker": "7.6.0",
