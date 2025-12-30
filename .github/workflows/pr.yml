@@ -27,6 +27,7 @@ jobs:
     permissions:
       pull-requests: read
       actions: read
+      issues: read
     outputs:
       is-trusted: ${{ steps.check-trust.outputs.is-trusted }}
     steps:
@@ -36,9 +37,8 @@ jobs:
         with:
           script: |
             const trustedAssociations = ['OWNER', 'MEMBER', 'COLLABORATOR'];
-            const pr = context.payload.pull_request;
 
-            if (!pr) {
+            if (!context.payload.pull_request) {
               if (context.eventName === 'workflow_dispatch') {
                 console.log('workflow_dispatch event - assuming trusted (manual trigger)');
                 core.setOutput('is-trusted', true);
@@ -51,6 +51,14 @@ jobs:
 
             const owner = context.repo.owner;
             const repo = context.repo.repo;
+
+            // Fetch fresh PR data - payload labels may be stale on re-runs
+            const { data: pr } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: context.payload.pull_request.number,
+            });
+
             const prNumber = pr.number;
             const headSha = pr.head.sha;
 
@@ -89,7 +97,7 @@ jobs:
             // NOTE: We use workflow run created_at instead of commit timestamp because
             // git commit timestamps can be arbitrarily backdated by attackers
             if (pr.labels?.some(l => l.name === 'run-ci')) {
-              const { data: events } = await github.rest.issues.listEvents({
+              const events = await github.paginate(github.rest.issues.listEvents, {
                 owner,
                 repo,
                 issue_number: prNumber,
@@ -109,10 +117,15 @@ jobs:
                   head_sha: headSha,
                 });
 
-                if (runs.workflow_runs.length > 0) {
+                // Filter runs to this PR (in case same SHA exists in multiple PRs)
+                const matchingRuns = runs.workflow_runs.filter(run =>
+                  !run.pull_requests?.length || run.pull_requests.some(p => p.number === prNumber)
+                );
+
+                if (matchingRuns.length > 0) {
                   const labelTime = new Date(labelEvent.created_at);
                   // Use the oldest run's created_at as the push time
-                  const originalRun = runs.workflow_runs[runs.workflow_runs.length - 1];
+                  const originalRun = matchingRuns[matchingRuns.length - 1];
                   const pushTime = new Date(originalRun.created_at);
 
                   if (labelTime > pushTime) {
@@ -401,6 +414,11 @@ jobs:
     if: always()
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
+      - name: Fail if trust-check errored
+        run: |
+          echo "::error::Trust check failed unexpectedly. Please re-run the workflow."
+          exit 1
+        if: needs.trust-check.result == 'failure'
       - name: Fail if PR is not trusted (external contributor without run-ci label)
         run: |
           echo "::error::This PR is from an external contributor and requires the 'run-ci' label before CI can run."

@@ -43,12 +43,17 @@ jobs:
               per_page: 5,
             });
 
-            if (runs.workflow_runs.length === 0) {
+            // Filter runs to this PR (in case same SHA exists in multiple PRs)
+            const matchingRuns = runs.workflow_runs.filter(run =>
+              !run.pull_requests?.length || run.pull_requests.some(p => p.number === pr.number)
+            );
+
+            if (matchingRuns.length === 0) {
               core.setFailed(`No PR workflow found for SHA ${pr.head.sha}`);
               return;
             }
 
-            const latestRun = runs.workflow_runs[0];
+            const latestRun = matchingRuns[0];
 
             // Check if workflow is still running - can't re-run in-progress workflows
             if (latestRun.status === 'in_progress' || latestRun.status === 'queued') {
