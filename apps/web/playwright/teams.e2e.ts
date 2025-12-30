@@ -141,6 +141,7 @@ test.describe("Teams - NonOrg", () => {
 
       // Go directly to the create team page
       await page.goto("/settings/teams/new");
+      await page.waitForLoadState("networkidle");
       // Fill input[name="name"]
       await page.locator('input[name="name"]').fill(uniqueName);
       await page.click("[type=submit]");
@@ -161,7 +162,7 @@ test.describe("Teams - NonOrg", () => {
     await test.step("Can create team with same name", async () => {
       // Click text=Create Team
       await page.locator("text=Create Team").click();
-      await page.waitForURL("/settings/teams/new");
+      await page.waitForLoadState("networkidle");
       // Fill input[name="name"]
       await page.locator('input[name="name"]').fill(uniqueName);
       // Click text=Continue

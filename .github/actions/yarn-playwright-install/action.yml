@@ -9,7 +9,7 @@ runs:
       run: echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])")" >> $GITHUB_ENV
     - name: Cache playwright binaries
       id: playwright-cache
-      uses: buildjet/cache@v4
+      uses: actions/cache@v4
       with:
         path: |
           ~/Library/Caches/ms-playwright

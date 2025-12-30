@@ -9,21 +9,25 @@
     "./hooks/*": "./src/hooks/*.ts"
   },
   "scripts": {
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "registry:pull": "ts-node ../../scripts/pull-coss-ui-components.ts"
   },
   "dependencies": {
-    "@base-ui/react": "^1.0.0",
+    "@base-ui/react": "1.0.0",
     "class-variance-authority": "0.7.1",
-    "clsx": "^2.1.1",
+    "clsx": "2.1.1",
     "lucide-react": "0.555.0",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "3.4.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "ts-node": "^10.9.2",
+    "ts-node": "10.9.2",
     "tsc-absolute": "1.0.0",
     "typescript": "5.9.0-beta"
   }
