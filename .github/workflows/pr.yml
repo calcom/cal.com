@@ -69,9 +69,29 @@ jobs:
               return;
             }
 
-            console.log(`Author ${pr.user.login} is external (${pr.author_association}), checking for core team approval...`);
+            console.log(`Author ${pr.user.login} has association ${pr.author_association}, verifying org membership via API...`);
 
-            // Check 2: Has a core team member approved the current commit?
+            // Check 2: Verify org membership directly via API (author_association can be unreliable)
+            try {
+              await github.rest.orgs.checkMembershipForUser({
+                org: owner,
+                username: pr.user.login,
+              });
+              // 204 response means user is an org member
+              console.log(`Author ${pr.user.login} verified as org member via API`);
+              core.setOutput('is-trusted', true);
+              return;
+            } catch (e) {
+              if (e.status === 404) {
+                console.log(`Author ${pr.user.login} is not an org member`);
+              } else {
+                console.log(`Could not verify org membership for ${pr.user.login}: ${e.message}`);
+              }
+            }
+
+            console.log(`Author ${pr.user.login} is external, checking for core team approval...`);
+
+            // Check 3: Has a core team member approved the current commit?
             const reviews = await github.paginate(github.rest.pulls.listReviews, {
               owner,
               repo,
