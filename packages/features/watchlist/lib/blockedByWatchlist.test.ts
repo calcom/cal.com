@@ -12,6 +12,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * users should be gracefully excluded from the host pool rather than causing booking failures.
  */
 
+// Mock the BusyTimesService to prevent it from throwing errors in the non-blocked path
+vi.mock("@calcom/features/di/containers/BusyTimes", () => ({
+  getBusyTimesService: () => ({
+    getBusyTimes: vi.fn().mockResolvedValue([]),
+  }),
+}));
+
 // Mock dependencies
 const mockEventTypeRepo = {
   findByIdForUserAvailability: vi.fn(),
