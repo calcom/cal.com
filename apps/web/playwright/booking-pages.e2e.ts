@@ -486,9 +486,7 @@ test.describe("Booking on different layouts", () => {
     // Click first event type
     await page.locator('[data-testid="event-type-link"]').first().click();
 
-    await page.waitForURL((url) => {
-      return url.searchParams.get("overlayCalendar") === "true";
-    });
+    await expect(page.locator('text="24h"')).toBeVisible();
 
     await page.click('[data-testid="toggle-group-item-column_view"]');
 
