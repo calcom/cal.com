@@ -1,4 +1,4 @@
-name: Manually Delete Blacksmith Cache
+name: Delete Blacksmith Cache
 on:
   workflow_dispatch:
     inputs:
@@ -6,12 +6,27 @@ on:
         description: "Blacksmith Cache Key to Delete"
         required: true
         type: string
+  pull_request:
+    types: [closed]
+
 jobs:
   manually-delete-blacksmith-cache:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - uses: useblacksmith/cache-delete@v1
         with:
-          cache_key: ${{ inputs.cache_key }}
+          key: ${{ inputs.cache_key }}
+
+  delete-cache-build-on-pr-close:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Delete cache-build cache
+        uses: useblacksmith/cache-delete@v1
+        with:
+          key: Linux-prod-build-v18.x-${{ github.event.pull_request.head.ref }}-${{ hashFiles('yarn.lock') }}-${{ hashFiles('apps/**/**.[jt]s', 'apps/**/**.[jt]sx', 'apps/**/*.json', 'apps/**/*.css', 'packages/**/**.[jt]s', 'packages/**/**.[jt]sx', 'packages/prisma/schema.prisma', 'packages/prisma/migrations/**/*.sql', '!**/node_modules/**', '!packages/prisma/generated/**', '!packages/prisma/client/**', '!packages/prisma/zod/**', '!packages/kysely/**') }}
