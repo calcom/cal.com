@@ -8,12 +8,12 @@ export const checkIfBookerEmailIsBlocked = async ({
   bookerEmail,
   loggedInUserId,
   verificationCode,
-  isReschedule = false,
+  isReschedule,
 }: {
   bookerEmail: string;
   loggedInUserId?: number;
   verificationCode?: string;
-  isReschedule?: boolean;
+  isReschedule: boolean;
 }) => {
   const baseEmail = extractBaseEmail(bookerEmail);
 

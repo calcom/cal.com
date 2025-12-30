@@ -1,5 +1,5 @@
+import { getAttributesForTeam } from "@calcom/features/attributes/lib/getAttributes";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { getAttributesForTeam } from "@calcom/lib/service/attribute/server/getAttributes";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";

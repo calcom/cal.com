@@ -6,8 +6,8 @@ import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
-import { useBanners } from "@calcom/features/shell/banners/useBanners";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
+import { useBanners } from "@calcom/web/modules/shell/banners/useBanners";
 
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
@@ -24,6 +24,7 @@ export function BookingCalendarView({
   onWeekStartChange,
 }: BookingCalendarViewProps) {
   const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
+  const selectedBookingUid = useBookingDetailsSheetStore((state) => state.selectedBookingUid);
   const { timezone } = useTimePreferences();
   const { resolvedTheme, forcedTheme } = useGetTheme();
   const { bannersHeight } = useBanners();
@@ -91,6 +92,7 @@ export function BookingCalendarView({
           showBackgroundPattern={false}
           showBorder={false}
           borderColor="subtle"
+          selectedBookingUid={selectedBookingUid}
           onEventClick={(event) => {
             const bookingUid = event.options?.bookingUid;
             if (bookingUid) {

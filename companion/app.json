@@ -19,6 +19,9 @@
       "bundleIdentifier": "com.calcom.companion",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.developer.default-data-protection": "NSFileProtectionComplete"
       }
     },
     "android": {
@@ -27,7 +30,9 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.calcom.companion"
+      "package": "com.calcom.companion",
+      "softwareKeyboardLayoutMode": "pan",
+      "usesCleartextTraffic": false
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -39,6 +44,10 @@
       }
     },
     "owner": "calcoms-organization",
-    "plugins": ["expo-router", "expo-secure-store", "expo-web-browser"]
+    "plugins": ["expo-router", "expo-secure-store", "expo-web-browser"],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
   }
 }

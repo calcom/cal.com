@@ -24,6 +24,7 @@ import { eventTypesRouter } from "./eventTypes/_router";
 import { eventTypesRouter as heavyEventTypesRouter } from "./eventTypes/heavy/_router";
 import { filterSegmentsRouter } from "./filterSegments/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
+import { holidaysRouter } from "./holidays/_router";
 import { i18nRouter } from "./i18n/_router";
 import { insightsRouter } from "./insights/_router";
 import { meRouter } from "./me/_router";
@@ -83,6 +84,7 @@ export const viewerRouter = router({
   routingForms: routingFormsRouter,
   credits: creditsRouter,
   ooo: oooRouter,
+  holidays: holidaysRouter,
   travelSchedules: travelSchedulesRouter,
   aiVoiceAgent: aiVoiceAgentRouter,
   phoneNumber: phoneNumberRouter,

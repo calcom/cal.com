@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import { View, Image } from "react-native";
+import { Image } from "expo-image";
+import type React from "react";
+import { useState } from "react";
+import { View } from "react-native";
 import { SvgUri } from "react-native-svg";
 
 interface SvgImageProps {
@@ -21,14 +23,17 @@ export const SvgImage: React.FC<SvgImageProps> = ({ uri, width, height, style })
   const isSvg = pathname.toLowerCase().endsWith(".svg");
 
   if (!isSvg || useFallback) {
-    // Use regular Image for non-SVG or if SVG failed
+    // Use expo-image for non-SVG or if SVG failed (better performance with caching)
     return (
       <View style={style}>
         <Image
           source={{ uri }}
           style={{ width, height }}
-          resizeMode="contain"
-          onError={() => console.log("Image load error:", uri)}
+          contentFit="contain"
+          transition={200}
+          onError={() => {
+            // Image load errors are expected for invalid/missing URLs - silently handled
+          }}
         />
       </View>
     );
@@ -41,8 +46,8 @@ export const SvgImage: React.FC<SvgImageProps> = ({ uri, width, height, style })
         uri={uri}
         width={width}
         height={height}
-        onError={(error) => {
-          console.log("SVG load error, falling back to Image:", error);
+        onError={() => {
+          // SVG load errors trigger fallback to regular Image component
           setUseFallback(true);
         }}
       />

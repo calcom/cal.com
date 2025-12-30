@@ -1,4 +1,4 @@
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "../client";
 
 export const bookingMinimalSelect = {
   id: true,
@@ -46,4 +46,13 @@ export const bookingDetailsSelect = {
   uid: true,
   rescheduled: true,
   fromReschedule: true,
+  tracking: {
+    select: {
+      utm_source: true,
+      utm_medium: true,
+      utm_campaign: true,
+      utm_term: true,
+      utm_content: true,
+    },
+  },
 } satisfies Prisma.BookingSelect;
