@@ -13,6 +13,8 @@
   "complete_onboarding_flow_payment": "3. Əgər əlavə edilməyibsə, mesaj göndərə bilmək üçün Meta Cloud API-yə abunəliyi tamamlamaq üçün kredit kartı əlavə edin.",
   "skip_sharing_chat": "4. Çat tarixçəsinin paylaşılması istəyə bağlıdır və bizim tərəfimizdən istifadə olunmur. İstəsəniz, paylaşmamağı seçə bilərsiniz.",
   "connect_whatsapp_business": "Whatsapp Business",
+  "create_templates": "Şablonlar yaradın",
+  "sync_templates": "Şablonları sinxronlaşdırın",
   "change_file": "Faylı dəyişdir",
   "sync_failed": "Şablonların sinxronizasiyası uğursuz oldu",
   "successfully_synced": "Şablonlar uğurla sinxronlaşdırıldı",

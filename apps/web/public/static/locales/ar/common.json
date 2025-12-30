@@ -13,6 +13,8 @@
   "complete_onboarding_flow_payment": "3. إذا لم تتم الإضافة بالفعل، أضف بطاقة ائتمان لإكمال الاشتراك في Meta Cloud API لتتمكن من إرسال الرسائل.",
   "skip_sharing_chat": "4. مشاركة سجل المحادثات اختيارية ولا نستخدمها. يمكنك اختيار عدم المشاركة إذا طُلب منك ذلك.",
   "connect_whatsapp_business": "Whatsapp Business",
+  "create_templates": "إنشاء القوالب",
+  "sync_templates": "مزامنة القوالب",
   "change_file": "تغيير الملف",
   "sync_failed": "فشلت مزامنة القوالب",
   "successfully_synced": "تمت مزامنة القوالب بنجاح",
