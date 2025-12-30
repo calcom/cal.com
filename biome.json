@@ -27,6 +27,7 @@
       "!!**/dist",
       "!!**/build",
       "!!**/public",
+      "!!companion",
       "!!public",
       "!!apps/web/public/embed",
       "!!packages/prisma/zod",
@@ -59,6 +60,9 @@
   },
   "linter": {
     "enabled": true,
+    "domains": {
+      "next": "recommended"
+    },
     "rules": {
       "recommended": true,
       "correctness": "warn",
@@ -72,6 +76,34 @@
     }
   },
   "overrides": [
+    {
+      "includes": [
+        "apps/web/app/**/page.tsx",
+        "apps/web/app/**/layout.tsx",
+        "apps/web/app/pages/**/*.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*"],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "useQwikValidLexicalScope": "off",
+            "noTernary": "off"
+          },
+          "correctness": {
+            "useImportExtensions": "off"
+          }
+        }
+      }
+    },
     {
       "includes": ["packages/lib/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
       "linter": {
@@ -165,22 +197,6 @@
               }
             }
           }
-        }
-      }
-    },
-    {
-      "includes": ["companion/**/*.{ts,tsx,js,jsx}"],
-      "javascript": {
-        "formatter": {
-          "lineWidth": 100
-        }
-      }
-    },
-    {
-      "includes": ["apps/website/lib/utils/wordlist/wordlist.ts"],
-      "javascript": {
-        "formatter": {
-          "quoteProperties": "preserve"
         }
       }
     }

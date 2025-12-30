@@ -30,7 +30,9 @@ const withEmbedSsrAppDir =
 
       const destinationQueryStr = destinationUrlObj.searchParams.toString();
       // Make sure that redirect happens to /embed page and pass on embed query param as is for preserving Cal JS API namespace
-      const newDestinationUrl = `${urlPrefix}${destinationUrlObj.pathname}/embed?${
+      const newDestinationUrl = `${urlPrefix}${
+        destinationUrlObj.pathname
+      }/embed?${
         destinationQueryStr ? `${destinationQueryStr}&` : ""
       }layout=${layout}&embed=${embed}`;
       redirect(newDestinationUrl);

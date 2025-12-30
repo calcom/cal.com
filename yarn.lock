@@ -3566,6 +3566,8 @@ __metadata:
     typescript: "npm:5.9.2"
     uuid: "npm:8.3.2"
     zod: "npm:3.25.76"
+  peerDependencies:
+    express: "*"
   languageName: unknown
   linkType: soft
 

@@ -6,7 +6,9 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
-import User, { type PageProps as ClientPageProps } from "~/users/views/users-public-view";
+import User, {
+  type PageProps as ClientPageProps,
+} from "~/users/views/users-public-view";
 
 export const generateMetadata = async () => {
   return {
@@ -20,7 +22,12 @@ export const generateMetadata = async () => {
 const getData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
-  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const context = buildLegacyCtx(
+    await headers(),
+    await cookies(),
+    await params,
+    await searchParams
+  );
   const props = await getData(context);
   return <User {...props} />;
 };

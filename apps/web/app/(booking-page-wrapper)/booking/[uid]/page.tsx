@@ -15,20 +15,40 @@ import {
   getServerSideProps,
   type PageProps as ClientPageProps,
 } from "~/bookings/views/bookings-single-view.getServerSideProps";
+import { ReactNode } from "react";
+import { Metadata } from "next";
 
 const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
 
-export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
+export const generateMetadata = async ({
+  params,
+  searchParams,
+}: _PageProps): Promise<Metadata> => {
   const { bookingInfo, eventType, recurringBookings, orgSlug } = await getData(
-    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
+    buildLegacyCtx(
+      await headers(),
+      await cookies(),
+      await params,
+      await searchParams
+    )
   );
-  const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
+  const needsConfirmation =
+    bookingInfo.status === BookingStatus.PENDING &&
+    eventType.requiresConfirmation;
 
   const metadata = await _generateMetadata(
     (t) =>
-      t(`booking_${needsConfirmation ? "submitted" : "confirmed"}${recurringBookings ? "_recurring" : ""}`),
+      t(
+        `booking_${needsConfirmation ? "submitted" : "confirmed"}${
+          recurringBookings ? "_recurring" : ""
+        }`
+      ),
     (t) =>
-      t(`booking_${needsConfirmation ? "submitted" : "confirmed"}${recurringBookings ? "_recurring" : ""}`),
+      t(
+        `booking_${needsConfirmation ? "submitted" : "confirmed"}${
+          recurringBookings ? "_recurring" : ""
+        }`
+      ),
     false,
     getOrgFullOrigin(orgSlug),
     `/booking/${(await params).uid}`
@@ -43,8 +63,16 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
   };
 };
 
-const ServerPage = async ({ params, searchParams }: _PageProps) => {
-  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+const ServerPage = async ({
+  params,
+  searchParams,
+}: _PageProps): Promise<ReactNode> => {
+  const context = buildLegacyCtx(
+    await headers(),
+    await cookies(),
+    await params,
+    await searchParams
+  );
   const props = await getData(context);
 
   const eventLocale = props.eventType?.interfaceLanguage;
@@ -52,7 +80,11 @@ const ServerPage = async ({ params, searchParams }: _PageProps) => {
     const ns = "common";
     const translations = await loadTranslations(eventLocale, ns);
     return (
-      <CustomI18nProvider translations={translations} locale={eventLocale} ns={ns}>
+      <CustomI18nProvider
+        translations={translations}
+        locale={eventLocale}
+        ns={ns}
+      >
         <OldPage {...props} />
       </CustomI18nProvider>
     );

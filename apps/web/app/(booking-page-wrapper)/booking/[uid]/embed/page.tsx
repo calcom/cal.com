@@ -23,7 +23,12 @@ export const metadata = {
 const getEmbedData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
-  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const context = buildLegacyCtx(
+    await headers(),
+    await cookies(),
+    await params,
+    await searchParams
+  );
   const props = await getEmbedData(context);
 
   const eventLocale = props.eventType?.interfaceLanguage;
@@ -31,7 +36,11 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
     const ns = "common";
     const translations = await loadTranslations(eventLocale, ns);
     return (
-      <CustomI18nProvider translations={translations} locale={eventLocale} ns={ns}>
+      <CustomI18nProvider
+        translations={translations}
+        locale={eventLocale}
+        ns={ns}
+      >
         <OldPage {...props} />
       </CustomI18nProvider>
     );
