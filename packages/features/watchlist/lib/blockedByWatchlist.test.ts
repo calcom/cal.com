@@ -41,6 +41,7 @@ describe("blockedByWatchlist - Schedule Blocking", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
     // Fix system time to a known date (Wednesday, Jan 15, 2025)
     vi.setSystemTime(new Date("2025-01-15T10:00:00.000Z"));
 
