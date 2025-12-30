@@ -7,17 +7,8 @@
 
 import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { Ionicons } from "@expo/vector-icons";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
-import {
-  Alert,
-  KeyboardAvoidingView,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Booking } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
@@ -38,12 +29,8 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
     "use no memo";
     const insets = useSafeAreaInsets();
     const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [showTimePicker, setShowTimePicker] = useState(false);
     const [reason, setReason] = useState("");
     const [isSaving, setIsSaving] = useState(false);
-
-    const useGlassEffect = isLiquidGlassAvailable();
 
     useEffect(() => {
       if (booking?.startTime) {
@@ -83,18 +70,6 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
         setIsSaving(false);
       }
     }, [booking, selectedDateTime, reason, onSuccess]);
-
-    const formattedDate = selectedDateTime.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-
-    const formattedTime = selectedDateTime.toLocaleTimeString(undefined, {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
 
     const handleDateSelected = useCallback(
       (date: Date) => {
@@ -157,84 +132,28 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
           {/* Form Card */}
           <View className="mb-4 overflow-hidden rounded-xl bg-white">
             {/* Date picker */}
-            <TouchableOpacity
-              className="border-b border-gray-100 px-4 py-3"
-              onPress={() => {
-                safeLogInfo("[RescheduleScreen] Opening date picker");
-                setShowDatePicker(!showDatePicker);
-                setShowTimePicker(false);
-              }}
-              disabled={isSaving}
-              activeOpacity={0.7}
-            >
-              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Date</Text>
-              <View className="flex-row items-center justify-between">
-                <Text className="h-10 text-[17px] text-[#000]" style={{ lineHeight: 40 }}>
-                  {formattedDate}
-                </Text>
-                <Ionicons
-                  name={showDatePicker ? "chevron-up" : "calendar-outline"}
-                  size={20}
-                  color="#007AFF"
+            <View className="border-b border-gray-100 px-4 py-3">
+              <Text className="mb-2 text-[13px] font-medium text-gray-500">New Date</Text>
+              <Host matchContents>
+                <DatePicker
+                  onDateChange={handleDateSelected}
+                  displayedComponents={["date"]}
+                  selection={selectedDateTime}
                 />
-              </View>
-            </TouchableOpacity>
-
-            {/* Native iOS Date Picker */}
-            {showDatePicker && (
-              <View
-                className="border-b border-gray-100 px-4 py-2"
-                style={{ backgroundColor: useGlassEffect ? "transparent" : "#F9F9F9" }}
-              >
-                <Host matchContents>
-                  <DatePicker
-                    onDateChange={handleDateSelected}
-                    displayedComponents={["date"]}
-                    selection={selectedDateTime}
-                  />
-                </Host>
-              </View>
-            )}
+              </Host>
+            </View>
 
             {/* Time picker */}
-            <TouchableOpacity
-              className="border-b border-gray-100 px-4 py-3"
-              onPress={() => {
-                safeLogInfo("[RescheduleScreen] Opening time picker");
-                setShowTimePicker(!showTimePicker);
-                setShowDatePicker(false);
-              }}
-              disabled={isSaving}
-              activeOpacity={0.7}
-            >
-              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Time</Text>
-              <View className="flex-row items-center justify-between">
-                <Text className="h-10 text-[17px] text-[#000]" style={{ lineHeight: 40 }}>
-                  {formattedTime}
-                </Text>
-                <Ionicons
-                  name={showTimePicker ? "chevron-up" : "time-outline"}
-                  size={20}
-                  color="#007AFF"
+            <View className="border-b border-gray-100 px-4 py-3">
+              <Text className="mb-2 text-[13px] font-medium text-gray-500">New Time</Text>
+              <Host matchContents>
+                <DatePicker
+                  onDateChange={handleTimeSelected}
+                  displayedComponents={["hourAndMinute"]}
+                  selection={selectedDateTime}
                 />
-              </View>
-            </TouchableOpacity>
-
-            {/* Native iOS Time Picker */}
-            {showTimePicker && (
-              <View
-                className="border-b border-gray-100 px-4 py-2"
-                style={{ backgroundColor: useGlassEffect ? "transparent" : "#F9F9F9" }}
-              >
-                <Host matchContents>
-                  <DatePicker
-                    onDateChange={handleTimeSelected}
-                    displayedComponents={["hourAndMinute"]}
-                    selection={selectedDateTime}
-                  />
-                </Host>
-              </View>
-            )}
+              </Host>
+            </View>
 
             {/* Reason input */}
             <View className="px-4 py-3">
