@@ -6,11 +6,10 @@
     "dev": "PORT=5100 next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "biome lint ."
   },
   "dependencies": {
     "@calcom/atoms": "workspace:*",
-    "@calcom/eslint-config": "workspace:*",
     "@prisma/client": "6.16.1",
     "next": "14.2.35",
     "prisma": "6.16.1",

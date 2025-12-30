@@ -9,8 +9,8 @@
     "./hooks/*": "./src/hooks/*.ts"
   },
   "scripts": {
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "registry:pull": "ts-node ../../scripts/pull-coss-ui-components.ts"

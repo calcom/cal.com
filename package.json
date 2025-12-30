@@ -54,7 +54,7 @@
     "embed-tests": "turbo run embed-tests",
     "env-check:app-store": "dotenv-checker --schema .env.appStore.example --env .env.appStore",
     "env-check:common": "dotenv-checker --schema .env.example --env .env",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "format": "biome format --write .",
     "heroku-postbuild": "turbo run @calcom/web#build",
     "lint:fix": "turbo lint:fix",
     "lint:report": "turbo lint:report",
@@ -85,7 +85,7 @@
     "lint-staged": "lint-staged"
   },
   "devDependencies": {
-    "@calcom/eslint-config": "workspace:*",
+    "@biomejs/biome": "^2.3.8",
     "@changesets/changelog-github": "0.5.1",
     "@changesets/cli": "2.29.4",
     "@faker-js/faker": "9.2.0",
@@ -99,7 +99,6 @@
     "c8": "7.13.0",
     "checkly": "latest",
     "dotenv-checker": "1.1.5",
-    "eslint": "9.36.0",
     "husky": "9.1.7",
     "i18n-unused": "0.13.0",
     "jest-diff": "29.7.0",
@@ -109,7 +108,6 @@
     "next-router-mock": "0.9.12",
     "node-gyp": "10.2.0",
     "node-ical": "0.16.1",
-    "prettier": "2.8.7",
     "prismock": "1.35.3",
     "resize-observer-polyfill": "1.5.1",
     "tsc-absolute": "1.0.0",
