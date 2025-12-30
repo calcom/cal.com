@@ -110,15 +110,16 @@ jobs:
 
               if (labelEvent) {
                 // Get workflow runs to find when this SHA was first pushed
-                const { data: runs } = await github.rest.actions.listWorkflowRuns({
+                const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
                   owner,
                   repo,
                   workflow_id: 'pr.yml',
                   head_sha: headSha,
+                  per_page: 100,
                 });
 
                 // Filter runs to this PR (in case same SHA exists in multiple PRs)
-                const matchingRuns = runs.workflow_runs.filter(run =>
+                const matchingRuns = runs.filter(run =>
                   !run.pull_requests?.length || run.pull_requests.some(p => p.number === prNumber)
                 );
 
@@ -414,11 +415,11 @@ jobs:
     if: always()
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
-      - name: Fail if trust-check errored
+      - name: Fail if trust-check did not succeed
         run: |
-          echo "::error::Trust check failed unexpectedly. Please re-run the workflow."
+          echo "::error::Trust check did not complete successfully (result: ${{ needs.trust-check.result }}). Please re-run the workflow."
           exit 1
-        if: needs.trust-check.result == 'failure'
+        if: needs.trust-check.result != 'success'
       - name: Fail if PR is not trusted (external contributor without run-ci label)
         run: |
           echo "::error::This PR is from an external contributor and requires the 'run-ci' label before CI can run."
