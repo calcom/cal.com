@@ -10,18 +10,72 @@ import type { IScheduleBlockingRepository } from "./IScheduleBlockingRepository"
 export class PrismaScheduleBlockingRepository implements IScheduleBlockingRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
+  private async findUserIdsByPrimaryEmail(email: string): Promise<number[]> {
+    const users = await this.prisma.user.findMany({
+      where: { email },
+      select: { id: true },
+    });
+    return users.map((u) => u.id);
+  }
+
+  private async findUserIdsBySecondaryEmail(email: string): Promise<number[]> {
+    const secondaryEmails = await this.prisma.secondaryEmail.findMany({
+      where: { email },
+      select: { userId: true },
+    });
+    return secondaryEmails.map((se) => se.userId);
+  }
+
+  private async findUserIdsByPrimaryEmails(emails: string[]): Promise<number[]> {
+    const users = await this.prisma.user.findMany({
+      where: { email: { in: emails } },
+      select: { id: true },
+    });
+    return users.map((u) => u.id);
+  }
+
+  private async findUserIdsBySecondaryEmails(emails: string[]): Promise<number[]> {
+    const secondaryEmails = await this.prisma.secondaryEmail.findMany({
+      where: { email: { in: emails } },
+      select: { userId: true },
+    });
+    return secondaryEmails.map((se) => se.userId);
+  }
+
+  private async findUserIdsByPrimaryEmailDomain(domain: string): Promise<number[]> {
+    const users = await this.prisma.user.findMany({
+      where: { email: { endsWith: `@${domain}` } },
+      select: { id: true },
+    });
+    return users.map((u) => u.id);
+  }
+
+  private async findUserIdsBySecondaryEmailDomain(domain: string): Promise<number[]> {
+    const secondaryEmails = await this.prisma.secondaryEmail.findMany({
+      where: { email: { endsWith: `@${domain}` } },
+      select: { userId: true },
+    });
+    return secondaryEmails.map((se) => se.userId);
+  }
+
+  private dedupeUserIds(primaryIds: number[], secondaryIds: number[]): number[] {
+    return Array.from(new Set([...primaryIds, ...secondaryIds]));
+  }
+
   async blockSchedulesByEmail(email: string): Promise<{ count: number }> {
     const normalizedEmail = email.toLowerCase();
 
+    const [primaryIds, secondaryIds] = await Promise.all([
+      this.findUserIdsByPrimaryEmail(normalizedEmail),
+      this.findUserIdsBySecondaryEmail(normalizedEmail),
+    ]);
+
+    const userIds = this.dedupeUserIds(primaryIds, secondaryIds);
+    if (userIds.length === 0) return { count: 0 };
+
     const result = await this.prisma.schedule.updateMany({
-      where: {
-        user: {
-          OR: [{ email: normalizedEmail }, { secondaryEmails: { some: { email: normalizedEmail } } }],
-        },
-      },
-      data: {
-        blockedByWatchlist: true,
-      },
+      where: { userId: { in: userIds } },
+      data: { blockedByWatchlist: true },
     });
 
     return { count: result.count };
@@ -32,18 +86,17 @@ export class PrismaScheduleBlockingRepository implements IScheduleBlockingReposi
 
     const normalizedEmails = emails.map((e) => e.toLowerCase());
 
+    const [primaryIds, secondaryIds] = await Promise.all([
+      this.findUserIdsByPrimaryEmails(normalizedEmails),
+      this.findUserIdsBySecondaryEmails(normalizedEmails),
+    ]);
+
+    const userIds = this.dedupeUserIds(primaryIds, secondaryIds);
+    if (userIds.length === 0) return { count: 0 };
+
     const result = await this.prisma.schedule.updateMany({
-      where: {
-        user: {
-          OR: [
-            { email: { in: normalizedEmails } },
-            { secondaryEmails: { some: { email: { in: normalizedEmails } } } },
-          ],
-        },
-      },
-      data: {
-        blockedByWatchlist: true,
-      },
+      where: { userId: { in: userIds } },
+      data: { blockedByWatchlist: true },
     });
 
     return { count: result.count };
@@ -52,18 +105,17 @@ export class PrismaScheduleBlockingRepository implements IScheduleBlockingReposi
   async blockSchedulesByDomain(domain: string): Promise<{ count: number }> {
     const normalizedDomain = domain.toLowerCase();
 
+    const [primaryIds, secondaryIds] = await Promise.all([
+      this.findUserIdsByPrimaryEmailDomain(normalizedDomain),
+      this.findUserIdsBySecondaryEmailDomain(normalizedDomain),
+    ]);
+
+    const userIds = this.dedupeUserIds(primaryIds, secondaryIds);
+    if (userIds.length === 0) return { count: 0 };
+
     const result = await this.prisma.schedule.updateMany({
-      where: {
-        user: {
-          OR: [
-            { email: { endsWith: `@${normalizedDomain}` } },
-            { secondaryEmails: { some: { email: { endsWith: `@${normalizedDomain}` } } } },
-          ],
-        },
-      },
-      data: {
-        blockedByWatchlist: true,
-      },
+      where: { userId: { in: userIds } },
+      data: { blockedByWatchlist: true },
     });
 
     return { count: result.count };
@@ -72,15 +124,17 @@ export class PrismaScheduleBlockingRepository implements IScheduleBlockingReposi
   async unblockSchedulesByEmails(emails: string[]): Promise<{ count: number }> {
     if (emails.length === 0) return { count: 0 };
 
+    const [primaryIds, secondaryIds] = await Promise.all([
+      this.findUserIdsByPrimaryEmails(emails),
+      this.findUserIdsBySecondaryEmails(emails),
+    ]);
+
+    const userIds = this.dedupeUserIds(primaryIds, secondaryIds);
+    if (userIds.length === 0) return { count: 0 };
+
     const result = await this.prisma.schedule.updateMany({
-      where: {
-        user: {
-          email: { in: emails },
-        },
-      },
-      data: {
-        blockedByWatchlist: false,
-      },
+      where: { userId: { in: userIds } },
+      data: { blockedByWatchlist: false },
     });
 
     return { count: result.count };
@@ -89,47 +143,67 @@ export class PrismaScheduleBlockingRepository implements IScheduleBlockingReposi
   async findUserEmailsForEmail(email: string): Promise<string[]> {
     const normalizedEmail = email.toLowerCase();
 
-    const users = await this.prisma.user.findMany({
-      where: {
-        OR: [{ email: normalizedEmail }, { secondaryEmails: { some: { email: normalizedEmail } } }],
-      },
-      select: { email: true },
-    });
+    const [usersByPrimary, secondaryEmails] = await Promise.all([
+      this.prisma.user.findMany({
+        where: { email: normalizedEmail },
+        select: { email: true },
+      }),
+      this.prisma.secondaryEmail.findMany({
+        where: { email: normalizedEmail },
+        select: { user: { select: { email: true } } },
+      }),
+    ]);
 
-    return users.map((u) => u.email);
+    const emails = [...usersByPrimary.map((u) => u.email), ...secondaryEmails.map((se) => se.user.email)];
+
+    return Array.from(new Set(emails));
   }
 
   async findUserEmailsForDomain(domain: string): Promise<string[]> {
     const normalizedDomain = domain.toLowerCase();
 
-    const users = await this.prisma.user.findMany({
-      where: {
-        OR: [
-          { email: { endsWith: `@${normalizedDomain}` } },
-          { secondaryEmails: { some: { email: { endsWith: `@${normalizedDomain}` } } } },
-        ],
-      },
-      select: { email: true },
-    });
+    const [usersByPrimary, secondaryEmails] = await Promise.all([
+      this.prisma.user.findMany({
+        where: { email: { endsWith: `@${normalizedDomain}` } },
+        select: { email: true },
+      }),
+      this.prisma.secondaryEmail.findMany({
+        where: { email: { endsWith: `@${normalizedDomain}` } },
+        select: { user: { select: { email: true } } },
+      }),
+    ]);
 
-    return users.map((u) => u.email);
+    const emails = [...usersByPrimary.map((u) => u.email), ...secondaryEmails.map((se) => se.user.email)];
+
+    return Array.from(new Set(emails));
   }
 
   async isUserStillBlocked(userEmail: string): Promise<boolean> {
     const normalizedEmail = userEmail.toLowerCase();
     const domain = normalizedEmail.split("@")[1];
 
-    const blockingEntry = await this.prisma.watchlist.findFirst({
+    // Check email block first
+    const emailBlock = await this.prisma.watchlist.findFirst({
       where: {
         action: WatchlistAction.BLOCK,
-        OR: [
-          { type: WatchlistType.EMAIL, value: normalizedEmail },
-          { type: WatchlistType.DOMAIN, value: domain },
-        ],
+        type: WatchlistType.EMAIL,
+        value: normalizedEmail,
       },
       select: { id: true },
     });
 
-    return blockingEntry !== null;
+    if (emailBlock) return true;
+
+    // Check domain block
+    const domainBlock = await this.prisma.watchlist.findFirst({
+      where: {
+        action: WatchlistAction.BLOCK,
+        type: WatchlistType.DOMAIN,
+        value: domain,
+      },
+      select: { id: true },
+    });
+
+    return domainBlock !== null;
   }
 }
