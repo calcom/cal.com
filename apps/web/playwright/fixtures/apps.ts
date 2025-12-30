@@ -127,7 +127,7 @@ export function createAppsFixture(page: Page) {
     },
     verifyAppsInfoNew: async (app: string, eventTypeId: number) => {
       await page.goto(`event-types/${eventTypeId}?tabName=apps`);
-      await expect(page.getByTestId(`vertical-tab-apps`).first()).toHaveAttribute("aria-current", "page"); // fix the race condition
+      await expect(page.getByTestId("vertical-tab-apps").first()).toHaveAttribute("aria-current", "page"); // fix the race condition
       await expect(page.locator(`[data-testid='${app}-app-switch'][data-state="checked"]`)).toBeVisible();
     },
   };
