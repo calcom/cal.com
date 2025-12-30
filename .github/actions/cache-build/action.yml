@@ -26,8 +26,6 @@ runs:
           **/.turbo/**
           **/dist/**
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.node_version }}-${{ env.branch-key }}-${{ env.lockfile-hash }}-${{ env.source-hash }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.node_version }}-${{ env.branch-key }}-${{ env.lockfile-hash }}-
     - run: |
         export NODE_OPTIONS="--max_old_space_size=8192"
         yarn build
