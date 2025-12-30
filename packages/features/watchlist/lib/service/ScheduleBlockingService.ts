@@ -1,5 +1,6 @@
-import type { PrismaClient } from "@calcom/prisma";
-import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
+import { WatchlistType } from "@calcom/prisma/enums";
+
+import type { IScheduleBlockingRepository } from "../repository/IScheduleBlockingRepository";
 
 /**
  * Service to manage schedule blocking when users are added/removed from watchlist.
@@ -8,98 +9,20 @@ import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
  * excluded from team events (e.g., Round Robin) instead of causing booking failures.
  */
 export class ScheduleBlockingService {
-  constructor(private readonly prisma: PrismaClient) {}
-
-  private async isUserStillBlocked(userEmail: string): Promise<boolean> {
-    const normalizedEmail = userEmail.toLowerCase();
-    const domain = normalizedEmail.split("@")[1];
-
-    const blockingEntry = await this.prisma.watchlist.findFirst({
-      where: {
-        action: WatchlistAction.BLOCK,
-        OR: [
-          { type: WatchlistType.EMAIL, value: normalizedEmail },
-          { type: WatchlistType.DOMAIN, value: domain },
-        ],
-      },
-      select: { id: true },
-    });
-
-    return blockingEntry !== null;
-  }
-
-  private async getUserEmailsForEmail(email: string): Promise<string[]> {
-    const normalizedEmail = email.toLowerCase();
-
-    const users = await this.prisma.user.findMany({
-      where: {
-        OR: [{ email: normalizedEmail }, { secondaryEmails: { some: { email: normalizedEmail } } }],
-      },
-      select: { email: true },
-    });
-
-    return users.map((u) => u.email);
-  }
-
-  private async getUserEmailsForDomain(domain: string): Promise<string[]> {
-    const normalizedDomain = domain.toLowerCase();
-
-    const users = await this.prisma.user.findMany({
-      where: {
-        OR: [
-          { email: { endsWith: `@${normalizedDomain}` } },
-          { secondaryEmails: { some: { email: { endsWith: `@${normalizedDomain}` } } } },
-        ],
-      },
-      select: { email: true },
-    });
-
-    return users.map((u) => u.email);
-  }
+  constructor(private readonly scheduleBlockingRepo: IScheduleBlockingRepository) {}
 
   /**
    * Block all schedules for users matching the given email.
    */
   async blockSchedulesByEmail(email: string): Promise<{ count: number }> {
-    const normalizedEmail = email.toLowerCase();
-
-    const result = await this.prisma.schedule.updateMany({
-      where: {
-        user: {
-          OR: [{ email: normalizedEmail }, { secondaryEmails: { some: { email: normalizedEmail } } }],
-        },
-      },
-      data: {
-        blockedByWatchlist: true,
-      },
-    });
-
-    return { count: result.count };
+    return this.scheduleBlockingRepo.blockSchedulesByEmail(email);
   }
 
   /**
    * Block schedules for multiple emails at once.
    */
   async blockSchedulesByEmails(emails: string[]): Promise<{ count: number }> {
-    if (emails.length === 0) return { count: 0 };
-
-    const normalizedEmails = emails.map((e) => e.toLowerCase());
-
-    const result = await this.prisma.schedule.updateMany({
-      where: {
-        user: {
-          OR: [
-            { email: { in: normalizedEmails } },
-            { secondaryEmails: { some: { email: { in: normalizedEmails } } } },
-          ],
-        },
-      },
-      data: {
-        blockedByWatchlist: true,
-      },
-    });
-
-    return { count: result.count };
+    return this.scheduleBlockingRepo.blockSchedulesByEmails(emails);
   }
 
   /**
@@ -107,55 +30,26 @@ export class ScheduleBlockingService {
    * not blocked by any other watchlist entry (e.g., domain block).
    */
   async unblockSchedulesByEmail(email: string): Promise<{ count: number }> {
-    const normalizedEmail = email.toLowerCase();
-
-    const userEmails = await this.getUserEmailsForEmail(normalizedEmail);
+    const userEmails = await this.scheduleBlockingRepo.findUserEmailsForEmail(email);
 
     if (userEmails.length === 0) return { count: 0 };
 
     const emailsToUnblock: string[] = [];
     for (const userEmail of userEmails) {
-      const stillBlocked = await this.isUserStillBlocked(userEmail);
+      const stillBlocked = await this.scheduleBlockingRepo.isUserStillBlocked(userEmail);
       if (!stillBlocked) emailsToUnblock.push(userEmail);
     }
 
     if (emailsToUnblock.length === 0) return { count: 0 };
 
-    const result = await this.prisma.schedule.updateMany({
-      where: {
-        user: {
-          email: { in: emailsToUnblock },
-        },
-      },
-      data: {
-        blockedByWatchlist: false,
-      },
-    });
-
-    return { count: result.count };
+    return this.scheduleBlockingRepo.unblockSchedulesByEmails(emailsToUnblock);
   }
 
   /**
    * Block all schedules for users with emails from the given domain.
    */
   async blockSchedulesByDomain(domain: string): Promise<{ count: number }> {
-    const normalizedDomain = domain.toLowerCase();
-
-    const result = await this.prisma.schedule.updateMany({
-      where: {
-        user: {
-          OR: [
-            { email: { endsWith: `@${normalizedDomain}` } },
-            { secondaryEmails: { some: { email: { endsWith: `@${normalizedDomain}` } } } },
-          ],
-        },
-      },
-      data: {
-        blockedByWatchlist: true,
-      },
-    });
-
-    return { count: result.count };
+    return this.scheduleBlockingRepo.blockSchedulesByDomain(domain);
   }
 
   /**
@@ -163,32 +57,19 @@ export class ScheduleBlockingService {
    * not blocked by any other watchlist entry (e.g., specific email block).
    */
   async unblockSchedulesByDomain(domain: string): Promise<{ count: number }> {
-    const normalizedDomain = domain.toLowerCase();
-
-    const userEmails = await this.getUserEmailsForDomain(normalizedDomain);
+    const userEmails = await this.scheduleBlockingRepo.findUserEmailsForDomain(domain);
 
     if (userEmails.length === 0) return { count: 0 };
 
     const emailsToUnblock: string[] = [];
     for (const userEmail of userEmails) {
-      const stillBlocked = await this.isUserStillBlocked(userEmail);
+      const stillBlocked = await this.scheduleBlockingRepo.isUserStillBlocked(userEmail);
       if (!stillBlocked) emailsToUnblock.push(userEmail);
     }
 
     if (emailsToUnblock.length === 0) return { count: 0 };
 
-    const result = await this.prisma.schedule.updateMany({
-      where: {
-        user: {
-          email: { in: emailsToUnblock },
-        },
-      },
-      data: {
-        blockedByWatchlist: false,
-      },
-    });
-
-    return { count: result.count };
+    return this.scheduleBlockingRepo.unblockSchedulesByEmails(emailsToUnblock);
   }
 
   /**

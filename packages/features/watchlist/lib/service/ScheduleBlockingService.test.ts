@@ -1,6 +1,6 @@
-import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { IScheduleBlockingRepository } from "../repository/IScheduleBlockingRepository";
 import { ScheduleBlockingService } from "./ScheduleBlockingService";
 
 /**
@@ -14,76 +14,53 @@ import { ScheduleBlockingService } from "./ScheduleBlockingService";
 
 describe("ScheduleBlockingService", () => {
   let service: ScheduleBlockingService;
-  let mockPrisma: {
-    schedule: { updateMany: ReturnType<typeof vi.fn> };
-    user: { findMany: ReturnType<typeof vi.fn> };
-    watchlist: { findFirst: ReturnType<typeof vi.fn> };
+  let mockRepo: {
+    blockSchedulesByEmail: ReturnType<typeof vi.fn>;
+    blockSchedulesByEmails: ReturnType<typeof vi.fn>;
+    blockSchedulesByDomain: ReturnType<typeof vi.fn>;
+    unblockSchedulesByEmails: ReturnType<typeof vi.fn>;
+    findUserEmailsForEmail: ReturnType<typeof vi.fn>;
+    findUserEmailsForDomain: ReturnType<typeof vi.fn>;
+    isUserStillBlocked: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
-    mockPrisma = {
-      schedule: {
-        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
-      },
-      user: {
-        findMany: vi.fn().mockResolvedValue([{ email: "john@example.com" }]),
-      },
-      watchlist: {
-        findFirst: vi.fn().mockResolvedValue(null),
-      },
+    mockRepo = {
+      blockSchedulesByEmail: vi.fn().mockResolvedValue({ count: 1 }),
+      blockSchedulesByEmails: vi.fn().mockResolvedValue({ count: 1 }),
+      blockSchedulesByDomain: vi.fn().mockResolvedValue({ count: 1 }),
+      unblockSchedulesByEmails: vi.fn().mockResolvedValue({ count: 1 }),
+      findUserEmailsForEmail: vi.fn().mockResolvedValue(["john@example.com"]),
+      findUserEmailsForDomain: vi.fn().mockResolvedValue(["john@example.com"]),
+      isUserStillBlocked: vi.fn().mockResolvedValue(false),
     };
 
-    service = new ScheduleBlockingService(mockPrisma as never);
+    service = new ScheduleBlockingService(mockRepo as IScheduleBlockingRepository);
   });
 
   describe("blockSchedulesByEmail", () => {
-    it("should block schedules for matching email", async () => {
+    it("should delegate to repository", async () => {
       const result = await service.blockSchedulesByEmail("john@example.com");
 
-      expect(mockPrisma.schedule.updateMany).toHaveBeenCalledWith({
-        where: {
-          user: {
-            OR: [{ email: "john@example.com" }, { secondaryEmails: { some: { email: "john@example.com" } } }],
-          },
-        },
-        data: { blockedByWatchlist: true },
-      });
+      expect(mockRepo.blockSchedulesByEmail).toHaveBeenCalledWith("john@example.com");
       expect(result.count).toBe(1);
     });
+  });
 
-    it("should normalize email to lowercase", async () => {
-      await service.blockSchedulesByEmail("JOHN@EXAMPLE.COM");
+  describe("blockSchedulesByEmails", () => {
+    it("should delegate to repository for batch operations", async () => {
+      const result = await service.blockSchedulesByEmails(["john@example.com", "jane@example.com"]);
 
-      expect(mockPrisma.schedule.updateMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: {
-            user: {
-              OR: [
-                { email: "john@example.com" },
-                { secondaryEmails: { some: { email: "john@example.com" } } },
-              ],
-            },
-          },
-        })
-      );
+      expect(mockRepo.blockSchedulesByEmails).toHaveBeenCalledWith(["john@example.com", "jane@example.com"]);
+      expect(result.count).toBe(1);
     });
   });
 
   describe("blockSchedulesByDomain", () => {
-    it("should block schedules for matching domain", async () => {
+    it("should delegate to repository", async () => {
       const result = await service.blockSchedulesByDomain("example.com");
 
-      expect(mockPrisma.schedule.updateMany).toHaveBeenCalledWith({
-        where: {
-          user: {
-            OR: [
-              { email: { endsWith: "@example.com" } },
-              { secondaryEmails: { some: { email: { endsWith: "@example.com" } } } },
-            ],
-          },
-        },
-        data: { blockedByWatchlist: true },
-      });
+      expect(mockRepo.blockSchedulesByDomain).toHaveBeenCalledWith("example.com");
       expect(result.count).toBe(1);
     });
   });
@@ -92,43 +69,31 @@ describe("ScheduleBlockingService", () => {
     it("should NOT unblock if user is still blocked by domain entry", async () => {
       // User john@example.com is blocked by BOTH email AND domain
       // When email block is removed, domain block should still keep them blocked
-      mockPrisma.watchlist.findFirst.mockResolvedValue({
-        id: "domain-block-id",
-        type: WatchlistType.DOMAIN,
-        value: "example.com",
-        action: WatchlistAction.BLOCK,
-      });
+      mockRepo.isUserStillBlocked.mockResolvedValue(true);
 
       const result = await service.unblockSchedulesByEmail("john@example.com");
 
       // Should NOT update schedules because user is still blocked by domain
-      expect(mockPrisma.schedule.updateMany).not.toHaveBeenCalled();
+      expect(mockRepo.unblockSchedulesByEmails).not.toHaveBeenCalled();
       expect(result.count).toBe(0);
     });
 
     it("should unblock if no other blocking entries remain", async () => {
       // User john@example.com only has email block, no domain block
-      mockPrisma.watchlist.findFirst.mockResolvedValue(null);
+      mockRepo.isUserStillBlocked.mockResolvedValue(false);
 
       const result = await service.unblockSchedulesByEmail("john@example.com");
 
-      expect(mockPrisma.schedule.updateMany).toHaveBeenCalledWith({
-        where: {
-          user: {
-            email: { in: ["john@example.com"] },
-          },
-        },
-        data: { blockedByWatchlist: false },
-      });
+      expect(mockRepo.unblockSchedulesByEmails).toHaveBeenCalledWith(["john@example.com"]);
       expect(result.count).toBe(1);
     });
 
     it("should return count 0 if no users match the email", async () => {
-      mockPrisma.user.findMany.mockResolvedValue([]);
+      mockRepo.findUserEmailsForEmail.mockResolvedValue([]);
 
       const result = await service.unblockSchedulesByEmail("nonexistent@example.com");
 
-      expect(mockPrisma.schedule.updateMany).not.toHaveBeenCalled();
+      expect(mockRepo.unblockSchedulesByEmails).not.toHaveBeenCalled();
       expect(result.count).toBe(0);
     });
   });
@@ -137,86 +102,67 @@ describe("ScheduleBlockingService", () => {
     it("should NOT unblock if user is still blocked by specific email entry", async () => {
       // User john@example.com is blocked by BOTH email AND domain
       // When domain block is removed, email block should still keep them blocked
-      mockPrisma.watchlist.findFirst.mockResolvedValue({
-        id: "email-block-id",
-        type: WatchlistType.EMAIL,
-        value: "john@example.com",
-        action: WatchlistAction.BLOCK,
-      });
+      mockRepo.isUserStillBlocked.mockResolvedValue(true);
 
       const result = await service.unblockSchedulesByDomain("example.com");
 
       // Should NOT update schedules because user is still blocked by email
-      expect(mockPrisma.schedule.updateMany).not.toHaveBeenCalled();
+      expect(mockRepo.unblockSchedulesByEmails).not.toHaveBeenCalled();
       expect(result.count).toBe(0);
     });
 
     it("should unblock if no other blocking entries remain", async () => {
       // User john@example.com only has domain block, no email block
-      mockPrisma.watchlist.findFirst.mockResolvedValue(null);
+      mockRepo.isUserStillBlocked.mockResolvedValue(false);
 
       const result = await service.unblockSchedulesByDomain("example.com");
 
-      expect(mockPrisma.schedule.updateMany).toHaveBeenCalledWith({
-        where: {
-          user: {
-            email: { in: ["john@example.com"] },
-          },
-        },
-        data: { blockedByWatchlist: false },
-      });
+      expect(mockRepo.unblockSchedulesByEmails).toHaveBeenCalledWith(["john@example.com"]);
       expect(result.count).toBe(1);
     });
 
     it("should handle mixed scenarios - some users unblocked, others remain blocked", async () => {
       // Two users from same domain: john@example.com and jane@example.com
       // john is also blocked by specific email entry, jane is only blocked by domain
-      mockPrisma.user.findMany.mockResolvedValue([
-        { email: "john@example.com" },
-        { email: "jane@example.com" },
-      ]);
+      mockRepo.findUserEmailsForDomain.mockResolvedValue(["john@example.com", "jane@example.com"]);
 
       // First call for john - still blocked by email
       // Second call for jane - not blocked by anything else
-      mockPrisma.watchlist.findFirst
-        .mockResolvedValueOnce({
-          id: "email-block-id",
-          type: WatchlistType.EMAIL,
-          value: "john@example.com",
-          action: WatchlistAction.BLOCK,
-        })
-        .mockResolvedValueOnce(null);
+      mockRepo.isUserStillBlocked.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
 
       const result = await service.unblockSchedulesByDomain("example.com");
 
       // Should only unblock jane, not john
-      expect(mockPrisma.schedule.updateMany).toHaveBeenCalledWith({
-        where: {
-          user: {
-            email: { in: ["jane@example.com"] },
-          },
-        },
-        data: { blockedByWatchlist: false },
-      });
+      expect(mockRepo.unblockSchedulesByEmails).toHaveBeenCalledWith(["jane@example.com"]);
       expect(result.count).toBe(1);
     });
   });
 
-  describe("isUserStillBlocked checks both email and domain", () => {
-    it("should check for matching email entry", async () => {
-      await service.unblockSchedulesByEmail("john@example.com");
+  describe("handleWatchlistBlock", () => {
+    it("should block by email for EMAIL type", async () => {
+      await service.handleWatchlistBlock("EMAIL" as never, "john@example.com");
 
-      // Should query for both email match AND domain match
-      expect(mockPrisma.watchlist.findFirst).toHaveBeenCalledWith({
-        where: {
-          action: WatchlistAction.BLOCK,
-          OR: [
-            { type: WatchlistType.EMAIL, value: "john@example.com" },
-            { type: WatchlistType.DOMAIN, value: "example.com" },
-          ],
-        },
-        select: { id: true },
-      });
+      expect(mockRepo.blockSchedulesByEmail).toHaveBeenCalledWith("john@example.com");
+    });
+
+    it("should block by domain for DOMAIN type", async () => {
+      await service.handleWatchlistBlock("DOMAIN" as never, "example.com");
+
+      expect(mockRepo.blockSchedulesByDomain).toHaveBeenCalledWith("example.com");
+    });
+  });
+
+  describe("handleWatchlistUnblock", () => {
+    it("should unblock by email for EMAIL type", async () => {
+      await service.handleWatchlistUnblock("EMAIL" as never, "john@example.com");
+
+      expect(mockRepo.findUserEmailsForEmail).toHaveBeenCalledWith("john@example.com");
+    });
+
+    it("should unblock by domain for DOMAIN type", async () => {
+      await service.handleWatchlistUnblock("DOMAIN" as never, "example.com");
+
+      expect(mockRepo.findUserEmailsForDomain).toHaveBeenCalledWith("example.com");
     });
   });
 });
