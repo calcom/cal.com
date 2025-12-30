@@ -151,6 +151,7 @@
   },
   "devDependencies": {
     "@babel/core": "7.26.10",
+    "@biomejs/biome": "2.3.10",
     "@calcom/config": "workspace:*",
     "@calcom/types": "workspace:*",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
