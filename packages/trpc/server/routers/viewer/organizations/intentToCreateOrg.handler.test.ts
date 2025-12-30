@@ -18,6 +18,28 @@ vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
 
 vi.mock("@calcom/features/ee/organizations/lib/OrganizationPaymentService");
 
+vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
+  TeamRepository: class {
+    constructor() {}
+    findOwnedTeamsByUserId() {
+      return Promise.resolve([]);
+    }
+    findById() {
+      return Promise.resolve({
+        id: 1,
+        name: "Test Org",
+        slug: "test-org",
+        logoUrl: null,
+        parentId: null,
+        metadata: {},
+        isOrganization: true,
+        organizationSettings: null,
+        isPlatform: false,
+      });
+    }
+  },
+}));
+
 vi.mock(
   "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler",
   () => ({
@@ -32,41 +54,28 @@ vi.mock(
   })
 );
 
-vi.mock("@calcom/lib/server/resizeBase64Image", () => ({
-  resizeBase64Image: vi.fn((input) => Promise.resolve(input)),
-  isBase64Image: vi.fn(() => false),
-}));
-
-vi.mock("@calcom/lib/server/avatar", () => ({
-  uploadLogo: vi.fn().mockResolvedValue("https://example.com/logo.png"),
-}));
-
-vi.mock("@calcom/emails/organization-email-service", () => ({
-  sendOrganizationCreationEmail: vi.fn().mockResolvedValue(undefined),
-}));
-
-vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
-  sendEmailVerification: vi.fn().mockResolvedValue(undefined),
-}));
-
 vi.mock("@calcom/lib/server/i18n", () => ({
-  getTranslation: vi.fn().mockResolvedValue((key: string) => key),
+  getTranslation: vi
+    .fn()
+    .mockImplementation(async (locale: string, namespace: string) => {
+      const t = (key: string) => key;
+      t.locale = locale;
+      t.namespace = namespace;
+      return t;
+    }),
 }));
 
 vi.mock("@calcom/lib/domainManager/organization", () => ({
-  createDomain: vi.fn().mockResolvedValue(undefined),
+  createDomain: vi.fn().mockResolvedValue({}),
 }));
 
-// Mock constants - will be set per describe block
-// Default to hosted (billing enabled) for "hosted" describe block
-vi.mock("@calcom/lib/constants", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@calcom/lib/constants")>();
-  return {
-    ...actual,
-    IS_SELF_HOSTED: false,
-    IS_TEAM_BILLING_ENABLED: true,
-  };
-});
+vi.mock("@calcom/emails/organization-email-service", () => ({
+  sendOrganizationCreationEmail: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
+  sendEmailVerification: vi.fn().mockResolvedValue({}),
+}));
 
 const mockInput = {
   name: "Test Org",
@@ -140,6 +149,13 @@ describe("intentToCreateOrgHandler", () => {
 
   describe("hosted", () => {
     beforeEach(() => {
+      vi.mock("@calcom/lib/constants", async () => {
+        const actualImport = await vi.importActual("@calcom/lib/constants");
+        return {
+          ...actualImport,
+          IS_SELF_HOSTED: false,
+        };
+      });
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
         incrementUsage: vi.fn().mockResolvedValue(undefined),
@@ -331,6 +347,16 @@ describe("intentToCreateOrgHandler", () => {
   describe.skip("platform organization tests");
 
   describe("self hosted", () => {
+    beforeEach(() => {
+      vi.mock("@calcom/lib/constants", async () => {
+        const actualImport = await vi.importActual("@calcom/lib/constants");
+        return {
+          ...actualImport,
+          IS_SELF_HOSTED: true,
+        };
+      });
+    });
+
     it("should throw error when license is not valid", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(false),
