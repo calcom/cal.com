@@ -12,7 +12,7 @@ jobs:
     name: Build API v2
     permissions:
       contents: read
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
     services:
       postgres:
@@ -36,7 +36,7 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - name: Cache API v2 production build
-        uses: buildjet/cache@v4
+        uses: actions/cache@v4
         id: cache-api-v2-build
         env:
           cache-name: api-v2-build
