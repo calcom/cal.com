@@ -3493,6 +3493,7 @@
   "last_active": "Poslednja aktivnost",
   "member_since": "Član od",
   "last_updated": "Poslednje ažuriranje",
+  "completed_onboarding": "Završeno uvođenje",
   "salesforce_on_cancel_write_to_event": "Pri otkazivanju rezervacije, upiši u evidenciju događaja umesto brisanja događaja",
   "salesforce_on_every_cancellation": "Pri svakom otkazivanju",
   "report_issue": "Prijavi problem",

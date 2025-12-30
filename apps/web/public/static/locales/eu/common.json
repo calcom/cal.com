@@ -3493,6 +3493,7 @@
   "last_active": "Azken aldiz aktibo",
   "member_since": "Kide noiztik",
   "last_updated": "Azken eguneratzea",
+  "completed_onboarding": "Hasierako prozesua amaituta",
   "salesforce_on_cancel_write_to_event": "Erreserba bertan behera uztean, idatzi gertaera erregistroan gertaera ezabatu beharrean",
   "salesforce_on_every_cancellation": "Bertan behera uzte bakoitzean",
   "report_issue": "Arazoa jakinarazi",

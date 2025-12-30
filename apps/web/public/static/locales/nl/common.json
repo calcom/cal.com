@@ -3493,6 +3493,7 @@
   "last_active": "Laatst actief",
   "member_since": "Lid sinds",
   "last_updated": "Laatst bijgewerkt",
+  "completed_onboarding": "Onboarding voltooid",
   "salesforce_on_cancel_write_to_event": "Bij geannuleerde boeking, schrijf naar evenementrecord in plaats van evenement verwijderen",
   "salesforce_on_every_cancellation": "Bij elke annulering",
   "report_issue": "Probleem melden",
