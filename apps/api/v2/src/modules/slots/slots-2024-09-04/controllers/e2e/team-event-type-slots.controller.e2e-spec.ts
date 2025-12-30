@@ -583,7 +583,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should book collective event type and slot should not be available at that time", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${collectiveEventTypeId}`,
+        uid: `booking-uid-${collectiveEventTypeId}-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -629,7 +629,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should book round robin event type and slot should be available at that time", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${roundRobinEventTypeId}`,
+        uid: `booking-uid-${roundRobinEventTypeId}-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -675,7 +675,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should fully book round robin event type and slot should not be available at that time", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const bookingOne = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${roundRobinEventTypeId}-1`,
+        uid: `booking-uid-${roundRobinEventTypeId}-1-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -699,7 +699,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       fullyBookedRoundRobinBookingIdOne = bookingOne.id;
 
       const bookingTwo = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${roundRobinEventTypeId}-2`,
+        uid: `booking-uid-${roundRobinEventTypeId}-2-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",

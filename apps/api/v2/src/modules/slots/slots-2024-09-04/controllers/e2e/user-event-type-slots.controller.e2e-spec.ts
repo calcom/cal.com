@@ -812,7 +812,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should do a booking and slot should not be available at that time", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${eventTypeId}`,
+        uid: `booking-uid-${eventTypeId}-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -857,7 +857,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should do a booking for seated event and slot should show attendees count and bookingUid", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${seatedEventType.id}`,
+        uid: `booking-uid-${seatedEventType.id}-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -986,7 +986,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should do a booking for seated event and slot should show attendees count and bookingUid and return range format", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${seatedEventType.id}`,
+        uid: `booking-uid-${seatedEventType.id}-range-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -1528,13 +1528,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     describe("booking status", () => {
       const startTime = "2050-09-12T11:00:00.000Z";
-      const testBookingUid = `booking-uid-${eventTypeId}-booking-status-test`;
 
       describe("cant reserve", () => {
         it("should not be able to reserve a slot if booking is accepted during that time", async () => {
           const booking = await bookingsRepositoryFixture.create({
             status: "ACCEPTED",
-            uid: testBookingUid,
+            uid: `booking-uid-${eventTypeId}-accepted-${randomString()}`,
             title: "booking title",
             startTime,
             endTime: "2050-09-12T12:00:00.000Z",
@@ -1574,7 +1573,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         it("should not be able to reserve a slot if booking is pending during that time", async () => {
           const booking = await bookingsRepositoryFixture.create({
             status: "PENDING",
-            uid: testBookingUid,
+            uid: `booking-uid-${eventTypeId}-pending-${randomString()}`,
             title: "booking title",
             startTime,
             endTime: "2050-09-12T12:00:00.000Z",
@@ -1614,7 +1613,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         it("should not be able to reserve a slot if booking is awaiting host during that time", async () => {
           const booking = await bookingsRepositoryFixture.create({
             status: "AWAITING_HOST",
-            uid: testBookingUid,
+            uid: `booking-uid-${eventTypeId}-awaiting-${randomString()}`,
             title: "booking title",
             startTime,
             endTime: "2050-09-12T12:00:00.000Z",
@@ -1656,7 +1655,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         it("should be able to reserve a slot if booking is cancelled during that time", async () => {
           const booking = await bookingsRepositoryFixture.create({
             status: "CANCELLED",
-            uid: testBookingUid,
+            uid: `booking-uid-${eventTypeId}-cancelled-${randomString()}`,
             title: "booking title",
             startTime,
             endTime: "2050-09-12T12:00:00.000Z",
@@ -1705,7 +1704,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         it("should be able to reserve a slot if booking is rejected during that time", async () => {
           const booking = await bookingsRepositoryFixture.create({
             status: "REJECTED",
-            uid: testBookingUid,
+            uid: `booking-uid-${eventTypeId}-rejected-${randomString()}`,
             title: "booking title",
             startTime,
             endTime: "2050-09-12T12:00:00.000Z",
