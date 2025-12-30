@@ -443,7 +443,7 @@ const BookerComponent = ({
                 visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
                 {...fadeInLeft}
                 initial="visible"
-                className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 lg:w-[var(--booker-main-width)]">
+                className="md:border-subtle ml-[-1px] h-full flex-shrink pl-5 pr-2 py-3 lg:w-[var(--booker-main-width)]">
                 <DatePicker
                   classNames={customClassNames?.datePickerCustomClassNames}
                   event={event}
