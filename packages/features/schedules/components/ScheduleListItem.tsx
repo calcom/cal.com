@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
@@ -16,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -41,6 +43,7 @@ export function ScheduleListItem({
   redirectUrl: string;
 }) {
   const { t, i18n } = useLocale();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   return (
     <li key={schedule.id}>
@@ -66,8 +69,8 @@ export function ScheduleListItem({
                 )
                 // sort the availability strings as per user's weekstart (settings)
                 .sort(sortAvailabilityStrings(i18n.language, displayOptions?.weekStart))
-                .map((availabilityString, index) => (
-                  <Fragment key={index}>
+                .map((availabilityString) => (
+                  <Fragment key={availabilityString}>
                     {availabilityString}
                     <br />
                   </Fragment>
@@ -131,9 +134,7 @@ export function ScheduleListItem({
                   if (!isDeletable) {
                     showToast(t("requires_at_least_one_schedule"), "error");
                   } else {
-                    deleteFunction({
-                      scheduleId: schedule.id,
-                    });
+                    setIsDeleteDialogOpen(true);
                   }
                 }}>
                 {t("delete")}
@@ -141,6 +142,21 @@ export function ScheduleListItem({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </Dropdown>
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <ConfirmationDialogContent
+            variety="danger"
+            title={t("delete_schedule")}
+            confirmBtnText={t("delete")}
+            loadingText={t("delete")}
+            onConfirm={(e) => {
+              e.preventDefault();
+              deleteFunction({
+                scheduleId: schedule.id,
+              });
+            }}>
+            {t("delete_schedule_description")}
+          </ConfirmationDialogContent>
+        </Dialog>
       </div>
     </li>
   );
