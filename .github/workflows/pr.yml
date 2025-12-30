@@ -57,18 +57,19 @@ jobs:
             const prNumber = pr.number;
             const headSha = pr.head.sha;
 
-            async function isCoreTeamMember(username) {
+            // Check if user has write access or higher (admin, maintain, write)
+            async function hasWriteAccess(username) {
               try {
-                await github.rest.teams.getMembershipForUserInOrg({
-                  org: owner,
-                  team_slug: 'core',
+                const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner,
+                  repo,
                   username,
                 });
-                return true;
+                const hasAccess = ['admin', 'maintain', 'write'].includes(permission.permission);
+                console.log(`User ${username}: hasWriteAccess=${hasAccess}`);
+                return hasAccess;
               } catch (e) {
-                if (e.status !== 404) {
-                  console.log(`Could not verify core team membership for ${username}: ${e.message}`);
-                }
+                console.log(`Could not check permission for ${username}: ${e.message}`);
                 return false;
               }
             }
@@ -85,16 +86,16 @@ jobs:
               return;
             }
 
-            // Check 2: Verify core team membership via API (author_association can be unreliable)
-            if (await isCoreTeamMember(pr.user.login)) {
-              console.log(`Author ${pr.user.login} verified as core team member`);
+            // Check 2: Verify write access via API (author_association can be unreliable)
+            if (await hasWriteAccess(pr.user.login)) {
+              console.log(`Author ${pr.user.login} verified as having write access`);
               core.setOutput('is-trusted', true);
               return;
             }
 
-            console.log(`Author ${pr.user.login} is not a core team member, checking for approval...`);
+            console.log(`Author ${pr.user.login} does not have write access, checking for approval...`);
 
-            // Check 3: Has a core team member approved the current commit?
+            // Check 3: Has someone with write access approved the current commit?
             const reviews = await github.paginate(github.rest.pulls.listReviews, {
               owner,
               repo,
@@ -128,21 +129,21 @@ jobs:
               }
             }
 
-            // Check if any approver is a core team member
+            // Check if any approver has write access
             for (const [reviewer, reviewData] of reviewerStates) {
               if (reviewData.state !== 'APPROVED') {
                 continue;
               }
 
-              if (await isCoreTeamMember(reviewer)) {
-                console.log(`PR approved by core team member ${reviewer} for commit ${headSha}`);
+              if (await hasWriteAccess(reviewer)) {
+                console.log(`PR approved by ${reviewer} (has write access) for commit ${headSha}`);
                 core.setOutput('is-trusted', true);
                 return;
               }
-              console.log(`Reviewer ${reviewer} is not a core team member`);
+              console.log(`Reviewer ${reviewer} does not have write access`);
             }
 
-            console.log('PR requires approval from a core team member before CI can run');
+            console.log('PR requires approval from someone with write access before CI can run');
             core.setOutput('is-trusted', false);
 
   prepare:
