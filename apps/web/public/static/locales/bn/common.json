@@ -3493,6 +3493,7 @@
   "last_active": "সর্বশেষ সক্রিয়",
   "member_since": "সদস্য হওয়ার তারিখ",
   "last_updated": "সর্বশেষ আপডেট",
+  "completed_onboarding": "অনবোর্ডিং সম্পন্ন হয়েছে",
   "salesforce_on_cancel_write_to_event": "বাতিল করা বুকিংয়ের ক্ষেত্রে, ইভেন্ট মুছে ফেলার পরিবর্তে ইভেন্ট রেকর্ডে লিখুন",
   "salesforce_on_every_cancellation": "প্রতিটি বাতিলকরণের সময়",
   "report_issue": "সমস্যা রিপোর্ট করুন",

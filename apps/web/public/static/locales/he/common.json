@@ -3493,6 +3493,7 @@
   "last_active": "פעיל לאחרונה",
   "member_since": "חבר מאז",
   "last_updated": "עודכן לאחרונה",
+  "completed_onboarding": "תהליך ההכנה הושלם",
   "salesforce_on_cancel_write_to_event": "בעת ביטול הזמנה, כתוב לרשומת האירוע במקום למחוק את האירוע",
   "salesforce_on_every_cancellation": "בכל ביטול",
   "report_issue": "דווח על בעיה",
