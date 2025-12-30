@@ -519,6 +519,7 @@ const ProfileForm = ({
 }) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
+  const [removeProfileOpen, setRemoveProfileOpen] = useState(false);
 
   const profileFormSchema = z.object({
     username: z.string(),
@@ -641,13 +642,37 @@ const ProfileForm = ({
                       />
 
                       {showRemoveAvatarButton && (
-                        <Button
-                          color="destructive"
-                          onClick={() => {
-                            onChange(null);
-                          }}>
-                          {t("remove")}
-                        </Button>
+                        <Dialog open={removeProfileOpen} onOpenChange={setRemoveProfileOpen}>
+                            <DialogTrigger asChild>
+                              <Button
+                                color="destructive"
+                                onClick={() => {
+                                  setRemoveProfileOpen((prev)=>!prev);
+                                }}>
+                                {t("remove")}
+                             </Button>
+                            </DialogTrigger>
+                          <DialogContent
+                            title={"Remove Profile Picture"}
+                            description={"Are you sure you want to remove your current profile picture ?"}
+                            type="creation"
+                            Icon="triangle-alert">
+                            <>
+                              <DialogFooter showDivider>
+                                <DialogClose />
+                                <Button
+                                  color="destructive"
+                                  onClick={(e) => {
+                                    onChange(null)
+                                    setRemoveProfileOpen(false);
+                                  }}
+                                  >
+                                  Remove 
+                                </Button>
+                              </DialogFooter>
+                            </>
+                          </DialogContent>
+                        </Dialog>
                       )}
                     </div>
                   </div>
