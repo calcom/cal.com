@@ -1,6 +1,6 @@
-import type { PrismaClient } from "@calcom/prisma";
-import { WatchlistType } from "@calcom/prisma/enums";
 import logger from "@calcom/lib/logger";
+import type { PrismaClient } from "@calcom/prisma";
+import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["ScheduleBlockingService"] });
 
@@ -13,6 +13,53 @@ const log = logger.getSubLogger({ prefix: ["ScheduleBlockingService"] });
 export class ScheduleBlockingService {
   constructor(private readonly prisma: PrismaClient) {}
 
+  private async isUserStillBlocked(userEmail: string): Promise<boolean> {
+    const normalizedEmail = userEmail.toLowerCase();
+    const domain = normalizedEmail.split("@")[1];
+
+    const blockingEntry = await this.prisma.watchlist.findFirst({
+      where: {
+        action: WatchlistAction.BLOCK,
+        OR: [
+          { type: WatchlistType.EMAIL, value: normalizedEmail },
+          { type: WatchlistType.DOMAIN, value: domain },
+        ],
+      },
+      select: { id: true },
+    });
+
+    return blockingEntry !== null;
+  }
+
+  private async getUserEmailsForEmail(email: string): Promise<string[]> {
+    const normalizedEmail = email.toLowerCase();
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        OR: [{ email: normalizedEmail }, { secondaryEmails: { some: { email: normalizedEmail } } }],
+      },
+      select: { email: true },
+    });
+
+    return users.map((u) => u.email);
+  }
+
+  private async getUserEmailsForDomain(domain: string): Promise<string[]> {
+    const normalizedDomain = domain.toLowerCase();
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        OR: [
+          { email: { endsWith: `@${normalizedDomain}` } },
+          { secondaryEmails: { some: { email: { endsWith: `@${normalizedDomain}` } } } },
+        ],
+      },
+      select: { email: true },
+    });
+
+    return users.map((u) => u.email);
+  }
+
   /**
    * Block all schedules for users matching the given email.
    */
@@ -22,18 +69,13 @@ export class ScheduleBlockingService {
     const result = await this.prisma.schedule.updateMany({
       where: {
         user: {
-          OR: [
-            { email: normalizedEmail },
-            { secondaryEmails: { some: { email: normalizedEmail } } },
-          ],
+          OR: [{ email: normalizedEmail }, { secondaryEmails: { some: { email: normalizedEmail } } }],
         },
       },
       data: {
         blockedByWatchlist: true,
       },
     });
-
-    log.info(`Blocked ${result.count} schedules for email: ${normalizedEmail}`);
 
     return { count: result.count };
   }
@@ -62,24 +104,41 @@ export class ScheduleBlockingService {
       },
     });
 
-    log.info(`Blocked ${result.count} schedules for ${normalizedEmails.length} emails`);
-
     return { count: result.count };
   }
 
   /**
-   * Unblock all schedules for users matching the given email.
+   * Unblock schedules for users matching the given email, but only if they're
+   * not blocked by any other watchlist entry (e.g., domain block).
    */
   async unblockSchedulesByEmail(email: string): Promise<{ count: number }> {
     const normalizedEmail = email.toLowerCase();
 
+    const userEmails = await this.getUserEmailsForEmail(normalizedEmail);
+
+    if (userEmails.length === 0) {
+      return { count: 0 };
+    }
+
+    const emailsToUnblock: string[] = [];
+    for (const userEmail of userEmails) {
+      const stillBlocked = await this.isUserStillBlocked(userEmail);
+      if (!stillBlocked) {
+        emailsToUnblock.push(userEmail);
+      } else {
+        log.info(`User ${userEmail} still blocked by another watchlist entry, skipping unblock`);
+      }
+    }
+
+    if (emailsToUnblock.length === 0) {
+      log.info(`All users for email ${normalizedEmail} are still blocked by other entries`);
+      return { count: 0 };
+    }
+
     const result = await this.prisma.schedule.updateMany({
       where: {
         user: {
-          OR: [
-            { email: normalizedEmail },
-            { secondaryEmails: { some: { email: normalizedEmail } } },
-          ],
+          email: { in: emailsToUnblock },
         },
       },
       data: {
@@ -118,18 +177,38 @@ export class ScheduleBlockingService {
   }
 
   /**
-   * Unblock all schedules for users with emails from the given domain.
+   * Unblock schedules for users with emails from the given domain, but only if they're
+   * not blocked by any other watchlist entry (e.g., specific email block).
    */
   async unblockSchedulesByDomain(domain: string): Promise<{ count: number }> {
     const normalizedDomain = domain.toLowerCase();
 
+    const userEmails = await this.getUserEmailsForDomain(normalizedDomain);
+
+    if (userEmails.length === 0) {
+      log.info(`No users found for domain: ${normalizedDomain}`);
+      return { count: 0 };
+    }
+
+    const emailsToUnblock: string[] = [];
+    for (const userEmail of userEmails) {
+      const stillBlocked = await this.isUserStillBlocked(userEmail);
+      if (!stillBlocked) {
+        emailsToUnblock.push(userEmail);
+      } else {
+        log.info(`User ${userEmail} still blocked by another watchlist entry, skipping unblock`);
+      }
+    }
+
+    if (emailsToUnblock.length === 0) {
+      log.info(`All users for domain ${normalizedDomain} are still blocked by other entries`);
+      return { count: 0 };
+    }
+
     const result = await this.prisma.schedule.updateMany({
       where: {
         user: {
-          OR: [
-            { email: { endsWith: `@${normalizedDomain}` } },
-            { secondaryEmails: { some: { email: { endsWith: `@${normalizedDomain}` } } } },
-          ],
+          email: { in: emailsToUnblock },
         },
       },
       data: {

@@ -140,17 +140,23 @@ export abstract class WatchlistOperationsService {
       status: "BLOCKED",
     });
 
-    // Block schedules for users matching the blocked emails/domains
     if (this.deps.scheduleBlockingService) {
-      const uniqueValues = Array.from(new Set(Array.from(normalizedValues.values())));
+      try {
+        const uniqueValues = Array.from(new Set(Array.from(normalizedValues.values())));
 
-      if (input.type === WatchlistType.EMAIL) {
-        await this.deps.scheduleBlockingService.blockSchedulesByEmails(uniqueValues);
-      } else {
-        // For domains, each domain is typically unique per report
-        for (const domain of uniqueValues) {
-          await this.deps.scheduleBlockingService.blockSchedulesByDomain(domain);
+        if (input.type === WatchlistType.EMAIL) {
+          await this.deps.scheduleBlockingService.blockSchedulesByEmails(uniqueValues);
+        } else {
+          for (const domain of uniqueValues) {
+            await this.deps.scheduleBlockingService.blockSchedulesByDomain(domain);
+          }
         }
+      } catch (error) {
+        this.log.error("Failed to block schedules after bulk watchlist entry creation", {
+          type: input.type,
+          count: results.length,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
 
@@ -180,7 +186,6 @@ export abstract class WatchlistOperationsService {
       isGlobal: scope.isGlobal,
     });
 
-    // Block schedules for users matching this email/domain
     if (this.deps.scheduleBlockingService) {
       try {
         await this.deps.scheduleBlockingService.handleWatchlistBlock(input.type, normalizedValue);
@@ -188,7 +193,6 @@ export abstract class WatchlistOperationsService {
         this.log.error("Failed to block schedules after watchlist entry creation", {
           entryId: entry.id,
           type: input.type,
-          value: normalizedValue,
           error: error instanceof Error ? error.message : String(error),
         });
       }
@@ -211,7 +215,6 @@ export abstract class WatchlistOperationsService {
 
     await this.deps.watchlistRepo.deleteEntry(input.entryId, input.userId);
 
-    // Unblock schedules for users matching this email/domain
     if (this.deps.scheduleBlockingService) {
       try {
         await this.deps.scheduleBlockingService.handleWatchlistUnblock(type, value);
@@ -219,7 +222,6 @@ export abstract class WatchlistOperationsService {
         this.log.error("Failed to unblock schedules after watchlist entry deletion", {
           entryId: input.entryId,
           type,
-          value,
           error: error instanceof Error ? error.message : String(error),
         });
       }
