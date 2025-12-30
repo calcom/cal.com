@@ -15,7 +15,7 @@
     "build": "rm -rf dist && vite build && tsc --emitDeclarationOnly --declarationDir dist",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
-    "lint": "eslint --ext .ts,.js src",
+    "lint": "biome lint src",
     "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn",
     "prepack": "yarn ../../../ lint --filter='@calcom/embed-snippet' && yarn withEmbedPublishEnv build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
@@ -25,7 +25,6 @@
   ],
   "types": "./dist/index.d.ts",
   "devDependencies": {
-    "@calcom/eslint-config": "workspace:*",
     "typescript": "5.9.2",
     "vite": "4.5.14"
   },

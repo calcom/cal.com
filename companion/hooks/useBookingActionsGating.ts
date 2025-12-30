@@ -111,10 +111,10 @@ export function useBookingStatusFlags(booking: Booking | null) {
       isUpcoming,
       isPast,
       isOngoing,
-      isCancelled: normalized.status === "CANCELLED",
-      isRejected: normalized.status === "REJECTED",
-      isPending: normalized.status === "PENDING",
-      isConfirmed: normalized.status === "ACCEPTED",
+      isCancelled: normalized.status === "cancelled",
+      isRejected: normalized.status === "rejected",
+      isPending: normalized.status === "pending",
+      isConfirmed: normalized.status === "accepted",
     };
   }, [booking]);
 }

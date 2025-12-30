@@ -449,7 +449,15 @@ test.describe("prefill", () => {
 
 test.describe("Booking on different layouts", () => {
   test.beforeEach(async ({ page, users }) => {
-    const user = await users.create();
+    // Create user with specific availability (9 AM - 5 PM UTC, Monday-Friday)
+    // This ensures slots are available and reduces race conditions
+    const dateRanges: TimeRange = {
+      start: new Date(new Date().setUTCHours(9, 0, 0, 0)),
+      end: new Date(new Date().setUTCHours(17, 0, 0, 0)),
+    };
+    const schedule: Schedule = [[], [dateRanges], [dateRanges], [dateRanges], [dateRanges], [dateRanges], []];
+
+    const user = await users.create({ schedule });
     await page.goto(`/${user.username}`);
   });
 
