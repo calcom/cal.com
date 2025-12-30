@@ -331,7 +331,6 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   if (isLink) {
     return (
       <Wrapper
-        data-testid="wrapper"
         tooltip={props.tooltip}
         tooltipSide={tooltipSide}
         tooltipOffset={tooltipOffset}
@@ -349,7 +348,6 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
 
   return (
     <Wrapper
-      data-testid="wrapper"
       tooltip={props.tooltip}
       tooltipSide={tooltipSide}
       tooltipOffset={tooltipOffset}
