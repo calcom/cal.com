@@ -36,6 +36,12 @@ export const calIdTeamsRouter = router({
     return listCalidTeamsHandler({ ctx });
   }),
 
+  // List all calidTeams the user is owner of
+  listOwnedTeams: authedProcedure.query(async ({ ctx }) => {
+    const { listOwnedTeamsHandler } = await import("./listOwnedTeams.handler");
+    return listOwnedTeamsHandler({ ctx });
+  }),
+
   // Update a calidTeam
   update: authedProcedure.input(ZUpdateCalidTeamSchema).mutation(async ({ ctx, input }) => {
     const { updateCalidTeamHandler } = await import("./update.handler");

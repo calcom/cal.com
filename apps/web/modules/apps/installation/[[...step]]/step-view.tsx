@@ -113,6 +113,7 @@ const OnboardingPage = ({
   showEventTypesStep,
   isConferencing,
   installableOnTeams,
+  noTeamsOnAccountsPage,
   calIdTeamId,
 }: OnboardingPageProps) => {
   const { t } = useLocale();
@@ -304,6 +305,7 @@ const OnboardingPage = ({
                   onSelect={handleSelectAccount}
                   loading={mutation.isPending}
                   installableOnTeams={installableOnTeams}
+                  noTeamsOnAccountsPage={noTeamsOnAccountsPage}
                 />
                 // <div>hello</div>
               )}

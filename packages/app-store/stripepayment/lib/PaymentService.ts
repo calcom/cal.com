@@ -123,7 +123,7 @@ export class PaymentService implements IAbstractPaymentService {
           enabled: true,
         },
         metadata: {
-          identifier: "cal.com",
+          identifier: "Cal ID",
           bookingId,
           calAccountId: userId,
           calUsername: username,

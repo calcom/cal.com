@@ -1623,17 +1623,37 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                         <div className="bg-default mt-4 rounded-md">
                                           <div className="flex items-center justify-between">
                                             <Label>Message template</Label>
-                                            {step.metaTemplatePhoneNumberId && (
-                                              <Button
-                                                color="minimal"
-                                                size="sm"
-                                                loading={syncingTemplates}
-                                                onClick={() => handleSyncTemplates()}
-                                                className="flex items-center gap-1 text-xs">
-                                                <Icon name="info" className="h-4 w-4" />
-                                                Sync templates
-                                              </Button>
-                                            )}
+
+                                            <div className="flex flex-row gap-2">
+                                              {step.metaTemplatePhoneNumberId && (
+                                                <Button
+                                                  color="minimal"
+                                                  size="sm"
+                                                  onClick={() =>
+                                                    window.open(
+                                                      `https://business.facebook.com/latest/whatsapp_manager/message_templates`,
+                                                      "_blank"
+                                                    )
+                                                  }
+                                                  className="flex items-center gap-1 text-xs border-none underline underline-offset-2">
+                                                  <Icon name="external-link" className="h-3 w-3" />
+
+                                                  {t("create_templates")}
+                                                </Button>
+                                              )}
+
+                                              {step.metaTemplatePhoneNumberId && (
+                                                <Button
+                                                  color="minimal"
+                                                  size="sm"
+                                                  loading={syncingTemplates}
+                                                  onClick={() => handleSyncTemplates()}
+                                                  className="flex items-center gap-1 text-xs">
+                                                  <Icon name="info" className="h-4 w-4" />
+                                                  {t("sync_templates")}
+                                                </Button>
+                                              )}
+                                            </div>
                                           </div>
                                           <Select
                                             value={

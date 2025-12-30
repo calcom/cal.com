@@ -2,7 +2,7 @@
 
 import { Button } from "@calid/features/ui/components/button";
 import { Form, FormField } from "@calid/features/ui/components/form";
-import { TextField, NumberInput } from "@calid/features/ui/components/input/input";
+import { TextField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -52,7 +52,7 @@ const CreateTeamEvent = () => {
   if (!Number.isFinite(teamId) || teamId <= 0) return null;
 
   const {
-    formState: { isSubmitting, isDirty, isValid },
+    formState: { isSubmitting: formIsSubmitting, isDirty, isValid },
     watch,
   } = form;
 
@@ -60,10 +60,12 @@ const CreateTeamEvent = () => {
   const title = watch("title") || "";
   const slug = watch("slug") || "";
   const isFormValid = title && slug && title.trim() !== "" && slug.trim() !== "";
-  
+  const isSubmitting = createMutation.isPending || formIsSubmitting;
+
   return (
     <Form
       form={form}
+      {...form}
       onSubmit={(values) => {
         if (!createMutation.isPending) {
           createMutation.mutate(values);
@@ -73,16 +75,18 @@ const CreateTeamEvent = () => {
         <FormField
           name="calIdTeamId"
           control={form.control}
-          render={() => (
-            <input type="hidden" {...form.register("calIdTeamId", { valueAsNumber: true })} />
-          )}
+          render={() => <input type="hidden" {...form.register("calIdTeamId", { valueAsNumber: true })} />}
         />
 
         <FormField
           name="title"
           control={form.control}
+          rules={{ required: t("title_is_required") }}
           render={({ field: { value, onChange }, fieldState: { error } }) => (
             <TextField
+              name="title"
+              required
+              showAsteriskIndicator
               label={t("title")}
               placeholder={t("quick_chat")}
               value={value || ""}
@@ -95,6 +99,7 @@ const CreateTeamEvent = () => {
               }}
               data-testid="event-type-title"
               error={error ? error.message : undefined}
+              disabled={isSubmitting}
             />
           )}
         />
@@ -102,16 +107,21 @@ const CreateTeamEvent = () => {
         <FormField
           name="slug"
           control={form.control}
-          render={({ field: { value } }) => (
+          rules={{ required: t("slug_is_required") }}
+          render={({ field: { value, onChange }, fieldState: { error } }) => (
             <TextField
+              name="slug"
+              required
+              showAsteriskIndicator
               label={t("team_url")}
               placeholder="quick-chat"
               value={value || ""}
               onChange={(e) => {
-                form.setValue("slug", slugify(e?.target.value, true), { shouldTouch: true });
-                form.clearErrors("slug");
+                onChange(slugify(e?.target.value, true));
               }}
               data-testid="event-type-slug"
+              error={error ? error.message : undefined}
+              disabled={isSubmitting}
             />
           )}
         />
@@ -121,12 +131,15 @@ const CreateTeamEvent = () => {
           control={form.control}
           defaultValue={15}
           render={({ field: { value, onChange } }) => (
-            <NumberInput
+            <TextField
+              name="length"
+              type="number"
               label={t("duration")}
               placeholder="30"
               value={value || 15}
               onChange={(e) => onChange(Number(e?.target.value))}
               data-testid="event-type-duration"
+              disabled={isSubmitting}
             />
           )}
         />
@@ -162,10 +175,12 @@ const CreateTeamEvent = () => {
           control={form.control}
           render={({ field: { value, onChange } }) => (
             <TextField
+              name="description"
               label={t("description")}
               placeholder={t("description")}
               value={value ?? ""}
               onChange={(e) => onChange(e?.target.value)}
+              disabled={isSubmitting}
             />
           )}
         />
@@ -176,7 +191,7 @@ const CreateTeamEvent = () => {
             className="w-full justify-center"
             type="button"
             onClick={() => router.push(`/settings/teams/${teamId}/onboard-members`)}
-            disabled={createMutation.isPending || isSubmitting}>
+            disabled={isSubmitting}>
             {t("back")}
           </Button>
           <Button
@@ -184,8 +199,8 @@ const CreateTeamEvent = () => {
             type="submit"
             color="primary"
             className="w-full justify-center"
-            disabled={createMutation.isPending || isSubmitting}
-            >
+            disabled={isSubmitting || !isFormValid}
+            loading={isSubmitting}>
             {t("finish")}
           </Button>
         </div>

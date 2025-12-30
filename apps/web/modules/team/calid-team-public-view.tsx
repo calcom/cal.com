@@ -114,8 +114,10 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                   )}
                 </div>
               </div>
-              <div className="flex w-full flex-row justify-between">
-                <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
+              <div className="flex w-full flex-row items-end justify-between">
+                <div className="pl-12">
+                  <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
+                </div>
                 <Link
                   key={type.id}
                   prefetch={false}
@@ -134,7 +136,8 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                     brandColor={team.brandColor}
                     darkBrandColor={team.darkBrandColor}
                     type="button"
-                    size="base">
+                    size="base"
+                    className="h-8 flex-shrink-0">
                     {t("schedule")}
                   </Button>
                 </Link>
