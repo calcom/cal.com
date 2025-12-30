@@ -6,6 +6,9 @@ on:
     branches:
       - main
       - gh-actions-test-branch
+  # Allow CI to run when a maintainer approves an external contributor's PR
+  pull_request_review:
+    types: [submitted]
 
   workflow_dispatch:
 
@@ -14,12 +17,139 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}${{ github.event_name == 'pull_request_review' && github.event.review.state != 'approved' && '-noop' || '' }}
+  cancel-in-progress: ${{ github.event_name != 'pull_request_review' || github.event.review.state == 'approved' }}
 
 jobs:
+  # Security gate: Check if PR is from a trusted contributor or has been approved by a core team member
+  # This MUST run before any job that checks out PR code and executes it with secrets
+  trust-check:
+    name: Trust Check
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    # Skip if this is a non-approval review event (e.g., comment or changes_requested)
+    if: github.event_name != 'pull_request_review' || github.event.review.state == 'approved'
+    permissions:
+      pull-requests: read
+    outputs:
+      is-trusted: ${{ steps.check-trust.outputs.is-trusted }}
+    steps:
+      - name: Check if PR is trusted
+        id: check-trust
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const trustedAssociations = ['OWNER', 'MEMBER', 'COLLABORATOR'];
+            const pr = context.payload.pull_request;
+
+            if (!pr) {
+              if (context.eventName === 'workflow_dispatch') {
+                console.log('workflow_dispatch event - assuming trusted (manual trigger)');
+                core.setOutput('is-trusted', true);
+                return;
+              }
+              console.log('No pull request context found');
+              core.setOutput('is-trusted', false);
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = pr.number;
+            const headSha = pr.head.sha;
+
+            // Check if user has write access or higher (admin, maintain, write)
+            async function hasWriteAccess(username) {
+              try {
+                const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner,
+                  repo,
+                  username,
+                });
+                const hasAccess = ['admin', 'maintain', 'write'].includes(permission.permission);
+                console.log(`User ${username}: hasWriteAccess=${hasAccess}`);
+                return hasAccess;
+              } catch (e) {
+                console.log(`Could not check permission for ${username}: ${e.message}`);
+                return false;
+              }
+            }
+
+            console.log(`PR #${prNumber} by ${pr.user.login}`);
+            console.log(`Author association: ${pr.author_association}`);
+            console.log(`Head SHA: ${headSha}`);
+
+            // Check 1: Is the author a trusted contributor?
+            const isTrustedAuthor = trustedAssociations.includes(pr.author_association);
+            if (isTrustedAuthor) {
+              console.log(`Author ${pr.user.login} is trusted (${pr.author_association})`);
+              core.setOutput('is-trusted', true);
+              return;
+            }
+
+            // Check 2: Verify write access via API (author_association can be unreliable)
+            if (await hasWriteAccess(pr.user.login)) {
+              console.log(`Author ${pr.user.login} verified as having write access`);
+              core.setOutput('is-trusted', true);
+              return;
+            }
+
+            console.log(`Author ${pr.user.login} does not have write access, checking for approval...`);
+
+            // Check 3: Has someone with write access approved the current commit?
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {
+              owner,
+              repo,
+              pull_number: prNumber,
+              per_page: 100,
+            });
+
+            // Group reviews by reviewer and get their latest state for the current commit
+            const reviewerStates = new Map();
+            for (const review of reviews) {
+              // Only consider reviews for the current head SHA
+              if (review.commit_id !== headSha) {
+                continue;
+              }
+
+              // Only track APPROVED and CHANGES_REQUESTED states
+              if (!['APPROVED', 'CHANGES_REQUESTED'].includes(review.state)) {
+                continue;
+              }
+
+              const reviewer = review.user.login;
+              const existing = reviewerStates.get(reviewer);
+
+              // Keep the latest review (higher ID = more recent)
+              if (!existing || review.id > existing.id) {
+                reviewerStates.set(reviewer, {
+                  id: review.id,
+                  state: review.state,
+                  login: reviewer,
+                });
+              }
+            }
+
+            // Check if any approver has write access
+            for (const [reviewer, reviewData] of reviewerStates) {
+              if (reviewData.state !== 'APPROVED') {
+                continue;
+              }
+
+              if (await hasWriteAccess(reviewer)) {
+                console.log(`PR approved by ${reviewer} (has write access) for commit ${headSha}`);
+                core.setOutput('is-trusted', true);
+                return;
+              }
+              console.log(`Reviewer ${reviewer} does not have write access`);
+            }
+
+            console.log('PR requires approval from someone with write access before CI can run');
+            core.setOutput('is-trusted', false);
+
   prepare:
     name: Prepare
+    needs: [trust-check]
+    if: needs.trust-check.outputs.is-trusted == 'true'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       pull-requests: read
@@ -112,44 +242,46 @@ jobs:
             const labelFound = labels.map(l => l.name).includes('ready-for-e2e');
             console.log('Found the label?', labelFound);
             core.setOutput('run-e2e', labelFound);
-
-  deps:
-    name: Install dependencies
-    needs: [prepare]
-    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/yarn-install.yml
+      - uses: ./.github/actions/yarn-install
+        if: ${{ steps.filter.outputs.has-files-requiring-all-checks == 'true' }}
+        with:
+          skip-install-if-cache-hit: "true"
+      - uses: ./.github/actions/yarn-playwright-install
+        if: ${{ steps.filter.outputs.has-files-requiring-all-checks == 'true' }}
+        with:
+          skip-install-if-cache-hit: "true"
 
   type-check:
     name: Type check
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   lint:
     name: Linters
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   unit-test:
     name: Tests
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
   api-v2-unit-test:
     name: Tests
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-unit-tests.yml
     secrets: inherit
 
   setup-db:
     name: Setup Database
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/setup-db.yml
     with:
@@ -158,28 +290,28 @@ jobs:
 
   build-api-v1:
     name: Production builds
-    needs: [prepare, deps, setup-db]
+    needs: [prepare, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
 
   build-api-v2:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
 
   build-atoms:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/atoms-production-build.yml
     secrets: inherit
 
   build-docs:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/docs-build.yml
     secrets: inherit
@@ -193,7 +325,7 @@ jobs:
 
   build:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
@@ -214,7 +346,7 @@ jobs:
 
   check-api-v2-breaking-changes:
     name: Check API v2 breaking changes
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-api-v2-breaking-changes.yml
     secrets: inherit
@@ -256,6 +388,7 @@ jobs:
   required:
     needs:
       [
+        trust-check,
         prepare,
         lint,
         type-check,
@@ -279,6 +412,12 @@ jobs:
     if: always()
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
+      - name: Fail if PR is not trusted (external contributor without approval)
+        run: |
+          echo "::error::This PR is from an external contributor and requires approval from a core team member before CI can run."
+          echo "A maintainer with write access must approve this PR to trigger CI checks."
+          exit 1
+        if: needs.trust-check.outputs.is-trusted != 'true' && needs.trust-check.result == 'success'
       - name: fail if conditional jobs failed
         run: exit 1
         if: |

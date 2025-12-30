@@ -3493,6 +3493,7 @@
   "last_active": "Ultima activitate",
   "member_since": "Membru din",
   "last_updated": "Ultima actualizare",
+  "completed_onboarding": "Onboarding finalizat",
   "salesforce_on_cancel_write_to_event": "La anularea rezervării, scrie în înregistrarea evenimentului în loc să ștergi evenimentul",
   "salesforce_on_every_cancellation": "La fiecare anulare",
   "report_issue": "Raportează o problemă",
