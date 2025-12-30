@@ -9,9 +9,9 @@
  * - Cache invalidation on mutations
  */
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CalComAPIService, Booking } from "../services/calcom";
-import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CACHE_CONFIG, queryKeys } from "@/config/cache.config";
+import { type Booking, CalComAPIService } from "@/services/calcom";
 
 /**
  * Filter options for fetching bookings
@@ -74,7 +74,10 @@ export function useBookings(filters?: BookingFilters) {
 export function useBookingByUid(uid: string | undefined) {
   return useQuery({
     queryKey: queryKeys.bookings.detail(uid || ""),
-    queryFn: () => CalComAPIService.getBookingByUid(uid!),
+    queryFn: () => {
+      if (!uid) throw new Error("uid is required");
+      return CalComAPIService.getBookingByUid(uid);
+    },
     enabled: !!uid, // Only fetch when uid is provided
     staleTime: CACHE_CONFIG.bookings.staleTime,
   });
@@ -107,8 +110,8 @@ export function useCancelBooking() {
         queryKey: queryKeys.bookings.detail(variables.uid),
       });
     },
-    onError: (error) => {
-      console.error("Failed to cancel booking:", error);
+    onError: (_error) => {
+      console.error("Failed to cancel booking");
     },
   });
 }
@@ -151,8 +154,8 @@ export function useRescheduleBooking() {
         queryKey: queryKeys.bookings.detail(variables.uid),
       });
     },
-    onError: (error) => {
-      console.error("Failed to reschedule booking:", error);
+    onError: (_error) => {
+      console.error("Failed to reschedule booking");
     },
   });
 }
@@ -183,8 +186,8 @@ export function useConfirmBooking() {
         queryKey: queryKeys.bookings.detail(variables.uid),
       });
     },
-    onError: (error) => {
-      console.error("Failed to confirm booking:", error);
+    onError: (_error) => {
+      console.error("Failed to confirm booking");
     },
   });
 }
@@ -216,8 +219,8 @@ export function useDeclineBooking() {
         queryKey: queryKeys.bookings.detail(variables.uid),
       });
     },
-    onError: (error) => {
-      console.error("Failed to decline booking:", error);
+    onError: (_error) => {
+      console.error("Failed to decline booking");
     },
   });
 }
