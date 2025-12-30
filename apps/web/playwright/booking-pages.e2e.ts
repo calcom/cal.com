@@ -577,14 +577,14 @@ test.describe("Booking on different layouts", () => {
 
     await page.click('[data-testid="toggle-group-item-column_view"]');
 
-    const getScheduleRespPromise = page.waitForResponse(
-      (response) =>
-        response.url().includes("getSchedule") && response.status() === 200
-    );
-
     await page.click('[data-testid="incrementMonth"]');
 
-    await getScheduleRespPromise;
+    await page.waitForURL((url) => {
+      return url.searchParams.has("month");
+    })
+
+    await page.reload();
+    await page.waitForLoadState("networkidle");
 
     await page.locator('[data-testid="time"]').nth(1).click();
 
