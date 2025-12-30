@@ -135,6 +135,108 @@ describe("handleNewBooking", () => {
       timeout
     );
 
+    test(
+      `should correctly assign the first user in the URL as the organizer`,
+      async () => {
+        const handleNewBooking = getNewBookingHandler();
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        // Create two users where alphabetically the second would come first
+        const userZebra = getOrganizer({
+          name: "Zebra User",
+          username: "zebra",
+          email: "zebra@example.com",
+          id: 201,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [],
+          selectedCalendars: [],
+        });
+
+        const userAlpha = getOrganizer({
+          name: "Alpha User",
+          username: "alpha",
+          email: "alpha@example.com",
+          id: 202,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [],
+          selectedCalendars: [],
+        });
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [],
+            users: [userZebra, userAlpha],
+          })
+        );
+
+        // Book with zebra first in the URL - zebra should be the organizer
+        const mockBookingDataZebraFirst = getMockRequestDataForDynamicGroupBooking({
+          data: {
+            start: `${getDate({ dateIncrement: 1 }).dateString}T05:00:00.000Z`,
+            end: `${getDate({ dateIncrement: 1 }).dateString}T05:30:00.000Z`,
+            eventTypeId: 0,
+            eventTypeSlug: "zebra+alpha",
+            user: "zebra+alpha",
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "New York" },
+            },
+          },
+        });
+
+        const bookingZebraFirst = await handleNewBooking({
+          bookingData: mockBookingDataZebraFirst,
+        });
+
+        await expectBookingToBeInDatabase({
+          description: "",
+          uid: bookingZebraFirst.uid!,
+          eventTypeId: null,
+          status: BookingStatus.ACCEPTED,
+          iCalUID: bookingZebraFirst.iCalUID,
+        });
+
+        // Verify zebra is the organizer (the booking.userId should be zebra's id)
+        expect(bookingZebraFirst.userId).toBe(userZebra.id);
+
+        // Book with alpha first in the URL - alpha should be the organizer
+        const mockBookingDataAlphaFirst = getMockRequestDataForDynamicGroupBooking({
+          data: {
+            start: `${getDate({ dateIncrement: 1 }).dateString}T06:00:00.000Z`,
+            end: `${getDate({ dateIncrement: 1 }).dateString}T06:30:00.000Z`,
+            eventTypeId: 0,
+            eventTypeSlug: "alpha+zebra",
+            user: "alpha+zebra",
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "New York" },
+            },
+          },
+        });
+
+        const bookingAlphaFirst = await handleNewBooking({
+          bookingData: mockBookingDataAlphaFirst,
+        });
+
+        await expectBookingToBeInDatabase({
+          description: "",
+          uid: bookingAlphaFirst.uid!,
+          eventTypeId: null,
+          status: BookingStatus.ACCEPTED,
+          iCalUID: bookingAlphaFirst.iCalUID,
+        });
+
+        // Verify alpha is the organizer (the booking.userId should be alpha's id)
+        expect(bookingAlphaFirst.userId).toBe(userAlpha.id);
+      },
+      timeout
+    );
+
     describe("Availability Check During Booking", () => {
       test(
         `should fail a booking if there is already a conflicting booking in the first user's selectedCalendars`,

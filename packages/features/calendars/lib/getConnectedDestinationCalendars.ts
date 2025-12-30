@@ -3,10 +3,10 @@ import {
   getCalendarCredentials,
   getConnectedCalendars,
 } from "@calcom/features/calendars/lib/CalendarManager";
+import { DestinationCalendarRepository } from "@calcom/features/calendars/repositories/DestinationCalendarRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
-import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";

@@ -20,6 +20,7 @@ import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 export { slugify } from "@calcom/lib/slugify";
+export { slugifyLenient } from "@calcom/lib/slugify-lenient";
 export { getBookingForReschedule };
 
 export type { EventBusyDate } from "@calcom/types/Calendar";
@@ -36,6 +37,11 @@ export {
   WorkflowActions,
   WorkflowTemplates,
 } from "@calcom/prisma/enums";
+
+export {
+  WebhookVersion,
+  DEFAULT_WEBHOOK_VERSION,
+} from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 
 export { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 
@@ -113,13 +119,13 @@ export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";
 export { getCalendarLinks } from "@calcom/features/bookings/lib/getCalendarLinks";
 
-export { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
+export { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
 export type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "@calcom/trpc/server/routers/viewer/attributes/findTeamMembersMatchingAttributeLogic.schema";
 export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
 export { verifyPhoneNumber, sendVerificationCode };
 
-export { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
+export { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
 
 export { verifyCode as verifyCodeAuthenticated } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
 
@@ -130,3 +136,5 @@ export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publ
 export { TeamService } from "@calcom/features/ee/teams/services/teamService";
 
 export { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
+export { getTasker } from "@calcom/features/tasker/tasker-factory";
+export type { Tasker } from "@calcom/features/tasker/tasker";

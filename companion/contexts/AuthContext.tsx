@@ -1,23 +1,32 @@
-/// <reference types="chrome" />
-
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import * as SecureStore from "expo-secure-store";
-import { Platform } from "react-native";
-import { WebAuthService } from "../services/webAuth";
-import { CalComAPIService } from "../services/calcom";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
+import { CalComAPIService } from "@/services/calcom";
 import {
+  type CalComOAuthService,
   createCalComOAuthService,
-  OAuthTokens,
-  CalComOAuthService,
-} from "../services/oauthService";
+  type OAuthTokens,
+} from "@/services/oauthService";
+import type { UserProfile } from "@/services/types/users.types";
+import { WebAuthService } from "@/services/webAuth";
+import { secureStorage } from "@/utils/storage";
+
+/**
+ * Simplified user info stored in auth context
+ * Contains only the essential fields needed for the app
+ */
+interface AuthUserInfo {
+  id: number;
+  email: string;
+  name: string;
+  username: string;
+}
 
 interface AuthContextType {
   isAuthenticated: boolean;
   accessToken: string | null;
   refreshToken: string | null;
-  userInfo: any;
+  userInfo: AuthUserInfo | null;
   isWebSession: boolean;
-  loginFromWebSession: (userInfo: any) => Promise<void>;
+  loginFromWebSession: (userInfo: UserProfile) => Promise<void>;
   loginWithOAuth: () => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
@@ -36,104 +45,19 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Check if chrome.storage is available (browser extension context)
-const isChromeStorageAvailable = (): boolean => {
-  return (
-    Platform.OS === "web" &&
-    typeof chrome !== "undefined" &&
-    chrome.storage !== undefined &&
-    chrome.storage.local !== undefined
-  );
-};
+// Use the shared secure storage adapter
+const storage = secureStorage;
 
-// Unified storage helper to abstract web/mobile/extension differences
-const storage = {
-  get: async (key: string): Promise<string | null> => {
-    // Use chrome.storage in browser extension context (most secure)
-    if (isChromeStorageAvailable()) {
-      return new Promise((resolve) => {
-        chrome.storage.local.get([key], (result) => {
-          resolve(result[key] || null);
-        });
-      });
-    }
-    // Fall back to localStorage for regular web apps
-    if (Platform.OS === "web") {
-      return localStorage.getItem(key);
-    }
-    // Use SecureStore for mobile
-    return await SecureStore.getItemAsync(key);
-  },
-  set: async (key: string, value: string): Promise<void> => {
-    // Use chrome.storage in browser extension context (most secure)
-    if (isChromeStorageAvailable()) {
-      return new Promise((resolve, reject) => {
-        chrome.storage.local.set({ [key]: value }, () => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else {
-            resolve();
-          }
-        });
-      });
-    }
-    // Fall back to localStorage for regular web apps
-    if (Platform.OS === "web") {
-      localStorage.setItem(key, value);
-      return;
-    }
-    // Use SecureStore for mobile
-    await SecureStore.setItemAsync(key, value);
-  },
-  remove: async (key: string): Promise<void> => {
-    // Use chrome.storage in browser extension context (most secure)
-    if (isChromeStorageAvailable()) {
-      return new Promise((resolve, reject) => {
-        chrome.storage.local.remove(key, () => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else {
-            resolve();
-          }
-        });
-      });
-    }
-    // Fall back to localStorage for regular web apps
-    if (Platform.OS === "web") {
-      localStorage.removeItem(key);
-      return;
-    }
-    // Use SecureStore for mobile
-    await SecureStore.deleteItemAsync(key);
-  },
-  removeAll: async (keys: string[]): Promise<void> => {
-    // Use chrome.storage in browser extension context (most secure)
-    if (isChromeStorageAvailable()) {
-      return new Promise((resolve, reject) => {
-        chrome.storage.local.remove(keys, () => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else {
-            resolve();
-          }
-        });
-      });
-    }
-    // Fall back to localStorage for regular web apps
-    if (Platform.OS === "web") {
-      keys.forEach((key) => localStorage.removeItem(key));
-      return;
-    }
-    // Use SecureStore for mobile
-    await Promise.all(keys.map((key) => SecureStore.deleteItemAsync(key)));
-  },
-};
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : String(error);
+const getErrorStack = (error: unknown) => (error instanceof Error ? error.stack : undefined);
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  "use no memo";
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfo, setUserInfo] = useState<AuthUserInfo | null>(null);
   const [isWebSession, setIsWebSession] = useState(false);
   const [loading, setLoading] = useState(true);
   const [oauthService] = useState(() => {
@@ -146,7 +70,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   });
 
   // Setup refresh token function for OAuth
-  const setupRefreshTokenFunction = (service: CalComOAuthService) => {
+  const setupRefreshTokenFunction = useCallback((service: CalComOAuthService) => {
     CalComAPIService.setRefreshTokenFunction(async (refreshToken: string) => {
       const newTokens = await service.refreshAccessToken(refreshToken);
       return {
@@ -154,33 +78,59 @@ export function AuthProvider({ children }: AuthProviderProps) {
         refreshToken: newTokens.refreshToken,
       };
     });
-  };
+  }, []);
 
   // Common post-login setup: configure API service and fetch user profile
-  const setupAfterLogin = async (token: string, refreshToken?: string) => {
+  const setupAfterLogin = useCallback(async (token: string, refreshToken?: string) => {
     CalComAPIService.setAccessToken(token, refreshToken);
 
     try {
-      await CalComAPIService.getUserProfile();
+      const profile = await CalComAPIService.getUserProfile();
+      // Store user info for use in the app (e.g., to display "You" in bookings)
+      if (profile) {
+        setUserInfo({
+          email: profile.email,
+          name: profile.name,
+          id: profile.id,
+          username: profile.username,
+        });
+      }
     } catch (profileError) {
       console.error("Failed to fetch user profile:", profileError);
       // Don't fail login if profile fetch fails
     }
-  };
+  }, []);
 
-  // Save OAuth tokens to storage
-  const saveOAuthTokens = async (tokens: OAuthTokens) => {
-    await storage.set(OAUTH_TOKENS_KEY, JSON.stringify(tokens));
-    await storage.set(AUTH_TYPE_KEY, "oauth");
-  };
+  const saveOAuthTokens = useCallback(
+    async (tokens: OAuthTokens) => {
+      await storage.set(OAUTH_TOKENS_KEY, JSON.stringify(tokens));
+      await storage.set(AUTH_TYPE_KEY, "oauth");
 
-  // Clear all auth data from storage
-  const clearAuth = async () => {
+      if (oauthService) {
+        try {
+          await oauthService.syncTokensToExtension(tokens);
+        } catch (error) {
+          console.warn("Failed to sync tokens to extension:", error);
+        }
+      }
+    },
+    [oauthService]
+  );
+
+  const clearAuth = useCallback(async () => {
     await storage.removeAll([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, OAUTH_TOKENS_KEY, AUTH_TYPE_KEY]);
-  };
+
+    if (oauthService) {
+      try {
+        await oauthService.clearTokensFromExtension();
+      } catch (error) {
+        console.warn("Failed to clear tokens from extension:", error);
+      }
+    }
+  }, [oauthService]);
 
   // Reset all auth state
-  const resetAuthState = () => {
+  const resetAuthState = useCallback(() => {
     setAccessToken(null);
     setRefreshToken(null);
     setUserInfo(null);
@@ -188,7 +138,94 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsWebSession(false);
     CalComAPIService.clearAuth();
     CalComAPIService.clearUserProfile();
-  };
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await clearAuth();
+      resetAuthState();
+    } catch (error) {
+      const message = getErrorMessage(error);
+      console.error("Failed to logout", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] logout failed", { message, stack: getErrorStack(error) });
+      }
+    }
+  }, [clearAuth, resetAuthState]);
+
+  // Handle OAuth authentication
+  const handleOAuthAuth = useCallback(
+    async (storedTokens: OAuthTokens) => {
+      if (!oauthService) return;
+
+      // Refresh token if expired
+      let tokens = storedTokens;
+      let tokensWereRefreshed = false;
+      if (oauthService.isTokenExpired(storedTokens) && storedTokens.refreshToken) {
+        try {
+          console.log("Access token expired, refreshing...");
+          tokens = await oauthService.refreshAccessToken(storedTokens.refreshToken);
+          await saveOAuthTokens(tokens);
+          tokensWereRefreshed = true;
+        } catch (refreshError) {
+          console.error("Failed to refresh token:", refreshError);
+          await clearAuth();
+          return;
+        }
+      }
+
+      // Set state
+      setAccessToken(tokens.accessToken);
+      setRefreshToken(tokens.refreshToken || null);
+      setIsAuthenticated(true);
+      setIsWebSession(false);
+
+      // Setup API service and refresh function
+      await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
+      if (tokens.refreshToken) {
+        setupRefreshTokenFunction(oauthService);
+      }
+
+      if (!tokensWereRefreshed) {
+        try {
+          await oauthService.syncTokensToExtension(tokens);
+        } catch (error) {
+          console.warn("Failed to sync tokens to extension on init:", error);
+        }
+      }
+    },
+    [oauthService, saveOAuthTokens, clearAuth, setupAfterLogin, setupRefreshTokenFunction]
+  );
+
+  // Handle web session authentication
+  const handleWebSessionAuth = useCallback(() => {
+    setIsWebSession(true);
+  }, []);
+
+  const checkAuthState = useCallback(async () => {
+    try {
+      const authType = (await storage.get(AUTH_TYPE_KEY)) as AuthType | null;
+      const storedOAuthTokens = await storage.get(OAUTH_TOKENS_KEY);
+      const storedTokens = storedOAuthTokens ? JSON.parse(storedOAuthTokens) : null;
+
+      if (authType === "oauth" && storedTokens && oauthService) {
+        await handleOAuthAuth(storedTokens);
+      } else if (authType === "web_session") {
+        handleWebSessionAuth();
+      }
+      setLoading(false);
+    } catch (error) {
+      const message = getErrorMessage(error);
+      console.error("Failed to check auth state", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] checkAuthState failed", {
+          message,
+          stack: getErrorStack(error),
+        });
+      }
+      setLoading(false);
+    }
+  }, [oauthService, handleOAuthAuth, handleWebSessionAuth]);
 
   useEffect(() => {
     checkAuthState();
@@ -213,7 +250,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           newRefreshToken || refreshToken || undefined
         );
       } catch (error) {
-        console.error("Failed to handle token refresh:", error);
+        const message = getErrorMessage(error);
+        console.error("Failed to handle token refresh", message);
+        if (__DEV__) {
+          console.debug("[AuthContext] token refresh handler failed", {
+            message,
+            stack: getErrorStack(error),
+          });
+        }
         await logout();
       }
     };
@@ -223,65 +267,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => {
       CalComAPIService.setTokenRefreshCallback(() => Promise.resolve());
     };
-  }, [refreshToken]);
+  }, [refreshToken, checkAuthState, logout, saveOAuthTokens]);
 
-  // Handle OAuth authentication
-  const handleOAuthAuth = async (storedTokens: OAuthTokens) => {
-    if (!oauthService) return;
-
-    // Refresh token if expired
-    let tokens = storedTokens;
-    if (oauthService.isTokenExpired(storedTokens) && storedTokens.refreshToken) {
-      try {
-        console.log("Access token expired, refreshing...");
-        tokens = await oauthService.refreshAccessToken(storedTokens.refreshToken);
-        await saveOAuthTokens(tokens);
-      } catch (refreshError) {
-        console.error("Failed to refresh token:", refreshError);
-        await clearAuth();
-        return;
-      }
-    }
-
-    // Set state
-    setAccessToken(tokens.accessToken);
-    setRefreshToken(tokens.refreshToken || null);
-    setIsAuthenticated(true);
-    setIsWebSession(false);
-
-    // Setup API service and refresh function
-    await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
-    if (tokens.refreshToken) {
-      setupRefreshTokenFunction(oauthService);
-    }
-  };
-
-  // Handle web session authentication
-  const handleWebSessionAuth = () => {
-    setIsWebSession(true);
-  };
-
-  const checkAuthState = async () => {
+  const loginFromWebSession = async (sessionUserInfo: UserProfile) => {
     try {
-      const authType = (await storage.get(AUTH_TYPE_KEY)) as AuthType | null;
-      const storedOAuthTokens = await storage.get(OAUTH_TOKENS_KEY);
-      const storedTokens = storedOAuthTokens ? JSON.parse(storedOAuthTokens) : null;
-
-      if (authType === "oauth" && storedTokens && oauthService) {
-        await handleOAuthAuth(storedTokens);
-      } else if (authType === "web_session") {
-        handleWebSessionAuth();
-      }
-    } catch (error) {
-      console.error("Failed to check auth state:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loginFromWebSession = async (sessionUserInfo: any) => {
-    try {
-      setUserInfo(sessionUserInfo);
+      setUserInfo({
+        id: sessionUserInfo.id,
+        email: sessionUserInfo.email,
+        name: sessionUserInfo.name,
+        username: sessionUserInfo.username,
+      });
       setIsAuthenticated(true);
       setIsWebSession(true);
       await storage.set(AUTH_TYPE_KEY, "web_session");
@@ -294,7 +289,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
       }
     } catch (error) {
-      console.error("Failed to login from web session:", error);
+      const message = getErrorMessage(error);
+      console.error("Failed to login from web session", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] loginFromWebSession failed", {
+          message,
+          stack: getErrorStack(error),
+        });
+      }
       throw error;
     }
   };
@@ -304,9 +306,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       throw new Error("OAuth service not available. Please check your configuration.");
     }
 
+    setLoading(true);
     try {
-      setLoading(true);
-
       const tokens = await oauthService.startAuthorizationFlow();
 
       // Save tokens
@@ -326,20 +327,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Clear PKCE parameters
       oauthService.clearPKCEParams();
-    } catch (error) {
-      console.error("OAuth login failed:", error);
-      throw error;
-    } finally {
       setLoading(false);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await clearAuth();
-      resetAuthState();
     } catch (error) {
-      console.error("Failed to logout:", error);
+      setLoading(false);
+      const message = getErrorMessage(error);
+      console.error("OAuth login failed", message);
+      if (__DEV__) {
+        console.debug("[AuthContext] loginWithOAuth failed", {
+          message,
+          stack: getErrorStack(error),
+        });
+      }
+      throw error;
     }
   };
 

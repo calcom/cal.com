@@ -12,6 +12,7 @@ import { eventTypeRepositoryModule } from "../modules/EventType";
 import { featuresRepositoryModule } from "../modules/Features";
 import { filterHostsModule } from "../modules/FilterHosts";
 import { getUserAvailabilityModule } from "../modules/GetUserAvailability";
+import { holidayRepositoryModule } from "../modules/Holiday";
 import { noSlotsNotificationModule } from "../modules/NoSlotsNotification";
 import { oooRepositoryModule } from "../modules/Ooo";
 import { qualifiedHostsModule } from "../modules/QualifiedHosts";
@@ -32,6 +33,7 @@ container.load(DI_TOKENS.MEMBERSHIP_REPOSITORY_MODULE, membershipRepositoryModul
 container.load(DI_TOKENS.USER_REPOSITORY_MODULE, userRepositoryModule);
 container.load(DI_TOKENS.BOOKING_REPOSITORY_MODULE, bookingRepositoryModule);
 container.load(DI_TOKENS.EVENT_TYPE_REPOSITORY_MODULE, eventTypeRepositoryModule);
+container.load(DI_TOKENS.HOLIDAY_REPOSITORY_MODULE, holidayRepositoryModule);
 container.load(DI_TOKENS.ROUTING_FORM_RESPONSE_REPOSITORY_MODULE, routingFormResponseRepositoryModule);
 container.load(DI_TOKENS.FEATURES_REPOSITORY_MODULE, featuresRepositoryModule);
 container.load(DI_TOKENS.CHECK_BOOKING_LIMITS_SERVICE_MODULE, checkBookingLimitsModule);

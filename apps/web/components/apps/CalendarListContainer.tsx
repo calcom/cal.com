@@ -106,7 +106,7 @@ export function CalendarListContainer({
   const { error, setQuery: setError } = useRouterQuery("error");
 
   useEffect(() => {
-    if (error === "account_already_linked") {
+    if (error === "account_already_linked" || error === "no_default_calendar") {
       showToast(t(error), "error", { id: error });
       setError(undefined);
     }
