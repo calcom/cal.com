@@ -3493,6 +3493,7 @@
   "last_active": "Τελευταία ενεργός",
   "member_since": "Μέλος από",
   "last_updated": "Τελευταία ενημέρωση",
+  "completed_onboarding": "Ολοκληρωμένη εισαγωγή",
   "salesforce_on_cancel_write_to_event": "Σε ακύρωση κράτησης, εγγραφή στο αρχείο συμβάντος αντί για διαγραφή συμβάντος",
   "salesforce_on_every_cancellation": "Σε κάθε ακύρωση",
   "report_issue": "Αναφορά προβλήματος",
