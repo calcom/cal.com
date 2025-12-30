@@ -13,6 +13,8 @@
   "complete_onboarding_flow_payment": "3. যদি ইতিমধ্যে যোগ করা না থাকে, তাহলে বার্তা পাঠাতে সক্ষম হতে Meta Cloud API-এর সাবস্ক্রিপশন সম্পূর্ণ করতে একটি ক্রেডিট কার্ড যোগ করুন।",
   "skip_sharing_chat": "4. চ্যাট ইতিহাস শেয়ার করা ঐচ্ছিক এবং আমরা এটি ব্যবহার করি না। অনুরোধ করা হলে আপনি শেয়ার না করা বেছে নিতে পারেন।",
   "connect_whatsapp_business": "Whatsapp Business",
+  "create_templates": "টেমপ্লেট তৈরি করুন",
+  "sync_templates": "টেমপ্লেট সিঙ্ক করুন",
   "change_file": "ফাইল পরিবর্তন করুন",
   "sync_failed": "টেমপ্লেট সিঙ্ক করতে ব্যর্থ",
   "successfully_synced": "সফলভাবে টেমপ্লেট সিঙ্ক হয়েছে",

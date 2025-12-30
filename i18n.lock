@@ -15,6 +15,8 @@ checksums:
     complete_onboarding_flow_payment: a90d6e0716c540e25d9f746c28344a7e
     skip_sharing_chat: 556e86fcff3c7c981c6ad11239d7d5d4
     connect_whatsapp_business: f92ce80cb42ad3bec30642b80fd80bda
+    create_templates: 045d7fef74ae8f5b5c2d0c9990d63a03
+    sync_templates: 4afeacadea9ff7b95f13094292140f04
     change_file: c5163ac18bf443370228a8ecbb0b07da
     sync_failed: 0e23661df3d2de59bcf5d06e60776dac
     successfully_synced: f048e136fc5a4cec4b72cf536702d805
