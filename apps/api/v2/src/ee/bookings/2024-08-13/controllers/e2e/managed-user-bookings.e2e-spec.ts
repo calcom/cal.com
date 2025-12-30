@@ -356,7 +356,6 @@ describe("Managed user bookings 2024-08-13", () => {
       const firstManagedUserBookingsResponseBody: GetBookingsOutput_2024_08_13 =
         getFirstManagedUserBookings.body;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       const firstManagedUserBookings: BookingOutput_2024_08_13[] = firstManagedUserBookingsResponseBody.data;
       expect(firstManagedUserBookings.length).toEqual(firstManagedUserBookingsCount);
 
