@@ -20,9 +20,9 @@
     "copy-app-store-static": "node scripts/copy-app-store-static.js",
     "build": "next build && yarn sentry:release",
     "start": "next start",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "lint:report": "biome lint --reporter json . > ../../lint-results/web.json",
     "check-changed-files": "ts-node scripts/ts-check-changed-files.ts",
     "translate-locales": "ts-node scripts/check-missing-translations.ts",
     "stripe:listen": "stripe listen --forward-to http://localhost:3000/api/stripe/webhook"
@@ -152,7 +152,6 @@
   "devDependencies": {
     "@babel/core": "7.26.10",
     "@calcom/config": "workspace:*",
-    "@calcom/eslint-config": "workspace:*",
     "@calcom/types": "workspace:*",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@playwright/test": "1.57.0",
