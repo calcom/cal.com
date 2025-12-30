@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { UserAvailabilityService } from "@calcom/features/availability/lib/getUserAvailability";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * Tests for the blockedByWatchlist feature.
@@ -42,6 +41,8 @@ describe("blockedByWatchlist - Schedule Blocking", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Fix system time to a known date (Wednesday, Jan 15, 2025)
+    vi.setSystemTime(new Date("2025-01-15T10:00:00.000Z"));
 
     service = new UserAvailabilityService({
       eventTypeRepo: mockEventTypeRepo as never,
@@ -50,6 +51,10 @@ describe("blockedByWatchlist - Schedule Blocking", () => {
       redisClient: mockRedisClient as never,
       holidayRepo: mockHolidayRepo as never,
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   describe("User Schedule Blocking", () => {
@@ -61,9 +66,9 @@ describe("blockedByWatchlist - Schedule Blocking", () => {
         availability: [
           {
             date: null,
-            startTime: new Date("1970-01-01T09:00:00Z"),
-            endTime: new Date("1970-01-01T17:00:00Z"),
-            days: [1, 2, 3, 4, 5],
+            startTime: new Date("1970-01-01T09:00:00.000Z"),
+            endTime: new Date("1970-01-01T17:00:00.000Z"),
+            days: [0, 1, 2, 3, 4, 5, 6],
           },
         ],
       };
@@ -88,12 +93,13 @@ describe("blockedByWatchlist - Schedule Blocking", () => {
         userLevelSelectedCalendars: [],
       };
 
+      // Query for tomorrow (2025-01-16) - relative to fixed system time
       const result = await service._getUserAvailability(
         {
           userId: 1,
           username: "blocked-user",
-          dateFrom: "2025-01-01T00:00:00Z",
-          dateTo: "2025-01-01T23:59:59Z",
+          dateFrom: "2025-01-16T00:00:00.000Z",
+          dateTo: "2025-01-16T23:59:59.999Z",
           returnDateOverrides: false,
           bypassBusyCalendarTimes: false,
         },
@@ -110,6 +116,7 @@ describe("blockedByWatchlist - Schedule Blocking", () => {
     });
 
     it("should NOT short-circuit when user schedule is NOT blocked", async () => {
+      // Schedule with availability all days, 9AM-5PM UTC
       const normalSchedule = {
         id: 1,
         timeZone: "UTC",
@@ -117,9 +124,9 @@ describe("blockedByWatchlist - Schedule Blocking", () => {
         availability: [
           {
             date: null,
-            startTime: new Date("1970-01-01T09:00:00Z"),
-            endTime: new Date("1970-01-01T17:00:00Z"),
-            days: [1, 2, 3, 4, 5], // Monday-Friday
+            startTime: new Date("1970-01-01T09:00:00.000Z"),
+            endTime: new Date("1970-01-01T17:00:00.000Z"),
+            days: [0, 1, 2, 3, 4, 5, 6], // All days
           },
         ],
       };
@@ -144,13 +151,13 @@ describe("blockedByWatchlist - Schedule Blocking", () => {
         userLevelSelectedCalendars: [],
       };
 
-      // Use a Monday date (2025-01-06)
+      // Query for tomorrow (2025-01-16, Thursday) - relative to fixed system time
       const result = await service._getUserAvailability(
         {
           userId: 2,
           username: "normal-user",
-          dateFrom: "2025-01-06T00:00:00Z",
-          dateTo: "2025-01-06T23:59:59Z",
+          dateFrom: "2025-01-16T00:00:00.000Z",
+          dateTo: "2025-01-16T23:59:59.999Z",
           returnDateOverrides: false,
           bypassBusyCalendarTimes: false,
         },
@@ -161,6 +168,7 @@ describe("blockedByWatchlist - Schedule Blocking", () => {
       );
 
       // When NOT blocked, the function proceeds with normal availability calculation
+      // The blocked early-return has workingHours: [], but normal flow calculates workingHours from schedule
       expect(result.workingHours.length).toBeGreaterThan(0);
     });
   });
@@ -174,9 +182,9 @@ describe("blockedByWatchlist - Schedule Blocking", () => {
         availability: [
           {
             date: null,
-            startTime: new Date("1970-01-01T09:00:00Z"),
-            endTime: new Date("1970-01-01T17:00:00Z"),
-            days: [1, 2, 3, 4, 5],
+            startTime: new Date("1970-01-01T09:00:00.000Z"),
+            endTime: new Date("1970-01-01T17:00:00.000Z"),
+            days: [0, 1, 2, 3, 4, 5, 6],
           },
         ],
       };
@@ -188,9 +196,9 @@ describe("blockedByWatchlist - Schedule Blocking", () => {
         availability: [
           {
             date: null,
-            startTime: new Date("1970-01-01T09:00:00Z"),
-            endTime: new Date("1970-01-01T17:00:00Z"),
-            days: [1, 2, 3, 4, 5],
+            startTime: new Date("1970-01-01T09:00:00.000Z"),
+            endTime: new Date("1970-01-01T17:00:00.000Z"),
+            days: [0, 1, 2, 3, 4, 5, 6],
           },
         ],
       };
@@ -232,12 +240,13 @@ describe("blockedByWatchlist - Schedule Blocking", () => {
         afterEventBuffer: 0,
       };
 
+      // Query for tomorrow (2025-01-16) - relative to fixed system time
       const result = await service._getUserAvailability(
         {
           userId: 1,
           username: "host-user",
-          dateFrom: "2025-01-06T00:00:00Z",
-          dateTo: "2025-01-06T23:59:59Z",
+          dateFrom: "2025-01-16T00:00:00.000Z",
+          dateTo: "2025-01-16T23:59:59.999Z",
           eventTypeId: 100,
           returnDateOverrides: false,
           bypassBusyCalendarTimes: false,
@@ -255,4 +264,3 @@ describe("blockedByWatchlist - Schedule Blocking", () => {
     });
   });
 });
-
