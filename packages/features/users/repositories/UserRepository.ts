@@ -1,13 +1,13 @@
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
@@ -386,6 +386,19 @@ export class UserRepository {
       ...user,
       metadata: userMetadata.parse(user.metadata),
     };
+  }
+
+  async findByUuid({ uuid }: { uuid: string }) {
+    return this.prismaClient.user.findUnique({
+      where: {
+        uuid,
+      },
+      select: {
+        name: true,
+        email: true,
+        avatarUrl: true,
+      },
+    });
   }
 
   async findByIds({ ids }: { ids: number[] }) {
@@ -1010,6 +1023,7 @@ export class UserRepository {
       },
       select: {
         id: true,
+        uuid: true,
         username: true,
         name: true,
         email: true,

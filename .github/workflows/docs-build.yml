@@ -9,12 +9,12 @@ jobs:
     name: Build Docs
     permissions:
       contents: read
-    runs-on: buildjet-2vcpu-ubuntu-2204
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
       - name: Cache Docs build
-        uses: buildjet/cache@v4
+        uses: actions/cache@v4
         id: cache-docs-build
         env:
           cache-name: docs-build

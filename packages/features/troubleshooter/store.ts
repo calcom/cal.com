@@ -17,6 +17,7 @@ type EventType = {
   id: number;
   slug: string;
   duration: number;
+  teamId?: number | null;
 };
 
 export type TroubleshooterStore = {
@@ -76,7 +77,7 @@ export const useTroubleshooterStore = create<TroubleshooterStore>((set, get) => 
   event: null,
   setEvent: (event: EventType) => {
     set({ event });
-    updateQueryParam("eventType", event.slug ?? "");
+    updateQueryParam("eventTypeId", event.id.toString());
   },
   month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {

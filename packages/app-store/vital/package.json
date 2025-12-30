@@ -7,8 +7,8 @@
   "description": "Connect your health data or wearables to trigger actions on your calendar.",
   "dependencies": {
     "@calcom/prisma": "workspace:*",
-    "@tryvital/vital-node": "^1.4.6",
-    "queue": "^6.0.2"
+    "@tryvital/vital-node": "1.4.6",
+    "queue": "6.0.2"
   },
   "devDependencies": {
     "@calcom/types": "workspace:*"
