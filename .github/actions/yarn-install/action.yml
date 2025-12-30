@@ -61,7 +61,7 @@ runs:
         key: ${{ runner.os }}-yarn-install-state-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
 
     - name: Install dependencies
-      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.yarn-nm-cache.outputs.cache-hit != 'true' }}
+      if: ${{ inputs.skip-install-if-cache-hit != 'true' && steps.yarn-nm-cache.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
         yarn install --inline-builds
