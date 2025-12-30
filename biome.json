@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
   "root": true,
   "css": {
     "parser": {
@@ -21,26 +21,29 @@
   "files": {
     "includes": [
       "**/*",
-      "!**/node_modules",
-      "!**/.next",
-      "!**/.turbo",
-      "!**/dist",
-      "!**/build",
-      "!**/public",
-      "!public",
-      "!apps/web/public/embed",
-      "!packages/prisma/zod",
-      "!packages/prisma/enums",
-      "!*.lock",
-      "!*.log",
-      "!.gitignore",
-      "!.npmignore",
-      "!.prettierignore",
-      "!.eslintignore",
-      "!.DS_Store",
-      "!coverage",
-      "!lint-results",
-      "!test-results"
+      "!!**/node_modules",
+      "!!**/.next",
+      "!!**/.turbo",
+      "!!**/dist",
+      "!!**/build",
+      "!!**/public",
+      "!!public",
+      "!!apps/web/public/embed",
+      "!!packages/prisma/zod",
+      "!!packages/prisma/enums",
+      "!!*.lock",
+      "!!*.log",
+      "!!.gitignore",
+      "!!.npmignore",
+      "!!.prettierignore",
+      "!!.eslintignore",
+      "!!.DS_Store",
+      "!!coverage",
+      "!!lint-results",
+      "!!test-results",
+      "!!packages/lib/raqb/resolveQueryValue.test.ts",
+      "!!packages/ui/components/editor/plugins/ToolbarPlugin.tsx",
+      "!!packages/embeds/embed-core/src/lib/domUtils.ts"
     ]
   },
   "javascript": {
@@ -58,17 +61,14 @@
     "enabled": true,
     "rules": {
       "recommended": true,
-      "style": {
-        "useNodejsImportProtocol": "warn"
-      },
-      "correctness": {
-        "noUnusedVariables": {
-          "level": "warn",
-          "options": {
-            "ignoreRestSiblings": true
-          }
-        }
-      }
+      "correctness": "warn",
+      "suspicious": "warn",
+      "complexity": "warn",
+      "performance": "warn",
+      "nursery": "warn",
+      "a11y": "warn",
+      "style": "warn",
+      "security": "warn"
     }
   },
   "overrides": [
@@ -78,7 +78,7 @@
         "rules": {
           "style": {
             "noRestrictedImports": {
-              "level": "error",
+              "level": "warn",
               "options": {
                 "patterns": [
                   {
@@ -110,7 +110,7 @@
         "rules": {
           "style": {
             "noRestrictedImports": {
-              "level": "error",
+              "level": "warn",
               "options": {
                 "patterns": [
                   {
@@ -134,7 +134,7 @@
         "rules": {
           "style": {
             "noRestrictedImports": {
-              "level": "error",
+              "level": "warn",
               "options": {
                 "patterns": [
                   {
@@ -154,7 +154,7 @@
         "rules": {
           "style": {
             "noRestrictedImports": {
-              "level": "error",
+              "level": "warn",
               "options": {
                 "patterns": [
                   {

@@ -1605,7 +1605,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@biomejs/biome@npm:^2.3.8":
+"@biomejs/biome@npm:2.3.10, @biomejs/biome@npm:^2.3.8":
   version: 2.3.10
   resolution: "@biomejs/biome@npm:2.3.10"
   dependencies:
@@ -2376,6 +2376,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/embed-core@workspace:packages/embeds/embed-core"
   dependencies:
+    "@biomejs/biome": "npm:2.3.10"
     "@playwright/test": "npm:1.57.0"
     "@tailwindcss/cli": "npm:4.1.16"
     "@tailwindcss/postcss": "npm:4.1.15"
@@ -2767,6 +2768,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/lib@workspace:packages/lib"
   dependencies:
+    "@biomejs/biome": "npm:2.3.10"
     "@calcom/config": "workspace:*"
     "@calcom/dayjs": "workspace:*"
     "@calcom/tsconfig": "workspace:*"
@@ -3251,6 +3253,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/trpc@workspace:packages/trpc"
   dependencies:
+    "@biomejs/biome": "npm:2.3.10"
     "@tanstack/react-query": "npm:5.17.19"
     "@trpc/client": "npm:11.0.0-next-beta.222"
     "@trpc/next": "npm:11.0.0-next-beta.222"
@@ -3403,6 +3406,7 @@ __metadata:
   resolution: "@calcom/web@workspace:apps/web"
   dependencies:
     "@babel/core": "npm:7.26.10"
+    "@biomejs/biome": "npm:2.3.10"
     "@boxyhq/saml-jackson": "npm:1.52.2"
     "@calcom/app-store": "workspace:*"
     "@calcom/app-store-cli": "workspace:*"
@@ -3980,6 +3984,7 @@ __metadata:
   resolution: "@coss/ui@workspace:packages/coss-ui"
   dependencies:
     "@base-ui/react": "npm:1.0.0"
+    "@biomejs/biome": "npm:2.3.10"
     class-variance-authority: "npm:0.7.1"
     clsx: "npm:2.1.1"
     lucide-react: "npm:0.555.0"
@@ -18758,7 +18763,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "calcom-monorepo@workspace:."
   dependencies:
-    "@biomejs/biome": "npm:^2.3.8"
+    "@biomejs/biome": "npm:2.3.10"
     "@changesets/changelog-github": "npm:0.5.1"
     "@changesets/cli": "npm:2.29.4"
     "@faker-js/faker": "npm:9.2.0"
