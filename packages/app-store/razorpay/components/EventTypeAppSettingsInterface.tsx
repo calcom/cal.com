@@ -1,14 +1,19 @@
+// Razorpay settings
+import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useState, useEffect } from "react";
 
 import {
   currencyOptions,
   currencySymbols,
   isAcceptedCurrencyCode,
-} from "@calcom/app-store/paypal/lib/currencyOptions";
+} from "@calcom/app-store/razorpay/lib/currencyOptions";
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { RefundPolicy } from "@calcom/lib/payment/types";
+import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Select, TextField } from "@calcom/ui/components/form";
+import { Radio, RadioField, RadioIndicator } from "@calcom/ui/components/radio";
 
 import { RazorpayPaymentOptions as paymentOptions } from "../zod";
 
@@ -17,6 +22,7 @@ type Option = { value: string; label: string };
 const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   getAppData,
   setAppData,
+  disabled,
   eventType,
 }) => {
   const price = getAppData("price");
@@ -35,6 +41,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   };
   const seatsEnabled = !!eventType.seatsPerTimeSlot;
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
+
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
 
@@ -47,7 +54,12 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
         setAppData("paymentOption", paymentOptions[0].value);
       }
     }
-  }, []);
+  }, [requirePayment, getAppData, setAppData]);
+
+  const options = [
+    { value: 0, label: t("business_days") },
+    { value: 1, label: t("calendar_days") },
+  ];
 
   if (recurringEventDefined) {
     return <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />;
@@ -71,7 +83,8 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           required
           className="block w-full rounded-sm pl-2 text-sm"
           placeholder="Price"
-          data-testid="paypal-price-input"
+          data-testid="razorpay-price-input"
+          disabled={disabled}
           onChange={(e) => {
             setAppData("price", Number(e.target.value) * 100);
             if (selectedCurrency) {
@@ -87,11 +100,12 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
         </label>
         <Select
           variant="default"
-          data-testid="paypal-currency-select"
+          data-testid="razorpay-currency-select"
           options={currencyOptions}
           value={selectedCurrency}
           className="text-black"
           defaultValue={selectedCurrency}
+          isDisabled={disabled}
           onChange={(e) => {
             if (e) {
               setSelectedCurrency(e);
