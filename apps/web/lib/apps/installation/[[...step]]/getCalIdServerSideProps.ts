@@ -214,6 +214,9 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
     appMetadata.slug === "whatsapp-business";
 
   const isConferencing = isConferencingApp(appMetadata.categories);
+
+  const noTeamsOnAccountsPage = ["make", "zapier", "viasocket"].includes(appMetadata.slug);
+
   const showEventTypesStep = extendsEventType || isConferencing;
 
   const user = await getUser(session.user.id);
@@ -321,6 +324,7 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
       isOrg,
       // conferencing apps dont support team install
       installableOnTeams: !isConferencing,
+      noTeamsOnAccountsPage,
     } as OnboardingPageProps,
   };
 };
