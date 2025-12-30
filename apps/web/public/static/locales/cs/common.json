@@ -3493,6 +3493,7 @@
   "last_active": "Naposledy aktivní",
   "member_since": "Členem od",
   "last_updated": "Naposledy aktualizováno",
+  "completed_onboarding": "Dokončené úvodní nastavení",
   "salesforce_on_cancel_write_to_event": "Při zrušení rezervace zapsat do záznamu události místo smazání události",
   "salesforce_on_every_cancellation": "Při každém zrušení",
   "report_issue": "Nahlásit problém",

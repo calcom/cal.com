@@ -3493,6 +3493,7 @@
   "last_active": "آخر نشاط",
   "member_since": "عضو منذ",
   "last_updated": "آخر تحديث",
+  "completed_onboarding": "اكتمل الإعداد",
   "salesforce_on_cancel_write_to_event": "عند إلغاء الحجز، اكتب في سجل الحدث بدلاً من حذف الحدث",
   "salesforce_on_every_cancellation": "عند كل إلغاء",
   "report_issue": "الإبلاغ عن مشكلة",

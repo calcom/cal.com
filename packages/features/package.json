@@ -7,7 +7,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "lint": "eslint .",
+    "lint": "biome lint .",
     "dev:trigger": "npx trigger.dev@latest dev --analyze",
     "deploy:trigger": "npx trigger.dev@latest deploy"
   },
@@ -30,6 +30,7 @@
     "react-select": "5.8.0",
     "react-sticky-box": "2.0.4",
     "recharts": "3.0.2",
+    "stripe": "9.16.0",
     "stripe-event-types": "3.1.0",
     "web-push": "3.6.7",
     "zustand": "4.5.2"

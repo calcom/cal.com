@@ -3490,6 +3490,7 @@ checksums:
     last_active: f56f696ea3c36a1084fe7fab1c422b74
     member_since: 68f13de9a1bc207db0d8b62c6b433052
     last_updated: 956353f0af47fe60f0f45ec25d129a01
+    completed_onboarding: 264710464ed3a726be025bdbff860db5
     salesforce_on_cancel_write_to_event: 5d82dd4959cc2ae009a750f096ad74e0
     salesforce_on_every_cancellation: a54453f804195b3747564b1ceb0d60b4
     report_issue: 5abe40470cb5476d6e4f49fe422bd438

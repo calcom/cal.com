@@ -79,6 +79,7 @@ const initalColumnVisibility = {
   teams: true,
   createdAt: false,
   updatedAt: false,
+  completedOnboarding: false,
   twoFactorEnabled: false,
   actions: true,
 };
@@ -417,6 +418,22 @@ function UserListTableContent({
           },
         },
         cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
+      },
+      {
+        id: "completedOnboarding",
+        accessorKey: "completedOnboarding",
+        header: t("completed_onboarding"),
+        enableSorting: false,
+        enableColumnFilter: false,
+        size: 80,
+        cell: ({ row }) => {
+          const { completedOnboarding } = row.original;
+          return (
+            <Badge variant={completedOnboarding ? "green" : "gray"}>
+              {completedOnboarding ? t("yes") : t("no")}
+            </Badge>
+          );
+        },
       },
       {
         id: "twoFactorEnabled",
