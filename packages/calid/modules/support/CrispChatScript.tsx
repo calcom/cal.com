@@ -6,7 +6,6 @@ import { useEffect, useRef } from "react";
 import { trpc } from "@calcom/trpc/react";
 
 import { useMediaQuery } from "../../hooks/useMediaQuery";
-import useIsWebView from "./hooks/useIsWebView";
 
 declare global {
   interface Window {
@@ -29,7 +28,6 @@ const isAuthOrGettingStartedPages = (pathname: string) => {
 };
 
 export default function CrispChatScript() {
-  const isWebView = useIsWebView();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const pathname = usePathname();
   const { data: session, status } = useSession();
@@ -45,7 +43,6 @@ export default function CrispChatScript() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (isWebView === null) return;
     if (status === "loading") return;
 
     if (!hasLoadedRef.current) {
@@ -63,10 +60,16 @@ export default function CrispChatScript() {
           "on",
           "session:loaded",
           () => {
-            const shouldShow = isMobile && isAuthOrGettingStartedPages(window.location.pathname);
-            if (isMobile && !shouldShow) {
+            if (isMobile) {
               window.$crisp.push(["do", "chat:hide"]);
               window.$crisp.push(["on", "chat:closed", () => window.$crisp.push(["do", "chat:hide"])]);
+            } else {
+              const shouldHide = isAuthOrGettingStartedPages(window.location.pathname);
+              if (shouldHide) {
+                window.$crisp.push(["do", "chat:hide"]);
+              } else {
+                window.$crisp.push(["do", "chat:show"]);
+              }
             }
           },
         ]);
@@ -87,20 +90,24 @@ export default function CrispChatScript() {
     previousTokenRef.current = currentToken;
 
     window.openCrispChat = () => {
-      if (isMobile) window.$crisp?.push(["do", "chat:show"]);
+      if (isMobile) {
+        window.$crisp?.push(["do", "chat:show"]);
+      }
       window.$crisp?.push(["do", "chat:open"]);
     };
-  }, [isWebView, isMobile, isAuthenticated, status, crispTokenData]);
+  }, [isMobile, isAuthenticated, status, crispTokenData]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.$crisp || !Array.isArray(window.$crisp)) return;
 
-    const shouldShow = isMobile && isAuthOrGettingStartedPages(pathname || "");
     if (isMobile) {
-      if (shouldShow) {
-        window.$crisp.push(["do", "chat:show"]);
-      } else {
+      window.$crisp.push(["do", "chat:hide"]);
+    } else {
+      const shouldHide = isAuthOrGettingStartedPages(pathname || "");
+      if (shouldHide) {
         window.$crisp.push(["do", "chat:hide"]);
+      } else {
+        window.$crisp.push(["do", "chat:show"]);
       }
     }
   }, [pathname, isMobile]);
