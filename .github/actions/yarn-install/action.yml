@@ -16,7 +16,7 @@ inputs:
     required: false
     default: v20.x
   skip-install-if-cache-hit:
-    description: "Skip yarn install if node_modules cache is hit. Use this for jobs that only need to populate the cache."
+    description: "Skip yarn install if node_modules cache is hit. Use this for jobs that only need to check that cache exists."
     required: false
     default: "false"
 
