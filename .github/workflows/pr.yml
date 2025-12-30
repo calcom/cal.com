@@ -33,10 +33,19 @@ jobs:
     outputs:
       is-trusted: ${{ steps.check-trust.outputs.is-trusted }}
     steps:
+      - name: Generate GitHub App token
+        id: generate-token
+        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94
+        with:
+          app-id: ${{ secrets.CI_CAL_APP_ID }}
+          private-key: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
+          owner: calcom
+
       - name: Check if PR is trusted
         id: check-trust
         uses: actions/github-script@v7
         with:
+          github-token: ${{ steps.generate-token.outputs.token }}
           script: |
             const trustedAssociations = ['OWNER', 'MEMBER', 'COLLABORATOR'];
             const pr = context.payload.pull_request;
