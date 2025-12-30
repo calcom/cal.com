@@ -1,8 +1,14 @@
 name: PR Update
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - gh-actions-test-branch
+  # Allow CI to run when a maintainer approves an external contributor's PR
+  pull_request_review:
+    types: [submitted]
 
   workflow_dispatch:
 
