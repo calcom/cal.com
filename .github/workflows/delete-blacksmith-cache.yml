@@ -26,7 +26,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Generate cache key
+        id: cache-key
+        uses: ./.github/actions/cache-build-key
+        with:
+          branch_key: ${{ github.event.pull_request.head.ref }}
       - name: Delete cache-build cache
         uses: useblacksmith/cache-delete@v1
         with:
-          key: Linux-prod-build-v18.x-${{ github.event.pull_request.head.ref }}-${{ hashFiles('yarn.lock') }}-${{ hashFiles('apps/**/**.[jt]s', 'apps/**/**.[jt]sx', 'apps/**/*.json', 'apps/**/*.css', 'packages/**/**.[jt]s', 'packages/**/**.[jt]sx', 'packages/prisma/schema.prisma', 'packages/prisma/migrations/**/*.sql', '!**/node_modules/**', '!packages/prisma/generated/**', '!packages/prisma/client/**', '!packages/prisma/zod/**', '!packages/kysely/**') }}
+          key: ${{ steps.cache-key.outputs.key }}
