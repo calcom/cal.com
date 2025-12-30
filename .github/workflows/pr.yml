@@ -57,6 +57,22 @@ jobs:
             const prNumber = pr.number;
             const headSha = pr.head.sha;
 
+            async function isCoreTeamMember(username) {
+              try {
+                await github.rest.teams.getMembershipForUserInOrg({
+                  org: owner,
+                  team_slug: 'core',
+                  username,
+                });
+                return true;
+              } catch (e) {
+                if (e.status !== 404) {
+                  console.log(`Could not verify core team membership for ${username}: ${e.message}`);
+                }
+                return false;
+              }
+            }
+
             console.log(`PR #${prNumber} by ${pr.user.login}`);
             console.log(`Author association: ${pr.author_association}`);
             console.log(`Head SHA: ${headSha}`);
@@ -69,9 +85,16 @@ jobs:
               return;
             }
 
-            console.log(`Author ${pr.user.login} is external (${pr.author_association}), checking for core team approval...`);
+            // Check 2: Verify core team membership via API (author_association can be unreliable)
+            if (await isCoreTeamMember(pr.user.login)) {
+              console.log(`Author ${pr.user.login} verified as core team member`);
+              core.setOutput('is-trusted', true);
+              return;
+            }
 
-            // Check 2: Has a core team member approved the current commit?
+            console.log(`Author ${pr.user.login} is not a core team member, checking for approval...`);
+
+            // Check 3: Has a core team member approved the current commit?
             const reviews = await github.paginate(github.rest.pulls.listReviews, {
               owner,
               repo,
@@ -105,30 +128,18 @@ jobs:
               }
             }
 
-            // Check if any approver is a core team member (has write access or higher)
+            // Check if any approver is a core team member
             for (const [reviewer, reviewData] of reviewerStates) {
               if (reviewData.state !== 'APPROVED') {
                 continue;
               }
 
-              try {
-                const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
-                  owner,
-                  repo,
-                  username: reviewer,
-                });
-
-                const isCoreTeam = ['admin', 'maintain', 'write'].includes(permission.permission);
-                console.log(`Reviewer ${reviewer}: permission=${permission.permission}, isCoreTeam=${isCoreTeam}`);
-
-                if (isCoreTeam) {
-                  console.log(`PR approved by core team member ${reviewer} for commit ${headSha}`);
-                  core.setOutput('is-trusted', true);
-                  return;
-                }
-              } catch (e) {
-                console.log(`Could not check permission for ${reviewer}: ${e.message}`);
+              if (await isCoreTeamMember(reviewer)) {
+                console.log(`PR approved by core team member ${reviewer} for commit ${headSha}`);
+                core.setOutput('is-trusted', true);
+                return;
               }
+              console.log(`Reviewer ${reviewer} is not a core team member`);
             }
 
             console.log('PR requires approval from a core team member before CI can run');
