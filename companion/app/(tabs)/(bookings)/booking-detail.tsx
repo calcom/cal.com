@@ -1,10 +1,10 @@
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert } from "react-native";
-import { BookingDetailScreen } from "../../../components/screens/BookingDetailScreen";
-import { useAuth } from "../../../contexts/AuthContext";
-import { type Booking, CalComAPIService } from "../../../services/calcom";
-import { type BookingActionsResult, getBookingActions } from "../../../utils/booking-actions";
+import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
+import { useAuth } from "@/contexts/AuthContext";
+import { type Booking, CalComAPIService } from "@/services/calcom";
+import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -30,6 +30,7 @@ type ActionHandlers = {
 };
 
 export default function BookingDetail() {
+  "use no memo";
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const { userInfo } = useAuth();
   const [booking, setBooking] = useState<Booking | null>(null);
@@ -66,8 +67,9 @@ export default function BookingDetail() {
   }, [booking, userInfo?.id, userInfo?.email]);
 
   // Action handlers that use the booking data
+  // Note: These are stable functions that don't change, so we don't memoize them
+  // They access refs which is safe in event handlers
   const handleReschedule = useCallback(() => {
-    // Use the action handler from BookingDetailScreen if available
     if (actionHandlersRef.current?.openRescheduleModal) {
       actionHandlersRef.current.openRescheduleModal();
     } else {
@@ -76,7 +78,6 @@ export default function BookingDetail() {
   }, []);
 
   const handleEditLocation = useCallback(() => {
-    // Use the action handler from BookingDetailScreen if available
     if (actionHandlersRef.current?.openEditLocationModal) {
       actionHandlersRef.current.openEditLocationModal();
     } else {
@@ -85,7 +86,6 @@ export default function BookingDetail() {
   }, []);
 
   const handleAddGuests = useCallback(() => {
-    // Use the action handler from BookingDetailScreen if available
     if (actionHandlersRef.current?.openAddGuestsModal) {
       actionHandlersRef.current.openAddGuestsModal();
     } else {
@@ -94,7 +94,6 @@ export default function BookingDetail() {
   }, []);
 
   const handleViewRecordings = useCallback(() => {
-    // Use the action handler from BookingDetailScreen if available
     if (actionHandlersRef.current?.openViewRecordingsModal) {
       actionHandlersRef.current.openViewRecordingsModal();
     } else {
@@ -103,7 +102,6 @@ export default function BookingDetail() {
   }, []);
 
   const handleSessionDetails = useCallback(() => {
-    // Use the action handler from BookingDetailScreen if available
     if (actionHandlersRef.current?.openMeetingSessionDetailsModal) {
       actionHandlersRef.current.openMeetingSessionDetailsModal();
     } else {
@@ -112,7 +110,6 @@ export default function BookingDetail() {
   }, []);
 
   const handleMarkNoShow = useCallback(() => {
-    // Use the action handler from BookingDetailScreen if available
     if (actionHandlersRef.current?.openMarkNoShowModal) {
       actionHandlersRef.current.openMarkNoShowModal();
     } else {
@@ -125,7 +122,6 @@ export default function BookingDetail() {
   }, []);
 
   const handleCancel = useCallback(() => {
-    // Use the action handler from BookingDetailScreen if available
     if (actionHandlersRef.current?.handleCancelBooking) {
       actionHandlersRef.current.handleCancelBooking();
     } else {

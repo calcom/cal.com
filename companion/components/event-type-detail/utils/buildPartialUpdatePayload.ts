@@ -1,16 +1,12 @@
-import type {
-  BookingLimitsCount,
-  BookingLimitsDuration,
-  EventType,
-} from "../../../services/calcom";
-import type { LocationItem } from "../../../types/locations";
+import type { BookingLimitsCount, BookingLimitsDuration, EventType } from "@/services/calcom";
+import type { LocationItem } from "@/types/locations";
 import {
   parseBufferTime,
   parseFrequencyUnit,
   parseMinimumNotice,
   parseSlotInterval,
-} from "../../../utils/eventTypeParsers";
-import { mapItemToApiLocation } from "../../../utils/locationHelpers";
+} from "@/utils/eventTypeParsers";
+import { mapItemToApiLocation } from "@/utils/locationHelpers";
 
 interface LocationInput {
   type: string;
@@ -401,7 +397,6 @@ function mapLayoutToApi(layout: string): string {
   return mapping[layout] || layout.toLowerCase().replace("_view", "");
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _mapLayoutFromApi(layout: string): string {
   const mapping: Record<string, string> = {
     month: "MONTH_VIEW",

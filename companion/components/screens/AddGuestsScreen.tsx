@@ -18,8 +18,9 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { Booking } from "../../services/calcom";
-import { CalComAPIService } from "../../services/calcom";
+import type { Booking } from "@/services/calcom";
+import { CalComAPIService } from "@/services/calcom";
+import { safeLogError } from "@/utils/safeLogger";
 
 export interface AddGuestsScreenProps {
   booking: Booking | null;
@@ -91,9 +92,10 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
       try {
         await CalComAPIService.addGuests(booking.uid, guests);
         Alert.alert("Success", "Guests added successfully", [{ text: "OK", onPress: onSuccess }]);
+        setIsSaving(false);
       } catch (error) {
-        Alert.alert("Error", error instanceof Error ? error.message : "Failed to add guests");
-      } finally {
+        safeLogError("[AddGuestsScreen] Failed to add guests:", error);
+        Alert.alert("Error", "Failed to add guests. Please try again.");
         setIsSaving(false);
       }
     }, [booking, guests, onSuccess]);
@@ -204,7 +206,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       disabled={isSaving}
                     >
-                      <Ionicons name="close-circle-outline" size={24} color="#FF3B30" />
+                      <Ionicons name="close-circle-outline" size={24} color="#800020" />
                     </TouchableOpacity>
                   </View>
                 ))}

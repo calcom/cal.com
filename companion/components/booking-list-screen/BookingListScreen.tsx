@@ -2,7 +2,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { Activity, useMemo, useState } from "react";
 import { Alert, FlatList, RefreshControl, ScrollView, Text, View } from "react-native";
-import { useAuth } from "../../contexts/AuthContext";
+import { BookingListItem } from "@/components/booking-list-item/BookingListItem";
+import { BookingModals } from "@/components/booking-modals/BookingModals";
+import { EmptyScreen } from "@/components/EmptyScreen";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   type BookingFilter,
   useBookingActions,
@@ -11,20 +15,16 @@ import {
   useConfirmBooking,
   useDeclineBooking,
   useRescheduleBooking,
-} from "../../hooks";
-import type { Booking, EventType } from "../../services/calcom";
-import type { ListItem } from "../../utils/bookings-utils";
+} from "@/hooks";
+import type { Booking, EventType } from "@/services/calcom";
+import type { ListItem } from "@/utils/bookings-utils";
 import {
   filterByEventType,
   getEmptyStateContent,
   groupBookingsByMonth,
   searchBookings,
-} from "../../utils/bookings-utils";
-import { offlineAwareRefresh } from "../../utils/network";
-import { BookingListItem } from "../booking-list-item/BookingListItem";
-import { BookingModals } from "../booking-modals/BookingModals";
-import { EmptyScreen } from "../EmptyScreen";
-import { LoadingSpinner } from "../LoadingSpinner";
+} from "@/utils/bookings-utils";
+import { offlineAwareRefresh } from "@/utils/network";
 
 interface BookingListScreenProps {
   // Platform-specific header rendering
@@ -302,7 +302,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         {renderHeader?.()}
         {renderFilterControls?.()}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="alert-circle" size={64} color="#FF3B30" />
+          <Ionicons name="alert-circle" size={64} color="#800020" />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
             Unable to load bookings
           </Text>

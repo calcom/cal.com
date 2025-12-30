@@ -9,8 +9,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { Booking } from "../../services/calcom";
-import { CalComAPIService } from "../../services/calcom";
+import type { Booking } from "@/services/calcom";
+import { CalComAPIService } from "@/services/calcom";
 
 interface Attendee {
   id?: number | string;
@@ -51,6 +51,7 @@ export function MarkNoShowScreen({
   onUpdate,
   onBookingUpdate,
 }: MarkNoShowScreenProps) {
+  "use no memo";
   const insets = useSafeAreaInsets();
   const safeAttendees = Array.isArray(attendees) ? attendees : [];
   const [processingEmail, setProcessingEmail] = useState<string | null>(null);
@@ -70,8 +71,8 @@ export function MarkNoShowScreen({
           text: "Confirm",
           style: isCurrentlyNoShow ? "default" : "destructive",
           onPress: async () => {
+            setProcessingEmail(attendee.email);
             try {
-              setProcessingEmail(attendee.email);
               const updatedBooking = await CalComAPIService.markAbsent(
                 booking.uid,
                 attendee.email,
@@ -111,6 +112,7 @@ export function MarkNoShowScreen({
                   isCurrentlyNoShow ? "unmarked as no-show" : "marked as no-show"
                 }`
               );
+              setProcessingEmail(null);
             } catch (error) {
               console.error("[MarkNoShowScreen] Failed to mark no-show:", error);
               if (__DEV__) {
@@ -125,7 +127,6 @@ export function MarkNoShowScreen({
                 });
               }
               Alert.alert("Error", error instanceof Error ? error.message : `Failed to ${action}`);
-            } finally {
               setProcessingEmail(null);
             }
           },

@@ -12,23 +12,23 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { AppPressable } from "../../components/AppPressable";
-import { AvailabilityListItem } from "../../components/availability-list-item/AvailabilityListItem";
-import { EmptyScreen } from "../../components/EmptyScreen";
-import { FullScreenModal } from "../../components/FullScreenModal";
-import { Header } from "../../components/Header";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { AppPressable } from "@/components/AppPressable";
+import { AvailabilityListItem } from "@/components/availability-list-item/AvailabilityListItem";
+import { EmptyScreen } from "@/components/EmptyScreen";
+import { FullScreenModal } from "@/components/FullScreenModal";
+import { Header } from "@/components/Header";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
   useCreateSchedule,
   useDeleteSchedule,
   useDuplicateSchedule,
   useSchedules,
   useSetScheduleAsDefault,
-} from "../../hooks";
-import { CalComAPIService, type Schedule } from "../../services/calcom";
-import { showErrorAlert } from "../../utils/alerts";
-import { offlineAwareRefresh } from "../../utils/network";
-import { shadows } from "../../utils/shadows";
+} from "@/hooks";
+import { CalComAPIService, type Schedule } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
+import { offlineAwareRefresh } from "@/utils/network";
+import { shadows } from "@/utils/shadows";
 
 export interface AvailabilityListScreenProps {
   searchQuery: string;
@@ -294,7 +294,7 @@ export function AvailabilityListScreen({
       <View className="flex-1 bg-[#f8f9fa]">
         <Header />
         <View className="flex-1 items-center justify-center p-5">
-          <Ionicons name="alert-circle" size={64} color="#FF3B30" />
+          <Ionicons name="alert-circle" size={64} color="#800020" />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-[#333]">
             Unable to load availability
           </Text>

@@ -19,8 +19,9 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { Booking } from "../../services/calcom";
-import { CalComAPIService } from "../../services/calcom";
+import type { Booking } from "@/services/calcom";
+import { CalComAPIService } from "@/services/calcom";
+import { safeLogError, safeLogInfo } from "@/utils/safeLogger";
 
 // Note: @expo/ui DateTimePicker components are not yet stable
 // Using a simple inline picker approach instead
@@ -38,6 +39,7 @@ export interface RescheduleScreenHandle {
 
 export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScreenProps>(
   function RescheduleScreen({ booking, onSuccess, onSavingChange }, ref) {
+    "use no memo";
     const insets = useSafeAreaInsets();
     const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -79,13 +81,10 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
         Alert.alert("Success", "Booking rescheduled successfully", [
           { text: "OK", onPress: onSuccess },
         ]);
+        setIsSaving(false);
       } catch (error) {
-        console.error("[RescheduleScreen] Failed to reschedule:", error);
-        Alert.alert(
-          "Error",
-          error instanceof Error ? error.message : "Failed to reschedule booking"
-        );
-      } finally {
+        safeLogError("[RescheduleScreen] Failed to reschedule:", error);
+        Alert.alert("Error", "Failed to reschedule booking. Please try again.");
         setIsSaving(false);
       }
     }, [booking, selectedDateTime, reason, onSuccess]);
@@ -186,7 +185,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
               <TouchableOpacity
                 className="border-b border-gray-100 px-4 py-3"
                 onPress={() => {
-                  console.log("[RescheduleScreen] Opening date picker");
+                  safeLogInfo("[RescheduleScreen] Opening date picker");
                   setShowDatePicker(true);
                 }}
                 disabled={isSaving}
@@ -205,7 +204,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
               <TouchableOpacity
                 className="border-b border-gray-100 px-4 py-3"
                 onPress={() => {
-                  console.log("[RescheduleScreen] Opening time picker");
+                  safeLogInfo("[RescheduleScreen] Opening time picker");
                   setShowTimePicker(true);
                 }}
                 disabled={isSaving}

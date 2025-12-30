@@ -4,11 +4,11 @@ import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CalComAPIService, type Schedule } from "../../services/calcom";
-import type { ScheduleAvailability } from "../../services/types";
-import { showErrorAlert } from "../../utils/alerts";
-import { AppPressable } from "../AppPressable";
-import { FullScreenModal } from "../FullScreenModal";
+import { AppPressable } from "@/components/AppPressable";
+import { FullScreenModal } from "@/components/FullScreenModal";
+import { CalComAPIService, type Schedule } from "@/services/calcom";
+import type { ScheduleAvailability } from "@/services/types";
+import { showErrorAlert } from "@/utils/alerts";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -79,12 +79,12 @@ export interface AvailabilityDetailScreenProps {
 }
 
 export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) {
+  "use no memo";
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_schedule, setSchedule] = useState<Schedule | null>(null);
   const [scheduleName, setScheduleName] = useState("");
   const [timeZone, setTimeZone] = useState("");
@@ -130,8 +130,8 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
   ];
 
   const fetchSchedule = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const scheduleData = await CalComAPIService.getScheduleById(Number(id));
 
       if (scheduleData) {
@@ -208,6 +208,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
           setOverrides([]);
         }
       }
+      setLoading(false);
     } catch (error) {
       // Avoid logging raw error objects from API calls (may contain sensitive response data).
       console.error("Error fetching schedule");
@@ -217,7 +218,6 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
       }
       showErrorAlert("Error", "Failed to load schedule. Please try again.");
       router.back();
-    } finally {
       setLoading(false);
     }
   }, [id, router]);
@@ -298,9 +298,8 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
   };
 
   const handleSave = async () => {
+    setSaving(true);
     try {
-      setSaving(true);
-
       // Convert availability object back to array format with day names
       const availabilityArray: {
         days: string[]; // Day names like "Monday", "Tuesday"
@@ -348,9 +347,9 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
       Alert.alert("Success", "Schedule updated successfully", [
         { text: "OK", onPress: () => router.back() },
       ]);
+      setSaving(false);
     } catch {
       showErrorAlert("Error", "Failed to update schedule. Please try again.");
-    } finally {
       setSaving(false);
     }
   };
@@ -637,7 +636,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                             onPress={() => removeTimeSlot(dayIndex, slotIndex + 1)}
                             className="p-1"
                           >
-                            <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                            <Ionicons name="trash-outline" size={20} color="#800020" />
                           </AppPressable>
                         </View>
                       ))}
@@ -692,7 +691,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                         <Ionicons name="pencil-outline" size={20} color="#007AFF" />
                       </AppPressable>
                       <AppPressable onPress={() => handleDeleteOverride(index)} className="p-2">
-                        <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                        <Ionicons name="trash-outline" size={20} color="#800020" />
                       </AppPressable>
                     </View>
                   </View>
@@ -748,7 +747,7 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                 className="h-11 w-11 items-center justify-center"
                 onPress={handleDelete}
               >
-                <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                <Ionicons name="trash-outline" size={20} color="#800020" />
               </AppPressable>
             </GlassView>
           </View>

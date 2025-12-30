@@ -15,28 +15,29 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AdvancedTab } from "../components/event-type-detail/tabs/AdvancedTab";
-import { AvailabilityTab } from "../components/event-type-detail/tabs/AvailabilityTab";
-import { BasicsTab } from "../components/event-type-detail/tabs/BasicsTab";
-import { LimitsTab } from "../components/event-type-detail/tabs/LimitsTab";
-import { RecurringTab } from "../components/event-type-detail/tabs/RecurringTab";
-import { truncateTitle } from "../components/event-type-detail/utils";
-import { buildPartialUpdatePayload } from "../components/event-type-detail/utils/buildPartialUpdatePayload";
+import { AdvancedTab } from "@/components/event-type-detail/tabs/AdvancedTab";
+import { AvailabilityTab } from "@/components/event-type-detail/tabs/AvailabilityTab";
+import { BasicsTab } from "@/components/event-type-detail/tabs/BasicsTab";
+import { LimitsTab } from "@/components/event-type-detail/tabs/LimitsTab";
+import { RecurringTab } from "@/components/event-type-detail/tabs/RecurringTab";
+import { truncateTitle } from "@/components/event-type-detail/utils";
+import { buildPartialUpdatePayload } from "@/components/event-type-detail/utils/buildPartialUpdatePayload";
 import {
   CalComAPIService,
   type ConferencingOption,
   type EventType,
   type Schedule,
-} from "../services/calcom";
-import type { LocationItem, LocationOptionGroup } from "../types/locations";
-import { showErrorAlert } from "../utils/alerts";
-import { openInAppBrowser } from "../utils/browser";
+} from "@/services/calcom";
+import type { LocationItem, LocationOptionGroup } from "@/types/locations";
+import { showErrorAlert } from "@/utils/alerts";
+import { openInAppBrowser } from "@/utils/browser";
 import {
   buildLocationOptions,
   mapApiLocationToItem,
   mapItemToApiLocation,
   validateLocationItem,
-} from "../utils/locationHelpers";
+} from "@/utils/locationHelpers";
+import { safeLogError } from "@/utils/safeLogger";
 
 // Type definitions for extended EventType fields not in the base type
 interface EventTypeExtended {
@@ -116,6 +117,7 @@ const tabs: Tab[] = [
 ];
 
 export default function EventTypeDetail() {
+  "use no memo";
   const router = useRouter();
   const { id, title, description, duration, slug } = useLocalSearchParams<{
     id: string;
@@ -136,11 +138,8 @@ export default function EventTypeDetail() {
   const [username, setUsername] = useState("username");
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
   const [locations, setLocations] = useState<LocationItem[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_locationAddress, setLocationAddress] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_locationLink, setLocationLink] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_locationPhone, setLocationPhone] = useState("");
   const [selectedDurations, setSelectedDurations] = useState<string[]>([]);
   const [defaultDuration, setDefaultDuration] = useState("");
@@ -363,24 +362,24 @@ export default function EventTypeDetail() {
   };
 
   const fetchScheduleDetails = useCallback(async (scheduleId: number) => {
+    setScheduleDetailsLoading(true);
     try {
-      setScheduleDetailsLoading(true);
       const scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
       setSelectedScheduleDetails(scheduleDetails);
       if (scheduleDetails?.timeZone) {
         setSelectedTimezone(scheduleDetails.timeZone);
       }
+      setScheduleDetailsLoading(false);
     } catch (error) {
-      console.error("Failed to fetch schedule details:", error);
+      safeLogError("Failed to fetch schedule details:", error);
       setSelectedScheduleDetails(null);
-    } finally {
       setScheduleDetailsLoading(false);
     }
   }, []);
 
   const fetchSchedules = useCallback(async () => {
+    setSchedulesLoading(true);
     try {
-      setSchedulesLoading(true);
       const schedulesData = await CalComAPIService.getSchedules();
       setSchedules(schedulesData);
 
@@ -390,21 +389,21 @@ export default function EventTypeDetail() {
         setSelectedSchedule(defaultSchedule);
         await fetchScheduleDetails(defaultSchedule.id);
       }
+      setSchedulesLoading(false);
     } catch (error) {
-      console.error("Failed to fetch schedules:", error);
-    } finally {
+      safeLogError("Failed to fetch schedules:", error);
       setSchedulesLoading(false);
     }
   }, [fetchScheduleDetails]);
 
   const fetchConferencingOptions = useCallback(async () => {
+    setConferencingLoading(true);
     try {
-      setConferencingLoading(true);
       const options = await CalComAPIService.getConferencingOptions();
       setConferencingOptions(options);
+      setConferencingLoading(false);
     } catch (error) {
-      console.error("Failed to fetch conferencing options:", error);
-    } finally {
+      safeLogError("Failed to fetch conferencing options:", error);
       setConferencingLoading(false);
     }
   }, []);
@@ -744,7 +743,7 @@ export default function EventTypeDetail() {
         }
       }
     } catch (error) {
-      console.error("Failed to fetch event type data:", error);
+      safeLogError("Failed to fetch event type data:", error);
     }
   }, [id]);
 
@@ -769,7 +768,7 @@ export default function EventTypeDetail() {
         const userUsername = await CalComAPIService.getUsername();
         setUsername(userUsername);
       } catch (error) {
-        console.error("Failed to fetch username:", error);
+        safeLogError("Failed to fetch username:", error);
       }
     };
     fetchUsername();
@@ -853,7 +852,7 @@ export default function EventTypeDetail() {
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
       await openInAppBrowser(link, "event type preview");
     } catch (error) {
-      console.error("Failed to generate preview link:", error);
+      safeLogError("Failed to generate preview link:", error);
       showErrorAlert("Error", "Failed to generate preview link. Please try again.");
     }
   };
@@ -866,7 +865,7 @@ export default function EventTypeDetail() {
       await Clipboard.setStringAsync(link);
       Alert.alert("Success", "Link copied!");
     } catch (error) {
-      console.error("Failed to copy link:", error);
+      safeLogError("Failed to copy link:", error);
       showErrorAlert("Error", "Failed to copy link. Please try again.");
     }
   };
@@ -878,13 +877,14 @@ export default function EventTypeDetail() {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
+          const eventTypeId = parseInt(id, 10);
+
+          if (Number.isNaN(eventTypeId)) {
+            showErrorAlert("Error", "Invalid event type ID");
+            return;
+          }
+
           try {
-            const eventTypeId = parseInt(id, 10);
-
-            if (Number.isNaN(eventTypeId)) {
-              throw new Error("Invalid event type ID");
-            }
-
             await CalComAPIService.deleteEventType(eventTypeId);
 
             Alert.alert("Success", "Event type deleted successfully", [
@@ -894,9 +894,8 @@ export default function EventTypeDetail() {
               },
             ]);
           } catch (error) {
-            console.error("Failed to delete event type:", error);
-            const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-            showErrorAlert("Error", `Failed to delete event type: ${errorMessage}`);
+            safeLogError("Failed to delete event type:", error);
+            showErrorAlert("Error", "Failed to delete event type. Please try again.");
           }
         },
       },
@@ -935,9 +934,8 @@ export default function EventTypeDetail() {
     // Detect create vs update mode
     const isCreateMode = id === "new";
 
+    setSaving(true);
     try {
-      setSaving(true);
-
       if (isCreateMode) {
         // For CREATE mode, build full payload
         const payload: CreateEventTypePayload = {
@@ -968,6 +966,7 @@ export default function EventTypeDetail() {
             onPress: () => router.back(),
           },
         ]);
+        setSaving(false);
       } else {
         // For UPDATE mode, use partial update - only send changed fields
         const currentFormState = {
@@ -1050,6 +1049,7 @@ export default function EventTypeDetail() {
 
         if (Object.keys(payload).length === 0) {
           Alert.alert("No Changes", "No changes were made to the event type.");
+          setSaving(false);
           return;
         }
 
@@ -1057,12 +1057,12 @@ export default function EventTypeDetail() {
         Alert.alert("Success", "Event type updated successfully");
         // Refresh event type data to sync with server
         await fetchEventTypeData();
+        setSaving(false);
       }
     } catch (error) {
-      console.error("Failed to save event type:", error);
+      safeLogError("Failed to save event type:", error);
       const action = isCreateMode ? "create" : "update";
       showErrorAlert("Error", `Failed to ${action} event type. Please try again.`);
-    } finally {
       setSaving(false);
     }
   };
@@ -2029,7 +2029,7 @@ export default function EventTypeDetail() {
                   className="h-11 w-11 items-center justify-center"
                   onPress={handleDelete}
                 >
-                  <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                  <Ionicons name="trash-outline" size={20} color="#800020" />
                 </TouchableOpacity>
               </GlassView>
             </View>
