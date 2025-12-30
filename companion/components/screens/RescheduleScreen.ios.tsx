@@ -1,11 +1,11 @@
 /**
  * RescheduleScreen Component (iOS)
  *
- * iOS-specific implementation with native DateTimePicker for date/time selection.
- * Uses @expo/ui/swift-ui DateTimePicker for the native iOS wheel picker.
+ * iOS-specific implementation with native DatePicker for date/time selection.
+ * Uses @expo/ui/swift-ui DatePicker for the native iOS picker.
  */
 
-import { DateTimePicker, Host } from "@expo/ui/swift-ui";
+import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
@@ -187,11 +187,10 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                 style={{ backgroundColor: useGlassEffect ? "transparent" : "#F9F9F9" }}
               >
                 <Host matchContents>
-                  <DateTimePicker
-                    onDateSelected={handleDateSelected}
-                    displayedComponents="date"
-                    initialDate={selectedDateTime.toISOString()}
-                    variant="wheel"
+                  <DatePicker
+                    onDateChange={handleDateSelected}
+                    displayedComponents={["date"]}
+                    selection={selectedDateTime}
                   />
                 </Host>
               </View>
@@ -228,11 +227,10 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                 style={{ backgroundColor: useGlassEffect ? "transparent" : "#F9F9F9" }}
               >
                 <Host matchContents>
-                  <DateTimePicker
-                    onDateSelected={handleTimeSelected}
-                    displayedComponents="hourAndMinute"
-                    initialDate={selectedDateTime.toISOString()}
-                    variant="wheel"
+                  <DatePicker
+                    onDateChange={handleTimeSelected}
+                    displayedComponents={["hourAndMinute"]}
+                    selection={selectedDateTime}
                   />
                 </Host>
               </View>
