@@ -39,7 +39,6 @@ import { handleCreatePhoneCall } from "@calcom/platform-libraries";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   GetTeamEventTypesQuery_2024_06_14,
-  SkipTakePagination,
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
@@ -190,8 +189,7 @@ export class TeamsEventTypesController {
       eventTypeId,
       teamId,
       transformedBody,
-      user,
-      false
+      user
     );
 
     return {
