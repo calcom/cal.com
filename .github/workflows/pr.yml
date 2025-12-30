@@ -69,23 +69,24 @@ jobs:
               return;
             }
 
-            console.log(`Author ${pr.user.login} has association ${pr.author_association}, verifying org membership via API...`);
+            console.log(`Author ${pr.user.login} has association ${pr.author_association}, verifying core team membership via API...`);
 
-            // Check 2: Verify org membership directly via API (author_association can be unreliable)
+            // Check 2: Verify core team membership directly via API (author_association can be unreliable)
             try {
-              await github.rest.orgs.checkMembershipForUser({
+              await github.rest.teams.getMembershipForUserInOrg({
                 org: owner,
+                team_slug: 'core',
                 username: pr.user.login,
               });
-              // 204 response means user is an org member
-              console.log(`Author ${pr.user.login} verified as org member via API`);
+              // 200 response means user is a core team member
+              console.log(`Author ${pr.user.login} verified as core team member via API`);
               core.setOutput('is-trusted', true);
               return;
             } catch (e) {
               if (e.status === 404) {
-                console.log(`Author ${pr.user.login} is not an org member`);
+                console.log(`Author ${pr.user.login} is not a core team member`);
               } else {
-                console.log(`Could not verify org membership for ${pr.user.login}: ${e.message}`);
+                console.log(`Could not verify core team membership for ${pr.user.login}: ${e.message}`);
               }
             }
 
