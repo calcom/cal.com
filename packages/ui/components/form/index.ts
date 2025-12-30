@@ -30,7 +30,7 @@ export { RangeSlider } from "./slider/RangeSlider";
 export { RangeSliderPopover } from "./slider/RangeSliderPopover";
 export { BooleanToggleGroup, BooleanToggleGroupField, ToggleGroup } from "./toggleGroup";
 export { DatePicker } from "./datepicker";
-export { FormStep, Steps, Stepper } from "./step";
+export { Steps, Stepper } from "./step";
 export { WizardForm } from "./wizard";
 export { default as ColorPicker } from "./color-picker/colorpicker";
 export { SettingsToggle, Switch } from "./switch";
