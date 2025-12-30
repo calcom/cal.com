@@ -33,6 +33,7 @@ export const getScheduleSchemaObject = z.object({
   teamMemberEmail: z.string().nullish(),
   routedTeamMemberIds: z.array(z.number()).nullish(),
   skipContactOwner: z.boolean().nullish(),
+  rrHostSubsetIds: z.array(z.number()).nullish(),
   _enableTroubleshooter: z.boolean().optional(),
   _bypassCalendarBusyTimes: z.boolean().optional(),
   _silentCalendarFailures: z.boolean().optional(),

@@ -16,6 +16,7 @@ import type { HttpError } from "@calcom/lib/http-error";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { BookingReference, Attendee, Booking, Membership } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/client";
@@ -72,7 +73,7 @@ vi.mock("@calcom/app-store/video.adapters.generated", () => ({
 }));
 
 // We don't need to test it. Also, it causes Formbricks error when imported
-vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
+vi.mock("@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic", () => ({
   default: {},
 }));
 
@@ -2287,7 +2288,11 @@ export function getMockedStripePaymentEvent({ paymentIntentId }: { paymentIntent
 export async function mockPaymentSuccessWebhookFromStripe({ externalId }: { externalId: string }) {
   let webhookResponse = null;
   try {
-    await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }));
+    const traceContext = distributedTracing.createTrace("test_stripe_webhook");
+    await handleStripePaymentSuccess(
+      getMockedStripePaymentEvent({ paymentIntentId: externalId }),
+      traceContext
+    );
   } catch (e) {
     log.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
     webhookResponse = e as HttpError;
@@ -2366,7 +2371,7 @@ const getMockAppStatus = ({
   }
   const foundApp = foundEntry[1];
   return {
-    appName: overrideName ?? foundApp.slug,
+    appName: overrideName ?? foundApp.name,
     type: foundApp.type,
     failures,
     success,

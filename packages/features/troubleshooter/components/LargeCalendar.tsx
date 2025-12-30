@@ -5,7 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 
 import { useTimePreferences } from "../../bookings/lib/timePreferences";
 import { useSchedule } from "../../schedules/lib/use-schedule/useSchedule";
@@ -28,6 +28,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         .add(extraDays - 1, "day")
         .utc()
         .format(),
+      eventTypeId: event?.id,
       withSource: true,
     },
     {
@@ -35,13 +36,16 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     }
   );
 
+  const isTeamEvent = !!event?.teamId;
   const { data: schedule } = useSchedule({
     username: session?.user.username || "",
-    eventSlug: event?.slug,
+    // For team events, don't pass eventSlug to avoid slug lookup issues - use eventId instead
+    eventSlug: isTeamEvent ? null : event?.slug,
     eventId: event?.id,
     timezone,
     month: startDate.format("YYYY-MM"),
     orgSlug: session?.user.org?.slug,
+    isTeamEvent,
   });
 
   const endDate = dayjs(startDate)

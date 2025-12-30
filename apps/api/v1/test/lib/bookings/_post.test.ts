@@ -161,7 +161,7 @@ vi.mock("@calcom/features/ee/workflows/lib/getAllWorkflows", () => ({
   workflowSelect: {},
 }));
 
-vi.mock("@calcom/trpc/server/routers/viewer/workflows/util", () => ({
+vi.mock("@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType", () => ({
   getAllWorkflowsFromEventType: vi.fn().mockResolvedValue([]),
 }));
 
@@ -245,7 +245,9 @@ describe("POST /api/bookings", () => {
 
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
-        body: {},
+        body: {
+          eventTypeId: 2,
+        },
       });
 
       await handler(req, res);
