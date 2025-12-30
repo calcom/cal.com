@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -45,7 +45,8 @@ import { usePaymentStatus } from "../hooks/usePaymentStatus";
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 import { JoinMeetingButton } from "./JoinMeetingButton";
-
+import { BookingHistory } from "@calcom/features/booking-audit/client/components/BookingHistory";
+import { SegmentedControl } from "@calcom/ui/components/segmented-control";
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
 
 interface BookingDetailsSheetProps {
@@ -95,6 +96,7 @@ function BookingDetailsSheetInner({
   userEmail,
 }: BookingDetailsSheetInnerProps) {
   const { t } = useLocale();
+  const [activeSegment, setActiveSegment] = useState<"info" | "history">("info");
 
   // Fetch additional booking details for reschedule information
   const { data: bookingDetails } = trpc.viewer.bookings.getBookingDetails.useQuery(
@@ -167,15 +169,15 @@ function BookingDetailsSheetInner({
   const recurringInfo =
     booking.recurringEventId && booking.eventType?.recurringEvent
       ? {
-          count: booking.eventType.recurringEvent.count,
-          recurringEvent: booking.eventType.recurringEvent,
-        }
+        count: booking.eventType.recurringEvent.count,
+        recurringEvent: booking.eventType.recurringEvent,
+      }
       : null;
 
   const customResponses = booking.responses
     ? Object.entries(booking.responses as Record<string, unknown>)
-        .filter(([fieldName]) => shouldShowFieldInCustomResponses(fieldName))
-        .map(([question, answer]) => [question, answer] as [string, unknown])
+      .filter(([fieldName]) => shouldShowFieldInCustomResponses(fieldName))
+      .map(([question, answer]) => [question, answer] as [string, unknown])
     : [];
 
   const reason = booking.assignmentReason?.[0];
@@ -254,43 +256,59 @@ function BookingDetailsSheetInner({
               </SheetTitle>
             </div>
 
-            <WhenSection
-              rescheduled={booking.rescheduled || false}
-              startTime={startTime}
-              endTime={endTime}
-              timeZone={userTimeZone}
-              previousBooking={bookingDetails?.previousBooking}
+            <SegmentedControl
+              data={[{ value: "info", label: t("info") }, { value: "history", label: t("history") }]}
+              value={activeSegment}
+              onChange={(value) => setActiveSegment(value as "info" | "history")}
             />
 
-            <OldRescheduledBookingInfo
-              booking={booking}
-              rescheduledToBooking={bookingDetails?.rescheduledToBooking}
-            />
+            {activeSegment === "info" && (
+              <>
+                <WhenSection
+                  rescheduled={booking.rescheduled || false}
+                  startTime={startTime}
+                  endTime={endTime}
+                  timeZone={userTimeZone}
+                  previousBooking={bookingDetails?.previousBooking}
+                />
 
-            <NewRescheduledBookingInfo booking={booking} />
+                <OldRescheduledBookingInfo
+                  booking={booking}
+                  rescheduledToBooking={bookingDetails?.rescheduledToBooking}
+                />
 
-            <CancelledBookingInfo booking={booking} />
+                <NewRescheduledBookingInfo booking={booking} />
 
-            <WhoSection booking={booking} />
+                <CancelledBookingInfo booking={booking} />
 
-            <WhereSection booking={booking} meta={bookingMetadata} />
+                <WhoSection booking={booking} />
 
-            <RecurringInfoSection recurringInfo={recurringInfo} />
+                <WhereSection booking={booking} meta={bookingMetadata} />
 
-            <AssignmentReasonSection booking={booking} />
+                <RecurringInfoSection recurringInfo={recurringInfo} />
 
-            {booking.payment?.[0] && <PaymentSection booking={booking} payment={booking.payment[0]} />}
+                <AssignmentReasonSection booking={booking} />
 
-            <SlotsSection booking={booking} />
+                {booking.payment?.[0] && <PaymentSection booking={booking} payment={booking.payment[0]} />}
 
-            <AdditionalNotesSection booking={booking} />
+                <SlotsSection booking={booking} />
 
-            <CustomQuestionsSection
-              customResponses={customResponses}
-              bookingFields={booking.eventType?.bookingFields}
-            />
+                <AdditionalNotesSection booking={booking} />
 
-            <TrackingSection tracking={bookingDetails?.tracking} />
+                <CustomQuestionsSection
+                  customResponses={customResponses}
+                  bookingFields={booking.eventType?.bookingFields}
+                />
+
+                <TrackingSection tracking={bookingDetails?.tracking} />
+              </>
+            )}
+
+            {activeSegment === "history" && (
+              <div className="flex flex-col gap-5">
+                <BookingHistory bookingUid={booking.uid} />
+              </div>
+            )}
           </div>
         </SheetBody>
 
