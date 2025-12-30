@@ -15,6 +15,10 @@ inputs:
   node_version:
     required: false
     default: v20.x
+  skip-install-if-cache-hit:
+    description: "Skip yarn install if node_modules cache is hit. Use this for jobs that only need to populate the cache."
+    required: false
+    default: "false"
 
 runs:
   using: "composite"
@@ -57,6 +61,7 @@ runs:
         key: ${{ runner.os }}-yarn-install-state-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
 
     - name: Install dependencies
+      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.yarn-nm-cache.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
         yarn install --inline-builds
