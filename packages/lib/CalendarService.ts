@@ -188,8 +188,8 @@ export default abstract class BaseCalendarService implements Calendar {
               filename: `${uid}.ics`,
               // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
               iCalString: iCalString
-                .replace(/METHOD:[^\r\n]+\r\n/g, "")
-                ?.replace(/(ORGANIZER|ATTENDEE);/g, "$1;SCHEDULE-AGENT=CLIENT;"),
+                .replace(/METHOD:[^\r\n]+[\r\n]+/g, "")
+                ?.replace(/(ORGANIZER|ATTENDEE)([:;])/g, "$1;SCHEDULE-AGENT=CLIENT$2"),
               headers: this.headers,
             })
           )
@@ -258,8 +258,8 @@ export default abstract class BaseCalendarService implements Calendar {
               url: calendarEvent.url,
               // ensures compliance with standard iCal string (known as iCal2.0 by some) required by various providers
               data: iCalString
-                ?.replace(/METHOD:[^\r\n]+\r\n/g, "")
-                ?.replace(/(ORGANIZER|ATTENDEE);/g, "$1;SCHEDULE-AGENT=CLIENT;"),
+                ?.replace(/METHOD:[^\r\n]+[\r\n]+/g, "")
+                ?.replace(/(ORGANIZER|ATTENDEE)([:;])/g, "$1;SCHEDULE-AGENT=CLIENT$2"),
               etag: calendarEvent?.etag,
             },
             headers: this.headers,
