@@ -1,14 +1,14 @@
 import prismock from "../../../../../../tests/libs/__mocks__/prisma";
-
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
+import { intentToCreateOrgHandler } from "./intentToCreateOrg.handler";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
-import { BillingPeriod, UserPermissionRole, CreationSource } from "@calcom/prisma/enums";
-
+import {
+  BillingPeriod,
+  UserPermissionRole,
+  CreationSource,
+} from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
-
-import { intentToCreateOrgHandler } from "./intentToCreateOrg.handler";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
   LicenseKeySingleton: {
@@ -17,6 +17,56 @@ vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
 }));
 
 vi.mock("@calcom/features/ee/organizations/lib/OrganizationPaymentService");
+
+vi.mock(
+  "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler",
+  () => ({
+    createTeamsHandler: vi.fn().mockResolvedValue({}),
+  })
+);
+
+vi.mock(
+  "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler",
+  () => ({
+    inviteMembersWithNoInviterPermissionCheck: vi.fn().mockResolvedValue({}),
+  })
+);
+
+vi.mock("@calcom/lib/server/resizeBase64Image", () => ({
+  resizeBase64Image: vi.fn((input) => Promise.resolve(input)),
+  isBase64Image: vi.fn(() => false),
+}));
+
+vi.mock("@calcom/lib/server/avatar", () => ({
+  uploadLogo: vi.fn().mockResolvedValue("https://example.com/logo.png"),
+}));
+
+vi.mock("@calcom/emails/organization-email-service", () => ({
+  sendOrganizationCreationEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
+  sendEmailVerification: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@calcom/lib/server/i18n", () => ({
+  getTranslation: vi.fn().mockResolvedValue((key: string) => key),
+}));
+
+vi.mock("@calcom/lib/domainManager/organization", () => ({
+  createDomain: vi.fn().mockResolvedValue(undefined),
+}));
+
+// Mock constants - will be set per describe block
+// Default to hosted (billing enabled) for "hosted" describe block
+vi.mock("@calcom/lib/constants", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@calcom/lib/constants")>();
+  return {
+    ...actual,
+    IS_SELF_HOSTED: false,
+    IS_TEAM_BILLING_ENABLED: true,
+  };
+});
 
 const mockInput = {
   name: "Test Org",
@@ -57,25 +107,27 @@ describe("intentToCreateOrgHandler", () => {
 
     vi.mocked(OrganizationPaymentService).mockImplementation(() => {
       return {
-        createOrganizationOnboarding: vi.fn().mockImplementation(async (data: any) => {
-          return await prismock.organizationOnboarding.create({
-            data: {
-              id: "onboarding-123",
-              name: data.name,
-              slug: data.slug,
-              orgOwnerEmail: data.orgOwnerEmail,
-              seats: data.seats ?? 10,
-              pricePerSeat: data.pricePerSeat ?? 15,
-              billingPeriod: data.billingPeriod ?? BillingPeriod.MONTHLY,
-              isComplete: false,
-              stripeCustomerId: null,
-              createdById: data.createdByUserId,
-              teams: data.teams ?? [],
-              invitedMembers: data.invitedMembers ?? [],
-              isPlatform: data.isPlatform ?? false,
-            },
-          });
-        }),
+        createOrganizationOnboarding: vi
+          .fn()
+          .mockImplementation(async (data: any) => {
+            return await prismock.organizationOnboarding.create({
+              data: {
+                id: "onboarding-123",
+                name: data.name,
+                slug: data.slug,
+                orgOwnerEmail: data.orgOwnerEmail,
+                seats: data.seats ?? 10,
+                pricePerSeat: data.pricePerSeat ?? 15,
+                billingPeriod: data.billingPeriod ?? BillingPeriod.MONTHLY,
+                isComplete: false,
+                stripeCustomerId: null,
+                createdById: data.createdByUserId,
+                teams: data.teams ?? [],
+                invitedMembers: data.invitedMembers ?? [],
+                isPlatform: data.isPlatform ?? false,
+              },
+            });
+          }),
         createPaymentIntent: vi.fn().mockResolvedValue({
           checkoutUrl: "https://stripe.com/checkout/session",
           organizationOnboarding: {},
@@ -88,13 +140,6 @@ describe("intentToCreateOrgHandler", () => {
 
   describe("hosted", () => {
     beforeEach(() => {
-      vi.mock("@calcom/lib/constants", async () => {
-        const actualImport = await vi.importActual("@calcom/lib/constants");
-        return {
-          ...actualImport,
-          IS_SELF_HOSTED: false,
-        };
-      });
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
         incrementUsage: vi.fn().mockResolvedValue(undefined),
@@ -137,20 +182,25 @@ describe("intentToCreateOrgHandler", () => {
         organizationOnboardingId: expect.any(String),
         checkoutUrl: null,
         organizationId: null, // Not created yet - handover flow
-        handoverUrl: expect.stringContaining("/settings/organizations/new/resume?onboardingId="),
+        handoverUrl: expect.stringContaining(
+          "/settings/organizations/new/resume?onboardingId="
+        ),
       });
 
       // Verify organization onboarding was created
-      const organizationOnboarding = await prismock.organizationOnboarding.findFirst({
-        where: {
-          slug: mockInput.slug,
-        },
-      });
+      const organizationOnboarding =
+        await prismock.organizationOnboarding.findFirst({
+          where: {
+            slug: mockInput.slug,
+          },
+        });
 
       expect(organizationOnboarding).toBeDefined();
       expect(organizationOnboarding?.name).toBe(mockInput.name);
       expect(organizationOnboarding?.slug).toBe(mockInput.slug);
-      expect(organizationOnboarding?.orgOwnerEmail).toBe(mockInput.orgOwnerEmail);
+      expect(organizationOnboarding?.orgOwnerEmail).toBe(
+        mockInput.orgOwnerEmail
+      );
     });
 
     it("should allow user to create org for themselves", async () => {
@@ -185,7 +235,12 @@ describe("intentToCreateOrgHandler", () => {
             user: null as any,
           },
         })
-      ).rejects.toThrow(new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." }));
+      ).rejects.toThrow(
+        new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You are not authorized.",
+        })
+      );
     });
 
     it("should throw forbidden error when non-admin tries to create org for another user", async () => {
@@ -276,16 +331,6 @@ describe("intentToCreateOrgHandler", () => {
   describe.skip("platform organization tests");
 
   describe("self hosted", () => {
-    beforeEach(() => {
-      vi.mock("@calcom/lib/constants", async () => {
-        const actualImport = await vi.importActual("@calcom/lib/constants");
-        return {
-          ...actualImport,
-          IS_SELF_HOSTED: true,
-        };
-      });
-    });
-
     it("should throw error when license is not valid", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(false),
@@ -344,20 +389,25 @@ describe("intentToCreateOrgHandler", () => {
         organizationOnboardingId: expect.any(String),
         checkoutUrl: null,
         organizationId: null, // Not created yet - handover flow
-        handoverUrl: expect.stringContaining("/settings/organizations/new/resume?onboardingId="),
+        handoverUrl: expect.stringContaining(
+          "/settings/organizations/new/resume?onboardingId="
+        ),
       });
 
       // Verify organization onboarding was created
-      const organizationOnboarding = await prismock.organizationOnboarding.findFirst({
-        where: {
-          slug: mockInput.slug,
-        },
-      });
+      const organizationOnboarding =
+        await prismock.organizationOnboarding.findFirst({
+          where: {
+            slug: mockInput.slug,
+          },
+        });
 
       expect(organizationOnboarding).toBeDefined();
       expect(organizationOnboarding?.name).toBe(mockInput.name);
       expect(organizationOnboarding?.slug).toBe(mockInput.slug);
-      expect(organizationOnboarding?.orgOwnerEmail).toBe(mockInput.orgOwnerEmail);
+      expect(organizationOnboarding?.orgOwnerEmail).toBe(
+        mockInput.orgOwnerEmail
+      );
     });
 
     it("should handle teams and invites in the request", async () => {
@@ -397,15 +447,20 @@ describe("intentToCreateOrgHandler", () => {
 
       expect(result.organizationOnboardingId).toBeDefined();
 
-      const organizationOnboarding = await prismock.organizationOnboarding.findFirst({
-        where: {
-          slug: mockInput.slug,
-        },
-      });
+      const organizationOnboarding =
+        await prismock.organizationOnboarding.findFirst({
+          where: {
+            slug: mockInput.slug,
+          },
+        });
 
       expect(organizationOnboarding).toBeDefined();
-      expect(organizationOnboarding?.teams).toEqual(inputWithTeamsAndInvites.teams);
-      expect(organizationOnboarding?.invitedMembers).toEqual(inputWithTeamsAndInvites.invitedMembers);
+      expect(organizationOnboarding?.teams).toEqual(
+        inputWithTeamsAndInvites.teams
+      );
+      expect(organizationOnboarding?.invitedMembers).toEqual(
+        inputWithTeamsAndInvites.invitedMembers
+      );
     });
 
     it("should preserve teamName, teamId, and role in invites payload", async () => {
@@ -433,7 +488,12 @@ describe("intentToCreateOrgHandler", () => {
         ],
         invitedMembers: [
           { email: "new@new.com", teamName: "new", teamId: -1, role: "ADMIN" },
-          { email: "team@new.com", teamName: "team", teamId: -1, role: "ADMIN" },
+          {
+            email: "team@new.com",
+            teamName: "team",
+            teamId: -1,
+            role: "ADMIN",
+          },
         ],
       };
 
@@ -446,14 +506,17 @@ describe("intentToCreateOrgHandler", () => {
 
       expect(result.organizationOnboardingId).toBeDefined();
 
-      const organizationOnboarding = await prismock.organizationOnboarding.findFirst({
-        where: {
-          slug: mockInput.slug,
-        },
-      });
+      const organizationOnboarding =
+        await prismock.organizationOnboarding.findFirst({
+          where: {
+            slug: mockInput.slug,
+          },
+        });
 
       expect(organizationOnboarding).toBeDefined();
-      expect(organizationOnboarding?.teams).toEqual(inputWithTeamsAndInvites.teams);
+      expect(organizationOnboarding?.teams).toEqual(
+        inputWithTeamsAndInvites.teams
+      );
 
       // Verify invitedMembers are stored with all fields including teamName, teamId, and role
       expect(organizationOnboarding?.invitedMembers).toBeDefined();
