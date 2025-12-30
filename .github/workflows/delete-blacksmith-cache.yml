@@ -23,15 +23,12 @@ jobs:
   delete-cache-build-on-pr-close:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: blacksmith-2vcpu-ubuntu-2404
+    env:
+      CACHE_NAME: prod-build
+      NODE_VERSION: v18.x
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Generate cache key
-        id: cache-key
-        uses: ./.github/actions/cache-build-key
-        with:
-          branch_key: ${{ github.event.pull_request.head.ref }}
       - name: Delete cache-build cache
         uses: useblacksmith/cache-delete@v1
         with:
-          key: ${{ steps.cache-key.outputs.key }}
+          key: Linux-${{ env.CACHE_NAME }}-${{ env.NODE_VERSION }}-${{ github.event.pull_request.head.ref }}
+          prefix: "true"
