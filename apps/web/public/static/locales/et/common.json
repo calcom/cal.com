@@ -3493,6 +3493,7 @@
   "last_active": "Viimati aktiivne",
   "member_since": "Liige alates",
   "last_updated": "Viimati uuendatud",
+  "completed_onboarding": "Sisseelamine lõpetatud",
   "salesforce_on_cancel_write_to_event": "Tühistatud broneeringu korral kirjutage sündmuse kirjesse selle asemel, et sündmus kustutada",
   "salesforce_on_every_cancellation": "Iga tühistamise korral",
   "report_issue": "Teata probleemist",

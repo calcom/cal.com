@@ -3493,6 +3493,7 @@
   "last_active": "Son Aktif",
   "member_since": "Üyelik Başlangıcı",
   "last_updated": "Son Güncelleme",
+  "completed_onboarding": "Oryantasyon tamamlandı",
   "salesforce_on_cancel_write_to_event": "İptal edilen rezervasyonda, etkinliği silmek yerine etkinlik kaydına yaz",
   "salesforce_on_every_cancellation": "Her iptal işleminde",
   "report_issue": "Sorun bildir",
