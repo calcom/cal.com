@@ -6,6 +6,9 @@ on:
     branches:
       - main
       - gh-actions-test-branch
+  # Allow CI to run when a maintainer approves an external contributor's PR
+  pull_request_review:
+    types: [submitted]
 
   workflow_dispatch:
 
@@ -14,12 +17,127 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}${{ github.event_name == 'pull_request_review' && github.event.review.state != 'approved' && '-noop' || '' }}
+  cancel-in-progress: ${{ github.event_name != 'pull_request_review' || github.event.review.state == 'approved' }}
 
 jobs:
+  # Security gate: Check if PR is from a trusted contributor or has been approved by a core team member
+  # This MUST run before any job that checks out PR code and executes it with secrets
+  trust-check:
+    name: Trust Check
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    # Skip if this is a non-approval review event (e.g., comment or changes_requested)
+    if: github.event_name != 'pull_request_review' || github.event.review.state == 'approved'
+    permissions:
+      pull-requests: read
+    outputs:
+      is-trusted: ${{ steps.check-trust.outputs.is-trusted }}
+    steps:
+      - name: Check if PR is trusted
+        id: check-trust
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const trustedAssociations = ['OWNER', 'MEMBER', 'COLLABORATOR'];
+            const pr = context.payload.pull_request;
+
+            if (!pr) {
+              if (context.eventName === 'workflow_dispatch') {
+                console.log('workflow_dispatch event - assuming trusted (manual trigger)');
+                core.setOutput('is-trusted', true);
+                return;
+              }
+              console.log('No pull request context found');
+              core.setOutput('is-trusted', false);
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = pr.number;
+            const headSha = pr.head.sha;
+
+            console.log(`PR #${prNumber} by ${pr.user.login}`);
+            console.log(`Author association: ${pr.author_association}`);
+            console.log(`Head SHA: ${headSha}`);
+
+            // Check 1: Is the author a trusted contributor?
+            const isTrustedAuthor = trustedAssociations.includes(pr.author_association);
+            if (isTrustedAuthor) {
+              console.log(`Author ${pr.user.login} is trusted (${pr.author_association})`);
+              core.setOutput('is-trusted', true);
+              return;
+            }
+
+            console.log(`Author ${pr.user.login} is external (${pr.author_association}), checking for core team approval...`);
+
+            // Check 2: Has a core team member approved the current commit?
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {
+              owner,
+              repo,
+              pull_number: prNumber,
+              per_page: 100,
+            });
+
+            // Group reviews by reviewer and get their latest state for the current commit
+            const reviewerStates = new Map();
+            for (const review of reviews) {
+              // Only consider reviews for the current head SHA
+              if (review.commit_id !== headSha) {
+                continue;
+              }
+
+              // Only track APPROVED and CHANGES_REQUESTED states
+              if (!['APPROVED', 'CHANGES_REQUESTED'].includes(review.state)) {
+                continue;
+              }
+
+              const reviewer = review.user.login;
+              const existing = reviewerStates.get(reviewer);
+
+              // Keep the latest review (higher ID = more recent)
+              if (!existing || review.id > existing.id) {
+                reviewerStates.set(reviewer, {
+                  id: review.id,
+                  state: review.state,
+                  login: reviewer,
+                });
+              }
+            }
+
+            // Check if any approver is a core team member (has write access or higher)
+            for (const [reviewer, reviewData] of reviewerStates) {
+              if (reviewData.state !== 'APPROVED') {
+                continue;
+              }
+
+              try {
+                const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner,
+                  repo,
+                  username: reviewer,
+                });
+
+                const isCoreTeam = ['admin', 'maintain', 'write'].includes(permission.permission);
+                console.log(`Reviewer ${reviewer}: permission=${permission.permission}, isCoreTeam=${isCoreTeam}`);
+
+                if (isCoreTeam) {
+                  console.log(`PR approved by core team member ${reviewer} for commit ${headSha}`);
+                  core.setOutput('is-trusted', true);
+                  return;
+                }
+              } catch (e) {
+                console.log(`Could not check permission for ${reviewer}: ${e.message}`);
+              }
+            }
+
+            console.log('PR requires approval from a core team member before CI can run');
+            core.setOutput('is-trusted', false);
+
   prepare:
     name: Prepare
+    needs: [trust-check]
+    if: needs.trust-check.outputs.is-trusted == 'true'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       pull-requests: read
@@ -256,6 +374,7 @@ jobs:
   required:
     needs:
       [
+        trust-check,
         prepare,
         lint,
         type-check,
@@ -279,6 +398,12 @@ jobs:
     if: always()
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
+      - name: Fail if PR is not trusted (external contributor without approval)
+        run: |
+          echo "::error::This PR is from an external contributor and requires approval from a core team member before CI can run."
+          echo "A maintainer with write access must approve this PR to trigger CI checks."
+          exit 1
+        if: needs.trust-check.outputs.is-trusted != 'true' && needs.trust-check.result == 'success'
       - name: fail if conditional jobs failed
         run: exit 1
         if: |
