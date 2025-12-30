@@ -3493,6 +3493,7 @@
   "last_active": "마지막 활동",
   "member_since": "가입일",
   "last_updated": "마지막 업데이트",
+  "completed_onboarding": "온보딩 완료됨",
   "salesforce_on_cancel_write_to_event": "예약 취소 시 이벤트 삭제 대신 이벤트 기록에 작성",
   "salesforce_on_every_cancellation": "모든 취소 시",
   "report_issue": "문제 신고",

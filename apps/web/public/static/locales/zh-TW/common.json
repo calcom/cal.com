@@ -3493,6 +3493,7 @@
   "last_active": "最近活動",
   "member_since": "成員自",
   "last_updated": "最後更新",
+  "completed_onboarding": "已完成入門設置",
   "salesforce_on_cancel_write_to_event": "在取消預約時，寫入事件記錄而不是刪除事件",
   "salesforce_on_every_cancellation": "每次取消時",
   "report_issue": "回報問題",
