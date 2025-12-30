@@ -1,5 +1,10 @@
 name: Install playwright binaries
 description: "Install playwright, cache and restore if necessary"
+inputs:
+  skip-install-if-cache-hit:
+    description: "Skip playwright install if cache is hit. Use this for jobs that only need to populate the cache."
+    required: false
+    default: "false"
 runs:
   using: "composite"
   steps:
@@ -17,6 +22,6 @@ runs:
           ${{ github.workspace }}/node_modules/playwright
         key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
     - name: Yarn playwright install
-      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.playwright-cache.outputs.cache-hit != 'true' }}
       shell: bash
       run: yarn playwright install --with-deps

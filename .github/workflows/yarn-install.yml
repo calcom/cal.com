@@ -18,3 +18,5 @@ jobs:
         with:
           skip-install-if-cache-hit: "true"
       - uses: ./.github/actions/yarn-playwright-install
+        with:
+          skip-install-if-cache-hit: "true"
