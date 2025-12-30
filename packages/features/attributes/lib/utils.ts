@@ -1,4 +1,4 @@
-import { PrismaAttributeToUserRepository } from "../../../server/repository/PrismaAttributeToUserRepository";
+import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 
 export const getWhereClauseForAttributeOptionsManagedByCalcom = () => {
   // Neither created nor updated by DSync
