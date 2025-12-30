@@ -29,7 +29,7 @@ export const routingFormIncompleteBookingDataSchema = z.object({
   writeToRecordObject: writeToRecordDataSchema.optional(),
 });
 
-const optionalBooleanOnlyRunTimeValidation = z
+const _optionalBooleanOnlyRunTimeValidation = z
   .any()
   .refine((val) => typeof val === "boolean" || val === undefined)
   .optional();

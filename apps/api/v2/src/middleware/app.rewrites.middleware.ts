@@ -22,7 +22,7 @@ const shouldRewriteApiV2Prefix = () => {
   try {
     // rewrite is active even if REWRITE_API_V2_PREFIX is not set
     return getEnv("REWRITE_API_V2_PREFIX", "1") === "1";
-  } catch (error) {
+  } catch {
     return true;
   }
 };

@@ -47,7 +47,7 @@ export default function ForgotPassword(props: PageProps) {
       }
 
       return json;
-    } catch (reason) {
+    } catch (_reason) {
       setError({ message: t("unexpected_error_try_again") });
     } finally {
       setLoading(false);

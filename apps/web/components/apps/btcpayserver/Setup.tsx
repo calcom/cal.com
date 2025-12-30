@@ -230,7 +230,7 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
     deleteMutation.mutate({ id: credentialId });
   };
 
-  const btcpayIcon = (
+  const _btcpayIcon = (
     <>
       <img className="h-5 w-5" src="/app-store/btcpayserver/btcpay.svg" alt="BTCPay Server Icon" />
     </>
@@ -243,7 +243,7 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
   }
 
   const isNewCredential = !props.serverUrl && !props.storeId && !props.webhookSecret && !props.apiKey;
-  const webhookUri = `${WEBAPP_URL}/api/integrations/btcpayserver/webhook`;
+  const _webhookUri = `${WEBAPP_URL}/api/integrations/btcpayserver/webhook`;
 
   return (
     <>

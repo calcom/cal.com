@@ -35,7 +35,7 @@ type initProps = {
   generalPrompt: string;
 };
 
-const updateAgentWebsocketUrl = async (
+const _updateAgentWebsocketUrl = async (
   phoneNumber: string,
   llmWebsocketUrl: string,
   llmId: string

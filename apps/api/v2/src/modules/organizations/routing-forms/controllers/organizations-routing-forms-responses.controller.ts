@@ -22,7 +22,6 @@ import {
   UseGuards,
   ParseIntPipe,
   Req,
-  Version,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";

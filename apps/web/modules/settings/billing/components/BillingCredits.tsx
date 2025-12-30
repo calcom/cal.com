@@ -158,7 +158,7 @@ export default function BillingCredits() {
       } else {
         showToast(t("error_downloading_expense_log"), "error");
       }
-    } catch (error) {
+    } catch {
       showToast(t("error_downloading_expense_log"), "error");
     } finally {
       setIsDownloading(false);

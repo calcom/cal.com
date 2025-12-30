@@ -18,7 +18,6 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { TRPCError } from "@trpc/server";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 

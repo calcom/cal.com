@@ -99,7 +99,7 @@ export default class PipedriveCrmService implements CRM {
         const response = await fetch(`${this.revertApiUrl}crm/contacts/search`, requestOptions);
         const result = (await response.json()) as ContactSearchResult;
         return result;
-      } catch (error) {
+      } catch {
         return { status: "error", results: [] };
       }
     });

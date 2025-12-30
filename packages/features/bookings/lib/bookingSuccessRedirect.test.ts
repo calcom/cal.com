@@ -27,8 +27,8 @@ vi.mock("@calcom/embed-core/embed-iframe", () => ({
 }));
 
 // Test data constants
-const EMBED_PARAMS = ["embed", "layout", "embedType", "ui.color-scheme"];
-const WEBAPP_PARAMS = ["overlayCalendar"];
+const _EMBED_PARAMS = ["embed", "layout", "embedType", "ui.color-scheme"];
+const _WEBAPP_PARAMS = ["overlayCalendar"];
 
 // Helper function to create a mock booking with sensible defaults
 type MockBooking = Pick<

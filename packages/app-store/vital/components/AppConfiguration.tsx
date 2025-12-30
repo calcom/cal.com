@@ -155,7 +155,7 @@ const AppConfiguration = (props: IAppConfigurationProps) => {
               setSaveLoading(true);
               await saveSettings({ parameter: selectedParam, sleepValue: sleepValue });
               showToast("Success saving your Vital Configurations", "success");
-            } catch (error) {
+            } catch {
               showToast("An error occurred saving your Vital Configurations", "error");
               setSaveLoading(false);
             }

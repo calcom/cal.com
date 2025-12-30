@@ -57,7 +57,7 @@ export const OnboardingInviteBrowserView = ({
 
   // Use default values if not provided
   const rawInviterName = user?.name || user?.username || "Alex";
-  const displayInviterName = rawInviterName.charAt(0).toUpperCase() + rawInviterName.slice(1);
+  const _displayInviterName = rawInviterName.charAt(0).toUpperCase() + rawInviterName.slice(1);
 
   // Use organization or team data based on context
   const displayName = useOrganizationInvites

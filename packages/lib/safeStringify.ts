@@ -10,7 +10,7 @@ export function safeStringify(obj: unknown) {
     }
     // Avoid crashing on circular references
     return JSON.stringify(obj);
-  } catch (e) {
+  } catch (_e) {
     return obj;
   }
 }

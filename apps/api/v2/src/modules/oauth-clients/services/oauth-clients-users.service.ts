@@ -8,9 +8,18 @@ import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  Logger,
+} from "@nestjs/common";
 
-import { createNewUsersConnectToOrgIfExists, slugify, CreationSource } from "@calcom/platform-libraries";
+import {
+  createNewUsersConnectToOrgIfExists,
+  slugify,
+  CreationSource,
+} from "@calcom/platform-libraries";
 import type { User, PlatformOAuthClient } from "@calcom/prisma/client";
 
 @Injectable()
@@ -26,11 +35,17 @@ export class OAuthClientUsersService {
     private readonly profilesRepository: ProfilesRepository
   ) {}
 
-  async createOAuthClientUser(oAuthClient: PlatformOAuthClient, body: CreateManagedUserInput) {
+  async createOAuthClientUser(
+    oAuthClient: PlatformOAuthClient,
+    body: CreateManagedUserInput
+  ) {
     const oAuthClientId = oAuthClient.id;
     const organizationId = oAuthClient.organizationId;
 
-    const existingUser = await this.getExistingUserByEmail(oAuthClientId, body.email);
+    const existingUser = await this.getExistingUserByEmail(
+      oAuthClientId,
+      body.email
+    );
     if (existingUser) {
       throw new ConflictException(
         `User with the provided e-mail already exists. Existing user ID=${existingUser.id}`
@@ -43,7 +58,10 @@ export class OAuthClientUsersService {
         "You cannot create a managed user outside of an organization - the OAuth client does not belong to any organization."
       );
     } else {
-      const email = OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, body.email);
+      const email = OAuthClientUsersService.getOAuthUserEmail(
+        oAuthClientId,
+        body.email
+      );
       const createdUser = (
         await createNewUsersConnectToOrgIfExists({
           invitations: [
@@ -56,7 +74,8 @@ export class OAuthClientUsersService {
           teamId: organizationId,
           isOrg: true,
           parentId: null,
-          autoAcceptEmailDomain: "never-auto-accept-email-domain-for-managed-users",
+          autoAcceptEmailDomain:
+            "never-auto-accept-email-domain-for-managed-users",
           orgConnectInfoByUsernameOrEmail: {
             [email]: {
               orgId: organizationId,
@@ -80,23 +99,35 @@ export class OAuthClientUsersService {
       });
     }
 
-    const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
-      await this.tokensRepository.createOAuthTokens(oAuthClientId, user.id);
+    const {
+      accessToken,
+      refreshToken,
+      accessTokenExpiresAt,
+      refreshTokenExpiresAt,
+    } = await this.tokensRepository.createOAuthTokens(oAuthClientId, user.id);
 
     if (oAuthClient.areDefaultEventTypesEnabled) {
       await this.eventTypesService.createUserDefaultEventTypes(user.id);
     }
 
     if (body.timeZone) {
-      const defaultSchedule = await this.schedulesService.createUserDefaultSchedule(user.id, body.timeZone);
+      const defaultSchedule =
+        await this.schedulesService.createUserDefaultSchedule(
+          user.id,
+          body.timeZone
+        );
       user.defaultScheduleId = defaultSchedule.id;
     }
 
     try {
-      this.logger.log(`Setting default calendars in db for user with id ${user.id}`);
+      this.logger.log(
+        `Setting default calendars in db for user with id ${user.id}`
+      );
       await this.calendarsService.getCalendars(user.id);
-    } catch (err) {
-      this.logger.error(`Could not get calendars of new managed user with id ${user.id}`);
+    } catch {
+      this.logger.error(
+        `Could not get calendars of new managed user with id ${user.id}`
+      );
     }
 
     return {
@@ -111,23 +142,32 @@ export class OAuthClientUsersService {
   }
 
   async getExistingUserByEmail(oAuthClientId: string, email: string) {
-    const oAuthEmail = OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, email);
+    const oAuthEmail = OAuthClientUsersService.getOAuthUserEmail(
+      oAuthClientId,
+      email
+    );
     return await this.userRepository.findByEmail(oAuthEmail);
   }
 
-  async getManagedUsers(oAuthClientId: string, queryParams: GetManagedUsersInput) {
+  async getManagedUsers(
+    oAuthClientId: string,
+    queryParams: GetManagedUsersInput
+  ) {
     const { offset, limit, emails } = queryParams;
 
     const oAuthEmails = emails?.map((email) =>
-      email.includes(oAuthClientId) ? email : OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, email)
+      email.includes(oAuthClientId)
+        ? email
+        : OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, email)
     );
 
-    const managedUsers = await this.userRepository.findManagedUsersByOAuthClientIdAndEmails(
-      oAuthClientId,
-      offset ?? 0,
-      limit ?? 50,
-      oAuthEmails
-    );
+    const managedUsers =
+      await this.userRepository.findManagedUsersByOAuthClientIdAndEmails(
+        oAuthClientId,
+        offset ?? 0,
+        limit ?? 50,
+        oAuthEmails
+      );
 
     return managedUsers;
   }
@@ -139,7 +179,10 @@ export class OAuthClientUsersService {
     organizationId: number
   ) {
     if (body.email) {
-      const emailWithOAuthId = OAuthClientUsersService.getOAuthUserEmail(oAuthClientId, body.email);
+      const emailWithOAuthId = OAuthClientUsersService.getOAuthUserEmail(
+        oAuthClientId,
+        body.email
+      );
       body.email = emailWithOAuthId;
       const [emailUser, emailDomain] = emailWithOAuthId.split("@");
       const [domainName, TLD] = emailDomain.split(".");

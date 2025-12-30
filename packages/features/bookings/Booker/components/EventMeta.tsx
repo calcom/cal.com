@@ -104,7 +104,7 @@ export const EventMeta = ({
   const bookerState = useBookerStoreContext((state) => state.state);
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
-  const [seatedEventData, setSeatedEventData] = useBookerStoreContext(
+  const [seatedEventData, _setSeatedEventData] = useBookerStoreContext(
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );

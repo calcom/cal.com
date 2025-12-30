@@ -51,7 +51,7 @@ const handler = async (
       } else {
         res.status(404);
       }
-    } catch (error) {
+    } catch {
       res.status(500);
     }
   } else {

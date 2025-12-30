@@ -751,7 +751,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
 }) => {
   const form = responseWithForm.form;
   const { t } = useLocale();
-  const router = useRouter();
+  const _router = useRouter();
   const [responseFromOrganizer, setResponseFromOrganizer] = useState<FormResponse>({});
   const isResponseFromOrganizerUnpopulated = Object.keys(responseFromOrganizer).length === 0;
   const currentResponse = isResponseFromOrganizerUnpopulated

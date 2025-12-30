@@ -23,7 +23,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const { enabled, updateEnabled } = useIsAppEnabled(app);
   const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata);
-  const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
+  const [requirePayment, _setRequirePayment] = useState(getAppData("enabled"));
   const shouldDisableSwitch = !requirePayment && otherPaymentAppEnabled;
 
   return (

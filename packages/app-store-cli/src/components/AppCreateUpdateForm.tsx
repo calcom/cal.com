@@ -2,7 +2,7 @@ import fs from "fs";
 import { Box, Newline, Text, useApp } from "ink";
 import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { AppMeta } from "@calcom/types/App";
 
@@ -46,7 +46,7 @@ export const AppForm = ({
         category: config.categories[0],
         template: config.__template,
       };
-    } catch (e) {}
+    } catch (_e) {}
 
   const fields = [
     {

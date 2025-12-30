@@ -127,7 +127,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
               forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect,
             });
           }
-        } catch (e) {}
+        } catch (_e) {}
       })();
     }, 2000);
 

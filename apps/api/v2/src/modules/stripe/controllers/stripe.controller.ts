@@ -8,7 +8,10 @@ import {
   StripCredentialsCheckOutputResponseDto,
   StripCredentialsSaveOutputResponseDto,
 } from "@/modules/stripe/outputs/stripe.output";
-import { OAuthCallbackState, StripeService } from "@/modules/stripe/stripe.service";
+import {
+  OAuthCallbackState,
+  StripeService,
+} from "@/modules/stripe/stripe.service";
 import { getOnErrorReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -68,11 +71,19 @@ export class StripeController {
       accessToken,
     };
 
-    const stripeRedirectUrl = await this.stripeService.getStripeRedirectUrl(state, user.email, user.name);
+    const stripeRedirectUrl = await this.stripeService.getStripeRedirectUrl(
+      state,
+      user.email,
+      user.name
+    );
 
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(StripConnectOutputDto, { authUrl: stripeRedirectUrl }, { strategy: "excludeAll" }),
+      data: plainToClass(
+        StripConnectOutputDto,
+        { authUrl: stripeRedirectUrl },
+        { strategy: "excludeAll" }
+      ),
     };
   }
 
@@ -106,22 +117,33 @@ export class StripeController {
         const apiUrl = this.config.get("api.url");
         url = `${apiUrl}/organizations/${decodedCallbackState.orgId}/teams/${decodedCallbackState.teamId}/stripe/save`;
 
-        const params: Record<string, string | undefined> = { state, code, error, error_description };
+        const params: Record<string, string | undefined> = {
+          state,
+          code,
+          error,
+          error_description,
+        };
         const headers = {
           Authorization: `Bearer ${decodedCallbackState.accessToken}`,
         };
         try {
-          const response = await this.httpService.axiosRef.get(url, { params, headers });
-          const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";
+          const response = await this.httpService.axiosRef.get(url, {
+            params,
+            headers,
+          });
+          const redirectUrl =
+            response.data?.url || decodedCallbackState.onErrorReturnTo || "";
           return { url: redirectUrl };
-        } catch (err) {
+        } catch {
           const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
           return { url: fallbackUrl };
         }
       }
 
       // user-level fallback
-      const userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
+      const userId = await this.tokensRepository.getAccessTokenOwnerId(
+        decodedCallbackState.accessToken
+      );
 
       // user cancels flow
       if (error === "access_denied") {
@@ -136,7 +158,11 @@ export class StripeController {
         throw new BadRequestException("Invalid Access token.");
       }
 
-      return await this.stripeService.saveStripeAccount(decodedCallbackState, code, userId);
+      return await this.stripeService.saveStripeAccount(
+        decodedCallbackState,
+        code,
+        userId
+      );
     } catch (error) {
       if (error instanceof Error) {
         console.error(error.message);
@@ -152,7 +178,11 @@ export class StripeController {
   @HttpCode(HttpStatus.OK)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Check Stripe connection" })
-  async check(@GetUser() user: UserWithProfile): Promise<StripCredentialsCheckOutputResponseDto> {
-    return await this.stripeService.checkIfIndividualStripeAccountConnected(user.id);
+  async check(
+    @GetUser() user: UserWithProfile
+  ): Promise<StripCredentialsCheckOutputResponseDto> {
+    return await this.stripeService.checkIfIndividualStripeAccountConnected(
+      user.id
+    );
   }
 }

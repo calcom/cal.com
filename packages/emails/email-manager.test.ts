@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
-import { shouldSkipAttendeeEmailWithSettings, fetchOrganizationEmailSettings } from "./email-manager";
+import { shouldSkipAttendeeEmailWithSettings, } from "./email-manager";
 
 const mockGetEmailSettings = vi.fn();
 

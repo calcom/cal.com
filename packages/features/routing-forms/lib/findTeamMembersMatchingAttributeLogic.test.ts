@@ -207,7 +207,7 @@ function buildRoute({
   };
 }
 
-function buildDefaultCustomPageRoute({
+function _buildDefaultCustomPageRoute({
   id,
   attributesQueryValue,
 }: {

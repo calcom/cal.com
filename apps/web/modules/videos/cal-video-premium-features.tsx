@@ -1,7 +1,7 @@
 import type { DailyCall } from "@daily-co/daily-js";
 import { useTranscription, useRecording } from "@daily-co/daily-react";
 import { useDaily, useDailyEvent } from "@daily-co/daily-react";
-import React, { Fragment, useCallback, useRef, useState, useLayoutEffect, useEffect } from "react";
+import { Fragment, useCallback, useRef, useState, useLayoutEffect, useEffect } from "react";
 
 import { BUTTONS } from "./button-states";
 

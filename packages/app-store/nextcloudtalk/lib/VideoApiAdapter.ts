@@ -9,7 +9,10 @@ import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
-import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import type {
+  VideoApiAdapter,
+  VideoCallData,
+} from "@calcom/types/VideoApiAdapter";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
@@ -33,10 +36,16 @@ const nextcloudEventResultSchema = z.object({
   }),
 });
 
-const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
-  const tokenResponse = oAuthManagerHelper.getTokenObjectFromCredential(credential);
+const NextcloudTalkVideoApiAdapter = (
+  credential: CredentialPayload
+): VideoApiAdapter => {
+  const tokenResponse =
+    oAuthManagerHelper.getTokenObjectFromCredential(credential);
 
-  const clientCredentials = getParsedAppKeysFromSlug(config.slug, appKeysSchema);
+  const clientCredentials = getParsedAppKeysFromSlug(
+    config.slug,
+    appKeysSchema
+  );
 
   const fetchNextcloudApi = async (endpoint: string, options?: RequestInit) => {
     const auth = new OAuthManager({
@@ -47,9 +56,16 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
       },
       appSlug: config.slug,
       currentTokenObject: tokenResponse,
-      fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
-        const { nextcloudTalkClientId, nextcloudTalkClientSecret, nextcloudTalkHost } =
-          await clientCredentials;
+      fetchNewTokenObject: async ({
+        refreshToken,
+      }: {
+        refreshToken: string | null;
+      }) => {
+        const {
+          nextcloudTalkClientId,
+          nextcloudTalkClientSecret,
+          nextcloudTalkHost,
+        } = await clientCredentials;
         if (!refreshToken) {
           return null;
         }
@@ -60,18 +76,25 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
           grant_type: "refresh_token",
         };
         const query = stringify(params);
-        return fetch(`${nextcloudTalkHost}/index.php/apps/oauth2/api/v1/token?${query}`, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: new URLSearchParams({}),
-        });
+        return fetch(
+          `${nextcloudTalkHost}/index.php/apps/oauth2/api/v1/token?${query}`,
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: new URLSearchParams({}),
+          }
+        );
       },
       isTokenObjectUnusable: async function (response) {
-        const myLog = logger.getSubLogger({ prefix: ["nextcloudtalkvideo:isTokenObjectUnusable"] });
-        myLog.debug(safeStringify({ status: response.status, ok: response.ok }));
+        const myLog = logger.getSubLogger({
+          prefix: ["nextcloudtalkvideo:isTokenObjectUnusable"],
+        });
+        myLog.debug(
+          safeStringify({ status: response.status, ok: response.ok })
+        );
         if (!response.ok || (response.status < 200 && response.status >= 300)) {
           const responseBody = await response.json();
           myLog.debug(safeStringify({ responseBody }));
@@ -83,8 +106,12 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
         return null;
       },
       isAccessTokenUnusable: async function (response) {
-        const myLog = logger.getSubLogger({ prefix: ["nextcloudtalkvideo:isAccessTokenUnusable"] });
-        myLog.debug(safeStringify({ status: response.status, ok: response.ok }));
+        const myLog = logger.getSubLogger({
+          prefix: ["nextcloudtalkvideo:isAccessTokenUnusable"],
+        });
+        myLog.debug(
+          safeStringify({ status: response.status, ok: response.ok })
+        );
         if (!response.ok || (response.status < 200 && response.status >= 300)) {
           const responseBody = await response.json();
           myLog.debug(safeStringify({ responseBody }));
@@ -130,7 +157,8 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
     },
     createMeeting: async (eventData: CalendarEvent): Promise<VideoCallData> => {
       const appKeys = await getAppKeysFromSlug(config.slug);
-      const meetingPattern = (appKeys.nextcloudTalkPattern as string) || "{uuid}";
+      const meetingPattern =
+        (appKeys.nextcloudTalkPattern as string) || "{uuid}";
       const hostUrl = appKeys.nextcloudTalkHost as string;
 
       //Allows "/{Type}-with-{Attendees}" slug
@@ -138,7 +166,10 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
         .replaceAll("{uuid}", uuidv4())
         .replaceAll("{Title}", eventData.title)
         .replaceAll("{Event Type Title}", eventData.type)
-        .replaceAll("{Scheduler}", eventData.attendees.map((a) => a.name).join("-"))
+        .replaceAll(
+          "{Scheduler}",
+          eventData.attendees.map((a) => a.name).join("-")
+        )
         .replaceAll("{Organizer}", eventData.organizer.name)
         .replaceAll("{Location}", eventData.location || "")
         .replaceAll("{Team}", eventData.team?.name || "")
@@ -146,18 +177,21 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
 
       try {
         // Create video link with room type 3 (constant for a public room, see https://nextcloud-talk.readthedocs.io/en/stable/constants/#conversation-types)
-        const response = await fetchNextcloudApi(`ocs/v2.php/apps/spreed/api/v4/room`, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            "OCS-APIRequest": "true",
-          },
-          body: JSON.stringify({
-            roomType: 3,
-            roomName: `${meetingID}`,
-          }),
-        });
+        const response = await fetchNextcloudApi(
+          `ocs/v2.php/apps/spreed/api/v4/room`,
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              "OCS-APIRequest": "true",
+            },
+            body: JSON.stringify({
+              roomType: 3,
+              roomName: `${meetingID}`,
+            }),
+          }
+        );
         const result = nextcloudEventResultSchema.parse(response);
 
         if (result.ocs && result.ocs.data) {
@@ -168,7 +202,9 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
             url: `${hostUrl}/call/${result.ocs.data.token}`,
           };
         }
-        throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
+        throw new Error(
+          `Failed to create meeting. Response is ${JSON.stringify(result)}`
+        );
       } catch (err) {
         console.error(err);
         /* Prevents meeting creation failure when token is expired */
@@ -178,21 +214,26 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
     deleteMeeting: async (uid: string): Promise<void> => {
       try {
         // Remove video link from Nextcloud
-        const response = await fetchNextcloudApi(`ocs/v2.php/apps/spreed/api/v4/room/${uid}`, {
-          method: "DELETE",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            "OCS-APIRequest": "true",
-          },
-        });
+        const response = await fetchNextcloudApi(
+          `ocs/v2.php/apps/spreed/api/v4/room/${uid}`,
+          {
+            method: "DELETE",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              "OCS-APIRequest": "true",
+            },
+          }
+        );
         const result = nextcloudEventResultSchema.parse(response);
 
         if (result.ocs && result.ocs.meta && result.ocs.meta.status === "ok") {
           return Promise.resolve();
         }
-        throw new Error(`Failed to delete meeting. Response is ${JSON.stringify(result)}`);
-      } catch (err) {
+        throw new Error(
+          `Failed to delete meeting. Response is ${JSON.stringify(result)}`
+        );
+      } catch {
         return Promise.reject(new Error("Failed to delete meeting"));
       }
     },

@@ -54,7 +54,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     const { context } = requestProps;
     const throttleOptions = this.reflector.get(Throttle, context.getHandler());
     const request = context.switchToHttp().getRequest<Request>();
-    const IP = request?.headers?.["cf-connecting-ip"] ?? request?.headers?.["CF-Connecting-IP"] ?? request.ip;
+    const _IP = request?.headers?.["cf-connecting-ip"] ?? request?.headers?.["CF-Connecting-IP"] ?? request.ip;
     const response = context.switchToHttp().getResponse<Response>();
     const tracker = await this.getTracker(request);
     if (throttleOptions) {

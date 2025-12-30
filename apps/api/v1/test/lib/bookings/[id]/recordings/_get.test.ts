@@ -125,7 +125,7 @@ describe("GET /api/bookings/[id]/recordings", () => {
 
     req.userId = adminUserId;
     req.isOrganizationOwnerOrAdmin = true;
-    const mockedRecordings = mockGetRecordingsAndDownloadLink();
+    const _mockedRecordings = mockGetRecordingsAndDownloadLink();
     vi.mocked(getAccessibleUsers).mockResolvedValue([memberUserId]);
 
     await authMiddleware(req);

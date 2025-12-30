@@ -1,4 +1,4 @@
-import React from "react";
+
 
 import type { EventSetupTabProps } from "@calcom/web/modules/event-types/components/tabs/setup/EventSetupTab";
 import { EventSetupTab } from "@calcom/web/modules/event-types/components/tabs/setup/EventSetupTab";

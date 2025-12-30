@@ -80,7 +80,7 @@ describe("Form submitted, no event booked trigger", () => {
 
     prismaMock.booking.findFirst.mockResolvedValue(null);
 
-    const booking = await prismaMock.booking.findFirst();
+    const _booking = await prismaMock.booking.findFirst();
 
     await triggerFormSubmittedNoEventWebhook(payloadString);
 
@@ -114,7 +114,7 @@ describe("Form submitted, no event booked trigger", () => {
 
     prismaMock.booking.findFirst.mockResolvedValue({ id: 5 });
 
-    const booking = await prismaMock.booking.findFirst();
+    const _booking = await prismaMock.booking.findFirst();
 
     await triggerFormSubmittedNoEventWebhook(payloadString);
 

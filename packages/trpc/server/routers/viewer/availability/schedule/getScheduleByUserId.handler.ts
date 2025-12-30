@@ -40,7 +40,7 @@ export const getScheduleByUserIdHandler = async ({ ctx, input }: GetOptions) => 
       ...schedule,
       hasDefaultSchedule: true,
     };
-  } catch (e) {
+  } catch (_e) {
     return {
       id: -1,
       name: "Working Hourse",

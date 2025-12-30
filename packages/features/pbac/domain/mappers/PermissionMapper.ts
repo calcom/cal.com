@@ -103,7 +103,7 @@ export class PermissionMapper {
             actionMap[action as ResourceActions<R>] = true;
           }
         }
-      } catch (error) {
+      } catch {
         console.error(`Invalid permission string: ${permString}`);
       }
     });

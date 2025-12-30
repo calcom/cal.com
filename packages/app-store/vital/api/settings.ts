@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       } else {
         res.status(404);
       }
-    } catch (error) {
+    } catch {
       res.status(500);
     }
   } else {

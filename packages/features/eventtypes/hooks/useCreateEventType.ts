@@ -43,7 +43,7 @@ export const useCreateEventType = (
   const utils = trpc.useUtils();
   const { t } = useLocale();
   const { form, isManagedEventType } = useCreateEventTypeForm();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, _setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const createMutation = trpc.viewer.eventTypesHeavy.create.useMutation({

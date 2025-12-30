@@ -1,11 +1,20 @@
 import { z } from "zod";
 
 import { handleErrorsJson } from "@calcom/lib/errors";
-import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
-import { getRecordingsResponseSchema, getAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
+import type {
+  GetRecordingsResponseSchema,
+  GetAccessLinkResponseSchema,
+} from "@calcom/prisma/zod-utils";
+import {
+  getRecordingsResponseSchema,
+  getAccessLinkResponseSchema,
+} from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
-import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import type {
+  VideoApiAdapter,
+  VideoCallData,
+} from "@calcom/types/VideoApiAdapter";
 
 import { getShimmerAppKeys } from "./getShimmerAppKeys";
 
@@ -57,7 +66,10 @@ export interface DailyVideoCallData {
   url: string;
 }
 
-export const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
+export const fetcher = async (
+  endpoint: string,
+  init?: RequestInit | undefined
+) => {
   const { api_key } = await getShimmerAppKeys();
   const response = await fetch(`https://api.daily.co/v1${endpoint}`, {
     method: "GET",
@@ -71,7 +83,10 @@ export const fetcher = async (endpoint: string, init?: RequestInit | undefined) 
   return response;
 };
 
-export const fetcherShimmer = async (endpoint: string, init?: RequestInit | undefined) => {
+export const fetcherShimmer = async (
+  endpoint: string,
+  init?: RequestInit | undefined
+) => {
   const { api_key, api_route } = await getShimmerAppKeys();
 
   if (!api_route) {
@@ -114,12 +129,19 @@ function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {
 }
 
 const ShimmerDailyVideoApiAdapter = (): VideoApiAdapter => {
-  async function createOrUpdateMeeting(endpoint: string, event: CalendarEvent): Promise<VideoCallData> {
+  async function createOrUpdateMeeting(
+    endpoint: string,
+    event: CalendarEvent
+  ): Promise<VideoCallData> {
     if (!event.uid) {
-      throw new Error("We need need the booking uid to create the Daily reference in DB");
+      throw new Error(
+        "We need need the booking uid to create the Daily reference in DB"
+      );
     }
     const body = await translateEvent();
-    const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
+    const dailyEvent = await postToDailyAPI(endpoint, body).then(
+      dailyReturnTypeSchema.parse
+    );
     // const meetingToken = await postToDailyAPI("/meeting-tokens", {
     //   properties: { room_name: dailyEvent.name, exp: dailyEvent.config.exp, is_owner: true },
     // }).then(meetingTokenSchema.parse);
@@ -166,27 +188,36 @@ const ShimmerDailyVideoApiAdapter = (): VideoApiAdapter => {
       await fetcher(`/rooms/${uid}`, { method: "DELETE" });
       return Promise.resolve();
     },
-    updateMeeting: (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> =>
+    updateMeeting: (
+      bookingRef: PartialReference,
+      event: CalendarEvent
+    ): Promise<VideoCallData> =>
       createOrUpdateMeeting(`/rooms/${bookingRef.uid}`, event),
-    getRecordings: async (roomName: string): Promise<GetRecordingsResponseSchema> => {
+    getRecordings: async (
+      roomName: string
+    ): Promise<GetRecordingsResponseSchema> => {
       try {
         const res = await fetcher(`/recordings?room_name=${roomName}`).then(
           getRecordingsResponseSchema.parse
         );
         return Promise.resolve(res);
-      } catch (err) {
+      } catch {
         throw new Error("Something went wrong! Unable to get recording");
       }
     },
-    getRecordingDownloadLink: async (recordingId: string): Promise<GetAccessLinkResponseSchema> => {
+    getRecordingDownloadLink: async (
+      recordingId: string
+    ): Promise<GetAccessLinkResponseSchema> => {
       try {
-        const res = await fetcher(`/recordings/${recordingId}/access-link?valid_for_secs=43200`).then(
-          getAccessLinkResponseSchema.parse
-        );
+        const res = await fetcher(
+          `/recordings/${recordingId}/access-link?valid_for_secs=43200`
+        ).then(getAccessLinkResponseSchema.parse);
         return Promise.resolve(res);
       } catch (err) {
         console.log("err", err);
-        throw new Error("Something went wrong! Unable to get recording access link");
+        throw new Error(
+          "Something went wrong! Unable to get recording access link"
+        );
       }
     },
   };

@@ -18,7 +18,11 @@ export const config = {
 
 const handleSubscriptionUpdate = async (event: Stripe.Event) => {
   const subscription = event.data.object as Stripe.Subscription;
-  if (!subscription.id) throw new HttpCode({ statusCode: 400, message: "Subscription ID not found" });
+  if (!subscription.id)
+    throw new HttpCode({
+      statusCode: 400,
+      message: "Subscription ID not found",
+    });
 
   const app = await prisma.credential.findFirst({
     where: {
@@ -45,7 +49,11 @@ const handleSubscriptionUpdate = async (event: Stripe.Event) => {
 
 const handleSubscriptionDeleted = async (event: Stripe.Event) => {
   const subscription = event.data.object as Stripe.Subscription;
-  if (!subscription.id) throw new HttpCode({ statusCode: 400, message: "Subscription ID not found" });
+  if (!subscription.id)
+    throw new HttpCode({
+      statusCode: 400,
+      message: "Subscription ID not found",
+    });
 
   const app = await prisma.credential.findFirst({
     where: {
@@ -79,23 +87,36 @@ const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "customer.subscription.deleted": handleSubscriptionDeleted,
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
     }
     const sig = req.headers["stripe-signature"];
     if (!sig) {
-      throw new HttpCode({ statusCode: 400, message: "Missing stripe-signature" });
+      throw new HttpCode({
+        statusCode: 400,
+        message: "Missing stripe-signature",
+      });
     }
 
     if (!process.env.STRIPE_WEBHOOK_SECRET_APPS) {
-      throw new HttpCode({ statusCode: 500, message: "Missing process.env.STRIPE_WEBHOOK_SECRET_APPS" });
+      throw new HttpCode({
+        statusCode: 500,
+        message: "Missing process.env.STRIPE_WEBHOOK_SECRET_APPS",
+      });
     }
     const requestBuffer = await buffer(req);
     const payload = requestBuffer.toString();
 
-    const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET_APPS);
+    const event = stripe.webhooks.constructEvent(
+      payload,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET_APPS
+    );
 
     const handler = webhookHandlers[event.type];
     if (handler) {
@@ -107,7 +128,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: `Unhandled Stripe Webhook event type ${event.type}`,
       });
     }
-  } catch (_err) {
+  } catch {
     const err = getServerErrorFromUnknown(_err);
     if (!err.message.includes("No credential found with subscription ID")) {
       console.error(`Webhook Error: ${err.message}`);

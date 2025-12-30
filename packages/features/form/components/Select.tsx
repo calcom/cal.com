@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { GroupBase, Props, InputProps, SingleValue, MultiValue } from "react-select";
 import ReactSelect, { components } from "react-select";
 

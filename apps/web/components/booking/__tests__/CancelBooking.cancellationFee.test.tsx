@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import * as React from "react";
 import { describe, expect, it, vi, beforeAll } from "vitest";
 
 import * as shouldChargeModule from "@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee";

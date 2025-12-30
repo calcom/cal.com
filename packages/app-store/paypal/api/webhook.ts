@@ -32,7 +32,8 @@ export async function handlePaypalPaymentSuccess(
     },
   });
 
-  if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
+  if (!payment?.bookingId)
+    throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
   const booking = await prisma.booking.findUnique({
     where: {
@@ -43,10 +44,12 @@ export async function handlePaypalPaymentSuccess(
     },
   });
 
-  if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
+  if (!booking)
+    throw new HttpCode({ statusCode: 204, message: "No booking found" });
   // Probably booking it's already paid from /capture but we need to send confirmation email
   const foundCredentials = await findPaymentCredentials(booking.id);
-  if (!foundCredentials) throw new HttpCode({ statusCode: 204, message: "No credentials found" });
+  if (!foundCredentials)
+    throw new HttpCode({ statusCode: 204, message: "No credentials found" });
   const { webhookId, ...credentials } = foundCredentials;
 
   const paypalClient = new Paypal(credentials);
@@ -66,10 +69,17 @@ export async function handlePaypalPaymentSuccess(
   const traceContext = distributedTracing.createTrace("paypal_webhook", {
     meta: { paymentId: payment.id, bookingId: payment.bookingId },
   });
-  return await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
+  return await handlePaymentSuccess(
+    payment.id,
+    payment.bookingId,
+    traceContext
+  );
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
@@ -93,9 +103,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: parsedPayload } = parse;
 
     if (parsedPayload.event_type === "CHECKOUT.ORDER.APPROVED") {
-      return await handlePaypalPaymentSuccess(parsedPayload, bodyAsString, parseHeaders.data);
+      return await handlePaypalPaymentSuccess(
+        parsedPayload,
+        bodyAsString,
+        parseHeaders.data
+      );
     }
-  } catch (_err) {
+  } catch {
     const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
     res.status(200).send({
@@ -183,7 +197,9 @@ export const findPaymentCredentials = async (
     if (!credentials) {
       throw new Error("No credentials found");
     }
-    const parsedCredentials = paypalCredentialKeysSchema.safeParse(credentials?.key);
+    const parsedCredentials = paypalCredentialKeysSchema.safeParse(
+      credentials?.key
+    );
     if (!parsedCredentials.success) {
       throw new Error("Credentials malformed");
     }

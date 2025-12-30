@@ -1,6 +1,5 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import React from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { UserPermissionRole } from "@calcom/prisma/enums";

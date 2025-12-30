@@ -24,7 +24,7 @@ import { randomString } from "test/utils/randomString";
 describe("Event Types Private Links Endpoints", () => {
   let app: INestApplication;
 
-  let oAuthClient: any;
+  let _oAuthClient: any;
   let organization: any;
   let userRepositoryFixture: UserRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
@@ -61,7 +61,7 @@ describe("Event Types Private Links Endpoints", () => {
       name: `private-links-organization-${randomString()}`,
       slug: `private-links-org-slug-${randomString()}`,
     });
-    oAuthClient = await createOAuthClient(organization.id);
+    _oAuthClient = await createOAuthClient(organization.id);
     user = await userRepositoryFixture.create({
       email: userEmail,
       name: `private-links-user-${randomString()}`,

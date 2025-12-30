@@ -1941,7 +1941,7 @@ describe("handleNewBooking", () => {
           );
 
           // Mock video meeting creation for Cal Video
-          const videoMock = mockSuccessfulVideoMeetingCreation({
+          const _videoMock = mockSuccessfulVideoMeetingCreation({
             metadataLookupKey: "dailyvideo",
           });
 
@@ -2918,7 +2918,7 @@ describe("handleNewBooking", () => {
           })
         );
 
-        const videoMock = mockSuccessfulVideoMeetingCreation({
+        const _videoMock = mockSuccessfulVideoMeetingCreation({
           metadataLookupKey: "dailyvideo",
         });
 
@@ -3055,7 +3055,7 @@ describe("handleNewBooking", () => {
           })
         );
 
-        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const _calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: { uid: "NEW_EVENT_ID" },
           update: { uid: "UPDATED_EVENT_ID" },
         });

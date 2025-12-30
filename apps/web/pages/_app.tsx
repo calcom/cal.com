@@ -1,7 +1,6 @@
 import type { IncomingMessage } from "http";
 import type { NextPageContext } from "next";
 import { SessionProvider } from "next-auth/react";
-import React from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
 import { WebPushProvider } from "@calcom/features/notifications/WebPushContext";

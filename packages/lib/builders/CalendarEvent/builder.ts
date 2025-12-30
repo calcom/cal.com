@@ -120,7 +120,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
         where: { id: userId },
         select: userSelect,
       });
-    } catch (error) {
+    } catch {
       throw new Error("getUsersById.users.notFound");
     }
   }
@@ -163,7 +163,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
           disableRescheduling: true,
         },
       });
-    } catch (error) {
+    } catch {
       throw new Error("Error while getting eventType");
     }
   }
@@ -254,7 +254,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
     try {
       const resultUser = await this.getUserById(userId);
       this.setUsers([resultUser]);
-    } catch (error) {
+    } catch {
       throw new Error("getUsersById.users.notFound");
     }
   }

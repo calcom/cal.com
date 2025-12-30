@@ -502,7 +502,7 @@ test.describe("Bookings", () => {
           roleInOrganization: MembershipRole.MEMBER,
         });
 
-        const user2 = await users.create({
+        const _user2 = await users.create({
           username: "user2",
           name: "User2",
           organizationId: org.id,
@@ -526,7 +526,7 @@ test.describe("Bookings", () => {
           name: "TestOrg",
         });
 
-        const user1 = await users.create({
+        const _user1 = await users.create({
           username: "user1",
           name: "User 1",
           organizationId: org.id,

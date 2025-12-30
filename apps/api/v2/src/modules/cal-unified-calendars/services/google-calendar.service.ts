@@ -49,7 +49,7 @@ export class GoogleCalendarService {
         throw new NotFoundException("Meeting not found");
       }
       return event.data as GoogleCalendarEventResponse;
-    } catch (error) {
+    } catch {
       throw new NotFoundException("Failed to retrieve meeting details");
     }
   }
@@ -86,7 +86,7 @@ export class GoogleCalendarService {
         throw new NotFoundException("Failed to update meeting");
       }
       return event.data as GoogleCalendarEventResponse;
-    } catch (error) {
+    } catch {
       throw new NotFoundException("Failed to update meeting details");
     }
   }
@@ -150,7 +150,7 @@ export class GoogleCalendarService {
 
       await authClient.authorize();
       return new calendar_v3.Calendar({ auth: authClient });
-    } catch (error) {
+    } catch {
       return null;
     }
   }

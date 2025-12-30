@@ -6,7 +6,10 @@ import type { Credential } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
-import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import type {
+  VideoApiAdapter,
+  VideoCallData,
+} from "@calcom/types/VideoApiAdapter";
 
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { getWebexAppKeys } from "./getWebexAppKeys";
@@ -87,13 +90,19 @@ const webexAuth = (credential: CredentialPayload) => {
     // We check the if the new credentials matches the expected response structure
     const parsedToken = webexRefreshedTokenSchema.safeParse(responseBody);
     if (!parsedToken.success) {
-      return Promise.reject(new Error("Invalid refreshed tokens were returned"));
+      return Promise.reject(
+        new Error("Invalid refreshed tokens were returned")
+      );
     }
     const newTokens = parsedToken.data;
-    const oldCredential = await prisma.credential.findUniqueOrThrow({ where: { id: credential.id } });
+    const oldCredential = await prisma.credential.findUniqueOrThrow({
+      where: { id: credential.id },
+    });
     const parsedKey = webexTokenSchema.safeParse(oldCredential.key);
     if (!parsedKey.success) {
-      return Promise.reject(new Error("Invalid credentials were saved in the DB"));
+      return Promise.reject(
+        new Error("Invalid credentials were saved in the DB")
+      );
     }
 
     const key = parsedKey.data;
@@ -104,7 +113,10 @@ const webexAuth = (credential: CredentialPayload) => {
       key.expiry_date = Math.round(Date.now() + newTokens.expires_in * 1000);
     }
     // Store new tokens in database.
-    await prisma.credential.update({ where: { id: credential.id }, data: { key } });
+    await prisma.credential.update({
+      where: { id: credential.id },
+      data: { key },
+    });
     return newTokens.access_token;
   };
   return {
@@ -112,7 +124,7 @@ const webexAuth = (credential: CredentialPayload) => {
       let credentialKey: WebexToken | null = null;
       try {
         credentialKey = webexTokenSchema.parse(credential.key);
-      } catch (error) {
+      } catch {
         return Promise.reject("Webex credential keys parsing error");
       }
 
@@ -123,7 +135,9 @@ const webexAuth = (credential: CredentialPayload) => {
   };
 };
 
-const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
+const WebexVideoApiAdapter = (
+  credential: CredentialPayload
+): VideoApiAdapter => {
   //TODO implement translateEvent for recurring events
   const translateEvent = (event: CalendarEvent) => {
     //To convert the Cal's CalendarEvent type to a webex meeting type
@@ -183,7 +197,10 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       try {
         console.log("Creating meeting", event);
         console.log("meting body", translateEvent(event));
-        console.log("request body in createMeeting", JSON.stringify(translateEvent(event)));
+        console.log(
+          "request body in createMeeting",
+          JSON.stringify(translateEvent(event))
+        );
         const response = await fetchWebexApi("meetings", {
           method: "POST",
           headers: {
@@ -195,7 +212,9 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
         if (response.error) {
           if (response.error === "invalid_grant") {
             await invalidateCredential(credential.id);
-            return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
+            return Promise.reject(
+              new Error("Invalid grant for Cal.com webex app")
+            );
           }
         }
 
@@ -208,7 +227,9 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
             url: result.webLink,
           };
         }
-        throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
+        throw new Error(
+          `Failed to create meeting. Response is ${JSON.stringify(result)}`
+        );
       } catch (err) {
         console.error(err);
         throw new Error("Unexpected error");
@@ -224,15 +245,20 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
         if (response.error) {
           if (response.error === "invalid_grant") {
             await invalidateCredential(credential.id);
-            return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
+            return Promise.reject(
+              new Error("Invalid grant for Cal.com webex app")
+            );
           }
         }
         return Promise.resolve();
-      } catch (err) {
+      } catch {
         return Promise.reject(new Error("Failed to delete meeting"));
       }
     },
-    updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
+    updateMeeting: async (
+      bookingRef: PartialReference,
+      event: CalendarEvent
+    ): Promise<VideoCallData> => {
       /** @link https://developer.webex.com/docs/api/v1/meetings/update-a-meeting */
       try {
         const response = await fetchWebexApi(`meetings/${bookingRef.uid}`, {
@@ -245,7 +271,9 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
         if (response.error) {
           if (response.error === "invalid_grant") {
             await invalidateCredential(credential.id);
-            return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
+            return Promise.reject(
+              new Error("Invalid grant for Cal.com webex app")
+            );
           }
         }
 
@@ -258,7 +286,9 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
             url: result.webLink,
           };
         }
-        throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
+        throw new Error(
+          `Failed to create meeting. Response is ${JSON.stringify(result)}`
+        );
       } catch (err) {
         console.error(err);
         throw new Error("Unexpected error");
@@ -267,7 +297,10 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
   };
 };
 
-const handleWebexResponse = async (response: Response, credentialId: Credential["id"]) => {
+const handleWebexResponse = async (
+  response: Response,
+  credentialId: Credential["id"]
+) => {
   let _response = response.clone();
   const responseClone = response.clone();
   if (_response.headers.get("content-encoding") === "gzip") {
@@ -277,7 +310,10 @@ const handleWebexResponse = async (response: Response, credentialId: Credential[
   if (!response.ok || (response.status < 200 && response.status >= 300)) {
     const responseBody = await _response.json();
 
-    if ((response && response.status === 124) || responseBody.error === "invalid_grant") {
+    if (
+      (response && response.status === 124) ||
+      responseBody.error === "invalid_grant"
+    ) {
       await invalidateCredential(credentialId);
     }
     throw Error(response.statusText);

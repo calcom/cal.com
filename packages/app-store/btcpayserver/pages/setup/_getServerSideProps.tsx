@@ -15,7 +15,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
     const { req } = ctx;
     const session = await getServerSession({ req });
-    if (!session?.user?.id) return { redirect: { permanent: false, destination: "/auth/login" } };
+    if (!session?.user?.id)
+      return { redirect: { permanent: false, destination: "/auth/login" } };
 
     const credential = await CredentialRepository.findFirstByUserIdAndType({
       userId: session.user.id,
@@ -30,7 +31,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       }
     }
     return { props: props ?? {} };
-  } catch (error) {
+  } catch {
     return {
       props: {},
     };

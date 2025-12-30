@@ -21,7 +21,7 @@ try {
   execSync("yarn tsc --noEmit", {});
 
   console.log("😻 No errors!");
-} catch (_err) {
+} catch {
   const err = _err as Err;
 
   const output = err.stdout.toString() as string;
@@ -32,7 +32,9 @@ try {
     console.log(`🎉 You haven't introduced any new type errors!`);
     process.exit(0);
   }
-  console.log("❌ ❌ ❌ You seem to have touched files that have type errors ❌ ❌ ❌");
+  console.log(
+    "❌ ❌ ❌ You seem to have touched files that have type errors ❌ ❌ ❌"
+  );
   console.log("🙏 Please inspect the following files:");
   console.log(filesWithTypeErrors.map((str) => `  - ${str}`).join("\n"));
 

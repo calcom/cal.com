@@ -17,7 +17,7 @@ test.afterEach(async ({ users }) => {
 
 test.describe("Team", () => {
   test("Invitation (non verified)", async ({ browser, page, users, emails }) => {
-    const t = await localize("en");
+    const _t = await localize("en");
     const teamOwner = await users.create(undefined, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
@@ -106,7 +106,7 @@ test.describe("Team", () => {
   });
 
   test("Invitation (verified)", async ({ page, users, emails }) => {
-    const t = await localize("en");
+    const _t = await localize("en");
     const teamOwner = await users.create({ name: `team-owner-${Date.now()}` }, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
@@ -143,7 +143,7 @@ test.describe("Team", () => {
     page,
     users,
   }) => {
-    const t = await localize("en");
+    const _t = await localize("en");
     const teamEventSlugAndTitle = "managed-event-test";
     const teamMatesObj = [{ name: "teammate-1" }, { name: "teammate-2" }];
     const teamOwner = await users.create(
@@ -203,7 +203,7 @@ test.describe("Team", () => {
   });
 
   test("Auto-accept invitation for existing user", async ({ browser, page, users, emails }) => {
-    const t = await localize("en");
+    const _t = await localize("en");
     const teamOwner = await users.create({ name: "Invited User" }, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     const invitedUser = await users.create({
@@ -266,7 +266,7 @@ test.describe("Team", () => {
   });
 
   test("Error when wrong user tries to use invitation link", async ({ browser, page, users, emails }) => {
-    const t = await localize("en");
+    const _t = await localize("en");
     const teamOwner = await users.create({ name: "Wrong User" }, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     const invitedUser = await users.create({

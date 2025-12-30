@@ -38,7 +38,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
     value: paymentOptions[0].value,
   };
   const seatsEnabled = !!eventType.seatsPerTimeSlot;
-  const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
+  const [requirePayment, _setRequirePayment] = useState(getAppData("enabled"));
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
 

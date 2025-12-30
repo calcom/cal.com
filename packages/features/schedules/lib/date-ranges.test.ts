@@ -1245,7 +1245,7 @@ describe("intersect function comprehensive tests", () => {
       const result = subtract(dateRanges, formattedBusyTimes);
 
       // What the result SHOULD be (correct behavior): June 2 range is properly excluded due to overlapping busy time
-      const expectedCorrectedOutput = [
+      const _expectedCorrectedOutput = [
         { start: dayjs("2024-05-31T04:00:00.000Z"), end: dayjs("2024-05-31T12:30:00.000Z") },
         { start: dayjs("2024-06-01T04:00:00.000Z"), end: dayjs("2024-06-01T12:30:00.000Z") },
         { start: dayjs("2024-06-03T04:00:00.000Z"), end: dayjs("2024-06-03T12:30:00.000Z") },

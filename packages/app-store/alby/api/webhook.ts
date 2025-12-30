@@ -17,7 +17,10 @@ export const config = {
   },
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
@@ -44,7 +47,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: parsedPayload } = parse;
 
     if (parsedPayload.metadata?.payer_data?.appId !== "cal.com") {
-      throw new HttpCode({ statusCode: 204, message: "Payment not for cal.com" });
+      throw new HttpCode({
+        statusCode: 204,
+        message: "Payment not for cal.com",
+      });
     }
 
     const payment = await prisma.payment.findFirst({
@@ -71,9 +77,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    if (!payment) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
+    if (!payment)
+      throw new HttpCode({ statusCode: 204, message: "Payment not found" });
     const key = payment.booking?.user?.credentials?.[0].key;
-    if (!key) throw new HttpCode({ statusCode: 204, message: "Credentials not found" });
+    if (!key)
+      throw new HttpCode({ statusCode: 204, message: "Credentials not found" });
 
     const parseCredentials = albyCredentialKeysSchema.safeParse(key);
     if (!parseCredentials.success) {
@@ -83,17 +91,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const credentials = parseCredentials.data;
 
-    const albyInvoice = await parseInvoice(bodyAsString, parsedHeaders, credentials.webhook_endpoint_secret);
-    if (!albyInvoice) throw new HttpCode({ statusCode: 204, message: "Invoice not found" });
+    const albyInvoice = await parseInvoice(
+      bodyAsString,
+      parsedHeaders,
+      credentials.webhook_endpoint_secret
+    );
+    if (!albyInvoice)
+      throw new HttpCode({ statusCode: 204, message: "Invoice not found" });
     if (albyInvoice.amount !== payment.amount) {
-      throw new HttpCode({ statusCode: 400, message: "invoice amount does not match payment amount" });
+      throw new HttpCode({
+        statusCode: 400,
+        message: "invoice amount does not match payment amount",
+      });
     }
 
     const traceContext = distributedTracing.createTrace("alby_webhook", {
       meta: { paymentId: payment.id, bookingId: payment.bookingId },
     });
-    return await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
-  } catch (_err) {
+    return await handlePaymentSuccess(
+      payment.id,
+      payment.bookingId,
+      traceContext
+    );
+  } catch {
     const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
     return res.status(err.statusCode).send({

@@ -26,8 +26,8 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Dialog", () => {
-  const title = "Dialog Title";
-  const subtitle = "Dialog Subtitle";
+  const _title = "Dialog Title";
+  const _subtitle = "Dialog Subtitle";
   const content = "Dialog Content";
   const footerContent = "Dialog Footer";
 

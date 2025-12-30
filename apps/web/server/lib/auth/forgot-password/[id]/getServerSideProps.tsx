@@ -19,7 +19,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   try {
     resetPasswordRequest &&
       (await prisma.user.findUniqueOrThrow({ where: { email: resetPasswordRequest.email } }));
-  } catch (e) {
+  } catch (_e) {
     resetPasswordRequest = null;
   }
 

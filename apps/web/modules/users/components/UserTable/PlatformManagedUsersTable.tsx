@@ -94,7 +94,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
     }
   );
 
-  const totalRowCount = data?.meta?.totalRowCount ?? 0;
+  const _totalRowCount = data?.meta?.totalRowCount ?? 0;
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.rows ?? [], [data]) as PlatformManagedUserTableUser[];

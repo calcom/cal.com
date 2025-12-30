@@ -1,5 +1,4 @@
 import { useRouter } from "next/navigation";
-import React from "react";
 
 import type { PERMISSION_MAP } from "@calcom/platform-constants";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";

@@ -19,7 +19,7 @@ const LocationInput = (props: {
 }) => {
   const { t } = useLocale();
   const { eventLocationType, index, customClassNames, disableLocationProp, label, ...remainingProps } = props;
-  const formMethods = useFormContext<FormValues>();
+  const _formMethods = useFormContext<FormValues>();
 
   if (eventLocationType?.organizerInputType === "text") {
     const { defaultValue, ...rest } = remainingProps;

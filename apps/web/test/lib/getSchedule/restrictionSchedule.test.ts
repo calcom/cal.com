@@ -34,7 +34,7 @@ type ScheduleScenario = {
   selectedSlots?: ScenarioData["selectedSlots"];
 };
 
-const getTestScheduleInput = ({
+const _getTestScheduleInput = ({
   yesterdayDateString,
   plus5DateString,
 }: {
@@ -191,7 +191,7 @@ describe("getSchedule", () => {
       await setupTeamAndFeatures();
       vi.setSystemTime("2025-06-01T23:30:00Z");
 
-      const plus2DateString = "2025-06-02"; // Monday
+      const _plus2DateString = "2025-06-02"; // Monday
       const plus6DateString = "2025-06-06"; // Friday
 
       const scenarioData: ScheduleScenario = {
@@ -291,7 +291,7 @@ describe("getSchedule", () => {
       await setupTeamAndFeatures();
       vi.setSystemTime("2025-06-01T23:30:00Z");
 
-      const plus2DateString = "2025-06-02"; // Monday
+      const _plus2DateString = "2025-06-02"; // Monday
       const plus6DateString = "2025-06-06"; // Friday
 
       const scenarioData: ScheduleScenario = {

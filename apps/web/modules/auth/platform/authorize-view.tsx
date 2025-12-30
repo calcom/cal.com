@@ -17,7 +17,7 @@ export default function Authorize() {
   const router = useRouter();
 
   const searchParams = useCompatSearchParams();
-  const queryString = searchParams?.toString();
+  const _queryString = searchParams?.toString();
 
   // const { isLoading, error, data: client } = useOAuthClient(queryString);
 

@@ -66,7 +66,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
           <div className="flex flex-col gap-4">
             {eventTypes?.map(
               (event: { id: number; slug: string; title: string; lengthInMinutes: number }) => {
-                const formatEventSlug = event.slug
+                const _formatEventSlug = event.slug
                   .split("-")
                   .map((item) => `${item[0].toLocaleUpperCase()}${item.slice(1)}`)
                   .join(" ");
@@ -95,7 +95,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             <h1>Team event types</h1>
             {teamEventTypes?.map(
               (event: { id: number; slug: string; title: string; lengthInMinutes: number }) => {
-                const formatEventSlug = event.slug
+                const _formatEventSlug = event.slug
                   .split("-")
                   .map((item) => `${item[0].toLocaleUpperCase()}${item.slice(1)}`)
                   .join(" ");

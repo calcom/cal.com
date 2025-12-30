@@ -1,6 +1,5 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { render } from "@testing-library/react";
-import React from "react";
 import { vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";

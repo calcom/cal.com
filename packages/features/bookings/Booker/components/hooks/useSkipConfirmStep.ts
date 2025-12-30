@@ -35,7 +35,7 @@ const useSkipConfirmStep = (
         const responseSafeParse = await responseSchema.safeParseAsync(bookingFormValues.responses);
 
         setCanSkip(responseSafeParse.success);
-      } catch (error) {
+      } catch {
         setCanSkip(false);
       }
     };

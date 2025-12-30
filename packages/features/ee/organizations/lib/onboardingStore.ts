@@ -2,7 +2,7 @@ import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { create } from "zustand";
-import { persist, StorageValue } from "zustand/middleware";
+import { persist, } from "zustand/middleware";
 
 import { WEBAPP_URL, IS_TEAM_BILLING_ENABLED_CLIENT } from "@calcom/lib/constants";
 import { localStorage } from "@calcom/lib/webstorage";

@@ -4,7 +4,7 @@
  * So, they should start with isBrowser check.
  */
 import { sdkActionManager } from "../sdk-event";
-import { embedStore, getEventHasFired, setEventHasFired, getReloadInitiated, setReloadInitiated } from "./lib/embedStore";
+import { embedStore, getEventHasFired, setEventHasFired, getReloadInitiated, } from "./lib/embedStore";
 import { isBrowser, isPrerendering } from "./lib/utils";
 
 /**

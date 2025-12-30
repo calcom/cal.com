@@ -81,7 +81,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     newWebhook = await prisma.webhook.create({
       data: webhookData,
     });
-  } catch (error) {
+  } catch {
     // Avoid printing raw prisma error on frontend
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create webhook" });
   }

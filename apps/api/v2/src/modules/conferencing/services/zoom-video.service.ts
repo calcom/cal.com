@@ -77,7 +77,7 @@ export class ZoomVideoService {
       try {
         const responseBody = await result.json();
         errorMessage = responseBody.error;
-      } catch (e) {
+      } catch (_e) {
         errorMessage = await result.clone().text();
       }
       throw new BadRequestException(errorMessage);

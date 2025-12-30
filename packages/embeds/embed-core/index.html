@@ -11,15 +11,15 @@
   </style>
   <script type="text/javascript" src="./playground/lib/playground-init.ts"></script>
   <script>
-    let popupRescheduleUid = null;
-    let popupCancelUid = null;
-    let calLink = null;
-    const initialNamespace = (url.searchParams.get("only") || "").split("ns:")[1] || "";
+    let _popupRescheduleUid = null;
+    let _popupCancelUid = null;
+    let _calLink = null;
+    const _initialNamespace = (url.searchParams.get("only") || "").split("ns:")[1] || "";
     (function defineVariables() {
       const searchParams = new URL(document.URL).searchParams;
-      popupRescheduleUid = searchParams.get("popupRescheduleUid") || "qm3kwt3aTnVD7vmP9tiT2f";
-      popupCancelUid = searchParams.get("popupCancelUid") || "qm3kwt3aTnVD7vmP9tiT2f";
-      calLink = searchParams.get("calLink");
+      _popupRescheduleUid = searchParams.get("popupRescheduleUid") || "qm3kwt3aTnVD7vmP9tiT2f";
+      _popupCancelUid = searchParams.get("popupCancelUid") || "qm3kwt3aTnVD7vmP9tiT2f";
+      _calLink = searchParams.get("calLink");
     })()
 
     if (!location.search.includes("nonResponsive")) {
@@ -30,7 +30,7 @@
       document.documentElement.classList.add("grid-row-gap");
     }
 
-    function addInlineEmbedInNewNamespaceWithoutReload(selector) {
+    function _addInlineEmbedInNewNamespaceWithoutReload(selector) {
       Cal("init", "withoutReloadNamespace", {
         debug: true,
         calOrigin: window.calOrigin,
@@ -86,7 +86,7 @@
     embedSnippet();
   </script>
   <script>
-    function doubleInstallSnippetWithInlineEmbedWithNonDefaultNamespace(selector) {
+    function _doubleInstallSnippetWithInlineEmbedWithNonDefaultNamespace(selector) {
       Cal("init", "doubleInstall", {
         debug: true,
         calOrigin: window.calOrigin,
@@ -113,7 +113,7 @@
     }
 
 
-    function doubleInstallSnippetWithInlineEmbed(selector) {
+    function _doubleInstallSnippetWithInlineEmbed(selector) {
       Cal("init", {
         debug: true,
         calOrigin: window.calOrigin,
@@ -139,7 +139,7 @@
       });
     }
 
-    function addTwoInlineEmbedWithTwoDifferentNamespacesWithDifferentInitConfig() {
+    function _addTwoInlineEmbedWithTwoDifferentNamespacesWithDifferentInitConfig() {
       Cal("init", "namespace-init-test-1", {
         debug: true,
         calOrigin: window.calOrigin,

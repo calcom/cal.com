@@ -76,7 +76,7 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
         ).format("YYYY-MM-DD")}.csv`;
         downloadAsCsv(allData as Record<string, unknown>[], filename);
       }
-    } catch (error) {
+    } catch {
       showToast(t("error_downloading_data"), "error");
     } finally {
       setIsDownloading(false);

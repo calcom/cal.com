@@ -43,7 +43,6 @@ import {
 import { ApiOperation, ApiTags as DocsTags, ApiParam } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { Request } from "express";
-import { stringify } from "querystring";
 
 import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO, CAL_VIDEO } from "@calcom/platform-constants";
 

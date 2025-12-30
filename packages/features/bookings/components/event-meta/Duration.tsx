@@ -44,7 +44,7 @@ export const EventDuration = ({
 }) => {
   const { t } = useLocale();
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
-  const isPlatform = useIsPlatform();
+  const _isPlatform = useIsPlatform();
   const [selectedDuration, setSelectedDuration, state] = useBookerStoreContext((state) => [
     state.selectedDuration,
     state.setSelectedDuration,

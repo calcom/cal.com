@@ -12,7 +12,6 @@ import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 
 import { EmailInviteForm } from "../../../components/EmailInviteForm";
-import { InviteOptions } from "../../../components/InviteOptions";
 import { OnboardingCard } from "../../../components/OnboardingCard";
 import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { RoleSelector } from "../../../components/RoleSelector";
@@ -51,7 +50,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
   const { submitOnboarding, isSubmitting } = useSubmitOnboarding();
   const [isCSVModalOpen, setIsCSVModalOpen] = React.useState(false);
 
-  const googleWorkspaceEnabled = flags["google-workspace-directory"];
+  const _googleWorkspaceEnabled = flags["google-workspace-directory"];
 
   const filteredTeams = store.teams.filter((team) => team.name && team.name.trim().length > 0);
   const teams =
@@ -110,19 +109,19 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
     await submitOnboarding(store, userEmail, []);
   };
 
-  const handleGoogleWorkspaceConnect = () => {
+  const _handleGoogleWorkspaceConnect = () => {
     console.log("Connect Google Workspace");
   };
 
-  const handleUploadCSV = () => {
+  const _handleUploadCSV = () => {
     setIsCSVModalOpen(true);
   };
 
-  const handleCopyInviteLink = () => {
+  const _handleCopyInviteLink = () => {
     console.log("Copy invite link - disabled");
   };
 
-  const handleInviteViaEmail = () => {
+  const _handleInviteViaEmail = () => {
     router.push("/onboarding/organization/invite/email");
   };
 

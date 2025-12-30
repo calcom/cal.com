@@ -1,6 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
-import React from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";

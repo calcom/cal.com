@@ -33,7 +33,8 @@ const CONSTANTS = {
   },
   SELECTORS: {
     LEFT_ACTIONS: ".msg-form__left-actions",
-    EMOJI_BUTTON: "div:has(> span.artdeco-hoverable-trigger button.emoji-hoverable-trigger)",
+    EMOJI_BUTTON:
+      "div:has(> span.artdeco-hoverable-trigger button.emoji-hoverable-trigger)",
     EMOJI_BUTTON_FALLBACK: 'div:has(button[aria-label="Open Emoji Keyboard"])',
     LARGE_BUTTON: ".artdeco-button--2",
     CAL_BUTTON: ".cal-companion-linkedin-button",
@@ -144,7 +145,10 @@ export function initLinkedInIntegration() {
       CONSTANTS.SELECTORS.LEFT_ACTIONS
     );
 
-    console.log("[Cal.com] Found left-actions containers:", leftActionsContainers.length);
+    console.log(
+      "[Cal.com] Found left-actions containers:",
+      leftActionsContainers.length
+    );
 
     leftActionsContainers.forEach((leftActions) => {
       if (leftActions.querySelector(CONSTANTS.SELECTORS.CAL_BUTTON)) {
@@ -153,7 +157,9 @@ export function initLinkedInIntegration() {
 
       const emojiButtonContainer = findEmojiButtonContainer(leftActions);
       const isLargeContext = detectButtonSizeContext(leftActions);
-      const sizes = isLargeContext ? CONSTANTS.BUTTON_SIZES.LARGE : CONSTANTS.BUTTON_SIZES.SMALL;
+      const sizes = isLargeContext
+        ? CONSTANTS.BUTTON_SIZES.LARGE
+        : CONSTANTS.BUTTON_SIZES.SMALL;
 
       console.log(
         "[Cal.com] Injecting Cal.com button into LinkedIn messaging",
@@ -189,10 +195,15 @@ export function initLinkedInIntegration() {
     return wrapper;
   }
 
-  function createCalButton(isLargeContext: boolean, sizes: ButtonSize): HTMLButtonElement {
+  function createCalButton(
+    isLargeContext: boolean,
+    sizes: ButtonSize
+  ): HTMLButtonElement {
     const button = document.createElement("button");
     const buttonClass = `${CONSTANTS.CLASSES.BASE_BUTTON} ${
-      isLargeContext ? CONSTANTS.CLASSES.LARGE_BUTTON : CONSTANTS.CLASSES.SMALL_BUTTON
+      isLargeContext
+        ? CONSTANTS.CLASSES.LARGE_BUTTON
+        : CONSTANTS.CLASSES.SMALL_BUTTON
     }`;
     button.className = buttonClass;
     button.type = "button";
@@ -235,7 +246,9 @@ export function initLinkedInIntegration() {
       e.preventDefault();
       e.stopPropagation();
 
-      const existingMenu = document.querySelector<HTMLElement>(CONSTANTS.SELECTORS.CAL_MENU);
+      const existingMenu = document.querySelector<HTMLElement>(
+        CONSTANTS.SELECTORS.CAL_MENU
+      );
       if (existingMenu) {
         existingMenu.remove();
         return;
@@ -256,7 +269,8 @@ export function initLinkedInIntegration() {
       const nextElement = emojiButtonContainer.nextSibling;
       if (
         nextElement instanceof Element &&
-        (nextElement.classList.contains("calendly-button") || nextElement.tagName === "TD")
+        (nextElement.classList.contains("calendly-button") ||
+          nextElement.tagName === "TD")
       ) {
         leftActions.insertBefore(calWrapper, nextElement);
       } else {
@@ -291,8 +305,12 @@ export function initLinkedInIntegration() {
     fetchEventTypes(menu, tooltipsToCleanup);
 
     // Prevent event bubbling
-    menu.addEventListener("wheel", (e) => e.stopPropagation(), { passive: true });
-    menu.addEventListener("scroll", (e) => e.stopPropagation(), { passive: true });
+    menu.addEventListener("wheel", (e) => e.stopPropagation(), {
+      passive: true,
+    });
+    menu.addEventListener("scroll", (e) => e.stopPropagation(), {
+      passive: true,
+    });
 
     document.body.appendChild(menu);
 
@@ -339,7 +357,10 @@ export function initLinkedInIntegration() {
       ${positionStyle}
       left: ${menuLeft}px;
       width: ${WIDTH}px;
-      max-height: ${Math.min(MAX_HEIGHT, Math.max(spaceAbove, spaceBelow) - MARGIN)}px;
+      max-height: ${Math.min(
+        MAX_HEIGHT,
+        Math.max(spaceAbove, spaceBelow) - MARGIN
+      )}px;
       background: white;
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
@@ -358,7 +379,10 @@ export function initLinkedInIntegration() {
   // Event Types Fetching & Display
   // ============================================================================
 
-  async function fetchEventTypes(menu: HTMLElement, tooltipsToCleanup: HTMLElement[]) {
+  async function fetchEventTypes(
+    menu: HTMLElement,
+    tooltipsToCleanup: HTMLElement[]
+  ) {
     try {
       const eventTypes = await getEventTypes();
       renderEventTypes(menu, eventTypes, tooltipsToCleanup);
@@ -370,7 +394,9 @@ export function initLinkedInIntegration() {
   async function getEventTypes(): Promise<EventType[]> {
     const now = Date.now();
     const isCacheValid =
-      eventTypesCache && cacheTimestamp && now - cacheTimestamp < CONSTANTS.CACHE_DURATION;
+      eventTypesCache &&
+      cacheTimestamp &&
+      now - cacheTimestamp < CONSTANTS.CACHE_DURATION;
 
     if (isCacheValid && eventTypesCache) {
       return eventTypesCache;
@@ -382,15 +408,18 @@ export function initLinkedInIntegration() {
 
     const response = await new Promise<unknown>((resolve, reject) => {
       try {
-        chrome.runtime.sendMessage({ action: "fetch-event-types" }, (response) => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else if (response && (response as { error?: string }).error) {
-            reject(new Error((response as { error: string }).error));
-          } else {
-            resolve(response);
+        chrome.runtime.sendMessage(
+          { action: "fetch-event-types" },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message));
+            } else if (response && (response as { error?: string }).error) {
+              reject(new Error((response as { error: string }).error));
+            } else {
+              resolve(response);
+            }
           }
-        });
+        );
       } catch (err) {
         reject(err);
       }
@@ -440,7 +469,7 @@ export function initLinkedInIntegration() {
         );
         menu.appendChild(menuItem);
       });
-    } catch (_error) {
+    } catch {
       menu.innerHTML = `
         <div style="padding: 16px; text-align: center; color: #ea4335;">
           Error displaying event types
@@ -456,7 +485,8 @@ export function initLinkedInIntegration() {
     tooltipsToCleanup: HTMLElement[]
   ): HTMLElement {
     const title = eventType.title || "Untitled Event";
-    const length = eventType.lengthInMinutes || eventType.length || eventType.duration || 30;
+    const length =
+      eventType.lengthInMinutes || eventType.length || eventType.duration || 30;
     const description = eventType.description || "";
 
     const menuItem = document.createElement("div");
@@ -476,7 +506,10 @@ export function initLinkedInIntegration() {
       description,
       tooltipsToCleanup
     );
-    const buttonsContainer = createEventTypeButtons(eventType, tooltipsToCleanup);
+    const buttonsContainer = createEventTypeButtons(
+      eventType,
+      tooltipsToCleanup
+    );
 
     menuItem.appendChild(contentWrapper);
     menuItem.appendChild(buttonsContainer);
@@ -513,7 +546,9 @@ export function initLinkedInIntegration() {
 
     contentWrapper.innerHTML = `
       <div style="display: flex; align-items: center; margin-bottom: 6px; overflow: hidden;">
-        <span style="color: #3c4043; font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${escapeHtml(title)}</span>
+        <span style="color: #3c4043; font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${escapeHtml(
+          title
+        )}</span>
       </div>
       <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
         <span style="
@@ -532,7 +567,9 @@ export function initLinkedInIntegration() {
         </span>
         ${
           description
-            ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${escapeHtml(description)}</span>`
+            ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${escapeHtml(
+                description
+              )}</span>`
             : ""
         }
       </div>
@@ -562,7 +599,9 @@ export function initLinkedInIntegration() {
     contentWrapper.addEventListener("click", (e) => {
       e.stopPropagation();
       tooltip.remove();
-      const menu = document.querySelector<HTMLElement>(CONSTANTS.SELECTORS.CAL_MENU);
+      const menu = document.querySelector<HTMLElement>(
+        CONSTANTS.SELECTORS.CAL_MENU
+      );
       if (menu) menu.remove();
       insertEventTypeLink(eventType);
     });
@@ -594,7 +633,12 @@ export function initLinkedInIntegration() {
       window.open(bookingUrl, "_blank");
     });
 
-    const copyBtn = createActionButton(SVG_ICONS.COPY, "Copy link", "none", tooltipsToCleanup);
+    const copyBtn = createActionButton(
+      SVG_ICONS.COPY,
+      "Copy link",
+      "none",
+      tooltipsToCleanup
+    );
     copyBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       const bookingUrl = buildBookingUrl(eventType);
@@ -612,7 +656,12 @@ export function initLinkedInIntegration() {
         });
     });
 
-    const editBtn = createActionButton(SVG_ICONS.EDIT, "Edit", "0 6px 6px 0", tooltipsToCleanup);
+    const editBtn = createActionButton(
+      SVG_ICONS.EDIT,
+      "Edit",
+      "0 6px 6px 0",
+      tooltipsToCleanup
+    );
     editBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       const editUrl = `https://app.cal.com/event-types/${eventType.id}`;
@@ -664,10 +713,16 @@ export function initLinkedInIntegration() {
   }
 
   function buildBookingUrl(eventType: EventType): string {
-    return `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+    return `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
+      eventType.slug
+    }`;
   }
 
-  function handleFetchError(error: unknown, menu: HTMLElement, tooltipsToCleanup: HTMLElement[]) {
+  function handleFetchError(
+    error: unknown,
+    menu: HTMLElement,
+    tooltipsToCleanup: HTMLElement[]
+  ) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const isAuthError =
       errorMessage.includes("OAuth") ||
@@ -709,7 +764,9 @@ export function initLinkedInIntegration() {
       </div>
     `;
 
-    const closeBtn = menu.querySelector<HTMLButtonElement>(".cal-linkedin-close-btn");
+    const closeBtn = menu.querySelector<HTMLButtonElement>(
+      ".cal-linkedin-close-btn"
+    );
     if (closeBtn) {
       closeBtn.addEventListener("mouseenter", () => {
         closeBtn.style.background = "#E5E7EB";
@@ -825,7 +882,11 @@ export function initLinkedInIntegration() {
     return null;
   }
 
-  function appendTextToEnd(messageInput: HTMLElement, text: string, selection: Selection | null) {
+  function appendTextToEnd(
+    messageInput: HTMLElement,
+    text: string,
+    selection: Selection | null
+  ) {
     const textNode = document.createTextNode(` ${text} `);
     messageInput.appendChild(textNode);
 
@@ -836,7 +897,11 @@ export function initLinkedInIntegration() {
     selection?.addRange(range);
   }
 
-  function insertTextAtSelection(text: string, selection: Selection, messageInput: HTMLElement) {
+  function insertTextAtSelection(
+    text: string,
+    selection: Selection,
+    messageInput: HTMLElement
+  ) {
     const range = selection.getRangeAt(0);
     range.deleteContents();
 
@@ -863,7 +928,11 @@ export function initLinkedInIntegration() {
       bottom: 80px;
       right: 80px;
       padding: 10px 12px;
-      background: ${type === "success" ? CONSTANTS.COLORS.NOTIFICATION_SUCCESS : CONSTANTS.COLORS.NOTIFICATION_ERROR};
+      background: ${
+        type === "success"
+          ? CONSTANTS.COLORS.NOTIFICATION_SUCCESS
+          : CONSTANTS.COLORS.NOTIFICATION_ERROR
+      };
       color: white;
       border: 1px solid #2b2b2b;
       border-radius: 8px;

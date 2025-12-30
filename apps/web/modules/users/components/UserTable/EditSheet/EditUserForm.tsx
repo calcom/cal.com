@@ -80,7 +80,7 @@ export function EditForm({
   canEditAttributesForUser?: boolean;
 }) {
   const setEditMode = useEditMode((state) => state.setEditMode);
-  const [mutationLoading, setMutationLoading] = useState(false);
+  const [_mutationLoading, setMutationLoading] = useState(false);
   const { t } = useLocale();
   const session = useSession();
   const org = session?.data?.user?.org;

@@ -2,7 +2,7 @@ export const getReturnToValueFromQueryState = (queryState: string | string[] | u
   let returnTo = "";
   try {
     returnTo = JSON.parse(`${queryState}`).returnTo;
-  } catch (error) {
+  } catch {
     console.info("No 'returnTo' in req.query.state");
   }
   return returnTo;
@@ -12,7 +12,7 @@ export const getOnErrorReturnToValueFromQueryState = (queryState: string | strin
   let returnTo = "";
   try {
     returnTo = JSON.parse(`${queryState}`).onErrorReturnTo;
-  } catch (error) {
+  } catch {
     console.info("No 'onErrorReturnTo' in req.query.state");
   }
   return returnTo;

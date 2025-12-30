@@ -13,20 +13,25 @@ function getReturnToValueFromQueryState(req: NextApiRequest) {
   let returnTo = "";
   try {
     returnTo = JSON.parse(`${req.query.state}`).returnTo;
-  } catch (error) {
+  } catch {
     console.info("No 'returnTo' in req.query.state");
   }
   return returnTo;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const { code, error, error_description } = req.query;
   const state = decodeOAuthState(req);
 
   if (error) {
     // User cancels flow
     if (error === "access_denied") {
-      state?.onErrorReturnTo ? res.redirect(state.onErrorReturnTo) : res.redirect("/apps/installed/payment");
+      state?.onErrorReturnTo
+        ? res.redirect(state.onErrorReturnTo)
+        : res.redirect("/apps/installed/payment");
     }
     const query = stringify({ error, error_description });
     res.redirect(`/apps/installed?${query}`);
@@ -34,7 +39,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (!req.session?.user?.id) {
-    return res.status(401).json({ message: "You must be logged in to do this" });
+    return res
+      .status(401)
+      .json({ message: "You must be logged in to do this" });
   }
 
   const response = await stripe.oauth.token({
@@ -55,5 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   );
 
   const returnTo = getReturnToValueFromQueryState(req);
-  res.redirect(returnTo || getInstalledAppPath({ variant: "payment", slug: "stripe" }));
+  res.redirect(
+    returnTo || getInstalledAppPath({ variant: "payment", slug: "stripe" })
+  );
 }

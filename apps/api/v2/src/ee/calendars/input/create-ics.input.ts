@@ -22,7 +22,7 @@ export class IsICSUrlConstraint implements ValidatorConstraintInterface {
         (urlObject.protocol === "http:" || urlObject.protocol === "https:") &&
         urlObject.pathname.endsWith(".ics")
       );
-    } catch (error) {
+    } catch {
       return false;
     }
   }

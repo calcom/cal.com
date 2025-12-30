@@ -1,4 +1,4 @@
-import React from "react";
+
 import type { Props } from "react-select";
 
 import Select from "@calcom/features/form/components/Select";

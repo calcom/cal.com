@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const responseBody = await accessTokenResponse.json();
       errorMessage = responseBody.error;
-    } catch (e) {}
+    } catch (_e) {}
 
     res.status(400).json({ message: errorMessage });
     return;
@@ -60,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const body = await userAuthResponse.json();
       errorMessage = body.error;
-    } catch (e) {}
+    } catch (_e) {}
 
     res.status(400).json({ message: errorMessage });
     return;
@@ -87,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  const state = decodeOAuthState(req);
+  const _state = decodeOAuthState(req);
 
   res.redirect(getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug }));
 }

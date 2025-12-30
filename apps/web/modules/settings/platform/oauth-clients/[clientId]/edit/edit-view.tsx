@@ -40,7 +40,7 @@ export default function EditOAuthClient() {
   });
 
   const onSubmit = (data: FormValues) => {
-    let userPermissions = 0;
+    let _userPermissions = 0;
     const userRedirectUris = data.redirectUris.map((uri) => uri.uri).filter((uri) => !!uri);
 
     Object.keys(PERMISSIONS_GROUPED_MAP).forEach((key) => {
@@ -48,8 +48,8 @@ export default function EditOAuthClient() {
       const entityKey = PERMISSIONS_GROUPED_MAP[entity].key;
       const read = PERMISSIONS_GROUPED_MAP[entity].read;
       const write = PERMISSIONS_GROUPED_MAP[entity].write;
-      if (data[`${entityKey}Read`]) userPermissions |= read;
-      if (data[`${entityKey}Write`]) userPermissions |= write;
+      if (data[`${entityKey}Read`]) _userPermissions |= read;
+      if (data[`${entityKey}Write`]) _userPermissions |= write;
     });
 
     update({

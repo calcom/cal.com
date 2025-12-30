@@ -429,12 +429,12 @@ describe("Event types Endpoints", () => {
       await teamRepositoryFixture.delete(organization.id);
       try {
         await eventTypesRepositoryFixture.delete(eventType.id);
-      } catch (e) {
+      } catch (_e) {
         // Event type might have been deleted by the test
       }
       try {
         await userRepositoryFixture.delete(user.id);
-      } catch (e) {
+      } catch (_e) {
         // User might have been deleted by the test
       }
       await app.close();

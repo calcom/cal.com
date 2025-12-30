@@ -7,12 +7,16 @@ import { initLinkedInIntegration } from "../lib/linkedin";
  * In production builds, these logs are suppressed to prevent sensitive data exposure.
  */
 const IS_DEV_MODE =
-  typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development";
+  typeof process !== "undefined" &&
+  process.env &&
+  process.env.NODE_ENV === "development";
 
 const devLog = {
   log: (...args: unknown[]) => IS_DEV_MODE && console.log("[Cal.com]", ...args),
-  warn: (...args: unknown[]) => IS_DEV_MODE && console.warn("[Cal.com]", ...args),
-  error: (...args: unknown[]) => IS_DEV_MODE && console.error("[Cal.com]", ...args),
+  warn: (...args: unknown[]) =>
+    IS_DEV_MODE && console.warn("[Cal.com]", ...args),
+  error: (...args: unknown[]) =>
+    IS_DEV_MODE && console.error("[Cal.com]", ...args),
 };
 
 export default defineContentScript({
@@ -32,7 +36,9 @@ export default defineContentScript({
     function generateSecureToken(): string {
       const array = new Uint8Array(32);
       crypto.getRandomValues(array);
-      return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+      return Array.from(array, (byte) =>
+        byte.toString(16).padStart(2, "0")
+      ).join("");
     }
 
     let isVisible = false;
@@ -67,7 +73,8 @@ export default defineContentScript({
     // - ext:build-dev  → uses EXPO_PUBLIC_COMPANION_DEV_URL (localhost)
     // - ext:build-prod → uses https://companion.cal.com
     const COMPANION_URL =
-      (import.meta.env.EXPO_PUBLIC_COMPANION_DEV_URL as string) || "https://companion.cal.com";
+      (import.meta.env.EXPO_PUBLIC_COMPANION_DEV_URL as string) ||
+      "https://companion.cal.com";
     iframe.src = COMPANION_URL;
     // Use explicit dimensions - Brave has issues with percentage-based sizing
     iframe.style.cssText = `
@@ -89,7 +96,10 @@ export default defineContentScript({
       // Security: Only accept messages from our iframe's origin
       // This prevents malicious scripts on the host page from manipulating the companion
       const iframeOrigin = new URL(iframe.src).origin;
-      if (event.source !== iframe.contentWindow || event.origin !== iframeOrigin) {
+      if (
+        event.source !== iframe.contentWindow ||
+        event.origin !== iframeOrigin
+      ) {
         return;
       }
 
@@ -105,7 +115,9 @@ export default defineContentScript({
         return;
       }
 
-      const validateSessionToken = (providedToken: string | undefined): boolean => {
+      const validateSessionToken = (
+        providedToken: string | undefined
+      ): boolean => {
         if (!iframeSessionValidated) {
           devLog.warn("Session not validated yet");
           return false;
@@ -274,64 +286,74 @@ export default defineContentScript({
     }
 
     function handleTokenSyncRequest(
-      tokens: { accessToken?: string; refreshToken?: string; expiresAt?: number },
+      tokens: {
+        accessToken?: string;
+        refreshToken?: string;
+        expiresAt?: number;
+      },
       iframeWindow: Window | null
     ) {
-      chrome.runtime.sendMessage({ action: "sync-oauth-tokens", tokens }, (response) => {
-        if (chrome.runtime.lastError) {
-          devLog.error(
-            "Failed to communicate with background script:",
-            chrome.runtime.lastError.message
-          );
+      chrome.runtime.sendMessage(
+        { action: "sync-oauth-tokens", tokens },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            devLog.error(
+              "Failed to communicate with background script:",
+              chrome.runtime.lastError.message
+            );
+            iframeWindow?.postMessage(
+              {
+                type: "cal-extension-sync-tokens-result",
+                success: false,
+                error: `Extension communication failed: ${chrome.runtime.lastError.message}`,
+              },
+              "*"
+            );
+            return;
+          }
+
           iframeWindow?.postMessage(
             {
               type: "cal-extension-sync-tokens-result",
-              success: false,
-              error: `Extension communication failed: ${chrome.runtime.lastError.message}`,
+              success: response?.success ?? false,
+              error: response?.error,
             },
             "*"
           );
-          return;
         }
-
-        iframeWindow?.postMessage(
-          {
-            type: "cal-extension-sync-tokens-result",
-            success: response?.success ?? false,
-            error: response?.error,
-          },
-          "*"
-        );
-      });
+      );
     }
 
     function handleClearTokensRequest(iframeWindow: Window | null) {
-      chrome.runtime.sendMessage({ action: "clear-oauth-tokens" }, (response) => {
-        if (chrome.runtime.lastError) {
-          devLog.error(
-            "Failed to communicate with background script:",
-            chrome.runtime.lastError.message
-          );
+      chrome.runtime.sendMessage(
+        { action: "clear-oauth-tokens" },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            devLog.error(
+              "Failed to communicate with background script:",
+              chrome.runtime.lastError.message
+            );
+            iframeWindow?.postMessage(
+              {
+                type: "cal-extension-clear-tokens-result",
+                success: false,
+                error: `Extension communication failed: ${chrome.runtime.lastError.message}`,
+              },
+              "*"
+            );
+            return;
+          }
+
           iframeWindow?.postMessage(
             {
               type: "cal-extension-clear-tokens-result",
-              success: false,
-              error: `Extension communication failed: ${chrome.runtime.lastError.message}`,
+              success: response?.success ?? false,
+              error: response?.error,
             },
             "*"
           );
-          return;
         }
-
-        iframeWindow?.postMessage(
-          {
-            type: "cal-extension-clear-tokens-result",
-            success: response?.success ?? false,
-            error: response?.error,
-          },
-          "*"
-        );
-      });
+      );
     }
 
     sidebarContainer.appendChild(iframeContainer);
@@ -446,7 +468,10 @@ export default defineContentScript({
 
       // Send message to iframe to reload cache
       if (iframe.contentWindow) {
-        iframe.contentWindow.postMessage({ type: "cal-companion-reload-cache" }, "*");
+        iframe.contentWindow.postMessage(
+          { type: "cal-companion-reload-cache" },
+          "*"
+        );
       }
     });
 
@@ -567,7 +592,8 @@ export default defineContentScript({
     // Detects ?openExtension=true parameter on cal.com/app or companion.cal.com
     const urlParams = new URLSearchParams(window.location.search);
     const shouldAutoOpen =
-      urlParams.get("openExtension") === "true" || window.location.hostname === "companion.cal.com";
+      urlParams.get("openExtension") === "true" ||
+      window.location.hostname === "companion.cal.com";
 
     if (shouldAutoOpen) {
       // Function to open sidebar and clean up URL
@@ -637,7 +663,8 @@ export default defineContentScript({
 
           // Additional check: make sure this is actually in a compose window
           // Gmail compose windows have specific containers
-          const composeWindow = sendButton.closest('[role="dialog"]') || sendButton.closest(".nH");
+          const composeWindow =
+            sendButton.closest('[role="dialog"]') || sendButton.closest(".nH");
           if (!composeWindow) return;
 
           // Create new table cell for Cal.com button
@@ -693,7 +720,9 @@ export default defineContentScript({
             e.stopPropagation();
 
             // Remove any existing menus
-            const existingMenu = document.querySelector(".cal-companion-gmail-menu");
+            const existingMenu = document.querySelector(
+              ".cal-companion-gmail-menu"
+            );
             if (existingMenu) {
               existingMenu.remove();
               return;
@@ -750,7 +779,10 @@ export default defineContentScript({
             }, 0);
           });
 
-          function createTooltip(text: string, buttonElement: HTMLElement): HTMLElement {
+          function createTooltip(
+            text: string,
+            buttonElement: HTMLElement
+          ): HTMLElement {
             const tooltip = document.createElement("div");
             tooltip.className = "cal-tooltip";
             tooltip.style.cssText = `
@@ -822,7 +854,9 @@ export default defineContentScript({
               // Check cache first
               const now = Date.now();
               const isCacheValid =
-                eventTypesCache && cacheTimestamp && now - cacheTimestamp < CACHE_DURATION;
+                eventTypesCache &&
+                cacheTimestamp &&
+                now - cacheTimestamp < CACHE_DURATION;
 
               let eventTypes: Array<{
                 id: number;
@@ -841,21 +875,26 @@ export default defineContentScript({
               } else {
                 // Check if extension context is valid
                 if (!chrome.runtime?.id) {
-                  throw new Error("Extension context invalidated. Please reload the page.");
+                  throw new Error(
+                    "Extension context invalidated. Please reload the page."
+                  );
                 }
 
                 // Fetch fresh data from background script
                 const response = await new Promise((resolve, reject) => {
                   try {
-                    chrome.runtime.sendMessage({ action: "fetch-event-types" }, (response) => {
-                      if (chrome.runtime.lastError) {
-                        reject(new Error(chrome.runtime.lastError.message));
-                      } else if (response?.error) {
-                        reject(new Error(response.error));
-                      } else {
-                        resolve(response);
+                    chrome.runtime.sendMessage(
+                      { action: "fetch-event-types" },
+                      (response) => {
+                        if (chrome.runtime.lastError) {
+                          reject(new Error(chrome.runtime.lastError.message));
+                        } else if (response?.error) {
+                          reject(new Error(response.error));
+                        } else {
+                          resolve(response);
+                        }
                       }
-                    });
+                    );
                   } catch (err) {
                     reject(err);
                   }
@@ -930,7 +969,10 @@ export default defineContentScript({
 
                   const title = eventType.title || "Untitled Event";
                   const length =
-                    eventType.lengthInMinutes || eventType.length || eventType.duration || 30;
+                    eventType.lengthInMinutes ||
+                    eventType.length ||
+                    eventType.duration ||
+                    30;
                   const description = eventType.description || "";
 
                   const menuItem = document.createElement("div");
@@ -940,7 +982,11 @@ export default defineContentScript({
                     align-items: center;
                     justify-content: space-between;
                     transition: background-color 0.1s ease;
-                    border-bottom: ${index < eventTypes.length - 1 ? "1px solid #E5E5EA" : "none"};
+                    border-bottom: ${
+                      index < eventTypes.length - 1
+                        ? "1px solid #E5E5EA"
+                        : "none"
+                    };
                   `;
 
                   // Create content wrapper
@@ -1010,7 +1056,9 @@ export default defineContentScript({
                   contentWrapper.addEventListener("mouseenter", (_e) => {
                     const rect = contentWrapper.getBoundingClientRect();
                     // Shift right to better center on the visible content
-                    contentTooltip.style.left = `${rect.left + rect.width / 2 + 80}px`;
+                    contentTooltip.style.left = `${
+                      rect.left + rect.width / 2 + 80
+                    }px`;
                     contentTooltip.style.top = `${rect.top + 35}px`;
                     contentTooltip.style.transform = "translate(-50%, -100%)";
                     contentTooltip.style.display = "block";
@@ -1263,7 +1311,9 @@ export default defineContentScript({
                 </div>
               `;
 
-                const closeBtn = menu.querySelector(".cal-gmail-close-btn") as HTMLButtonElement;
+                const closeBtn = menu.querySelector(
+                  ".cal-gmail-close-btn"
+                ) as HTMLButtonElement;
                 if (closeBtn) {
                   closeBtn.addEventListener("mouseenter", () => {
                     closeBtn.style.background = "#E5E7EB";
@@ -1287,9 +1337,9 @@ export default defineContentScript({
             users?: Array<{ username?: string }>;
           }): void {
             // Construct the Cal.com booking link
-            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
-              eventType.slug
-            }`;
+            const bookingUrl = `https://cal.com/${
+              eventType.users?.[0]?.username || "user"
+            }/${eventType.slug}`;
 
             // Try to insert at cursor position in the compose field
             const inserted = insertTextAtCursor(bookingUrl);
@@ -1314,9 +1364,9 @@ export default defineContentScript({
             users?: Array<{ username?: string }>;
           }): void {
             // Construct the Cal.com booking link
-            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
-              eventType.slug
-            }`;
+            const bookingUrl = `https://cal.com/${
+              eventType.users?.[0]?.username || "user"
+            }/${eventType.slug}`;
 
             // Try to insert at cursor position in the compose field
             const inserted = insertTextAtCursor(bookingUrl);
@@ -1340,9 +1390,13 @@ export default defineContentScript({
             // Find the active compose field
             // Gmail uses contenteditable divs for the compose body
             const composeBody =
-              document.querySelector('[role="textbox"][aria-label*="Message Body"]') ||
+              document.querySelector(
+                '[role="textbox"][aria-label*="Message Body"]'
+              ) ||
               document.querySelector('[role="textbox"][g_editable="true"]') ||
-              document.querySelector('div[contenteditable="true"][role="textbox"]');
+              document.querySelector(
+                'div[contenteditable="true"][role="textbox"]'
+              );
 
             if (!composeBody) {
               return false;
@@ -1389,7 +1443,10 @@ export default defineContentScript({
             return true;
           }
 
-          function showNotification(message: string, type: "success" | "error"): void {
+          function showNotification(
+            message: string,
+            type: "success" | "error"
+          ): void {
             const notification = document.createElement("div");
             notification.style.cssText = `
               position: fixed;
@@ -1558,12 +1615,17 @@ export default defineContentScript({
         }
       }
 
-      async function _fetchEventTypes(menu: HTMLElement, tooltipsToCleanup: HTMLElement[]) {
+      async function _fetchEventTypes(
+        menu: HTMLElement,
+        tooltipsToCleanup: HTMLElement[]
+      ) {
         try {
           // Check cache first
           const now = Date.now();
           const isCacheValid =
-            eventTypesCache && cacheTimestamp && now - cacheTimestamp < CACHE_DURATION;
+            eventTypesCache &&
+            cacheTimestamp &&
+            now - cacheTimestamp < CACHE_DURATION;
 
           let eventTypes: Array<{
             id: number;
@@ -1582,21 +1644,26 @@ export default defineContentScript({
           } else {
             // Check if extension context is valid
             if (!chrome.runtime?.id) {
-              throw new Error("Extension context invalidated. Please reload the page.");
+              throw new Error(
+                "Extension context invalidated. Please reload the page."
+              );
             }
 
             // Fetch fresh data from background script
             const response = await new Promise((resolve, reject) => {
               try {
-                chrome.runtime.sendMessage({ action: "fetch-event-types" }, (response) => {
-                  if (chrome.runtime.lastError) {
-                    reject(new Error(chrome.runtime.lastError.message));
-                  } else if (response?.error) {
-                    reject(new Error(response.error));
-                  } else {
-                    resolve(response);
+                chrome.runtime.sendMessage(
+                  { action: "fetch-event-types" },
+                  (response) => {
+                    if (chrome.runtime.lastError) {
+                      reject(new Error(chrome.runtime.lastError.message));
+                    } else if (response?.error) {
+                      reject(new Error(response.error));
+                    } else {
+                      resolve(response);
+                    }
                   }
-                });
+                );
               } catch (err) {
                 reject(err);
               }
@@ -1671,7 +1738,10 @@ export default defineContentScript({
 
               const title = eventType.title || "Untitled Event";
               const length =
-                eventType.lengthInMinutes || eventType.length || eventType.duration || 30;
+                eventType.lengthInMinutes ||
+                eventType.length ||
+                eventType.duration ||
+                30;
               const description = eventType.description || "";
 
               const menuItem = document.createElement("div");
@@ -1681,7 +1751,9 @@ export default defineContentScript({
                 align-items: center;
                 justify-content: space-between;
                 transition: background-color 0.1s ease;
-                border-bottom: ${index < eventTypes.length - 1 ? "1px solid #E5E5EA" : "none"};
+                border-bottom: ${
+                  index < eventTypes.length - 1 ? "1px solid #E5E5EA" : "none"
+                };
               `;
 
               // Create content wrapper
@@ -1750,7 +1822,9 @@ export default defineContentScript({
               // Show/hide tooltip
               contentWrapper.addEventListener("mouseenter", (_e) => {
                 const rect = contentWrapper.getBoundingClientRect();
-                contentTooltip.style.left = `${rect.left + rect.width / 2 + 80}px`;
+                contentTooltip.style.left = `${
+                  rect.left + rect.width / 2 + 80
+                }px`;
                 contentTooltip.style.top = `${rect.top + 35}px`;
                 contentTooltip.style.transform = "translate(-50%, -100%)";
                 contentTooltip.style.display = "block";
@@ -2003,7 +2077,9 @@ export default defineContentScript({
               </div>
             `;
 
-            const closeBtn = menu.querySelector(".cal-linkedin-close-btn") as HTMLButtonElement;
+            const closeBtn = menu.querySelector(
+              ".cal-linkedin-close-btn"
+            ) as HTMLButtonElement;
             if (closeBtn) {
               closeBtn.addEventListener("mouseenter", () => {
                 closeBtn.style.background = "#E5E7EB";
@@ -2027,9 +2103,9 @@ export default defineContentScript({
         users?: Array<{ username?: string }>;
       }) {
         // Construct the Cal.com booking link
-        const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
-          eventType.slug
-        }`;
+        const bookingUrl = `https://cal.com/${
+          eventType.users?.[0]?.username || "user"
+        }/${eventType.slug}`;
 
         // Try to insert at cursor position in the message field
         const inserted = insertTextAtCursor(bookingUrl);
@@ -2056,8 +2132,12 @@ export default defineContentScript({
           document.querySelector(
             'div[contenteditable="true"][role="textbox"][aria-label*="message" i]'
           ) ||
-          document.querySelector('div[contenteditable="true"][data-testid*="message"]') ||
-          document.querySelector('div[contenteditable="true"].msg-form__contenteditable');
+          document.querySelector(
+            'div[contenteditable="true"][data-testid*="message"]'
+          ) ||
+          document.querySelector(
+            'div[contenteditable="true"].msg-form__contenteditable'
+          );
 
         if (!messageInput) {
           return false;
@@ -2187,7 +2267,14 @@ export default defineContentScript({
         timezone: string;
         timezoneOffset: string;
       }): string {
-        const { eventType, username, slots, duration, timezone, timezoneOffset } = params;
+        const {
+          eventType,
+          username,
+          slots,
+          duration,
+          timezone,
+          timezoneOffset,
+        } = params;
 
         // Group slots by date
         const slotsByDate: {
@@ -2282,9 +2369,11 @@ export default defineContentScript({
             </div>
             ${datesHTML}
             <div style="margin-top: 13px;">
-              <a href="https://cal.com/${username}/${eventType.slug}?cal.tz=${encodeURIComponent(
-                timezone
-              )}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
+              <a href="https://cal.com/${username}/${
+          eventType.slug
+        }?cal.tz=${encodeURIComponent(
+          timezone
+        )}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
                 See all available times →
               </a>
             </div>
@@ -2301,7 +2390,10 @@ export default defineContentScript({
        * @param html - The HTML content to insert
        * @param targetComposeElement - Optional: The chip's compose element to ensure we insert in the correct window
        */
-      function insertGmailHTML(html: string, targetComposeElement?: HTMLElement): boolean {
+      function insertGmailHTML(
+        html: string,
+        targetComposeElement?: HTMLElement
+      ): boolean {
         try {
           // Validate input
           if (!html || typeof html !== "string") {
@@ -2316,22 +2408,33 @@ export default defineContentScript({
             const composeWindow =
               targetComposeElement.closest('[role="dialog"]') ||
               targetComposeElement.closest(".nH") ||
-              targetComposeElement.closest('div[contenteditable="true"]')?.parentElement;
+              targetComposeElement.closest('div[contenteditable="true"]')
+                ?.parentElement;
 
             if (composeWindow) {
               composeBody =
-                composeWindow.querySelector('[role="textbox"][aria-label*="Message Body"]') ||
-                composeWindow.querySelector('[role="textbox"][g_editable="true"]') ||
-                composeWindow.querySelector('div[contenteditable="true"][role="textbox"]');
+                composeWindow.querySelector(
+                  '[role="textbox"][aria-label*="Message Body"]'
+                ) ||
+                composeWindow.querySelector(
+                  '[role="textbox"][g_editable="true"]'
+                ) ||
+                composeWindow.querySelector(
+                  'div[contenteditable="true"][role="textbox"]'
+                );
             }
           }
 
           // Fallback: Try global selectors
           if (!composeBody) {
             composeBody =
-              document.querySelector('[role="textbox"][aria-label*="Message Body"]') ||
+              document.querySelector(
+                '[role="textbox"][aria-label*="Message Body"]'
+              ) ||
               document.querySelector('[role="textbox"][g_editable="true"]') ||
-              document.querySelector('div[contenteditable="true"][role="textbox"]');
+              document.querySelector(
+                'div[contenteditable="true"][role="textbox"]'
+              );
           }
 
           if (!composeBody) {
@@ -2380,15 +2483,19 @@ export default defineContentScript({
             selection.addRange(range);
 
             // Trigger input events
-            (composeBody as HTMLElement).dispatchEvent(new Event("input", { bubbles: true }));
-            (composeBody as HTMLElement).dispatchEvent(new Event("change", { bubbles: true }));
+            (composeBody as HTMLElement).dispatchEvent(
+              new Event("input", { bubbles: true })
+            );
+            (composeBody as HTMLElement).dispatchEvent(
+              new Event("change", { bubbles: true })
+            );
 
             return true;
           } catch (insertError) {
             devLog.warn("Failed to insert HTML at cursor:", insertError);
             return false;
           }
-        } catch (_error) {
+        } catch {
           devLog.error("Critical error inserting HTML");
           return false;
         }
@@ -2399,7 +2506,10 @@ export default defineContentScript({
        * @param text - The text to insert
        * @param targetComposeElement - Optional: The chip's compose element to ensure we insert in the correct window
        */
-      function insertGmailText(text: string, targetComposeElement?: HTMLElement): boolean {
+      function insertGmailText(
+        text: string,
+        targetComposeElement?: HTMLElement
+      ): boolean {
         try {
           // Validate input
           if (!text || typeof text !== "string") {
@@ -2416,27 +2526,40 @@ export default defineContentScript({
             const composeWindow =
               targetComposeElement.closest('[role="dialog"]') ||
               targetComposeElement.closest(".nH") ||
-              targetComposeElement.closest('div[contenteditable="true"]')?.parentElement;
+              targetComposeElement.closest('div[contenteditable="true"]')
+                ?.parentElement;
 
             if (composeWindow) {
               // Look for compose body within this specific window
               composeBody =
-                composeWindow.querySelector('[role="textbox"][aria-label*="Message Body"]') ||
-                composeWindow.querySelector('[role="textbox"][g_editable="true"]') ||
-                composeWindow.querySelector('div[contenteditable="true"][role="textbox"]');
+                composeWindow.querySelector(
+                  '[role="textbox"][aria-label*="Message Body"]'
+                ) ||
+                composeWindow.querySelector(
+                  '[role="textbox"][g_editable="true"]'
+                ) ||
+                composeWindow.querySelector(
+                  'div[contenteditable="true"][role="textbox"]'
+                );
             }
           }
 
           // Fallback: Try global selectors if no target or if scoped search failed
           if (!composeBody) {
             composeBody =
-              document.querySelector('[role="textbox"][aria-label*="Message Body"]') ||
+              document.querySelector(
+                '[role="textbox"][aria-label*="Message Body"]'
+              ) ||
               document.querySelector('[role="textbox"][g_editable="true"]') ||
-              document.querySelector('div[contenteditable="true"][role="textbox"]');
+              document.querySelector(
+                'div[contenteditable="true"][role="textbox"]'
+              );
           }
 
           if (!composeBody) {
-            devLog.warn("Gmail compose field not found (structure may have changed)");
+            devLog.warn(
+              "Gmail compose field not found (structure may have changed)"
+            );
             return false;
           }
 
@@ -2460,7 +2583,10 @@ export default defineContentScript({
               selection?.addRange(range);
               return true;
             } catch (appendError) {
-              devLog.warn("Failed to append text (fallback method):", appendError);
+              devLog.warn(
+                "Failed to append text (fallback method):",
+                appendError
+              );
               return false;
             }
           }
@@ -2482,7 +2608,10 @@ export default defineContentScript({
             return false;
           }
         } catch (error) {
-          devLog.error("Critical error inserting text (Gmail structure may have changed):", error);
+          devLog.error(
+            "Critical error inserting text (Gmail structure may have changed):",
+            error
+          );
           return false;
         }
       }
@@ -2491,7 +2620,10 @@ export default defineContentScript({
        * Helper function to show notification
        * Fail silently if DOM manipulation fails (prevents breaking Gmail)
        */
-      function showGmailNotification(message: string, type: "success" | "error"): void {
+      function showGmailNotification(
+        message: string,
+        type: "success" | "error"
+      ): void {
         try {
           const notification = document.createElement("div");
           notification.style.cssText = `
@@ -2613,7 +2745,7 @@ export default defineContentScript({
               devLog.warn("Failed to find existing chips:", error);
             }
           }, 1000);
-        } catch (_error) {
+        } catch {
           // Critical failure - log but don't break Gmail
           devLog.error("Failed to initialize chip watcher");
         }
@@ -2663,12 +2795,16 @@ export default defineContentScript({
           const existingActionBar = chipElement.parentElement.querySelector(
             ".cal-companion-action-bar"
           );
-          const scheduleId = chipElement.getAttribute("data-ad-hoc-schedule-id");
+          const scheduleId = chipElement.getAttribute(
+            "data-ad-hoc-schedule-id"
+          );
 
           if (existingActionBar) {
             // Action bar exists - check if schedule ID or duration changed
-            const existingScheduleId = existingActionBar.getAttribute("data-schedule-id");
-            const existingDuration = existingActionBar.getAttribute("data-duration");
+            const existingScheduleId =
+              existingActionBar.getAttribute("data-schedule-id");
+            const existingDuration =
+              existingActionBar.getAttribute("data-duration");
 
             if (
               existingScheduleId === scheduleId &&
@@ -2689,14 +2825,21 @@ export default defineContentScript({
           // Watch for mutations on this chip to detect ANY changes
           const observer = new MutationObserver(() => {
             try {
-              const newScheduleId = chipElement.getAttribute("data-ad-hoc-schedule-id");
+              const newScheduleId = chipElement.getAttribute(
+                "data-ad-hoc-schedule-id"
+              );
               const actionBar = chipElement.parentElement?.querySelector(
                 ".cal-companion-action-bar"
               );
-              const currentScheduleId = actionBar?.getAttribute("data-schedule-id");
+              const currentScheduleId =
+                actionBar?.getAttribute("data-schedule-id");
 
               // Check if schedule ID changed (this changes when time range or duration changes)
-              if (currentScheduleId && newScheduleId && currentScheduleId !== newScheduleId) {
+              if (
+                currentScheduleId &&
+                newScheduleId &&
+                currentScheduleId !== newScheduleId
+              ) {
                 devLog.log(`🔄 Time range/duration changed`);
                 try {
                   actionBar?.remove();
@@ -2706,7 +2849,7 @@ export default defineContentScript({
                   // Silently ignore recreation errors
                 }
               }
-            } catch (_error) {
+            } catch {
               // Silently ignore observer errors - expected during DOM updates
             }
           });
@@ -2718,7 +2861,7 @@ export default defineContentScript({
               attributes: true,
               attributeFilter: ["data-ad-hoc-v2-params"],
             });
-          } catch (_error) {
+          } catch {
             // Silently ignore observer setup errors
           }
 
@@ -2727,8 +2870,14 @@ export default defineContentScript({
           actionBar.className = "cal-companion-action-bar";
           actionBar.setAttribute("contenteditable", "false"); // Make non-editable
           actionBar.setAttribute("data-cal-companion", "true"); // Marker for our elements
-          actionBar.setAttribute("data-duration", String(parsedData.detectedDuration));
-          actionBar.setAttribute("data-slot-count", String(parsedData.slots.length));
+          actionBar.setAttribute(
+            "data-duration",
+            String(parsedData.detectedDuration)
+          );
+          actionBar.setAttribute(
+            "data-slot-count",
+            String(parsedData.slots.length)
+          );
           if (scheduleId) {
             actionBar.setAttribute("data-schedule-id", scheduleId);
           }
@@ -2900,23 +3049,26 @@ export default defineContentScript({
                     users?: Array<{ username?: string }>;
                   }>
               >((resolve, reject) => {
-                chrome.runtime.sendMessage({ action: "fetch-event-types" }, (result) => {
-                  if (chrome.runtime.lastError) {
-                    reject(new Error(chrome.runtime.lastError.message));
-                  } else if (result?.error) {
-                    reject(new Error(result.error));
-                  } else {
-                    resolve(result);
+                chrome.runtime.sendMessage(
+                  { action: "fetch-event-types" },
+                  (result) => {
+                    if (chrome.runtime.lastError) {
+                      reject(new Error(chrome.runtime.lastError.message));
+                    } else if (result?.error) {
+                      reject(new Error(result.error));
+                    } else {
+                      resolve(result);
+                    }
                   }
-                });
+                );
               });
 
               const eventTypes =
                 (response && "data" in response
                   ? response.data
                   : Array.isArray(response)
-                    ? response
-                    : []) || [];
+                  ? response
+                  : []) || [];
               const matchingEventType = eventTypes.find(
                 (et) => et.lengthInMinutes === freshParsedData.detectedDuration
               );
@@ -2954,7 +3106,9 @@ export default defineContentScript({
                 // Immediately remove the Google chip and action bar
                 try {
                   chipElement.remove();
-                  (actionBar as HTMLElement & { __cleanup?: () => void }).__cleanup?.();
+                  (
+                    actionBar as HTMLElement & { __cleanup?: () => void }
+                  ).__cleanup?.();
                   actionBar.remove();
                 } catch (removeError) {
                   devLog.warn("Failed to remove chip/action bar:", removeError);
@@ -2971,10 +3125,14 @@ export default defineContentScript({
 
               // Check if this is the "Extension context invalidated" error
               const isContextInvalidated =
-                error instanceof Error && error.message.includes("Extension context invalidated");
+                error instanceof Error &&
+                error.message.includes("Extension context invalidated");
 
               if (isContextInvalidated) {
-                showGmailNotification("Extension reloaded - please reload Gmail", "error");
+                showGmailNotification(
+                  "Extension reloaded - please reload Gmail",
+                  "error"
+                );
               } else {
                 showGmailNotification("Failed to insert embed", "error");
               }
@@ -3026,9 +3184,11 @@ export default defineContentScript({
             // Remove the action bar completely
             try {
               // Call cleanup function if it exists
-              (actionBar as HTMLElement & { __cleanup?: () => void }).__cleanup?.();
+              (
+                actionBar as HTMLElement & { __cleanup?: () => void }
+              ).__cleanup?.();
               actionBar.remove();
-            } catch (_error) {
+            } catch {
               // Silently ignore removal errors
             }
           });
@@ -3058,14 +3218,16 @@ export default defineContentScript({
 
                 actionBar.style.top = `${top}px`;
                 actionBar.style.left = `${left}px`;
-              } catch (_error) {
+              } catch {
                 // Silently ignore positioning errors
               }
             };
 
             // Before appending, clean up orphaned or duplicate action bars for THIS chip only
             // (happens when Google changes duration - creates new chip, but old action bar still floating)
-            const existingOverlayBars = document.querySelectorAll(".cal-companion-action-bar");
+            const existingOverlayBars = document.querySelectorAll(
+              ".cal-companion-action-bar"
+            );
             existingOverlayBars.forEach((bar) => {
               const barScheduleId = bar.getAttribute("data-schedule-id");
 
@@ -3108,7 +3270,10 @@ export default defineContentScript({
 
             // Update position on scroll and resize
             const updatePosition = () => {
-              if (document.body.contains(chipElement) && document.body.contains(actionBar)) {
+              if (
+                document.body.contains(chipElement) &&
+                document.body.contains(actionBar)
+              ) {
                 positionActionBar();
               } else {
                 // Chip removed, clean up
@@ -3124,11 +3289,12 @@ export default defineContentScript({
             window.addEventListener("resize", updatePosition);
 
             // Store cleanup function
-            (actionBar as HTMLElement & { __cleanup?: () => void }).__cleanup = () => {
-              window.removeEventListener("scroll", updatePosition, true);
-              window.removeEventListener("resize", updatePosition);
-            };
-          } catch (_error) {
+            (actionBar as HTMLElement & { __cleanup?: () => void }).__cleanup =
+              () => {
+                window.removeEventListener("scroll", updatePosition, true);
+                window.removeEventListener("resize", updatePosition);
+              };
+          } catch {
             devLog.error("Failed to create or insert action bar");
             // Clean up if something failed
             try {
@@ -3137,7 +3303,7 @@ export default defineContentScript({
               // Ignore cleanup errors
             }
           }
-        } catch (_error) {
+        } catch {
           // Catch-all to prevent breaking Gmail UI
           devLog.error("Error handling Google chip");
           return;
@@ -3172,7 +3338,9 @@ export default defineContentScript({
         );
 
         // Remove existing menu if any (to support reopening with new data)
-        const existingBackdrop = document.querySelector(".cal-companion-google-chip-backdrop");
+        const existingBackdrop = document.querySelector(
+          ".cal-companion-google-chip-backdrop"
+        );
         if (existingBackdrop) {
           devLog.log("Removing existing backdrop");
           existingBackdrop.remove();
@@ -3231,8 +3399,8 @@ export default defineContentScript({
             <div style="font-size: 13px; color: #666; margin-top: 4px;">${
               parsedData.slots.length
             } time slot${parsedData.slots.length > 1 ? "s" : ""} • ${
-              parsedData.detectedDuration
-            }min each</div>
+          parsedData.detectedDuration
+        }min each</div>
           </div>
           <button class="close-menu" style="background: none; border: none; cursor: pointer; font-size: 28px; color: #666; line-height: 1; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">×</button>
         `;
@@ -3249,7 +3417,9 @@ export default defineContentScript({
         });
 
         // Close button click and hover
-        const closeBtn = header.querySelector(".close-menu") as HTMLButtonElement;
+        const closeBtn = header.querySelector(
+          ".close-menu"
+        ) as HTMLButtonElement;
         closeBtn.addEventListener("click", () => {
           backdrop.remove();
         });
@@ -3290,7 +3460,9 @@ export default defineContentScript({
           // Check cache first
           const now = Date.now();
           const isCacheValid =
-            eventTypesCache && cacheTimestamp && now - cacheTimestamp < CACHE_DURATION;
+            eventTypesCache &&
+            cacheTimestamp &&
+            now - cacheTimestamp < CACHE_DURATION;
 
           if (isCacheValid && eventTypesCache) {
             eventTypes = eventTypesCache;
@@ -3316,15 +3488,18 @@ export default defineContentScript({
                   users?: Array<{ username?: string }>;
                 }>
             >((resolve, reject) => {
-              chrome.runtime.sendMessage({ action: "fetch-event-types" }, (response) => {
-                if (chrome.runtime.lastError) {
-                  reject(new Error(chrome.runtime.lastError.message));
-                } else if (response?.error) {
-                  reject(new Error(response.error));
-                } else {
-                  resolve(response);
+              chrome.runtime.sendMessage(
+                { action: "fetch-event-types" },
+                (response) => {
+                  if (chrome.runtime.lastError) {
+                    reject(new Error(chrome.runtime.lastError.message));
+                  } else if (response?.error) {
+                    reject(new Error(response.error));
+                  } else {
+                    resolve(response);
+                  }
                 }
-              });
+              );
             });
 
             if (response && "data" in response && response.data) {
@@ -3353,7 +3528,8 @@ export default defineContentScript({
           // If no matching event types, show create prompt
           if (matchingEventTypes.length === 0) {
             const noMatchDiv = document.createElement("div");
-            noMatchDiv.style.cssText = "padding: 20px 16px; text-align: center;";
+            noMatchDiv.style.cssText =
+              "padding: 20px 16px; text-align: center;";
             noMatchDiv.innerHTML = `
               <div style="margin-bottom: 12px;">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.5" style="margin: 0 auto;">
@@ -3386,11 +3562,15 @@ export default defineContentScript({
             contentContainer.appendChild(noMatchDiv);
 
             // Add click handler for create button
-            const createBtn = noMatchDiv.querySelector(".create-event-type-btn");
+            const createBtn = noMatchDiv.querySelector(
+              ".create-event-type-btn"
+            );
             createBtn?.addEventListener("click", () => {
               // Get username from any existing event type, or use a default
               const username =
-                eventTypes.length > 0 ? eventTypes[0].users?.[0]?.username || "user" : "user";
+                eventTypes.length > 0
+                  ? eventTypes[0].users?.[0]?.username || "user"
+                  : "user";
 
               const createUrl = `https://app.cal.com/event-types?dialog=new&eventPage=${username}`;
               window.open(createUrl, "_blank");
@@ -3511,7 +3691,9 @@ export default defineContentScript({
                 cursor: pointer;
                 transition: background-color 0.1s;
                 border-bottom: ${
-                  index < matchingEventTypes.length - 1 ? "1px solid #f0f0f0" : "none"
+                  index < matchingEventTypes.length - 1
+                    ? "1px solid #f0f0f0"
+                    : "none"
                 };
                 pointer-events: auto;
               `;
@@ -3530,7 +3712,8 @@ export default defineContentScript({
               option.addEventListener("click", (e) => {
                 e.stopPropagation();
                 selectedEventTypeIndex = index;
-                const selectedText = selectedDisplay.querySelector(".selected-text");
+                const selectedText =
+                  selectedDisplay.querySelector(".selected-text");
                 if (selectedText) {
                   selectedText.textContent = `${et.title} (${et.lengthInMinutes}min)`;
                 }
@@ -3632,14 +3815,18 @@ export default defineContentScript({
               devLog.log("Mouse entered slot", index);
               slotItem.style.borderColor = "#000";
               slotItem.style.backgroundColor = "#f8f9fa";
-              const btn = slotItem.querySelector(".insert-slot-btn") as HTMLElement;
+              const btn = slotItem.querySelector(
+                ".insert-slot-btn"
+              ) as HTMLElement;
               if (btn) btn.style.backgroundColor = "#333";
             });
 
             slotItem.addEventListener("mouseleave", () => {
               slotItem.style.borderColor = "#e5e5ea";
               slotItem.style.backgroundColor = "white";
-              const btn = slotItem.querySelector(".insert-slot-btn") as HTMLElement;
+              const btn = slotItem.querySelector(
+                ".insert-slot-btn"
+              ) as HTMLElement;
               if (btn) btn.style.backgroundColor = "#000";
             });
 
@@ -3665,9 +3852,11 @@ export default defineContentScript({
               devLog.log("Inserting link for slot", slotIndex, slot);
 
               // Get selected event type from the tracked index
-              const selectedEventType = matchingEventTypes[selectedEventTypeIndex];
+              const selectedEventType =
+                matchingEventTypes[selectedEventTypeIndex];
               const selectedSlug = selectedEventType.slug;
-              const selectedUsername = selectedEventType.users?.[0]?.username || "user";
+              const selectedUsername =
+                selectedEventType.users?.[0]?.username || "user";
 
               // Generate Cal.com URL with slot parameters
               const baseUrl = `https://cal.com/${selectedUsername}/${selectedSlug}`;
@@ -3689,17 +3878,23 @@ export default defineContentScript({
 
                 // Immediately remove the Google chip and its action bar
                 try {
-                  const scheduleId = chipElement.getAttribute("data-ad-hoc-schedule-id");
+                  const scheduleId = chipElement.getAttribute(
+                    "data-ad-hoc-schedule-id"
+                  );
                   const actionBar = scheduleId
                     ? document.querySelector(
                         `.cal-companion-action-bar[data-schedule-id="${scheduleId}"]`
                       )
-                    : chipElement.parentElement?.querySelector(".cal-companion-action-bar");
+                    : chipElement.parentElement?.querySelector(
+                        ".cal-companion-action-bar"
+                      );
 
                   chipElement.remove();
 
                   if (actionBar) {
-                    (actionBar as Element & { __cleanup?: () => void }).__cleanup?.();
+                    (
+                      actionBar as Element & { __cleanup?: () => void }
+                    ).__cleanup?.();
                     actionBar.remove();
                   }
                 } catch (removeError) {
@@ -3715,7 +3910,9 @@ export default defineContentScript({
           loadingDiv.remove();
 
           const errorMessage = error instanceof Error ? error.message : "";
-          const isContextInvalidated = errorMessage.includes("Extension context invalidated");
+          const isContextInvalidated = errorMessage.includes(
+            "Extension context invalidated"
+          );
           const isAuthError =
             errorMessage.includes("OAuth") ||
             errorMessage.includes("access token") ||
@@ -3825,7 +4022,9 @@ export default defineContentScript({
           }
 
           // Get schedule ID - if this is missing, this might not be a valid chip
-          const scheduleId = chipElement.getAttribute("data-ad-hoc-schedule-id");
+          const scheduleId = chipElement.getAttribute(
+            "data-ad-hoc-schedule-id"
+          );
 
           if (!scheduleId) {
             // Silently return - this is likely not a fully-loaded chip
@@ -3833,7 +4032,10 @@ export default defineContentScript({
             return null;
           }
 
-          devLog.log("Valid chip detected - Schedule ID:", `${scheduleId?.slice(0, 20)}...`);
+          devLog.log(
+            "Valid chip detected - Schedule ID:",
+            `${scheduleId?.slice(0, 20)}...`
+          );
 
           // Parse timezone (non-critical - fallback to UTC if structure changed)
           let timezone = "UTC";
@@ -3841,7 +4043,9 @@ export default defineContentScript({
 
           try {
             // First, try to get the IANA timezone from data-ad-hoc-v2-params
-            const paramsAttr = chipElement.getAttribute("data-ad-hoc-v2-params");
+            const paramsAttr = chipElement.getAttribute(
+              "data-ad-hoc-v2-params"
+            );
             devLog.log("data-ad-hoc-v2-params:", paramsAttr);
 
             if (paramsAttr) {
@@ -3861,7 +4065,10 @@ export default defineContentScript({
 
               if (tzMatch?.[1]) {
                 timezone = tzMatch[1]; // e.g., "Asia/Kolkata"
-                devLog.log("Parsed IANA timezone from data attribute:", timezone);
+                devLog.log(
+                  "Parsed IANA timezone from data attribute:",
+                  timezone
+                );
               } else {
                 devLog.warn("Failed to extract timezone from params attribute");
               }
@@ -3870,8 +4077,11 @@ export default defineContentScript({
             }
 
             // Also get the display timezone and offset from the UI text
-            const timezoneText = chipElement.querySelector("td")?.textContent?.trim() || "";
-            const timezoneMatch = timezoneText.match(/^(.+?)\s*-\s*(.+?)\s*\((.+?)\)$/);
+            const timezoneText =
+              chipElement.querySelector("td")?.textContent?.trim() || "";
+            const timezoneMatch = timezoneText.match(
+              /^(.+?)\s*-\s*(.+?)\s*\((.+?)\)$/
+            );
 
             if (timezoneMatch) {
               timezoneOffset = timezoneMatch[3]?.trim() || "GMT+00:00";
@@ -3885,7 +4095,9 @@ export default defineContentScript({
           // Find all time slot links - critical for functionality
           let slotLinks: Element[] = [];
           try {
-            slotLinks = Array.from(chipElement.querySelectorAll("a[href*='slotStartTime']"));
+            slotLinks = Array.from(
+              chipElement.querySelectorAll("a[href*='slotStartTime']")
+            );
           } catch (error) {
             devLog.warn("Failed to find slot links:", error);
             return null;
@@ -3915,7 +4127,9 @@ export default defineContentScript({
               const url = new URL(href);
 
               const slotStartTime = url.searchParams.get("slotStartTime");
-              const slotDurationMinutes = url.searchParams.get("slotDurationMinutes");
+              const slotDurationMinutes = url.searchParams.get(
+                "slotDurationMinutes"
+              );
 
               if (!slotStartTime || !slotDurationMinutes) return;
 
@@ -3928,10 +4142,16 @@ export default defineContentScript({
               if (Number.isNaN(startTimestamp)) return;
 
               const startDate = new Date(startTimestamp);
-              const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
+              const endDate = new Date(
+                startDate.getTime() + durationMinutes * 60 * 1000
+              );
 
               // Validate dates
-              if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return;
+              if (
+                Number.isNaN(startDate.getTime()) ||
+                Number.isNaN(endDate.getTime())
+              )
+                return;
 
               const dateOptions: Intl.DateTimeFormatOptions = {
                 weekday: "short",
@@ -3945,8 +4165,12 @@ export default defineContentScript({
               };
 
               const date = startDate.toLocaleDateString("en-US", dateOptions);
-              const startTime = startDate.toLocaleTimeString("en-US", timeOptions).toLowerCase();
-              const endTime = endDate.toLocaleTimeString("en-US", timeOptions).toLowerCase();
+              const startTime = startDate
+                .toLocaleTimeString("en-US", timeOptions)
+                .toLowerCase();
+              const endTime = endDate
+                .toLocaleTimeString("en-US", timeOptions)
+                .toLowerCase();
 
               const isoDate = startDate.toISOString().split("T")[0];
               const isoTimestamp = startDate.toISOString();
@@ -3984,7 +4208,10 @@ export default defineContentScript({
           };
         } catch (error) {
           // Critical error in parsing - fail gracefully without breaking Gmail
-          devLog.warn("Failed to parse Google chip (Gmail structure may have changed):", error);
+          devLog.warn(
+            "Failed to parse Google chip (Gmail structure may have changed):",
+            error
+          );
           return null;
         }
       }

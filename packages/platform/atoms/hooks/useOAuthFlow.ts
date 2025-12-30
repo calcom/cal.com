@@ -16,8 +16,17 @@ export interface useOAuthProps {
   clientId: string;
 }
 
-const debouncedRefresh = debounce(http.refreshTokens, 10000, { leading: true, trailing: false });
-export const useOAuthFlow = ({ accessToken, refreshUrl, clientId, onError, onSuccess }: useOAuthProps) => {
+const debouncedRefresh = debounce(http.refreshTokens, 10000, {
+  leading: true,
+  trailing: false,
+});
+export const useOAuthFlow = ({
+  accessToken,
+  refreshUrl,
+  clientId,
+  onError,
+  onSuccess,
+}: useOAuthProps) => {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [clientAccessToken, setClientAccessToken] = useState<string>("");
   const prevAccessToken = usePrevious(accessToken);
@@ -34,7 +43,10 @@ export const useOAuthFlow = ({ accessToken, refreshUrl, clientId, onError, onSuc
                 onSuccess?.();
                 return http.instance({
                   ...originalRequest,
-                  headers: { ...originalRequest.headers, Authorization: `Bearer ${refreshedToken}` },
+                  headers: {
+                    ...originalRequest.headers,
+                    Authorization: `Bearer ${refreshedToken}`,
+                  },
                 });
               } else {
                 onError?.("Invalid Refresh Token.");
@@ -60,7 +72,10 @@ export const useOAuthFlow = ({ accessToken, refreshUrl, clientId, onError, onSuc
         http
           .get<ApiResponse>(`/provider/${clientId}/access-token`)
           .catch(async (err: AxiosError) => {
-            if ((err.response?.status === 498 || err.response?.status === 401) && refreshUrl) {
+            if (
+              (err.response?.status === 498 || err.response?.status === 401) &&
+              refreshUrl
+            ) {
               setIsRefreshing(true);
               const refreshedToken = await http.refreshTokens(refreshUrl);
               if (refreshedToken) {
@@ -75,7 +90,7 @@ export const useOAuthFlow = ({ accessToken, refreshUrl, clientId, onError, onSuc
           .finally(() => {
             setClientAccessToken(accessToken);
           });
-      } catch (err) {}
+      } catch {}
     }
   }, [accessToken, clientId, refreshUrl, prevAccessToken, onError, onSuccess]);
 

@@ -11,7 +11,7 @@ export const verifyCodeUnAuthenticatedHandler = async ({ input }: VerifyTokenOpt
   const { email, code } = input;
   try {
     return await verifyCodeUnAuthenticated(email, code);
-  } catch (error) {
+  } catch {
     throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
   }
 };

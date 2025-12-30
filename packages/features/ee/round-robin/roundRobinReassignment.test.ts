@@ -77,7 +77,7 @@ describe("roundRobinReassignment test", () => {
 
     const bookingToReassignUid = "booking-to-reassign";
 
-    const bookingData = await createBookingScenario(
+    const _bookingData = await createBookingScenario(
       getScenarioData({
         workflows: [
           {

@@ -610,7 +610,7 @@ describe("BillingEnabledOrgOnboardingService", () => {
         slug: mockOrganizationOnboarding.slug,
       });
 
-      const existingUser = await createTestUser({
+      const _existingUser = await createTestUser({
         email: mockOrganizationOnboarding.orgOwnerEmail,
         onboardingCompleted: true,
         emailVerified: new Date(),

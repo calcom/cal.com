@@ -13,8 +13,8 @@ import logger from "@calcom/lib/logger";
 async function handler(req: NextRequest) {
   // Need these imports to fix import errors with jackson
   // https://github.com/ory/polis/blob/main/pages/api/import-hack.ts
-  const unused = dummy; // eslint-disable-line @typescript-eslint/no-unused-vars
-  const unused2 = jose; // eslint-disable-line @typescript-eslint/no-unused-vars
+  const _unused = dummy; // eslint-disable-line @typescript-eslint/no-unused-vars
+  const _unused2 = jose; // eslint-disable-line @typescript-eslint/no-unused-vars
   const { oauthController } = await jackson();
   const log = logger.getSubLogger({ prefix: ["[SAML token]"] });
 

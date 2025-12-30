@@ -65,7 +65,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateScheduleOptions)
     });
 
     return { schedule: newSchedule };
-  } catch (error) {
+  } catch {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 };

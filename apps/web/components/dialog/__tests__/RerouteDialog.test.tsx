@@ -313,7 +313,7 @@ const mockBooking = {
   status: BookingStatus.ACCEPTED, // Add this line
 };
 
-const buildBooking = () => {
+const _buildBooking = () => {
   return {
     ...mockBooking,
   };

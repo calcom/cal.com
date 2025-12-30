@@ -131,7 +131,7 @@ export const formatMonthYear = (dateString: string): string => {
       month: "long",
       year: "numeric",
     });
-  } catch (_error) {
+  } catch {
     return "";
   }
 };
@@ -149,7 +149,7 @@ export const getMonthYearKey = (dateString: string): string => {
       return "";
     }
     return `${date.getFullYear()}-${date.getMonth()}`;
-  } catch (_error) {
+  } catch {
     return "";
   }
 };

@@ -15,7 +15,7 @@ interface TimeDialProps {
   dateRanges?: DateRange[];
 }
 
-function isMidnight(h: number) {
+function _isMidnight(h: number) {
   return h <= 5 || h >= 22;
 }
 
@@ -66,7 +66,9 @@ function isCurrentHourInRange({
     const diffEnd = newDate.diff(endHour, "minutes");
     if (Math.abs(diffEnd) < 60 && diffEnd != 0) {
       rangeOverlap =
-        diffEnd < 0 ? -(Math.floor(endHour.minute() / 15) * 25) : Math.floor(endHour.minute() / 15) * 25;
+        diffEnd < 0
+          ? -(Math.floor(endHour.minute() / 15) * 25)
+          : Math.floor(endHour.minute() / 15) * 25;
     }
 
     return newDate.isBetween(startHour, endHour, undefined, "[)"); // smiley faces or something
@@ -87,10 +89,13 @@ function isCurrentHourInRange({
 export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
   const store = useContext(TBContext);
   if (!store) throw new Error("Missing TBContext.Provider in the tree");
-  const { browsingDate, emitCellPosition } = useStore(store, ({ browsingDate, emitCellPosition }) => ({
-    browsingDate,
-    emitCellPosition,
-  }));
+  const { browsingDate, emitCellPosition } = useStore(
+    store,
+    ({ browsingDate, emitCellPosition }) => ({
+      browsingDate,
+      emitCellPosition,
+    })
+  );
 
   const usersTimezoneDate = dayjs(browsingDate).tz(timezone);
 
@@ -110,13 +115,15 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
     const target = e.currentTarget as HTMLElement;
     const rect = target.getBoundingClientRect();
     const x = rect.left; // x position within the element
-    const y = rect.top; // y position within the element
     emitCellPosition(x);
   };
 
   return (
     <>
-      <div data-time-dial className="flex items-end justify-center overflow-auto text-sm">
+      <div
+        data-time-dial
+        className="flex items-end justify-center overflow-auto text-sm"
+      >
         {days.map((day, i) => {
           if (!day.length) return null;
           const dateWithDaySet = usersTimezoneDate.add(i - 1, "day");
@@ -126,7 +133,8 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
               className={classNames(
                 "border-subtle overflow-hidden rounded-lg border-2",
                 i !== 0 && "ml-[-4px]" // border-2 adds 4px to the width, and offsets the alignment
-              )}>
+              )}
+            >
               <div className="flex flex-none">
                 {day.map((h) => {
                   const hours = Math.floor(h); // Whole number part
@@ -134,7 +142,9 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
 
                   // Convert the fractional hours to minutes
                   const minutes = fractionalHours * 60;
-                  const hourSet = dateWithDaySet.set("hour", h).set("minute", minutes);
+                  const hourSet = dateWithDaySet
+                    .set("hour", h)
+                    .set("minute", minutes);
 
                   const { isInRange, rangeOverlap = 0 } = isCurrentHourInRange({
                     dateRanges,
@@ -156,7 +166,9 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                       rangeGradients.textGradient = `linear-gradient(90deg, rgba(0,212,255,1) 0%, rgba(2,0,36,1) 100%, rgba(9,108,121,1) 100%)`;
 
                       rangeGradients.darkTextGradient = `linear-gradient(90deg, var(--cal-text-emphasis, #111827) ${
-                        gradientValue === 50 ? "50%" : `${Math.round(gradientValue / 100) * 100}%`
+                        gradientValue === 50
+                          ? "50%"
+                          : `${Math.round(gradientValue / 100) * 100}%`
                       }, var(--cal-text-inverted, white) 0%, var(--cal-text-inverted, white) 0%)`;
                     } else {
                       rangeGradients.backgroundGradient = `linear-gradient(90deg, var(--cal-bg-success) ${rangeOverlap}%, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 0%)`;
@@ -164,7 +176,9 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                       rangeGradients.textGradient = `linear-gradient(90deg, rgba(0,212,255,1) 0%, rgba(2,0,36,1) 50%, rgba(9,108,121,1) 100%)`;
 
                       rangeGradients.darkTextGradient = `linear-gradient(90deg, var(--cal-text-inverted, white) ${
-                        rangeOverlap === 50 ? "50%" : `${Math.round(rangeOverlap / 100) * 100}%`
+                        rangeOverlap === 50
+                          ? "50%"
+                          : `${Math.round(rangeOverlap / 100) * 100}%`
                       }, var(--cal-text-emphasis, #111827) 0%, var(--cal-text-emphasis, #111827) 0%)`;
                     }
                   }
@@ -173,7 +187,9 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                     <>
                       {hourSet.format("H")}
                       {minutes !== 0 && (
-                        <span className="align-text-top text-[.5rem]">{hourSet.format("mm")}</span>
+                        <span className="align-text-top text-[.5rem]">
+                          {hourSet.format("mm")}
+                        </span>
                       )}
                     </>
                   );
@@ -192,25 +208,34 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                       style={{
                         width: `${DAY_CELL_WIDTH}px`,
                         backgroundImage: rangeGradients.backgroundGradient,
-                      }}>
+                      }}
+                    >
                       {hours ? (
                         <div title={hourSet.format("DD/MM HH:mm")}>
                           <div className="flex flex-col text-center text-xs font-bold leading-3 ">
                             {rangeGradients.textGradient ? (
                               <>
                                 {/* light mode */}
-                                <span className={classNames("font-bold dark:hidden")}>
+                                <span
+                                  className={classNames(
+                                    "font-bold dark:hidden"
+                                  )}
+                                >
                                   <TimeLabel />
                                 </span>
                                 {/* dark mode */}
                                 <span
                                   style={{
-                                    backgroundImage: rangeGradients.darkTextGradient,
+                                    backgroundImage:
+                                      rangeGradients.darkTextGradient,
                                   }}
                                   className={classNames(
                                     "hidden dark:block",
-                                    rangeOverlap ? "bg-clip-text text-transparent" : ""
-                                  )}>
+                                    rangeOverlap
+                                      ? "bg-clip-text text-transparent"
+                                      : ""
+                                  )}
+                                >
                                   <TimeLabel />
                                 </span>
                               </>

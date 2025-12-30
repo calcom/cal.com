@@ -52,7 +52,7 @@ describe("UserRepository", () => {
     });
 
     test("If locked param is passed, user should be locked", async () => {
-      const user = await new UserRepository(prismock).create({
+      const _user = await new UserRepository(prismock).create({
         username: "test",
         email: "test@example.com",
         organizationId: null,

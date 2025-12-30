@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { TRPCError } from "@trpc/server";
 
-import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { appByIdHandler } from "./appById.handler";
 import type { TAppByIdInputSchema } from "./appById.schema";

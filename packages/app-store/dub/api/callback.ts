@@ -10,7 +10,10 @@ import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredentia
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import { dubAppKeysSchema } from "../lib/utils";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const { code } = req.query;
 
   const state = decodeOAuthState(req);
@@ -24,14 +27,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       );
       return;
     }
-    throw new HttpError({ statusCode: 400, message: "`code` must be a string" });
+    throw new HttpError({
+      statusCode: 400,
+      message: "`code` must be a string",
+    });
   }
 
   if (!req.session?.user?.id) {
-    throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
+    throw new HttpError({
+      statusCode: 401,
+      message: "You must be logged in to do this",
+    });
   }
 
-  const { client_id, redirect_uris, client_secret } = await getParsedAppKeysFromSlug("dub", dubAppKeysSchema);
+  const { client_id, redirect_uris, client_secret } =
+    await getParsedAppKeysFromSlug("dub", dubAppKeysSchema);
 
   const codeExchangeUrl = `https://api.dub.co/oauth/token`;
 
@@ -56,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (typeof responseBody?.error?.message === "string") {
         errorMessage = responseBody.error.message;
       }
-    } catch (err) {
+    } catch {
       return;
     }
 
@@ -65,12 +75,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const responseBody = await result.json();
 
-  responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
+  responseBody.expiry_date = Math.round(
+    Date.now() + responseBody.expires_in * 1000
+  );
   delete responseBody.expires_in;
 
-  await createOAuthAppCredential({ appId: "dub", type: "dub" }, responseBody, req);
+  await createOAuthAppCredential(
+    { appId: "dub", type: "dub" },
+    responseBody,
+    req
+  );
 
   res.redirect(
-    getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "analytics", slug: "dub" })
+    getSafeRedirectUrl(state?.returnTo) ??
+      getInstalledAppPath({ variant: "analytics", slug: "dub" })
   );
 }

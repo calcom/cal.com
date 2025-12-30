@@ -40,7 +40,7 @@ export const adminDeleteHandler = async ({ input }: AdminDeleteOption) => {
   if (foundOrg.slug) {
     try {
       await deleteDomain(foundOrg.slug);
-    } catch (e) {
+    } catch (_e) {
       log.error(`Failed to delete domain ${foundOrg.slug}. Do a manual deletion if needed`);
     }
   }

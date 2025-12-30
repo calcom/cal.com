@@ -22,7 +22,6 @@ import logger from "@calcom/lib/logger";
 import CalendarService from "../CalendarService";
 import {
   createMockJWTInstance,
-  createCredentialForCalendarService,
 } from "./utils";
 import { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
@@ -193,7 +192,7 @@ describe("Date Optimization Benchmarks", () => {
       for (let i = 0; i < iterations; i++) {
         const start = dayjs(testCase.dateFrom);
         const end = dayjs(testCase.dateTo);
-        const diff = end.diff(start, "days");
+        const _diff = end.diff(start, "days");
       }
       const dayjsTime = performance.now() - dayjsStart;
 
@@ -202,7 +201,7 @@ describe("Date Optimization Benchmarks", () => {
       for (let i = 0; i < iterations; i++) {
         const start = new Date(testCase.dateFrom);
         const end = new Date(testCase.dateTo);
-        const diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        const _diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
       }
       const nativeTime = performance.now() - nativeStart;
 

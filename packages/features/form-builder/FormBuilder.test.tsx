@@ -1,7 +1,6 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { vi } from "vitest";
 

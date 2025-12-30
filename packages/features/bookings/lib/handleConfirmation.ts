@@ -34,7 +34,7 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 
-const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
+const _log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
 export async function handleConfirmation(args: {
   user: EventManagerUser & { username: string | null };

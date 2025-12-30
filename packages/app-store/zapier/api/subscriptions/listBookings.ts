@@ -16,12 +16,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ message: "Unable to get bookings." });
   }
   if (bookings.length === 0) {
-    const userInfo = validKey
+    const _userInfo = validKey
       ? validKey.userId
       : authorizedAccount && !authorizedAccount.isTeam
       ? authorizedAccount.name
       : null;
-    const teamInfo = validKey
+    const _teamInfo = validKey
       ? validKey.teamId
       : authorizedAccount && authorizedAccount.isTeam
       ? authorizedAccount.name

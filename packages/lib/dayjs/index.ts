@@ -43,7 +43,7 @@ export const isSupportedTimeZone = (timeZone: string) => {
   try {
     dayjs().tz(timeZone);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 };

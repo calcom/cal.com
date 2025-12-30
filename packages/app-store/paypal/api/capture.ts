@@ -6,7 +6,10 @@ import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     // Look if it's get
     if (req.method !== "GET") {
@@ -76,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.redirect(`/booking/${bookingUid}?paypalPaymentStatus=success`);
     }
     return;
-  } catch (_err) {
+  } catch {
     res.redirect(`/booking/${req.query.bookingUid}?paypalPaymentStatus=failed`);
   }
 }

@@ -6,7 +6,7 @@ import { Icon } from "@calcom/ui/components/icon";
 export default function DryRunSuccessful() {
   const { t } = useLocale();
 
-  const sampleBookingInfo = {
+  const _sampleBookingInfo = {
     startTime: "2024-01-20T10:00:00Z",
     endTime: "2024-01-20T11:00:00Z",
     title: "Sample Meeting",
@@ -27,7 +27,7 @@ export default function DryRunSuccessful() {
     uid: "sample-uid",
   };
 
-  const sampleEventType = {
+  const _sampleEventType = {
     title: "Sample Event Type",
     length: 60,
     eventName: "Sample Meeting",

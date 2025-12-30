@@ -116,7 +116,7 @@ export default class FeishuCalendarService implements Calendar {
     let accessToken = "";
     try {
       accessToken = await this.auth.getToken();
-    } catch (error) {
+    } catch {
       throw new Error("get access token error");
     }
 

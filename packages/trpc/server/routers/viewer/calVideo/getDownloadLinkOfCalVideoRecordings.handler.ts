@@ -19,7 +19,8 @@ export const getDownloadLinkOfCalVideoRecordingsHandler = async ({
   const { recordingId } = input;
   const { session } = ctx;
 
-  const isDownloadAllowed = IS_SELF_HOSTED || session?.user?.belongsToActiveTeam;
+  const isDownloadAllowed =
+    IS_SELF_HOSTED || session?.user?.belongsToActiveTeam;
 
   if (!isDownloadAllowed) {
     throw new TRPCError({
@@ -30,7 +31,7 @@ export const getDownloadLinkOfCalVideoRecordingsHandler = async ({
   try {
     const res = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
     return res;
-  } catch (err) {
+  } catch {
     throw new TRPCError({
       code: "BAD_REQUEST",
     });

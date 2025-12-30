@@ -8,7 +8,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import logger from "@calcom/lib/logger";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import {
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -67,7 +71,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
           showToast(t("reschedule_request_sent"), "success");
           setIsOpenDialog(false);
         }
-      } catch (error) {
+      } catch {
         showToast(t("unexpected_error_try_again"), "error");
         // @TODO: notify
       }
@@ -93,7 +97,9 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
                 {initialDate.format(dateFormat)} - {endDate.format(dateFormat)}
               </strong>
             </p>
-            <p className="mb-2 mt-6 text-sm">Are you sure? This can&apos;t be undone</p>
+            <p className="mb-2 mt-6 text-sm">
+              Are you sure? This can&apos;t be undone
+            </p>
           </div>
         </div>
 
@@ -114,7 +120,8 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
                   logger.error(error.message);
                 }
               }
-            }}>
+            }}
+          >
             {t("confirm")}
           </Button>
         </DialogFooter>

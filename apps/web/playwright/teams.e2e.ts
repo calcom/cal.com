@@ -326,7 +326,7 @@ test.describe("Team Slug Validation", () => {
       }
     );
 
-    const owner2 = await users.create(
+    const _owner2 = await users.create(
       {
         organizationId: org2.id,
         roleInOrganization: "OWNER",
@@ -380,7 +380,7 @@ test.describe("Team Slug Validation", () => {
   }) => {
     const org = await orgs.create({ name: "Organization 1" });
 
-    const orgOwner = await users.create(
+    const _orgOwner = await users.create(
       {
         organizationId: org.id,
         roleInOrganization: "OWNER",

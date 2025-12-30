@@ -64,7 +64,7 @@ async function checkCalComSession(): Promise<WebSessionInfo> {
     }
 
     return { isLoggedIn: false };
-  } catch (_error) {
+  } catch {
     return { isLoggedIn: false };
   }
 }
@@ -150,7 +150,7 @@ async function validateWebSession(): Promise<WebSessionInfo> {
     }
 
     return { isLoggedIn: false };
-  } catch (_error) {
+  } catch {
     return { isLoggedIn: false };
   }
 }
@@ -191,7 +191,7 @@ async function getTokensFromWebSession(): Promise<{ accessToken?: string; refres
     }
 
     return {};
-  } catch (_error) {
+  } catch {
     return {};
   }
 }

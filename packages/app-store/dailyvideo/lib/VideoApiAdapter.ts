@@ -25,7 +25,6 @@ import {
   dailyReturnTypeSchema,
   getTranscripts,
   getBatchProcessJobs,
-  getRooms,
   meetingTokenSchema,
   ZGetMeetingTokenResponseSchema,
 } from "./types";

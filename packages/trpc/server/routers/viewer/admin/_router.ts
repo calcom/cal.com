@@ -22,7 +22,7 @@ import { watchlistRouter } from "./watchlist/_router";
 
 const NAMESPACE = "admin";
 
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
+const _namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const adminRouter = router({
   listPaginated: authedAdminProcedure.input(ZListMembersSchema).query(async (opts) => {

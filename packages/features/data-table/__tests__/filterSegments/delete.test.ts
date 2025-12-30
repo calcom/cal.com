@@ -33,7 +33,7 @@ describe("FilterSegmentRepository.delete()", () => {
       },
     });
 
-    const input: TDeleteFilterSegmentInputSchema = {
+    const _input: TDeleteFilterSegmentInputSchema = {
       id: segment.id,
     };
 
@@ -86,7 +86,7 @@ describe("FilterSegmentRepository.delete()", () => {
       },
     });
 
-    const input: TDeleteFilterSegmentInputSchema = {
+    const _input: TDeleteFilterSegmentInputSchema = {
       id: segment.id,
     };
 
@@ -105,7 +105,7 @@ describe("FilterSegmentRepository.delete()", () => {
   });
 
   it("should throw error when deleting non-existent segment", async () => {
-    const input: TDeleteFilterSegmentInputSchema = {
+    const _input: TDeleteFilterSegmentInputSchema = {
       id: 999,
     };
 
@@ -152,7 +152,7 @@ describe("FilterSegmentRepository.delete()", () => {
       },
     });
 
-    const input: TDeleteFilterSegmentInputSchema = {
+    const _input: TDeleteFilterSegmentInputSchema = {
       id: segment.id,
     };
 

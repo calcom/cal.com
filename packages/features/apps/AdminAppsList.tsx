@@ -126,7 +126,7 @@ const IntegrationContainer = ({
   );
 };
 
-const querySchema = z.object({
+const _querySchema = z.object({
   category: z
     .nativeEnum({ ...AppCategories, conferencing: "conferencing" })
     .optional()

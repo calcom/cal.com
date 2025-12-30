@@ -1,4 +1,4 @@
-import { GetEventTypePublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
+
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   BulkUpdateEventTypeToDefaultLocationDto,

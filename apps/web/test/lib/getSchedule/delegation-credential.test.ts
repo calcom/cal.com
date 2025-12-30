@@ -60,7 +60,7 @@ describe("getSchedule", () => {
 
       await createDelegationCredential(org.id);
 
-      const googleCalendarMock = await mockCalendar("googlecalendar", {
+      const _googleCalendarMock = await mockCalendar("googlecalendar", {
         create: {
           uid: "MOCK_ID",
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",

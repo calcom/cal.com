@@ -2,7 +2,7 @@
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
 import {

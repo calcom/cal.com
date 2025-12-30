@@ -5,7 +5,10 @@ import type z from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
-import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import {
+  DEFAULT_SCHEDULE,
+  getAvailabilityFromSchedule,
+} from "@calcom/lib/availability";
 import prisma from "@calcom/prisma";
 import type { Prisma, UserPermissionRole } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -169,7 +172,10 @@ export async function createUserAndEventType({
       );
     }
   }
-  console.log("👤 User with it's event-types and bookings created", theUser.email);
+  console.log(
+    "👤 User with it's event-types and bookings created",
+    theUser.email
+  );
 
   if (credentials) {
     for (const credential of credentials) {
@@ -181,7 +187,9 @@ export async function createUserAndEventType({
           },
         });
 
-        console.log(`🔑 ${credential.type} credentials created for ${theUser.email}`);
+        console.log(
+          `🔑 ${credential.type} credentials created for ${theUser.email}`
+        );
       }
     }
   }
@@ -204,7 +212,9 @@ export async function createTeamAndAddUsers(
   };
   const createTeam = async (team: Prisma.TeamCreateInput) => {
     try {
-      const requestedSlug = (team.metadata as z.infer<typeof teamMetadataSchema>)?.requestedSlug;
+      const requestedSlug = (
+        team.metadata as z.infer<typeof teamMetadataSchema>
+      )?.requestedSlug;
       if (requestedSlug) {
         const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
         if (unpublishedTeam) {
@@ -219,8 +229,11 @@ export async function createTeamAndAddUsers(
           eventTypes: true,
         },
       });
-    } catch (_err) {
-      if (_err instanceof Error && _err.message.indexOf("Unique constraint failed on the fields") !== -1) {
+    } catch {
+      if (
+        _err instanceof Error &&
+        _err.message.indexOf("Unique constraint failed on the fields") !== -1
+      ) {
         console.log(`Team '${team.name}' already exists, skipping.`);
         return;
       }
@@ -261,7 +274,9 @@ export async function createTeamAndAddUsers(
         accepted: true,
       },
     });
-    console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
+    console.log(
+      `\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`
+    );
   }
 
   return team;
@@ -321,7 +336,10 @@ export async function seedAttributes(teamId: number) {
 
   console.log(`🎯 Creating attributes for team ${teamId}`);
 
-  const attributeRaw: { id: string; options: { id: string; value: string }[] }[] = [];
+  const attributeRaw: {
+    id: string;
+    options: { id: string; value: string }[];
+  }[] = [];
 
   for (const attr of mockAttributes) {
     const attribute = await prisma.attribute.create({
@@ -358,7 +376,9 @@ export async function seedAttributes(teamId: number) {
     // Assign random values/options to members
     for (const member of memberships) {
       if (attr.type === "TEXT") {
-        const mockText = `Sample ${attr.name.toLowerCase()} text for user ${member.userId}`;
+        const mockText = `Sample ${attr.name.toLowerCase()} text for user ${
+          member.userId
+        }`;
         await prisma.attributeOption.create({
           data: {
             value: mockText,
@@ -393,8 +413,14 @@ export async function seedAttributes(teamId: number) {
             },
           },
         });
-      } else if (attr.type === "SINGLE_SELECT" && attribute.options.length > 0) {
-        const randomOption = attribute.options[Math.floor(Math.random() * attribute.options.length)];
+      } else if (
+        attr.type === "SINGLE_SELECT" &&
+        attribute.options.length > 0
+      ) {
+        const randomOption =
+          attribute.options[
+            Math.floor(Math.random() * attribute.options.length)
+          ];
         await prisma.attributeToUser.create({
           data: {
             memberId: member.id,
@@ -404,7 +430,9 @@ export async function seedAttributes(teamId: number) {
       } else if (attr.type === "MULTI_SELECT" && attribute.options.length > 0) {
         // Assign 1-3 random options
         const numOptions = Math.floor(Math.random() * 3) + 1;
-        const shuffledOptions = [...attribute.options].sort(() => Math.random() - 0.5);
+        const shuffledOptions = [...attribute.options].sort(
+          () => Math.random() - 0.5
+        );
         const selectedOptions = shuffledOptions.slice(0, numOptions);
 
         for (const option of selectedOptions) {
@@ -418,7 +446,9 @@ export async function seedAttributes(teamId: number) {
       }
     }
 
-    console.log(`\t✅ Assigned ${attr.name} values to ${memberships.length} members`);
+    console.log(
+      `\t✅ Assigned ${attr.name} values to ${memberships.length} members`
+    );
   }
   return attributeRaw;
 }
@@ -468,7 +498,9 @@ export async function seedRoutingForms(
     },
   });
   if (form) {
-    console.log(`Skipping Routing Form - Form Seed, ${seededForm.name} already exists`);
+    console.log(
+      `Skipping Routing Form - Form Seed, ${seededForm.name} already exists`
+    );
     return;
   }
 
@@ -506,7 +538,9 @@ export async function seedRoutingForms(
                 properties: {
                   field: seededForm.formFieldSkills.id,
                   value: [
-                    formFieldSkillsOptions.filter((opt) => opt.label === "JavaScript").map((opt) => opt.id),
+                    formFieldSkillsOptions
+                      .filter((opt) => opt.label === "JavaScript")
+                      .map((opt) => opt.id),
                   ],
                   operator: "multiselect_equals",
                   valueSrc: ["value"],
@@ -525,7 +559,9 @@ export async function seedRoutingForms(
                 properties: {
                   field: attributeRaw[2].id,
                   value: [
-                    attributeRaw[2].options.filter((opt) => opt.value === "JavaScript").map((opt) => opt.id),
+                    attributeRaw[2].options
+                      .filter((opt) => opt.value === "JavaScript")
+                      .map((opt) => opt.id),
                   ],
                   operator: "multiselect_some_in",
                   valueSrc: ["value"],
@@ -551,7 +587,11 @@ export async function seedRoutingForms(
                 type: "rule",
                 properties: {
                   field: seededForm.formFieldSkills.id,
-                  value: [formFieldSkillsOptions.filter((opt) => opt.label === "Sales").map((opt) => opt.id)],
+                  value: [
+                    formFieldSkillsOptions
+                      .filter((opt) => opt.label === "Sales")
+                      .map((opt) => opt.id),
+                  ],
                   operator: "multiselect_equals",
                   valueSrc: ["value"],
                   valueType: ["multiselect"],
@@ -569,7 +609,9 @@ export async function seedRoutingForms(
                 properties: {
                   field: attributeRaw[2].id,
                   value: [
-                    attributeRaw[2].options.filter((opt) => opt.value === "Sales").map((opt) => opt.id),
+                    attributeRaw[2].options
+                      .filter((opt) => opt.value === "Sales")
+                      .map((opt) => opt.id),
                   ],
                   operator: "multiselect_some_in",
                   valueSrc: ["value"],
@@ -588,7 +630,10 @@ export async function seedRoutingForms(
           id: "148899aa-4567-489a-bcde-f1823f708646",
           action: { type: "customPageMessage", value: "Fallback Message" },
           isFallback: true,
-          queryValue: { id: "814899aa-4567-489a-bcde-f1823f708646", type: "group" },
+          queryValue: {
+            id: "814899aa-4567-489a-bcde-f1823f708646",
+            type: "group",
+          },
         },
       ],
       fields: [
@@ -696,11 +741,15 @@ export async function seedRoutingFormResponses(
   for (const booking of bookings) {
     // Randomly select 1-3 skills from the form field options
     const numSkills = Math.floor(Math.random() * 3) + 1;
-    const shuffledSkillOptions = [...attributeRaw[2].options].sort(() => Math.random() - 0.5);
+    const shuffledSkillOptions = [...attributeRaw[2].options].sort(
+      () => Math.random() - 0.5
+    );
     const selectedSkills = shuffledSkillOptions.slice(0, numSkills);
 
     const selectedLocation =
-      attributeRaw[1].options[Math.floor(Math.random() * attributeRaw[1].options.length)];
+      attributeRaw[1].options[
+        Math.floor(Math.random() * attributeRaw[1].options.length)
+      ];
 
     // Generate a random date within the last 30 days
     const randomDate = dayjs()

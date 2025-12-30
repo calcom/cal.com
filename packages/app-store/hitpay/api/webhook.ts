@@ -43,7 +43,10 @@ function generateSignatureArray<T>(secret: string, vals: T) {
   return signed;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
@@ -92,29 +95,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new HttpCode({ statusCode: 204, message: "Credentials not found" });
     }
 
-    const { isSandbox, prod, sandbox } = key as z.infer<typeof hitpayCredentialKeysSchema>;
+    const { isSandbox, prod, sandbox } = key as z.infer<
+      typeof hitpayCredentialKeysSchema
+    >;
     const keyObj = isSandbox ? sandbox : prod;
     if (!keyObj) {
       throw new HttpCode({
         statusCode: 204,
-        message: `${isSandbox ? "Sandbox" : "Production"} Credentials not found`,
+        message: `${
+          isSandbox ? "Sandbox" : "Production"
+        } Credentials not found`,
       });
     }
 
     const { saltKey } = keyObj;
-    const signed = generateSignatureArray(saltKey, excluded as ExcludedWebhookReturn);
+    const signed = generateSignatureArray(
+      saltKey,
+      excluded as ExcludedWebhookReturn
+    );
     if (signed !== obj.hmac) {
       throw new HttpCode({ statusCode: 400, message: "Bad Request" });
     }
 
     if (excluded.status !== "completed") {
-      throw new HttpCode({ statusCode: 204, message: `Payment is ${excluded.status}` });
+      throw new HttpCode({
+        statusCode: 204,
+        message: `Payment is ${excluded.status}`,
+      });
     }
     const traceContext = distributedTracing.createTrace("hitpay_webhook", {
       meta: { paymentId: payment.id, bookingId: payment.bookingId },
     });
-    return await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
-  } catch (_err) {
+    return await handlePaymentSuccess(
+      payment.id,
+      payment.bookingId,
+      traceContext
+    );
+  } catch {
     const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
     return res.status(200).send({

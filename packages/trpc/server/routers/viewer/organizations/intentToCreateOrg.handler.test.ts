@@ -4,7 +4,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
-import { BillingPeriod, UserPermissionRole, CreationSource } from "@calcom/prisma/enums";
+import { BillingPeriod, UserPermissionRole, } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 

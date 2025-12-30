@@ -7,7 +7,7 @@ import { SlotsService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/servic
 import { Query, Body, Controller, Get, Delete, Post, Req, Res, BadRequestException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-import { ApiTags as DocsTags, ApiCreatedResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import {

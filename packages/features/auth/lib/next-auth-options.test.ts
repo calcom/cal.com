@@ -1,4 +1,4 @@
-import type { User } from "next-auth";
+
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
@@ -97,14 +97,14 @@ vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
 
 describe("CredentialsProvider authorize", () => {
   let authorizeCredentials: typeof import("./next-auth-options").authorizeCredentials;
-  let verifyPassword: any;
+  let _verifyPassword: any;
 
   beforeEach(async () => {
     vi.clearAllMocks();
     mockFindByEmailAndIncludeProfilesAndPassword.mockReset();
 
     const verifyPasswordModule = await import("./verifyPassword");
-    verifyPassword = verifyPasswordModule.verifyPassword;
+    _verifyPassword = verifyPasswordModule.verifyPassword;
 
     // Import the exported authorize function directly
     const authModule = await import("./next-auth-options");

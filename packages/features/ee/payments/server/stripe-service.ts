@@ -23,7 +23,7 @@ export class StripeService {
         customerId = session.customer;
         isPremiumUsername = true;
         hasPaymentFailed = session.payment_status !== "paid";
-      } catch (e) {
+      } catch (_e) {
         return {
           valid: false,
         };
@@ -51,7 +51,7 @@ export class StripeService {
           stripeCustomerId: customerId,
         },
       };
-    } catch (e) {
+    } catch (_e) {
       return {
         valid: false,
       };

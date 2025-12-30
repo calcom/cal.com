@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
     return res.redirect(getInstalledAppPath({ variant: "other", slug: "vital-automation" }));
-  } catch (e) {
+  } catch (_e) {
     return res.status(500);
   }
 }

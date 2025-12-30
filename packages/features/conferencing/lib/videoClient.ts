@@ -400,7 +400,7 @@ const getCalVideoMeetingSessionsByRoomName = async (roomName: string) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch (_e) {
     console.error("Error: Cal video provider is not installed.");
     return { data: [] };
   }

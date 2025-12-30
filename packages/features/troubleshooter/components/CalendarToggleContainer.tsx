@@ -6,7 +6,7 @@ import { Switch } from "@calcom/ui/components/form";
 
 import { TroubleshooterListItemContainer } from "./TroubleshooterListItemContainer";
 
-const SELECTION_COLORS = ["#f97316", "#84cc16", "#06b6d4", "#8b5cf6", "#ec4899", "#f43f5e"];
+const _SELECTION_COLORS = ["#f97316", "#84cc16", "#06b6d4", "#8b5cf6", "#ec4899", "#f43f5e"];
 
 interface CalendarToggleItemProps {
   title: string;

@@ -61,7 +61,7 @@ test.describe("Manage Booking Questions", () => {
     }, testInfo) => {
       // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 2);
-      const user = await createAndLoginUserWithEventTypes({ users, page });
+      const _user = await createAndLoginUserWithEventTypes({ users, page });
 
       // const webhookReceiver = await addWebhook(user);
 

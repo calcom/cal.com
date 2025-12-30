@@ -43,7 +43,7 @@ describe("RoutingFormResponseDataFactory", () => {
         mockFormResponse as any
       );
 
-      const result = await factory.createWithBookingUid(bookingUid);
+      const _result = await factory.createWithBookingUid(bookingUid);
 
       expect(mockRoutingFormResponseRepo.findByBookingUidIncludeForm).toHaveBeenCalledWith(bookingUid);
       expect(parseRoutingFormResponse).toHaveBeenCalledWith(
@@ -73,7 +73,7 @@ describe("RoutingFormResponseDataFactory", () => {
       const responseId = 1;
       vi.mocked(mockRoutingFormResponseRepo.findByIdIncludeForm).mockResolvedValue(mockFormResponse as any);
 
-      const result = await factory.createWithResponseId(responseId);
+      const _result = await factory.createWithResponseId(responseId);
 
       expect(mockRoutingFormResponseRepo.findByIdIncludeForm).toHaveBeenCalledWith(responseId);
       expect(parseRoutingFormResponse).toHaveBeenCalledWith(

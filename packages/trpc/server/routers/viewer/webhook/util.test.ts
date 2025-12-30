@@ -8,7 +8,7 @@ import { TRPCError } from "@trpc/server";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 // Import after mocks are set up
-import { createWebhookPbacProcedure, webhookProcedure } from "./util";
+import { createWebhookPbacProcedure, } from "./util";
 
 // Mock dependencies - use factory functions to avoid hoisting issues
 vi.mock("@calcom/prisma", () => ({
@@ -66,7 +66,7 @@ describe("Webhook PBAC Procedures", () => {
     const fallbackRoles: MembershipRole[] = ["ADMIN", "OWNER"];
 
     it("should create a procedure with the specified permission", () => {
-      const procedure = createWebhookPbacProcedure(testPermission, fallbackRoles);
+      const _procedure = createWebhookPbacProcedure(testPermission, fallbackRoles);
 
       // Verify that authedProcedure methods were called
       expect(mockAuthedProcedure.input).toHaveBeenCalled();

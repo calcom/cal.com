@@ -440,7 +440,7 @@ describe("POST /api/bookings", () => {
           creationSource: "API_V1",
         });
         prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
+          const _mockTx = {
             booking: {
               create: prismaMock.booking.create.mockResolvedValue(mockBooking),
               update: vi.fn().mockResolvedValue({}),
@@ -517,7 +517,7 @@ describe("POST /api/bookings", () => {
           fromReschedule: "original-booking-uid",
         });
         prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
+          const _mockTx = {
             booking: {
               create: prismaMock.booking.create.mockResolvedValue(mockBooking),
               update: vi.fn().mockResolvedValue({}),
@@ -581,7 +581,7 @@ describe("POST /api/bookings", () => {
           creationSource: "API_V1",
         });
         prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
+          const _mockTx = {
             booking: {
               create: prismaMock.booking.create.mockResolvedValue(mockBooking),
               update: vi.fn().mockResolvedValue({}),
@@ -639,7 +639,7 @@ describe("POST /api/bookings", () => {
           users: [buildUser()],
         });
 
-        const mockBookings = Array.from(Array(12).keys()).map((i) =>
+        const _mockBookings = Array.from(Array(12).keys()).map((i) =>
           buildBooking({ id: i + 1, uid: `recurring-booking-${i}` })
         );
 
@@ -698,7 +698,7 @@ describe("POST /api/bookings", () => {
       });
 
       const createdAt = new Date();
-      const mockBookings = Array.from(Array(12).keys()).map((i) =>
+      const _mockBookings = Array.from(Array(12).keys()).map((i) =>
         buildBooking({ id: i + 1, uid: `webhook-booking-${i}`, createdAt })
       );
 

@@ -1,5 +1,11 @@
 import { extractUserContext } from "@/lib/extract-user-context";
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor, Logger } from "@nestjs/common";
+import {
+  CallHandler,
+  ExecutionContext,
+  Injectable,
+  NestInterceptor,
+  Logger,
+} from "@nestjs/common";
 import { Request, Response } from "express";
 import { tap } from "rxjs/operators";
 
@@ -29,7 +35,7 @@ export class ResponseInterceptor implements NestInterceptor {
           if (data && typeof data === "object") {
             jsonBodyString = JSON.stringify(data);
           }
-        } catch (err) {
+        } catch {
           this.logger.error("Could not parse request body");
         }
 

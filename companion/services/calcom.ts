@@ -340,7 +340,7 @@ async function testRawBookingsAPI(): Promise<void> {
         safeLogError("[CalComAPIService] Failed to parse bookings response", { responseText });
       }
     }
-  } catch (_error) {
+  } catch {
     safeLogError("[CalComAPIService] testRawBookingsAPI failed", { error: _error });
   }
 }
@@ -857,7 +857,7 @@ async function getEventTypes(): Promise<EventType[]> {
     if (currentUser?.username) {
       username = currentUser.username;
     }
-  } catch (_error) {}
+  } catch {}
 
   // Build query string with username and sorting
   const params = new URLSearchParams();
@@ -1011,7 +1011,7 @@ async function getBookings(filters?: {
   let currentUser;
   try {
     currentUser = await getCurrentUser();
-  } catch (_error) {
+  } catch {
     return bookingsArray;
   }
 

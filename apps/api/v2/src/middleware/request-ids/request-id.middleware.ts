@@ -17,7 +17,7 @@ export class RequestIdMiddleware implements NestMiddleware {
       if (requestBody && typeof requestBody === "object") {
         jsonBodyString = JSON.stringify(requestBody);
       }
-    } catch (err) {
+    } catch {
       this.logger.error("Could not parse request body");
     }
 

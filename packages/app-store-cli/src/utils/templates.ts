@@ -20,7 +20,7 @@ const Templates = fs
         value: dir,
         category: config.categories[0],
       };
-    } catch (e) {
+    } catch (_e) {
       // config.json might not exist
       return null;
     }

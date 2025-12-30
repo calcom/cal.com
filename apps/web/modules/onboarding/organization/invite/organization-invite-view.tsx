@@ -54,7 +54,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
     await submitOnboarding(store, userEmail, []);
   };
 
-  const handleInvite = async () => {
+  const _handleInvite = async () => {
     await submitOnboarding(store, userEmail, []);
   };
 

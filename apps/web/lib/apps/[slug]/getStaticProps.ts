@@ -59,7 +59,7 @@ export const getStaticProps = async (slug: string) => {
   try {
     source = fs.readFileSync(postFilePath).toString();
     source = source.replace(/{DESCRIPTION}/g, appMeta.description);
-  } catch (error) {
+  } catch {
     /* If the app doesn't have a README we fallback to the package description */
     console.log(`No DESCRIPTION.md provided for: ${appDirname}`);
     source = appMeta.description;

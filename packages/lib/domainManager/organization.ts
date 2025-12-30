@@ -53,7 +53,7 @@ export const renameDomain = async (oldSlug: string | null, newSlug: string) => {
   if (oldSlug) {
     try {
       await deleteDomain(oldSlug);
-    } catch (e) {
+    } catch (_e) {
       log.error(`renameDomain: Failed to delete old domain ${oldSlug}. Do a manual deletion if needed`);
     }
   }

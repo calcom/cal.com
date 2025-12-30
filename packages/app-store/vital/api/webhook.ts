@@ -37,20 +37,30 @@ const getOuraSleepScore = async (user_id: string, bedtime_start: Date) => {
  * @param req
  * @param res
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
     }
     const sig = req.headers["svix-signature"];
     if (!sig) {
-      throw new HttpCode({ statusCode: 400, message: "Missing svix-signature" });
+      throw new HttpCode({
+        statusCode: 400,
+        message: "Missing svix-signature",
+      });
     }
 
     const vitalClient = await initVitalClient();
 
     if (!vitalClient || !vitalEnv)
-      return res.status(400).json({ message: "Missing vital client, try calling `initVitalClient`" });
+      return res
+        .status(400)
+        .json({
+          message: "Missing vital client, try calling `initVitalClient`",
+        });
 
     const payload = JSON.stringify(req.body);
 
@@ -75,7 +85,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
           });
           if (!credential) {
-            return res.status(404).json({ message: "Missing vital credential" });
+            return res
+              .status(404)
+              .json({ message: "Missing vital credential" });
           }
 
           // Getting total hours of sleep seconds/60/60 = hours
@@ -91,22 +103,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           let parameterFilter = "";
           const userMetadata = userWithMetadata?.metadata as Prisma.JsonObject;
           const vitalSettings =
-            ((userWithMetadata?.metadata as Prisma.JsonObject)?.vitalSettings as Prisma.JsonObject) || {};
+            ((userWithMetadata?.metadata as Prisma.JsonObject)
+              ?.vitalSettings as Prisma.JsonObject) || {};
           if (!!userMetadata && !!vitalSettings) {
             minimumSleepTime = vitalSettings.sleepValue as number;
             parameterFilter = vitalSettings.parameter as string;
           } else {
-            res.status(404).json({ message: "Vital configuration not found for user" });
+            res
+              .status(404)
+              .json({ message: "Vital configuration not found for user" });
             return;
           }
 
-          if (!Object.prototype.hasOwnProperty.call(event.data, parameterFilter)) {
+          if (
+            !Object.prototype.hasOwnProperty.call(event.data, parameterFilter)
+          ) {
             res.status(500).json({ message: "Selected param not available" });
             return;
           }
           const totalHoursSleep = Number(event.data[parameterFilter]) / 60 / 60;
 
-          if (minimumSleepTime > 0 && parameterFilter !== "" && totalHoursSleep <= minimumSleepTime) {
+          if (
+            minimumSleepTime > 0 &&
+            parameterFilter !== "" &&
+            totalHoursSleep <= minimumSleepTime
+          ) {
             // Trigger reschedule
             try {
               const todayDate = dayjs();
@@ -154,7 +175,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
     return res.status(200).json({ body: req.body });
-  } catch (_err) {
+  } catch {
     const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
     res.status(err.statusCode).send({

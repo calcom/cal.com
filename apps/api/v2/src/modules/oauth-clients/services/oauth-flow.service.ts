@@ -1,12 +1,14 @@
 import { TokenExpiredException } from "@/modules/auth/guards/api-auth/token-expired.exception";
-import {
-  KeysDto,
-  KeysResponseDto,
-} from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
+import { KeysDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { BadRequestException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { DateTime } from "luxon";
 
 import { INVALID_ACCESS_TOKEN } from "@calcom/platform-constants";
@@ -23,12 +25,21 @@ export class OAuthFlowService {
 
   async propagateAccessToken(accessToken: string) {
     try {
-      const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
-      let expiry = await this.tokensRepository.getAccessTokenExpiryDate(accessToken);
+      const ownerId = await this.tokensRepository.getAccessTokenOwnerId(
+        accessToken
+      );
+      let expiry = await this.tokensRepository.getAccessTokenExpiryDate(
+        accessToken
+      );
 
       if (!expiry) {
-        this.logger.warn(`Token for ${ownerId} had no expiry time, assuming it's new.`);
-        expiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
+        this.logger.warn(
+          `Token for ${ownerId} had no expiry time, assuming it's new.`
+        );
+        expiry = DateTime.now()
+          .plus({ minute: 60 })
+          .startOf("minute")
+          .toJSDate();
       }
 
       const cacheKey = this._generateActKey(accessToken);
@@ -37,9 +48,15 @@ export class OAuthFlowService {
         expiresAt: expiry?.toJSON(),
       });
 
-      await this.redisService.redis.expireat(cacheKey, Math.floor(expiry.getTime() / 1000));
+      await this.redisService.redis.expireat(
+        cacheKey,
+        Math.floor(expiry.getTime() / 1000)
+      );
     } catch (err) {
-      this.logger.error("Access Token Propagation Failed, falling back to DB...", err);
+      this.logger.error(
+        "Access Token Propagation Failed, falling back to DB...",
+        err
+      );
     }
   }
 
@@ -51,13 +68,16 @@ export class OAuthFlowService {
       if (ownerId) {
         return Number.parseInt(ownerId);
       }
-    } catch (err) {
+    } catch {
       this.logger.warn("Cache#getOwnerId fetch failed, falling back to DB...");
     }
 
-    const ownerIdFromDb = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
+    const ownerIdFromDb = await this.tokensRepository.getAccessTokenOwnerId(
+      accessToken
+    );
 
-    if (!ownerIdFromDb) throw new Error("Invalid Access Token, not present in Redis or DB");
+    if (!ownerIdFromDb)
+      throw new Error("Invalid Access Token, not present in Redis or DB");
 
     // await in case of race conditions, but void it's return since cache writes shouldn't halt execution.
     void (await this.redisService.redis.setex(cacheKey, 3600, ownerIdFromDb)); // expires in 1 hour
@@ -74,7 +94,9 @@ export class OAuthFlowService {
       return true;
     }
 
-    const tokenExpiresAt = await this.tokensRepository.getAccessTokenExpiryDate(secret);
+    const tokenExpiresAt = await this.tokensRepository.getAccessTokenExpiryDate(
+      secret
+    );
 
     if (!tokenExpiresAt) {
       throw new UnauthorizedException(INVALID_ACCESS_TOKEN);
@@ -86,8 +108,13 @@ export class OAuthFlowService {
 
     // we can't use a Promise#all or similar here because we care about execution order
     // however we can't allow caches to fail a validation hence the results are voided.
-    void (await this.redisService.redis.hmset(cacheKey, { expiresAt: tokenExpiresAt.toJSON() }));
-    void (await this.redisService.redis.expireat(cacheKey, Math.floor(tokenExpiresAt.getTime() / 1000)));
+    void (await this.redisService.redis.hmset(cacheKey, {
+      expiresAt: tokenExpiresAt.toJSON(),
+    }));
+    void (await this.redisService.redis.expireat(
+      cacheKey,
+      Math.floor(tokenExpiresAt.getTime() / 1000)
+    ));
 
     return true;
   }
@@ -108,11 +135,12 @@ export class OAuthFlowService {
     clientId: string,
     clientSecret: string
   ): Promise<KeysDto> {
-    const oauthClient = await this.oAuthClientRepository.getOAuthClientWithAuthTokens(
-      tokenId,
-      clientId,
-      clientSecret
-    );
+    const oauthClient =
+      await this.oAuthClientRepository.getOAuthClientWithAuthTokens(
+        tokenId,
+        clientId,
+        clientSecret
+      );
 
     if (!oauthClient) {
       throw new BadRequestException("Invalid OAuth Client.");
@@ -124,9 +152,18 @@ export class OAuthFlowService {
       throw new BadRequestException("Invalid Authorization Token.");
     }
 
-    const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
-      await this.tokensRepository.createOAuthTokens(clientId, authorizationToken.owner.id);
-    await this.tokensRepository.invalidateAuthorizationToken(authorizationToken.id);
+    const {
+      accessToken,
+      refreshToken,
+      accessTokenExpiresAt,
+      refreshTokenExpiresAt,
+    } = await this.tokensRepository.createOAuthTokens(
+      clientId,
+      authorizationToken.owner.id
+    );
+    await this.tokensRepository.invalidateAuthorizationToken(
+      authorizationToken.id
+    );
     void this.propagateAccessToken(accessToken); // void result, ignored.
 
     return {
@@ -137,12 +174,17 @@ export class OAuthFlowService {
     };
   }
 
-  async refreshToken(clientId: string, clientSecret: string, tokenSecret: string): Promise<KeysDto> {
-    const oauthClient = await this.oAuthClientRepository.getOAuthClientWithRefreshSecret(
-      clientId,
-      clientSecret,
-      tokenSecret
-    );
+  async refreshToken(
+    clientId: string,
+    clientSecret: string,
+    tokenSecret: string
+  ): Promise<KeysDto> {
+    const oauthClient =
+      await this.oAuthClientRepository.getOAuthClientWithRefreshSecret(
+        clientId,
+        clientSecret,
+        tokenSecret
+      );
 
     if (!oauthClient) {
       throw new BadRequestException("Invalid OAuthClient credentials.");
@@ -154,11 +196,12 @@ export class OAuthFlowService {
       throw new BadRequestException("Invalid refresh token");
     }
 
-    const { accessToken, refreshToken } = await this.tokensRepository.refreshOAuthTokens(
-      clientId,
-      currentRefreshToken.secret,
-      currentRefreshToken.userId
-    );
+    const { accessToken, refreshToken } =
+      await this.tokensRepository.refreshOAuthTokens(
+        clientId,
+        currentRefreshToken.secret,
+        currentRefreshToken.userId
+      );
 
     return {
       accessToken: accessToken.secret,

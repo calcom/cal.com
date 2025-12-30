@@ -1,7 +1,7 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-import React, { useMemo, useEffect } from "react";
+import { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { DataTableFilters } from "@calcom/features/data-table";

@@ -2,8 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
-import { useMemo, useCallback, useEffect, useRef } from "react";
-import React from "react";
+import { useMemo, useCallback, useEffect, } from "react";
 import { shallow } from "zustand/shallow";
 
 import {

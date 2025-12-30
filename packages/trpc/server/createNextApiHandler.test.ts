@@ -132,7 +132,7 @@ describe("createNextApiHandler", () => {
 
   describe("error handling", () => {
     it("should handle TRPC errors correctly", () => {
-      const handler = createNextApiHandler(mockRouter);
+      const _handler = createNextApiHandler(mockRouter);
       const error = new TRPCError({ code: "BAD_REQUEST", message: "Invalid input" });
 
       onErrorHandler({
@@ -145,7 +145,7 @@ describe("createNextApiHandler", () => {
     });
 
     it("should handle internal server errors correctly", () => {
-      const handler = createNextApiHandler(mockRouter);
+      const _handler = createNextApiHandler(mockRouter);
       const baseError = new Error("Database connection failed");
       const error = new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -163,7 +163,7 @@ describe("createNextApiHandler", () => {
     });
 
     it("should not log client errors", () => {
-      const handler = createNextApiHandler(mockRouter);
+      const _handler = createNextApiHandler(mockRouter);
       const error = new TRPCError({ code: "BAD_REQUEST", message: "Invalid input" });
 
       onErrorHandler({

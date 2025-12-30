@@ -36,7 +36,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
   const { t } = useLocale();
   const session = useSession();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- router is kept for future use
-  const router = useRouter();
+  const _router = useRouter();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
   const { showDialog, setShowDialog, pendingTeamId, openDialog } = useWorkflowCreation();
@@ -108,7 +108,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Filter component is kept for future use
-const Filter = (props: {
+const _Filter = (props: {
   profiles: {
     readOnly?: boolean | undefined;
     slug: string | null;

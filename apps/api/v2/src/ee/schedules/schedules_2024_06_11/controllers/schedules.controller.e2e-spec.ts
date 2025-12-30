@@ -259,7 +259,7 @@ describe("Schedules Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(user.email);
       try {
         await scheduleRepositoryFixture.deleteById(createdSchedule.id);
-      } catch (e) {}
+      } catch (_e) {}
 
       await app.close();
     });

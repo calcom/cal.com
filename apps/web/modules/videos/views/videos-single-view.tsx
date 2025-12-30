@@ -9,8 +9,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import dayjs from "@calcom/dayjs";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
-import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/dayjs";
+import {
+  TRANSCRIPTION_STOPPED_ICON,
+  RECORDING_DEFAULT_ICON,
+} from "@calcom/lib/constants";
+import {
+  formatToLocalizedDate,
+  formatToLocalizedTime,
+} from "@calcom/lib/dayjs";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -54,10 +60,14 @@ export default function JoinCall(props: PageProps) {
 
   const userNameForCall = overrideName ?? loggedInUserName ?? undefined;
   const hideLoginModal =
-    !!userNameForCall && (requireEmailForGuests ? !!loggedInUserName && isLoggedInUserPartOfMeeting : true);
+    !!userNameForCall &&
+    (requireEmailForGuests
+      ? !!loggedInUserName && isLoggedInUserPartOfMeeting
+      : true);
   const [isCallFrameReady, setIsCallFrameReady] = useState<boolean>(false);
 
-  const activeMeetingPassword = guestCredentials?.meetingPassword ?? meetingPassword;
+  const activeMeetingPassword =
+    guestCredentials?.meetingPassword ?? meetingPassword;
   const activeMeetingUrl = guestCredentials?.meetingUrl ?? meetingUrl;
   const activeUserName = guestCredentials?.userName ?? userNameForCall;
 
@@ -89,7 +99,9 @@ export default function JoinCall(props: PageProps) {
           },
           url: url ?? meetingUrl,
           userName: userName,
-          ...(typeof (password ?? meetingPassword) === "string" && { token: password ?? meetingPassword }),
+          ...(typeof (password ?? meetingPassword) === "string" && {
+            token: password ?? meetingPassword,
+          }),
           ...(hasTeamPlan && {
             customTrayButtons: {
               ...(showRecordingButton
@@ -121,11 +133,18 @@ export default function JoinCall(props: PageProps) {
         }
 
         return callFrame;
-      } catch (err) {
+      } catch {
         return DailyIframe.getCallInstance();
       }
     },
-    [meetingUrl, meetingPassword, hasTeamPlan, showRecordingButton, showTranscriptionButton, t]
+    [
+      meetingUrl,
+      meetingPassword,
+      hasTeamPlan,
+      showRecordingButton,
+      showTranscriptionButton,
+      t,
+    ]
   );
   useEffect(() => {
     if (!hideLoginModal && !guestCredentials) {
@@ -135,7 +154,12 @@ export default function JoinCall(props: PageProps) {
     let callFrame: DailyCall | null = null;
 
     try {
-      callFrame = createCallFrame(activeUserName, activeMeetingPassword, activeMeetingUrl) ?? null;
+      callFrame =
+        createCallFrame(
+          activeUserName,
+          activeMeetingPassword,
+          activeMeetingUrl
+        ) ?? null;
       setDaily(callFrame);
       setIsCallFrameReady(true);
 
@@ -171,10 +195,19 @@ export default function JoinCall(props: PageProps) {
       {isCallFrameReady && (
         <div
           className="mx-auto hidden sm:block"
-          style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
+          style={{
+            zIndex: 2,
+            left: "30%",
+            position: "absolute",
+            bottom: 100,
+            width: "auto",
+          }}
+        >
           <CalVideoPremiumFeatures
             showRecordingButton={showRecordingButton}
-            enableAutomaticRecordingForOrganizer={enableAutomaticRecordingForOrganizer}
+            enableAutomaticRecordingForOrganizer={
+              enableAutomaticRecordingForOrganizer
+            }
             enableAutomaticTranscription={enableAutomaticTranscription}
             showTranscriptionButton={showTranscriptionButton}
           />
@@ -216,7 +249,10 @@ export default function JoinCall(props: PageProps) {
         />
       )}
 
-      <VideoMeetingInfo booking={booking} rediectAttendeeToOnExit={rediectAttendeeToOnExit} />
+      <VideoMeetingInfo
+        booking={booking}
+        rediectAttendeeToOnExit={rediectAttendeeToOnExit}
+      />
     </DailyProvider>
   );
 }
@@ -247,7 +283,8 @@ function ProgressBar(props: ProgressBarProps) {
 
   useEffect(() => {
     const now = dayjs();
-    const remainingMilliseconds = (60 - now.get("seconds")) * 1000 - now.get("milliseconds");
+    const remainingMilliseconds =
+      (60 - now.get("seconds")) * 1000 - now.get("milliseconds");
 
     timeoutRef.current = setTimeout(() => {
       const past = dayjs().isAfter(startingTime);
@@ -284,7 +321,10 @@ function ProgressBar(props: ProgressBarProps) {
       </p>
       <div className="relative h-2 max-w-xl overflow-hidden rounded-full">
         <div className="absolute h-full w-full bg-gray-500/10" />
-        <div className={classNames("relative h-full bg-green-500")} style={{ width: `${percentage}%` }} />
+        <div
+          className={classNames("relative h-full bg-green-500")}
+          style={{ width: `${percentage}%` }}
+        />
       </div>
     </div>
   );
@@ -319,7 +359,9 @@ export function LogInOverlay(props: LogInOverlayProps) {
   } = props;
 
   const [isOpen, setIsOpen] = useState(_open);
-  const [userName, setUserName] = useState(overrideName ?? loggedInUserName ?? "");
+  const [userName, setUserName] = useState(
+    overrideName ?? loggedInUserName ?? ""
+  );
   const [userEmail, setUserEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -395,7 +437,8 @@ export function LogInOverlay(props: LogInOverlayProps) {
         setIsOpen(false);
       }
     } catch (error) {
-      const errorKey = error instanceof Error ? error.message : "failed_to_join_call";
+      const errorKey =
+        error instanceof Error ? error.message : "failed_to_join_call";
       const errorMessage = t(errorKey) || errorKey;
       setError(errorMessage);
       setIsLoading(false);
@@ -446,12 +489,15 @@ export function LogInOverlay(props: LogInOverlayProps) {
         title={t("join_video_call")}
         description={t("choose_how_you_d_like_to_appear_on_the_call")}
         className="p-6 sm:max-w-lg"
-        onInteractOutside={(e) => e.preventDefault()}>
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <div className="mt-2 pb-4">
           <div className="stack-y-4">
             <div>
               <div className="font-semibold">{t("join_as_guest")}</div>
-              <p className="text-subtle text-sm">{t("ideal_for_one_time_calls")}</p>
+              <p className="text-subtle text-sm">
+                {t("ideal_for_one_time_calls")}
+              </p>
             </div>
 
             {requireEmailForGuests ? (
@@ -481,7 +527,8 @@ export function LogInOverlay(props: LogInOverlayProps) {
                   color="secondary"
                   className="w-fit self-end"
                   onClick={handleContinueAsGuest}
-                  loading={isLoading}>
+                  loading={isLoading}
+                >
                   {t("continue")}
                 </Button>
               </div>
@@ -497,7 +544,11 @@ export function LogInOverlay(props: LogInOverlayProps) {
                   disabled={isLoading}
                   autoFocus
                 />
-                <Button color="secondary" onClick={handleContinueAsGuest} loading={isLoading}>
+                <Button
+                  color="secondary"
+                  onClick={handleContinueAsGuest}
+                  loading={isLoading}
+                >
                   {t("continue")}
                 </Button>
               </div>
@@ -508,7 +559,9 @@ export function LogInOverlay(props: LogInOverlayProps) {
             <div className="mt-4 rounded-md bg-red-50 p-3 dark:bg-red-900/20">
               <div className="flex">
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-red-800 dark:text-red-200">{error}</p>
+                  <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                    {error}
+                  </p>
                 </div>
               </div>
             </div>
@@ -532,7 +585,8 @@ export function LogInOverlay(props: LogInOverlayProps) {
               className="w-full justify-center"
               onClick={() =>
                 (window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL}/video/${bookingUid}`)
-              }>
+              }
+            >
               {t("sign_in")}
             </Button>
           </div>
@@ -568,7 +622,8 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
         className={classNames(
           "no-scrollbar fixed left-0 top-0 z-30 flex h-full w-64 transform justify-between overflow-x-hidden overflow-y-scroll transition-all duration-300 ease-in-out",
           open ? "translate-x-0" : "-translate-x-[232px]"
-        )}>
+        )}
+      >
         <main className="prose-sm prose max-w-64 prose-a:text-white prose-h3:text-white prose-h3:font-cal scroll-bar scrollbar-track-w-20 overflow-x-hidden! bg-default w-full overflow-scroll border-r border-gray-300/20 p-4 text-white shadow-sm backdrop-blur-lg">
           <h3>{t("what")}:</h3>
           <p>{booking.title}</p>
@@ -591,7 +646,10 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
             {booking?.user?.name} - {t("organizer")}
             {!booking?.eventType?.hideOrganizerEmail && (
               <>
-                : <a href={`mailto:${booking?.user?.email}`}>{booking?.user?.email}</a>
+                :{" "}
+                <a href={`mailto:${booking?.user?.email}`}>
+                  {booking?.user?.email}
+                </a>
               </>
             )}
           </p>
@@ -599,7 +657,8 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           {booking.attendees.length
             ? booking.attendees.map((attendee) => (
                 <p key={attendee.id}>
-                  {attendee.name} – <a href={`mailto:${attendee.email}`}>{attendee.email}</a>
+                  {attendee.name} –{" "}
+                  <a href={`mailto:${attendee.email}`}>{attendee.email}</a>
                 </p>
               ))
             : null}
@@ -610,20 +669,28 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 
               <div
                 className="prose-sm prose prose-invert"
-                dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(booking.description) }}
+                dangerouslySetInnerHTML={{
+                  __html: markdownToSafeHTML(booking.description),
+                }}
               />
             </>
           )}
         </main>
         <div className="flex items-center justify-center">
           <button
-            aria-label={`${open ? "close" : "open"} booking description sidebar`}
+            aria-label={`${
+              open ? "close" : "open"
+            } booking description sidebar`}
             className="h-20 w-6 rounded-r-md border border-l-0 border-gray-300/20 bg-black/60 text-white shadow-sm backdrop-blur-lg"
-            onClick={() => setOpen(!open)}>
+            onClick={() => setOpen(!open)}
+          >
             <Icon
               name="chevron-right"
               aria-hidden
-              className={classNames(open && "rotate-180", "w-5 transition-all duration-300 ease-in-out")}
+              className={classNames(
+                open && "rotate-180",
+                "w-5 transition-all duration-300 ease-in-out"
+              )}
             />
           </button>
         </div>

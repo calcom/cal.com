@@ -10,7 +10,6 @@ import "@calcom/features/bookings/Booker/components/__mocks__/Section";
 import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
 import "@calcom/lib/__mocks__/logger";
 
-import React from "react";
 import { vi } from "vitest";
 
 import "@calcom/dayjs/__mocks__";

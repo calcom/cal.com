@@ -960,7 +960,7 @@ describe("handleNewBooking", () => {
         );
 
         // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
-        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const _calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "GOOGLE_CALENDAR_EVENT_ID",
             uid: "MOCK_ID",

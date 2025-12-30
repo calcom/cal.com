@@ -2,7 +2,6 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { ProfileRepository, LookupTarget } from "./ProfileRepository";
@@ -28,8 +27,8 @@ describe("ProfileRepository.findByUpIdWithAuth - IDOR Security Fix", () => {
   let org2: { id: number; name: string; slug: string };
   let profile1: { id: number; uid: string; upId: string };
   let profile2: { id: number; uid: string; upId: string };
-  let membership1: { id: number };
-  let membership2: { id: number };
+  let _membership1: { id: number };
+  let _membership2: { id: number };
 
   beforeEach(async () => {
     vi.resetAllMocks();
@@ -114,7 +113,7 @@ describe("ProfileRepository.findByUpIdWithAuth - IDOR Security Fix", () => {
     };
 
     // Create membership: User 1 is member of Org 1
-    membership1 = await prismock.membership.create({
+    _membership1 = await prismock.membership.create({
       data: {
         userId: user1.id,
         teamId: org1.id,
@@ -124,7 +123,7 @@ describe("ProfileRepository.findByUpIdWithAuth - IDOR Security Fix", () => {
     });
 
     // Create membership: User 2 is member of Org 2
-    membership2 = await prismock.membership.create({
+    _membership2 = await prismock.membership.create({
       data: {
         userId: user2.id,
         teamId: org2.id,

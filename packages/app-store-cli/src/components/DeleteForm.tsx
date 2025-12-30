@@ -1,6 +1,6 @@
 import { Text } from "ink";
 import TextInput from "ink-text-input";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ImportantText } from "../components/ImportantText";
 import { Message } from "../components/Message";

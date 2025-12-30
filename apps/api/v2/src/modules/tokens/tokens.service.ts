@@ -25,7 +25,7 @@ export class TokensService {
     let decodedToken: OAuthTokenPayload;
     try {
       decodedToken = jwt.verify(token, encryptionKey) as OAuthTokenPayload;
-    } catch (e) {
+    } catch (_e) {
       return null;
     }
 

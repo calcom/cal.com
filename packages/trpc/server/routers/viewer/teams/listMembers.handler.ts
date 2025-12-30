@@ -5,7 +5,6 @@ import {
   CustomAction,
   PermissionString,
 } from "@calcom/features/pbac/domain/types/permission-registry";
-import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -36,7 +35,10 @@ const userSelect = {
   lastActiveAt: true,
 } satisfies Prisma.UserSelect;
 
-export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptions) => {
+export const listMembersHandler = async ({
+  ctx,
+  input,
+}: ListMembersHandlerOptions) => {
   const { cursor, limit, teamId, searchTerm } = input;
 
   const canAccessMembers = await checkCanAccessMembers(ctx, teamId);
@@ -93,7 +95,10 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
   // Get custom roles if PBAC is enabled
   let customRoles: { [key: string]: { id: string; name: string } } = {};
   try {
-    const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
+    const roleManager =
+      await RoleManagementFactory.getInstance().createRoleManager(
+        organizationId
+      );
     if (roleManager.isPBACEnabled) {
       const roles = await roleManager.getTeamRoles(teamId);
       customRoles = roles.reduce((acc, role) => {
@@ -101,14 +106,14 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
         return acc;
       }, {} as { [key: string]: { id: string; name: string } });
     }
-  } catch (error) {
+  } catch {
     // PBAC not enabled or error occurred, continue with traditional roles
   }
 
   const users = teamMembers.map((member) => member.user);
-  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfileExcludingOrgMetadata(
-    users
-  );
+  const enrichedUsers = await new UserRepository(
+    prisma
+  ).enrichUsersWithTheirProfileExcludingOrgMetadata(users);
 
   const enrichedUserMap = new Map<number, (typeof enrichedUsers)[0]>();
   enrichedUsers.forEach((enrichedUser) => {
@@ -163,7 +168,10 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
   };
 };
 
-const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], teamId: number) => {
+const checkCanAccessMembers = async (
+  ctx: ListMembersHandlerOptions["ctx"],
+  teamId: number
+) => {
   const isTargetingOrg = teamId === ctx.user.organizationId;
 
   // Get team info to check if it's private
@@ -176,7 +184,9 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
 
   // Determine the resource type based on whether this is an org or team
   const resource = isTargetingOrg ? Resource.Organization : Resource.Team;
-  const targetAction = team.isPrivate ? CustomAction.ListMembersPrivate : CustomAction.ListMembers;
+  const targetAction = team.isPrivate
+    ? CustomAction.ListMembersPrivate
+    : CustomAction.ListMembers;
   const permissionString = `${resource}.${targetAction}` as PermissionString;
 
   // Check PBAC permissions for listing members

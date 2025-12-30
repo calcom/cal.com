@@ -154,7 +154,7 @@ export default function FileUploader({
             dataUrl,
             id: generateFileId(),
           });
-        } catch (error) {
+        } catch {
           errors.push(`${file.name}: Failed to read file`);
         }
       }

@@ -16,7 +16,10 @@ import { Frequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
-import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import type {
+  VideoApiAdapter,
+  VideoCallData,
+} from "@calcom/types/VideoApiAdapter";
 
 import { invalidateCredential } from "../../_utils/invalidateCredential";
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
@@ -25,7 +28,9 @@ import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
 import { metadata } from "../_metadata";
 import { getZoomAppKeys } from "./getZoomAppKeys";
 
-const log = logger.getSubLogger({ prefix: ["app-store/zoomvideo/lib/VideoApiAdapter"] });
+const log = logger.getSubLogger({
+  prefix: ["app-store/zoomvideo/lib/VideoApiAdapter"],
+});
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
 const zoomEventResultSchema = z.object({
@@ -84,7 +89,8 @@ export const zoomUserSettingsSchema = z.object({
 
 // https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
 // append comma separated settings here, to retrieve only these specific settings
-const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording,waiting_room";
+const settingsApiFilterResp =
+  "default_password_for_scheduled_meetings,auto_recording,waiting_room";
 
 type ZoomRecurrence = {
   end_date_time?: string;
@@ -95,7 +101,9 @@ type ZoomRecurrence = {
   monthly_day?: number; // 1-31
 };
 
-const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
+const ZoomVideoApiAdapter = (
+  credential: CredentialPayload
+): VideoApiAdapter => {
   const tokenResponse = getTokenObjectFromCredential(credential);
 
   const getUserSettings = async () => {
@@ -180,11 +188,18 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     return {
       topic: event.title,
       type: 2, // Means that this is a scheduled meeting
-      start_time: dayjs(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
-      duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
+      start_time: dayjs(event.startTime)
+        .tz(event.organizer.timeZone)
+        .format("YYYY-MM-DDTHH:mm:ss"),
+      duration:
+        (new Date(event.endTime).getTime() -
+          new Date(event.startTime).getTime()) /
+        60000,
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
       timezone: event.organizer.timeZone,
-      password: userSettings?.schedule_meeting?.default_password_for_scheduled_meetings ?? undefined,
+      password:
+        userSettings?.schedule_meeting
+          ?.default_password_for_scheduled_meetings ?? undefined,
       agenda: truncateAgenda(event.description),
       settings: {
         host_video: true,
@@ -246,13 +261,19 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       },
       appSlug: metadata.slug,
       currentTokenObject: tokenResponse,
-      fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
+      fetchNewTokenObject: async ({
+        refreshToken,
+      }: {
+        refreshToken: string | null;
+      }) => {
         if (!refreshToken) {
           return null;
         }
         const clientCredentials = await getZoomAppKeys();
         const { client_id, client_secret } = clientCredentials;
-        const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
+        const authHeader = `Basic ${Buffer.from(
+          `${client_id}:${client_secret}`
+        ).toString("base64")}`;
         return fetch("https://zoom.us/oauth/token", {
           method: "POST",
           headers: {
@@ -266,7 +287,9 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         });
       },
       isTokenObjectUnusable: async function (response) {
-        const myLog = logger.getSubLogger({ prefix: ["zoomvideo:isTokenObjectUnusable"] });
+        const myLog = logger.getSubLogger({
+          prefix: ["zoomvideo:isTokenObjectUnusable"],
+        });
         myLog.info(safeStringify({ status: response.status, ok: response.ok }));
         if (!response.ok) {
           let responseBody;
@@ -288,7 +311,9 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         return null;
       },
       isAccessTokenUnusable: async function (response) {
-        const myLog = logger.getSubLogger({ prefix: ["zoomvideo:isAccessTokenUnusable"] });
+        const myLog = logger.getSubLogger({
+          prefix: ["zoomvideo:isAccessTokenUnusable"],
+        });
         myLog.info(safeStringify({ status: response.status, ok: response.ok }));
         if (!response.ok) {
           let responseBody;
@@ -342,12 +367,16 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     getAvailability: async () => {
       try {
         // TODO Possibly implement pagination for cases when there are more than 300 meetings already scheduled.
-        const responseBody = await fetchZoomApi("users/me/meetings?type=scheduled&page_size=300");
+        const responseBody = await fetchZoomApi(
+          "users/me/meetings?type=scheduled&page_size=300"
+        );
 
         const data = zoomMeetingsSchema.parse(responseBody);
         return data.meetings.map((meeting) => ({
           start: meeting.start_time,
-          end: new Date(new Date(meeting.start_time).getTime() + meeting.duration * 60000).toISOString(),
+          end: new Date(
+            new Date(meeting.start_time).getTime() + meeting.duration * 60000
+          ).toISOString(),
         }));
       } catch (err) {
         log.error("Failed to get availability", safeStringify(err));
@@ -375,11 +404,16 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
             url: result.join_url,
           };
         }
-        throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
+        throw new Error(
+          `Failed to create meeting. Response is ${JSON.stringify(result)}`
+        );
       } catch (err) {
         log.error(
           "Zoom meeting creation failed",
-          safeStringify({ error: safeStringify(err), event: getPiiFreeCalendarEvent(event) })
+          safeStringify({
+            error: safeStringify(err),
+            event: getPiiFreeCalendarEvent(event),
+          })
         );
         /* Prevents meeting creation failure when Zoom Token is expired */
         throw new Error("Unexpected error");
@@ -391,11 +425,14 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           method: "DELETE",
         });
         return Promise.resolve();
-      } catch (err) {
+      } catch {
         return Promise.reject(new Error("Failed to delete meeting"));
       }
     },
-    updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
+    updateMeeting: async (
+      bookingRef: PartialReference,
+      event: CalendarEvent
+    ): Promise<VideoCallData> => {
       try {
         await fetchZoomApi(`meetings/${bookingRef.uid}`, {
           method: "PATCH",

@@ -10,7 +10,7 @@ import type { TrpcSessionUser } from "../../../types";
 import type { TGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { mapEventType } from "./util";
 
-const log = logger.getSubLogger({ prefix: ["getEventTypesFromGroup"] });
+const _log = logger.getSubLogger({ prefix: ["getEventTypesFromGroup"] });
 
 type GetByViewerOptions = {
   ctx: {

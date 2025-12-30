@@ -245,7 +245,7 @@ describe("LegacyRemoveMemberService", () => {
         const userId = 1;
         const memberIds = [2];
         const teamIds = [1];
-        const userRoles = new Map([[1, MembershipRole.ADMIN]]);
+        const _userRoles = new Map([[1, MembershipRole.ADMIN]]);
 
         // Member 2 is owner, but userId 1 is not owner
         vi.mocked(teamQueries.isTeamOwner)
@@ -275,7 +275,7 @@ describe("LegacyRemoveMemberService", () => {
         const userId = 1;
         const memberIds = [2];
         const teamIds = [1];
-        const userRoles = new Map([[1, MembershipRole.OWNER]]);
+        const _userRoles = new Map([[1, MembershipRole.OWNER]]);
 
         vi.mocked(teamQueries.isTeamOwner).mockResolvedValue(true);
 
@@ -325,7 +325,7 @@ describe("LegacyRemoveMemberService", () => {
         const userId = 1;
         const memberIds = [1]; // Same as userId
         const teamIds = [1];
-        const userRoles = new Map([[1, MembershipRole.OWNER]]);
+        const _userRoles = new Map([[1, MembershipRole.OWNER]]);
 
         vi.mocked(teamQueries.isTeamOwner).mockResolvedValue(true); // User is owner
 
@@ -466,7 +466,7 @@ describe("LegacyRemoveMemberService", () => {
       const memberIds: number[] = [];
       const teamIds = [1];
 
-      const result = await service.checkRemovePermissions({
+      const _result = await service.checkRemovePermissions({
         userId,
         isOrgAdmin: false,
         memberIds,

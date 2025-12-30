@@ -81,7 +81,7 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
       try {
         const urlObj = new URL(request.url);
         validationToken = urlObj.searchParams.get("validationToken");
-      } catch (e) {
+      } catch (_e) {
         log.warn("Invalid request URL", { url: request.url });
       }
     }

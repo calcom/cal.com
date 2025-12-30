@@ -1,7 +1,4 @@
-/**
- * @fileoverview This file is an example file and tells how to use the Cal component in a React application. This is also used by playwright e2e
- */
-import * as React from "react";
+
 import { useEffect } from "react";
 import { useState } from "react";
 import ReactDom from "react-dom";

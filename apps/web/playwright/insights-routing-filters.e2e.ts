@@ -37,7 +37,7 @@ test.describe("Insights > Routing Filters", () => {
     const membership = await owner.getFirstTeamMembership();
 
     const formName1 = "Test Form 1";
-    const form1 = await routingForms.create({
+    const _form1 = await routingForms.create({
       name: formName1,
       userId: owner.id,
       teamId: membership.teamId,
@@ -52,7 +52,7 @@ test.describe("Insights > Routing Filters", () => {
     });
 
     const formName2 = "Test Form 2";
-    const form2 = await routingForms.create({
+    const _form2 = await routingForms.create({
       name: formName2,
       userId: owner.id,
       teamId: membership.teamId,
@@ -330,7 +330,7 @@ test.describe("Insights > Routing Filters", () => {
 
     const membership = await owner.getFirstTeamMembership();
 
-    const textFieldId = uuidv4();
+    const _textFieldId = uuidv4();
     const formName = "Text Filter Test Form";
     const form = await routingForms.create({
       name: formName,
@@ -522,8 +522,8 @@ test.describe("Insights > Routing Filters", () => {
 
     const membership = await owner.getFirstTeamMembership();
 
-    const singleSelectFieldId = uuidv4();
-    const multiSelectFieldId = uuidv4();
+    const _singleSelectFieldId = uuidv4();
+    const _multiSelectFieldId = uuidv4();
     const formName = "Select Filter Test Form";
 
     const locationOptionId1 = uuidv4();

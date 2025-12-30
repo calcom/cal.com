@@ -26,7 +26,7 @@ vi.mock("@calcom/prisma", () => ({
   default: {},
 }));
 
-const mockPermissionService = vi.mocked(PermissionCheckService);
+const _mockPermissionService = vi.mocked(PermissionCheckService);
 const mockTeamRepository = vi.mocked(TeamRepository);
 const mockCustomerModule = vi.mocked(customerModule);
 

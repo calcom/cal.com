@@ -420,7 +420,7 @@ describe("PBACRemoveMemberService", () => {
 
   describe("Service Initialization", () => {
     it("should create PermissionCheckService on instantiation", () => {
-      const newService = new PBACRemoveMemberService();
+      const _newService = new PBACRemoveMemberService();
 
       expect(PermissionCheckService).toHaveBeenCalled();
     });

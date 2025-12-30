@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsEmail, IsPhoneNumber, IsString } from "class-validator";
+import { IsPhoneNumber, IsString } from "class-validator";
 
 export class VerifyPhoneInput {
   @ApiProperty({

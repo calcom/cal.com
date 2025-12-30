@@ -1,5 +1,4 @@
 import Link from "next/link";
-import React from "react";
 
 import AppListCard from "@calcom/features/apps/components/AppListCard";
 import CredentialActionsDropdown from "@calcom/features/apps/components/CredentialActionsDropdown";

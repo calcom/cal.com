@@ -205,7 +205,7 @@ export class CalendarsController {
     try {
       // First try to parse as JSON
       stateObj = JSON.parse(state) as CalendarState;
-    } catch (e) {
+    } catch (_e) {
       // If JSON parsing fails, try URL params
       const stateParams = new URLSearchParams(state);
 

@@ -35,7 +35,7 @@ const Identifiers = {
   selectNewFormat: "test-select-new-format",
 };
 
-async function enableContactOwnerOverride(page: Page) {
+async function _enableContactOwnerOverride(page: Page) {
   await page.click("text=Contact owner will be the Round Robin host if available");
 }
 

@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const responseBody = await result.json();
       errorMessage = responseBody.message;
-    } catch (e) {}
+    } catch (_e) {}
 
     res.status(400).json({ message: errorMessage });
     return;

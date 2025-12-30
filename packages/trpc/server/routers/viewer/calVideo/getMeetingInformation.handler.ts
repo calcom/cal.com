@@ -12,7 +12,10 @@ type GetMeetingInformationOptions = {
   input: TGetMeetingInformationInputSchema;
 };
 
-export const getMeetingInformationHandler = async ({ ctx: _ctx, input }: GetMeetingInformationOptions) => {
+export const getMeetingInformationHandler = async ({
+  ctx: _ctx,
+  input,
+}: GetMeetingInformationOptions) => {
   const { roomName } = input;
 
   try {
@@ -35,7 +38,7 @@ export const getMeetingInformationHandler = async ({ ctx: _ctx, input }: GetMeet
     }
     const res = await videoApiAdapter.getMeetingInformation(roomName);
     return res;
-  } catch (err) {
+  } catch {
     throw new TRPCError({
       code: "BAD_REQUEST",
     });

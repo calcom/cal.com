@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let userVital;
   try {
     userVital = await vitalClient.User.create(`cal_${calcomUserId}`);
-  } catch (e) {
+  } catch (_e) {
     userVital = await vitalClient.User.resolve(`cal_${calcomUserId}`);
   }
 

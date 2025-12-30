@@ -1,4 +1,4 @@
-import React from "react";
+
 import { vi, afterEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
@@ -13,7 +13,7 @@ vi.mock("@calcom/features/calendars/DatePicker", () => {
   };
 });
 
-const noop = () => {
+const _noop = () => {
   /* noop */
 };
 

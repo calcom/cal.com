@@ -1,7 +1,7 @@
 import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
 import { ApiExtraModels, ApiProperty, getSchemaPath } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsArray, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
+import { IsArray, IsNumber, IsString, ValidateNested } from "class-validator";
 
 class BaseAttribute {
   @IsString()

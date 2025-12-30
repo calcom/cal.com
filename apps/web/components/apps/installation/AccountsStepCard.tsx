@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

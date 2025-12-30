@@ -60,7 +60,7 @@ describe("errorFormatter", () => {
   });
 
   it("should handle nested ZodError", () => {
-    const schema = z.object({
+    const _schema = z.object({
       user: z.object({
         name: z.string(),
         age: z.number().min(18),

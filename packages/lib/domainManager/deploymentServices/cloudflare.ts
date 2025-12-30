@@ -141,7 +141,7 @@ export const deleteDnsRecord = async (domain: string) => {
     return searchResult.result[0] as (typeof searchResult.result)[0] | null;
   }
 
-  async function deleteDnsRecord(dnsRecordToDelete: { id: string }) {
+  async function _deleteDnsRecord(dnsRecordToDelete: { id: string }) {
     const deletionResult = await api(
       `${cloudflareApiForZoneUrl}/dns_records/${dnsRecordToDelete.id}`,
       {

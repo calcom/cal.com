@@ -46,7 +46,8 @@ export default function AppleCalendarSetup() {
                 className="font-bold hover:underline"
                 href="https://appleid.apple.com/account/manage"
                 target="_blank"
-                rel="noopener noreferrer">
+                rel="noopener noreferrer"
+              >
                 https://appleid.apple.com/account/manage
               </a>
               . {t("credentials_stored_encrypted")}
@@ -57,27 +58,34 @@ export default function AppleCalendarSetup() {
                 handleSubmit={async (values) => {
                   try {
                     setErrorMessage("");
-                    const res = await fetch("/api/integrations/applecalendar/add", {
-                      method: "POST",
-                      body: JSON.stringify(values),
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                    });
+                    const res = await fetch(
+                      "/api/integrations/applecalendar/add",
+                      {
+                        method: "POST",
+                        body: JSON.stringify(values),
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                      }
+                    );
                     const json = await res.json();
                     if (!res.ok) {
-                      setErrorMessage(t(json?.message) || t("something_went_wrong"));
+                      setErrorMessage(
+                        t(json?.message) || t("something_went_wrong")
+                      );
                     } else {
                       router.push(json.url);
                     }
-                  } catch (err) {
+                  } catch {
                     setErrorMessage(t("unable_to_add_apple_calendar"));
                   }
-                }}>
+                }}
+              >
                 <fieldset
                   className="stack-y-4"
                   disabled={form.formState.isSubmitting}
-                  data-testid="apple-calendar-form">
+                  data-testid="apple-calendar-form"
+                >
                   <TextField
                     required
                     type="text"
@@ -96,15 +104,26 @@ export default function AppleCalendarSetup() {
                   />
                 </fieldset>
 
-                {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
+                {errorMessage && (
+                  <Alert
+                    severity="error"
+                    title={errorMessage}
+                    className="my-4"
+                  />
+                )}
                 <div className="mt-5 justify-end space-x-2 rtl:space-x-reverse sm:mt-4 sm:flex">
-                  <Button type="button" color="secondary" onClick={() => router.back()}>
+                  <Button
+                    type="button"
+                    color="secondary"
+                    onClick={() => router.back()}
+                  >
                     {t("cancel")}
                   </Button>
                   <Button
                     type="submit"
                     loading={form.formState.isSubmitting}
-                    data-testid="apple-calendar-login-button">
+                    data-testid="apple-calendar-login-button"
+                  >
                     {t("save")}
                   </Button>
                 </div>

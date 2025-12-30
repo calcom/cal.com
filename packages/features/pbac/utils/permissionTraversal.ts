@@ -1,7 +1,6 @@
 import {
   CrudAction,
   type CustomAction,
-  PERMISSION_REGISTRY,
   Scope,
   getPermissionsForScope,
 } from "../domain/types/permission-registry";

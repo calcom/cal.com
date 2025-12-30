@@ -243,7 +243,7 @@ export class StripeService {
       });
 
       customerId = customersResponse.data[0].id;
-    } catch (error) {
+    } catch {
       const customer = await stripe.customers.create({ email: user.email });
       customerId = customer.id;
     }

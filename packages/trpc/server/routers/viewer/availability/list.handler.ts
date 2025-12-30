@@ -51,7 +51,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       });
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (error) {
+  } catch {
     defaultScheduleId = null;
   }
 

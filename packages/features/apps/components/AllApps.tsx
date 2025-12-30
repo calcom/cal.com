@@ -142,7 +142,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
 export function AllApps({ apps, searchText, categories, userAdminTeams }: AllAppsPropsType) {
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
+  const [appsContainerRef, _enableAnimation] = useAutoAnimate<HTMLDivElement>();
 
   const handleCategoryChange = (category: string | null) => {
     const validCategory =

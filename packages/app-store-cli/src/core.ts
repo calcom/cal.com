@@ -41,7 +41,7 @@ const updatePackageJson = ({
   fs.writeFileSync(`${appDirPath}/package.json`, JSON.stringify(packageJsonConfig, null, 2));
 };
 
-const workspaceDir = path.resolve(__dirname, "..", "..", "..");
+const _workspaceDir = path.resolve(__dirname, "..", "..", "..");
 
 export const BaseAppFork = {
   create: async function ({
