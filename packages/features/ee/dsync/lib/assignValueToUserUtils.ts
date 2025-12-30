@@ -1,10 +1,12 @@
 /**
  * Utility functions for attribute service. Shared across server and client.
  */
+import type {
+  AttributeOptionAssignment,
+  BulkAttributeAssigner,
+} from "@calcom/app-store/routing-forms/types/types";
 import slugify from "@calcom/lib/slugify";
 import { AttributeType } from "@calcom/prisma/enums";
-
-import type { AttributeOptionAssignment, BulkAttributeAssigner } from "./types";
 
 /**
  * What is a pool?

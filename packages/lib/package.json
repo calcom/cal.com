@@ -5,9 +5,9 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
-    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
-    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "lint:report": "biome lint --reporter json . > ../../lint-results/lib.json"
   },
   "dependencies": {
     "@calcom/config": "workspace:*",
@@ -30,7 +30,6 @@
     "uuid": "8.3.2"
   },
   "devDependencies": {
-    "@calcom/eslint-config": "workspace:*",
     "@calcom/tsconfig": "workspace:*",
     "@calcom/types": "workspace:*",
     "@faker-js/faker": "7.6.0",
