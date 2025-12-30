@@ -1,0 +1,188 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
+  "root": true,
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "formatter": {
+    "includes": [
+      "**/*",
+      "!packages/ui/components/icon/dynamicIconImports.tsx",
+      "!apps/api/v1/tests",
+      "!apps/api/v1/templates"
+    ],
+    "lineWidth": 110,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf"
+  },
+  "files": {
+    "includes": [
+      "**/*",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/.turbo",
+      "!**/dist",
+      "!**/build",
+      "!**/public",
+      "!public",
+      "!apps/web/public/embed",
+      "!packages/prisma/zod",
+      "!packages/prisma/enums",
+      "!*.lock",
+      "!*.log",
+      "!.gitignore",
+      "!.npmignore",
+      "!.prettierignore",
+      "!.eslintignore",
+      "!.DS_Store",
+      "!coverage",
+      "!lint-results",
+      "!test-results"
+    ]
+  },
+  "javascript": {
+    "formatter": {
+      "arrowParentheses": "always",
+      "bracketSpacing": true,
+      "bracketSameLine": true,
+      "quoteStyle": "double",
+      "jsxQuoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "es5"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        "useNodejsImportProtocol": "warn"
+      },
+      "correctness": {
+        "noUnusedVariables": {
+          "level": "warn",
+          "options": {
+            "ignoreRestSiblings": true
+          }
+        }
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["packages/lib/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["../app-store/**"],
+                    "message": "lib package should not import from app-store to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["../features/**"],
+                    "message": "lib package should not import from features to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["../trpc/**"],
+                    "message": "lib package should not import from trpc to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["@trpc/server"],
+                    "message": "lib package should not import from @trpc/server to avoid circular dependencies."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/app-store/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["../features/**"],
+                    "message": "app-store package should not import from features to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["../trpc/**"],
+                    "message": "app-store package should not import from trpc to avoid circular dependencies."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/features/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["../trpc/**"],
+                    "message": "features package should not import from trpc to avoid circular dependencies."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/trpc/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["../apps/web/**"],
+                    "message": "trpc package should not import from apps/web to avoid circular dependencies."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["companion/**/*.{ts,tsx,js,jsx}"],
+      "javascript": {
+        "formatter": {
+          "lineWidth": 100
+        }
+      }
+    },
+    {
+      "includes": ["apps/website/lib/utils/wordlist/wordlist.ts"],
+      "javascript": {
+        "formatter": {
+          "quoteProperties": "preserve"
+        }
+      }
+    }
+  ]
+}

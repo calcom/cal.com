@@ -206,7 +206,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       disabled={isSaving}
                     >
-                      <Ionicons name="close-circle-outline" size={24} color="#FF3B30" />
+                      <Ionicons name="close-circle-outline" size={24} color="#800020" />
                     </TouchableOpacity>
                   </View>
                 ))}

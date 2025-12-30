@@ -65,7 +65,6 @@ function WorkflowsPage({ filteredList }: PageProps) {
               <CreateButtonWithTeamsList
                 subtitle={t("new_workflow_subtitle").toUpperCase()}
                 createFunction={openDialog}
-                disableMobileButton={true}
                 onlyShowWithNoTeams={true}
                 includeOrg={true}
                 withPermission={{
@@ -83,7 +82,6 @@ function WorkflowsPage({ filteredList }: PageProps) {
                   <CreateButtonWithTeamsList
                     subtitle={t("new_workflow_subtitle").toUpperCase()}
                     createFunction={openDialog}
-                    disableMobileButton={true}
                     onlyShowWithTeams={true}
                     includeOrg={true}
                     withPermission={{

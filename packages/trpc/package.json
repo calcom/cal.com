@@ -7,8 +7,8 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "lint": "eslint .",
-    "lint:fix": "eslint . ",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
     "build": "yarn build:server && yarn build:react",
     "build:server": "yarn tsc --project tsconfig.server.json",
     "build:react": "yarn tsc --project tsconfig.react.json"
@@ -30,7 +30,6 @@
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "@calcom/eslint-config": "workspace:*",
     "@tanstack/react-query": "5.17.19",
     "@types/cookie": "0.6.0",
     "@types/uuid": "8.3.4",
