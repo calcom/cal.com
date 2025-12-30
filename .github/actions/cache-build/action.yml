@@ -1,9 +1,5 @@
 name: Cache production build binaries
 description: "Cache or restore if necessary"
-inputs:
-  node_version:
-    required: false
-    default: v18.x
 runs:
   using: "composite"
   steps:
@@ -11,7 +7,6 @@ runs:
       id: cache-key
       uses: ./.github/actions/cache-build-key
       with:
-        node_version: ${{ inputs.node_version }}
         branch_key: ${{ github.head_ref || github.ref_name }}
     - name: Cache production build
       uses: actions/cache@v4
