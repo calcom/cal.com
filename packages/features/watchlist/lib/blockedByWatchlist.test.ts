@@ -161,11 +161,7 @@ describe("blockedByWatchlist - Schedule Blocking", () => {
       );
 
       // When NOT blocked, the function proceeds with normal availability calculation
-      // Verify it returns a valid response shape (doesn't throw)
-      expect(result).toHaveProperty("workingHours");
-      expect(result).toHaveProperty("dateRanges");
-      expect(result).toHaveProperty("busy");
-      expect(result).toHaveProperty("timeZone");
+      expect(result.workingHours.length).toBeGreaterThan(0);
     });
   });
 
