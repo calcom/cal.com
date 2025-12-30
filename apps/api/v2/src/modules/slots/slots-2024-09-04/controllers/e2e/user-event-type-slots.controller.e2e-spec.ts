@@ -448,7 +448,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should reserve a slot and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
       // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
-      const now = "2050-09-05T12:00:00.000Z";
+      // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
+      const now = "2050-09-05T08:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
       Settings.now = () => newDate.getTime();
@@ -585,7 +586,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should update a reserved slot and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
       // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
-      const now = "2050-09-05T14:00:00.000Z";
+      // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
+      const now = "2050-09-05T12:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
       Settings.now = () => newDate.getTime();
@@ -696,7 +698,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should reserve a slot as event type owner with custom duration and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
       // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
-      const now = "2050-09-05T12:00:00.000Z";
+      // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
+      const now = "2050-09-05T08:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
       Settings.now = () => newDate.getTime();
@@ -754,7 +757,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should reserve a slot as someone who shares team with event type owner with custom duration and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
       // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
-      const now = "2050-09-05T12:00:00.000Z";
+      // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
+      const now = "2050-09-05T08:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
       Settings.now = () => newDate.getTime();
@@ -1369,7 +1373,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
       it("should reserve a slot with slot duration for variable event type length", async () => {
         // note(Lauris): mock current date to test slots release time
         // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
-        const now = "2050-09-05T12:00:00.000Z";
+        // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
+        const now = "2050-09-05T08:00:00.000Z";
         const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
         advanceTo(newDate);
         Settings.now = () => newDate.getTime();
