@@ -38,7 +38,9 @@ runs:
           ${{ github.workspace }}/node_modules/playwright
         key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
 
+    # In default mode: run if playwright-cache missed
+    # In skip mode: run if playwright-cache-check missed (but cache restore step was also skipped)
     - name: Yarn playwright install
-      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.playwright-cache-check.outputs.cache-hit != 'true' }}
+      if: ${{ (inputs.skip-install-if-cache-hit != 'true' && steps.playwright-cache.outputs.cache-hit != 'true') || (inputs.skip-install-if-cache-hit == 'true' && steps.playwright-cache-check.outputs.cache-hit != 'true') }}
       shell: bash
       run: yarn playwright install --with-deps

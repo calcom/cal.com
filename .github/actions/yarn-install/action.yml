@@ -64,11 +64,25 @@ runs:
         key: ${{ runner.os }}-yarn-install-state-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
         lookup-only: true
 
+    # Compute whether all caches hit (only in skip mode)
+    - name: Check if all caches hit
+      if: ${{ inputs.skip-install-if-cache-hit == 'true' }}
+      id: all-caches-check
+      shell: bash
+      run: |
+        if [[ "${{ steps.yarn-download-cache-check.outputs.cache-hit }}" == "true" && \
+              "${{ steps.yarn-nm-cache-check.outputs.cache-hit }}" == "true" && \
+              "${{ steps.yarn-install-state-cache-check.outputs.cache-hit }}" == "true" ]]; then
+          echo "all-hit=true" >> $GITHUB_OUTPUT
+        else
+          echo "all-hit=false" >> $GITHUB_OUTPUT
+        fi
+
     # Yarn rotates the downloaded cache archives, @see https://github.com/actions/setup-node/issues/325
     # Yarn cache is also reusable between arch and os.
-    # Only restore if not in skip mode, or if skip mode but cache check missed
+    # Only restore if not in skip mode, or if skip mode but any cache check missed
     - name: Restore yarn cache
-      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.yarn-nm-cache-check.outputs.cache-hit != 'true' }}
+      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.all-caches-check.outputs.all-hit != 'true' }}
       uses: actions/cache@v4
       id: yarn-download-cache
       with:
@@ -77,7 +91,7 @@ runs:
 
     # Invalidated on yarn.lock changes
     - name: Restore node_modules
-      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.yarn-nm-cache-check.outputs.cache-hit != 'true' }}
+      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.all-caches-check.outputs.all-hit != 'true' }}
       id: yarn-nm-cache
       uses: actions/cache@v4
       with:
@@ -88,7 +102,7 @@ runs:
 
     # Invalidated on yarn.lock changes
     - name: Restore yarn install state
-      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.yarn-nm-cache-check.outputs.cache-hit != 'true' }}
+      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.all-caches-check.outputs.all-hit != 'true' }}
       id: yarn-install-state-cache
       uses: actions/cache@v4
       with:
@@ -96,7 +110,7 @@ runs:
         key: ${{ runner.os }}-yarn-install-state-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
 
     - name: Install dependencies
-      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.yarn-nm-cache-check.outputs.cache-hit != 'true' }}
+      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.all-caches-check.outputs.all-hit != 'true' }}
       shell: bash
       run: |
         yarn install --inline-builds
