@@ -3493,6 +3493,7 @@
   "last_active": "Senast aktiv",
   "member_since": "Medlem sedan",
   "last_updated": "Senast uppdaterad",
+  "completed_onboarding": "Onboarding slutförd",
   "salesforce_on_cancel_write_to_event": "Vid avbokning, skriv till händelseregistret istället för att ta bort händelsen",
   "salesforce_on_every_cancellation": "Vid varje avbokning",
   "report_issue": "Rapportera problem",
