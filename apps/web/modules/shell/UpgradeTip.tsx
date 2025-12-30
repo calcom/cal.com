@@ -45,7 +45,7 @@ export function UpgradeTip({
   return (
     <>
       <div className="relative flex min-h-[295px] w-full items-center justify-between overflow-hidden rounded-lg pb-10">
- <picture className="absolute min-h-full w-full rounded-lg object-cover">
+         <picture className="absolute min-h-full w-full rounded-lg object-cover">
           {" "}
                     <source srcSet={imageSrc} media="(prefers-color-scheme: dark)" />
           <img
