@@ -1,8 +1,5 @@
-import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
-
-const log = logger.getSubLogger({ prefix: ["ScheduleBlockingService"] });
 
 /**
  * Service to manage schedule blocking when users are added/removed from watchlist.
@@ -84,9 +81,7 @@ export class ScheduleBlockingService {
    * Block schedules for multiple emails at once.
    */
   async blockSchedulesByEmails(emails: string[]): Promise<{ count: number }> {
-    if (emails.length === 0) {
-      return { count: 0 };
-    }
+    if (emails.length === 0) return { count: 0 };
 
     const normalizedEmails = emails.map((e) => e.toLowerCase());
 
@@ -116,24 +111,15 @@ export class ScheduleBlockingService {
 
     const userEmails = await this.getUserEmailsForEmail(normalizedEmail);
 
-    if (userEmails.length === 0) {
-      return { count: 0 };
-    }
+    if (userEmails.length === 0) return { count: 0 };
 
     const emailsToUnblock: string[] = [];
     for (const userEmail of userEmails) {
       const stillBlocked = await this.isUserStillBlocked(userEmail);
-      if (!stillBlocked) {
-        emailsToUnblock.push(userEmail);
-      } else {
-        log.info(`User ${userEmail} still blocked by another watchlist entry, skipping unblock`);
-      }
+      if (!stillBlocked) emailsToUnblock.push(userEmail);
     }
 
-    if (emailsToUnblock.length === 0) {
-      log.info(`All users for email ${normalizedEmail} are still blocked by other entries`);
-      return { count: 0 };
-    }
+    if (emailsToUnblock.length === 0) return { count: 0 };
 
     const result = await this.prisma.schedule.updateMany({
       where: {
@@ -145,8 +131,6 @@ export class ScheduleBlockingService {
         blockedByWatchlist: false,
       },
     });
-
-    log.info(`Unblocked ${result.count} schedules for email: ${normalizedEmail}`);
 
     return { count: result.count };
   }
@@ -171,8 +155,6 @@ export class ScheduleBlockingService {
       },
     });
 
-    log.info(`Blocked ${result.count} schedules for domain: ${normalizedDomain}`);
-
     return { count: result.count };
   }
 
@@ -185,25 +167,15 @@ export class ScheduleBlockingService {
 
     const userEmails = await this.getUserEmailsForDomain(normalizedDomain);
 
-    if (userEmails.length === 0) {
-      log.info(`No users found for domain: ${normalizedDomain}`);
-      return { count: 0 };
-    }
+    if (userEmails.length === 0) return { count: 0 };
 
     const emailsToUnblock: string[] = [];
     for (const userEmail of userEmails) {
       const stillBlocked = await this.isUserStillBlocked(userEmail);
-      if (!stillBlocked) {
-        emailsToUnblock.push(userEmail);
-      } else {
-        log.info(`User ${userEmail} still blocked by another watchlist entry, skipping unblock`);
-      }
+      if (!stillBlocked) emailsToUnblock.push(userEmail);
     }
 
-    if (emailsToUnblock.length === 0) {
-      log.info(`All users for domain ${normalizedDomain} are still blocked by other entries`);
-      return { count: 0 };
-    }
+    if (emailsToUnblock.length === 0) return { count: 0 };
 
     const result = await this.prisma.schedule.updateMany({
       where: {
@@ -215,8 +187,6 @@ export class ScheduleBlockingService {
         blockedByWatchlist: false,
       },
     });
-
-    log.info(`Unblocked ${result.count} schedules for domain: ${normalizedDomain}`);
 
     return { count: result.count };
   }
