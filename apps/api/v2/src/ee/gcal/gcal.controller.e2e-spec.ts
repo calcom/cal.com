@@ -96,6 +96,17 @@ describe("Platform Gcal Endpoints", () => {
       .expect(401);
   });
 
+  it(`/GET/gcal/oauth/auth-url: it should respond 401 with empty Authorization header`, async () => {
+    await request(app.getHttpServer()).get(`/v2/gcal/oauth/auth-url`).set("Authorization", "").expect(401);
+  });
+
+  it(`/GET/gcal/oauth/auth-url: it should respond 401 with Bearer token only (no actual token)`, async () => {
+    await request(app.getHttpServer())
+      .get(`/v2/gcal/oauth/auth-url`)
+      .set("Authorization", "Bearer ")
+      .expect(401);
+  });
+
   it(`/GET/gcal/oauth/auth-url: it should auth-url to google OAuth with valid access token `, async () => {
     const response = await request(app.getHttpServer())
       .get(`/v2/gcal/oauth/auth-url`)

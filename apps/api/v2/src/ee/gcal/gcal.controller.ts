@@ -64,6 +64,11 @@ export class GcalController {
   ): Promise<GcalAuthUrlOutput> {
     const oAuth2Client = await this.gcalService.getOAuthClient(this.redirectUri);
     const accessToken = extractBearerToken(authorization);
+
+    if (!accessToken) {
+      throw new UnauthorizedException("Valid Bearer token is required");
+    }
+
     const origin = req.get("origin") ?? req.get("host");
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",

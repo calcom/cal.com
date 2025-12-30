@@ -32,6 +32,7 @@ import {
   ParseIntPipe,
   Redirect,
   BadRequestException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
@@ -77,6 +78,10 @@ export class OrganizationsStripeController {
   ): Promise<StripConnectOutputResponseDto> {
     const origin = req.headers.origin;
     const accessToken = extractBearerToken(authorization);
+
+    if (!accessToken) {
+      throw new UnauthorizedException("Valid Bearer token is required");
+    }
 
     const state: OAuthCallbackState = {
       onErrorReturnTo: !!onErrorReturnTo ? onErrorReturnTo : origin,

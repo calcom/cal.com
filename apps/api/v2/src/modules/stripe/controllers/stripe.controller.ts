@@ -24,6 +24,7 @@ import {
   Redirect,
   Req,
   BadRequestException,
+  UnauthorizedException,
   Headers,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -61,6 +62,10 @@ export class StripeController {
   ): Promise<StripConnectOutputResponseDto> {
     const origin = req.headers.origin;
     const accessToken = extractBearerToken(authorization);
+
+    if (!accessToken) {
+      throw new UnauthorizedException("Valid Bearer token is required");
+    }
 
     const state: OAuthCallbackState = {
       onErrorReturnTo: !!onErrorReturnTo ? onErrorReturnTo : origin,
