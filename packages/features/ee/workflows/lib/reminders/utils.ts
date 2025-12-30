@@ -116,6 +116,16 @@ export const getAttendeeToBeUsedInSMS = (
 };
 
 /**
+ * Escapes HTML special characters to prevent XSS when inserting text into HTML.
+ */
+const escapeHtml = (str: string): string =>
+  str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+/**
  * Replaces cloaked links in HTML content with visible URLs.
  * This ensures recipients can see the actual destination of links,
  * helping them identify potentially malicious URLs.
@@ -142,8 +152,8 @@ export const replaceCloakedLinksInHtml = (html: string): string => {
       return match;
     }
 
-    // Replace the link text with the actual URL
-    return `<a ${attributes}>${href}</a>`;
+    // Replace the link text with the actual URL, escaping HTML to prevent XSS
+    return `<a ${attributes}>${escapeHtml(href)}</a>`;
   });
 };
 

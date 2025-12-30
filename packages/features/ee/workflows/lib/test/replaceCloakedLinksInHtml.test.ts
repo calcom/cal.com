@@ -157,5 +157,28 @@ describe("replaceCloakedLinksInHtml", () => {
       const result = replaceCloakedLinksInHtml(html);
       expect(result).toBe("");
     });
+
+    test("should escape HTML special characters in href to prevent XSS", () => {
+      // Test case for potential XSS vector where href contains HTML special characters
+      const html = '<a href="https://example.com?foo=1&bar=2">Click here</a>';
+      const result = replaceCloakedLinksInHtml(html);
+      expect(result).toBe('<a href="https://example.com?foo=1&bar=2">https://example.com?foo=1&amp;bar=2</a>');
+    });
+
+    test("should escape angle brackets in href", () => {
+      const html = '<a href="https://example.com/<script>alert(1)</script>">Click here</a>';
+      const result = replaceCloakedLinksInHtml(html);
+      expect(result).toBe(
+        '<a href="https://example.com/<script>alert(1)</script>">https://example.com/&lt;script&gt;alert(1)&lt;/script&gt;</a>'
+      );
+    });
+
+    test("should escape quotes in href", () => {
+      const html = '<a href="https://example.com?q=&quot;test&quot;">Click here</a>';
+      const result = replaceCloakedLinksInHtml(html);
+      expect(result).toBe(
+        '<a href="https://example.com?q=&quot;test&quot;">https://example.com?q=&amp;quot;test&amp;quot;</a>'
+      );
+    });
   });
 });
