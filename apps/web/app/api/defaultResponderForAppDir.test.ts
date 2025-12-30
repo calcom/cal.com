@@ -8,8 +8,10 @@ import { TRPCError } from "@trpc/server";
 
 import { defaultResponderForAppDir } from "./defaultResponderForAppDir";
 
+class MockNextRequest extends Request {}
+
 vi.mock("next/server", () => ({
-  NextRequest: class MockNextRequest {},
+  NextRequest: MockNextRequest,
   NextResponse: {
     json: vi.fn((body, init) => ({
       json: vi.fn().mockResolvedValue(body),
@@ -44,7 +46,9 @@ describe("defaultResponderForAppDir", () => {
   });
 
   it("should respond with status code 409 for NoAvailableUsersFound", async () => {
-    const f = vi.fn().mockRejectedValue(new Error(ErrorCode.NoAvailableUsersFound));
+    const f = vi
+      .fn()
+      .mockRejectedValue(new Error(ErrorCode.NoAvailableUsersFound));
     const req = { method: "GET", url: "/api/test" } as unknown as NextRequest;
     const params = Promise.resolve<Params>({});
 
@@ -60,7 +64,9 @@ describe("defaultResponderForAppDir", () => {
   });
 
   it("should respond with a 429 status code for rate limit errors", async () => {
-    const f = vi.fn().mockRejectedValue(new TRPCError({ code: "TOO_MANY_REQUESTS" }));
+    const f = vi
+      .fn()
+      .mockRejectedValue(new TRPCError({ code: "TOO_MANY_REQUESTS" }));
     const req = { method: "POST", url: "/api/test" } as unknown as NextRequest;
     const params = Promise.resolve<Params>({});
 
