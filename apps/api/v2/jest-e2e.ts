@@ -28,13 +28,7 @@ const config: Config = {
   testEnvironment: "node",
   testRegex: ".e2e-spec.ts$",
   transform: {
-    "^.+\\.ts$": [
-      "ts-jest",
-      {
-        isolatedModules: true,
-        diagnostics: false,
-      },
-    ],
+    "^.+\\.ts$": "ts-jest",
   },
   setupFiles: ["<rootDir>/test/setEnvVars.ts", "jest-date-mock"],
   setupFilesAfterEnv: ["<rootDir>/test/jest.setup-e2e.ts"],

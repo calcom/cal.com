@@ -125,18 +125,6 @@ jobs:
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}
           restore-keys: |
             ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-
-      - name: Cache Jest cache
-        uses: actions/cache@v4
-        id: cache-jest
-        env:
-          cache-name: jest-cache-api-v2-e2e
-          key-1: ${{ hashFiles('yarn.lock') }}
-          key-2: ${{ hashFiles('apps/api/v2/**/*.ts', 'apps/api/v2/**/*.tsx', 'apps/api/v2/jest-e2e.ts', '!**/node_modules', '!**/dist') }}
-        with:
-          path: apps/api/v2/.jest-cache
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ matrix.shard }}
-          restore-keys: |
-            ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-
 
       - name: Run Tests
         working-directory: apps/api/v2
