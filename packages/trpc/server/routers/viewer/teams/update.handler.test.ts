@@ -64,12 +64,12 @@ describe("updateHandler - Permission Check Tests", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(PermissionCheckService).mockImplementation(
-      () => mockPermissionCheckService as unknown as InstanceType<typeof PermissionCheckService>
-    );
-    vi.mocked(TeamRepository).mockImplementation(
-      () => mockTeamRepository as unknown as InstanceType<typeof TeamRepository>
-    );
+    vi.mocked(PermissionCheckService).mockImplementation(function () {
+      return mockPermissionCheckService as unknown as InstanceType<typeof PermissionCheckService>;
+    });
+    vi.mocked(TeamRepository).mockImplementation(function () {
+      return mockTeamRepository as unknown as InstanceType<typeof TeamRepository>;
+    });
   });
 
   describe("Permission Check Service", () => {
