@@ -338,12 +338,6 @@ export default class EventManager {
       if (isMSTeamsWithOutlookCalendar) {
         log.debug("skipping dedicated video event creation for MSTeams meeting with Outlook Calendar");
       } else {
-        const videoCredential = this.videoCredentials.find(c => c.type === "office365_video");
-
-        if (!videoCredential) {
-          log.warn("MS Teams selected but no office365_video credential found.");
-        }
-
         const result = await this.createVideoEvent(evt);
 
         if (result?.createdEvent) {
@@ -371,7 +365,6 @@ export default class EventManager {
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
 
     if (locationString === MSTeamsLocationType) {
-      log.info("UPDATE_TEAMS_DATA:", results.map(r => ({ type: r.type, hasUrl: !!r.createdEvent?.url })));
       this.updateMSTeamsVideoCallData(evt, results);
     }
 
@@ -412,8 +405,6 @@ export default class EventManager {
         ...getCredentialPayload(result),
       };
     });
-
-    log.info("FINAL_REFS:", referencesToCreate.map(r => ({ type: r.type, hasUrl: !!r.meetingUrl })));
 
     return {
       results,
