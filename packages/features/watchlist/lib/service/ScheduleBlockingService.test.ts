@@ -27,7 +27,7 @@ describe("ScheduleBlockingService", () => {
       findUserIdsByEmail: vi.fn().mockResolvedValue([1]),
       findUserIdsByEmails: vi.fn().mockResolvedValue([1]),
       findUserIdsByEmailDomain: vi.fn().mockResolvedValue([1]),
-      findUserEmailsByIds: vi.fn().mockResolvedValue(["john@example.com"]),
+      findUserEmailsByIds: vi.fn().mockResolvedValue([{ userId: 1, email: "john@example.com" }]),
     };
 
     mockSecondaryEmailRepo = {
@@ -165,8 +165,8 @@ describe("ScheduleBlockingService", () => {
     it("should handle mixed scenarios - some users unblocked, others remain blocked", async () => {
       (mockUserRepo.findUserIdsByEmailDomain as ReturnType<typeof vi.fn>).mockResolvedValue([1, 2]);
       (mockUserRepo.findUserEmailsByIds as ReturnType<typeof vi.fn>).mockResolvedValue([
-        "john@example.com",
-        "jane@example.com",
+        { userId: 1, email: "john@example.com" },
+        { userId: 2, email: "jane@example.com" },
       ]);
 
       // john is still blocked by email, jane is not (batch check)

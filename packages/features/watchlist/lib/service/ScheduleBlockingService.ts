@@ -86,12 +86,16 @@ export class ScheduleBlockingService {
     const userIds = this.dedupeUserIds(primaryIds, secondaryIds);
     if (userIds.length === 0) return { count: 0 };
 
-    // Get user emails and batch check which are still blocked
-    const userEmails = await this.deps.userRepo.findUserEmailsByIds(userIds);
-    const stillBlockedEmails = await this.deps.watchlistRepo.getBlockedEmails(userEmails);
+    // Get user emails with their IDs for safe correlation
+    const userEmailPairs = await this.deps.userRepo.findUserEmailsByIds(userIds);
+    const stillBlockedEmails = await this.deps.watchlistRepo.getBlockedEmails(
+      userEmailPairs.map((p) => p.email)
+    );
 
-    // Filter to only users who are no longer blocked
-    const userIdsToUnblock = userIds.filter((_, i) => !stillBlockedEmails.has(userEmails[i].toLowerCase()));
+    // Filter to only users who are no longer blocked (using Map for safe correlation)
+    const userIdsToUnblock = userEmailPairs
+      .filter((pair) => !stillBlockedEmails.has(pair.email.toLowerCase()))
+      .map((pair) => pair.userId);
 
     return this.deps.scheduleRepo.updateBlockedStatusByUserIds(userIdsToUnblock, false);
   }
@@ -111,12 +115,16 @@ export class ScheduleBlockingService {
     const userIds = this.dedupeUserIds(primaryIds, secondaryIds);
     if (userIds.length === 0) return { count: 0 };
 
-    // Get user emails and batch check which are still blocked
-    const userEmails = await this.deps.userRepo.findUserEmailsByIds(userIds);
-    const stillBlockedEmails = await this.deps.watchlistRepo.getBlockedEmails(userEmails);
+    // Get user emails with their IDs for safe correlation
+    const userEmailPairs = await this.deps.userRepo.findUserEmailsByIds(userIds);
+    const stillBlockedEmails = await this.deps.watchlistRepo.getBlockedEmails(
+      userEmailPairs.map((p) => p.email)
+    );
 
-    // Filter to only users who are no longer blocked
-    const userIdsToUnblock = userIds.filter((_, i) => !stillBlockedEmails.has(userEmails[i].toLowerCase()));
+    // Filter to only users who are no longer blocked (using Map for safe correlation)
+    const userIdsToUnblock = userEmailPairs
+      .filter((pair) => !stillBlockedEmails.has(pair.email.toLowerCase()))
+      .map((pair) => pair.userId);
 
     return this.deps.scheduleRepo.updateBlockedStatusByUserIds(userIdsToUnblock, false);
   }

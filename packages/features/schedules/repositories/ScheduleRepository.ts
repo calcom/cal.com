@@ -306,15 +306,15 @@ export class ScheduleRepository {
   async updateBlockedStatusByDomains(domains: string[], blocked: boolean): Promise<{ count: number }> {
     if (domains.length === 0) return { count: 0 };
 
-    // Build OR conditions for each domain
+    // Build pattern array - Prisma auto-converts JS arrays to PostgreSQL arrays
     const patterns = domains.map((d) => `%@${d.toLowerCase()}`);
     const result = await this.prismaClient.$executeRaw`
       UPDATE "Schedule" 
       SET "blockedByWatchlist" = ${blocked}
       WHERE "userId" IN (
-        SELECT id FROM "users" WHERE LOWER(email) LIKE ANY(ARRAY[${patterns}]::text[])
+        SELECT id FROM "users" WHERE LOWER(email) LIKE ANY(${patterns}::text[])
         UNION
-        SELECT "userId" FROM "SecondaryEmail" WHERE LOWER(email) LIKE ANY(ARRAY[${patterns}]::text[])
+        SELECT "userId" FROM "SecondaryEmail" WHERE LOWER(email) LIKE ANY(${patterns}::text[])
       )
     `;
     return { count: result };
