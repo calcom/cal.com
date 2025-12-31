@@ -3,6 +3,7 @@ process.env.INTEGRATION_TEST_MODE = "true";
 
 export default defineConfig({
   test: {
+    globals: true,
     setupFiles: ["./setupVitest.ts"],
     
     coverage: {
