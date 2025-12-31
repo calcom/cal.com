@@ -851,9 +851,11 @@ describe("RetellAIService", () => {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
 
       const mockHasAvailableCredits = vi.fn().mockResolvedValue(true);
-      (CreditService as any).mockImplementation(() => ({
-        hasAvailableCredits: mockHasAvailableCredits,
-      }));
+      (CreditService as any).mockImplementation(function() {
+        return {
+          hasAvailableCredits: mockHasAvailableCredits,
+        };
+      });
 
       // Mock rate limiting like the working example
       vi.mocked(checkRateLimitAndThrowError).mockResolvedValueOnce(undefined as any);
@@ -933,9 +935,11 @@ describe("RetellAIService", () => {
 
       // Mock credit service to return false (no credits)
       const mockHasAvailableCredits = vi.fn().mockResolvedValue(false);
-      (CreditService as any).mockImplementation(() => ({
-        hasAvailableCredits: mockHasAvailableCredits,
-      }));
+      (CreditService as any).mockImplementation(function() {
+        return {
+          hasAvailableCredits: mockHasAvailableCredits,
+        };
+      });
 
       await expect(
         service.createTestCall({
@@ -954,9 +958,11 @@ describe("RetellAIService", () => {
 
       // Mock sufficient credits to get past credit check
       const mockHasAvailableCredits = vi.fn().mockResolvedValue(true);
-      (CreditService as any).mockImplementation(() => ({
-        hasAvailableCredits: mockHasAvailableCredits,
-      }));
+      (CreditService as any).mockImplementation(function() {
+        return {
+          hasAvailableCredits: mockHasAvailableCredits,
+        };
+      });
 
       (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
 
@@ -976,9 +982,11 @@ describe("RetellAIService", () => {
 
       // Mock sufficient credits
       const mockHasAvailableCredits = vi.fn().mockResolvedValue(true);
-      (CreditService as any).mockImplementation(() => ({
-        hasAvailableCredits: mockHasAvailableCredits,
-      }));
+      (CreditService as any).mockImplementation(function() {
+        return {
+          hasAvailableCredits: mockHasAvailableCredits,
+        };
+      });
 
       (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
       mockAgentRepository.findByIdWithCallAccess.mockResolvedValue(null);
@@ -1000,9 +1008,11 @@ describe("RetellAIService", () => {
 
       // Mock sufficient credits
       const mockHasAvailableCredits = vi.fn().mockResolvedValue(true);
-      (CreditService as any).mockImplementation(() => ({
-        hasAvailableCredits: mockHasAvailableCredits,
-      }));
+      (CreditService as any).mockImplementation(function() {
+        return {
+          hasAvailableCredits: mockHasAvailableCredits,
+        };
+      });
 
       (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
       mockAgentRepository.findByIdWithCallAccess.mockResolvedValue({

@@ -109,7 +109,7 @@ describe("RetellSDKClient", () => {
       },
     };
 
-    (Retell as any).mockImplementation(() => mockRetellInstance);
+    (Retell as any).mockImplementation(function() { return mockRetellInstance; });
   });
 
   describe("constructor", () => {
