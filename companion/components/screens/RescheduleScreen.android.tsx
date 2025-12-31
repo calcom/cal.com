@@ -2,21 +2,13 @@
  * RescheduleScreen Component (Android)
  *
  * Android-specific implementation with native DateTimePicker for date/time selection.
- * Uses @react-native-community/datetimepicker for native Android pickers.
+ * Uses @expo/ui/jetpack-compose DateTimePicker for native Android pickers.
  */
 
-import DateTimePicker from "@react-native-community/datetimepicker";
+import { DateTimePicker } from "@expo/ui/jetpack-compose";
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
-import {
-  Alert,
-  KeyboardAvoidingView,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Booking } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
@@ -37,8 +29,6 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
     "use no memo";
     const insets = useSafeAreaInsets();
     const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [showTimePicker, setShowTimePicker] = useState(false);
     const [reason, setReason] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
@@ -81,42 +71,24 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
       }
     }, [booking, selectedDateTime, reason, onSuccess]);
 
-    const formattedDate = selectedDateTime.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-
-    const formattedTime = selectedDateTime.toLocaleTimeString(undefined, {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-
-    const handleDateChange = useCallback(
-      (_event: unknown, date?: Date) => {
-        setShowDatePicker(false);
-        if (date) {
-          safeLogInfo("[RescheduleScreen] Date selected:", date);
-          const newDate = new Date(date);
-          newDate.setHours(selectedDateTime.getHours());
-          newDate.setMinutes(selectedDateTime.getMinutes());
-          setSelectedDateTime(newDate);
-        }
+    const handleDateSelected = useCallback(
+      (date: Date) => {
+        safeLogInfo("[RescheduleScreen] Date selected:", date);
+        const newDate = new Date(date);
+        newDate.setHours(selectedDateTime.getHours());
+        newDate.setMinutes(selectedDateTime.getMinutes());
+        setSelectedDateTime(newDate);
       },
       [selectedDateTime]
     );
 
-    const handleTimeChange = useCallback(
-      (_event: unknown, date?: Date) => {
-        setShowTimePicker(false);
-        if (date) {
-          safeLogInfo("[RescheduleScreen] Time selected:", date);
-          const newDate = new Date(selectedDateTime);
-          newDate.setHours(date.getHours());
-          newDate.setMinutes(date.getMinutes());
-          setSelectedDateTime(newDate);
-        }
+    const handleTimeSelected = useCallback(
+      (date: Date) => {
+        safeLogInfo("[RescheduleScreen] Time selected:", date);
+        const newDate = new Date(selectedDateTime);
+        newDate.setHours(date.getHours());
+        newDate.setMinutes(date.getMinutes());
+        setSelectedDateTime(newDate);
       },
       [selectedDateTime]
     );
@@ -141,7 +113,10 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
       <KeyboardAvoidingView behavior="height" className="flex-1 bg-[#F2F2F7]">
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16 }}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: insets.bottom + 16,
+          }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Booking Title Card */}
@@ -160,42 +135,26 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
           {/* Form Card */}
           <View className="mb-4 overflow-hidden rounded-xl bg-white">
             {/* Date picker */}
-            <TouchableOpacity
-              className="border-b border-gray-100 px-4 py-3"
-              onPress={() => {
-                safeLogInfo("[RescheduleScreen] Opening date picker");
-                setShowDatePicker(true);
-              }}
-              disabled={isSaving}
-              activeOpacity={0.7}
-            >
-              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Date</Text>
-              <View className="flex-row items-center justify-between">
-                <Text className="h-10 text-[17px] text-[#000]" style={{ lineHeight: 40 }}>
-                  {formattedDate}
-                </Text>
-                <Ionicons name="calendar-outline" size={20} color="#007AFF" />
-              </View>
-            </TouchableOpacity>
+            <View className="border-b border-gray-100 px-4 py-3">
+              <Text className="mb-2 text-[13px] font-medium text-gray-500">New Date</Text>
+              <DateTimePicker
+                onDateSelected={handleDateSelected}
+                displayedComponents="date"
+                initialDate={selectedDateTime.toISOString()}
+                variant="picker"
+              />
+            </View>
 
             {/* Time picker */}
-            <TouchableOpacity
-              className="border-b border-gray-100 px-4 py-3"
-              onPress={() => {
-                safeLogInfo("[RescheduleScreen] Opening time picker");
-                setShowTimePicker(true);
-              }}
-              disabled={isSaving}
-              activeOpacity={0.7}
-            >
-              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Time</Text>
-              <View className="flex-row items-center justify-between">
-                <Text className="h-10 text-[17px] text-[#000]" style={{ lineHeight: 40 }}>
-                  {formattedTime}
-                </Text>
-                <Ionicons name="time-outline" size={20} color="#007AFF" />
-              </View>
-            </TouchableOpacity>
+            <View className="border-b border-gray-100 px-4 py-3">
+              <Text className="mb-2 text-[13px] font-medium text-gray-500">New Time</Text>
+              <DateTimePicker
+                onDateSelected={handleTimeSelected}
+                displayedComponents="hourAndMinute"
+                initialDate={selectedDateTime.toISOString()}
+                variant="picker"
+              />
+            </View>
 
             {/* Reason input */}
             <View className="px-4 py-3">
@@ -223,28 +182,6 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
             </Text>
           </View>
         </ScrollView>
-
-        {/* Native Android Date Picker */}
-        {showDatePicker && (
-          <DateTimePicker
-            value={selectedDateTime}
-            mode="date"
-            display="default"
-            onChange={handleDateChange}
-            minimumDate={new Date()}
-          />
-        )}
-
-        {/* Native Android Time Picker */}
-        {showTimePicker && (
-          <DateTimePicker
-            value={selectedDateTime}
-            mode="time"
-            display="default"
-            onChange={handleTimeChange}
-            is24Hour={true}
-          />
-        )}
       </KeyboardAvoidingView>
     );
   }
