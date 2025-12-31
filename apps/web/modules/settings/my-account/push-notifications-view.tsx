@@ -51,12 +51,12 @@ function NotificationsView(): React.JSX.Element {
       title={t("notifications")}
       description={t("notifications_description")}
       borderInShellHeader={true}>
-      <div class="border-subtle rounded-b-xl border-x border-b">
+      <div className="border-subtle rounded-b-xl border-x border-b">
         {/* Browser Push Notifications Section */}
-        <div class="border-subtle border-b px-4 py-6 sm:px-6">
-          <h3 class="text-emphasis text-base font-semibold">{t("browser_notifications")}</h3>
-          <p class="text-subtle mt-1 text-sm">{t("push_notifications_description")}</p>
-          <div class="mt-4">
+        <div className="border-subtle border-b px-4 py-6 sm:px-6">
+          <h3 className="text-emphasis text-base font-semibold">{t("browser_notifications")}</h3>
+          <p className="text-subtle mt-1 text-sm">{t("push_notifications_description")}</p>
+          <div className="mt-4">
             <Button color="primary" onClick={isSubscribed ? unsubscribe : subscribe} disabled={isPushLoading}>
               {isSubscribed ? t("disable_browser_notifications") : t("allow_browser_notifications")}
             </Button>
@@ -64,35 +64,35 @@ function NotificationsView(): React.JSX.Element {
         </div>
 
         {/* Host Email Notifications Section */}
-        <div class="px-4 py-6 sm:px-6">
-          <h3 class="text-emphasis text-base font-semibold">{t("host_email_notifications")}</h3>
-          <p class="text-subtle mt-1 text-sm">{t("host_email_notifications_description")}</p>
-          <div class="mt-6">
-            <table class="w-full">
+        <div className="px-4 py-6 sm:px-6">
+          <h3 className="text-emphasis text-base font-semibold">{t("host_email_notifications")}</h3>
+          <p className="text-subtle mt-1 text-sm">{t("host_email_notifications_description")}</p>
+          <div className="mt-6">
+            <table className="w-full">
               <thead>
-                <tr class="border-subtle border-b">
-                  <th class="text-subtle pb-3 text-left text-sm font-medium">{t("email_type")}</th>
-                  <th class="text-subtle pb-3 text-right text-sm font-medium">{t("enabled")}</th>
+                <tr className="border-subtle border-b">
+                  <th className="text-subtle pb-3 text-left text-sm font-medium">{t("email_type")}</th>
+                  <th className="text-subtle pb-3 text-right text-sm font-medium">{t("enabled")}</th>
                 </tr>
               </thead>
               <tbody>
                 {HOST_EMAIL_SETTINGS.map(({ key, labelKey }) => {
                   const isDisabled = user?.[key] ?? false;
                   return (
-                    <tr key={key} class="border-subtle border-b last:border-b-0">
-                      <td class="text-default py-4 text-sm">{t(labelKey)}</td>
-                      <td class="py-4 text-right">
+                    <tr key={key} className="border-subtle border-b last:border-b-0">
+                      <td className="text-default py-4 text-sm">{t(labelKey)}</td>
+                      <td className="py-4 text-right">
                         <button
                           type="button"
                           role="switch"
                           aria-checked={!isDisabled}
                           disabled={isLoading}
                           onClick={() => handleToggle(key)}
-                          class={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
                             !isDisabled ? "bg-emphasis" : "bg-muted"
                           }`}>
                           <span
-                            class={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-default shadow ring-0 transition duration-200 ease-in-out ${
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-default shadow ring-0 transition duration-200 ease-in-out ${
                               !isDisabled ? "translate-x-5" : "translate-x-0"
                             }`}
                           />
