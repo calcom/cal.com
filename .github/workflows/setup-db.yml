@@ -2,6 +2,12 @@ name: Setup Database
 
 on:
   workflow_call:
+    inputs:
+      DB_CACHE_HIT:
+        required: false
+        type: string
+        default: ""
+        description: "Whether DB cache was hit in prepare job (passed from pr.yml)"
 
 permissions:
   contents: read
@@ -42,16 +48,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - name: Check DB cache (lookup-only)
-        id: cache-db-check
-        uses: actions/cache/restore@v4
-        env:
-          cache-name: cache-db
-          key-1: ${{ hashFiles('packages/prisma/schema.prisma', 'packages/prisma/migrations/**/**.sql', 'packages/prisma/*.ts') }}
-        with:
-          path: backups/backup.sql
-          key: ${{ runner.os }}-${{ env.cache-name }}-backups/backup.sql-${{ env.key-1 }}
-          lookup-only: true
       - uses: ./.github/actions/yarn-install
-        if: steps.cache-db-check.outputs.cache-hit != 'true'
+        if: inputs.DB_CACHE_HIT != 'true'
       - uses: ./.github/actions/cache-db
+        if: inputs.DB_CACHE_HIT != 'true'
