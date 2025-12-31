@@ -27,7 +27,6 @@
       "!!**/dist",
       "!!**/build",
       "!!**/public",
-      "!!companion",
       "!!public",
       "!!apps/web/public/embed",
       "!!packages/prisma/zod",
