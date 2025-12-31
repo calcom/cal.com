@@ -22,7 +22,7 @@ type Deps = {
   bookingReportRepo: PrismaBookingReportRepository;
   permissionCheckService: PermissionCheckService;
   organizationId: number;
-  scheduleBlockingService?: ScheduleBlockingService;
+  scheduleBlockingService: ScheduleBlockingService;
 };
 
 export class OrganizationWatchlistOperationsService extends WatchlistOperationsService {

@@ -44,7 +44,7 @@ export interface BulkDismissReportsResult {
 type Deps = {
   watchlistRepo: WatchlistRepository;
   bookingReportRepo: PrismaBookingReportRepository;
-  scheduleBlockingService?: ScheduleBlockingService;
+  scheduleBlockingService: ScheduleBlockingService;
 };
 
 export class AdminWatchlistOperationsService extends WatchlistOperationsService {
