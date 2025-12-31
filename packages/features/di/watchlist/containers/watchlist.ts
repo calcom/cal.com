@@ -26,11 +26,19 @@ import { ScheduleBlockingService } from "@calcom/features/watchlist/lib/service/
 import type { WatchlistAuditService } from "@calcom/features/watchlist/lib/service/WatchlistAuditService";
 import type { WatchlistService } from "@calcom/features/watchlist/lib/service/WatchlistService";
 import { prisma } from "@calcom/prisma";
-import { createContainer } from "@evyweb/ioctopus";
+import { type Container, createContainer } from "@evyweb/ioctopus";
 import { watchlistModule } from "../modules/Watchlist.module";
 import { WATCHLIST_DI_TOKENS } from "../Watchlist.tokens";
 
-export const watchlistContainer = createContainer();
+// Singleton instances - avoids recreating on every factory call
+const userRepo: UserRepository = new UserRepository(prisma);
+const secondaryEmailRepo: SecondaryEmailRepository = new SecondaryEmailRepository(prisma);
+const scheduleRepo: ScheduleRepository = new ScheduleRepository(prisma);
+const watchlistRepo: WatchlistRepository = new WatchlistRepository(prisma);
+const bookingReportRepo: PrismaBookingReportRepository = new PrismaBookingReportRepository(prisma);
+const permissionCheckService: PermissionCheckService = new PermissionCheckService();
+
+const watchlistContainer: Container = createContainer();
 
 prismaModuleLoader.loadModule(watchlistContainer);
 loggerModuleLoader.loadModule(watchlistContainer);
@@ -44,6 +52,15 @@ watchlistContainer.load(WATCHLIST_DI_TOKENS.WATCHLIST_SERVICE, watchlistModule);
 watchlistContainer.load(WATCHLIST_DI_TOKENS.AUDIT_SERVICE, watchlistModule);
 watchlistContainer.load(WATCHLIST_DI_TOKENS.GLOBAL_BLOCKING_SERVICE, watchlistModule);
 watchlistContainer.load(WATCHLIST_DI_TOKENS.ORGANIZATION_BLOCKING_SERVICE, watchlistModule);
+
+function getScheduleBlockingService(): ScheduleBlockingService {
+  return new ScheduleBlockingService({
+    userRepo,
+    secondaryEmailRepo,
+    scheduleRepo,
+    watchlistRepo,
+  });
+}
 
 export function getWatchlistService(): WatchlistService {
   return watchlistContainer.get<WatchlistService>(WATCHLIST_DI_TOKENS.WATCHLIST_SERVICE);
@@ -77,49 +94,27 @@ export async function getWatchlistFeature(): Promise<WatchlistFeature> {
   return createWatchlistFeature(watchlistContainer);
 }
 
-function createScheduleBlockingService(): ScheduleBlockingService {
-  return new ScheduleBlockingService({
-    userRepo: new UserRepository(prisma),
-    secondaryEmailRepo: new SecondaryEmailRepository(prisma),
-    scheduleRepo: new ScheduleRepository(prisma),
-    watchlistRepo: new WatchlistRepository(prisma),
-  });
-}
-
 export function getAdminWatchlistOperationsService(): AdminWatchlistOperationsService {
-  const watchlistRepo = new WatchlistRepository(prisma);
-  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
-  const scheduleBlockingService = createScheduleBlockingService();
-
   return new AdminWatchlistOperationsService({
     watchlistRepo,
     bookingReportRepo,
-    scheduleBlockingService,
+    scheduleBlockingService: getScheduleBlockingService(),
   });
 }
 
 export function getOrganizationWatchlistOperationsService(
   organizationId: number
 ): OrganizationWatchlistOperationsService {
-  const watchlistRepo = new WatchlistRepository(prisma);
-  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
-  const permissionCheckService = new PermissionCheckService();
-  const scheduleBlockingService = createScheduleBlockingService();
-
   return new OrganizationWatchlistOperationsService({
     watchlistRepo,
     bookingReportRepo,
     permissionCheckService,
     organizationId,
-    scheduleBlockingService,
+    scheduleBlockingService: getScheduleBlockingService(),
   });
 }
 
 export function getAdminWatchlistQueryService(): AdminWatchlistQueryService {
-  const watchlistRepo = new WatchlistRepository(prisma);
-  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
-  const userRepo = new UserRepository(prisma);
-
   return new AdminWatchlistQueryService({
     watchlistRepo,
     bookingReportRepo,
@@ -129,13 +124,11 @@ export function getAdminWatchlistQueryService(): AdminWatchlistQueryService {
 }
 
 export function getOrganizationWatchlistQueryService(): OrganizationWatchlistQueryService {
-  const watchlistRepo = new WatchlistRepository(prisma);
-  const userRepo = new UserRepository(prisma);
-  const permissionCheckService = new PermissionCheckService();
-
   return new OrganizationWatchlistQueryService({
     watchlistRepo,
     userRepo,
     permissionCheckService,
   });
 }
+
+export { watchlistContainer };

@@ -370,4 +370,51 @@ export class WatchlistRepository implements IWatchlistRepository {
 
     return domainBlock !== null;
   }
+
+  /**
+   * Batch check which users are still blocked by any watchlist entry.
+   * Returns a Set of emails that are still blocked.
+   * This is more efficient than N sequential hasBlockingEntryForEmailOrDomain calls.
+   */
+  async getBlockedEmails(emails: string[]): Promise<Set<string>> {
+    if (emails.length === 0) return new Set();
+
+    const normalizedEmails = emails.map((e) => e.toLowerCase());
+    const domains = Array.from(new Set(normalizedEmails.map((e) => e.split("@")[1])));
+
+    // Get all blocking entries that match these emails or domains
+    const blockingEntries = await this.prismaClient.watchlist.findMany({
+      where: {
+        action: WatchlistAction.BLOCK,
+        OR: [
+          { type: WatchlistType.EMAIL, value: { in: normalizedEmails } },
+          { type: WatchlistType.DOMAIN, value: { in: domains } },
+        ],
+      },
+      select: { type: true, value: true },
+    });
+
+    // Build sets for quick lookup
+    const blockedEmailsSet = new Set<string>();
+    const blockedDomainsSet = new Set<string>();
+
+    for (const entry of blockingEntries) {
+      if (entry.type === WatchlistType.EMAIL) {
+        blockedEmailsSet.add(entry.value);
+      } else if (entry.type === WatchlistType.DOMAIN) {
+        blockedDomainsSet.add(entry.value);
+      }
+    }
+
+    // Check each email against blocked emails and domains
+    const result = new Set<string>();
+    for (const email of normalizedEmails) {
+      const domain = email.split("@")[1];
+      if (blockedEmailsSet.has(email) || blockedDomainsSet.has(domain)) {
+        result.add(email);
+      }
+    }
+
+    return result;
+  }
 }

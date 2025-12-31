@@ -1309,7 +1309,6 @@ export class UserRepository {
     return users.map(withSelectedCalendars);
   }
 
-  // Schedule blocking lookup methods
   async findUserIdsByEmail(email: string): Promise<number[]> {
     const users = await this.prismaClient.user.findMany({
       where: { email: email.toLowerCase() },

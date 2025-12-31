@@ -38,10 +38,12 @@ describe("ScheduleBlockingService", () => {
 
     mockScheduleRepo = {
       updateBlockedStatusByUserIds: vi.fn().mockResolvedValue({ count: 1 }),
+      updateBlockedStatusByDomain: vi.fn().mockResolvedValue({ count: 1 }),
+      updateBlockedStatusByDomains: vi.fn().mockResolvedValue({ count: 1 }),
     };
 
     mockWatchlistRepo = {
-      hasBlockingEntryForEmailOrDomain: vi.fn().mockResolvedValue(false),
+      getBlockedEmails: vi.fn().mockResolvedValue(new Set<string>()),
     };
 
     service = new ScheduleBlockingService({
@@ -89,32 +91,31 @@ describe("ScheduleBlockingService", () => {
   });
 
   describe("blockSchedulesByDomain", () => {
-    it("should find users by domain and block their schedules", async () => {
+    it("should use DB-side subquery to block schedules by domain", async () => {
       const result = await service.blockSchedulesByDomain("example.com");
 
-      expect(mockUserRepo.findUserIdsByEmailDomain).toHaveBeenCalledWith("example.com");
-      expect(mockSecondaryEmailRepo.findUserIdsByEmailDomain).toHaveBeenCalledWith("example.com");
-      expect(mockScheduleRepo.updateBlockedStatusByUserIds).toHaveBeenCalledWith([1], true);
+      // Uses raw SQL subquery - doesn't call findUserIdsByEmailDomain
+      expect(mockUserRepo.findUserIdsByEmailDomain).not.toHaveBeenCalled();
+      expect(mockScheduleRepo.updateBlockedStatusByDomain).toHaveBeenCalledWith("example.com", true);
       expect(result.count).toBe(1);
     });
   });
 
-  describe("unblockSchedulesByEmail - Multiple Blocking Entries", () => {
+  describe("unblockSchedulesByEmail - Multiple Blocking Entries (Batch)", () => {
     it("should NOT unblock if user is still blocked by domain entry", async () => {
-      (mockWatchlistRepo.hasBlockingEntryForEmailOrDomain as ReturnType<typeof vi.fn>).mockResolvedValue(
-        true
+      // User is still blocked (email in the blocked set)
+      (mockWatchlistRepo.getBlockedEmails as ReturnType<typeof vi.fn>).mockResolvedValue(
+        new Set(["john@example.com"])
       );
 
-      const result = await service.unblockSchedulesByEmail("john@example.com");
+      await service.unblockSchedulesByEmail("john@example.com");
 
-      expect(mockScheduleRepo.updateBlockedStatusByUserIds).not.toHaveBeenCalled();
-      expect(result.count).toBe(0);
+      expect(mockScheduleRepo.updateBlockedStatusByUserIds).toHaveBeenCalledWith([], false);
     });
 
     it("should unblock if no other blocking entries remain", async () => {
-      (mockWatchlistRepo.hasBlockingEntryForEmailOrDomain as ReturnType<typeof vi.fn>).mockResolvedValue(
-        false
-      );
+      // User is NOT in blocked set
+      (mockWatchlistRepo.getBlockedEmails as ReturnType<typeof vi.fn>).mockResolvedValue(new Set());
 
       const result = await service.unblockSchedulesByEmail("john@example.com");
 
@@ -131,24 +132,29 @@ describe("ScheduleBlockingService", () => {
       expect(mockScheduleRepo.updateBlockedStatusByUserIds).not.toHaveBeenCalled();
       expect(result.count).toBe(0);
     });
+
+    it("should use batch getBlockedEmails instead of N+1 hasBlockingEntryForEmailOrDomain", async () => {
+      await service.unblockSchedulesByEmail("john@example.com");
+
+      expect(mockWatchlistRepo.getBlockedEmails).toHaveBeenCalledWith(["john@example.com"]);
+    });
   });
 
-  describe("unblockSchedulesByDomain - Multiple Blocking Entries", () => {
+  describe("unblockSchedulesByDomain - Multiple Blocking Entries (Batch)", () => {
     it("should NOT unblock if user is still blocked by specific email entry", async () => {
-      (mockWatchlistRepo.hasBlockingEntryForEmailOrDomain as ReturnType<typeof vi.fn>).mockResolvedValue(
-        true
+      // User is still blocked
+      (mockWatchlistRepo.getBlockedEmails as ReturnType<typeof vi.fn>).mockResolvedValue(
+        new Set(["john@example.com"])
       );
 
-      const result = await service.unblockSchedulesByDomain("example.com");
+      await service.unblockSchedulesByDomain("example.com");
 
-      expect(mockScheduleRepo.updateBlockedStatusByUserIds).not.toHaveBeenCalled();
-      expect(result.count).toBe(0);
+      expect(mockScheduleRepo.updateBlockedStatusByUserIds).toHaveBeenCalledWith([], false);
     });
 
     it("should unblock if no other blocking entries remain", async () => {
-      (mockWatchlistRepo.hasBlockingEntryForEmailOrDomain as ReturnType<typeof vi.fn>).mockResolvedValue(
-        false
-      );
+      // User is NOT in blocked set
+      (mockWatchlistRepo.getBlockedEmails as ReturnType<typeof vi.fn>).mockResolvedValue(new Set());
 
       const result = await service.unblockSchedulesByDomain("example.com");
 
@@ -163,10 +169,10 @@ describe("ScheduleBlockingService", () => {
         "jane@example.com",
       ]);
 
-      // john is still blocked by email, jane is not
-      (mockWatchlistRepo.hasBlockingEntryForEmailOrDomain as ReturnType<typeof vi.fn>)
-        .mockResolvedValueOnce(true) // john
-        .mockResolvedValueOnce(false); // jane
+      // john is still blocked by email, jane is not (batch check)
+      (mockWatchlistRepo.getBlockedEmails as ReturnType<typeof vi.fn>).mockResolvedValue(
+        new Set(["john@example.com"])
+      );
 
       const result = await service.unblockSchedulesByDomain("example.com");
 
@@ -184,11 +190,11 @@ describe("ScheduleBlockingService", () => {
       expect(mockScheduleRepo.updateBlockedStatusByUserIds).toHaveBeenCalledWith([1], true);
     });
 
-    it("should block by domain for DOMAIN type", async () => {
+    it("should block by domain for DOMAIN type using DB-side subquery", async () => {
       await service.handleWatchlistBlock("DOMAIN" as never, "example.com");
 
-      expect(mockUserRepo.findUserIdsByEmailDomain).toHaveBeenCalledWith("example.com");
-      expect(mockScheduleRepo.updateBlockedStatusByUserIds).toHaveBeenCalledWith([1], true);
+      // Uses raw SQL subquery - doesn't load user IDs into Node
+      expect(mockScheduleRepo.updateBlockedStatusByDomain).toHaveBeenCalledWith("example.com", true);
     });
   });
 

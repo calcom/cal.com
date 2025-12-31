@@ -55,36 +55,26 @@ export class ScheduleBlockingService {
     return this.deps.scheduleRepo.updateBlockedStatusByUserIds(userIds, true);
   }
 
+  /**
+   * Block schedules for all users matching a domain.
+   * Uses DB-side subquery to avoid materializing large user ID arrays.
+   */
   async blockSchedulesByDomain(domain: string): Promise<{ count: number }> {
-    const normalizedDomain = domain.toLowerCase();
-
-    const [primaryIds, secondaryIds] = await Promise.all([
-      this.deps.userRepo.findUserIdsByEmailDomain(normalizedDomain),
-      this.deps.secondaryEmailRepo.findUserIdsByEmailDomain(normalizedDomain),
-    ]);
-
-    const userIds = this.dedupeUserIds(primaryIds, secondaryIds);
-    if (userIds.length === 0) return { count: 0 };
-
-    return this.deps.scheduleRepo.updateBlockedStatusByUserIds(userIds, true);
+    return this.deps.scheduleRepo.updateBlockedStatusByDomain(domain, true);
   }
 
+  /**
+   * Block schedules for all users matching multiple domains.
+   * Uses DB-side subquery to avoid materializing large user ID arrays.
+   */
   async blockSchedulesByDomains(domains: string[]): Promise<{ count: number }> {
-    if (domains.length === 0) return { count: 0 };
-
-    const normalizedDomains = domains.map((d) => d.toLowerCase());
-
-    const [primaryIds, secondaryIds] = await Promise.all([
-      this.deps.userRepo.findUserIdsByEmailDomains(normalizedDomains),
-      this.deps.secondaryEmailRepo.findUserIdsByEmailDomains(normalizedDomains),
-    ]);
-
-    const userIds = this.dedupeUserIds(primaryIds, secondaryIds);
-    if (userIds.length === 0) return { count: 0 };
-
-    return this.deps.scheduleRepo.updateBlockedStatusByUserIds(userIds, true);
+    return this.deps.scheduleRepo.updateBlockedStatusByDomains(domains, true);
   }
 
+  /**
+   * Unblock schedules for a specific email, but only if no other blocking entries exist.
+   * Uses batch lookup to avoid N+1 queries.
+   */
   async unblockSchedulesByEmail(email: string): Promise<{ count: number }> {
     const normalizedEmail = email.toLowerCase();
 
@@ -96,24 +86,20 @@ export class ScheduleBlockingService {
     const userIds = this.dedupeUserIds(primaryIds, secondaryIds);
     if (userIds.length === 0) return { count: 0 };
 
-    // Get user emails to check if still blocked
+    // Get user emails and batch check which are still blocked
     const userEmails = await this.deps.userRepo.findUserEmailsByIds(userIds);
+    const stillBlockedEmails = await this.deps.watchlistRepo.getBlockedEmails(userEmails);
 
-    const userIdsToUnblock: number[] = [];
-    for (let i = 0; i < userEmails.length; i++) {
-      const userEmail = userEmails[i];
-      const domain = userEmail.split("@")[1];
-      const stillBlocked = await this.deps.watchlistRepo.hasBlockingEntryForEmailOrDomain(userEmail, domain);
-      if (!stillBlocked) {
-        userIdsToUnblock.push(userIds[i]);
-      }
-    }
-
-    if (userIdsToUnblock.length === 0) return { count: 0 };
+    // Filter to only users who are no longer blocked
+    const userIdsToUnblock = userIds.filter((_, i) => !stillBlockedEmails.has(userEmails[i].toLowerCase()));
 
     return this.deps.scheduleRepo.updateBlockedStatusByUserIds(userIdsToUnblock, false);
   }
 
+  /**
+   * Unblock schedules for all users matching a domain, but only if no other blocking entries exist.
+   * Uses batch lookup to avoid N+1 queries.
+   */
   async unblockSchedulesByDomain(domain: string): Promise<{ count: number }> {
     const normalizedDomain = domain.toLowerCase();
 
@@ -125,23 +111,12 @@ export class ScheduleBlockingService {
     const userIds = this.dedupeUserIds(primaryIds, secondaryIds);
     if (userIds.length === 0) return { count: 0 };
 
-    // Get user emails to check if still blocked
+    // Get user emails and batch check which are still blocked
     const userEmails = await this.deps.userRepo.findUserEmailsByIds(userIds);
+    const stillBlockedEmails = await this.deps.watchlistRepo.getBlockedEmails(userEmails);
 
-    const userIdsToUnblock: number[] = [];
-    for (let i = 0; i < userEmails.length; i++) {
-      const userEmail = userEmails[i];
-      const emailDomain = userEmail.split("@")[1];
-      const stillBlocked = await this.deps.watchlistRepo.hasBlockingEntryForEmailOrDomain(
-        userEmail,
-        emailDomain
-      );
-      if (!stillBlocked) {
-        userIdsToUnblock.push(userIds[i]);
-      }
-    }
-
-    if (userIdsToUnblock.length === 0) return { count: 0 };
+    // Filter to only users who are no longer blocked
+    const userIdsToUnblock = userIds.filter((_, i) => !stillBlockedEmails.has(userEmails[i].toLowerCase()));
 
     return this.deps.scheduleRepo.updateBlockedStatusByUserIds(userIdsToUnblock, false);
   }

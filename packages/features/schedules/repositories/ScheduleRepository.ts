@@ -260,10 +260,50 @@ export class ScheduleRepository {
   }
 
   async updateBlockedStatusByUserIds(userIds: number[], blocked: boolean): Promise<{ count: number }> {
+    if (userIds.length === 0) return { count: 0 };
     const result = await this.prismaClient.schedule.updateMany({
       where: { userId: { in: userIds } },
       data: { blockedByWatchlist: blocked },
     });
     return { count: result.count };
+  }
+
+  /**
+   * Update blocked status for all users matching a domain pattern using DB-side subquery.
+   * Avoids materializing large user ID arrays in Node memory.
+   */
+  async updateBlockedStatusByDomain(domain: string, blocked: boolean): Promise<{ count: number }> {
+    const pattern = `%@${domain.toLowerCase()}`;
+    const result = await this.prismaClient.$executeRaw`
+      UPDATE "Schedule" 
+      SET "blockedByWatchlist" = ${blocked}
+      WHERE "userId" IN (
+        SELECT id FROM "users" WHERE LOWER(email) LIKE ${pattern}
+        UNION
+        SELECT "userId" FROM "SecondaryEmail" WHERE LOWER(email) LIKE ${pattern}
+      )
+    `;
+    return { count: result };
+  }
+
+  /**
+   * Update blocked status for all users matching multiple domain patterns using DB-side subquery.
+   * Avoids materializing large user ID arrays in Node memory.
+   */
+  async updateBlockedStatusByDomains(domains: string[], blocked: boolean): Promise<{ count: number }> {
+    if (domains.length === 0) return { count: 0 };
+
+    // Build OR conditions for each domain
+    const patterns = domains.map((d) => `%@${d.toLowerCase()}`);
+    const result = await this.prismaClient.$executeRaw`
+      UPDATE "Schedule" 
+      SET "blockedByWatchlist" = ${blocked}
+      WHERE "userId" IN (
+        SELECT id FROM "users" WHERE LOWER(email) LIKE ANY(ARRAY[${patterns}]::text[])
+        UNION
+        SELECT "userId" FROM "SecondaryEmail" WHERE LOWER(email) LIKE ANY(ARRAY[${patterns}]::text[])
+      )
+    `;
+    return { count: result };
   }
 }
