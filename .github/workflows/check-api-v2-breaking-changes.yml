@@ -55,8 +55,8 @@ jobs:
       - name: Check Postman collection is in sync
         run: |
           if git diff --exit-code docs/api-reference/v2/postman-collection.json; then
-            echo "✅ Postman collection is in sync"
+            echo "Postman collection is in sync"
           else
-            echo "❌ Postman collection is out of sync. Please run 'yarn generate-swagger' in apps/api/v2 and commit the changes."
+            echo "Postman collection is out of sync. Please run 'yarn generate-swagger' in apps/api/v2 and commit the changes."
             exit 1
           fi
