@@ -131,7 +131,7 @@ describe("OrganizationsDelegationCredentialService", () => {
         new Error("Database error")
       );
 
-      await expect(service.ensureDefaultCalendars(orgId, domain)).resolves.not.toThrow();
+      await expect(service.ensureDefaultCalendars(orgId, domain)).resolves.toBeUndefined();
       expect(mockQueue.add).not.toHaveBeenCalled();
     });
   });
