@@ -146,9 +146,7 @@ export abstract class WatchlistOperationsService {
       if (input.type === WatchlistType.EMAIL) {
         await this.deps.scheduleBlockingService.blockSchedulesByEmails(uniqueValues);
       } else {
-        for (const domain of uniqueValues) {
-          await this.deps.scheduleBlockingService.blockSchedulesByDomain(domain);
-        }
+        await this.deps.scheduleBlockingService.blockSchedulesByDomains(uniqueValues);
       }
     } catch (error) {
       this.log.error("Failed to block schedules after bulk watchlist entry creation", {

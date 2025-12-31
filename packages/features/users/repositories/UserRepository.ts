@@ -1335,6 +1335,15 @@ export class UserRepository {
     return users.map((u) => u.id);
   }
 
+  async findUserIdsByEmailDomains(domains: string[]): Promise<number[]> {
+    if (domains.length === 0) return [];
+    const users = await this.prismaClient.user.findMany({
+      where: { OR: domains.map((d) => ({ email: { endsWith: `@${d.toLowerCase()}` } })) },
+      select: { id: true },
+    });
+    return users.map((u) => u.id);
+  }
+
   async findUserEmailsByIds(userIds: number[]): Promise<string[]> {
     const users = await this.prismaClient.user.findMany({
       where: { id: { in: userIds } },

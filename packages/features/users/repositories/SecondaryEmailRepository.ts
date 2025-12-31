@@ -27,4 +27,13 @@ export class SecondaryEmailRepository {
     });
     return secondaryEmails.map((se) => se.userId);
   }
+
+  async findUserIdsByEmailDomains(domains: string[]): Promise<number[]> {
+    if (domains.length === 0) return [];
+    const secondaryEmails = await this.prismaClient.secondaryEmail.findMany({
+      where: { OR: domains.map((d) => ({ email: { endsWith: `@${d.toLowerCase()}` } })) },
+      select: { userId: true },
+    });
+    return secondaryEmails.map((se) => se.userId);
+  }
 }

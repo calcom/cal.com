@@ -69,6 +69,22 @@ export class ScheduleBlockingService {
     return this.deps.scheduleRepo.updateBlockedStatusByUserIds(userIds, true);
   }
 
+  async blockSchedulesByDomains(domains: string[]): Promise<{ count: number }> {
+    if (domains.length === 0) return { count: 0 };
+
+    const normalizedDomains = domains.map((d) => d.toLowerCase());
+
+    const [primaryIds, secondaryIds] = await Promise.all([
+      this.deps.userRepo.findUserIdsByEmailDomains(normalizedDomains),
+      this.deps.secondaryEmailRepo.findUserIdsByEmailDomains(normalizedDomains),
+    ]);
+
+    const userIds = this.dedupeUserIds(primaryIds, secondaryIds);
+    if (userIds.length === 0) return { count: 0 };
+
+    return this.deps.scheduleRepo.updateBlockedStatusByUserIds(userIds, true);
+  }
+
   async unblockSchedulesByEmail(email: string): Promise<{ count: number }> {
     const normalizedEmail = email.toLowerCase();
 
