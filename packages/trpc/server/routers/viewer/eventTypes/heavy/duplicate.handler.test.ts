@@ -27,18 +27,17 @@ describe("duplicateHandler", () => {
     const { EventTypeRepository } = await import(
       "@calcom/features/eventtypes/repositories/eventTypeRepository"
     );
-    vi.mocked(EventTypeRepository).mockImplementation(
-      () =>
-        ({
-          create: vi.fn().mockRejectedValue(
-            new PrismaClientKnownRequestError("Unique constraint failed", {
-              code: "P2002",
-              clientVersion: "mockedVersion",
-            })
-          ),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any)
-    );
+    vi.mocked(EventTypeRepository).mockImplementation(function () {
+      return {
+        create: vi.fn().mockRejectedValue(
+          new PrismaClientKnownRequestError("Unique constraint failed", {
+            code: "P2002",
+            clientVersion: "mockedVersion",
+          })
+        ),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+    });
 
     await expect(duplicateHandler({ ctx, input })).rejects.toThrow(
       new TRPCError({

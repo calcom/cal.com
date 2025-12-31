@@ -5,7 +5,12 @@ export default defineConfig({
   test: {
     globals: true,
     setupFiles: ["./setupVitest.ts"],
-    
+    // Exclude API v2 spec files which use Jest, not Vitest
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "apps/api/v2/**/*.spec.ts",
+    ],
     coverage: {
       provider: "v8",
     },
