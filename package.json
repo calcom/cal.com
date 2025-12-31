@@ -136,7 +136,7 @@
     "jpeg-js": "0.4.4",
     "validator": "13.15.22",
     "form-data": "4.0.4",
-    "axios": "1.12.0",
+    "axios": "1.13.2",
     "jws": "4.0.1",
     "jsonwebtoken": "9.0.0"
   },
