@@ -428,13 +428,13 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
       href="/event-types"
-      class="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
+      className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
       data-testid={`vertical-tab-${name}`}>
       <Icon
         name="arrow-left"
-        class="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0"
+        className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0"
       />
-      <Skeleton title={name} as="p" class="min-h-4 max-w-36 truncate" loadingClassName="ms-3">
+      <Skeleton title={name} as="p" className="min-h-4 max-w-36 truncate" loadingClassName="ms-3">
         {name}
       </Skeleton>
     </Link>
@@ -517,7 +517,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
           if (teamMenuState.some((teamState) => teamState.teamId === team.id))
             return (
               <Collapsible
-                class="cursor-pointer"
+                className="cursor-pointer"
                 key={team.id}
                 open={teamMenuState[index].teamMenuOpen}
                 onOpenChange={(open) => {
@@ -530,7 +530,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                 }}>
                 <CollapsibleTrigger asChild>
                   <button
-                    class="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
+                    className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
                     aria-controls={`team-content-${team.id}`}
                     aria-expanded={teamMenuState[index].teamMenuOpen}
                     onClick={() => {
@@ -555,11 +555,11 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     aria-label={`${team.name} ${
                       teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
                     }`}>
-                    <div class="me-3">
+                    <div className="me-3">
                       {teamMenuState[index].teamMenuOpen ? (
-                        <Icon name="chevron-down" class="h-4 w-4" />
+                        <Icon name="chevron-down" className="h-4 w-4" />
                       ) : (
-                        <Icon name="chevron-right" class="h-4 w-4" />
+                        <Icon name="chevron-right" className="h-4 w-4" />
                       )}
                     </div>
                     {}
@@ -568,26 +568,26 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         src={getPlaceholderAvatar(team.logoUrl, team.name)}
                         width={16}
                         height={16}
-                        class="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                        className="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
                         alt={team.name || "Team logo"}
                       />
                     )}
-                    <p class="w-1/2 truncate leading-normal">{team.name}</p>
+                    <p className="w-1/2 truncate leading-normal">{team.name}</p>
                     {!team.accepted && (
-                      <Badge class="ms-3" variant="orange">
+                      <Badge className="ms-3" variant="orange">
                         Inv.
                       </Badge>
                     )}
                   </button>
                 </CollapsibleTrigger>
-                <CollapsibleContent class="flex flex-col space-y-1" id={`team-content-${team.id}`}>
+                <CollapsibleContent className="flex flex-col space-y-1" id={`team-content-${team.id}`}>
                   {team.accepted && (
                     <VerticalTabItem
                       name={t("profile")}
                       href={`/settings/teams/${team.id}/profile`}
                       trackingMetadata={{ section: "team", page: "profile", teamId: team.id }}
                       textClassNames="px-3 text-emphasis font-medium text-sm"
-                      class="px-2! me-5 h-7 w-auto"
+                      className="px-2! me-5 h-7 w-auto"
                       disableChevron
                     />
                   )}
@@ -596,7 +596,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     href={`/settings/teams/${team.id}/members`}
                     trackingMetadata={{ section: "team", page: "members", teamId: team.id }}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
-                    class="px-2! me-5 h-7 w-auto"
+                    className="px-2! me-5 h-7 w-auto"
                     disableChevron
                   />
                   {/* Show roles only for sub-teams with PBAC-enabled parent */}
@@ -618,7 +618,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         href={`/settings/teams/${team.id}/appearance`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
                         trackingMetadata={{ section: "team", page: "appearance", teamId: team.id }}
-                        class="px-2! me-5 h-7 w-auto"
+                        className="px-2! me-5 h-7 w-auto"
                         disableChevron
                       />
                       {/* Hide if there is a parent ID */}
@@ -629,7 +629,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                             href={`/settings/teams/${team.id}/billing`}
                             textClassNames="px-3 text-emphasis font-medium text-sm"
                             trackingMetadata={{ section: "team", page: "billing", teamId: team.id }}
-                            class="px-2! me-5 h-7 w-auto"
+                            className="px-2! me-5 h-7 w-auto"
                             disableChevron
                           />
                         </>
@@ -639,7 +639,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         href={`/settings/teams/${team.id}/settings`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
                         trackingMetadata={{ section: "team", page: "settings", teamId: team.id }}
-                        class="px-2! me-5 h-7 w-auto"
+                        className="px-2! me-5 h-7 w-auto"
                         disableChevron
                       />
                     </>
@@ -733,11 +733,11 @@ const SettingsSidebarContainer = ({
               {!["teams", "other_teams"].includes(tab.name) && (
                 <React.Fragment key={tab.href}>
                   <div class={`${!tab.children?.length ? "mb-3!" : ""}`}>
-                    <div class="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-7 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
+                    <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-7 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
                       {tab && tab.icon && (
                         <Icon
                           name={tab.icon}
-                          class="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                          className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
                         />
                       )}
                       {}
@@ -745,7 +745,7 @@ const SettingsSidebarContainer = ({
                         <Image
                           width={16}
                           height={16}
-                          class="rounded-full ltr:mr-3 rtl:ml-3"
+                          className="rounded-full ltr:mr-3 rtl:ml-3"
                           src={tab?.avatar}
                           alt="Organization Logo"
                         />
@@ -753,15 +753,15 @@ const SettingsSidebarContainer = ({
                       <Skeleton
                         title={tab.name}
                         as="p"
-                        class="text-subtle truncate text-sm font-medium leading-5"
+                        className="text-subtle truncate text-sm font-medium leading-5"
                         loadingClassName="ms-3">
                         {t(tab.name)}
                       </Skeleton>
                     </div>
                   </div>
-                  <div class="flex flex-col space-y-1">
+                  <div className="flex flex-col space-y-1">
                     {tab.children?.map((child, index) => (
-                      <div key={child.href} class="flex items-start gap-2">
+                      <div key={child.href} className="flex items-start gap-2">
                         <VerticalTabItem
                           name={t(child.name)}
                           isExternalLink={child.isExternalLink}
@@ -774,7 +774,7 @@ const SettingsSidebarContainer = ({
                           disableChevron
                         />
                         {child.isBadged && (
-                          <Badge variant="blue" class="mt-0.5 text-xs">
+                          <Badge variant="blue" className="mt-0.5 text-xs">
                             New
                           </Badge>
                         )}
@@ -788,17 +788,17 @@ const SettingsSidebarContainer = ({
                 <React.Fragment key={tab.href}>
                   <div data-testid="tab-teams" class={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>
-                      <div class="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
+                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
-                            class="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                            className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
                           />
                         )}
                         <Skeleton
                           title={tab.name}
                           as="p"
-                          class="text-subtle truncate text-sm font-medium leading-5"
+                          className="text-subtle truncate text-sm font-medium leading-5"
                           loadingClassName="ms-3">
                           {t("my_teams")}
                         </Skeleton>
@@ -811,7 +811,7 @@ const SettingsSidebarContainer = ({
                         href={`${WEBAPP_URL}/settings/teams/new`}
                         trackingMetadata={{ section: "team", page: "add_a_team" }}
                         textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                        class="px-2! me-5 h-7 w-auto"
+                        className="px-2! me-5 h-7 w-auto"
                         icon="plus"
                         disableChevron
                       />
@@ -824,17 +824,17 @@ const SettingsSidebarContainer = ({
                 <React.Fragment key={tab.href}>
                   <div class={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>
-                      <div class="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
+                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
-                            class="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                            className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
                           />
                         )}
                         <Skeleton
                           title={t("org_admin_other_teams")}
                           as="p"
-                          class="text-subtle truncate text-sm font-medium leading-5"
+                          className="text-subtle truncate text-sm font-medium leading-5"
                           loadingClassName="ms-3">
                           {t("org_admin_other_teams")}
                         </Skeleton>
@@ -849,7 +849,7 @@ const SettingsSidebarContainer = ({
                         if (otherTeamMenuState.some((teamState) => teamState.teamId === otherTeam.id))
                           return (
                             <Collapsible
-                              class="cursor-pointer"
+                              className="cursor-pointer"
                               key={otherTeam.id}
                               open={otherTeamMenuState[index].teamMenuOpen}
                               onOpenChange={(open) => {
@@ -862,7 +862,7 @@ const SettingsSidebarContainer = ({
                               }}>
                               <CollapsibleTrigger asChild>
                                 <button
-                                  class="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
+                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
                                   aria-controls={`other-team-content-${otherTeam.id}`}
                                   aria-expanded={otherTeamMenuState[index].teamMenuOpen}
                                   onClick={() => {
@@ -889,11 +889,11 @@ const SettingsSidebarContainer = ({
                                       ? t("collapse_menu")
                                       : t("expand_menu")
                                   }`}>
-                                  <div class="me-3">
+                                  <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
-                                      <Icon name="chevron-down" class="h-4 w-4" />
+                                      <Icon name="chevron-down" className="h-4 w-4" />
                                     ) : (
-                                      <Icon name="chevron-right" class="h-4 w-4" />
+                                      <Icon name="chevron-right" className="h-4 w-4" />
                                     )}
                                   </div>
                                   {}
@@ -902,15 +902,15 @@ const SettingsSidebarContainer = ({
                                       src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
                                       width={16}
                                       height={16}
-                                      class="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                      className="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
                                       alt={otherTeam.name || "Team logo"}
                                     />
                                   )}
-                                  <p class="w-1/2 truncate leading-normal">{otherTeam.name}</p>
+                                  <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
                                 </button>
                               </CollapsibleTrigger>
                               <CollapsibleContent
-                                class="flex flex-col space-y-1"
+                                className="flex flex-col space-y-1"
                                 id={`other-team-content-${otherTeam.id}`}>
                                 <VerticalTabItem
                                   name={t("profile")}
@@ -921,7 +921,7 @@ const SettingsSidebarContainer = ({
                                     teamId: otherTeam.id,
                                   }}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  class="px-2! me-5 h-7 w-auto"
+                                  className="px-2! me-5 h-7 w-auto"
                                   disableChevron
                                 />
                                 <VerticalTabItem
@@ -933,7 +933,7 @@ const SettingsSidebarContainer = ({
                                     teamId: otherTeam.id,
                                   }}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  class="px-2! me-5 h-7 w-auto"
+                                  className="px-2! me-5 h-7 w-auto"
                                   disableChevron
                                 />
                                 <>
@@ -966,17 +966,17 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
   return (
     <>
-      <nav class="bg-cal-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b px-2 py-2 sm:relative lg:hidden">
-        <div class="flex items-center space-x-3">
+      <nav className="bg-cal-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b px-2 py-2 sm:relative lg:hidden">
+        <div className="flex items-center space-x-3">
           <Button StartIcon="menu" color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
-            <span class="sr-only">{t("show_navigation")}</span>
+            <span className="sr-only">{t("show_navigation")}</span>
           </Button>
 
           <button
-            class="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
+            className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
             onClick={() => router.back()}>
-            <Icon name="arrow-left" class="text-default h-4 w-4" />
-            <p class="text-emphasis font-semibold">{t("settings")}</p>
+            <Icon name="arrow-left" className="text-default h-4 w-4" />
+            <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>
         </div>
       </nav>
@@ -1035,7 +1035,7 @@ export default function SettingsLayoutAppDirClient({
       TopNavContainer={
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
-      <div class="*:flex-1 flex flex-1">
+      <div className="*:flex-1 flex flex-1">
         <div class={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
@@ -1066,8 +1066,8 @@ const SidebarContainerElement = ({
       {sideContainerOpen && (
         <button
           onClick={() => setSideContainerOpen(false)}
-          class="fixed left-0 top-0 z-10 h-full w-full bg-black/50">
-          <span class="sr-only">{t("hide_navigation")}</span>
+          className="fixed left-0 top-0 z-10 h-full w-full bg-black/50">
+          <span className="sr-only">{t("hide_navigation")}</span>
         </button>
       )}
       <SettingsSidebarContainer
