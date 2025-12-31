@@ -1,31 +1,30 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { Activity, useMemo, useState } from "react";
-import { View, Text, FlatList, RefreshControl, ScrollView, Alert } from "react-native";
-
-import type { Booking, EventType } from "../../services/calcom";
-import { LoadingSpinner } from "../LoadingSpinner";
-import { EmptyScreen } from "../EmptyScreen";
-import { BookingListItem } from "../booking-list-item/BookingListItem";
-import { BookingModals } from "../booking-modals/BookingModals";
-import { useAuth } from "../../contexts/AuthContext";
+import { Alert, FlatList, RefreshControl, ScrollView, Text, View } from "react-native";
+import { BookingListItem } from "@/components/booking-list-item/BookingListItem";
+import { BookingModals } from "@/components/booking-modals/BookingModals";
+import { EmptyScreen } from "@/components/EmptyScreen";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useAuth } from "@/contexts/AuthContext";
 import {
+  type BookingFilter,
+  useBookingActions,
   useBookings,
   useCancelBooking,
   useConfirmBooking,
   useDeclineBooking,
   useRescheduleBooking,
-  useBookingActions,
-  type BookingFilter,
-} from "../../hooks";
-import { offlineAwareRefresh } from "../../utils/network";
+} from "@/hooks";
+import type { Booking, EventType } from "@/services/calcom";
+import type { ListItem } from "@/utils/bookings-utils";
 import {
+  filterByEventType,
   getEmptyStateContent,
   groupBookingsByMonth,
   searchBookings,
-  filterByEventType,
-} from "../../utils/bookings-utils";
-import type { ListItem } from "../../utils/bookings-utils";
+} from "@/utils/bookings-utils";
+import { offlineAwareRefresh } from "@/utils/network";
 
 interface BookingListScreenProps {
   // Platform-specific header rendering
@@ -80,13 +79,9 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const {
     data: rawBookings = [],
     isLoading: loading,
-    isFetching,
     error: queryError,
     refetch,
   } = useBookings(filterParams);
-
-  // Show refresh indicator when fetching
-  const refreshing = isFetching && !loading;
 
   // Cancel booking mutation
   const { mutate: cancelBookingMutation } = useCancelBooking();
@@ -102,23 +97,12 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
 
   // Booking actions hook
   const {
-    showRescheduleModal,
-    rescheduleBooking,
-    rescheduleDate,
-    setRescheduleDate,
-    rescheduleTime,
-    setRescheduleTime,
-    rescheduleReason,
-    setRescheduleReason,
     showRejectModal,
     rejectReason,
     setRejectReason,
     selectedBooking,
     setSelectedBooking,
     handleBookingPress,
-    handleRescheduleBooking,
-    handleSubmitReschedule,
-    handleCloseRescheduleModal,
     handleCancelBooking,
     handleInlineConfirm,
     handleOpenRejectModal,
@@ -134,6 +118,72 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     isDeclining,
     isRescheduling,
   });
+
+  // Navigate to reschedule screen (same pattern as booking detail)
+  const handleNavigateToReschedule = React.useCallback(
+    (booking: Booking) => {
+      router.push({
+        pathname: "/(tabs)/(bookings)/reschedule",
+        params: { uid: booking.uid },
+      });
+    },
+    [router]
+  );
+
+  // Navigate to edit location screen (same pattern as booking detail)
+  const handleNavigateToEditLocation = React.useCallback(
+    (booking: Booking) => {
+      router.push({
+        pathname: "/(tabs)/(bookings)/edit-location",
+        params: { uid: booking.uid },
+      });
+    },
+    [router]
+  );
+
+  // Navigate to add guests screen (same pattern as booking detail)
+  const handleNavigateToAddGuests = React.useCallback(
+    (booking: Booking) => {
+      router.push({
+        pathname: "/(tabs)/(bookings)/add-guests",
+        params: { uid: booking.uid },
+      });
+    },
+    [router]
+  );
+
+  // Navigate to mark no show screen (same pattern as booking detail)
+  const handleNavigateToMarkNoShow = React.useCallback(
+    (booking: Booking) => {
+      router.push({
+        pathname: "/(tabs)/(bookings)/mark-no-show",
+        params: { uid: booking.uid },
+      });
+    },
+    [router]
+  );
+
+  // Navigate to view recordings screen (same pattern as booking detail)
+  const handleNavigateToViewRecordings = React.useCallback(
+    (booking: Booking) => {
+      router.push({
+        pathname: "/(tabs)/(bookings)/view-recordings",
+        params: { uid: booking.uid },
+      });
+    },
+    [router]
+  );
+
+  // Navigate to meeting session details screen (same pattern as booking detail)
+  const handleNavigateToMeetingSessionDetails = React.useCallback(
+    (booking: Booking) => {
+      router.push({
+        pathname: "/(tabs)/(bookings)/meeting-session-details",
+        params: { uid: booking.uid },
+      });
+    },
+    [router]
+  );
 
   // Sort bookings based on active filter
   const bookings = useMemo(() => {
@@ -208,28 +258,15 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
           setSelectedBooking(booking);
           setShowBookingActionsModal(true);
         }}
-        // iOS context menu action handlers
-        onReschedule={handleRescheduleBooking}
-        onEditLocation={() => {
-          Alert.alert("Edit Location", "Edit location functionality coming soon");
-        }}
-        onAddGuests={() => {
-          Alert.alert("Add Guests", "Add guests functionality coming soon");
-        }}
-        onViewRecordings={() => {
-          Alert.alert("View Recordings", "View recordings functionality coming soon");
-        }}
-        onMeetingSessionDetails={() => {
-          Alert.alert(
-            "Meeting Session Details",
-            "Meeting session details functionality coming soon"
-          );
-        }}
-        onMarkNoShow={() => {
-          Alert.alert("Mark as No-Show", "Mark as no-show functionality coming soon");
-        }}
+        // iOS context menu action handlers - now use screen navigation
+        onReschedule={handleNavigateToReschedule}
+        onEditLocation={handleNavigateToEditLocation}
+        onAddGuests={handleNavigateToAddGuests}
+        onViewRecordings={handleNavigateToViewRecordings}
+        onMeetingSessionDetails={handleNavigateToMeetingSessionDetails}
+        onMarkNoShow={handleNavigateToMarkNoShow}
         onReportBooking={() => {
-          Alert.alert("Report Booking", "Report booking functionality coming soon");
+          Alert.alert("Report Booking", "Report booking functionality is not yet available");
         }}
         onCancelBooking={handleCancelBooking}
       />
@@ -265,7 +302,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         {renderHeader?.()}
         {renderFilterControls?.()}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="alert-circle" size={64} color="#FF3B30" />
+          <Ionicons name="alert-circle" size={64} color="#800020" />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
             Unable to load bookings
           </Text>
@@ -368,21 +405,16 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
 
       {/* Modals */}
       <BookingModals
-        showRescheduleModal={showRescheduleModal}
-        rescheduleBooking={rescheduleBooking}
-        rescheduleDate={rescheduleDate}
-        rescheduleTime={rescheduleTime}
-        rescheduleReason={rescheduleReason}
+        showRescheduleModal={false}
+        rescheduleBooking={null}
         isRescheduling={isRescheduling}
-        onRescheduleClose={handleCloseRescheduleModal}
-        onRescheduleSubmit={handleSubmitReschedule}
-        onRescheduleDateChange={setRescheduleDate}
-        onRescheduleTimeChange={setRescheduleTime}
-        onRescheduleReasonChange={setRescheduleReason}
+        onRescheduleClose={() => {}}
+        onRescheduleSubmit={async () => {}}
         showRejectModal={showRejectModal}
         rejectReason={rejectReason}
         isDeclining={isDeclining}
         onRejectClose={handleCloseRejectModal}
+        currentUserEmail={userInfo?.email}
         onRejectSubmit={handleSubmitReject}
         onRejectReasonChange={setRejectReason}
         showFilterModal={showFilterModal}
@@ -395,12 +427,43 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         selectedBooking={selectedBooking}
         onActionsClose={() => setShowBookingActionsModal(false)}
         onReschedule={() => {
-          if (selectedBooking) handleRescheduleBooking(selectedBooking);
+          // Navigate to reschedule screen instead of opening modal
+          if (selectedBooking) {
+            setShowBookingActionsModal(false);
+            handleNavigateToReschedule(selectedBooking);
+          }
         }}
         onCancel={() => {
           if (selectedBooking) handleCancelBooking(selectedBooking);
         }}
+        onEditLocation={(booking) => {
+          // Navigate to edit location screen instead of opening modal
+          setShowBookingActionsModal(false);
+          handleNavigateToEditLocation(booking);
+        }}
+        onAddGuests={(booking) => {
+          // Navigate to add guests screen instead of opening modal
+          setShowBookingActionsModal(false);
+          handleNavigateToAddGuests(booking);
+        }}
+        onViewRecordings={(booking) => {
+          // Navigate to view recordings screen instead of opening modal
+          setShowBookingActionsModal(false);
+          handleNavigateToViewRecordings(booking);
+        }}
+        onMeetingSessionDetails={(booking) => {
+          // Navigate to meeting session details screen instead of opening modal
+          setShowBookingActionsModal(false);
+          handleNavigateToMeetingSessionDetails(booking);
+        }}
+        onMarkNoShow={(booking) => {
+          // Navigate to mark no show screen instead of opening modal
+          setShowBookingActionsModal(false);
+          handleNavigateToMarkNoShow(booking);
+        }}
       />
+
+      {/* Action Modals */}
     </>
   );
 };

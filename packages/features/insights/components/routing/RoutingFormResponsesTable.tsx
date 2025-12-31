@@ -154,11 +154,11 @@ export function RoutingFormResponsesTable() {
 
       {ctaContainerRef.current &&
         createPortal(
-          <>
+          <div className=" flex gap-2 items-center mb-2 md:mb-0">
             <DateRangeFilter column={createdAtColumn} options={{ convertToTimeZone: true }} />
             <RoutingFormResponsesDownload sorting={sorting} />
             <TimezoneBadge />
-          </>,
+          </div>,
           ctaContainerRef.current
         )}
     </>
