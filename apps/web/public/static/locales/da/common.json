@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Sletning af en tidsplan vil fjerne den fra alle begivenhedstyper. Denne handling kan ikke fortrydes.",
   "schedule_created_successfully": "{{scheduleName}} tidsplan blev oprettet",
   "availability_updated_successfully": "{{scheduleName}} tidsplan blev opdateret",
+  "bulk_updated_schedule_successfully": "Opdaterede de valgte begivenhedstyper med standardskemaet i bulk",
   "schedule_deleted_successfully": "Tidsplanen blev slettet",
   "default_schedule_name": "Arbejdstider",
   "new_schedule_heading": "Opret en tilgængelighedsplan",

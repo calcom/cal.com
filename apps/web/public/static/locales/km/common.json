@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "ការលុបកាលវិភាគនឹងយកវាចេញពីប្រភេទព្រឹត្តិការណ៍ទាំងអស់។ សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។",
   "schedule_created_successfully": "កាលវិភាគ {{scheduleName}} ត្រូវបានបង្កើតដោយជោគជ័យ",
   "availability_updated_successfully": "កាលវិភាគ {{scheduleName}} ត្រូវបានធ្វើបច្ចុប្បន្នភាពដោយជោគជ័យ",
+  "bulk_updated_schedule_successfully": "បានធ្វើបច្ចុប្បន្នភាពប្រភេទព្រឹត្តិការណ៍ដែលបានជ្រើសរើសជាមួយកាលវិភាគលំនាំដើមដោយជោគជ័យ",
   "schedule_deleted_successfully": "កាលវិភាគត្រូវបានលុបដោយជោគជ័យ",
   "default_schedule_name": "ម៉ោងធ្វើការ",
   "new_schedule_heading": "បង្កើតកាលវិភាគភាពអាចប្រើបាន",

@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Usunięcie harmonogramu spowoduje usunięcie go ze wszystkich typów wydarzeń. Tego działania nie można cofnąć.",
   "schedule_created_successfully": "Utworzono {{scheduleName}} typ wydarzenia pomyślnie",
   "availability_updated_successfully": "Pomyślnie zaktualizowano harmonogram {{scheduleName}}",
+  "bulk_updated_schedule_successfully": "Zaktualizowano zbiorczo wybrane typy wydarzeń domyślnym harmonogramem",
   "schedule_deleted_successfully": "Typ wydarzenia usunięty pomyślnie",
   "default_schedule_name": "Godziny pracy",
   "new_schedule_heading": "Utwórz harmonogram dostępności",
