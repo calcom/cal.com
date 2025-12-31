@@ -5,10 +5,10 @@ import { generatePostmanCollection } from "./generate-postman";
 
 generatePostmanCollection()
   .then(() => {
-    console.log("✅ Postman collection generation completed successfully");
+    console.log("Postman collection generation completed successfully");
     process.exit(0);
   })
   .catch((error: Error) => {
-    console.error("❌ Failed to generate Postman collection", { error: error.stack });
+    console.error("Failed to generate Postman collection", { error: error.stack });
     process.exit(1);
   });
