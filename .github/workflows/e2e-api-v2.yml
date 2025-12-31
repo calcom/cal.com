@@ -84,7 +84,7 @@ jobs:
             --filter=@calcom/platform-utils \
             --filter=@calcom/platform-types \
             --filter=@calcom/platform-libraries \
-            --filter=@calcom/trpc#build:server
+            --filter=@calcom/trpc
 
       - name: Run Tests
         working-directory: apps/api/v2
