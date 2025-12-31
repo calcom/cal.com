@@ -28,7 +28,13 @@ const config: Config = {
   testEnvironment: "node",
   testRegex: ".e2e-spec.ts$",
   transform: {
-    "^.+\\.ts$": "ts-jest",
+    "^.+\\.ts$": [
+      "ts-jest",
+      {
+        isolatedModules: true,
+        diagnostics: false,
+      },
+    ],
   },
   setupFiles: ["<rootDir>/test/setEnvVars.ts", "jest-date-mock"],
   setupFilesAfterEnv: ["<rootDir>/test/jest.setup-e2e.ts"],
@@ -47,6 +53,8 @@ const config: Config = {
   maxWorkers,
   testPathIgnorePatterns: ["/dist/", "/node_modules/"],
   transformIgnorePatterns: ["/dist/", "/node_modules/"],
+  cache: true,
+  cacheDirectory: "<rootDir>/.jest-cache",
 };
 
 export default config;
