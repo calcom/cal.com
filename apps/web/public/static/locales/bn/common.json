@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "একটি সময়সূচী মুছে ফেলা এটি সমস্ত ইভেন্টের প্রকার থেকে সরিয়ে ফেলবে। ",
   "schedule_created_successfully": "{{scheduleName}} সময়সূচী সফলভাবে তৈরি",
   "availability_updated_successfully": "{{scheduleName}} শিডিউল সফলভাবে আপডেট হয়েছে",
+  "bulk_updated_schedule_successfully": "নির্বাচিত ইভেন্ট টাইপগুলি ডিফল্ট শিডিউল দিয়ে বাল্ক আপডেট করা হয়েছে",
   "schedule_deleted_successfully": "শিডিউল সফলভাবে মুছে ফেলা",
   "default_schedule_name": "কাজের সময়",
   "new_schedule_heading": "একটি প্রাপ্যতা সময়সূচী তৈরি করুন",

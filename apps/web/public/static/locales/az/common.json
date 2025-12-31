@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Cədvəli silmək onu bütün tədbir növlərindən çıxaracaq. Bu əməliyyat geri alına bilməz.",
   "schedule_created_successfully": "{{scheduleName}} cədvəli uğurla yaradıldı",
   "availability_updated_successfully": "{{scheduleName}} cədvəli uğurla yeniləndi",
+  "bulk_updated_schedule_successfully": "Seçilmiş tədbir növləri standart cədvəl ilə kütləvi şəkildə yeniləndi",
   "schedule_deleted_successfully": "Cədvəl uğurla silindi",
   "default_schedule_name": "İş Saatları",
   "new_schedule_heading": "Mövcudluq cədvəli yaradın",

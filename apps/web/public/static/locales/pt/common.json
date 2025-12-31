@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "A eliminação de um agendamento irá removê-lo de todos os tipos de eventos. Esta ação não poderá ser revertida.",
   "schedule_created_successfully": "Horário {{scheduleName}} criado com sucesso",
   "availability_updated_successfully": "Horário {{scheduleName}} actualizado com sucesso",
+  "bulk_updated_schedule_successfully": "Tipos de evento selecionados atualizados em massa com agenda padrão",
   "schedule_deleted_successfully": "Horário eliminado com sucesso",
   "default_schedule_name": "Horário de trabalho",
   "new_schedule_heading": "Criar um horário de disponibilidade",

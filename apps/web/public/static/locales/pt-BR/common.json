@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "A exclusão da agenda vai removê-la de todos os tipos de evento. Essa ação não pode ser desfeita.",
   "schedule_created_successfully": "Agenda {{scheduleName}} criada com êxito",
   "availability_updated_successfully": "Agenda {{scheduleName}} criada com êxito",
+  "bulk_updated_schedule_successfully": "Tipos de evento selecionados atualizados em massa com agenda padrão",
   "schedule_deleted_successfully": "Agenda removida com êxito",
   "default_schedule_name": "Horas de trabalho",
   "new_schedule_heading": "Criar agenda de disponibilidade",
