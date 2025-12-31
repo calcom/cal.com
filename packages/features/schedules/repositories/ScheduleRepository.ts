@@ -259,13 +259,26 @@ export class ScheduleRepository {
     });
   }
 
+  /**
+   * Update blocked status for schedules by user IDs.
+   * Uses chunking to avoid PostgreSQL parameter limits (~32K params).
+   */
   async updateBlockedStatusByUserIds(userIds: number[], blocked: boolean): Promise<{ count: number }> {
     if (userIds.length === 0) return { count: 0 };
-    const result = await this.prismaClient.schedule.updateMany({
-      where: { userId: { in: userIds } },
-      data: { blockedByWatchlist: blocked },
-    });
-    return { count: result.count };
+
+    const CHUNK_SIZE = 10_000; // Safe margin below PostgreSQL's ~32K param limit
+    let totalCount = 0;
+
+    for (let i = 0; i < userIds.length; i += CHUNK_SIZE) {
+      const chunk = userIds.slice(i, i + CHUNK_SIZE);
+      const result = await this.prismaClient.schedule.updateMany({
+        where: { userId: { in: chunk } },
+        data: { blockedByWatchlist: blocked },
+      });
+      totalCount += result.count;
+    }
+
+    return { count: totalCount };
   }
 
   /**

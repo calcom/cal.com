@@ -1,6 +1,3 @@
-import * as Sentry from "@sentry/nextjs";
-import { z } from "zod";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -30,20 +27,30 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type {
   Booking,
-  Prisma,
   OutOfOfficeEntry,
   OutOfOfficeReason,
-  User,
+  Prisma,
   EventType as PrismaEventType,
+  User,
 } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
+import * as Sentry from "@sentry/nextjs";
+import { z } from "zod";
 
 import { findUsersForAvailabilityCheck } from "./findUsersForAvailabilityCheck";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
+
+/**
+ * Type guard to check if a schedule has the blockedByWatchlist property.
+ * Schedules from different sources (user, host, eventType) may or may not have this field.
+ */
+function isScheduleBlocked(schedule: { blockedByWatchlist?: boolean }): boolean {
+  return schedule.blockedByWatchlist === true;
+}
 const availabilitySchema = z
   .object({
     dateFrom: stringToDayjsZod,
@@ -364,15 +371,15 @@ export class UserAvailabilityService {
     const potentialSchedule = eventType?.schedule
       ? eventType.schedule
       : hostSchedule
-      ? hostSchedule
-      : userSchedule;
+        ? hostSchedule
+        : userSchedule;
 
     // if no schedules set by or for a user, use fallbackSchedule
     const schedule = potentialSchedule ?? fallbackSchedule;
 
     // If schedule is blocked by watchlist, return empty availability
     // This allows blocked users to be gracefully excluded from team events
-    if ("blockedByWatchlist" in schedule && schedule.blockedByWatchlist) {
+    if (isScheduleBlocked(schedule)) {
       log.debug(
         `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Schedule blocked by watchlist, returning empty availability`
       );
