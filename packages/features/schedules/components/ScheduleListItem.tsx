@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import { showToast } from "@calcom/ui/components/toast";
 
 export function ScheduleListItem({
@@ -42,17 +43,37 @@ export function ScheduleListItem({
 }) {
   const { t, i18n } = useLocale();
 
+  const isSynced = !!schedule.syncSource;
+  const hasSyncError = !!schedule.syncError;
+
   return (
     <li key={schedule.id}>
       <div className="hover:bg-cal-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
         <div className="group flex w-full items-center justify-between ">
           <Link href={redirectUrl} className="grow truncate text-sm" title={schedule.name}>
-            <div className="space-x-2 rtl:space-x-reverse">
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <span className="text-emphasis truncate font-medium">{schedule.name}</span>
               {schedule.isDefault && (
                 <Badge variant="gray" className="text-xs">
                   {t("default")}
                 </Badge>
+              )}
+              {isSynced && (
+                <Tooltip
+                  content={
+                    hasSyncError
+                      ? t("sync_error_tooltip", { error: schedule.syncError })
+                      : schedule.syncLastAt
+                        ? t("synced_from_google_working_location", {
+                            date: new Date(schedule.syncLastAt).toLocaleDateString(),
+                          })
+                        : t("synced_from_google_working_location_no_date")
+                  }>
+                  <Badge variant={hasSyncError ? "red" : "blue"} className="flex items-center gap-1 text-xs">
+                    <Icon name="refresh-cw" className="h-3 w-3" />
+                    {hasSyncError ? t("sync_error") : t("synced")}
+                  </Badge>
+                </Tooltip>
               )}
             </div>
             <p className="text-subtle mt-1">
@@ -72,6 +93,9 @@ export function ScheduleListItem({
                     <br />
                   </Fragment>
                 ))}
+              {isSynced && schedule.availability.filter((a) => !!a.days.length).length === 0 && (
+                <span className="text-subtle italic">{t("availability_from_working_location")}</span>
+              )}
               {(schedule.timeZone || displayOptions?.timeZone) && (
                 <span className="my-1 flex items-center first-letter:text-xs">
                   <Icon name="globe" className="h-3.5 w-3.5" />

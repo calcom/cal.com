@@ -302,6 +302,7 @@ model Credential {
   references             BookingReference[]
   delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  syncedSchedules        Schedule[]            @relation("ScheduleSyncCredential")
 
   @@index([appId])
   @@index([subscriptionId])
@@ -925,7 +926,21 @@ model Schedule {
   availability         Availability[]
   Host                 Host[]
 
+  // Google Calendar Working Location Sync fields
+  // syncSource indicates where this schedule syncs from (e.g., "google_calendar_working_location")
+  syncSource       String?
+  // syncCredentialId links to the Google Calendar credential used for syncing
+  syncCredential   Credential? @relation("ScheduleSyncCredential", fields: [syncCredentialId], references: [id], onDelete: SetNull)
+  syncCredentialId Int?
+  // syncConfig stores JSON configuration (e.g., {"locationTypes": ["officeLocation", "homeOffice"]})
+  syncConfig       Json?
+  // syncLastAt tracks when the schedule was last synced
+  syncLastAt       DateTime?
+  // syncError stores the last sync error message if any
+  syncError        String?
+
   @@index([userId])
+  @@index([syncCredentialId])
 }
 
 model Availability {

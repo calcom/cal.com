@@ -8,6 +8,11 @@ import { ZGetInputSchema } from "./get.schema";
 import { ZGetAllByUserIdInputSchema } from "./getAllSchedulesByUserId.schema";
 import { ZGetByEventSlugInputSchema } from "./getScheduleByEventTypeSlug.schema";
 import { ZGetByUserIdInputSchema } from "./getScheduleByUserId.schema";
+import {
+  ZCreateFromGoogleWorkingLocationSchema,
+  ZSyncGoogleWorkingLocationSchema,
+  ZDisconnectGoogleWorkingLocationSchema,
+} from "./googleWorkingLocation.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 
 type ScheduleRouterHandlerCache = {
@@ -20,6 +25,9 @@ type ScheduleRouterHandlerCache = {
   getAllSchedulesByUserId?: typeof import("./getAllSchedulesByUserId.handler").getAllSchedulesByUserIdHandler;
   getScheduleByEventSlug?: typeof import("./getScheduleByEventTypeSlug.handler").getScheduleByEventSlugHandler;
   bulkUpdateToDefaultAvailability?: typeof import("./bulkUpdateDefaultAvailability.handler").bulkUpdateToDefaultAvailabilityHandler;
+  createFromGoogleWorkingLocation?: typeof import("./createFromGoogleWorkingLocation.handler").createFromGoogleWorkingLocationHandler;
+  syncGoogleWorkingLocation?: typeof import("./syncGoogleWorkingLocation.handler").syncGoogleWorkingLocationHandler;
+  disconnectGoogleWorkingLocation?: typeof import("./disconnectGoogleWorkingLocation.handler").disconnectGoogleWorkingLocationHandler;
 };
 
 export const scheduleRouter = router({
@@ -102,6 +110,44 @@ export const scheduleRouter = router({
       );
 
       return bulkUpdateToDefaultAvailabilityHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  // Google Calendar Working Location sync endpoints
+  createFromGoogleWorkingLocation: authedProcedure
+    .input(ZCreateFromGoogleWorkingLocationSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { createFromGoogleWorkingLocationHandler } = await import(
+        "./createFromGoogleWorkingLocation.handler"
+      );
+
+      return createFromGoogleWorkingLocationHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  syncGoogleWorkingLocation: authedProcedure
+    .input(ZSyncGoogleWorkingLocationSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { syncGoogleWorkingLocationHandler } = await import("./syncGoogleWorkingLocation.handler");
+
+      return syncGoogleWorkingLocationHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  disconnectGoogleWorkingLocation: authedProcedure
+    .input(ZDisconnectGoogleWorkingLocationSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { disconnectGoogleWorkingLocationHandler } = await import(
+        "./disconnectGoogleWorkingLocation.handler"
+      );
+
+      return disconnectGoogleWorkingLocationHandler({
         ctx,
         input,
       });
