@@ -89,13 +89,12 @@ describe("getRoutedUrl", () => {
     const mockEnrichUserWithItsProfile = vi.fn().mockImplementation(async ({ user }) => user);
     const mockUserRepository = vi.mocked(UserRepository);
     if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
-      mockUserRepository.mockImplementation(
-        () =>
-          ({
-            enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any)
-      );
+      mockUserRepository.mockImplementation(function () {
+        return {
+          enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+      });
     }
     vi.mocked(isAuthorizedToViewFormOnOrgDomain).mockReturnValue(true);
     vi.mocked(getSerializableForm).mockResolvedValue(mockSerializableForm as never);
