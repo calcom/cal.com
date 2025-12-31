@@ -8,14 +8,14 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { Alert, Linking } from "react-native";
-import { queryKeys } from "../config/cache.config";
-import { type Booking, CalComAPIService } from "../services/calcom";
+import { queryKeys } from "@/config/cache.config";
+import { type Booking, CalComAPIService } from "@/services/calcom";
 import type {
   AddGuestInput,
   BookingRecording,
   ConferencingSession,
-} from "../services/types/bookings.types";
-import { showErrorAlert } from "../utils/alerts";
+} from "@/services/types/bookings.types";
+import { showErrorAlert } from "@/utils/alerts";
 
 interface UseBookingActionModalsReturn {
   // Selected booking for actions

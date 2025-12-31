@@ -3,11 +3,12 @@ import SegmentedControl from "@react-native-segmented-control/segmented-control"
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
-import { BookingListScreen } from "../../../components/booking-list-screen/BookingListScreen";
-import { Header } from "../../../components/Header";
-import { useActiveBookingFilter } from "../../../hooks/useActiveBookingFilter";
-import type { EventType } from "../../../services/calcom";
-import { CalComAPIService } from "../../../services/calcom";
+import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
+import { Header } from "@/components/Header";
+import { useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
+import type { EventType } from "@/services/calcom";
+import { CalComAPIService } from "@/services/calcom";
+import { safeLogError } from "@/utils/safeLogger";
 
 export default function Bookings() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,7 +38,7 @@ export default function Bookings() {
       setEventTypes(types);
       setEventTypesLoading(false);
     } catch (err) {
-      console.error("Error fetching event types:", err);
+      safeLogError("Error fetching event types:", err);
       // Error is logged but not displayed to user for event type filter
       setEventTypesLoading(false);
     }

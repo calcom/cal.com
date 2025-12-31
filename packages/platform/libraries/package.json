@@ -20,6 +20,12 @@
     "@calcom/features": "workspace:*",
     "@calcom/lib": "workspace:*"
   },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "stripe": "^9.0.0 || ^15.0.0",
+    "zod": "^3.0.0"
+  },
   "devDependencies": {
     "@types/node": "20.17.23",
     "@vitejs/plugin-react": "4.2.1",

@@ -1,4 +1,4 @@
-import type { EventType } from "../../services/types/event-types.types";
+import type { EventType } from "@/services/types/event-types.types";
 
 export interface EventTypeListItemProps {
   item: EventType;

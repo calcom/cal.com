@@ -15,28 +15,29 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AdvancedTab } from "../components/event-type-detail/tabs/AdvancedTab";
-import { AvailabilityTab } from "../components/event-type-detail/tabs/AvailabilityTab";
-import { BasicsTab } from "../components/event-type-detail/tabs/BasicsTab";
-import { LimitsTab } from "../components/event-type-detail/tabs/LimitsTab";
-import { RecurringTab } from "../components/event-type-detail/tabs/RecurringTab";
-import { truncateTitle } from "../components/event-type-detail/utils";
-import { buildPartialUpdatePayload } from "../components/event-type-detail/utils/buildPartialUpdatePayload";
+import { AdvancedTab } from "@/components/event-type-detail/tabs/AdvancedTab";
+import { AvailabilityTab } from "@/components/event-type-detail/tabs/AvailabilityTab";
+import { BasicsTab } from "@/components/event-type-detail/tabs/BasicsTab";
+import { LimitsTab } from "@/components/event-type-detail/tabs/LimitsTab";
+import { RecurringTab } from "@/components/event-type-detail/tabs/RecurringTab";
+import { truncateTitle } from "@/components/event-type-detail/utils";
+import { buildPartialUpdatePayload } from "@/components/event-type-detail/utils/buildPartialUpdatePayload";
 import {
   CalComAPIService,
   type ConferencingOption,
   type EventType,
   type Schedule,
-} from "../services/calcom";
-import type { LocationItem, LocationOptionGroup } from "../types/locations";
-import { showErrorAlert } from "../utils/alerts";
-import { openInAppBrowser } from "../utils/browser";
+} from "@/services/calcom";
+import type { LocationItem, LocationOptionGroup } from "@/types/locations";
+import { showErrorAlert } from "@/utils/alerts";
+import { openInAppBrowser } from "@/utils/browser";
 import {
   buildLocationOptions,
   mapApiLocationToItem,
   mapItemToApiLocation,
   validateLocationItem,
-} from "../utils/locationHelpers";
+} from "@/utils/locationHelpers";
+import { safeLogError } from "@/utils/safeLogger";
 
 // Type definitions for extended EventType fields not in the base type
 interface EventTypeExtended {
@@ -370,7 +371,7 @@ export default function EventTypeDetail() {
       }
       setScheduleDetailsLoading(false);
     } catch (error) {
-      console.error("Failed to fetch schedule details:", error);
+      safeLogError("Failed to fetch schedule details:", error);
       setSelectedScheduleDetails(null);
       setScheduleDetailsLoading(false);
     }
@@ -390,7 +391,7 @@ export default function EventTypeDetail() {
       }
       setSchedulesLoading(false);
     } catch (error) {
-      console.error("Failed to fetch schedules:", error);
+      safeLogError("Failed to fetch schedules:", error);
       setSchedulesLoading(false);
     }
   }, [fetchScheduleDetails]);
@@ -402,7 +403,7 @@ export default function EventTypeDetail() {
       setConferencingOptions(options);
       setConferencingLoading(false);
     } catch (error) {
-      console.error("Failed to fetch conferencing options:", error);
+      safeLogError("Failed to fetch conferencing options:", error);
       setConferencingLoading(false);
     }
   }, []);
@@ -742,7 +743,7 @@ export default function EventTypeDetail() {
         }
       }
     } catch (error) {
-      console.error("Failed to fetch event type data:", error);
+      safeLogError("Failed to fetch event type data:", error);
     }
   }, [id]);
 
@@ -767,7 +768,7 @@ export default function EventTypeDetail() {
         const userUsername = await CalComAPIService.getUsername();
         setUsername(userUsername);
       } catch (error) {
-        console.error("Failed to fetch username:", error);
+        safeLogError("Failed to fetch username:", error);
       }
     };
     fetchUsername();
@@ -851,7 +852,7 @@ export default function EventTypeDetail() {
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
       await openInAppBrowser(link, "event type preview");
     } catch (error) {
-      console.error("Failed to generate preview link:", error);
+      safeLogError("Failed to generate preview link:", error);
       showErrorAlert("Error", "Failed to generate preview link. Please try again.");
     }
   };
@@ -864,7 +865,7 @@ export default function EventTypeDetail() {
       await Clipboard.setStringAsync(link);
       Alert.alert("Success", "Link copied!");
     } catch (error) {
-      console.error("Failed to copy link:", error);
+      safeLogError("Failed to copy link:", error);
       showErrorAlert("Error", "Failed to copy link. Please try again.");
     }
   };
@@ -893,9 +894,8 @@ export default function EventTypeDetail() {
               },
             ]);
           } catch (error) {
-            console.error("Failed to delete event type:", error);
-            const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-            showErrorAlert("Error", `Failed to delete event type: ${errorMessage}`);
+            safeLogError("Failed to delete event type:", error);
+            showErrorAlert("Error", "Failed to delete event type. Please try again.");
           }
         },
       },
@@ -1060,7 +1060,7 @@ export default function EventTypeDetail() {
         setSaving(false);
       }
     } catch (error) {
-      console.error("Failed to save event type:", error);
+      safeLogError("Failed to save event type:", error);
       const action = isCreateMode ? "create" : "update";
       showErrorAlert("Error", `Failed to ${action} event type. Please try again.`);
       setSaving(false);
@@ -2029,7 +2029,7 @@ export default function EventTypeDetail() {
                   className="h-11 w-11 items-center justify-center"
                   onPress={handleDelete}
                 >
-                  <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                  <Ionicons name="trash-outline" size={20} color="#800020" />
                 </TouchableOpacity>
               </GlassView>
             </View>
