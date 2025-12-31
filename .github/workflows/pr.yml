@@ -165,15 +165,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
+      - name: Generate DB cache key
+        id: cache-db-key
+        uses: ./.github/actions/cache-db-key
       - name: Check DB cache (lookup-only)
         id: cache-db-check
         uses: actions/cache/restore@v4
-        env:
-          cache-name: cache-db
-          key-1: ${{ hashFiles('packages/prisma/schema.prisma', 'packages/prisma/migrations/**/**.sql', 'packages/prisma/*.ts') }}
         with:
           path: backups/backup.sql
-          key: ${{ runner.os }}-${{ env.cache-name }}-backups/backup.sql-${{ env.key-1 }}
+          key: ${{ steps.cache-db-key.outputs.key }}
           lookup-only: true
       - uses: dorny/paths-filter@v3
         id: filter
