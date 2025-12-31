@@ -12,6 +12,9 @@ export default defineConfig({
       crypto: "node:crypto",
       // API v1 path alias
       "~": path.resolve(__dirname, "apps/api/v1"),
+      // apps/web path aliases
+      "@lib": path.resolve(__dirname, "apps/web/lib"),
+      "app": path.resolve(__dirname, "apps/web/app"),
     },
   },
   test: {
