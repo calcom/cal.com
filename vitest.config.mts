@@ -1,15 +1,35 @@
+import path from "path";
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
+
 process.env.INTEGRATION_TEST_MODE = "true";
 
 export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      // Alias Node.js built-ins for jsdom environment
+      crypto: "node:crypto",
+      // API v1 path alias
+      "~": path.resolve(__dirname, "apps/api/v1"),
+    },
+  },
   test: {
     globals: true,
+    environment: "jsdom",
     setupFiles: ["./setupVitest.ts"],
-    // Exclude API v2 spec files which use Jest, not Vitest
+    server: {
+      deps: {
+        // Allow importing Node.js built-ins in jsdom environment
+        inline: [/@calcom\/.*/],
+      },
+    },
+    // Exclude API v2 spec files (Jest) and __checks__ (Playwright)
     exclude: [
       "**/node_modules/**",
       "**/dist/**",
       "apps/api/v2/**/*.spec.ts",
+      "__checks__/**/*.spec.ts",
     ],
     coverage: {
       provider: "v8",
