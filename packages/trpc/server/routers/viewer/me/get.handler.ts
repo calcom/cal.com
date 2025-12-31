@@ -1,5 +1,3 @@
-import type { Session } from "next-auth";
-
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -7,6 +5,7 @@ import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+import type { Session } from "next-auth";
 
 import type { TGetInputSchema } from "./get.schema";
 
@@ -23,9 +22,8 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
 
   const { user: sessionUser, session } = ctx;
 
-  const allUserEnrichedProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(
-    sessionUser
-  );
+  const allUserEnrichedProfiles =
+    await ProfileRepository.findAllProfilesForUserIncludingMovedUser(sessionUser);
 
   const user = await new UserRepository(prisma).enrichUserWithTheProfile({
     user: sessionUser,
@@ -141,6 +139,12 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
     requiresBookerEmailVerification: user.requiresBookerEmailVerification,
+    // Host email notification preferences
+    disableHostConfirmationEmail: user.disableHostConfirmationEmail,
+    disableHostRescheduledEmail: user.disableHostRescheduledEmail,
+    disableHostCancellationEmail: user.disableHostCancellationEmail,
+    disableHostLocationChangeEmail: user.disableHostLocationChangeEmail,
+    disableHostRequestEmail: user.disableHostRequestEmail,
     ...profileData,
     secondaryEmails,
     isPremium: userMetadataPrased?.isPremium,

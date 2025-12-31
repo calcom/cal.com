@@ -1,6 +1,3 @@
-import { default as cloneDeep } from "lodash/cloneDeep";
-import type { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -13,6 +10,8 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import { prisma } from "@calcom/prisma";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import { default as cloneDeep } from "lodash/cloneDeep";
+import type { z } from "zod";
 
 import AwaitingPaymentSMS from "../sms/attendee/awaiting-payment-sms";
 import CancelledSeatSMS from "../sms/attendee/cancelled-seat-sms";
@@ -108,6 +107,44 @@ const eventTypeDisableHostEmail = (metadata?: EventTypeMetadata) => {
   return !!metadata?.disableStandardEmails?.all?.host;
 };
 
+// Fetch user's host email notification preferences
+export const fetchUserHostEmailSettings = async (userId: number) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      disableHostConfirmationEmail: true,
+      disableHostRescheduledEmail: true,
+      disableHostCancellationEmail: true,
+      disableHostLocationChangeEmail: true,
+      disableHostRequestEmail: true,
+    },
+  });
+  return user;
+};
+
+// Check if host email should be skipped based on user-level preferences
+export const shouldSkipHostEmailForUser = (
+  userSettings: Awaited<ReturnType<typeof fetchUserHostEmailSettings>>,
+  emailType?: EmailType
+): boolean => {
+  if (!userSettings || !emailType) return false;
+
+  switch (emailType) {
+    case EmailType.CONFIRMATION:
+      return !!userSettings.disableHostConfirmationEmail;
+    case EmailType.RESCHEDULED:
+      return !!userSettings.disableHostRescheduledEmail;
+    case EmailType.CANCELLATION:
+      return !!userSettings.disableHostCancellationEmail;
+    case EmailType.LOCATION_CHANGE:
+      return !!userSettings.disableHostLocationChangeEmail;
+    case EmailType.REQUEST:
+      return !!userSettings.disableHostRequestEmail;
+    default:
+      return false;
+  }
+};
+
 const _sendScheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   eventNameObject?: EventNameObjectType,
@@ -120,13 +157,23 @@ const _sendScheduledEmailsAndSMS = async (
   const organizationSettings = await fetchOrganizationEmailSettings(calEvent.organizationId);
 
   if (!hostEmailDisabled && !eventTypeDisableHostEmail(eventTypeMetadata)) {
-    emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent: formattedCalEvent })));
+    // Check user-level preference for organizer
+    const organizerSettings = formattedCalEvent.organizer?.id
+      ? await fetchUserHostEmailSettings(formattedCalEvent.organizer.id)
+      : null;
+    if (!shouldSkipHostEmailForUser(organizerSettings, EmailType.CONFIRMATION)) {
+      emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent: formattedCalEvent })));
+    }
 
     if (formattedCalEvent.team) {
       for (const teamMember of formattedCalEvent.team.members) {
-        emailsToSend.push(
-          sendEmail(() => new OrganizerScheduledEmail({ calEvent: formattedCalEvent, teamMember }))
-        );
+        // Check user-level preference for each team member
+        const memberSettings = teamMember.id ? await fetchUserHostEmailSettings(teamMember.id) : null;
+        if (!shouldSkipHostEmailForUser(memberSettings, EmailType.CONFIRMATION)) {
+          emailsToSend.push(
+            sendEmail(() => new OrganizerScheduledEmail({ calEvent: formattedCalEvent, teamMember }))
+          );
+        }
       }
     }
   }
@@ -308,13 +355,23 @@ const _sendRescheduledEmailsAndSMS = async (
   const organizationSettings = await fetchOrganizationEmailSettings(calEvent.organizationId);
 
   if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
-    emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent })));
+    // Check user-level preference for organizer
+    const organizerSettings = calendarEvent.organizer?.id
+      ? await fetchUserHostEmailSettings(calendarEvent.organizer.id)
+      : null;
+    if (!shouldSkipHostEmailForUser(organizerSettings, EmailType.RESCHEDULED)) {
+      emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent })));
+    }
 
     if (calendarEvent.team) {
       for (const teamMember of calendarEvent.team.members) {
-        emailsToSend.push(
-          sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent, teamMember }))
-        );
+        // Check user-level preference for each team member
+        const memberSettings = teamMember.id ? await fetchUserHostEmailSettings(teamMember.id) : null;
+        if (!shouldSkipHostEmailForUser(memberSettings, EmailType.RESCHEDULED)) {
+          emailsToSend.push(
+            sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent, teamMember }))
+          );
+        }
       }
     }
   }
@@ -347,8 +404,15 @@ export const sendRescheduledSeatEmailAndSMS = async (
   const emailsToSend: Promise<unknown>[] = [];
   const organizationSettings = await fetchOrganizationEmailSettings(calEvent.organizationId);
 
-  if (!eventTypeDisableHostEmail(eventTypeMetadata))
-    emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent })));
+  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+    // Check user-level preference for organizer
+    const organizerSettings = calendarEvent.organizer?.id
+      ? await fetchUserHostEmailSettings(calendarEvent.organizer.id)
+      : null;
+    if (!shouldSkipHostEmailForUser(organizerSettings, EmailType.RESCHEDULED)) {
+      emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent })));
+    }
+  }
   if (!shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.RESCHEDULED))
     emailsToSend.push(sendEmail(() => new AttendeeRescheduledEmail(clonedCalEvent, attendee)));
 
@@ -373,13 +437,23 @@ export const sendScheduledSeatsEmailsAndSMS = async (
   const organizationSettings = await fetchOrganizationEmailSettings(calEvent.organizationId);
 
   if (!hostEmailDisabled && !eventTypeDisableHostEmail(eventTypeMetadata)) {
-    emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent: calendarEvent, newSeat })));
+    // Check user-level preference for organizer
+    const organizerSettings = calendarEvent.organizer?.id
+      ? await fetchUserHostEmailSettings(calendarEvent.organizer.id)
+      : null;
+    if (!shouldSkipHostEmailForUser(organizerSettings, EmailType.CONFIRMATION)) {
+      emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent: calendarEvent, newSeat })));
+    }
 
     if (calendarEvent.team) {
       for (const teamMember of calendarEvent.team.members) {
-        emailsToSend.push(
-          sendEmail(() => new OrganizerScheduledEmail({ calEvent: calendarEvent, newSeat, teamMember }))
-        );
+        // Check user-level preference for each team member
+        const memberSettings = teamMember.id ? await fetchUserHostEmailSettings(teamMember.id) : null;
+        if (!shouldSkipHostEmailForUser(memberSettings, EmailType.CONFIRMATION)) {
+          emailsToSend.push(
+            sendEmail(() => new OrganizerScheduledEmail({ calEvent: calendarEvent, newSeat, teamMember }))
+          );
+        }
       }
     }
   }
@@ -419,16 +493,23 @@ export const sendCancelledSeatEmailsAndSMS = async (
 
   if (!shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.CANCELLATION))
     emailsToSend.push(sendEmail(() => new AttendeeCancelledSeatEmail(clonedCalEvent, cancelledAttendee)));
-  if (!eventTypeDisableHostEmail(eventTypeMetadata))
-    emailsToSend.push(
-      sendEmail(
-        () =>
-          new OrganizerAttendeeCancelledSeatEmail({
-            calEvent: formattedCalEvent,
-            attendee: cancelledAttendee,
-          })
-      )
-    );
+  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+    // Check user-level preference for organizer
+    const organizerSettings = formattedCalEvent.organizer?.id
+      ? await fetchUserHostEmailSettings(formattedCalEvent.organizer.id)
+      : null;
+    if (!shouldSkipHostEmailForUser(organizerSettings, EmailType.CANCELLATION)) {
+      emailsToSend.push(
+        sendEmail(
+          () =>
+            new OrganizerAttendeeCancelledSeatEmail({
+              calEvent: formattedCalEvent,
+              attendee: cancelledAttendee,
+            })
+        )
+      );
+    }
+  }
 
   await Promise.all(emailsToSend);
   const cancelledSeatSMS = new CancelledSeatSMS(clonedCalEvent);
@@ -441,11 +522,23 @@ const _sendOrganizerRequestEmail = async (calEvent: CalendarEvent, eventTypeMeta
 
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(sendEmail(() => new OrganizerRequestEmail({ calEvent: calendarEvent })));
+  // Check user-level preference for organizer
+  const organizerSettings = calendarEvent.organizer?.id
+    ? await fetchUserHostEmailSettings(calendarEvent.organizer.id)
+    : null;
+  if (!shouldSkipHostEmailForUser(organizerSettings, EmailType.REQUEST)) {
+    emailsToSend.push(sendEmail(() => new OrganizerRequestEmail({ calEvent: calendarEvent })));
+  }
 
   if (calendarEvent.team?.members) {
     for (const teamMember of calendarEvent.team.members) {
-      emailsToSend.push(sendEmail(() => new OrganizerRequestEmail({ calEvent: calendarEvent, teamMember })));
+      // Check user-level preference for each team member
+      const memberSettings = teamMember.id ? await fetchUserHostEmailSettings(teamMember.id) : null;
+      if (!shouldSkipHostEmailForUser(memberSettings, EmailType.REQUEST)) {
+        emailsToSend.push(
+          sendEmail(() => new OrganizerRequestEmail({ calEvent: calendarEvent, teamMember }))
+        );
+      }
     }
   }
 
@@ -516,13 +609,23 @@ export const sendCancelledEmailsAndSMS = async (
   }
 
   if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
-    emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent })));
+    // Check user-level preference for organizer
+    const organizerSettings = calendarEvent.organizer?.id
+      ? await fetchUserHostEmailSettings(calendarEvent.organizer.id)
+      : null;
+    if (!shouldSkipHostEmailForUser(organizerSettings, EmailType.CANCELLATION)) {
+      emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent })));
+    }
 
     if (calendarEvent.team?.members) {
       for (const teamMember of calendarEvent.team.members) {
-        emailsToSend.push(
-          sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent, teamMember }))
-        );
+        // Check user-level preference for each team member
+        const memberSettings = teamMember.id ? await fetchUserHostEmailSettings(teamMember.id) : null;
+        if (!shouldSkipHostEmailForUser(memberSettings, EmailType.CANCELLATION)) {
+          emailsToSend.push(
+            sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent, teamMember }))
+          );
+        }
       }
     }
   }
@@ -567,15 +670,27 @@ export const sendOrganizerRequestReminderEmail = async (
 
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(sendEmail(() => new OrganizerRequestReminderEmail({ calEvent: calendarEvent })));
+  // Check user-level preference for organizer
+  const organizerSettings = calendarEvent.organizer?.id
+    ? await fetchUserHostEmailSettings(calendarEvent.organizer.id)
+    : null;
+  if (!shouldSkipHostEmailForUser(organizerSettings, EmailType.REQUEST)) {
+    emailsToSend.push(sendEmail(() => new OrganizerRequestReminderEmail({ calEvent: calendarEvent })));
+  }
 
   if (calendarEvent.team?.members) {
     for (const teamMember of calendarEvent.team.members) {
-      emailsToSend.push(
-        sendEmail(() => new OrganizerRequestReminderEmail({ calEvent: calendarEvent, teamMember }))
-      );
+      // Check user-level preference for each team member
+      const memberSettings = teamMember.id ? await fetchUserHostEmailSettings(teamMember.id) : null;
+      if (!shouldSkipHostEmailForUser(memberSettings, EmailType.REQUEST)) {
+        emailsToSend.push(
+          sendEmail(() => new OrganizerRequestReminderEmail({ calEvent: calendarEvent, teamMember }))
+        );
+      }
     }
   }
+
+  await Promise.all(emailsToSend);
 };
 
 export const sendAwaitingPaymentEmailAndSMS = async (
@@ -637,13 +752,23 @@ export const sendLocationChangeEmailsAndSMS = async (
   const organizationSettings = await fetchOrganizationEmailSettings(calEvent.organizationId);
 
   if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
-    emailsToSend.push(sendEmail(() => new OrganizerLocationChangeEmail({ calEvent: calendarEvent })));
+    // Check user-level preference for organizer
+    const organizerSettings = calendarEvent.organizer?.id
+      ? await fetchUserHostEmailSettings(calendarEvent.organizer.id)
+      : null;
+    if (!shouldSkipHostEmailForUser(organizerSettings, EmailType.LOCATION_CHANGE)) {
+      emailsToSend.push(sendEmail(() => new OrganizerLocationChangeEmail({ calEvent: calendarEvent })));
+    }
 
     if (calendarEvent.team?.members) {
       for (const teamMember of calendarEvent.team.members) {
-        emailsToSend.push(
-          sendEmail(() => new OrganizerLocationChangeEmail({ calEvent: calendarEvent, teamMember }))
-        );
+        // Check user-level preference for each team member
+        const memberSettings = teamMember.id ? await fetchUserHostEmailSettings(teamMember.id) : null;
+        if (!shouldSkipHostEmailForUser(memberSettings, EmailType.LOCATION_CHANGE)) {
+          emailsToSend.push(
+            sendEmail(() => new OrganizerLocationChangeEmail({ calEvent: calendarEvent, teamMember }))
+          );
+        }
       }
     }
   }

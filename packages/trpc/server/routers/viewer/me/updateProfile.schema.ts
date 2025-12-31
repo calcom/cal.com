@@ -1,8 +1,7 @@
-import { z } from "zod";
-
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
 
 export type TUpdateUserMetadataAllowedKeys = {
   sessionTimeout?: number;
@@ -47,6 +46,12 @@ export type TUpdateProfileInputSchemaInput = {
     email: string;
     isDeleted?: boolean;
   }[];
+  // Host email notification preferences
+  disableHostConfirmationEmail?: boolean;
+  disableHostRescheduledEmail?: boolean;
+  disableHostCancellationEmail?: boolean;
+  disableHostLocationChangeEmail?: boolean;
+  disableHostRequestEmail?: boolean;
 };
 
 export type TUpdateProfileInputSchema = {
@@ -82,9 +87,19 @@ export type TUpdateProfileInputSchema = {
     email: string;
     isDeleted: boolean;
   }[];
+  // Host email notification preferences
+  disableHostConfirmationEmail?: boolean;
+  disableHostRescheduledEmail?: boolean;
+  disableHostCancellationEmail?: boolean;
+  disableHostLocationChangeEmail?: boolean;
+  disableHostRequestEmail?: boolean;
 };
 
-export const ZUpdateProfileInputSchema: z.ZodType<TUpdateProfileInputSchema, z.ZodTypeDef, TUpdateProfileInputSchemaInput> = z.object({
+export const ZUpdateProfileInputSchema: z.ZodType<
+  TUpdateProfileInputSchema,
+  z.ZodTypeDef,
+  TUpdateProfileInputSchemaInput
+> = z.object({
   username: z.string().optional(),
   name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
   email: z.string().optional(),
@@ -125,4 +140,10 @@ export const ZUpdateProfileInputSchema: z.ZodType<TUpdateProfileInputSchema, z.Z
       })
     )
     .optional(),
+  // Host email notification preferences
+  disableHostConfirmationEmail: z.boolean().optional(),
+  disableHostRescheduledEmail: z.boolean().optional(),
+  disableHostCancellationEmail: z.boolean().optional(),
+  disableHostLocationChangeEmail: z.boolean().optional(),
+  disableHostRequestEmail: z.boolean().optional(),
 });
