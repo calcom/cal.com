@@ -40,8 +40,8 @@ export const EditableHeading = function EditableHeading({
             required
             className={classNames(
               !disabled && "hover:text-default focus:text-emphasis cursor-text",
-              "text-emphasis absolute left-0 top-0 w-full truncate border-none bg-transparent p-0 align-top text-xl transition-opacity pointer-events-auto",
-              isEditing ? "opacity-100" : "opacity-0",
+              "text-emphasis absolute left-0 top-0 w-full truncate border-none bg-transparent p-0 align-top text-xl transition-opacity",
+              isEditing ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
               passThroughProps.className
             )}
             onFocus={(e) => {
