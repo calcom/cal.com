@@ -53,8 +53,6 @@ const config: Config = {
   maxWorkers,
   testPathIgnorePatterns: ["/dist/", "/node_modules/"],
   transformIgnorePatterns: ["/dist/", "/node_modules/"],
-  cache: true,
-  cacheDirectory: "<rootDir>/.jest-cache",
 };
 
 export default config;
