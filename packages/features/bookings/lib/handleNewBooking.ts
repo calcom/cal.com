@@ -23,13 +23,10 @@ import {
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import {
-  sendAttendeeRequestEmailAndSMS,
-  sendOrganizerRequestEmail,
   sendRescheduledEmailsAndSMS,
   sendRoundRobinCancelledEmailsAndSMS,
   sendRoundRobinRescheduledEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
-  sendScheduledEmailsAndSMS,
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
@@ -130,6 +127,7 @@ import { getOriginalRescheduledBooking } from "./handleNewBooking/originalResche
 import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { processAttachmentResponses } from "./handleNewBooking/processAttachmentResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
+import { triggerBookingEmailsInngest } from "./handleNewBooking/triggerBookingEmailsInngest";
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
@@ -2070,8 +2068,9 @@ async function handler(
         );
 
         if (!isDryRun) {
-          await sendScheduledEmailsAndSMS(
-            {
+          // Send emails asynchronously via Inngest to improve booking response time
+          await triggerBookingEmailsInngest({
+            calEvent: {
               ...evt,
               additionalInformation,
               additionalNotes,
@@ -2080,8 +2079,9 @@ async function handler(
             eventNameObject,
             isHostConfirmationEmailsDisabled,
             isAttendeeConfirmationEmailDisabled,
-            eventType.metadata
-          );
+            eventTypeMetadata: eventType.metadata,
+            emailType: "scheduled",
+          });
         }
       }
     }
@@ -2111,8 +2111,15 @@ async function handler(
       })
     );
     if (!isDryRun) {
-      await sendOrganizerRequestEmail({ ...evt, additionalNotes }, eventType.metadata);
-      await sendAttendeeRequestEmailAndSMS({ ...evt, additionalNotes }, attendeesList[0], eventType.metadata);
+      // Send request emails asynchronously via Inngest for pending bookings
+      await triggerBookingEmailsInngest({
+        calEvent: { ...evt, additionalNotes },
+        isHostConfirmationEmailsDisabled: false,
+        isAttendeeConfirmationEmailDisabled: false,
+        eventTypeMetadata: eventType.metadata,
+        emailType: "request",
+        firstAttendee: attendeesList[0],
+      });
     }
   }
 

@@ -1,12 +1,13 @@
 // meta.ts
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
-import { IS_DEV, NGROK_URL, WEBAPP_URL, INNGEST_ID, META_API_VERSION } from "@calcom/lib/constants";
+import { INNGEST_ID, META_API_VERSION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import { SMSLockState, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import type { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import { SMSLockState } from "@calcom/prisma/enums";
 import { inngestClient } from "@calcom/web/pages/api/inngest";
 
 import { META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
