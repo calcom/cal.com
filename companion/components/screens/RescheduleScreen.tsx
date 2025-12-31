@@ -3,6 +3,7 @@
  *
  * Screen content for rescheduling a booking.
  * Used with the reschedule route that has native Stack.Header.
+ * This is the web/extension fallback - uses native HTML inputs on web.
  */
 
 import { Ionicons } from "@expo/vector-icons";
@@ -23,8 +24,7 @@ import type { Booking } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
 import { safeLogError, safeLogInfo } from "@/utils/safeLogger";
 
-// Note: @expo/ui DateTimePicker components are not yet stable
-// Using a simple inline picker approach instead
+const isWeb = Platform.OS === "web";
 
 export interface RescheduleScreenProps {
   booking: Booking | null;
@@ -182,42 +182,102 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
             {/* Form Card */}
             <View className="mb-4 overflow-hidden rounded-xl bg-white">
               {/* Date picker */}
-              <TouchableOpacity
-                className="border-b border-gray-100 px-4 py-3"
-                onPress={() => {
-                  safeLogInfo("[RescheduleScreen] Opening date picker");
-                  setShowDatePicker(true);
-                }}
-                disabled={isSaving}
-                activeOpacity={0.7}
-              >
-                <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Date</Text>
-                <View className="flex-row items-center justify-between">
-                  <Text className="h-10 text-[17px] text-[#000]" style={{ lineHeight: 40 }}>
-                    {formattedDate}
-                  </Text>
-                  <Ionicons name="calendar-outline" size={20} color="#007AFF" />
+              {isWeb ? (
+                <View className="border-b border-gray-100 px-4 py-3">
+                  <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Date</Text>
+                  <input
+                    type="date"
+                    value={selectedDateTime.toISOString().split("T")[0]}
+                    onChange={(e) => {
+                      const newDate = new Date(e.target.value);
+                      if (!Number.isNaN(newDate.getTime())) {
+                        safeLogInfo("[RescheduleScreen] Date selected:", newDate);
+                        newDate.setHours(selectedDateTime.getHours());
+                        newDate.setMinutes(selectedDateTime.getMinutes());
+                        setSelectedDateTime(newDate);
+                      }
+                    }}
+                    disabled={isSaving}
+                    style={{
+                      width: "100%",
+                      height: 40,
+                      fontSize: 17,
+                      border: "none",
+                      outline: "none",
+                      backgroundColor: "transparent",
+                      color: "#000",
+                    }}
+                    min={new Date().toISOString().split("T")[0]}
+                  />
                 </View>
-              </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  className="border-b border-gray-100 px-4 py-3"
+                  onPress={() => {
+                    safeLogInfo("[RescheduleScreen] Opening date picker");
+                    setShowDatePicker(true);
+                  }}
+                  disabled={isSaving}
+                  activeOpacity={0.7}
+                >
+                  <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Date</Text>
+                  <View className="flex-row items-center justify-between">
+                    <Text className="h-10 text-[17px] text-[#000]" style={{ lineHeight: 40 }}>
+                      {formattedDate}
+                    </Text>
+                    <Ionicons name="calendar-outline" size={20} color="#007AFF" />
+                  </View>
+                </TouchableOpacity>
+              )}
 
               {/* Time picker */}
-              <TouchableOpacity
-                className="border-b border-gray-100 px-4 py-3"
-                onPress={() => {
-                  safeLogInfo("[RescheduleScreen] Opening time picker");
-                  setShowTimePicker(true);
-                }}
-                disabled={isSaving}
-                activeOpacity={0.7}
-              >
-                <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Time</Text>
-                <View className="flex-row items-center justify-between">
-                  <Text className="h-10 text-[17px] text-[#000]" style={{ lineHeight: 40 }}>
-                    {formattedTime}
-                  </Text>
-                  <Ionicons name="time-outline" size={20} color="#007AFF" />
+              {isWeb ? (
+                <View className="border-b border-gray-100 px-4 py-3">
+                  <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Time</Text>
+                  <input
+                    type="time"
+                    value={`${String(selectedDateTime.getHours()).padStart(2, "0")}:${String(selectedDateTime.getMinutes()).padStart(2, "0")}`}
+                    onChange={(e) => {
+                      const [hours, minutes] = e.target.value.split(":").map(Number);
+                      if (!Number.isNaN(hours) && !Number.isNaN(minutes)) {
+                        safeLogInfo("[RescheduleScreen] Time selected:", { hours, minutes });
+                        const newDate = new Date(selectedDateTime);
+                        newDate.setHours(hours);
+                        newDate.setMinutes(minutes);
+                        setSelectedDateTime(newDate);
+                      }
+                    }}
+                    disabled={isSaving}
+                    style={{
+                      width: "100%",
+                      height: 40,
+                      fontSize: 17,
+                      border: "none",
+                      outline: "none",
+                      backgroundColor: "transparent",
+                      color: "#000",
+                    }}
+                  />
                 </View>
-              </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  className="border-b border-gray-100 px-4 py-3"
+                  onPress={() => {
+                    safeLogInfo("[RescheduleScreen] Opening time picker");
+                    setShowTimePicker(true);
+                  }}
+                  disabled={isSaving}
+                  activeOpacity={0.7}
+                >
+                  <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Time</Text>
+                  <View className="flex-row items-center justify-between">
+                    <Text className="h-10 text-[17px] text-[#000]" style={{ lineHeight: 40 }}>
+                      {formattedTime}
+                    </Text>
+                    <Ionicons name="time-outline" size={20} color="#007AFF" />
+                  </View>
+                </TouchableOpacity>
+              )}
 
               {/* Reason input */}
               <View className="px-4 py-3">
