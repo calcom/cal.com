@@ -364,7 +364,7 @@ const ProfileView = ({ user }: Props) => {
             <DialogFooter showDivider>
               <DialogClose />
               <Button
-                color="primary"
+                color="destructive"
                 data-testid="delete-account-confirm"
                 onClick={(e) => onConfirmButton(e)}
                 loading={deleteMeMutation.isPending}>

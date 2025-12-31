@@ -1,3 +1,4 @@
+# ⚠️ SECURITY: Do not add steps that checkout PR code or run local actions before trust-check job completes.
 name: PR Update
 
 on:
@@ -6,9 +7,6 @@ on:
     branches:
       - main
       - gh-actions-test-branch
-  # Allow CI to run when a maintainer approves an external contributor's PR
-  pull_request_review:
-    types: [submitted]
 
   workflow_dispatch:
 
@@ -17,19 +15,19 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}${{ github.event_name == 'pull_request_review' && github.event.review.state != 'approved' && '-noop' || '' }}
-  cancel-in-progress: ${{ github.event_name != 'pull_request_review' || github.event.review.state == 'approved' }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  # Security gate: Check if PR is from a trusted contributor or has been approved by a core team member
+  # Security gate: Check if PR is from a trusted contributor or approved via run-ci label
   # This MUST run before any job that checks out PR code and executes it with secrets
   trust-check:
     name: Trust Check
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    # Skip if this is a non-approval review event (e.g., comment or changes_requested)
-    if: github.event_name != 'pull_request_review' || github.event.review.state == 'approved'
     permissions:
       pull-requests: read
+      actions: read
+      issues: read
     outputs:
       is-trusted: ${{ steps.check-trust.outputs.is-trusted }}
     steps:
@@ -39,9 +37,8 @@ jobs:
         with:
           script: |
             const trustedAssociations = ['OWNER', 'MEMBER', 'COLLABORATOR'];
-            const pr = context.payload.pull_request;
 
-            if (!pr) {
+            if (!context.payload.pull_request) {
               if (context.eventName === 'workflow_dispatch') {
                 console.log('workflow_dispatch event - assuming trusted (manual trigger)');
                 core.setOutput('is-trusted', true);
@@ -54,10 +51,17 @@ jobs:
 
             const owner = context.repo.owner;
             const repo = context.repo.repo;
+
+            // Fetch fresh PR data - payload labels may be stale on re-runs
+            const { data: pr } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: context.payload.pull_request.number,
+            });
+
             const prNumber = pr.number;
             const headSha = pr.head.sha;
 
-            // Check if user has write access or higher (admin, maintain, write)
             async function hasWriteAccess(username) {
               try {
                 const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
@@ -65,85 +69,84 @@ jobs:
                   repo,
                   username,
                 });
-                const hasAccess = ['admin', 'maintain', 'write'].includes(permission.permission);
-                console.log(`User ${username}: hasWriteAccess=${hasAccess}`);
-                return hasAccess;
+                return ['admin', 'maintain', 'write'].includes(permission.permission);
               } catch (e) {
-                console.log(`Could not check permission for ${username}: ${e.message}`);
+                console.log(`Permission check failed for ${username}: ${e.message}`);
                 return false;
               }
             }
 
-            console.log(`PR #${prNumber} by ${pr.user.login}`);
-            console.log(`Author association: ${pr.author_association}`);
-            console.log(`Head SHA: ${headSha}`);
+            console.log(`PR #${prNumber} by ${pr.user.login} (${pr.author_association})`);
 
             // Check 1: Is the author a trusted contributor?
-            const isTrustedAuthor = trustedAssociations.includes(pr.author_association);
-            if (isTrustedAuthor) {
-              console.log(`Author ${pr.user.login} is trusted (${pr.author_association})`);
+            if (trustedAssociations.includes(pr.author_association)) {
+              console.log(`Author has trusted association: ${pr.author_association}`);
               core.setOutput('is-trusted', true);
               return;
             }
 
             // Check 2: Verify write access via API (author_association can be unreliable)
             if (await hasWriteAccess(pr.user.login)) {
-              console.log(`Author ${pr.user.login} verified as having write access`);
+              console.log(`Author has write access`);
               core.setOutput('is-trusted', true);
               return;
             }
 
-            console.log(`Author ${pr.user.login} does not have write access, checking for approval...`);
+            // Check 3: Was 'run-ci' label added AFTER this SHA was pushed by someone with write access?
+            // This enables re-runs triggered by the run-ci.yml workflow
+            // NOTE: We use workflow run created_at instead of commit timestamp because
+            // git commit timestamps can be arbitrarily backdated by attackers
+            if (pr.labels?.some(l => l.name === 'run-ci')) {
+              const events = await github.paginate(github.rest.issues.listEvents, {
+                owner,
+                repo,
+                issue_number: prNumber,
+                per_page: 100,
+              });
 
-            // Check 3: Has someone with write access approved the current commit?
-            const reviews = await github.paginate(github.rest.pulls.listReviews, {
-              owner,
-              repo,
-              pull_number: prNumber,
-              per_page: 100,
-            });
+              const labelEvent = events
+                .filter(e => e.event === 'labeled' && e.label?.name === 'run-ci')
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
 
-            // Group reviews by reviewer and get their latest state for the current commit
-            const reviewerStates = new Map();
-            for (const review of reviews) {
-              // Only consider reviews for the current head SHA
-              if (review.commit_id !== headSha) {
-                continue;
-              }
-
-              // Only track APPROVED and CHANGES_REQUESTED states
-              if (!['APPROVED', 'CHANGES_REQUESTED'].includes(review.state)) {
-                continue;
-              }
-
-              const reviewer = review.user.login;
-              const existing = reviewerStates.get(reviewer);
-
-              // Keep the latest review (higher ID = more recent)
-              if (!existing || review.id > existing.id) {
-                reviewerStates.set(reviewer, {
-                  id: review.id,
-                  state: review.state,
-                  login: reviewer,
+              if (labelEvent) {
+                // Get workflow runs to find when this SHA was first pushed
+                const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
+                  owner,
+                  repo,
+                  workflow_id: 'pr.yml',
+                  head_sha: headSha,
+                  per_page: 100,
                 });
+
+                // Filter runs to this PR (in case same SHA exists in multiple PRs)
+                const matchingRuns = runs.filter(run =>
+                  !run.pull_requests?.length || run.pull_requests.some(p => p.number === prNumber)
+                );
+
+                if (matchingRuns.length > 0) {
+                  const labelTime = new Date(labelEvent.created_at);
+                  // Use the oldest run's created_at as the push time
+                  const originalRun = matchingRuns[matchingRuns.length - 1];
+                  const pushTime = new Date(originalRun.created_at);
+
+                  if (labelTime > pushTime) {
+                    const adder = labelEvent.actor.login;
+                    if (await hasWriteAccess(adder)) {
+                      console.log(`Approved via 'run-ci' label added by ${adder} after push (label: ${labelTime.toISOString()}, push: ${pushTime.toISOString()})`);
+                      core.setOutput('is-trusted', true);
+                      return;
+                    }
+                    console.log(`Label 'run-ci' added by ${adder} (no write access)`);
+                  } else {
+                    console.log(`Label 'run-ci' is stale (label: ${labelTime.toISOString()}, push: ${pushTime.toISOString()})`);
+                  }
+                } else {
+                  console.log('No workflow runs found for this SHA - cannot validate label timing');
+                }
               }
             }
 
-            // Check if any approver has write access
-            for (const [reviewer, reviewData] of reviewerStates) {
-              if (reviewData.state !== 'APPROVED') {
-                continue;
-              }
-
-              if (await hasWriteAccess(reviewer)) {
-                console.log(`PR approved by ${reviewer} (has write access) for commit ${headSha}`);
-                core.setOutput('is-trusted', true);
-                return;
-              }
-              console.log(`Reviewer ${reviewer} does not have write access`);
-            }
-
-            console.log('PR requires approval from someone with write access before CI can run');
+            console.log('External contribution requires "run-ci" label from a maintainer');
             core.setOutput('is-trusted', false);
 
   prepare:
@@ -412,13 +415,18 @@ jobs:
     if: always()
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
-      - name: Fail if PR is not trusted (external contributor without approval)
+      - name: Fail if trust-check did not succeed
         run: |
-          echo "::error::This PR is from an external contributor and requires approval from a core team member before CI can run."
-          echo "A maintainer with write access must approve this PR to trigger CI checks."
+          echo "::error::Trust check did not complete successfully (result: ${{ needs.trust-check.result }}). Please re-run the workflow."
+          exit 1
+        if: needs.trust-check.result != 'success'
+      - name: Fail if PR is not trusted (external contributor without run-ci label)
+        run: |
+          echo "::error::This PR is from an external contributor and requires the 'run-ci' label before CI can run."
+          echo "A maintainer must review the code and add the 'run-ci' label to trigger CI checks."
           exit 1
         if: needs.trust-check.outputs.is-trusted != 'true' && needs.trust-check.result == 'success'
-      - name: fail if conditional jobs failed
+      - name: Fail if conditional jobs failed
         run: exit 1
         if: |
           (
