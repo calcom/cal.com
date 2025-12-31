@@ -34,7 +34,7 @@ test.describe("Managed Event Types", () => {
     // Let's create a team
     // Going to create an event type
     await page.goto("/event-types");
-    const tabItem = page.getByTestId(`horizontal-tab-Owner`);
+    const tabItem = page.getByTestId("horizontal-tab-Owner").first();
     await expect(tabItem).toBeVisible();
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');

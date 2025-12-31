@@ -3493,6 +3493,7 @@
   "last_active": "Dernière activité",
   "member_since": "Membre depuis",
   "last_updated": "Dernière mise à jour",
+  "completed_onboarding": "Intégration terminée",
   "salesforce_on_cancel_write_to_event": "Lors de l'annulation d'une réservation, écrire dans l'enregistrement de l'événement au lieu de le supprimer",
   "salesforce_on_every_cancellation": "À chaque annulation",
   "report_issue": "Signaler un problème",

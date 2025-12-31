@@ -3493,6 +3493,7 @@
   "last_active": "Utoljára aktív",
   "member_since": "Tag mióta",
   "last_updated": "Utoljára frissítve",
+  "completed_onboarding": "Beállítás befejezve",
   "salesforce_on_cancel_write_to_event": "Lemondott foglalás esetén írjon az esemény rekordba az esemény törlése helyett",
   "salesforce_on_every_cancellation": "Minden lemondás esetén",
   "report_issue": "Probléma jelentése",

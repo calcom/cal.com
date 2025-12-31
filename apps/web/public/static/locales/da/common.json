@@ -3493,6 +3493,7 @@
   "last_active": "Sidst aktiv",
   "member_since": "Medlem siden",
   "last_updated": "Sidst opdateret",
+  "completed_onboarding": "Onboarding gennemført",
   "salesforce_on_cancel_write_to_event": "Ved aflyst booking, skriv til begivenhedsoptegnelsen i stedet for at slette begivenheden",
   "salesforce_on_every_cancellation": "Ved hver aflysning",
   "report_issue": "Rapportér problem",

@@ -3493,6 +3493,7 @@
   "last_active": "Последна активност",
   "member_since": "Член от",
   "last_updated": "Последно обновено",
+  "completed_onboarding": "Завършено въвеждане",
   "salesforce_on_cancel_write_to_event": "При отменена резервация, запиши в записа на събитието вместо да изтриеш събитието",
   "salesforce_on_every_cancellation": "При всяка отмяна",
   "report_issue": "Докладвай проблем",
