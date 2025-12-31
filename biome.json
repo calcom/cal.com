@@ -77,11 +77,7 @@
       }
     },
     {
-      "includes": [
-        "apps/web/app/**/page.tsx",
-        "apps/web/app/**/layout.tsx",
-        "apps/web/app/pages/**/*.tsx"
-      ],
+      "includes": ["apps/web/app/**/page.tsx", "apps/web/app/**/layout.tsx", "apps/web/app/pages/**/*.tsx"],
       "linter": {
         "rules": {
           "style": {
@@ -235,6 +231,23 @@
                 ]
               }
             }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.test.{ts,tsx,js,jsx}", "**/*.spec.{ts,tsx,js,jsx}"],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "useQwikValidLexicalScope": "off",
+            "useExplicitType": "off"
+          },
+          "complexity": {
+            "noExcessiveLinesPerFunction": "off"
+          },
+          "suspicious": {
+            "noReactSpecificProps": "off"
           }
         }
       }
