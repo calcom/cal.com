@@ -46,7 +46,7 @@ test.describe("System Segments", () => {
 
       await navigateToBookings(page);
 
-      await page.getByTestId("filter-segment-select").click();
+      await page.getByTestId("filter-segment-select").first().click();
       await page
         .locator('[data-testid="filter-segment-select-content"] [role="menuitem"]')
         .filter({ hasText: "My Bookings" })
