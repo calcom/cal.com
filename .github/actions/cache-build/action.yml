@@ -8,12 +8,6 @@ runs:
       uses: ./.github/actions/cache-build-key
       with:
         branch_key: ${{ github.head_ref || github.ref_name }}
-    - name: Clean up cache targets before restore
-      shell: bash
-      run: |
-        rm -rf apps/web/.next apps/web/public/embed
-        find . -name ".turbo" -type d -exec rm -rf {} + 2>/dev/null || true
-        find . -name "dist" -type d -not -path "*/node_modules/*" -exec rm -rf {} + 2>/dev/null || true
     - name: Cache production build
       uses: actions/cache@v4
       id: cache-build
