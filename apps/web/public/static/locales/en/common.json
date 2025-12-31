@@ -1,4 +1,11 @@
 {
+  "refund_not_processable_subject": "Refund Could Not Be Processed - {{appName}}",
+  "refund_not_processable_email_header": "Refund Not Processable",
+  "refund_not_processable_body": "{{attendeeName}} has cancelled their booking for \"{{bookingTitle}}\" scheduled for {{startTime}}. However, we were unable to process the refund automatically.",
+  "refund_window_exceeded": "The refund amount of {{amount}} {{currency}} cannot be processed because the payment was made on {{paymentDate}}, which exceeds the 6-month refund window required by our payment processor.",
+  "refund_not_processable_action_required": "To resolve this matter, you may need to issue a manual refund directly to the attendee or discuss alternative arrangements.",
+  "attendee_contact_info": "Attendee Contact Information:\nName: {{attendeeName}}\nEmail: {{attendeeEmail}}",
+  "need_help_contact_support": "If you need assistance or have questions about this cancellation, please contact our support team.",
   "pw_check_least_char": "At least 7 characters",
   "pw_check_mix_case": "Mix of uppercase & lowercase",
   "pw_check_number": "At least one number",

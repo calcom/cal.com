@@ -1,6 +1,8 @@
 import type { Payment, Prisma } from "@prisma/client";
+import { t } from "i18next";
 
 import dayjs from "@calcom/dayjs";
+import { sendPaymentNotProcessableEmail } from "@calcom/emails";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -25,10 +27,13 @@ export const processPaymentRefund = async ({
   };
   teamId?: number | null;
 }) => {
+  console.log("Processing payment refund enter");
+
   const { startTime, eventType, payment } = booking;
+
   if (!teamId && !eventType?.owner) return;
 
-  const successPayment = payment.find((p) => p.success);
+  const successPayment: Payment = payment.find((p) => p.success);
   if (!successPayment) return;
 
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata);
@@ -36,6 +41,13 @@ export const processPaymentRefund = async ({
     currency: successPayment.currency,
     metadata: eventTypeMetadata,
     price: successPayment.amount,
+  });
+
+  console.log("Processing payment refund appData: ", {
+    appData,
+    eventType,
+    payment,
+    startTime,
   });
 
   if (!appData?.refundPolicy || appData.refundPolicy === RefundPolicy.NEVER) return;
@@ -67,6 +79,8 @@ export const processPaymentRefund = async ({
     return credential.appId === successPayment.appId;
   });
 
+  console.log("Processing payment paymentAppCredential: ", paymentAppCredential);
+
   if (!paymentAppCredential) return;
 
   const { refundPolicy, refundCountCalendarDays, refundDaysCount } = appData;
@@ -82,5 +96,9 @@ export const processPaymentRefund = async ({
           dayjs(startTime).businessDaysSubtract(refundDaysCount);
     if (dayjs().isAfter(refundDeadline)) return;
   }
+
+  // sendPaymentNotProcessableEmail here
+
+  console.log("Handle payment refund appData: ", appData);
   await handlePaymentRefund(successPayment.id, paymentAppCredential);
 };

@@ -1,3 +1,4 @@
+import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import {
   generateRecurringInstances,
   normalizeDateForComparison,
@@ -288,7 +289,7 @@ async function handler(input: CancelBookingInput) {
 
     const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
 
-    if (!userIsHost && !userIsOwnerOfEventType) {
+  if (!userIsHost && !userIsOwnerOfEventType) {
       throw new HttpError({ statusCode: 401, message: "User not a host of this event" });
     }
   }
@@ -611,12 +612,15 @@ async function handler(input: CancelBookingInput) {
     });
     updatedBookings.push(updatedBooking);
     //Refund is handled below using bookingCancelPaymentHandler
-    // if (!!bookingToDelete.payment.length) {
-    //   await processPaymentRefund({
-    //     booking: bookingToDelete,
-    //     teamId,
-    //   });
-    // }
+
+    console.log("Processing payment refund start")
+
+    if (!!bookingToDelete.payment.length) {
+      await processPaymentRefund({
+        booking: bookingToDelete,
+        teamId,
+      });
+    }
   }
 
   /** TODO: Remove this without breaking functionality */
