@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Das Löschen eines Verfügbarkeitsplanes entfernt ihn von allen Termintypen. Diese Aktion kann nicht rückgängig gemacht werden.",
   "schedule_created_successfully": "{{scheduleName}} -Verfügbarkeitsplan erfolgreich erstellt",
   "availability_updated_successfully": "{{scheduleName}} Zeitplan erfolgreich aktualisiert",
+  "bulk_updated_schedule_successfully": "Ausgewählte Termintypen wurden erfolgreich mit dem Standardzeitplan aktualisiert",
   "schedule_deleted_successfully": "Verfügbarkeitsplan erfolgreich gelöscht",
   "default_schedule_name": "Arbeitszeiten",
   "new_schedule_heading": "Erstelle einen Verfügbarkeitsplan",

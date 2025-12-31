@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Видалений розклад буде вилучено з усіх типів заходів. Цю дію неможливо скасувати.",
   "schedule_created_successfully": "Розклад «{{scheduleName}}» створено",
   "availability_updated_successfully": "Розклад «{{scheduleName}}» оновлено",
+  "bulk_updated_schedule_successfully": "Масово оновлено вибрані типи подій із розкладом за замовчуванням",
   "schedule_deleted_successfully": "Розклад видалено",
   "default_schedule_name": "Робочі години",
   "new_schedule_heading": "Створення розкладу доступності",

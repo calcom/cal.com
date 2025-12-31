@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Aikataulun poistaminen poistaa sen kaikista tapahtumatyypeistä. Tätä toimintoa ei voi kumota.",
   "schedule_created_successfully": "Aikataulu {{scheduleName}} luotu onnistuneesti",
   "availability_updated_successfully": "Aikataulu {{scheduleName}} päivitetty onnistuneesti",
+  "bulk_updated_schedule_successfully": "Valitut tapahtumatyypit päivitettiin joukkotoimintona oletusaikataululla",
   "schedule_deleted_successfully": "Aikataulu poistettu onnistuneesti",
   "default_schedule_name": "Työajat",
   "new_schedule_heading": "Luo saatavuusaikataulu",
