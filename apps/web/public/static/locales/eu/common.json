@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Ordutegi bat ezabatzeak gertaera mota guztietatik kenduko du. Ekintza hau ezin da desegin.",
   "schedule_created_successfully": "{{scheduleName}} ordutegia ongi sortu da",
   "availability_updated_successfully": "{{scheduleName}} ordutegia ongi eguneratu da",
+  "bulk_updated_schedule_successfully": "Hautatutako ekitaldi motak lehenetsitako egutegiarekin eguneratu dira masiboki",
   "schedule_deleted_successfully": "Ordutegia ongi ezabatu da",
   "default_schedule_name": "Lanorduak",
   "new_schedule_heading": "Sortu eskuragarritasun ordutegi bat",

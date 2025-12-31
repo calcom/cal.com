@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Al borrar un horario se eliminará de todos los tipos de eventos. Esta acción no se puede deshacer.",
   "schedule_created_successfully": "Horario {{scheduleName}} creado con éxito",
   "availability_updated_successfully": "El horario de {{scheduleName}} se actualizó correctamente",
+  "bulk_updated_schedule_successfully": "Se actualizaron masivamente los tipos de eventos seleccionados con el horario predeterminado",
   "schedule_deleted_successfully": "Programación eliminada exitosamente",
   "default_schedule_name": "Horas laborables",
   "new_schedule_heading": "Crear un horario de disponibilidad",

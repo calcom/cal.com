@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Sletting av en tidsplan vil fjerne den fra alle hendelsestyper. Denne handlingen kan ikke angres.",
   "schedule_created_successfully": "{{scheduleName}} tidsplan opprettet",
   "availability_updated_successfully": "{{scheduleName}} tidsplan er oppdatert",
+  "bulk_updated_schedule_successfully": "Masseoppdaterte valgte hendelsestyper med standardtidsplan",
   "schedule_deleted_successfully": "Tidsplanen ble slettet",
   "default_schedule_name": "Arbeidstid",
   "new_schedule_heading": "Opprett en tidsplan for tilgjengelighet",

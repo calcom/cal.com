@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "سيؤدي حذف الجدول الزمني إلى إزالته من جميع أنواع الأحداث، ولا يمكن التراجع عن هذا الإجراء.",
   "schedule_created_successfully": "تم إنشاء جدول {{scheduleName}} بنجاح",
   "availability_updated_successfully": "تم تحديث جدول {{scheduleName}} بنجاح",
+  "bulk_updated_schedule_successfully": "تم تحديث أنواع الأحداث المحددة بشكل جماعي باستخدام الجدول الافتراضي",
   "schedule_deleted_successfully": "تم حذف الجدول بنجاح",
   "default_schedule_name": "ساعات العمل",
   "new_schedule_heading": "إنشاء جدول الأوقات المتاحة",

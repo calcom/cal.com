@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "일정을 삭제하면 모든 이벤트 유형에서 제거됩니다. 이 작업은 취소할 수 없습니다.",
   "schedule_created_successfully": "{{scheduleName}} 일정이 성공적으로 생성되었습니다",
   "availability_updated_successfully": "{{scheduleName}} 일정이 성공적으로 업데이트되었습니다.",
+  "bulk_updated_schedule_successfully": "선택한 이벤트 유형에 기본 일정이 일괄 업데이트되었습니다",
   "schedule_deleted_successfully": "일정이 성공적으로 삭제되었습니다",
   "default_schedule_name": "작업 시간",
   "new_schedule_heading": "가용성 일정 생성",
