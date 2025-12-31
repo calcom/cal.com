@@ -293,14 +293,28 @@ jobs:
     uses: ./.github/workflows/api-v2-unit-tests.yml
     secrets: inherit
 
+  setup-db-seed:
+    name: Setup Database (Seed)
+    needs: [prepare]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' && needs.prepare.outputs.db-cache-hit != 'true' }}
+    uses: ./.github/workflows/setup-db.yml
+    secrets: inherit
+
   setup-db:
     name: Setup Database
-    needs: [prepare]
-    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/setup-db.yml
-    with:
-      DB_CACHE_HIT: ${{ needs.prepare.outputs.db-cache-hit }}
-    secrets: inherit
+    needs: [prepare, setup-db-seed]
+    if: ${{ always() && needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Check setup-db-seed result
+        run: |
+          if [[ "${{ needs.prepare.outputs.db-cache-hit }}" == "true" ]]; then
+            echo "DB cache hit - skipping seed"
+            exit 0
+          elif [[ "${{ needs.setup-db-seed.result }}" != "success" ]]; then
+            echo "setup-db-seed failed"
+            exit 1
+          fi
 
   build-api-v1:
     name: Production builds

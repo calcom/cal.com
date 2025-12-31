@@ -2,12 +2,6 @@ name: Setup Database
 
 on:
   workflow_call:
-    inputs:
-      DB_CACHE_HIT:
-        required: false
-        type: string
-        default: ""
-        description: "Whether DB cache was hit in prepare job (passed from pr.yml)"
 
 permissions:
   contents: read
@@ -49,6 +43,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
-        if: inputs.DB_CACHE_HIT != 'true'
       - uses: ./.github/actions/cache-db
-        if: inputs.DB_CACHE_HIT != 'true'
