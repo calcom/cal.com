@@ -258,4 +258,12 @@ export class ScheduleRepository {
       },
     });
   }
+
+  async updateBlockedStatusByUserIds(userIds: number[], blocked: boolean): Promise<{ count: number }> {
+    const result = await this.prismaClient.schedule.updateMany({
+      where: { userId: { in: userIds } },
+      data: { blockedByWatchlist: blocked },
+    });
+    return { count: result.count };
+  }
 }

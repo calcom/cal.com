@@ -1,13 +1,13 @@
 import type { PrismaClient } from "@calcom/prisma";
-import { WatchlistAction, WatchlistSource } from "@calcom/prisma/enums";
+import { WatchlistAction, WatchlistSource, WatchlistType } from "@calcom/prisma/enums";
 
 import type {
-  IWatchlistRepository,
-  CreateWatchlistInput,
   CheckWatchlistInput,
-  WatchlistEntry,
+  CreateWatchlistInput,
   FindAllEntriesInput,
+  IWatchlistRepository,
   WatchlistAuditEntry,
+  WatchlistEntry,
 } from "./IWatchlistRepository";
 
 export class WatchlistRepository implements IWatchlistRepository {
@@ -340,5 +340,34 @@ export class WatchlistRepository implements IWatchlistRepository {
     });
 
     return { watchlistEntry, value: params.value };
+  }
+
+  async hasBlockingEntryForEmailOrDomain(email: string, domain: string): Promise<boolean> {
+    const normalizedEmail = email.toLowerCase();
+    const normalizedDomain = domain.toLowerCase();
+
+    // Check email block first
+    const emailBlock = await this.prismaClient.watchlist.findFirst({
+      where: {
+        action: WatchlistAction.BLOCK,
+        type: WatchlistType.EMAIL,
+        value: normalizedEmail,
+      },
+      select: { id: true },
+    });
+
+    if (emailBlock) return true;
+
+    // Check domain block
+    const domainBlock = await this.prismaClient.watchlist.findFirst({
+      where: {
+        action: WatchlistAction.BLOCK,
+        type: WatchlistType.DOMAIN,
+        value: normalizedDomain,
+      },
+      select: { id: true },
+    });
+
+    return domainBlock !== null;
   }
 }

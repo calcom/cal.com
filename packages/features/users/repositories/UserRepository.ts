@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
@@ -11,14 +9,15 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
-import type { User as UserType, DestinationCalendar, SelectedCalendar } from "@calcom/prisma/client";
+import type { DestinationCalendar, SelectedCalendar, User as UserType } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
-import { MembershipRole, BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userSelect as prismaUserSelect } from "@calcom/prisma/selects/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
+import type { z } from "zod";
 
 export type { UserWithLegacySelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 export { withSelectedCalendars };
@@ -490,7 +489,7 @@ export class UserRepository {
     T extends {
       id: number;
       username: string | null;
-    }
+    },
   >({
     user,
   }: {
@@ -533,7 +532,7 @@ export class UserRepository {
     T extends {
       id: number;
       username: string | null;
-    }
+    },
   >({
     user,
   }: {
@@ -701,7 +700,7 @@ export class UserRepository {
             username: string | null;
             id: number;
           };
-        }
+        },
   >(entity: T) {
     if ("profile" in entity) {
       const { profile, ...entityWithoutProfile } = entity;
@@ -1308,5 +1307,39 @@ export class UserRepository {
       },
     });
     return users.map(withSelectedCalendars);
+  }
+
+  // Schedule blocking lookup methods
+  async findUserIdsByEmail(email: string): Promise<number[]> {
+    const users = await this.prismaClient.user.findMany({
+      where: { email: email.toLowerCase() },
+      select: { id: true },
+    });
+    return users.map((u) => u.id);
+  }
+
+  async findUserIdsByEmails(emails: string[]): Promise<number[]> {
+    const normalizedEmails = emails.map((e) => e.toLowerCase());
+    const users = await this.prismaClient.user.findMany({
+      where: { email: { in: normalizedEmails } },
+      select: { id: true },
+    });
+    return users.map((u) => u.id);
+  }
+
+  async findUserIdsByEmailDomain(domain: string): Promise<number[]> {
+    const users = await this.prismaClient.user.findMany({
+      where: { email: { endsWith: `@${domain.toLowerCase()}` } },
+      select: { id: true },
+    });
+    return users.map((u) => u.id);
+  }
+
+  async findUserEmailsByIds(userIds: number[]): Promise<string[]> {
+    const users = await this.prismaClient.user.findMany({
+      where: { id: { in: userIds } },
+      select: { email: true },
+    });
+    return users.map((u) => u.email);
   }
 }

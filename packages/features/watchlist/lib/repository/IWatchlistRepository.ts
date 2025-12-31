@@ -86,4 +86,5 @@ export interface IWatchlistRepository {
   >;
   deleteEntry(id: string, userId: number): Promise<void>;
   bulkDeleteEntries(params: { ids: string[]; userId: number }): Promise<{ deleted: number }>;
+  hasBlockingEntryForEmailOrDomain(email: string, domain: string): Promise<boolean>;
 }
