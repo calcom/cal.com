@@ -27,6 +27,8 @@ env:
   VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
   JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
   NODE_ENV: ${{ vars.CI_NODE_ENV }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 jobs:
   e2e:
     timeout-minutes: 20
@@ -75,13 +77,22 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
+      - name: Build platform packages with Turbo
+        run: |
+          yarn turbo run build \
+            --filter=@calcom/platform-constants \
+            --filter=@calcom/platform-enums \
+            --filter=@calcom/platform-utils \
+            --filter=@calcom/platform-types \
+            --filter=@calcom/platform-libraries \
+            --filter=@calcom/trpc
 
       - name: Run Tests
         working-directory: apps/api/v2
         run: |
-          yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+          yarn test:e2e:ci --shard=${{ matrix.shard }}/${{ strategy.job-total }}
           EXIT_CODE=$?
-          echo "yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }} command exit code: $EXIT_CODE"
+          echo "yarn test:e2e:ci --shard=${{ matrix.shard }}/${{ strategy.job-total }} command exit code: $EXIT_CODE"
           exit $EXIT_CODE
 
       - name: Upload Test Results
