@@ -1,13 +1,8 @@
-import type { createStepTools } from "inngest/components/InngestStepTools";
-import type { Logger } from "inngest/middleware/logger";
-
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { META_API_VERSION } from "@calcom/lib/constants";
-import { INNGEST_ID } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import type { Credential, Prisma, PrismaClient, WhatsAppBusinessPhone } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-import { inngestClient } from "@calcom/web/pages/api/inngest";
 
 import { TRPCError } from "@trpc/server";
 

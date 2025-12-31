@@ -3,6 +3,7 @@ import { serve } from "inngest/next";
 
 import { appRevokedHandler, paymentLinkPaidHandler } from "@calcom/app-store/razorpay/lib/webhookHandlers";
 import { syncTemplates } from "@calcom/app-store/whatsapp-business/trpc/syncTemplates.handler";
+import sendBookingEmailsHandler from "@calcom/features/bookings/lib/handleNewBooking/sendBookingEmails.inngest";
 import { INNGEST_ID } from "@calcom/lib/constants";
 import bookingPaymentReminderHandler from "@calcom/lib/payment/bookingPaymentReminder";
 import { handleBookingExportEvent } from "@calcom/trpc/server/routers/viewer/bookings/export.handler";
@@ -127,6 +128,26 @@ export const triggerBookingPaymentReminder = inngestClient.createFunction(
   bookingPaymentReminderHandler
 );
 
+const handleBookingEmailsScheduled = inngestClient.createFunction(
+  {
+    id: `booking-emails-scheduled-${key}`,
+    name: "Send Booking Scheduled Emails",
+    retries: 3,
+  },
+  { event: `booking/emails.scheduled-${key}` },
+  sendBookingEmailsHandler
+);
+
+const handleBookingEmailsRequest = inngestClient.createFunction(
+  {
+    id: `booking-emails-request-${key}`,
+    name: "Send Booking Request Emails",
+    retries: 3,
+  },
+  { event: `booking/emails.request-${key}` },
+  sendBookingEmailsHandler
+);
+
 export default serve({
   client: inngestClient,
   functions: [
@@ -138,6 +159,8 @@ export default serve({
     handleRazorpayPaymentLinkPaid,
     handleRazorpayAppRevoked,
     triggerBookingPaymentReminder,
+    handleBookingEmailsScheduled,
+    handleBookingEmailsRequest,
   ],
   signingKey: process.env.INNGEST_SIGNING_KEY || "",
 });
