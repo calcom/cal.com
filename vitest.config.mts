@@ -6,17 +6,18 @@ process.env.INTEGRATION_TEST_MODE = "true";
 
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      // Alias Node.js built-ins for jsdom environment
-      crypto: "node:crypto",
-      // API v1 path alias
-      "~": path.resolve(__dirname, "apps/api/v1"),
-      // apps/web path aliases
-      "@lib": path.resolve(__dirname, "apps/web/lib"),
-      "app": path.resolve(__dirname, "apps/web/app"),
+    resolve: {
+      alias: {
+        // Alias Node.js built-ins for jsdom environment
+        crypto: "node:crypto",
+        // API v1 path alias
+        "~": path.resolve(__dirname, "apps/api/v1"),
+        // apps/web path aliases
+        "@lib": path.resolve(__dirname, "apps/web/lib"),
+        "app": path.resolve(__dirname, "apps/web/app"),
+        "@calcom/web": path.resolve(__dirname, "apps/web"),
+      },
     },
-  },
   test: {
     globals: true,
     environment: "jsdom",

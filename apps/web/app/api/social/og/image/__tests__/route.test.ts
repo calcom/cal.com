@@ -102,8 +102,11 @@ describe("GET /api/social/og/image", () => {
   });
 
   describe("Server errors (500 Internal Server Error)", () => {
-    test("returns 500 when font loading fails", async () => {
-      vi.mocked(global.fetch).mockRejectedValue(new Error("Font loading failed"));
+    test("returns 500 when ImageResponse throws", async () => {
+      const { ImageResponse } = await import("next/og");
+      vi.mocked(ImageResponse).mockImplementation(function () {
+        throw new Error("ImageResponse failed");
+      });
 
       const request = createNextRequest(
         "http://example.com/api/social/og/image?type=meeting&title=Test&meetingProfileName=John"
