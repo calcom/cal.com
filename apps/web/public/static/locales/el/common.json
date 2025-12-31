@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Η διαγραφή ενός προγράμματος θα το αφαιρέσει από όλους τους τύπους συμβάντων. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί",
   "schedule_created_successfully": "Το πρόγραμμα {{scheduleName}} δημιουργήθηκε με επιτυχία",
   "availability_updated_successfully": "Το πρόγραμμα {{scheduleName}} ενημερώθηκε με επιτυχία",
+  "bulk_updated_schedule_successfully": "Μαζική ενημέρωση των επιλεγμένων τύπων συμβάντων με το προεπιλεγμένο πρόγραμμα",
   "schedule_deleted_successfully": "Το πρόγραμμα διαγράφηκε με επιτυχία",
   "default_schedule_name": "Ωράριο Εργασίας",
   "new_schedule_heading": "Δημιουργία προγράμματος διαθεσιμότητας",
