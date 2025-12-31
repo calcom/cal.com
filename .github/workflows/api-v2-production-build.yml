@@ -40,10 +40,6 @@ jobs:
       - name: Generate Prisma schemas
         working-directory: apps/api/v2
         run: yarn workspace @calcom/api-v2 run generate-schemas
-      - name: Clean and reinstall node_modules
-        run: |
-          rm -rf apps/api/v2/node_modules
-          yarn install
       - name: Build API v2 with Turbo
         env:
           NODE_OPTIONS: --max_old_space_size=8192
