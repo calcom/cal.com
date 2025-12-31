@@ -27,40 +27,10 @@ env:
   VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
   JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
   NODE_ENV: ${{ vars.CI_NODE_ENV }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 jobs:
-  build-platform-packages:
-    name: Build platform packages
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/yarn-install
-      - name: Cache platform packages build
-        uses: actions/cache@v4
-        id: cache-platform-build
-        env:
-          cache-name: platform-packages-build
-          key-1: ${{ hashFiles('yarn.lock') }}
-          key-2: ${{ hashFiles('packages/platform/**/*.ts', 'packages/platform/**/*.tsx', 'packages/platform/**/*.json', '!**/node_modules', '!**/dist') }}
-          key-3: ${{ hashFiles('packages/trpc/**/*.ts', 'packages/trpc/**/*.tsx', '!**/node_modules', '!**/dist') }}
-        with:
-          path: |
-            packages/platform/constants/dist
-            packages/platform/enums/dist
-            packages/platform/utils/dist
-            packages/platform/types/dist
-            packages/platform/libraries/dist
-            packages/trpc/dist
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}
-          restore-keys: |
-            ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-
-      - name: Build platform packages
-        if: steps.cache-platform-build.outputs.cache-hit != 'true'
-        working-directory: apps/api/v2
-        run: yarn dev:build
   e2e:
-    needs: build-platform-packages
     timeout-minutes: 20
     name: E2E API v2 (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: blacksmith-4vcpu-ubuntu-2404
@@ -106,25 +76,15 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
-      - name: Restore platform packages build cache
-        uses: actions/cache@v4
-        id: restore-platform-build
-        env:
-          cache-name: platform-packages-build
-          key-1: ${{ hashFiles('yarn.lock') }}
-          key-2: ${{ hashFiles('packages/platform/**/*.ts', 'packages/platform/**/*.tsx', 'packages/platform/**/*.json', '!**/node_modules', '!**/dist') }}
-          key-3: ${{ hashFiles('packages/trpc/**/*.ts', 'packages/trpc/**/*.tsx', '!**/node_modules', '!**/dist') }}
-        with:
-          path: |
-            packages/platform/constants/dist
-            packages/platform/enums/dist
-            packages/platform/utils/dist
-            packages/platform/types/dist
-            packages/platform/libraries/dist
-            packages/trpc/dist
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}
-          restore-keys: |
-            ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-
+      - name: Build platform packages with Turbo
+        run: |
+          yarn turbo run build \
+            --filter=@calcom/platform-constants \
+            --filter=@calcom/platform-enums \
+            --filter=@calcom/platform-utils \
+            --filter=@calcom/platform-types \
+            --filter=@calcom/platform-libraries \
+            --filter=@calcom/trpc#build:server
 
       - name: Run Tests
         working-directory: apps/api/v2
