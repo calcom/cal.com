@@ -130,7 +130,7 @@ describe("CreditService", () => {
   let creditService: CreditService;
 
   beforeEach(async () => {
-    vi.restoreAllMocks();
+    vi.resetAllMocks();
 
     mockStripe.prices.retrieve.mockResolvedValue({ id: "price_123", unit_amount: 1000 });
     mockStripe.customers.create.mockResolvedValue({ id: "cus_123" });
