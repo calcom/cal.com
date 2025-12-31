@@ -27,6 +27,7 @@ import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { instantMeetingSubscriptionSchema as subscriptionSchema } from "../dto/schema";
+import { WebhookVersion } from "../../../webhooks/lib/interface/IWebhookRepository";
 
 interface IInstantBookingCreateServiceDependencies {
   prismaClient: PrismaClient;
@@ -70,6 +71,7 @@ const handleInstantMeetingWebhookTrigger = async (args: {
         payloadTemplate: true,
         appId: true,
         secret: true,
+        version: true,
       },
     });
 
@@ -80,7 +82,10 @@ const handleInstantMeetingWebhookTrigger = async (args: {
         secretKey: sub.secret,
         triggerEvent: eventTrigger,
         createdAt: new Date().toISOString(),
-        webhook: sub,
+        webhook: {
+          ...sub,
+          version: sub.version as WebhookVersion,
+        },
         data: webhookData,
       }).catch((e) => {
         console.error(

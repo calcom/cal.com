@@ -126,6 +126,7 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
           <div className="mt-8 ">
             <CreateButtonWithTeamsList
               subtitle={t("new_workflow_subtitle").toUpperCase()}
+              disableMobileButton={true}
               createFunction={openDialog}
               buttonText={t("create_workflow")}
               includeOrg={true}

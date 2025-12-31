@@ -31,7 +31,7 @@ jobs:
   e2e:
     timeout-minutes: 20
     name: E2E API v2 (${{ matrix.shard }}/${{ strategy.job-total }})
-    runs-on: buildjet-16vcpu-ubuntu-2204
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     services:
       postgres:
         image: postgres:13
@@ -88,4 +88,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results-api-v2-shard-${{ matrix.shard }}
-          path: test-results
+          path: apps/api/v2/test-results
+          if-no-files-found: ignore
+          retention-days: 7
