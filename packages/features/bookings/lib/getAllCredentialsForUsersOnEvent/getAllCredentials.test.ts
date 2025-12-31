@@ -25,12 +25,11 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
 
     const mockUserRepository = vi.mocked(UserRepository);
     if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
-      mockUserRepository.mockImplementation(
-        () =>
-          ({
-            enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-          } as any)
-      );
+      mockUserRepository.mockImplementation(function () {
+        return {
+          enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+        } as InstanceType<typeof UserRepository>;
+      });
     }
 
     const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
@@ -80,12 +79,11 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
 
           const mockUserRepository = vi.mocked(UserRepository);
           if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
-            mockUserRepository.mockImplementation(
-              () =>
-                ({
-                  enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-                } as any)
-            );
+            mockUserRepository.mockImplementation(function () {
+              return {
+                enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+              } as InstanceType<typeof UserRepository>;
+            });
           }
 
           const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
@@ -164,12 +162,11 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
 
           const mockUserRepository = vi.mocked(UserRepository);
           if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
-            mockUserRepository.mockImplementation(
-              () =>
-                ({
-                  enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-                } as any)
-            );
+            mockUserRepository.mockImplementation(function () {
+              return {
+                enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+              } as InstanceType<typeof UserRepository>;
+            });
           }
 
           const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
@@ -241,12 +238,11 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
 
           const mockUserRepository = vi.mocked(UserRepository);
           if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
-            mockUserRepository.mockImplementation(
-              () =>
-                ({
-                  enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-                } as any)
-            );
+            mockUserRepository.mockImplementation(function () {
+              return {
+                enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+              } as InstanceType<typeof UserRepository>;
+            });
           }
 
           const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
@@ -346,12 +342,11 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
 
           const mockUserRepository = vi.mocked(UserRepository);
           if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
-            mockUserRepository.mockImplementation(
-              () =>
-                ({
-                  enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-                } as any)
-            );
+            mockUserRepository.mockImplementation(function () {
+              return {
+                enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+              } as InstanceType<typeof UserRepository>;
+            });
           }
 
           const crmCredential = {
@@ -669,12 +664,11 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
 
           const mockUserRepository = vi.mocked(UserRepository);
           if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
-            mockUserRepository.mockImplementation(
-              () =>
-                ({
-                  enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-                } as any)
-            );
+            mockUserRepository.mockImplementation(function () {
+              return {
+                enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+              } as InstanceType<typeof UserRepository>;
+            });
           }
 
           const crmCredential = {

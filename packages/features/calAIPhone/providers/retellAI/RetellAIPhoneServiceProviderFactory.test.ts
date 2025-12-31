@@ -19,46 +19,50 @@ vi.mock("@calcom/lib/logger", () => ({
 }));
 
 vi.mock("./RetellSDKClient", () => ({
-  RetellSDKClient: vi.fn().mockImplementation((logger) => ({
-    logger,
-    createLLM: vi.fn(),
-    getLLM: vi.fn(),
-    updateLLM: vi.fn(),
-    deleteLLM: vi.fn(),
-    createOutboundAgent: vi.fn(),
-    getAgent: vi.fn(),
-    updateAgent: vi.fn(),
-    deleteAgent: vi.fn(),
-    createPhoneNumber: vi.fn(),
-    importPhoneNumber: vi.fn(),
-    deletePhoneNumber: vi.fn(),
-    getPhoneNumber: vi.fn(),
-    updatePhoneNumber: vi.fn(),
-    createPhoneCall: vi.fn(),
-  })),
+  RetellSDKClient: vi.fn().mockImplementation(function (logger) {
+    return {
+      logger,
+      createLLM: vi.fn(),
+      getLLM: vi.fn(),
+      updateLLM: vi.fn(),
+      deleteLLM: vi.fn(),
+      createOutboundAgent: vi.fn(),
+      getAgent: vi.fn(),
+      updateAgent: vi.fn(),
+      deleteAgent: vi.fn(),
+      createPhoneNumber: vi.fn(),
+      importPhoneNumber: vi.fn(),
+      deletePhoneNumber: vi.fn(),
+      getPhoneNumber: vi.fn(),
+      updatePhoneNumber: vi.fn(),
+      createPhoneCall: vi.fn(),
+    };
+  }),
 }));
 
 vi.mock("./RetellAIPhoneServiceProvider", () => ({
   RetellAIPhoneServiceProvider: vi
     .fn()
-    .mockImplementation((repository, agentRepository, phoneNumberRepository, transactionManager) => ({
-      repository,
-      agentRepository,
-      phoneNumberRepository,
-      transactionManager,
-      setupConfiguration: vi.fn(),
-      deleteConfiguration: vi.fn(),
-      updateLLMConfiguration: vi.fn(),
-      getLLMDetails: vi.fn(),
-      getAgent: vi.fn(),
-      updateAgent: vi.fn(),
-      createPhoneCall: vi.fn(),
-      createPhoneNumber: vi.fn(),
-      deletePhoneNumber: vi.fn(),
-      getPhoneNumber: vi.fn(),
-      updatePhoneNumber: vi.fn(),
-      importPhoneNumber: vi.fn(),
-    })),
+    .mockImplementation(function (repository, agentRepository, phoneNumberRepository, transactionManager) {
+      return {
+        repository,
+        agentRepository,
+        phoneNumberRepository,
+        transactionManager,
+        setupConfiguration: vi.fn(),
+        deleteConfiguration: vi.fn(),
+        updateLLMConfiguration: vi.fn(),
+        getLLMDetails: vi.fn(),
+        getAgent: vi.fn(),
+        updateAgent: vi.fn(),
+        createPhoneCall: vi.fn(),
+        createPhoneNumber: vi.fn(),
+        deletePhoneNumber: vi.fn(),
+        getPhoneNumber: vi.fn(),
+        updatePhoneNumber: vi.fn(),
+        importPhoneNumber: vi.fn(),
+      };
+    }),
 }));
 
 vi.mock("../adapters/PrismaAgentRepositoryAdapter", () => ({
