@@ -17,11 +17,11 @@ import logger from "@calcom/lib/logger";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
 import { getTrackingFromCookies } from "@calcom/lib/tracking";
+import { buildLegacyRequest } from "@calcom/lib/server/buildLegacyCtx";
 import { prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
-import { buildLegacyRequest } from "@calcom/web/lib/buildLegacyCtx";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import {

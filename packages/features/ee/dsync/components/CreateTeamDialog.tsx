@@ -1,17 +1,26 @@
+import type { ComponentType } from "react";
+
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { DialogContent } from "@calcom/ui/components/dialog";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
-import { CreateANewTeamForm } from "@calcom/web/modules/ee/teams/components/CreateANewTeamForm";
+
+interface CreateANewTeamFormProps {
+  inDialog?: boolean;
+  submitLabel?: string;
+  onCancel?: () => void;
+  onSuccess?: () => void | Promise<void>;
+}
 
 interface CreateTeamDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  CreateANewTeamForm: ComponentType<CreateANewTeamFormProps>;
+  onSuccess?: () => void;
 }
 
 const CreateTeamDialog = (props: CreateTeamDialogProps) => {
-  const { open, onOpenChange } = props;
+  const { open, onOpenChange, CreateANewTeamForm, onSuccess } = props;
   const { t } = useLocale();
 
   const utils = trpc.useUtils();
@@ -25,7 +34,7 @@ const CreateTeamDialog = (props: CreateTeamDialogProps) => {
           onSuccess={async () => {
             await utils.viewer.dsync.teamGroupMapping.get.invalidate();
             await utils.viewer.teams.list.invalidate();
-            revalidateTeamsList();
+            onSuccess?.();
             onOpenChange(false);
           }}
         />

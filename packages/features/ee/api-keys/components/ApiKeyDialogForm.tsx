@@ -17,25 +17,26 @@ import { SelectField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { revalidateApiKeysList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
 
 export default function ApiKeyDialogForm({
   defaultValues,
   handleClose,
+  onSuccess,
 }: {
   defaultValues?: Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt"> & { neverExpires?: boolean };
   handleClose: () => void;
-}) {
+  onSuccess?: () => void;
+}){
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const updateApiKeyMutation = trpc.viewer.apiKeys.edit.useMutation({
-    onSuccess() {
-      utils.viewer.apiKeys.list.invalidate();
-      revalidateApiKeysList();
-      showToast(t("api_key_updated"), "success");
-      handleClose();
-    },
+    const updateApiKeyMutation = trpc.viewer.apiKeys.edit.useMutation({
+      onSuccess() {
+        utils.viewer.apiKeys.list.invalidate();
+        onSuccess?.();
+        showToast(t("api_key_updated"), "success");
+        handleClose();
+      },
     onError() {
       showToast(t("api_key_update_failed"), "error");
     },
@@ -142,14 +143,14 @@ export default function ApiKeyDialogForm({
           handleSubmit={async (event) => {
             if (defaultValues) {
               await updateApiKeyMutation.mutate({ id: defaultValues.id, note: event.note });
-            } else {
-              const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
-              setApiKey(apiKey);
-              setApiKeyDetails({ ...event });
-              await utils.viewer.apiKeys.list.invalidate();
-              revalidateApiKeysList();
-              setSuccessfulNewApiKeyModal(true);
-            }
+                        } else {
+                          const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
+                          setApiKey(apiKey);
+                          setApiKeyDetails({ ...event });
+                          await utils.viewer.apiKeys.list.invalidate();
+                          onSuccess?.();
+                          setSuccessfulNewApiKeyModal(true);
+                        }
           }}
           className="stack-y-4">
           <div className="mb-4 mt-1">
