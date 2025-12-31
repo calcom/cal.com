@@ -2,9 +2,11 @@
 import type { calendar_v3 } from "@googleapis/calendar";
 import type { GaxiosResponse } from "googleapis-common";
 import { RRule } from "rrule";
+import { v4 as uuid } from "uuid";
 
 import { MeetLocationType } from "@calcom/app-store/constants";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
+import { uniqueBy } from "@calcom/lib/array";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -31,6 +33,12 @@ const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/Calenda
 interface GoogleCalError extends Error {
   code?: number;
 }
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
+ 
+const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
+const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
 
 const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   typeof error === "object" && !!error && Object.prototype.hasOwnProperty.call(error, "config");
@@ -111,6 +119,50 @@ export default class GoogleCalendarService implements Calendar {
 
     return attendees;
   };
+
+  private async stopWatchingCalendarsInGoogle(
+    channels: { googleChannelResourceId: string | null; googleChannelId: string | null }[]
+  ) {
+    const calendar = await this.authedCalendar();
+    logger.debug(`Unsubscribing from calendars ${channels.map((c) => c.googleChannelId).join(", ")}`);
+    const uniqueChannels = uniqueBy(channels, ["googleChannelId", "googleChannelResourceId"]);
+    await Promise.allSettled(
+      uniqueChannels.map(({ googleChannelResourceId, googleChannelId }) =>
+        calendar.channels
+          .stop({
+            requestBody: {
+              resourceId: googleChannelResourceId,
+              id: googleChannelId,
+            },
+          })
+          .catch((err) => {
+            console.warn(JSON.stringify(err));
+          })
+      )
+    );
+  }
+
+  private async startWatchingCalendarsInGoogle({ calendarId }: { calendarId: string }) {
+    const calendar = await this.authedCalendar();
+    logger.debug(`Subscribing to calendar ${calendarId}`, safeStringify({ GOOGLE_WEBHOOK_URL }));
+
+    const res = await calendar.events.watch({
+      // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
+      calendarId,
+      requestBody: {
+        // A UUID or similar unique string that identifies this channel.
+        id: uuid(),
+        type: "web_hook",
+        address: GOOGLE_WEBHOOK_URL,
+        token: process.env.GOOGLE_WEBHOOK_TOKEN,
+        params: {
+          // The time-to-live in seconds for the notification channel. Default is 604800 seconds.
+          ttl: `${Math.round(ONE_MONTH_IN_MS / 1000)}`,
+        },
+      },
+    });
+    return res.data;
+  }
 
   async createEvent(
     calEvent: CalendarServiceEvent,
@@ -400,7 +452,9 @@ export default class GoogleCalendarService implements Calendar {
     return apiResponse.json;
   }
 
-  async getFreeBusyResult(args: FreeBusyArgs): Promise<calendar_v3.Schema$FreeBusyResponse> {
+  async getFreeBusyResult(
+    args: FreeBusyArgs,
+  ): Promise<calendar_v3.Schema$FreeBusyResponse> {
     return await this.fetchAvailability(args);
   }
 
@@ -417,7 +471,9 @@ export default class GoogleCalendarService implements Calendar {
     return validCals[0];
   }
 
-  async getFreeBusyData(args: FreeBusyArgs): Promise<(EventBusyDate & { id: string })[] | null> {
+  async getFreeBusyData(
+    args: FreeBusyArgs,
+  ): Promise<(EventBusyDate & { id: string })[] | null> {
     const freeBusyResult = await this.getFreeBusyResult(args);
     if (!freeBusyResult.calendars) return null;
 
@@ -548,12 +604,11 @@ export default class GoogleCalendarService implements Calendar {
 
   /**
    * Fetches availability data using the cache-or-fetch pattern
-   *
    */
   private async fetchAvailabilityData(
     calendarIds: string[],
     dateFrom: string,
-    dateTo: string
+    dateTo: string,
   ): Promise<EventBusyDate[]> {
     // More efficient date difference calculation using native Date objects
     // Use Math.floor to match dayjs diff behavior (truncates, doesn't round up)
@@ -564,11 +619,13 @@ export default class GoogleCalendarService implements Calendar {
 
     // Google API only allows a date range of 90 days for /freebusy
     if (diff <= 90) {
-      const freeBusyData = await this.getFreeBusyData({
-        timeMin: dateFrom,
-        timeMax: dateTo,
-        items: calendarIds.map((id) => ({ id })),
-      });
+      const freeBusyData = await this.getFreeBusyData(
+        {
+          timeMin: dateFrom,
+          timeMax: dateTo,
+          items: calendarIds.map((id) => ({ id })),
+        }
+      );
 
       if (!freeBusyData) throw new Error("No response from google calendar");
       return freeBusyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
@@ -590,11 +647,13 @@ export default class GoogleCalendarService implements Calendar {
         currentEndTime = originalEndTime;
       }
 
-      const chunkData = await this.getFreeBusyData({
-        timeMin: new Date(currentStartTime).toISOString(),
-        timeMax: new Date(currentEndTime).toISOString(),
-        items: calendarIds.map((id) => ({ id })),
-      });
+      const chunkData = await this.getFreeBusyData(
+        {
+          timeMin: new Date(currentStartTime).toISOString(),
+          timeMax: new Date(currentEndTime).toISOString(),
+          items: calendarIds.map((id) => ({ id })),
+        }
+      );
 
       if (chunkData) {
         busyData.push(...chunkData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end })));

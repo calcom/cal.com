@@ -28,6 +28,8 @@ export const NewApiKeyButton = () => {
     <Button
       color="secondary"
       StartIcon="plus"
+      size="sm"
+      variant="fab"
       onClick={() => {
         apiKeyModalRef.current?.(true);
         apiKeyToEditRef.current?.(undefined);

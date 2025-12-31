@@ -12,7 +12,9 @@ import GoogleProvider from "next-auth/providers/google";
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import type { TrackingData } from "@calcom/lib/tracking";
 import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
@@ -456,9 +458,12 @@ const mapIdentityProvider = (providerName: string) => {
 
 export const getOptions = ({
   getDubId,
+  getTrackingData,
 }: {
   /** so we can extract the Dub cookie in both pages and app routers */
   getDubId: () => string | undefined;
+  /** Ad tracking data for Stripe customer metadata */
+  getTrackingData: () => TrackingData;
 }): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -596,14 +601,14 @@ export const getOptions = ({
           org:
             profileOrg && !profileOrg.isPlatform
               ? {
-                  id: profileOrg.id,
-                  name: profileOrg.name,
-                  slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
-                  logoUrl: profileOrg.logoUrl,
-                  fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
-                  domainSuffix: subdomainSuffix(),
-                  role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
-                }
+                id: profileOrg.id,
+                name: profileOrg.name,
+                slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                logoUrl: profileOrg.logoUrl,
+                fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
+                domainSuffix: subdomainSuffix(),
+                role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
+              }
               : null,
         } as JWT;
       };
@@ -1066,11 +1071,12 @@ export const getOptions = ({
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
         try {
+          const newUsername = orgId ? slugify(orgUsername) : usernameSlug(user.name);
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
               // prevent conflicts for users with the same name.
-              username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
+              username: newUsername,
               emailVerified: new Date(Date.now()),
               name: user.name,
               ...(user.image && { avatarUrl: user.image }),
@@ -1093,6 +1099,40 @@ export const getOptions = ({
             user.email
           );
           await calcomAdapter.linkAccount(linkAccountNewUserData);
+
+          waitUntil(
+            (async () => {
+              try {
+                const tracking = getTrackingData();
+                const billingService = getBillingProviderService();
+                const customer = await billingService.createCustomer({
+                  email: newUser.email,
+                  metadata: {
+                    email: newUser.email,
+                    username: newUser.username ?? newUsername,
+                    ...(tracking.googleAds?.gclid && {
+                      gclid: tracking.googleAds.gclid,
+                      campaignId: tracking.googleAds.campaignId,
+                    }),
+                    ...(tracking.linkedInAds?.liFatId && {
+                      liFatId: tracking.linkedInAds.liFatId,
+                      linkedInCampaignId: tracking.linkedInAds.campaignId,
+                    }),
+                  },
+                });
+                await prisma.user.update({
+                  where: { id: newUser.id },
+                  data: {
+                    metadata: {
+                      stripeCustomerId: customer.stripeCustomerId,
+                    },
+                  },
+                });
+              } catch (err) {
+                log.error("Failed to create Stripe customer with tracking", err);
+              }
+            })()
+          );
 
           if (account.twoFactorEnabled) {
             return loginWithTotp(newUser.email);

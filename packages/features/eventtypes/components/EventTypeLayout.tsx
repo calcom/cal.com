@@ -5,7 +5,6 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
-import WebShell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
@@ -28,6 +27,7 @@ import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import WebShell from "@calcom/web/modules/shell/Shell";
 
 import { Shell as PlatformShell } from "../../../platform/atoms/src/components/ui/shell";
 import { DeleteDialog } from "./dialogs/DeleteDialog";
@@ -276,11 +276,12 @@ function EventTypeSingleLayout({
           </Button>
         </div>
       }>
-      <Suspense fallback={
-        <div className="flex h-64 items-center justify-center">
-          <Icon name="loader" className="h-5 w-5 animate-spin" />
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div className="flex h-64 items-center justify-center">
+            <Icon name="loader" className="h-5 w-5 animate-spin" />
+          </div>
+        }>
         <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs
