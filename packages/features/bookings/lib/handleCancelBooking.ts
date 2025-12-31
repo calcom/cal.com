@@ -1,4 +1,3 @@
-import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import {
   generateRecurringInstances,
   normalizeDateForComparison,
@@ -32,6 +31,7 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { sendMobileNotification } from "@calcom/lib/notifications";
+import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
@@ -63,7 +63,7 @@ type PlatformParams = {
   arePlatformEmailsEnabled?: boolean;
 };
 
-export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
+export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>> & { attendees: any };
 
 export type CancelBookingInput = {
   userId?: number;
@@ -289,7 +289,7 @@ async function handler(input: CancelBookingInput) {
 
     const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
 
-  if (!userIsHost && !userIsOwnerOfEventType) {
+    if (!userIsHost && !userIsOwnerOfEventType) {
       throw new HttpError({ statusCode: 401, message: "User not a host of this event" });
     }
   }
@@ -440,12 +440,26 @@ async function handler(input: CancelBookingInput) {
   if (!!seatReferenceUid) {
     log.debug("Handling cancellation for seated event", { seatReferenceUid });
     const webhooks = await getWebhooks(subscriberOptions);
+
     const response = await cancelAttendeeSeat(
       { seatReferenceUid, bookingToDelete },
       { evt, eventTypeInfo, webhooks },
       bookingToDelete.eventType?.metadata as EventTypeMetadata
     );
-    return response;
+
+    if (response) {
+      if (response.error) {
+        return response;
+      } else {
+        return {
+          success: true,
+          onlyRemovedAttendee: true,
+          bookingId: bookingToDelete.id,
+          bookingUid: bookingToDelete.uid,
+          message: "Attendee successfully removed.",
+        } satisfies HandleCancelBookingResponse;
+      }
+    }
   }
 
   // Handle workflows
@@ -613,7 +627,7 @@ async function handler(input: CancelBookingInput) {
     updatedBookings.push(updatedBooking);
     //Refund is handled below using bookingCancelPaymentHandler
 
-    console.log("Processing payment refund start")
+    console.log("Processing payment refund start");
 
     if (!!bookingToDelete.payment.length) {
       await processPaymentRefund({

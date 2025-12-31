@@ -40,11 +40,20 @@ async function cancelAttendeeSeat(
   const input = bookingCancelAttendeeSeatSchema.safeParse({
     seatReferenceUid: data.seatReferenceUid,
   });
+
+
   const { webhooks, evt, eventTypeInfo } = dataForWebhooks;
-  if (!input.success) return;
+  if (!input.success) {
+    console.log("Seat cancellation schema not parseable");
+    return { error: "Seat cancellation schema not parseable" };
+  }
+
   const { seatReferenceUid } = input.data;
   const bookingToDelete = data.bookingToDelete;
-  if (!bookingToDelete?.attendees.length || bookingToDelete.attendees.length < 2) return;
+  if (!bookingToDelete?.attendees.length || bookingToDelete.attendees.length < 2) {
+    console.log("Attendees length less than 2, skipping seat cancellation");
+    return ;
+  }
 
   if (!bookingToDelete.userId) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
