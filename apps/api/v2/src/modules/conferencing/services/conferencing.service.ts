@@ -1,29 +1,32 @@
-import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
-import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
-import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
-import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
-import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import {
+  CAL_VIDEO,
+  CONFERENCING_APPS,
+  GOOGLE_MEET,
+  OFFICE_365_VIDEO,
+  ZOOM,
+} from "@calcom/platform-constants";
+import { userMetadata } from "@calcom/platform-libraries";
+import {
+  getApps,
+  getUsersCredentialsIncludeServiceAccountKey,
+  handleDeleteCredential,
+} from "@calcom/platform-libraries/app-store";
 import {
   BadRequestException,
+  Injectable,
   InternalServerErrorException,
   Logger,
   UnauthorizedException,
 } from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
-
-import {
-  CONFERENCING_APPS,
-  CAL_VIDEO,
-  GOOGLE_MEET,
-  ZOOM,
-  OFFICE_365_VIDEO,
-} from "@calcom/platform-constants";
-import { userMetadata } from "@calcom/platform-libraries";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
-import { getApps, handleDeleteCredential } from "@calcom/platform-libraries/app-store";
+import type { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
+import type { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
+import type { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
+import type { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
+import type { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
+import type { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import type { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import type { TokensRepository } from "@/modules/tokens/tokens.repository";
+import type { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 
 @Injectable()
 export class ConferencingService {
@@ -35,7 +38,9 @@ export class ConferencingService {
     private readonly tokensRepository: TokensRepository,
     private readonly googleMeetService: GoogleMeetService,
     private readonly zoomVideoService: ZoomVideoService,
-    private readonly office365VideoService: Office365VideoService
+    private readonly office365VideoService: Office365VideoService,
+    private readonly oAuthClientRepository: OAuthClientRepository,
+    private readonly membershipsRepository: MembershipsRepository
   ) {}
 
   async getConferencingApps(userId: number) {
@@ -44,9 +49,10 @@ export class ConferencingService {
 
   async connectUserNonOauthApp(app: string, userId: number) {
     switch (app) {
-      case GOOGLE_MEET:
+      case GOOGLE_MEET: {
         const credential = await this.googleMeetService.connectGoogleMeetToUser(userId);
         return credential;
+      }
       default:
         throw new BadRequestException("Invalid conferencing app. Available apps: GOOGLE_MEET.");
     }
@@ -58,9 +64,26 @@ export class ConferencingService {
     decodedCallbackState: OAuthCallbackState,
     teamId?: number
   ) {
-    const userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
+    // Determine user ID based on authentication method stored in state
+    let userId: number | undefined;
+
+    if (decodedCallbackState.accessToken) {
+      // Standard flow: get user from access token
+      userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
+    } else if (decodedCallbackState.oAuthClientId) {
+      // OAuth client credentials flow: get platform owner/admin from OAuth client
+      const oAuthClient = await this.oAuthClientRepository.getOAuthClient(decodedCallbackState.oAuthClientId);
+      if (!oAuthClient) {
+        throw new UnauthorizedException("Invalid OAuth client ID in callback state");
+      }
+
+      userId =
+        (await this.membershipsRepository.findPlatformOwnerUserId(oAuthClient.organizationId)) ||
+        (await this.membershipsRepository.findPlatformAdminUserId(oAuthClient.organizationId));
+    }
+
     if (!userId) {
-      throw new UnauthorizedException("Invalid Access token.");
+      throw new UnauthorizedException("Unable to determine user for conferencing app setup");
     }
     switch (app) {
       case ZOOM:
