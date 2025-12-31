@@ -41,6 +41,7 @@
     "dist"
   ],
   "devDependencies": {
+    "@biomejs/biome": "2.3.10",
     "@playwright/test": "1.57.0",
     "@tailwindcss/cli": "4.1.16",
     "@tailwindcss/postcss": "4.1.15",

@@ -3493,6 +3493,7 @@
   "last_active": "Остання активність",
   "member_since": "Учасник з",
   "last_updated": "Останнє оновлення",
+  "completed_onboarding": "Онбординг завершено",
   "salesforce_on_cancel_write_to_event": "При скасуванні бронювання, записувати в запис події замість видалення події",
   "salesforce_on_every_cancellation": "При кожному скасуванні",
   "report_issue": "Повідомити про проблему",

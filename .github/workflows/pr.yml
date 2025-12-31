@@ -242,44 +242,46 @@ jobs:
             const labelFound = labels.map(l => l.name).includes('ready-for-e2e');
             console.log('Found the label?', labelFound);
             core.setOutput('run-e2e', labelFound);
-
-  deps:
-    name: Install dependencies
-    needs: [prepare]
-    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/yarn-install.yml
+      - uses: ./.github/actions/yarn-install
+        if: ${{ steps.filter.outputs.has-files-requiring-all-checks == 'true' }}
+        with:
+          skip-install-if-cache-hit: "true"
+      - uses: ./.github/actions/yarn-playwright-install
+        if: ${{ steps.filter.outputs.has-files-requiring-all-checks == 'true' }}
+        with:
+          skip-install-if-cache-hit: "true"
 
   type-check:
     name: Type check
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   lint:
     name: Linters
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   unit-test:
     name: Tests
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
   api-v2-unit-test:
     name: Tests
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-unit-tests.yml
     secrets: inherit
 
   setup-db:
     name: Setup Database
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/setup-db.yml
     with:
@@ -288,28 +290,28 @@ jobs:
 
   build-api-v1:
     name: Production builds
-    needs: [prepare, deps, setup-db]
+    needs: [prepare, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
 
   build-api-v2:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
 
   build-atoms:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/atoms-production-build.yml
     secrets: inherit
 
   build-docs:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/docs-build.yml
     secrets: inherit
@@ -323,7 +325,7 @@ jobs:
 
   build:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
@@ -344,7 +346,7 @@ jobs:
 
   check-api-v2-breaking-changes:
     name: Check API v2 breaking changes
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-api-v2-breaking-changes.yml
     secrets: inherit

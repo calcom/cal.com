@@ -30,6 +30,7 @@
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.3.10",
     "@tanstack/react-query": "5.17.19",
     "@types/cookie": "0.6.0",
     "@types/uuid": "8.3.4",

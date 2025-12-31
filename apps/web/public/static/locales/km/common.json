@@ -3493,6 +3493,7 @@
   "last_active": "សកម្មភាពចុងក្រោយ",
   "member_since": "ជាសមាជិកតាំងពី",
   "last_updated": "បានធ្វើបច្ចុប្បន្នភាពចុងក្រោយ",
+  "completed_onboarding": "បានបញ្ចប់ការណែនាំ",
   "salesforce_on_cancel_write_to_event": "នៅពេលលុបចោលការកក់ សូមសរសេរទៅកាន់កំណត់ត្រាព្រឹត្តិការណ៍ជំនួសឱ្យការលុបព្រឹត្តិការណ៍",
   "salesforce_on_every_cancellation": "នៅរាល់ពេលលុបចោល",
   "report_issue": "រាយការណ៍បញ្ហា",
