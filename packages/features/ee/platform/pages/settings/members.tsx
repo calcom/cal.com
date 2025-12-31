@@ -1,52 +1,17 @@
 "use client";
 
-import type { ComponentType, ReactNode } from "react";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import NoPlatformPlan from "@calcom/web/components/settings/platform/dashboard/NoPlatformPlan";
+import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
+import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
+import { UserListTable } from "@calcom/web/modules/users/components/UserTable/UserListTable";
+import type { UserListTableProps } from "@calcom/web/modules/users/components/UserTable/UserListTable";
+import { UserListTableSkeleton } from "@calcom/web/modules/users/components/UserTable/UserListTableSkeleton";
 
-interface UserListTablePropsBase {
-  org: {
-    isPrivate: boolean;
-    user: {
-      role: string;
-    };
-  };
-}
-
-interface UserAttributesResult {
-  isUserLoading: boolean;
-  isUserBillingDataLoading: boolean;
-  isPlatformUser: boolean;
-  isPaidUser: boolean;
-  userBillingData: unknown;
-  userOrgId: number | null;
-}
-
-interface PlatformPricingProps {
-  teamId: number | null;
-  heading: ReactNode;
-}
-
-interface PlatformMembersViewProps<T extends UserListTablePropsBase> {
-  tableProps: Omit<T, "facetedTeamValues" | "attributes">;
-  UserListTable: ComponentType<Omit<T, "facetedTeamValues" | "attributes">>;
-  UserListTableSkeleton: ComponentType;
-  PlatformPricing: ComponentType<PlatformPricingProps>;
-  NoPlatformPlan: ComponentType;
-  useGetUserAttributes: () => UserAttributesResult;
-}
-
-function PlatformMembersView<T extends UserListTablePropsBase>({
-  tableProps,
-  UserListTable,
-  UserListTableSkeleton,
-  PlatformPricing,
-  NoPlatformPlan,
-  useGetUserAttributes,
-}: PlatformMembersViewProps<T>) {
+const PlatformMembersView = (props: Omit<UserListTableProps, "facetedTeamValues" | "attributes">) => {
   const { isUserLoading, isUserBillingDataLoading, isPlatformUser, isPaidUser, userBillingData, userOrgId } =
     useGetUserAttributes();
-  const currentOrg = tableProps.org;
+  const currentOrg = props.org;
   const isOrgAdminOrOwner = currentOrg && checkAdminOrOwner(currentOrg.user.role);
 
   const canLoggedInUserSeeMembers =
@@ -69,11 +34,10 @@ function PlatformMembersView<T extends UserListTablePropsBase>({
     );
 
   return isPlatformUser ? (
-    <div>{canLoggedInUserSeeMembers && <UserListTable {...tableProps} />}</div>
+    <div>{canLoggedInUserSeeMembers && <UserListTable {...props} />}</div>
   ) : (
     <NoPlatformPlan />
   );
-}
+};
 
 export default PlatformMembersView;
-export type { PlatformMembersViewProps, UserListTablePropsBase, UserAttributesResult, PlatformPricingProps };

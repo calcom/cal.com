@@ -7,9 +7,7 @@ interface GeoContextValue {
   country: string;
 }
 
-const GeoContext: React.Context<GeoContextValue | undefined> = createContext<
-  GeoContextValue | undefined
->(undefined);
+const GeoContext = createContext<GeoContextValue | undefined>(undefined);
 
 export function GeoProvider({
   country,
@@ -17,7 +15,7 @@ export function GeoProvider({
 }: {
   country: string;
   children: ReactNode;
-}): ReactNode {
+}): JSX.Element {
   return <GeoContext.Provider value={{ country }}>{children}</GeoContext.Provider>;
 }
 
