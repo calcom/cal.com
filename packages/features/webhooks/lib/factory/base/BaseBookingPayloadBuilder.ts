@@ -34,6 +34,7 @@ export interface BookingPayloadParams<T extends keyof BookingExtraDataMap> {
     eventTypeId: number | null;
     userId: number | null;
     smsReminderNumber?: string | null;
+    oneTimePassword?: string | null;
   };
   eventType: EventTypeInfo;
   evt: CalendarEvent;
