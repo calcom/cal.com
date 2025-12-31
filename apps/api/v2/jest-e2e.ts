@@ -18,7 +18,6 @@ const getMaxWorkers = () => {
 const maxWorkers = getMaxWorkers();
 
 const config: Config = {
-  preset: "ts-jest",
   moduleFileExtensions: ["js", "json", "ts"],
   rootDir: ".",
   moduleNameMapper: {
