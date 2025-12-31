@@ -54,7 +54,7 @@ export interface WatchlistOperationsScope {
 type Deps = {
   watchlistRepo: WatchlistRepository;
   bookingReportRepo: PrismaBookingReportRepository;
-  scheduleBlockingService?: ScheduleBlockingService;
+  scheduleBlockingService: ScheduleBlockingService;
 };
 
 export abstract class WatchlistOperationsService {
@@ -140,24 +140,22 @@ export abstract class WatchlistOperationsService {
       status: "BLOCKED",
     });
 
-    if (this.deps.scheduleBlockingService) {
-      try {
-        const uniqueValues = Array.from(new Set(Array.from(normalizedValues.values())));
+    try {
+      const uniqueValues = Array.from(new Set(Array.from(normalizedValues.values())));
 
-        if (input.type === WatchlistType.EMAIL) {
-          await this.deps.scheduleBlockingService.blockSchedulesByEmails(uniqueValues);
-        } else {
-          for (const domain of uniqueValues) {
-            await this.deps.scheduleBlockingService.blockSchedulesByDomain(domain);
-          }
+      if (input.type === WatchlistType.EMAIL) {
+        await this.deps.scheduleBlockingService.blockSchedulesByEmails(uniqueValues);
+      } else {
+        for (const domain of uniqueValues) {
+          await this.deps.scheduleBlockingService.blockSchedulesByDomain(domain);
         }
-      } catch (error) {
-        this.log.error("Failed to block schedules after bulk watchlist entry creation", {
-          type: input.type,
-          count: results.length,
-          error: error instanceof Error ? error.message : String(error),
-        });
       }
+    } catch (error) {
+      this.log.error("Failed to block schedules after bulk watchlist entry creation", {
+        type: input.type,
+        count: results.length,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
 
     return {
@@ -186,16 +184,14 @@ export abstract class WatchlistOperationsService {
       isGlobal: scope.isGlobal,
     });
 
-    if (this.deps.scheduleBlockingService) {
-      try {
-        await this.deps.scheduleBlockingService.handleWatchlistBlock(input.type, normalizedValue);
-      } catch (error) {
-        this.log.error("Failed to block schedules after watchlist entry creation", {
-          entryId: entry.id,
-          type: input.type,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
+    try {
+      await this.deps.scheduleBlockingService.handleWatchlistBlock(input.type, normalizedValue);
+    } catch (error) {
+      this.log.error("Failed to block schedules after watchlist entry creation", {
+        entryId: entry.id,
+        type: input.type,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
 
     return {
@@ -215,16 +211,14 @@ export abstract class WatchlistOperationsService {
 
     await this.deps.watchlistRepo.deleteEntry(input.entryId, input.userId);
 
-    if (this.deps.scheduleBlockingService) {
-      try {
-        await this.deps.scheduleBlockingService.handleWatchlistUnblock(type, value);
-      } catch (error) {
-        this.log.error("Failed to unblock schedules after watchlist entry deletion", {
-          entryId: input.entryId,
-          type,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
+    try {
+      await this.deps.scheduleBlockingService.handleWatchlistUnblock(type, value);
+    } catch (error) {
+      this.log.error("Failed to unblock schedules after watchlist entry deletion", {
+        entryId: input.entryId,
+        type,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
 
     return {
