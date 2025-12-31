@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Ștergerea unei programări o va elimina din toate tipurile de evenimente. Această acțiune nu poate fi anulată.",
   "schedule_created_successfully": "Programul {{scheduleName}} a fost creat cu succes",
   "availability_updated_successfully": "Disponibilitatea actualizată cu succes",
+  "bulk_updated_schedule_successfully": "Tipurile de evenimente selectate au fost actualizate în bloc cu programul implicit",
   "schedule_deleted_successfully": "Program șters cu succes",
   "default_schedule_name": "Program de lucru",
   "new_schedule_heading": "Creați un program de disponibilitate",

@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Az ütemezés törlésével eltávolítja az összes eseménytípusból. Ez a művelet nem visszavonható.",
   "schedule_created_successfully": "{{scheduleName}} ütemezés sikeresen létrehozva",
   "availability_updated_successfully": "{{scheduleName}} ütemezése sikeresen frissítve",
+  "bulk_updated_schedule_successfully": "A kiválasztott eseménytípusok sikeresen frissítve az alapértelmezett ütemezéssel",
   "schedule_deleted_successfully": "Az ütemezés sikeresen törölve",
   "default_schedule_name": "Munkaórák",
   "new_schedule_heading": "Készítsen elérhetőségi ütemtervet",

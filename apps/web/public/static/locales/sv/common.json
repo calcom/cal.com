@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Om du tar bort ett schema, tas det bort från alla händelsetyper. Åtgärden kan inte ångras.",
   "schedule_created_successfully": "{{scheduleName}}-schemat har skapats",
   "availability_updated_successfully": "Schemat för {{scheduleName}} har uppdaterats",
+  "bulk_updated_schedule_successfully": "Valda eventtyper har massuppdaterats med standardschema",
   "schedule_deleted_successfully": "Schemat har tagits bort",
   "default_schedule_name": "Arbetstider",
   "new_schedule_heading": "Skapa ett tillgänglighetsschema",

@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Odstránením rozvrhu ho odstránite zo všetkých typov udalostí. Táto akcia sa nedá vrátiť späť.",
   "schedule_created_successfully": "Rozvrh {{scheduleName}} bol úspešne vytvorený",
   "availability_updated_successfully": "Rozvrh {{scheduleName}} bol úspešne aktualizovaný",
+  "bulk_updated_schedule_successfully": "Hromadne aktualizované vybraté typy udalostí s predvoleným rozpisom",
   "schedule_deleted_successfully": "Rozvrh bol úspešne odstránený",
   "default_schedule_name": "Pracovné hodiny",
   "new_schedule_heading": "Vytvoriť rozvrh dostupnosti",
