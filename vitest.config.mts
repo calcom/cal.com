@@ -7,25 +7,34 @@ process.env.INTEGRATION_TEST_MODE = "true";
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: {
+    alias: [
+      // Mock generated files that may not exist in CI (must come before general aliases)
+      {
+        find: "@calcom/web/public/app-store/svg-hashes.json",
+        replacement: path.resolve(__dirname, "vitest-mocks/svg-hashes.json"),
+      },
+      {
+        find: /^\.\/tailwind\.generated\.css\?inline$/,
+        replacement: path.resolve(__dirname, "vitest-mocks/tailwind.generated.css"),
+      },
       // Alias Node.js built-ins for jsdom environment
-      crypto: "node:crypto",
+      { find: "crypto", replacement: "node:crypto" },
       // API v1 path alias
-      "~": path.resolve(__dirname, "apps/api/v1"),
+      { find: "~", replacement: path.resolve(__dirname, "apps/api/v1") },
       // apps/web path aliases
-      "@lib": path.resolve(__dirname, "apps/web/lib"),
-      "app": path.resolve(__dirname, "apps/web/app"),
-      "@calcom/web": path.resolve(__dirname, "apps/web"),
-      // Mock generated files that may not exist in CI
-      "@calcom/web/public/app-store/svg-hashes.json": path.resolve(
-        __dirname,
-        "vitest-mocks/svg-hashes.json"
-      ),
-      "./tailwind.generated.css?inline": path.resolve(
-        __dirname,
-        "vitest-mocks/tailwind.generated.css"
-      ),
-    },
+      { find: "@lib", replacement: path.resolve(__dirname, "apps/web/lib") },
+      { find: "app", replacement: path.resolve(__dirname, "apps/web/app") },
+      { find: "@calcom/web", replacement: path.resolve(__dirname, "apps/web") },
+      // Platform packages that need to be resolved from source in CI
+      {
+        find: "@calcom/platform-constants",
+        replacement: path.resolve(__dirname, "packages/platform/constants/index.ts"),
+      },
+      {
+        find: "@calcom/embed-react",
+        replacement: path.resolve(__dirname, "packages/embeds/embed-react/src/index.ts"),
+      },
+    ],
   },
   test: {
     globals: true,
