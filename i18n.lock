@@ -1296,6 +1296,7 @@ checksums:
     delete_schedule_description: fa1613734f70a118ce68cb6ec922a6ad
     schedule_created_successfully: aa2f4ecee93fb44baa2fcebe66d1d212
     availability_updated_successfully: cad652a630c3b1cc4dcfb2aaa60043f3
+    bulk_updated_schedule_successfully: 1964d60cc976fad5b66d489b113f9b89
     schedule_deleted_successfully: fe6e460999c4dd4a9b60a3f4d9578737
     default_schedule_name: ba5a9d4aeb2115431906be1fa91f14d3
     new_schedule_heading: c3d0781d91be1cf6cab5241f7445628f

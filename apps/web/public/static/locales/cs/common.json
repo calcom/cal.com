@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Odstraněný plán bude odstraněn ze všech typů událostí. Tuto akci nelze vrátit zpět.",
   "schedule_created_successfully": "Plán {{scheduleName}} byl úspěšně vytvořen",
   "availability_updated_successfully": "Plán {{scheduleName}} byl úspěšně aktualizován",
+  "bulk_updated_schedule_successfully": "Hromadně aktualizované vybrané typy událostí s výchozím rozvrhem",
   "schedule_deleted_successfully": "Plán byl úspěšně odstraněn",
   "default_schedule_name": "Pracovní doba",
   "new_schedule_heading": "Vytvořit plán dostupnosti",

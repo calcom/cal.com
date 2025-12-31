@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "L'eliminazione di una pianificazione comporterà la sua rimozione da tutti i tipi di eventi. L'azione non può essere annullata.",
   "schedule_created_successfully": "Programma {{scheduleName}} creato",
   "availability_updated_successfully": "Disponibilità aggiornata con successo",
+  "bulk_updated_schedule_successfully": "Aggiornamento di massa completato per i tipi di evento selezionati con la pianificazione predefinita",
   "schedule_deleted_successfully": "Programma eliminato",
   "default_schedule_name": "Orario lavorativo",
   "new_schedule_heading": "Crea un programma di disponibilità",
