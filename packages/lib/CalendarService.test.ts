@@ -103,4 +103,33 @@ describe("BaseCalendarService", () => {
 
     expect(iCalString).toContain("ORGANIZER;SCHEDULE-AGENT=CLIENT:mailto:test@example.com");
   });
+
+  it("should deduplicate attendees by email", async () => {
+    const service = new TestCalendarService();
+    (createIcsEvent as any).mockReturnValue({ error: null, value: "mock-ics" });
+
+    const event = {
+      title: "Test Event",
+      startTime: "2023-01-01T10:00:00Z",
+      endTime: "2023-01-01T11:00:00Z",
+      organizer: { name: "Test", email: "test@example.com" },
+      attendees: [{ name: "Duplicate", email: "duplicate@example.com" }],
+      team: {
+        members: [{ name: "Duplicate", email: "duplicate@example.com" }, { name: "Unique", email: "unique@example.com" }]
+      }
+    } as any;
+
+    await service.createEvent(event, 1);
+
+    const icsCallArgs = (createIcsEvent as any).mock.calls[0][0];
+    const attendees = icsCallArgs.attendees;
+
+    // Should have 2 unique attendees (duplicate@example.com and unique@example.com)
+    expect(attendees).toHaveLength(2);
+    const emails = attendees.map((a: any) => a.email);
+    expect(emails).toContain("duplicate@example.com");
+    expect(emails).toContain("unique@example.com");
+    // Verify count of duplicate@example.com is exactly 1
+    expect(emails.filter(e => e === "duplicate@example.com")).toHaveLength(1);
+  });
 });

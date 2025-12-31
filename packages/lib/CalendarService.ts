@@ -136,7 +136,12 @@ export default abstract class BaseCalendarService implements Calendar {
       attendees.push(...mapAttendees(teamAttendeesWithoutCurrentUser));
     }
 
-    return attendees;
+    // Deduplicate attendees by email
+    const uniqueAttendees = Array.from(
+      new Map(attendees.map((attendee) => [attendee.email, attendee])).values()
+    );
+
+    return uniqueAttendees;
   }
 
   async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
