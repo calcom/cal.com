@@ -23,7 +23,6 @@ import {
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import {
-  sendRescheduledEmailsAndSMS,
   sendRoundRobinCancelledEmailsAndSMS,
   sendRoundRobinRescheduledEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
@@ -1927,16 +1926,19 @@ async function handler(
         }
       } else {
         if (!isDryRun) {
-          // send normal rescheduled emails (non round robin event, where organizers stay the same)
-          await sendRescheduledEmailsAndSMS(
-            {
+          // Send rescheduled emails asynchronously via Inngest to improve reschedule response time
+          await triggerBookingEmailsInngest({
+            calEvent: {
               ...copyEvent,
               additionalInformation: metadata,
               additionalNotes, // Resets back to the additionalNote input and not the override value
               cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
             },
-            eventType?.metadata
-          );
+            isHostConfirmationEmailsDisabled: false,
+            isAttendeeConfirmationEmailDisabled: false,
+            eventTypeMetadata: eventType?.metadata,
+            emailType: "rescheduled",
+          });
         }
       }
     }
