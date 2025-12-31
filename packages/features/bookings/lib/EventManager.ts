@@ -282,7 +282,6 @@ export default class EventManager {
    * @param event
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
-    // TODO this method shouldn't be modifying the event object that's passed in
     const evt = processLocation(event);
 
     // Fallback to cal video if no location is set
@@ -322,36 +321,48 @@ export default class EventManager {
         evt["conferenceCredentialId"] = undefined;
       }
     }
-
+    // isDecidated checks if the location is a dedicated video conferencing integration
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+    const locationString = typeof evt.location === 'object' && evt.location !== null
+      ? (evt.location as { value?: string }).value
+      : evt.location;
     const isMSTeamsWithOutlookCalendar =
-      evt.location === MSTeamsLocationType &&
+      locationString === MSTeamsLocationType &&
       mainHostDestinationCalendar?.integration === "office365_calendar";
 
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
 
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     // If the event is a Microsoft Teams meeting with Outlook Calendar, do not create a MSTeams video event, create calendar event will take care.
-    if (isDedicated && !isMSTeamsWithOutlookCalendar) {
-      const result = await this.createVideoEvent(evt);
+    if (isDedicated) {
+      if (isMSTeamsWithOutlookCalendar) {
+        log.debug("skipping dedicated video event creation for MSTeams meeting with Outlook Calendar");
+      } else {
+        const videoCredential = this.videoCredentials.find(c => c.type === "office365_video");
 
-      if (result?.createdEvent) {
-        evt.videoCallData = result.createdEvent;
-        evt.location = result.originalEvent.location;
-        result.type = result.createdEvent.type;
-        //responses data is later sent to webhook
-        if (evt.location && evt.responses) {
-          evt.responses["location"] = {
-            ...(evt.responses["location"] ?? {}),
-            value: {
-              optionValue: "",
-              value: evt.location,
-            },
-          };
+        if (!videoCredential) {
+          log.warn("MS Teams selected but no office365_video credential found.");
         }
-      }
 
-      results.push(result);
+        const result = await this.createVideoEvent(evt);
+
+        if (result?.createdEvent) {
+          evt.videoCallData = result.createdEvent;
+          evt.location = result.originalEvent.location;
+          result.type = result.createdEvent.type;
+          if (evt.location && evt.responses) {
+            evt.responses["location"] = {
+              ...(evt.responses["location"] ?? {}),
+              value: {
+                value: evt.location,
+                optionValue: "",
+              },
+            };
+          }
+        }
+
+        results.push(result);
+      }
     }
 
     // Some calendar libraries may edit the original event so let's clone it
@@ -359,7 +370,8 @@ export default class EventManager {
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
 
-    if (evt.location === MSTeamsLocationType) {
+    if (locationString === MSTeamsLocationType) {
+      log.info("UPDATE_TEAMS_DATA:", results.map(r => ({ type: r.type, hasUrl: !!r.createdEvent?.url })));
       this.updateMSTeamsVideoCallData(evt, results);
     }
 
@@ -388,6 +400,7 @@ export default class EventManager {
         thirdPartyRecurringEventId = result.createdEvent?.thirdPartyRecurringEventId;
       }
 
+
       return {
         type: result.type,
         uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
@@ -399,6 +412,8 @@ export default class EventManager {
         ...getCredentialPayload(result),
       };
     });
+
+    log.info("FINAL_REFS:", referencesToCreate.map(r => ({ type: r.type, hasUrl: !!r.meetingUrl })));
 
     return {
       results,
