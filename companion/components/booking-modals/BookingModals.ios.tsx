@@ -29,7 +29,7 @@ interface BookingModalsProps {
   rejectReason: string;
   isDeclining: boolean;
   onRejectClose: () => void;
-  onRejectSubmit: () => void;
+  onRejectSubmit: (reason?: string) => void;
   onRejectReasonChange: (reason: string) => void;
 
   showFilterModal?: boolean;
@@ -65,7 +65,7 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
   isDeclining,
   onRejectClose,
   onRejectSubmit,
-  onRejectReasonChange,
+
   showFilterModal,
   eventTypes,
   eventTypesLoading,
@@ -117,12 +117,8 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
             style: "destructive",
             onPress: (reason?: string) => {
               hasShownRejectAlert.current = false;
-              if (reason !== undefined) {
-                onRejectReasonChange(reason);
-              }
-              setTimeout(() => {
-                onRejectSubmit();
-              }, 0);
+              // Pass reason directly to avoid race condition with state updates
+              onRejectSubmit(reason);
             },
           },
         ],
@@ -133,14 +129,7 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
     } else if (!showRejectModal) {
       hasShownRejectAlert.current = false;
     }
-  }, [
-    showRejectModal,
-    isDeclining,
-    onRejectClose,
-    onRejectSubmit,
-    onRejectReasonChange,
-    rejectReason,
-  ]);
+  }, [showRejectModal, isDeclining, onRejectClose, onRejectSubmit, rejectReason]);
 
   return (
     <>
@@ -180,7 +169,9 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
                       onPress={() => onEventTypeSelect(eventType.id, eventType.title)}
                     >
                       <Text
-                        className={`text-base text-[#333] ${selectedEventTypeId === eventType.id ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedEventTypeId === eventType.id ? "font-semibold" : ""
+                        }`}
                       >
                         {eventType.title}
                       </Text>
