@@ -161,9 +161,20 @@ jobs:
       has_companion: ${{ steps.filter.outputs.has_companion }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
+      db-cache-hit: ${{ steps.cache-db-check.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
+      - name: Generate DB cache key
+        id: cache-db-key
+        uses: ./.github/actions/cache-db-key
+      - name: Check DB cache (lookup-only)
+        id: cache-db-check
+        uses: actions/cache/restore@v4
+        with:
+          path: backups/backup.sql
+          key: ${{ steps.cache-db-key.outputs.key }}
+          lookup-only: true
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -288,7 +299,7 @@ jobs:
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/setup-db.yml
     with:
-      COMMIT_SHA: ${{ needs.prepare.outputs.commit-sha }}
+      DB_CACHE_HIT: ${{ needs.prepare.outputs.db-cache-hit }}
     secrets: inherit
 
   build-api-v1:
