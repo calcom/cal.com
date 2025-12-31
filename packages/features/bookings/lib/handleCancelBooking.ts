@@ -10,7 +10,6 @@ import bookingCancelPaymentHandler from "@calcom/app-store/_utils/payments/booki
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
-import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -50,6 +49,7 @@ import type { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { bookingToDeleteSelect, getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
+import { triggerBookingEmailsInngest } from "./handleNewBooking/triggerBookingEmailsInngest";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
@@ -759,12 +759,16 @@ async function handler(input: CancelBookingInput) {
 
   try {
     if ((!platformClientId || (platformClientId && arePlatformEmailsEnabled)) && !fromApi) {
-      //passing updated recurringEvent for the case of recurring instance cancellation, so we can display the cancelled dates in the email
-      await sendCancelledEmailsAndSMS(
-        !!updatedRecurringEvent ? { ...evt, recurringEvent: updatedRecurringEvent } : evt,
-        { eventName: bookingToDelete?.eventType?.eventName },
-        bookingToDelete?.eventType?.metadata as EventTypeMetadata
-      );
+      // Send cancelled emails asynchronously via Inngest to improve cancellation response time
+      // Passing updated recurringEvent for the case of recurring instance cancellation, so we can display the cancelled dates in the email
+      await triggerBookingEmailsInngest({
+        calEvent: !!updatedRecurringEvent ? { ...evt, recurringEvent: updatedRecurringEvent } : evt,
+        eventNameObject: { eventName: bookingToDelete?.eventType?.eventName },
+        isHostConfirmationEmailsDisabled: false,
+        isAttendeeConfirmationEmailDisabled: false,
+        eventTypeMetadata: bookingToDelete?.eventType?.metadata as EventTypeMetadata,
+        emailType: "cancelled",
+      });
     }
   } catch (error) {
     log.error("Error deleting event", error);
