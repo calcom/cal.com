@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Если вы удалите расписание, оно удалится из всех типов событий. Это действие нельзя отменить.",
   "schedule_created_successfully": "Расписание {{scheduleName}} успешно создано",
   "availability_updated_successfully": "Расписание {{scheduleName}} успешно обновлено",
+  "bulk_updated_schedule_successfully": "Выбранные типы событий были массово обновлены с использованием расписания по умолчанию",
   "schedule_deleted_successfully": "Расписание успешно удалено",
   "default_schedule_name": "Часы работы",
   "new_schedule_heading": "Создать расписание доступности",

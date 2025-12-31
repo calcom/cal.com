@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "מחיקת תזמון תמחק אותו מכל סוגי הארועים. לא ניתן לבטל פעולה זו.",
   "schedule_created_successfully": "יצירת התזמון {{scheduleName}} בוצעה בהצלחה",
   "availability_updated_successfully": "עדכון התזמון {{scheduleName}} בוצע בהצלחה",
+  "bulk_updated_schedule_successfully": "סוגי האירועים שנבחרו עודכנו בהצלחה עם לוח הזמנים ברירת המחדל",
   "schedule_deleted_successfully": "מחיקת התזמון בוצעה בהצלחה",
   "default_schedule_name": "שעות עבודה",
   "new_schedule_heading": "יצירת לוח זמנים של מועדים פנויים",
