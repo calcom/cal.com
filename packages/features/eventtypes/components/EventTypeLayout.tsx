@@ -105,8 +105,9 @@ function EventTypeSingleLayout({
 
   const Shell = useMemo(() => {
     if (ShellProp) return ShellProp;
-    return isPlatform ? PlatformShell : PlatformShell;
-  }, [isPlatform, ShellProp]);
+    // For platform, use PlatformShell as default. For web, Shell must be passed as prop.
+    return PlatformShell;
+  }, [ShellProp]);
   const teamId = eventType.team?.id;
 
   return (
