@@ -15,7 +15,14 @@ vi.mock("@calcom/features/eventtypes/repositories/eventTypeRepository");
 describe("duplicateHandler", () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ctx = { user: { id: 1, profile: { id: 1 } } } as any;
-  const input = { id: 123, slug: "test-event", title: "Test", description: "Test", length: 30, teamId: null };
+  const input = {
+    id: 123,
+    slug: "test-event",
+    title: "Test",
+    description: "Test",
+    length: 30,
+    teamId: null,
+  };
   const eventType = { id: 123, userId: 1, teamId: null, users: [{ id: 1 }] };
 
   beforeEach(() => {
@@ -23,7 +30,7 @@ describe("duplicateHandler", () => {
     prismaMock.eventType.findUnique.mockResolvedValue(eventType);
   });
 
-  it("should throw BAD_REQUEST in case of unique constraint violation", async () => {
+  it("should throw INTERNAL_SERVER_ERROR in case of unique constraint violation", async () => {
     const { EventTypeRepository } = await import(
       "@calcom/features/eventtypes/repositories/eventTypeRepository"
     );
@@ -41,8 +48,9 @@ describe("duplicateHandler", () => {
 
     await expect(duplicateHandler({ ctx, input })).rejects.toThrow(
       new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Error duplicating event type PrismaClientKnownRequestError: Unique constraint failed",
+        code: "INTERNAL_SERVER_ERROR",
+        message:
+          "Error duplicating event type PrismaClientKnownRequestError: Unique constraint failed",
       })
     );
   });
