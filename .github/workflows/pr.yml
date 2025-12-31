@@ -161,6 +161,7 @@ jobs:
       has_companion: ${{ steps.filter.outputs.has_companion }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
+      db-cache-hit: ${{ steps.cache-db-check.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
@@ -185,6 +186,18 @@ jobs:
         id: get_sha
         run: |
           echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+      - name: Check DB cache (lookup-only)
+        id: cache-db-check
+        uses: actions/cache/restore@v4
+        env:
+          cache-name: cache-db
+          key-1: ${{ hashFiles('packages/prisma/schema.prisma', 'packages/prisma/migrations/**/**.sql', 'packages/prisma/*.ts') }}
+          key-2: ${{ github.event.pull_request.number || github.ref }}
+          key-3: ${{ steps.get_sha.outputs.commit-sha }}
+        with:
+          path: backups/backup.sql
+          key: ${{ runner.os }}-${{ env.cache-name }}-backups/backup.sql-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}
+          lookup-only: true
       - name: Check if PR exists with ready-for-e2e label for this SHA
         id: check-if-pr-has-label
         uses: actions/github-script@v7
@@ -285,7 +298,7 @@ jobs:
   setup-db:
     name: Setup Database
     needs: [prepare]
-    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' && needs.prepare.outputs.db-cache-hit != 'true' }}
     uses: ./.github/workflows/setup-db.yml
     with:
       COMMIT_SHA: ${{ needs.prepare.outputs.commit-sha }}
@@ -442,7 +455,7 @@ jobs:
               needs.build-api-v2.result != 'success' ||
               needs.build-atoms.result != 'success' ||
               needs.build-docs.result != 'success' ||
-              needs.setup-db.result != 'success' ||
+              (needs.setup-db.result != 'success' && needs.setup-db.result != 'skipped') ||
               needs.integration-test.result != 'success' ||
               needs.e2e.result != 'success' ||
               needs.e2e-api-v2.result != 'success' ||
