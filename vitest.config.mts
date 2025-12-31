@@ -34,6 +34,10 @@ export default defineConfig({
         find: "@calcom/embed-react",
         replacement: path.resolve(__dirname, "packages/embeds/embed-react/src/index.ts"),
       },
+      {
+        find: "@calcom/embed-snippet",
+        replacement: path.resolve(__dirname, "packages/embeds/embed-snippet/src/index.ts"),
+      },
     ],
   },
   test: {
