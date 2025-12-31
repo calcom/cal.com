@@ -93,3 +93,27 @@ It is passed as an authorization bearer request header Authorization: Bearer \<a
 Validity period: access tokens are valid for 60 minutes and refresh tokens for 1 year, and tokens can be refreshed using the refresh endpoint [API reference](https://cal.com/docs/api-reference/v2/oauth/post-v2oauth-refresh). After refreshing you will receive the new access and refresh tokens that you have to store in your database.
 
 Recovering tokens: if you ever lose managed user's access or refresh tokens, you can force refresh them using the OAuth client credentials and store them in your database [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/force-refresh-tokens).
+
+## Postman Collection
+
+We provide an official Postman collection for quick API testing and integration.
+
+<Card
+  title="Download Postman Collection"
+  icon="download"
+  href="https://raw.githubusercontent.com/calcom/cal.com/main/docs/api-reference/v2/postman-collection.json"
+>
+  Import directly into Postman to start testing the Cal.com API
+</Card>
+
+### How to use
+
+1. **Download** the collection using the link above or import directly in Postman using the URL
+2. **Import** into Postman (File → Import → Link/File)
+3. **Configure variables** - Set the following collection variables:
+   - `bearerToken`: Your Cal.com API key (for API key authentication)
+   - `clientId`: Your OAuth client ID (for Platform OAuth authentication)
+   - `clientSecret`: Your OAuth client secret (for Platform OAuth authentication)
+4. **Start testing** - Select any endpoint and send requests!
+
+The collection is automatically generated from our OpenAPI specification and stays in sync with the latest API changes.

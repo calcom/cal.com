@@ -33,6 +33,7 @@
     "generate-schemas": "yarn prisma generate && yarn prisma format",
     "copy-swagger-module": "ts-node -r tsconfig-paths/register src/swagger/copy-swagger-module.ts",
     "generate-swagger": "yarn copy-swagger-module && yarn build && node ./dist/apps/api/v2/src/swagger/generate-swagger-script.js",
+    "generate-postman": "node ./dist/apps/api/v2/src/swagger/generate-postman-script.js",
     "prepare": "yarn run snyk-protect",
     "snyk-protect": "snyk-protect"
   },
@@ -74,6 +75,7 @@
     "lodash": "4.17.21",
     "luxon": "3.4.4",
     "nest-winston": "1.9.4",
+    "openapi-to-postmanv2": "5.7.0",
     "passport": "0.7.0",
     "passport-jwt": "4.0.1",
     "qs-stringify": "1.2.1",
@@ -97,6 +99,7 @@
     "@types/fs-extra": "11.0.4",
     "@types/jest": "29.5.12",
     "@types/luxon": "3.4.2",
+    "@types/openapi-to-postmanv2": "5.0.0",
     "@types/passport-jwt": "3.0.13",
     "@types/supertest": "2.0.16",
     "concurrently": "9.1.2",

@@ -1,24 +1,26 @@
-import { getEnv } from "@/env";
 import { Logger } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
-import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import type {
+  OperationObject,
   PathItemObject,
   PathsObject,
-  OperationObject,
 } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
+import { getEnv } from "@/env";
 import "dotenv/config";
-import * as fs from "fs";
-import type { Server } from "http";
 import { spawnSync } from "node:child_process";
+import * as fs from "node:fs";
+import type { Server } from "node:http";
 import { createRequire } from "node:module";
+import process from "node:process";
+import { generatePostmanCollection } from "./generate-postman";
 
-const nodeRequire = createRequire(__filename);
-const biomeBin = nodeRequire.resolve("@biomejs/biome/bin/biome");
+const nodeRequire: NodeRequire = createRequire(__filename);
+const biomeBin: string = nodeRequire.resolve("@biomejs/biome/bin/biome");
 
 const HttpMethods: (keyof PathItemObject)[] = ["get", "post", "put", "delete", "patch", "options", "head"];
 
-export async function generateSwaggerForApp(app: NestExpressApplication<Server>) {
+export async function generateSwaggerForApp(app: NestExpressApplication<Server>): Promise<void> {
   const logger = new Logger("App");
   logger.log(`Generating Swagger documentation...\n`);
 
@@ -33,6 +35,13 @@ export async function generateSwaggerForApp(app: NestExpressApplication<Server>)
     fs.unlinkSync(docsOutputFile);
     fs.writeFileSync(docsOutputFile, stringifiedContents, { encoding: "utf8" });
     spawnSync("node", [biomeBin, "format", "--write", docsOutputFile], { stdio: "inherit" });
+
+    // Generate Postman collection from the OpenAPI spec
+    try {
+      await generatePostmanCollection();
+    } catch (error) {
+      logger.warn(`Failed to generate Postman collection: ${error}`);
+    }
   }
 
   if (!process.env.DOCS_URL) {
@@ -96,6 +105,6 @@ function customTagSort(a: string, b: string): number {
   return a.localeCompare(b);
 }
 
-function isOperationObject(obj: any): obj is OperationObject {
-  return obj && typeof obj === "object" && "tags" in obj;
+function isOperationObject(obj: unknown): obj is OperationObject {
+  return obj !== null && typeof obj === "object" && "tags" in obj;
 }
