@@ -19,9 +19,9 @@ vi.mock("@calcom/features/redis/RedisService", () => {
 });
 
 vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn().mockImplementation(() => ({
+  FeaturesRepository: vi.fn().mockImplementation(function() { return {
     checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
-  })),
+  }; }),
 }));
 
 vi.spyOn(CalcomEmails, "sendOrganizationAdminNoSlotsNotification");

@@ -34,10 +34,12 @@ vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
 
 const mockGetAllCredits = vi.fn();
 const mockHasAvailableCredits = vi.fn();
-const mockCreditService = vi.fn().mockImplementation(() => ({
-  getAllCredits: mockGetAllCredits,
-  hasAvailableCredits: mockHasAvailableCredits,
-}));
+const mockCreditService = vi.fn().mockImplementation(function() {
+  return {
+    getAllCredits: mockGetAllCredits,
+    hasAvailableCredits: mockHasAvailableCredits,
+  };
+});
 
 vi.mock("@calcom/features/ee/billing/credit-service", () => ({
   CreditService: mockCreditService,

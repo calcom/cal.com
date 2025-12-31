@@ -62,7 +62,7 @@ vi.mock("./RetellAIPhoneServiceProvider", () => ({
 }));
 
 vi.mock("../adapters/PrismaAgentRepositoryAdapter", () => ({
-  PrismaAgentRepositoryAdapter: vi.fn().mockImplementation(() => ({
+  PrismaAgentRepositoryAdapter: vi.fn().mockImplementation(function() { return {
     canManageTeamResources: vi.fn(),
     findByIdWithUserAccess: vi.fn(),
     findByProviderAgentIdWithUserAccess: vi.fn(),
@@ -73,11 +73,11 @@ vi.mock("../adapters/PrismaAgentRepositoryAdapter", () => ({
     findByIdWithCallAccess: vi.fn(),
     delete: vi.fn(),
     linkOutboundAgentToWorkflow: vi.fn(),
-  })),
+  }; }),
 }));
 
 vi.mock("../adapters/PrismaPhoneNumberRepositoryAdapter", () => ({
-  PrismaPhoneNumberRepositoryAdapter: vi.fn().mockImplementation(() => ({
+  PrismaPhoneNumberRepositoryAdapter: vi.fn().mockImplementation(function() { return {
     findByPhoneNumberAndUserId: vi.fn(),
     findByPhoneNumberAndTeamId: vi.fn(),
     findByIdAndUserId: vi.fn(),
@@ -86,13 +86,13 @@ vi.mock("../adapters/PrismaPhoneNumberRepositoryAdapter", () => ({
     deletePhoneNumber: vi.fn(),
     updateSubscriptionStatus: vi.fn(),
     updateAgents: vi.fn(),
-  })),
+  }; }),
 }));
 
 vi.mock("../adapters/PrismaTransactionAdapter", () => ({
-  PrismaTransactionAdapter: vi.fn().mockImplementation(() => ({
+  PrismaTransactionAdapter: vi.fn().mockImplementation(function() { return {
     executeInTransaction: vi.fn(),
-  })),
+  }; }),
 }));
 
 describe("RetellAIPhoneServiceProviderFactory", () => {

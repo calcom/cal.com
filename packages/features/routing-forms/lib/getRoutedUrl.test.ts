@@ -26,9 +26,9 @@ vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository");
 vi.mock("@calcom/features/users/repositories/UserRepository", () => {
   return {
-    UserRepository: vi.fn().mockImplementation(() => ({
+    UserRepository: vi.fn().mockImplementation(function() { return {
       enrichUserWithItsProfile: vi.fn(),
-    })),
+    }; }),
   };
 });
 vi.mock("@calcom/features/ee/organizations/lib/orgDomains");

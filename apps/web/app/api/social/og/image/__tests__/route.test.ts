@@ -6,14 +6,14 @@ import { getOGImageVersion } from "@calcom/lib/OgImages";
 import { GET } from "../route";
 
 vi.mock("next/og", () => ({
-  ImageResponse: vi.fn().mockImplementation(() => ({
+  ImageResponse: vi.fn().mockImplementation(function() { return {
     body: new ReadableStream({
       start(controller) {
         controller.enqueue(new Uint8Array([1, 2, 3, 4]));
         controller.close();
       },
     }),
-  })),
+  }; }),
 }));
 
 vi.mock("@calcom/lib/OgImages", async (importOriginal) => {

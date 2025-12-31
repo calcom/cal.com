@@ -26,15 +26,15 @@ vi.mock("@calcom/prisma", () => ({
 }));
 
 vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
-  PermissionCheckService: vi.fn().mockImplementation(() => ({
+  PermissionCheckService: vi.fn().mockImplementation(function() { return {
     checkPermission: vi.fn(),
-  })),
+  }; }),
 }));
 
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
-  TeamRepository: vi.fn().mockImplementation(() => ({
+  TeamRepository: vi.fn().mockImplementation(function() { return {
     isSlugAvailableForUpdate: vi.fn().mockResolvedValue(true),
-  })),
+  }; }),
 }));
 
 vi.mock("@calcom/lib/server/avatar", () => ({

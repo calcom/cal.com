@@ -39,7 +39,7 @@ vi.mock("@calcom/lib/constants", () => {
 vi.mock("@jsforce/jsforce-node", () => {
   return {
     default: {
-      Connection: vi.fn().mockImplementation(() => ({})),
+      Connection: vi.fn().mockImplementation(function() { return {}; }),
     },
   };
 });
