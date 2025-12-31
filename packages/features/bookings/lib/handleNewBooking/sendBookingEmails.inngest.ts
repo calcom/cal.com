@@ -5,6 +5,7 @@ import {
   sendAttendeeRequestEmailAndSMS,
   sendOrganizerRequestEmail,
   sendRescheduledEmailsAndSMS,
+  sendCancelledEmailsAndSMS,
 } from "@calcom/emails";
 import type { EventNameObjectType } from "@calcom/lib/event";
 import logger from "@calcom/lib/logger";
@@ -24,13 +25,13 @@ export interface SendBookingEmailsPayload {
     phoneNumber?: string | null;
     name?: string;
   };
-  emailType: "scheduled" | "request" | "rescheduled";
+  emailType: "scheduled" | "request" | "rescheduled" | "cancelled";
   firstAttendee?: Omit<Person, "language"> & { language: { locale: string } };
 }
 
 /**
  * Inngest handler for sending booking confirmation emails
- * This handles confirmed bookings (scheduled emails), pending bookings (request emails), and rescheduled bookings (rescheduled emails)
+ * This handles confirmed bookings (scheduled emails), pending bookings (request emails), rescheduled bookings (rescheduled emails), and cancelled bookings (cancelled emails)
  */
 export default async function sendBookingEmailsHandler({
   event,
@@ -123,6 +124,13 @@ export default async function sendBookingEmailsHandler({
       } else if (emailType === "rescheduled") {
         // Send rescheduled emails for rescheduled bookings
         await sendRescheduledEmailsAndSMS(calEvent, eventTypeMetadata);
+      } else if (emailType === "cancelled") {
+        // Send cancelled emails for cancelled bookings
+        await sendCancelledEmailsAndSMS(
+          calEvent,
+          eventNameObject ? { eventName: eventNameObject.eventName } : { eventName: undefined },
+          eventTypeMetadata
+        );
       } else {
         // Send request emails for pending bookings
         if (firstAttendee) {

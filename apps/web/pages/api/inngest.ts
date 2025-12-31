@@ -158,6 +158,16 @@ const handleBookingEmailsRescheduled = inngestClient.createFunction(
   sendBookingEmailsHandler
 );
 
+const handleBookingEmailsCancelled = inngestClient.createFunction(
+  {
+    id: `booking-emails-cancelled-${key}`,
+    name: "Send Booking Cancelled Emails",
+    retries: 3,
+  },
+  { event: `booking/emails.cancelled-${key}` },
+  sendBookingEmailsHandler
+);
+
 export default serve({
   client: inngestClient,
   functions: [
@@ -172,6 +182,7 @@ export default serve({
     handleBookingEmailsScheduled,
     handleBookingEmailsRequest,
     handleBookingEmailsRescheduled,
+    handleBookingEmailsCancelled,
   ],
   signingKey: process.env.INNGEST_SIGNING_KEY || "",
 });

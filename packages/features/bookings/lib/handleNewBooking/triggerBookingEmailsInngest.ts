@@ -14,7 +14,7 @@ export interface TriggerBookingEmailsOptions {
   isAttendeeConfirmationEmailDisabled: boolean;
   eventTypeMetadata?: EventTypeMetadata;
   curAttendee?: Person;
-  emailType: "scheduled" | "request" | "rescheduled";
+  emailType: "scheduled" | "request" | "rescheduled" | "cancelled";
   firstAttendee?: Person;
 }
 
