@@ -112,7 +112,7 @@ const webexAuth = (credential: CredentialPayload) => {
       let credentialKey: WebexToken | null = null;
       try {
         credentialKey = webexTokenSchema.parse(credential.key);
-      } catch (error) {
+      } catch {
         return Promise.reject("Webex credential keys parsing error");
       }
 
@@ -148,8 +148,6 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
   const fetchWebexApi = async (endpoint: string, options?: RequestInit) => {
     const auth = webexAuth(credential);
     const accessToken = await auth.getToken();
-    console.log("result of accessToken in fetchWebexApi", accessToken);
-    console.log("createMeeting options in fetchWebexApi", options);
     const response = await fetch(`https://webexapis.com/v1/${endpoint}`, {
       method: "GET",
       ...options,
@@ -181,9 +179,6 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       /** @link https://developer.webex.com/docs/api/v1/meetings/create-a-meeting */
       try {
-        console.log("Creating meeting", event);
-        console.log("meting body", translateEvent(event));
-        console.log("request body in createMeeting", JSON.stringify(translateEvent(event)));
         const response = await fetchWebexApi("meetings", {
           method: "POST",
           headers: {
@@ -191,7 +186,6 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
           },
           body: JSON.stringify(translateEvent(event)),
         });
-        console.log("Webex create meeting response", response);
         if (response.error) {
           if (response.error === "invalid_grant") {
             await invalidateCredential(credential.id);
@@ -220,7 +214,6 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
         const response = await fetchWebexApi(`meetings/${uid}`, {
           method: "DELETE",
         });
-        console.log("Webex delete meeting response", response);
         if (response.error) {
           if (response.error === "invalid_grant") {
             await invalidateCredential(credential.id);
@@ -228,7 +221,7 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
           }
         }
         return Promise.resolve();
-      } catch (err) {
+      } catch {
         return Promise.reject(new Error("Failed to delete meeting"));
       }
     },
