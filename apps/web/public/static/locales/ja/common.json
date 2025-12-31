@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "スケジュールを削除すると、すべてのイベントの種類から削除されます。この操作は元に戻せません。",
   "schedule_created_successfully": "{{scheduleName}} のスケジュールが正常に作成されました",
   "availability_updated_successfully": "{{scheduleName}} スケジュールが正常に更新されました",
+  "bulk_updated_schedule_successfully": "選択したイベントタイプにデフォルトのスケジュールを一括適用しました",
   "schedule_deleted_successfully": "スケジュールが正常に削除されました",
   "default_schedule_name": "作業時間",
   "new_schedule_heading": "空き状況のスケジュールを作成する",

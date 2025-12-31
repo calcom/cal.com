@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "En eliminar un horari, s'eliminarà de tots els tipus d'esdeveniments. Aquesta acció no es pot desfer.",
   "schedule_created_successfully": "L'horari {{scheduleName}} s'ha creat correctament",
   "availability_updated_successfully": "L'horari {{scheduleName}} s'ha actualitzat correctament",
+  "bulk_updated_schedule_successfully": "S'han actualitzat en bloc els tipus d'esdeveniments seleccionats amb l'horari per defecte",
   "schedule_deleted_successfully": "L'horari s'ha eliminat correctament",
   "default_schedule_name": "Horari laboral",
   "new_schedule_heading": "Crea un horari de disponibilitat",
