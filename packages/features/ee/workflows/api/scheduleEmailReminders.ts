@@ -33,6 +33,7 @@ import {
 } from "../lib/reminders/providers/sendgridProvider";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
+import { replaceCloakedLinksInHtml } from "../lib/reminders/utils";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 
@@ -139,7 +140,7 @@ export async function handler(req: NextRequest) {
         let sendTo;
 
         switch (reminder.workflowStep.action) {
-          case WorkflowActions.EMAIL_HOST:
+          case WorkflowActions.EMAIL_HOST: {
             sendTo = reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email;
             const hosts = reminder?.booking?.eventType?.hosts
               ?.filter((host) =>
@@ -155,6 +156,7 @@ export async function handler(req: NextRequest) {
               sendTo = sendTo ? [sendTo, ...hosts] : hosts;
             }
             break;
+          }
           case WorkflowActions.EMAIL_ATTENDEE:
             sendTo = targetAttendee?.email;
             break;
@@ -312,8 +314,8 @@ export async function handler(req: NextRequest) {
             timeZone: timeZone || "",
             organizer: reminder.booking.user?.name || "",
             name: name || "",
-            ratingUrl: `${bookerUrl}/booking/${reminder.booking.uid}?rating` || "",
-            noShowUrl: `${bookerUrl}/booking/${reminder.booking.uid}?noShow=true` || "",
+            ratingUrl: `${bookerUrl}/booking/${reminder.booking.uid}?rating`,
+            noShowUrl: `${bookerUrl}/booking/${reminder.booking.uid}?noShow=true`,
           });
         }
 
@@ -356,7 +358,7 @@ export async function handler(req: NextRequest) {
           const mailData = {
             subject: emailContent.emailSubject,
             to: Array.isArray(sendTo) ? sendTo : [sendTo],
-            html: emailContent.emailBody,
+            html: replaceCloakedLinksInHtml(emailContent.emailBody),
             attachments: reminder.workflowStep.includeCalendarEvent
               ? [
                   {
@@ -455,7 +457,7 @@ export async function handler(req: NextRequest) {
           const mailData = {
             subject: emailContent.emailSubject,
             to: [sendTo],
-            html: emailContent.emailBody,
+            html: replaceCloakedLinksInHtml(emailContent.emailBody),
             sender: reminder.workflowStep?.sender,
             ...(!reminder.booking?.eventType?.hideOrganizerEmail && {
               replyTo:
