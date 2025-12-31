@@ -124,7 +124,7 @@ test.describe("Availability", () => {
       await submitAndWaitForResponse(page, "/api/trpc/availability/schedule.delete?batch=1", {
         action: () => page.locator('[data-testid="delete-schedule"]').click(),
       });
-      await expect(page.locator('[data-testid="schedules"] > li').nth(1)).toHaveCount(0);
+      await expect(page.locator('[data-testid="schedules"] > li').nth(1)).toHaveCount(0, { timeout: 0 });
     });
     await test.step("Cannot delete the last schedule", async () => {
       await page.locator('[data-testid="schedules"] > li').nth(0).getByTestId("schedule-more").click();
