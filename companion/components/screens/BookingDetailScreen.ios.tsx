@@ -108,7 +108,9 @@ export function BookingDetailScreen({
         console.error("Failed to cancel booking");
         if (__DEV__) {
           const message = err instanceof Error ? err.message : String(err);
-          console.debug("[BookingDetailScreen.ios] cancelBooking failed", { message });
+          console.debug("[BookingDetailScreen.ios] cancelBooking failed", {
+            message,
+          });
         }
         showErrorAlert("Error", "Failed to cancel booking. Please try again.");
         setIsCancelling(false);
@@ -323,15 +325,27 @@ export function BookingDetailScreen({
     const isNoShow = attendee.noShow || attendee.absent;
 
     if (isPastBooking && isNoShow) {
-      return { name: "close-circle" as const, color: "#FF3B30", label: "No-show" };
+      return {
+        name: "close-circle" as const,
+        color: "#FF3B30",
+        label: "No-show",
+      };
     }
 
     if (normalizedStatus === "pending") {
-      return { name: "help-circle" as const, color: "#8E8E93", label: "Pending" };
+      return {
+        name: "help-circle" as const,
+        color: "#8E8E93",
+        label: "Pending",
+      };
     }
 
     if (normalizedStatus === "cancelled" || normalizedStatus === "rejected") {
-      return { name: "close-circle-outline" as const, color: "#8E8E93", label: null };
+      return {
+        name: "close-circle-outline" as const,
+        color: "#8E8E93",
+        label: null,
+      };
     }
 
     return { name: "checkmark-circle" as const, color: "#34C759", label: null };
@@ -410,7 +424,9 @@ export function BookingDetailScreen({
                 ? booking.hosts.map((host, index) => (
                     <View
                       key={host.email || `host-${index}`}
-                      className={`flex-row items-center py-2 ${index > 0 ? "border-t border-[#E5E5EA]" : ""}`}
+                      className={`flex-row items-center py-2 ${
+                        index > 0 ? "border-t border-[#E5E5EA]" : ""
+                      }`}
                     >
                       <Ionicons name="star" size={18} color="#FFD60A" />
                       <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
@@ -599,10 +615,13 @@ export function BookingDetailScreen({
                 <AppPressable
                   className="flex-row items-center justify-between border-t border-[#E5E5EA] py-2"
                   onPress={() => {
-                    router.push({
-                      pathname: "/(tabs)/(bookings)/booking-detail",
-                      params: { uid: booking.rescheduledToUid },
-                    });
+                    const uid = booking.rescheduledToUid;
+                    if (uid) {
+                      router.push({
+                        pathname: "/(tabs)/(bookings)/booking-detail",
+                        params: { uid },
+                      });
+                    }
                   }}
                 >
                   <Text className="text-[17px] text-black">Rescheduled to</Text>
@@ -615,7 +634,11 @@ export function BookingDetailScreen({
 
               {booking.reschedulingReason && (
                 <View
-                  className={`py-2 ${booking.rescheduledFromUid || booking.rescheduledToUid || booking.fromReschedule ? "border-t border-[#E5E5EA]" : ""}`}
+                  className={`py-2 ${
+                    booking.rescheduledFromUid || booking.rescheduledToUid || booking.fromReschedule
+                      ? "border-t border-[#E5E5EA]"
+                      : ""
+                  }`}
                 >
                   <Text className="mb-0.5 text-[13px] text-[#8E8E93]">Reason</Text>
                   <Text className="text-[17px] text-black">{booking.reschedulingReason}</Text>
@@ -643,7 +666,9 @@ export function BookingDetailScreen({
 
                 {booking.cancelledByEmail && (
                   <View
-                    className={`py-2 ${booking.cancellationReason ? "border-t border-[#E5E5EA]" : ""}`}
+                    className={`py-2 ${
+                      booking.cancellationReason ? "border-t border-[#E5E5EA]" : ""
+                    }`}
                   >
                     <Text className="mb-0.5 text-[13px] text-[#8E8E93]">Cancelled by</Text>
                     <Text className="text-[17px] text-black">{booking.cancelledByEmail}</Text>
@@ -652,7 +677,11 @@ export function BookingDetailScreen({
 
                 {booking.absentHost && (
                   <View
-                    className={`flex-row items-center py-2 ${booking.cancellationReason || booking.cancelledByEmail ? "border-t border-[#E5E5EA]" : ""}`}
+                    className={`flex-row items-center py-2 ${
+                      booking.cancellationReason || booking.cancelledByEmail
+                        ? "border-t border-[#E5E5EA]"
+                        : ""
+                    }`}
                   >
                     <Ionicons name="warning" size={18} color="#FF9500" />
                     <Text className="ml-2 text-[17px] text-black">Host was absent</Text>

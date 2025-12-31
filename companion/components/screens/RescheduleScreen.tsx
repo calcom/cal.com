@@ -39,7 +39,6 @@ export interface RescheduleScreenHandle {
 
 export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScreenProps>(
   function RescheduleScreen({ booking, onSuccess, onSavingChange }, ref) {
-    "use no memo";
     const insets = useSafeAreaInsets();
     const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -72,11 +71,16 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
         return;
       }
 
+      // Extract conditional values before try/catch for React Compiler optimization
+      const trimmedReason = reason.trim();
+      const reschedulingReason = trimmedReason.length > 0 ? trimmedReason : undefined;
+      const startTime = selectedDateTime.toISOString();
+
       setIsSaving(true);
       try {
         await CalComAPIService.rescheduleBooking(booking.uid, {
-          start: selectedDateTime.toISOString(),
-          reschedulingReason: reason.trim() || undefined,
+          start: startTime,
+          reschedulingReason,
         });
         Alert.alert("Success", "Booking rescheduled successfully", [
           { text: "OK", onPress: onSuccess },
@@ -125,7 +129,10 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
 
     // Generate time options (every 15 minutes)
     const timeOptions = React.useMemo(() => {
-      const options: { label: string; value: { hour: number; minute: number } }[] = [];
+      const options: {
+        label: string;
+        value: { hour: number; minute: number };
+      }[] = [];
       for (let hour = 0; hour < 24; hour++) {
         for (let minute = 0; minute < 60; minute += 15) {
           const time = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
@@ -163,7 +170,10 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
         >
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16 }}
+            contentContainerStyle={{
+              padding: 16,
+              paddingBottom: insets.bottom + 16,
+            }}
             keyboardShouldPersistTaps="handled"
           >
             {/* Booking Title Card */}
@@ -189,11 +199,11 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                     type="date"
                     value={selectedDateTime.toISOString().split("T")[0]}
                     onChange={(e) => {
-                      const newDate = new Date(e.target.value);
-                      if (!Number.isNaN(newDate.getTime())) {
+                      const [year, month, day] = e.target.value.split("-").map(Number);
+                      if (!Number.isNaN(year) && !Number.isNaN(month) && !Number.isNaN(day)) {
+                        const newDate = new Date(selectedDateTime);
+                        newDate.setFullYear(year, month - 1, day);
                         safeLogInfo("[RescheduleScreen] Date selected:", newDate);
-                        newDate.setHours(selectedDateTime.getHours());
-                        newDate.setMinutes(selectedDateTime.getMinutes());
                         setSelectedDateTime(newDate);
                       }
                     }}
@@ -236,11 +246,17 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Time</Text>
                   <input
                     type="time"
-                    value={`${String(selectedDateTime.getHours()).padStart(2, "0")}:${String(selectedDateTime.getMinutes()).padStart(2, "0")}`}
+                    value={`${String(selectedDateTime.getHours()).padStart(
+                      2,
+                      "0"
+                    )}:${String(selectedDateTime.getMinutes()).padStart(2, "0")}`}
                     onChange={(e) => {
                       const [hours, minutes] = e.target.value.split(":").map(Number);
                       if (!Number.isNaN(hours) && !Number.isNaN(minutes)) {
-                        safeLogInfo("[RescheduleScreen] Time selected:", { hours, minutes });
+                        safeLogInfo("[RescheduleScreen] Time selected:", {
+                          hours,
+                          minutes,
+                        });
                         const newDate = new Date(selectedDateTime);
                         newDate.setHours(hours);
                         newDate.setMinutes(minutes);
