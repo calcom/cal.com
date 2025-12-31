@@ -2,12 +2,6 @@ name: Setup Database
 
 on:
   workflow_call:
-    inputs:
-      COMMIT_SHA:
-        required: false
-        type: string
-        default: ""
-        description: "Commit SHA to include in cache key"
 
 permissions:
   contents: read
@@ -54,14 +48,10 @@ jobs:
         env:
           cache-name: cache-db
           key-1: ${{ hashFiles('packages/prisma/schema.prisma', 'packages/prisma/migrations/**/**.sql', 'packages/prisma/*.ts') }}
-          key-2: ${{ github.event.pull_request.number || github.ref }}
-          key-3: ${{ inputs.COMMIT_SHA || github.event.pull_request.head.sha || github.sha }}
         with:
           path: backups/backup.sql
-          key: ${{ runner.os }}-${{ env.cache-name }}-backups/backup.sql-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}
+          key: ${{ runner.os }}-${{ env.cache-name }}-backups/backup.sql-${{ env.key-1 }}
           lookup-only: true
       - uses: ./.github/actions/yarn-install
         if: steps.cache-db-check.outputs.cache-hit != 'true'
       - uses: ./.github/actions/cache-db
-        with:
-          COMMIT_SHA: ${{ inputs.COMMIT_SHA || github.sha }}
