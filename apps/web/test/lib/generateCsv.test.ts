@@ -1,11 +1,12 @@
+import type { Table } from "@tanstack/react-table";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   generateCsvRawForMembersTable,
   generateHeaderFromReactTable,
 } from "@calcom/features/users/lib/UserListTableUtils";
-import type { UserTableUser } from "@calcom/features/users/types/user-table";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { Table } from "@tanstack/react-table";
-import { describe, it, expect, vi } from "vitest";
+import type { UserTableUser } from "@calcom/features/users/types/user-table";
 
 function createMockTable(data: UserTableUser[]): Table<UserTableUser> {
   return {
@@ -50,9 +51,7 @@ function createMockTable(data: UserTableUser[]): Table<UserTableUser> {
         ],
       },
     ]),
-    getRowModel: vi
-      .fn()
-      .mockReturnValue({ rows: data.map((item) => ({ original: item })) }),
+    getRowModel: vi.fn().mockReturnValue({ rows: data.map((item) => ({ original: item })) }),
   } as unknown as Table<UserTableUser>;
 }
 
@@ -87,9 +86,7 @@ describe("generate Csv for Org Users Table", () => {
   };
 
   it("should throw if no headers", () => {
-    expect(() =>
-      generateCsvRawForMembersTable([], [], mockAttributeIds, orgDomain)
-    ).toThrow();
+    expect(() => generateCsvRawForMembersTable([], [], mockAttributeIds, orgDomain)).toThrow();
   });
 
   it("should generate correct CSV headers", () => {
