@@ -1,14 +1,11 @@
+import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
+
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { getLocaleFromRequest } from "@calcom/features/auth/lib/getLocaleFromRequest";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
-import { joinAnyChildTeamOnOrgInvite } from "@calcom/features/auth/signup/utils/organization";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
-import {
-  findTokenByToken,
-  throwIfTokenExpired,
-  validateAndGetCorrectedUsernameForTeam,
-} from "@calcom/features/auth/signup/utils/token";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
@@ -25,8 +22,13 @@ import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-import { cookies, headers } from "next/headers";
-import { NextResponse } from "next/server";
+
+import { joinAnyChildTeamOnOrgInvite } from "@calcom/features/auth/signup/utils/organization";
+import {
+  findTokenByToken,
+  throwIfTokenExpired,
+  validateAndGetCorrectedUsernameForTeam,
+} from "@calcom/features/auth/signup/utils/token";
 
 const log = logger.getSubLogger({ prefix: ["signupCalcomHandler"] });
 
@@ -71,8 +73,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
 
   const email = _email.toLowerCase();
 
-  let foundToken: { id: number; teamId: number | null; expires: Date } | null =
-    null;
+  let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
   if (token) {
     foundToken = await findTokenByToken({ token });
     throwIfTokenExpired(foundToken?.expires);
@@ -83,12 +84,11 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       isSignup: true,
     });
   } else {
-    const usernameAndEmailValidation =
-      await validateAndGetCorrectedUsernameAndEmail({
-        username,
-        email,
-        isSignup: true,
-      });
+    const usernameAndEmailValidation = await validateAndGetCorrectedUsernameAndEmail({
+      username,
+      email,
+      isSignup: true,
+    });
     if (!usernameAndEmailValidation.isValid) {
       throw new HttpError({
         statusCode: 409,
@@ -108,9 +108,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
 
   // Create the customer in Stripe with ad tracking metadata
   const cookieStore = await cookies();
-  const cookiesObj = Object.fromEntries(
-    cookieStore.getAll().map((c) => [c.name, c.value])
-  );
+  const cookiesObj = Object.fromEntries(cookieStore.getAll().map((c) => [c.name, c.value]));
   const tracking = getTrackingFromCookies(cookiesObj);
 
   const customer = await billingService.createCustomer({
@@ -168,9 +166,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       },
     });
     if (team) {
-      const organizationId = team.isOrganization
-        ? team.id
-        : team.parent?.id ?? null;
+      const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
       const user = await prisma.user.upsert({
         where: { email },
         update: {
@@ -237,9 +233,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     if (!checkoutSessionId) {
       sendEmailVerification({
         email,
-        language: await getLocaleFromRequest(
-          buildLegacyRequest(await headers(), await cookies())
-        ),
+        language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
         username: username || "",
       });
     }
