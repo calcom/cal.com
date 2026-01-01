@@ -82,9 +82,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
           start: selectedDateTime.toISOString(),
           reschedulingReason,
         });
-        Alert.alert("Success", "Booking rescheduled successfully", [
-          { text: "OK", onPress: onSuccess },
-        ]);
+        Alert.alert("Success", "Booking rescheduled successfully", [{ text: "OK", onPress: onSuccess }]);
         setIsSaving(false);
       } catch (error) {
         safeLogError("[RescheduleScreen] Failed to reschedule:", error);
@@ -204,16 +202,14 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
               shadowOffset: { width: 0, height: 1 },
               shadowOpacity: 0.05,
               shadowRadius: 2,
-            }}
-          >
+            }}>
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "space-between",
                 minHeight: 44,
-              }}
-            >
+              }}>
               <AppPressable
                 onPress={() => router.back()}
                 style={{
@@ -221,8 +217,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   height: 40,
                   alignItems: "flex-start",
                   justifyContent: "center",
-                }}
-              >
+                }}>
                 <Ionicons name="chevron-back" size={24} color="#000" />
               </AppPressable>
 
@@ -235,8 +230,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   color: "#000",
                   marginHorizontal: 10,
                 }}
-                numberOfLines={1}
-              >
+                numberOfLines={1}>
                 Reschedule
               </Text>
 
@@ -247,15 +241,13 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   paddingHorizontal: 16,
                   paddingVertical: 8,
                   opacity: isSaving ? 0.5 : 1,
-                }}
-              >
+                }}>
                 <Text
                   style={{
                     fontSize: 16,
                     fontWeight: "600",
                     color: "#007AFF",
-                  }}
-                >
+                  }}>
                   Save
                 </Text>
               </AppPressable>
@@ -268,8 +260,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
               padding: 16,
               paddingBottom: insets.bottom + 16,
             }}
-            keyboardShouldPersistTaps="handled"
-          >
+            keyboardShouldPersistTaps="handled">
             {/* Booking Title Card */}
             <View className="mb-4 flex-row items-start rounded-xl bg-white p-4">
               <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
@@ -295,8 +286,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   safeLogInfo("[RescheduleScreen] Opening date picker");
                   setShowDatePicker(true);
                 }}
-                disabled={isSaving}
-              >
+                disabled={isSaving}>
                 <View className="flex-1">
                   <Text className="mb-1 text-[13px] font-medium text-gray-500">New Date</Text>
                   <Text className="text-[17px] text-[#000]">{formattedDate}</Text>
@@ -314,8 +304,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   safeLogInfo("[RescheduleScreen] Opening time picker");
                   setShowTimePicker(true);
                 }}
-                disabled={isSaving}
-              >
+                disabled={isSaving}>
                 <View className="flex-1">
                   <Text className="mb-1 text-[13px] font-medium text-gray-500">New Time</Text>
                   <Text className="text-[17px] text-[#000]">{formattedTime}</Text>
@@ -325,9 +314,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
 
               {/* Reason input */}
               <View className="px-4 py-3">
-                <Text className="mb-1.5 text-[13px] font-medium text-gray-500">
-                  Reason (optional)
-                </Text>
+                <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Reason (optional)</Text>
                 <TextInput
                   className="min-h-[80px] text-[17px] text-[#000]"
                   placeholder="Enter reason for rescheduling..."
@@ -340,14 +327,6 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                 />
               </View>
             </View>
-
-            {/* Info note */}
-            <View className="flex-row items-start rounded-xl bg-[#E3F2FD] p-4">
-              <Ionicons name="information-circle" size={20} color="#1976D2" />
-              <Text className="ml-3 flex-1 text-[15px] leading-5 text-[#1565C0]">
-                Attendees will receive an email notification about the new time.
-              </Text>
-            </View>
           </ScrollView>
         </KeyboardAvoidingView>
 
@@ -356,15 +335,13 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
           visible={showDatePicker}
           transparent
           animationType="slide"
-          onRequestClose={() => setShowDatePicker(false)}
-        >
+          onRequestClose={() => setShowDatePicker(false)}>
           <View
             style={{
               flex: 1,
               backgroundColor: "rgba(0, 0, 0, 0.4)",
               justifyContent: "flex-end",
-            }}
-          >
+            }}>
             <Pressable
               style={{
                 position: "absolute",
@@ -382,8 +359,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                 borderTopRightRadius: 24,
                 maxHeight: "70%",
                 paddingBottom: insets.bottom,
-              }}
-            >
+              }}>
               {/* Header */}
               <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
                 <Pressable onPress={() => setShowDatePicker(false)}>
@@ -398,18 +374,13 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
               {/* Date List */}
               <ScrollView showsVerticalScrollIndicator={false}>
                 {dateOptions.map((option, index) => {
-                  const isSelected =
-                    option.value.toDateString() === selectedDateTime.toDateString();
+                  const isSelected = option.value.toDateString() === selectedDateTime.toDateString();
                   return (
                     <Pressable
                       key={option.value.toISOString()}
                       className="flex-row items-center justify-between px-4 py-3.5"
                       style={({ pressed }) => ({
-                        backgroundColor: isSelected
-                          ? "rgba(0, 122, 255, 0.1)"
-                          : pressed
-                            ? "#F5F5F5"
-                            : "#fff",
+                        backgroundColor: isSelected ? "rgba(0, 122, 255, 0.1)" : pressed ? "#F5F5F5" : "#fff",
                         borderBottomWidth: index < dateOptions.length - 1 ? 1 : 0,
                         borderBottomColor: "#F2F2F7",
                       })}
@@ -418,21 +389,16 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                         newDate.setHours(selectedDateTime.getHours());
                         newDate.setMinutes(selectedDateTime.getMinutes());
                         setSelectedDateTime(newDate);
-                      }}
-                    >
+                      }}>
                       <View>
                         <Text
                           className={`text-[17px] ${
                             isSelected ? "font-semibold text-[#007AFF]" : "font-medium text-[#000]"
-                          }`}
-                        >
+                          }`}>
                           {option.label}
                         </Text>
                         <Text
-                          className={`mt-0.5 text-[13px] ${
-                            isSelected ? "text-[#007AFF]" : "text-gray-500"
-                          }`}
-                        >
+                          className={`mt-0.5 text-[13px] ${isSelected ? "text-[#007AFF]" : "text-gray-500"}`}>
                           {option.sublabel}
                         </Text>
                       </View>
@@ -450,15 +416,13 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
           visible={showTimePicker}
           transparent
           animationType="slide"
-          onRequestClose={() => setShowTimePicker(false)}
-        >
+          onRequestClose={() => setShowTimePicker(false)}>
           <View
             style={{
               flex: 1,
               backgroundColor: "rgba(0, 0, 0, 0.4)",
               justifyContent: "flex-end",
-            }}
-          >
+            }}>
             <Pressable
               style={{
                 position: "absolute",
@@ -476,8 +440,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                 borderTopRightRadius: 24,
                 maxHeight: "60%",
                 paddingBottom: insets.bottom,
-              }}
-            >
+              }}>
               {/* Header */}
               <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
                 <Pressable onPress={() => setShowTimePicker(false)}>
@@ -496,8 +459,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   flexDirection: "row",
                   flexWrap: "wrap",
                   padding: 16,
-                }}
-              >
+                }}>
                 {timeOptions.map((option) => {
                   const isSelected =
                     selectedDateTime.getHours() === option.value.hour &&
@@ -511,18 +473,15 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                         newDate.setHours(option.value.hour);
                         newDate.setMinutes(option.value.minute);
                         setSelectedDateTime(newDate);
-                      }}
-                    >
+                      }}>
                       <View
                         className={`items-center justify-center rounded-lg py-3 ${
                           isSelected ? "bg-[#007AFF]" : "bg-[#F2F2F7]"
-                        }`}
-                      >
+                        }`}>
                         <Text
                           className={`text-[13px] ${
                             isSelected ? "font-semibold text-white" : "font-medium text-[#000]"
-                          }`}
-                        >
+                          }`}>
                           {option.label}
                         </Text>
                       </View>

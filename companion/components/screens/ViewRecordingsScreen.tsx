@@ -13,6 +13,7 @@ import type { BookingRecording } from "@/services/types/bookings.types";
 
 export interface ViewRecordingsScreenProps {
   recordings: BookingRecording[];
+  transparentBackground?: boolean;
 }
 
 function formatDuration(seconds?: number): string {
@@ -34,8 +35,13 @@ function formatDate(dateString: string): string {
   });
 }
 
-export function ViewRecordingsScreen({ recordings }: ViewRecordingsScreenProps) {
+export function ViewRecordingsScreen({
+  recordings,
+  transparentBackground = false,
+}: ViewRecordingsScreenProps) {
   const insets = useSafeAreaInsets();
+  const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
+  const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
 
   const handleOpenRecording = async (recording: BookingRecording) => {
     try {
@@ -49,12 +55,13 @@ export function ViewRecordingsScreen({ recordings }: ViewRecordingsScreenProps) 
 
   const renderRecording = ({ item }: { item: BookingRecording }) => (
     <TouchableOpacity
-      className="mb-3 overflow-hidden rounded-xl bg-white"
+      className={`mb-3 overflow-hidden rounded-xl ${
+        transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+      }`}
       onPress={() => handleOpenRecording(item)}
-      activeOpacity={0.7}
-    >
+      activeOpacity={0.7}>
       <View className="flex-row items-center p-4">
-        <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
+        <View className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}>
           <Ionicons name="videocam" size={20} color="#6B7280" />
         </View>
         <View className="flex-1">
@@ -73,13 +80,11 @@ export function ViewRecordingsScreen({ recordings }: ViewRecordingsScreenProps) 
 
   if (recordings.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#F2F2F7] px-8">
-        <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-[#E8E8ED]">
+      <View className={`flex-1 items-center justify-center px-8 ${backgroundStyle}`}>
+        <View className={`mb-4 h-16 w-16 items-center justify-center rounded-full ${pillStyle}`}>
           <Ionicons name="videocam-off" size={32} color="#8E8E93" />
         </View>
-        <Text className="text-center text-[17px] font-semibold text-[#000]">
-          No recordings available
-        </Text>
+        <Text className="text-center text-[17px] font-semibold text-[#000]">No recordings available</Text>
         <Text className="mt-2 text-center text-[15px] leading-5 text-gray-500">
           Recordings may take some time to process after the meeting ends.
         </Text>
@@ -88,13 +93,13 @@ export function ViewRecordingsScreen({ recordings }: ViewRecordingsScreenProps) 
   }
 
   return (
-    <View className="flex-1 bg-[#F2F2F7]">
+    <View className={`flex-1 ${backgroundStyle}`}>
       <View className="flex-1 p-4" style={{ paddingBottom: insets.bottom }}>
         <FlatList
           data={recordings}
           renderItem={renderRecording}
           keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={!transparentBackground}
           contentContainerStyle={{ paddingBottom: 16 }}
         />
       </View>
