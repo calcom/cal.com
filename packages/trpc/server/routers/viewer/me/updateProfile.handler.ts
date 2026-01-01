@@ -10,6 +10,7 @@ import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
+import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -43,7 +44,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const featuresRepository = new FeaturesRepository(prisma);
   const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
-  const { travelSchedules, ...rest } = input;
+  const { travelSchedules, bookingLimits, ...rest } = input;
 
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
@@ -219,6 +220,19 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           };
         }),
     });
+  }
+
+  if (bookingLimits !== undefined) {
+    if (bookingLimits === null) {
+      data.bookingLimits = Prisma.DbNull;
+    } else {
+      const isValid = validateIntervalLimitOrder(bookingLimits);
+      if (!isValid) {
+        const t = await getTranslation(locale, "common");
+        throw new TRPCError({ code: "BAD_REQUEST", message: t("event_setup_booking_limits_error") });
+      }
+      data.bookingLimits = bookingLimits;
+    }
   }
 
   const updatedUserSelect = {

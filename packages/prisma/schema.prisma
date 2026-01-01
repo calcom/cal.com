@@ -480,6 +480,8 @@ model User {
   filterSegmentPreferences       UserFilterSegmentPreference[]
   creditBalance                  CreditBalance?
   whitelistWorkflows             Boolean                       @default(false)
+  /// @zod.import(["import { intervalLimitsType } from '../../zod-utils'"]).custom.use(intervalLimitsType)
+  bookingLimits                  Json?
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
   holidaySettings                UserHolidaySettings?

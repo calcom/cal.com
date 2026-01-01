@@ -271,6 +271,60 @@ const _getBusyTimesFromTeamLimits = async (
   return limitManager.getBusyTimes();
 };
 
+const _getBusyTimesFromGlobalBookingLimits = async (
+  userId: number,
+  userEmail: string,
+  bookingLimits: IntervalLimit,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  timeZone: string,
+  rescheduleUid?: string
+) => {
+  const busyTimesService = getBusyTimesService();
+  const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
+    dateFrom.toISOString(),
+    dateTo.toISOString(),
+    bookingLimits
+  );
+
+  const bookingRepo = new BookingRepository(prisma);
+  const bookings = await bookingRepo.getAllAcceptedUserBookings({
+    userId: userId,
+    startDate: limitDateFrom.toDate(),
+    endDate: limitDateTo.toDate(),
+    excludedUid: rescheduleUid,
+  });
+
+  const busyTimes = bookings.map(({ id, startTime, endTime, eventTypeId, title, userId }) => ({
+    start: dayjs(startTime).toDate(),
+    end: dayjs(endTime).toDate(),
+    title,
+    source: `eventType-${eventTypeId}-booking-${id}`,
+    userId,
+  }));
+
+  const limitManager = new LimitManager();
+
+  await getBusyTimesFromBookingLimits({
+    bookings: busyTimes,
+    bookingLimits,
+    dateFrom,
+    dateTo,
+    eventTypeId: undefined,
+    limitManager,
+    rescheduleUid,
+    user: { id: userId, email: userEmail },
+    timeZone,
+  });
+
+  return limitManager.getBusyTimes();
+};
+
+export const getBusyTimesFromGlobalBookingLimits = withReporting(
+  _getBusyTimesFromGlobalBookingLimits,
+  "getBusyTimesFromGlobalBookingLimits"
+);
+
 export const getBusyTimesFromLimits = withReporting(_getBusyTimesFromLimits, "getBusyTimesFromLimits");
 
 export const getBusyTimesFromBookingLimits = withReporting(

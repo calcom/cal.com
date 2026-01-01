@@ -2981,6 +2981,8 @@
   "disconnect_account": "Disconnect connected account",
   "disconnect_account_hint": "Disconnecting your connected account will change the way you log in. You will only be able to login to your account using email + password",
   "cookie_consent_checkbox": "I agree to the privacy policy and cookie usage",
+  "global_limit_booking_frequency_description": "Limit how many bookings you allow across all your event types.",
+  "failed_to_save_global_settings": "Failed to save global settings",
   "make_a_call": "Make a Call",
   "skip_rr_assignment_label": "Skip round robin assignment if contact exists in Salesforce",
   "skip_rr_description": "URL must contain the contacts email as a parameter ex. ?email=contactEmail",
@@ -3123,7 +3125,7 @@
   "reschedule_with_same_round_robin_host_title": "Reschedule with same Round-Robin host",
   "reschedule_with_same_round_robin_host_description": "Rescheduled events will be assigned to the same host as initially scheduled",
   "disable_input_if_prefilled": "Disable input if the URL identifier is prefilled",
-  "booking_limits": "Booking Limits",
+  "booking_limits": "Booking limits",
   "booking_limits_team_description": "Booking limits for team members across all team event types",
   "limit_team_booking_frequency_description": "Limit how many times members can be booked across all team event types",
   "booking_limits_updated_successfully": "Booking limits updated successfully",
@@ -4178,5 +4180,6 @@
   "audit_logs_owner_not_in_organization": "The booking owner is not a member of your organization.",
   "audit_logs_permission_denied": "You do not have permission to view audit logs for this booking.",
   "audit_logs_permission_check_error": "An error occurred while checking permissions.",
+  "booking_limits_global_description": "Set global limits for when and how often you can be booked.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
