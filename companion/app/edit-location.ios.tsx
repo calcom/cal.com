@@ -1,9 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { EditLocationScreenHandle } from "@/components/screens/EditLocationScreen";
 import EditLocationScreenComponent from "@/components/screens/EditLocationScreen";
@@ -43,10 +42,6 @@ export default function EditLocationIOS() {
     }
   }, [uid, router]);
 
-  const handleClose = () => {
-    router.back();
-  };
-
   const handleSave = useCallback(() => {
     editLocationScreenRef.current?.submit();
   }, []);
@@ -62,9 +57,6 @@ export default function EditLocationIOS() {
     <>
       <Stack.Screen
         options={{
-          headerShown: true,
-          headerTransparent: true,
-          headerLargeTitle: false,
           title: "Edit Location",
           presentation: presentationStyle,
           sheetGrabberVisible: true,
@@ -73,57 +65,45 @@ export default function EditLocationIOS() {
           contentStyle: {
             backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
           },
-          headerStyle: {
-            backgroundColor: "transparent",
-          },
-          headerBlurEffect: useGlassEffect ? undefined : "light",
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={handleClose}
-              style={{
-                padding: 8,
-                backgroundColor: "rgba(120, 120, 128, 0.12)",
-                borderRadius: 20,
-              }}>
-              <Ionicons name="close" size={20} color="#000" />
-            </TouchableOpacity>
-          ),
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={handleSave}
-              disabled={isSaving}
-              style={{
-                padding: 8,
-                backgroundColor: "rgba(0, 122, 255, 0.12)",
-                borderRadius: 20,
-                opacity: isSaving ? 0.5 : 1,
-              }}>
-              <Ionicons name="checkmark" size={20} color="#007AFF" />
-            </TouchableOpacity>
-          ),
         }}
       />
+
+      <Stack.Header>
+        <Stack.Header.Left>
+          <Stack.Header.Button onPress={() => router.back()}>
+            <Stack.Header.Icon sf="xmark" />
+          </Stack.Header.Button>
+        </Stack.Header.Left>
+
+        <Stack.Header.Title>Edit Location</Stack.Header.Title>
+
+        <Stack.Header.Right>
+          <Stack.Header.Button onPress={handleSave} disabled={isSaving}>
+            <Stack.Header.Icon sf="checkmark" />
+          </Stack.Header.Button>
+        </Stack.Header.Right>
+      </Stack.Header>
 
       <View
         style={{
           flex: 1,
           backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
+          paddingTop: 56,
           paddingBottom: insets.bottom,
-        }}>
+        }}
+      >
         {isLoading ? (
-          <View className="mt-20 flex-1 items-center justify-center">
+          <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#007AFF" />
           </View>
         ) : (
-          <View className="mt-16 flex-1">
-            <EditLocationScreenComponent
-              ref={editLocationScreenRef}
-              booking={booking}
-              onSuccess={handleUpdateSuccess}
-              onSavingChange={setIsSaving}
-              transparentBackground={useGlassEffect}
-            />
-          </View>
+          <EditLocationScreenComponent
+            ref={editLocationScreenRef}
+            booking={booking}
+            onSuccess={handleUpdateSuccess}
+            onSavingChange={setIsSaving}
+            transparentBackground={useGlassEffect}
+          />
         )}
       </View>
     </>

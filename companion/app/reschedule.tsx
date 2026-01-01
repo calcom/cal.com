@@ -1,6 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Platform, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Platform, View } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
 import type { RescheduleScreenHandle } from "@/components/screens/RescheduleScreen";
 import RescheduleScreenComponent from "@/components/screens/RescheduleScreen";
@@ -40,13 +41,23 @@ export default function Reschedule() {
     router.back();
   }, [router]);
 
+  const renderHeaderLeft = useCallback(
+    () => (
+      <AppPressable onPress={() => router.back()} className="px-2 py-2">
+        <Ionicons name="close" size={24} color="#007AFF" />
+      </AppPressable>
+    ),
+    [router]
+  );
+
   const renderHeaderRight = useCallback(
     () => (
       <AppPressable
         onPress={handleSave}
         disabled={isSaving}
-        className={`px-4 py-2 ${isSaving ? "opacity-50" : ""}`}>
-        <Text className="text-[16px] font-semibold text-[#007AFF]">Save</Text>
+        className={`px-2 py-2 ${isSaving ? "opacity-50" : ""}`}
+      >
+        <Ionicons name="checkmark" size={24} color="#007AFF" />
       </AppPressable>
     ),
     [handleSave, isSaving]
@@ -63,7 +74,7 @@ export default function Reschedule() {
         />
 
         {Platform.OS === "ios" && (
-          <Stack.Header style={{ shadowColor: "transparent" }}>
+          <Stack.Header>
             <Stack.Header.Title>Reschedule</Stack.Header.Title>
           </Stack.Header>
         )}
@@ -81,18 +92,24 @@ export default function Reschedule() {
         options={{
           title: "Reschedule",
           headerBackButtonDisplayMode: "minimal",
-          headerRight: Platform.OS === "web" ? renderHeaderRight : undefined,
-          headerShown: Platform.OS !== "android",
+          headerLeft: Platform.OS !== "ios" ? renderHeaderLeft : undefined,
+          headerRight: Platform.OS !== "ios" ? renderHeaderRight : undefined,
         }}
       />
 
       {Platform.OS === "ios" && (
-        <Stack.Header style={{ shadowColor: "transparent" }}>
+        <Stack.Header>
+          <Stack.Header.Left>
+            <Stack.Header.Button onPress={() => router.back()}>
+              <Stack.Header.Icon sf="xmark" />
+            </Stack.Header.Button>
+          </Stack.Header.Left>
+
           <Stack.Header.Title>Reschedule</Stack.Header.Title>
 
           <Stack.Header.Right>
             <Stack.Header.Button onPress={handleSave} disabled={isSaving}>
-              Save
+              <Stack.Header.Icon sf="checkmark" />
             </Stack.Header.Button>
           </Stack.Header.Right>
         </Stack.Header>

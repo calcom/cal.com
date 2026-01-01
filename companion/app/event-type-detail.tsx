@@ -15,6 +15,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AppPressable } from "@/components/AppPressable";
 import { AdvancedTab } from "@/components/event-type-detail/tabs/AdvancedTab";
 import { AvailabilityTab } from "@/components/event-type-detail/tabs/AvailabilityTab";
 import { BasicsTab } from "@/components/event-type-detail/tabs/BasicsTab";
@@ -1110,66 +1111,64 @@ export default function EventTypeDetail() {
     }
   };
 
+  const headerTitle = id === "new" ? "Create Event Type" : truncateTitle(title);
+  const saveButtonText = id === "new" ? "Create" : "Save";
+
+  const renderHeaderLeft = () => (
+    <AppPressable onPress={() => router.back()} className="px-2 py-2">
+      <Ionicons name="close" size={24} color="#007AFF" />
+    </AppPressable>
+  );
+
+  const renderHeaderRight = () => (
+    <AppPressable
+      onPress={handleSave}
+      disabled={saving}
+      className={`px-2 py-2 ${saving ? "opacity-50" : ""}`}
+    >
+      <Text className="text-[16px] font-semibold text-[#007AFF]">{saveButtonText}</Text>
+    </AppPressable>
+  );
+
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen
+        options={{
+          title: headerTitle,
+          headerBackButtonDisplayMode: "minimal",
+          headerLeft:
+            Platform.OS === "android" || Platform.OS === "web" ? renderHeaderLeft : undefined,
+          headerRight:
+            Platform.OS === "android" || Platform.OS === "web" ? renderHeaderRight : undefined,
+          headerShown: Platform.OS !== "ios",
+        }}
+      />
+
+      {Platform.OS === "ios" && (
+        <Stack.Header>
+          <Stack.Header.Left>
+            <Stack.Header.Button onPress={() => router.back()}>
+              <Stack.Header.Icon sf="xmark" />
+            </Stack.Header.Button>
+          </Stack.Header.Left>
+
+          <Stack.Header.Title>{headerTitle}</Stack.Header.Title>
+
+          <Stack.Header.Right>
+            <Stack.Header.Button onPress={handleSave} disabled={saving}>
+              {saveButtonText}
+            </Stack.Header.Button>
+          </Stack.Header.Right>
+        </Stack.Header>
+      )}
+
       <View className="flex-1 bg-[#f8f9fa]">
-        {/* Glass Header */}
-        <GlassView
-          style={[
-            {
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 1000,
-              paddingHorizontal: Platform.OS === "web" ? 16 : 8,
-              paddingBottom: 12,
-              paddingTop: insets.top + 8,
-            },
-          ]}
-          glassEffectStyle="clear"
-        >
-          <View className="min-h-[44px] flex-row items-center justify-between">
-            <TouchableOpacity
-              className="h-10 w-10 items-start justify-center"
-              onPress={() => router.back()}
-            >
-              <Ionicons name="chevron-back" size={24} color="#000" />
-            </TouchableOpacity>
-
-            <Text
-              className="mx-2.5 flex-1 text-center text-lg font-semibold text-black"
-              numberOfLines={1}
-            >
-              {id === "new" ? "Create Event Type" : truncateTitle(title)}
-            </Text>
-
-            <TouchableOpacity
-              className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${
-                saving ? "opacity-60" : ""
-              }`}
-              onPress={handleSave}
-              disabled={saving}
-            >
-              <Text className="text-base font-semibold text-white">
-                {id === "new" ? "Create" : "Save"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </GlassView>
-
         {/* Tabs */}
         {isLiquidGlassAvailable() ? (
           <GlassView
             glassEffectStyle="regular"
             style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              top: 0,
-              zIndex: 999,
-              paddingTop: insets.top + 70,
+              paddingTop: 12,
               paddingBottom: 12,
             }}
           >
@@ -1207,12 +1206,7 @@ export default function EventTypeDetail() {
         ) : (
           <View
             style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              top: 0,
-              zIndex: 999,
-              paddingTop: insets.top + 70,
+              paddingTop: Platform.OS === "ios" ? 12 : insets.top + 70,
               paddingBottom: 12,
               backgroundColor: "rgba(255, 255, 255, 0.9)",
               borderBottomWidth: 0.5,
@@ -1256,8 +1250,6 @@ export default function EventTypeDetail() {
         <ScrollView
           style={{
             flex: 1,
-            paddingTop: Platform.OS === "web" ? 120 : 180,
-            paddingBottom: 250,
           }}
           contentContainerStyle={{ padding: 20, paddingBottom: 200 }}
         >
