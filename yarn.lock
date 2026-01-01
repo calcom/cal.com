@@ -1942,7 +1942,7 @@ __metadata:
     ts-loader: "npm:9.5.1"
     ts-node: "npm:10.9.2"
     tsconfig-paths: "npm:4.2.0"
-    typescript: "npm:5.9.2"
+    typescript: "npm:5.9.3"
     uuid: "npm:8.3.2"
     winston: "npm:3.17.0"
     winston-transport: "npm:4.9.0"
@@ -1973,7 +1973,7 @@ __metadata:
     next-swagger-doc: "npm:0.3.6"
     next-validations: "npm:0.2.1"
     node-mocks-http: "npm:1.16.2"
-    typescript: "npm:5.9.2"
+    typescript: "npm:5.9.3"
     tzdata: "npm:1.0.40"
     uuid: "npm:8.3.2"
     zod: "npm:3.25.76"
@@ -1994,7 +1994,7 @@ __metadata:
     meow: "npm:9.0.0"
     react: "npm:18.2.0"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.9.2"
+    typescript: "npm:5.9.3"
   bin:
     app-store-cli: dist/cli.js
   languageName: unknown
@@ -2068,14 +2068,13 @@ __metadata:
     tailwind-merge: "npm:1.13.2"
     tailwindcss: "npm:4.1.17"
     ts-jest: "npm:29.1.4"
-    typescript: "npm:5.9.2"
+    typescript: "npm:5.9.3"
     vite: "npm:5.4.21"
     vite-plugin-dts: "npm:3.7.3"
     vite-plugin-inspect: "npm:0.8.4"
   peerDependencies:
     react: ^18.0.0 || ^19.0.0
     react-dom: ^18.0.0 || ^19.0.0
-    typescript: ^5.0.0
   languageName: unknown
   linkType: soft
 
@@ -2125,7 +2124,7 @@ __metadata:
     react-dom: "npm:18.2.0"
     react-select: "npm:5.8.0"
     tailwindcss: "npm:4.1.17"
-    typescript: "npm:5.9.2"
+    typescript: "npm:5.9.3"
   languageName: unknown
   linkType: soft
 
@@ -2217,7 +2216,7 @@ __metadata:
     tailwind-scrollbar: "npm:4.0.2"
     tailwindcss-radix: "npm:4.0.2"
     tw-animate-css: "npm:1.4.0"
-    typescript: "npm:5.9.2"
+    typescript: "npm:5.9.3"
   languageName: unknown
   linkType: soft
 
@@ -2385,7 +2384,7 @@ __metadata:
     npm-run-all: "npm:4.1.5"
     postcss: "npm:8.5.6"
     tailwindcss: "npm:4.1.17"
-    typescript: "npm:5.9.2"
+    typescript: "npm:5.9.3"
     vite: "npm:4.5.14"
     vite-plugin-environment: "npm:1.1.3"
   languageName: unknown
@@ -2402,7 +2401,7 @@ __metadata:
     "@types/react-dom": "npm:18.2.6"
     "@vitejs/plugin-react": "npm:2.2.0"
     npm-run-all: "npm:4.1.5"
-    typescript: "npm:5.9.2"
+    typescript: "npm:5.9.3"
     vite: "npm:4.5.14"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
@@ -2415,7 +2414,7 @@ __metadata:
   resolution: "@calcom/embed-snippet@workspace:packages/embeds/embed-snippet"
   dependencies:
     "@calcom/embed-core": "workspace:*"
-    typescript: "npm:5.9.2"
+    typescript: "npm:5.9.3"
     vite: "npm:4.5.14"
   languageName: unknown
   linkType: soft
@@ -2437,7 +2436,7 @@ __metadata:
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
     tailwindcss: "npm:3.4.1"
-    typescript: "npm:4.9.5"
+    typescript: "npm:5.9.3"
   languageName: unknown
   linkType: soft
 
@@ -2557,7 +2556,6 @@ __metadata:
     react: ^18.0.0 || ^19.0.0
     react-dom: ^18.0.0 || ^19.0.0
     react-is: ^18.2.0
-    stripe: ^9.0.0 || ^15.0.0
     zod: ^3.0.0
   languageName: unknown
   linkType: soft
@@ -2789,7 +2787,7 @@ __metadata:
     sharp: "npm:0.33.5"
     tsdav: "npm:2.0.3"
     tslog: "npm:4.9.2"
-    typescript: "npm:5.9.2"
+    typescript: "npm:5.9.3"
     uuid: "npm:8.3.2"
   languageName: unknown
   linkType: soft
@@ -2974,7 +2972,7 @@ __metadata:
     "@calcom/lib": "workspace:*"
     "@types/node": "npm:20.17.23"
     "@vitejs/plugin-react": "npm:4.2.1"
-    typescript: "npm:5.9.2"
+    typescript: "npm:5.9.3"
     vite: "npm:5.4.21"
     vite-plugin-dts: "npm:3.7.3"
     vite-plugin-environment: "npm:1.1.3"
@@ -3263,7 +3261,7 @@ __metadata:
     "@types/uuid": "npm:8.3.4"
     cookie: "npm:0.7.2"
     superjson: "npm:1.9.1"
-    typescript: "npm:5.9.2"
+    typescript: "npm:5.9.3"
     uuid: "npm:8.3.2"
     zod: "npm:3.25.76"
   peerDependencies:
@@ -3353,7 +3351,7 @@ __metadata:
     react-select: "npm:5.8.0"
     sonner: "npm:1.7.4"
     tailwind-merge: "npm:1.13.2"
-    typescript: "npm:5.9.2"
+    typescript: "npm:5.9.3"
     uuid: "npm:11.1.0"
     zod: "npm:3.25.76"
   peerDependencies:
@@ -3563,7 +3561,7 @@ __metadata:
     ts-node: "npm:10.9.2"
     turbo: "npm:2.5.5"
     turndown: "npm:7.2.0"
-    typescript: "npm:5.9.2"
+    typescript: "npm:5.9.3"
     uuid: "npm:8.3.2"
     zod: "npm:3.25.76"
   languageName: unknown
@@ -3991,7 +3989,7 @@ __metadata:
     tailwind-merge: "npm:3.4.0"
     ts-node: "npm:10.9.2"
     tsc-absolute: "npm:1.0.0"
-    typescript: "npm:5.9.0-beta"
+    typescript: "npm:5.9.3"
   peerDependencies:
     react: ^18.0.0 || ^19.0.0
     react-dom: ^18.0.0 || ^19.0.0
@@ -18790,7 +18788,7 @@ __metadata:
     resize-observer-polyfill: "npm:1.5.1"
     tsc-absolute: "npm:1.0.0"
     turbo: "npm:2.7.1"
-    typescript: "npm:5.9.0-beta"
+    typescript: "npm:5.9.3"
     vitest: "npm:2.1.9"
     vitest-fetch-mock: "npm:0.3.0"
     vitest-mock-extended: "npm:2.0.2"
@@ -38547,16 +38545,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:4.9.5":
-  version: 4.9.5
-  resolution: "typescript@npm:4.9.5"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10/458f7220ab11e0fc191514cc41be1707645ec9a8c2d609448a448e18c522cef9646f58728f6811185a4c35613dacdf6c98cf8965c88b3541d0288c47291e4300
-  languageName: node
-  linkType: hard
-
 "typescript@npm:5.3.3":
   version: 5.3.3
   resolution: "typescript@npm:5.3.3"
@@ -38567,33 +38555,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:5.9.0-beta":
-  version: 5.9.0-beta
-  resolution: "typescript@npm:5.9.0-beta"
+"typescript@npm:5.9.3":
+  version: 5.9.3
+  resolution: "typescript@npm:5.9.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10/99aba53166272fa0cdf3f228682106f666ad9ac8373b58892046c42b931b58d0e3125bafbb5320a835cc50bba7b389079309aae958677e6aa1d3f136d24dc715
+  checksum: 10/c089d9d3da2729fd4ac517f9b0e0485914c4b3c26f80dc0cffcb5de1719a17951e92425d55db59515c1a7ddab65808466debb864d0d56dcf43f27007d0709594
   languageName: node
   linkType: hard
 
-"typescript@npm:5.9.2, typescript@npm:^5.9.2":
+"typescript@npm:^5.9.2":
   version: 5.9.2
   resolution: "typescript@npm:5.9.2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10/cc2fe6c822819de5d453fa25aa9f32096bf70dde215d481faa1ad84a283dfb264e33988ed8f6d36bc803dd0b16dbe943efa311a798ef76d5b3892a05dfbfd628
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A4.9.5#optional!builtin<compat/typescript>":
-  version: 4.9.5
-  resolution: "typescript@patch:typescript@npm%3A4.9.5#optional!builtin<compat/typescript>::version=4.9.5&hash=289587"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10/5659316360b5cc2d6f5931b346401fa534107b68b60179cf14970e27978f0936c1d5c46f4b5b8175f8cba0430f522b3ce355b4b724c0ea36ce6c0347fab25afd
   languageName: node
   linkType: hard
 
@@ -38607,17 +38585,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A5.9.0-beta#optional!builtin<compat/typescript>":
-  version: 5.9.0-beta
-  resolution: "typescript@patch:typescript@npm%3A5.9.0-beta#optional!builtin<compat/typescript>::version=5.9.0-beta&hash=5786d5"
+"typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>":
+  version: 5.9.3
+  resolution: "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10/edf141cd7fa0a404faf7b1e74f02178e7b657ff51c8a5e13caef309daff09715b5cbb982300054634ab6f3a2234b9543cfd0b6ba674247bcc767f457ccf89260
+  checksum: 10/696e1b017bc2635f4e0c94eb4435357701008e2f272f553d06e35b494b8ddc60aa221145e286c28ace0c89ee32827a28c2040e3a69bdc108b1a5dc8fb40b72e3
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A5.9.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.9.2#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^5.9.2#optional!builtin<compat/typescript>":
   version: 5.9.2
   resolution: "typescript@patch:typescript@npm%3A5.9.2#optional!builtin<compat/typescript>::version=5.9.2&hash=5786d5"
   bin:
