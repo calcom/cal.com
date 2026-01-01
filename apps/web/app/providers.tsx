@@ -9,7 +9,7 @@ import { NotificationSoundHandler } from "@calcom/web/components/notification-so
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 
-import { GeoProvider } from "./GeoContext";
+import { GeoProvider } from "@calcom/features/ee/event-tracking/context/GeoContext";
 
 type ProvidersProps = {
   isEmbed: boolean;
