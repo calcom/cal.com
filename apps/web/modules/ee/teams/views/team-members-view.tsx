@@ -1,12 +1,15 @@
 "use client";
 
-import MemberList from "../components/MemberList";
+import { useState } from "react";
+
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import type { MemberPermissions } from "@calcom/features/users/types/user-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { useState } from "react";
+import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
+
 import { MemberInvitationModalWithoutMembers } from "~/ee/teams/components/MemberInvitationModal";
+
+import MemberList from "../components/MemberList";
 
 interface TeamMembersViewProps {
   team: NonNullable<RouterOutputs["viewer"]["teams"]["get"]>;
@@ -31,16 +34,10 @@ interface TeamMembersViewProps {
   permissions: MemberPermissions;
 }
 
-export const TeamMembersView = ({
-  team,
-  facetedTeamValues,
-  permissions,
-}: TeamMembersViewProps) => {
+export const TeamMembersView = ({ team, facetedTeamValues, permissions }: TeamMembersViewProps) => {
   const { t } = useLocale();
-  const [showMemberInvitationModal, setShowMemberInvitationModal] =
-    useState(false);
-  const [_showInviteLinkSettingsModal, setShowInviteLinkSettingsModal] =
-    useState(false);
+  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+  const [_showInviteLinkSettingsModal, setShowInviteLinkSettingsModal] = useState(false);
 
   // Use PBAC permissions - server-side permission check should be done in parent component
   const canLoggedInUserSeeMembers = permissions?.canListMembers ?? false;
@@ -60,13 +57,8 @@ export const TeamMembersView = ({
           </div>
         )}
         {!canLoggedInUserSeeMembers && (
-          <div
-            className="border-subtle rounded-xl border p-6"
-            data-testid="members-privacy-warning"
-          >
-            <h2 className="text-default">
-              {t("only_admin_can_see_members_of_team")}
-            </h2>
+          <div className="border-subtle rounded-xl border p-6" data-testid="members-privacy-warning">
+            <h2 className="text-default">{t("only_admin_can_see_members_of_team")}</h2>
           </div>
         )}
         {showMemberInvitationModal && team && team.id && (
