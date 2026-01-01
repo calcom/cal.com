@@ -2,11 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
+import { getAvatarUrl } from "@/utils/getAvatarUrl";
+import { Image } from "expo-image";
+import { useUserProfile } from "@/hooks";
 
 interface MoreMenuItem {
   name: string;
@@ -20,6 +23,7 @@ export default function More() {
   const router = useRouter();
   const { logout } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { data: userProfile } = useUserProfile();
 
   const performLogout = async () => {
     try {
@@ -84,14 +88,23 @@ export default function More() {
       {/* iOS Native Header with Glass UI */}
       <Stack.Header
         style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
-        blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
-      >
+        blurEffect={isLiquidGlassAvailable() ? undefined : "light"}>
         <Stack.Header.Title large>More</Stack.Header.Title>
         <Stack.Header.Right>
-          {/* Profile Button */}
-          <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
-            <Stack.Header.Icon sf="person.circle.fill" />
-          </Stack.Header.Button>
+          {userProfile?.avatarUrl ? (
+            <Stack.Header.View>
+              <Pressable onPress={() => router.push("/profile-sheet")}>
+                <Image
+                  source={{ uri: getAvatarUrl(userProfile.avatarUrl) }}
+                  style={{ width: 32, height: 32, borderRadius: 16 }}
+                />
+              </Pressable>
+            </Stack.Header.View>
+          ) : (
+            <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
+              <Stack.Header.Icon sf="person.circle.fill" />
+            </Stack.Header.Button>
+          )}
         </Stack.Header.Right>
       </Stack.Header>
 
@@ -100,8 +113,7 @@ export default function More() {
         style={{ backgroundColor: "#f8f9fa" }}
         contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
-        contentInsetAdjustmentBehavior="automatic"
-      >
+        contentInsetAdjustmentBehavior="automatic">
         <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
           {menuItems.map((item, index) => (
             <TouchableOpacity
@@ -109,8 +121,7 @@ export default function More() {
               onPress={item.onPress}
               className={`flex-row items-center justify-between bg-white px-5 py-5 active:bg-[#F8F9FA] ${
                 index < menuItems.length - 1 ? "border-b border-[#E5E5EA]" : ""
-              }`}
-            >
+              }`}>
               <View className="flex-1 flex-row items-center">
                 <Ionicons name={item.icon} size={20} color="#333" />
                 <Text className="ml-3 text-base font-semibold text-[#333]">{item.name}</Text>
@@ -128,8 +139,7 @@ export default function More() {
         <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
           <TouchableOpacity
             onPress={handleSignOut}
-            className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50"
-          >
+            className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50">
             <Ionicons name="log-out-outline" size={20} color="#800000" />
             <Text className="ml-2 text-base font-medium text-[#800000]">Sign Out</Text>
           </TouchableOpacity>
@@ -139,10 +149,7 @@ export default function More() {
         <Text className="mt-6 px-1 text-center text-xs text-gray-400">
           The companion app is an extension of the web application.{"\n"}
           For advanced features, visit{" "}
-          <Text
-            className="text-gray-800"
-            onPress={() => openInAppBrowser("https://app.cal.com", "Cal.com")}
-          >
+          <Text className="text-gray-800" onPress={() => openInAppBrowser("https://app.cal.com", "Cal.com")}>
             app.cal.com
           </Text>
         </Text>
