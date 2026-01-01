@@ -1,26 +1,28 @@
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-
-import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
+
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { InputField, Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { InputField, Label, Select, Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
 import { showToast } from "@calcom/ui/components/toast";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import { SalesforceRecordEnum } from "../lib/enums";
 import type { appDataSchema } from "../zod";
 import WriteToObjectSettings, { BookingActionEnum } from "./components/WriteToObjectSettings";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType, onAppInstallSuccess }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  app,
+  eventType,
+  onAppInstallSuccess,
+}) {
   const pathname = usePathname();
 
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
@@ -43,6 +45,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const onBookingWriteToRecord = getAppData("onBookingWriteToRecord") ?? false;
   const onBookingWriteToRecordFields = getAppData("onBookingWriteToRecordFields") ?? {};
   const ignoreGuests = getAppData("ignoreGuests") ?? false;
+  const excludeSalesforceBookingsFromRR = getAppData("excludeSalesforceBookingsFromRR") ?? false;
   const roundRobinSkipFallbackToLeadOwner = getAppData("roundRobinSkipFallbackToLeadOwner") ?? false;
   const onCancelWriteToEventRecord = getAppData("onCancelWriteToEventRecord") ?? false;
   const onCancelWriteToEventRecordFields = getAppData("onCancelWriteToEventRecordFields") ?? {};
@@ -114,7 +117,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             <Select
               size="sm"
               id="add-attendees-as"
-              className="w-[200px]"
+              class="w-[200px]"
               options={recordOptions}
               value={createEventOnSelectedOption}
               onChange={(e) => {
@@ -215,26 +218,26 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           </Section.SubSectionHeader>
           {onBookingWriteToEventObject ? (
             <Section.SubSectionContent>
-              <div className="text-subtle flex gap-3 px-3 py-[6px] text-sm font-medium">
-                <div className="flex-1">{t("field_name")}</div>
-                <div className="flex-1">{t("value")}</div>
-                <div className="w-10" />
+              <div class="text-subtle flex gap-3 px-3 py-[6px] text-sm font-medium">
+                <div class="flex-1">{t("field_name")}</div>
+                <div class="flex-1">{t("value")}</div>
+                <div class="w-10" />
               </div>
               <Section.SubSectionNested>
                 {Object.keys(onBookingWriteToEventObjectMap).map((key) => (
-                  <div className="flex items-center gap-2" key={key}>
-                    <div className="flex-1">
-                      <InputField value={key} readOnly size="sm" className="w-full" />
+                  <div class="flex items-center gap-2" key={key}>
+                    <div class="flex-1">
+                      <InputField value={key} readOnly size="sm" class="w-full" />
                     </div>
-                    <div className="flex-1">
+                    <div class="flex-1">
                       <InputField
                         value={onBookingWriteToEventObjectMap[key]}
                         readOnly
                         size="sm"
-                        className="w-full"
+                        class="w-full"
                       />
                     </div>
-                    <div className="flex w-10 justify-center">
+                    <div class="flex w-10 justify-center">
                       <Button
                         StartIcon="x"
                         variant="icon"
@@ -249,11 +252,11 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     </div>
                   </div>
                 ))}
-                <div className="mt-2 flex gap-4">
-                  <div className="flex-1">
+                <div class="mt-2 flex gap-4">
+                  <div class="flex-1">
                     <InputField
                       size="sm"
-                      className="w-full"
+                      class="w-full"
                       value={newOnBookingWriteToEventObjectField.field}
                       onChange={(e) =>
                         setNewOnBookingWriteToEventObjectField({
@@ -263,10 +266,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                       }
                     />
                   </div>
-                  <div className="flex-1">
+                  <div class="flex-1">
                     <InputField
                       size="sm"
-                      className="w-full"
+                      class="w-full"
                       value={newOnBookingWriteToEventObjectField.value}
                       onChange={(e) =>
                         setNewOnBookingWriteToEventObjectField({
@@ -276,11 +279,11 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                       }
                     />
                   </div>
-                  <div className="w-10" />
+                  <div class="w-10" />
                 </div>
               </Section.SubSectionNested>
               <Button
-                className="text-subtle mt-2 w-fit"
+                class="text-subtle mt-2 w-fit"
                 size="sm"
                 color="secondary"
                 disabled={
@@ -339,9 +342,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           {onBookingChangeRecordOwner ? (
             <Section.SubSectionContent classNames={{ container: "p-3" }}>
               <div>
-                <Label
-                  htmlFor="on-booking-change-record-owner-name"
-                  className="text-subtle text-sm font-medium">
+                <Label for="on-booking-change-record-owner-name" class="text-subtle text-sm font-medium">
                   {t("salesforce_owner_name_to_change")}
                 </Label>
                 <InputField
@@ -378,14 +379,12 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               {isRoundRobinLeadSkipEnabled ? (
                 <Section.SubSectionContent classNames={{ container: "p-3" }}>
                   <div>
-                    <Label
-                      htmlFor="round-robin-skip-check-record-on"
-                      className="text-subtle text-sm font-medium">
+                    <Label for="round-robin-skip-check-record-on" class="text-subtle text-sm font-medium">
                       {t("salesforce_check_owner_of")}
                     </Label>
                     <Select
                       size="sm"
-                      className="w-60"
+                      class="w-60"
                       options={checkOwnerOptions}
                       value={checkOwnerSelectedOption}
                       onChange={(e) => {
@@ -441,6 +440,28 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           </>
         ) : null}
 
+        {/* Only show this toggle when the event type is Round Robin */}
+        {eventType.schedulingType === SchedulingType.ROUND_ROBIN && (
+          <Section.SubSection>
+            <Section.SubSectionHeader
+              icon="refresh-ccw"
+              title={t("exclude_salesforce_bookings_from_round_robin")}
+              labelFor="exclude-salesforce-bookings-from-rr">
+              <Switch
+                id="exclude-salesforce-bookings-from-rr"
+                size="sm"
+                checked={excludeSalesforceBookingsFromRR}
+                onCheckedChange={(checked) => {
+                  setAppData("excludeSalesforceBookingsFromRR", checked);
+                }}
+              />
+            </Section.SubSectionHeader>
+            <p class="text-subtle mt-2 text-sm">
+              {t("exclude_salesforce_bookings_from_round_robin_description")}
+            </p>
+          </Section.SubSection>
+        )}
+
         <Section.SubSection>
           <WriteToObjectSettings
             bookingAction={BookingActionEnum.ON_CANCEL}
@@ -470,9 +491,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           </Section.SubSectionHeader>
           {sendNoShowAttendeeData ? (
             <Section.SubSectionContent classNames={{ container: "p-3" }}>
-              <Label
-                htmlFor="send-no-show-attendee-data-field-name"
-                className="text-subtle text-sm font-medium">
+              <Label for="send-no-show-attendee-data-field-name" class="text-subtle text-sm font-medium">
                 Field name to check (must be checkbox data type)
               </Label>
               <InputField

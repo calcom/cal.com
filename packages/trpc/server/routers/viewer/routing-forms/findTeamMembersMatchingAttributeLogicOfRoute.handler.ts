@@ -3,11 +3,10 @@
  * Also, it is applicable only for sub-teams. Regular teams and user Routing Forms don't hit this endpoint.
  * Live mode uses findTeamMembersMatchingAttributeLogicOfRoute fn directly
  */
-import type { ServerResponse } from "http";
-import type { NextApiResponse } from "next";
 
 import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { entityPrismaWhereClause } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
@@ -23,8 +22,9 @@ import { getServerTimingHeader } from "@calcom/routing-forms/lib/getServerTiming
 import isRouter from "@calcom/routing-forms/lib/isRouter";
 import { RouteActionType } from "@calcom/routing-forms/zod";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
+import type { ServerResponse } from "http";
+import type { NextApiResponse } from "next";
 
 import type { TFindTeamMembersMatchingAttributeLogicOfRouteInputSchema } from "./findTeamMembersMatchingAttributeLogicOfRoute.schema";
 
@@ -50,7 +50,7 @@ async function getEnrichedSerializableForm<
       } | null;
       metadata: unknown;
     } | null;
-  }
+  },
 >({ form, prisma }: { prisma: PrismaClient; form: TForm }) {
   const formWithUserInfoProfile = {
     ...form,
@@ -270,6 +270,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
 
   const timeBeforeGetOrderedLuckyUsers = performance.now();
   const luckyUserService = getLuckyUserService();
+  const salesforceAppData = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps)?.salesforce;
   const {
     users: orderedLuckyUsers,
     perUserData,
@@ -298,6 +299,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
         },
         // During Preview testing we could consider the current time itself as the meeting start time
         meetingStartTime: new Date(),
+        excludeSalesforceBookingsFromRR: salesforceAppData?.excludeSalesforceBookingsFromRR,
       })
     : { users: [], perUserData: null, isUsingAttributeWeights: false };
   const timeAfterGetOrderedLuckyUsers = performance.now();

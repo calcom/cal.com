@@ -90,6 +90,7 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
   maxLeadThreshold,
   eventType,
   routingFormResponse,
+  excludeSalesforceBookingsFromRR,
 }: {
   hosts: T[];
   maxLeadThreshold: number | null;
@@ -104,6 +105,7 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
     includeNoShowInRRCalculation: boolean;
   };
   routingFormResponse: RoutingFormResponse | null;
+  excludeSalesforceBookingsFromRR?: boolean;
 }) => {
   if (maxLeadThreshold === 0) {
     throw new Error(errorCodes.MAX_LEAD_THRESHOLD_FALSY);
@@ -134,6 +136,7 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
     eventType,
     allRRHosts: hosts,
     routingFormResponse,
+    excludeSalesforceBookingsFromRR,
   });
 
   const perUserData = orderedLuckyUsers["perUserData"];
