@@ -2,7 +2,44 @@ import path from "path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
-process.env.INTEGRATION_TEST_MODE = "true";
+const vitestMode = process.env.VITEST_MODE;
+const isPackagedEmbedMode = vitestMode === "packaged-embed";
+const isIntegrationMode = vitestMode === "integration";
+const isTimezoneMode = vitestMode === "timezone";
+
+if (isIntegrationMode) {
+  process.env.INTEGRATION_TEST_MODE = "true";
+}
+
+if (isTimezoneMode && !process.env.TZ) {
+  throw new Error("TZ environment variable is not set for timezone tests");
+}
+
+function getTestInclude() {
+  if (isPackagedEmbedMode) {
+    return ["packages/embeds/**/packaged/**/*.{test,spec}.{ts,js}"];
+  }
+  if (isIntegrationMode) {
+    return ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"];
+  }
+  if (isTimezoneMode) {
+    return ["packages/**/*.timezone.test.ts", "apps/**/*.timezone.test.ts"];
+  }
+  return undefined;
+}
+
+function getTestExclude() {
+  const baseExclude = [
+    "**/node_modules/**",
+    "**/dist/**",
+    "apps/api/v2/**/*.spec.ts",
+    "__checks__/**/*.spec.ts",
+  ];
+  if (isIntegrationMode || isTimezoneMode) {
+    return [...baseExclude, "packages/embeds/**/*"];
+  }
+  return baseExclude;
+}
 
 export default defineConfig({
   plugins: [react()],
@@ -57,19 +94,13 @@ export default defineConfig({
     silent: true,
     environment: "jsdom",
     setupFiles: ["./setupVitest.ts"],
+    include: getTestInclude(),
+    exclude: getTestExclude(),
     server: {
       deps: {
-        // Allow importing Node.js built-ins in jsdom environment
         inline: [/@calcom\/.*/],
       },
     },
-    // Exclude API v2 spec files (Jest) and __checks__ (Playwright)
-    exclude: [
-      "**/node_modules/**",
-      "**/dist/**",
-      "apps/api/v2/**/*.spec.ts",
-      "__checks__/**/*.spec.ts",
-    ],
     coverage: {
       provider: "v8",
     },
