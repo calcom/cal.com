@@ -7,9 +7,9 @@ const isPackagedEmbedMode = vitestMode === "packaged-embed";
 const isIntegrationMode = vitestMode === "integration";
 const isTimezoneMode = vitestMode === "timezone";
 
-if (isIntegrationMode) {
-  process.env.INTEGRATION_TEST_MODE = "true";
-}
+// Always set INTEGRATION_TEST_MODE to allow server-side imports in jsdom environment
+// This is needed because getBookingFields.ts checks for this env var to allow imports
+process.env.INTEGRATION_TEST_MODE = "true";
 
 if (isTimezoneMode && !process.env.TZ) {
   throw new Error("TZ environment variable is not set for timezone tests");
