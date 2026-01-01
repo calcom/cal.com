@@ -7,12 +7,6 @@
     }
   },
   "formatter": {
-    "includes": [
-      "**/*",
-      "!packages/ui/components/icon/dynamicIconImports.tsx",
-      "!apps/api/v1/tests",
-      "!apps/api/v1/templates"
-    ],
     "lineWidth": 110,
     "indentStyle": "space",
     "indentWidth": 2,
@@ -70,6 +64,21 @@
   },
   "overrides": [
     {
+      "includes": ["packages/app-store/*.generated.ts"],
+      "javascript": {
+        "formatter": {
+          "enabled": true,
+          "arrowParentheses": "always",
+          "bracketSpacing": true,
+          "bracketSameLine": true,
+          "quoteStyle": "double",
+          "jsxQuoteStyle": "double",
+          "semicolons": "always",
+          "trailingCommas": "es5"
+        }
+      }
+    },
+    {
       "includes": ["**/*.test.ts", "**/*.test.tsx"],
       "linter": {
         "rules": {
@@ -86,7 +95,11 @@
       }
     },
     {
-      "includes": ["apps/web/app/**/page.tsx", "apps/web/app/**/layout.tsx", "apps/web/app/pages/**/*.tsx"],
+      "includes": [
+        "apps/web/app/**/page.tsx",
+        "apps/web/app/**/layout.tsx",
+        "apps/web/app/pages/**/*.tsx"
+      ],
       "linter": {
         "rules": {
           "style": {

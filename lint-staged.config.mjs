@@ -7,6 +7,6 @@ export default {
     skipWarnings
       ? `biome lint ${files.join(" ")}`
       : `biome lint --error-on-warnings ${files.join(" ")}`,
-  "*.json": (files) => `biome format ${files.join(" ")}`,
+  // "*.json": (files) => `biome format ${files.join(" ")}`,
   "packages/prisma/schema.prisma": ["prisma format"],
 };
