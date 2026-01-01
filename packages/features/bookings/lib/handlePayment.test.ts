@@ -11,29 +11,21 @@ vi.mock("@calcom/app-store/zod-utils", () => ({
 vi.mock("@calcom/app-store/payment.services.generated", () => ({
   PaymentServiceMap: {
     stripepayment: Promise.resolve({
-      PaymentService: class MockPaymentService {
-        async create(paymentData: { amount: number; currency: string }) {
-          return {
-            ...paymentData,
-            id: "mock-payment-id",
-            externalId: "mock-external-id",
-            success: true,
-          };
-        }
-
-        async collectCard(paymentData: { amount: number; currency: string }) {
-          return {
-            ...paymentData,
-            id: "mock-payment-id",
-            externalId: "mock-external-id",
-            success: true,
-          };
-        }
-
-        async afterPayment() {
-          return true;
-        }
-      },
+      BuildPaymentService: () => ({
+        create: async (paymentData: { amount: number; currency: string }) => ({
+          ...paymentData,
+          id: "mock-payment-id",
+          externalId: "mock-external-id",
+          success: true,
+        }),
+        collectCard: async (paymentData: { amount: number; currency: string }) => ({
+          ...paymentData,
+          id: "mock-payment-id",
+          externalId: "mock-external-id",
+          success: true,
+        }),
+        afterPayment: async () => true,
+      }),
     }),
   },
 }));
