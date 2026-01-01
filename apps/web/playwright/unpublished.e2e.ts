@@ -4,7 +4,9 @@ import { SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 
-test.describe.configure({ mode: "parallel" });
+// Run tests serially to avoid database deadlocks from concurrent writes
+// when creating organizations and teams
+test.describe.configure({ mode: "serial" });
 
 const title = (name: string) => `${name} is unpublished`;
 const description = (entity: string) =>

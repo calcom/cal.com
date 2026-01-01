@@ -423,7 +423,9 @@ export function goToUrlWithErrorHandling({ page, url }: { page: Page; url: strin
     };
     page.on("requestfailed", onRequestFailed);
     try {
-      await page.goto(url);
+      await page.goto(url, { waitUntil: "domcontentloaded" });
+      // Wait for any client-side redirects to complete
+      await page.waitForLoadState("networkidle");
     } catch {
       // do nothing
     }
