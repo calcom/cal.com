@@ -1,6 +1,10 @@
-import { updateRoleInCache, getUpdatedUser } from "./MemberChangeRoleModal";
-import type { Action, State, User } from "./MemberList";
-import type { MemberPermissions } from "@calcom/features/users/types/user-table";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { Dispatch } from "react";
+import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { shallow } from "zustand/shallow";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -8,25 +12,17 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Form } from "@calcom/ui/components/form";
 import { ToggleGroup, Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetBody,
-} from "@calcom/ui/components/sheet";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetBody } from "@calcom/ui/components/sheet";
 import { Skeleton, Loader } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { DisplayInfo } from "@calcom/web/modules/users/components/UserTable/EditSheet/DisplayInfo";
 import { SheetFooterControls } from "@calcom/web/modules/users/components/UserTable/EditSheet/SheetFooterControls";
 import { useEditMode } from "@calcom/web/modules/users/components/UserTable/EditSheet/store";
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { Dispatch } from "react";
-import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { shallow } from "zustand/shallow";
+import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
+
+import { updateRoleInCache, getUpdatedUser } from "./MemberChangeRoleModal";
+import type { Action, State, User } from "./MemberList";
 
 const formSchema = z.object({
   role: z.union([z.nativeEnum(MembershipRole), z.string()]), // Support both traditional roles and custom role IDs
@@ -54,9 +50,7 @@ export function EditMemberSheet({
     (state) => [state.editMode, state.setEditMode, state.setMutationLoading],
     shallow
   );
-  const [role, setRole] = useState<string>(
-    selectedUser.customRoleId || selectedUser.role
-  );
+  const [role, setRole] = useState<string>(selectedUser.customRoleId || selectedUser.role);
   const name =
     selectedUser.name ||
     (() => {
@@ -67,19 +61,16 @@ export function EditMemberSheet({
   const bookerUrl = selectedUser.bookerUrl;
   const utils = trpc.useUtils();
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
-  const bookingLink = selectedUser.username
-    ? `${bookerUrlWithoutProtocol}/${selectedUser.username}`
-    : "";
+  const bookingLink = selectedUser.username ? `${bookerUrlWithoutProtocol}/${selectedUser.username}` : "";
 
   // Load custom roles for the team
-  const { data: customRoles, isPending: isLoadingRoles } =
-    trpc.viewer.pbac.getTeamRoles.useQuery(
-      { teamId },
-      {
-        enabled: !!teamId,
-        retry: false, // Don't retry if PBAC is not enabled
-      }
-    );
+  const { data: customRoles, isPending: isLoadingRoles } = trpc.viewer.pbac.getTeamRoles.useQuery(
+    { teamId },
+    {
+      enabled: !!teamId,
+      retry: false, // Don't retry if PBAC is not enabled
+    }
+  );
 
   const options = useMemo(() => {
     // If we have custom roles, only show custom roles
@@ -104,10 +95,7 @@ export function EditMemberSheet({
         label: t("owner"),
         value: MembershipRole.OWNER,
       },
-    ].filter(
-      ({ value }) =>
-        value !== MembershipRole.OWNER || currentMember === MembershipRole.OWNER
-    );
+    ].filter(({ value }) => value !== MembershipRole.OWNER || currentMember === MembershipRole.OWNER);
   }, [t, currentMember, customRoles]);
 
   // Determine if we should use Select (when custom roles exist) or ToggleGroup (traditional only)
@@ -121,11 +109,10 @@ export function EditMemberSheet({
     },
   });
 
-  const { data: getUserConnectedApps, isPending } =
-    trpc.viewer.teams.getUserConnectedApps.useQuery({
-      userIds: [selectedUser.id],
-      teamId,
-    });
+  const { data: getUserConnectedApps, isPending } = trpc.viewer.teams.getUserConnectedApps.useQuery({
+    userIds: [selectedUser.id],
+    teamId,
+  });
 
   const connectedApps = getUserConnectedApps?.[selectedUser.id];
 
@@ -204,32 +191,21 @@ export function EditMemberSheet({
       onOpenChange={() => {
         setEditMode(false);
         dispatch({ type: "CLOSE_MODAL" });
-      }}
-    >
+      }}>
       <SheetContent className="bg-cal-muted">
         {!isPending && !isLoadingRoles ? (
-          <Form
-            form={form}
-            handleSubmit={changeRole}
-            className="flex h-full flex-col"
-          >
+          <Form form={form} handleSubmit={changeRole} className="flex h-full flex-col">
             <SheetHeader showCloseButton={false} className="w-full">
               <div className="border-sublte bg-default w-full rounded-xl border p-4">
                 <div
                   className="block w-full rounded-lg ring-1 ring-[#0000000F]"
                   style={{
-                    background:
-                      "linear-gradient(to top right, var(--cal-bg-emphasis), var(--cal-bg))",
+                    background: "linear-gradient(to top right, var(--cal-bg-emphasis), var(--cal-bg))",
                     height: "110px",
                   }}
                 />
                 <div className="bg-default ml-3 w-fit translate-y-[-50%] rounded-full p-1 ring-1 ring-[#0000000F]">
-                  <Avatar
-                    asChild
-                    size="lg"
-                    alt={`${name} avatar`}
-                    imageSrc={selectedUser.avatarUrl}
-                  />
+                  <Avatar asChild size="lg" alt={`${name} avatar`} imageSrc={selectedUser.avatarUrl} />
                 </div>
                 <Skeleton as="p" waitForTranslation={false}>
                   <h2 className="text-emphasis font-sans text-2xl font-semibold">
@@ -238,28 +214,16 @@ export function EditMemberSheet({
                 </Skeleton>
                 <Skeleton as="p" waitForTranslation={false}>
                   <p className="text-subtle max-h-[3em] overflow-hidden text-ellipsis text-sm font-normal">
-                    {selectedUser.bio
-                      ? selectedUser?.bio
-                      : t("user_has_no_bio")}
+                    {selectedUser.bio ? selectedUser?.bio : t("user_has_no_bio")}
                   </p>
                 </Skeleton>
               </div>
             </SheetHeader>
             <SheetBody className="stack-y-4 flex flex-col p-4">
               <div className="stack-y-4 mb-4 flex flex-col">
-                <h3 className="text-emphasis mb-1 text-base font-semibold">
-                  {t("profile")}
-                </h3>
-                <DisplayInfo
-                  label="Cal"
-                  value={bookingLink}
-                  icon="external-link"
-                />
-                <DisplayInfo
-                  label={t("email")}
-                  value={selectedUser.email}
-                  icon="at-sign"
-                />
+                <h3 className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</h3>
+                <DisplayInfo label="Cal" value={bookingLink} icon="external-link" />
+                <DisplayInfo label={t("email")} value={selectedUser.email} icon="at-sign" />
                 {!editMode ? (
                   <DisplayInfo
                     label={t("role")}
@@ -275,9 +239,7 @@ export function EditMemberSheet({
                     <div className="flex flex-1">
                       {shouldUseSelect ? (
                         <Select
-                          value={options.find(
-                            (option) => option.value === form.watch("role")
-                          )}
+                          value={options.find((option) => option.value === form.watch("role"))}
                           onChange={(selectedOption: any) => {
                             if (selectedOption) {
                               form.setValue("role", selectedOption.value);
@@ -285,9 +247,7 @@ export function EditMemberSheet({
                           }}
                           options={options}
                           isDisabled={isLoadingRoles}
-                          placeholder={
-                            isLoadingRoles ? t("loading") : t("select_role")
-                          }
+                          placeholder={isLoadingRoles ? t("loading") : t("select_role")}
                           className="flex-1"
                         />
                       ) : (
@@ -307,9 +267,7 @@ export function EditMemberSheet({
                 <div className="flex items-center gap-6">
                   <div className="flex w-[110px] items-center gap-2">
                     <Icon className="text-subtle h-4 w-4" name="grid-3x3" />
-                    <label className="text-subtle text-sm font-medium">
-                      {t("apps")}
-                    </label>
+                    <label className="text-subtle text-sm font-medium">{t("apps")}</label>
                   </div>
                   <div className="flex flex-1">
                     {!connectedApps ? (
