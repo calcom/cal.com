@@ -85,7 +85,7 @@
     "lint-staged": "lint-staged"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.8",
+    "@biomejs/biome": "2.3.10",
     "@changesets/changelog-github": "0.5.1",
     "@changesets/cli": "2.29.4",
     "@faker-js/faker": "9.2.0",
@@ -112,7 +112,7 @@
     "resize-observer-polyfill": "1.5.1",
     "tsc-absolute": "1.0.0",
     "turbo": "2.7.1",
-    "typescript": "5.9.0-beta",
+    "typescript": "5.9.3",
     "vitest": "2.1.9",
     "vitest-fetch-mock": "0.3.0",
     "vitest-mock-extended": "2.0.2"

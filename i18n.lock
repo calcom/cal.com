@@ -1296,6 +1296,7 @@ checksums:
     delete_schedule_description: fa1613734f70a118ce68cb6ec922a6ad
     schedule_created_successfully: aa2f4ecee93fb44baa2fcebe66d1d212
     availability_updated_successfully: cad652a630c3b1cc4dcfb2aaa60043f3
+    bulk_updated_schedule_successfully: 1964d60cc976fad5b66d489b113f9b89
     schedule_deleted_successfully: fe6e460999c4dd4a9b60a3f4d9578737
     default_schedule_name: ba5a9d4aeb2115431906be1fa91f14d3
     new_schedule_heading: c3d0781d91be1cf6cab5241f7445628f
@@ -3490,6 +3491,7 @@ checksums:
     last_active: f56f696ea3c36a1084fe7fab1c422b74
     member_since: 68f13de9a1bc207db0d8b62c6b433052
     last_updated: 956353f0af47fe60f0f45ec25d129a01
+    completed_onboarding: 264710464ed3a726be025bdbff860db5
     salesforce_on_cancel_write_to_event: 5d82dd4959cc2ae009a750f096ad74e0
     salesforce_on_every_cancellation: a54453f804195b3747564b1ceb0d60b4
     report_issue: 5abe40470cb5476d6e4f49fe422bd438
