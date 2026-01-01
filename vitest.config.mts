@@ -25,7 +25,8 @@ function getTestInclude() {
   if (isTimezoneMode) {
     return ["packages/**/*.timezone.test.ts", "apps/**/*.timezone.test.ts"];
   }
-  return undefined;
+  // Default: run all test files (Vitest default pattern)
+  return ["**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"];
 }
 
 function getTestExclude() {
