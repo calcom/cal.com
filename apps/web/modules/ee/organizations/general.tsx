@@ -1,7 +1,16 @@
 "use client";
 
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
+
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { DisableAutofillOnBookingPageSwitch } from "~/ee/organizations/pages/components/DisableAutofillOnBookingPageSwitch";
+import { DisablePhoneOnlySMSNotificationsSwitch } from "~/ee/organizations/pages/components/DisablePhoneOnlySMSNotificationsSwitch";
+import { LockEventTypeSwitch } from "~/ee/organizations/pages/components/LockEventTypeSwitch";
+import { NoSlotsNotificationSwitch } from "~/ee/organizations/pages/components/NoSlotsNotificationSwitch";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
@@ -12,20 +21,8 @@ import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
-import {
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-} from "@calcom/ui/components/skeleton";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { DisableAutofillOnBookingPageSwitch } from "~/ee/organizations/components/DisableAutofillOnBookingPageSwitch";
-import { DisablePhoneOnlySMSNotificationsSwitch } from "~/ee/organizations/components/DisablePhoneOnlySMSNotificationsSwitch";
-import { LockEventTypeSwitch } from "~/ee/organizations/components/LockEventTypeSwitch";
-import { NoSlotsNotificationSwitch } from "~/ee/organizations/components/NoSlotsNotificationSwitch";
 
 const SkeletonLoader = () => {
   return (
@@ -104,11 +101,7 @@ const OrgGeneralView = ({
   );
 };
 
-const GeneralView = ({
-  currentOrg,
-  permissions,
-  localeProp,
-}: GeneralViewProps) => {
+const GeneralView = ({ currentOrg, permissions, localeProp }: GeneralViewProps) => {
   const { t } = useLocale();
 
   const mutation = trpc.viewer.organizations.update.useMutation({
@@ -141,17 +134,13 @@ const GeneralView = ({
       timeZone: currentOrg.timeZone || "",
       timeFormat: {
         value: currentOrg.timeFormat || 12,
-        label:
-          timeFormatOptions.find(
-            (option) => option.value === currentOrg.timeFormat
-          )?.label || 12,
+        label: timeFormatOptions.find((option) => option.value === currentOrg.timeFormat)?.label || 12,
       },
       weekStart: {
         value: currentOrg.weekStart,
         label:
-          weekStartOptions.find(
-            (option) => option.value === currentOrg.weekStart
-          )?.label || nameOfDay(localeProp, 0),
+          weekStartOptions.find((option) => option.value === currentOrg.weekStart)?.label ||
+          nameOfDay(localeProp, 0),
       },
     },
   });
@@ -170,14 +159,12 @@ const GeneralView = ({
           timeFormat: values.timeFormat.value,
           weekStart: values.weekStart.value,
         });
-      }}
-    >
+      }}>
       <div
         className={classNames(
           "border-subtle border-x border-y-0 px-4 py-8 sm:px-6",
           !permissions.canEdit && "rounded-b-lg border-y"
-        )}
-      >
+        )}>
         <Controller
           name="timeZone"
           control={formMethods.control}
@@ -190,10 +177,7 @@ const GeneralView = ({
                 id="timezone"
                 value={value}
                 onChange={(event) => {
-                  if (event)
-                    formMethods.setValue("timeZone", event.value, {
-                      shouldDirty: true,
-                    });
+                  if (event) formMethods.setValue("timeZone", event.value, { shouldDirty: true });
                 }}
               />
             </>
@@ -211,12 +195,7 @@ const GeneralView = ({
                 value={value}
                 options={timeFormatOptions}
                 onChange={(event) => {
-                  if (event)
-                    formMethods.setValue(
-                      "timeFormat",
-                      { ...event },
-                      { shouldDirty: true }
-                    );
+                  if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
                 }}
               />
             </>
@@ -237,12 +216,7 @@ const GeneralView = ({
                 value={value}
                 options={weekStartOptions}
                 onChange={(event) => {
-                  if (event)
-                    formMethods.setValue(
-                      "weekStart",
-                      { ...event },
-                      { shouldDirty: true }
-                    );
+                  if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
                 }}
               />
             </>
