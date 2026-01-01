@@ -1,17 +1,20 @@
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Platform } from "react-native";
+import { Alert, Platform, Pressable } from "react-native";
 import { AvailabilityListScreen } from "@/components/screens/AvailabilityListScreen";
-import { useCreateSchedule } from "@/hooks";
+import { useCreateSchedule, useUserProfile } from "@/hooks";
 import { CalComAPIService } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
+import { getAvatarUrl } from "@/utils/getAvatarUrl";
+import { Image } from "expo-image";
 
 export default function Availability() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { mutate: createScheduleMutation } = useCreateSchedule();
+  const { data: userProfile } = useUserProfile();
 
   const handleCreateNew = () => {
     // Use native iOS Alert.prompt for a native look
@@ -68,7 +71,10 @@ export default function Availability() {
                   console.error("Failed to create schedule", message);
                   if (__DEV__) {
                     const stack = error instanceof Error ? error.stack : undefined;
-                    console.debug("[Availability] createSchedule failed", { message, stack });
+                    console.debug("[Availability] createSchedule failed", {
+                      message,
+                      stack,
+                    });
                   }
                   showErrorAlert("Error", "Failed to create schedule. Please try again.");
                 },
@@ -88,8 +94,7 @@ export default function Availability() {
       <Stack.Header
         style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
         blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
-        hidden={Platform.OS === "android"}
-      >
+        hidden={Platform.OS === "android"}>
         <Stack.Header.Title large>Availability</Stack.Header.Title>
         <Stack.Header.Right>
           {/* New Menu */}
@@ -102,9 +107,20 @@ export default function Availability() {
           </Stack.Header.Menu>
 
           {/* Profile Button */}
-          <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
-            <Stack.Header.Icon sf="person.circle.fill" />
-          </Stack.Header.Button>
+          {userProfile?.avatarUrl ? (
+            <Stack.Header.View>
+              <Pressable onPress={() => router.push("/profile-sheet")}>
+                <Image
+                  source={{ uri: getAvatarUrl(userProfile.avatarUrl) }}
+                  style={{ width: 32, height: 32, borderRadius: 16 }}
+                />
+              </Pressable>
+            </Stack.Header.View>
+          ) : (
+            <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
+              <Stack.Header.Icon sf="person.circle.fill" />
+            </Stack.Header.Button>
+          )}
         </Stack.Header.Right>
         <Stack.Header.SearchBar
           placeholder="Search schedules"

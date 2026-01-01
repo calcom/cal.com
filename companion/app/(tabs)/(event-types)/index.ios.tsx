@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import {
   ActionSheetIOS,
   Alert,
+  Pressable,
   RefreshControl,
   ScrollView,
   Share,
@@ -23,6 +24,7 @@ import {
   useDeleteEventType,
   useDuplicateEventType,
   useEventTypes,
+  useUserProfile,
 } from "@/hooks";
 import { CalComAPIService, type EventType } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
@@ -31,10 +33,13 @@ import { getEventDuration } from "@/utils/getEventDuration";
 import { offlineAwareRefresh } from "@/utils/network";
 import { normalizeMarkdown } from "@/utils/normalizeMarkdown";
 import { slugify } from "@/utils/slugify";
+import { Image } from "expo-image";
+import { getAvatarUrl } from "@/utils/getAvatarUrl";
 
 export default function EventTypesIOS() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: userProfile } = useUserProfile();
 
   // No modal state needed for iOS - using native Alert.prompt
 
@@ -213,12 +218,14 @@ export default function EventTypesIOS() {
           });
         },
         onError: (duplicateError) => {
-          const message =
-            duplicateError instanceof Error ? duplicateError.message : String(duplicateError);
+          const message = duplicateError instanceof Error ? duplicateError.message : String(duplicateError);
           console.error("Failed to duplicate event type", message);
           if (__DEV__) {
             const stack = duplicateError instanceof Error ? duplicateError.stack : undefined;
-            console.debug("[EventTypes] duplicateEventType failed", { message, stack });
+            console.debug("[EventTypes] duplicateEventType failed", {
+              message,
+              stack,
+            });
           }
           showErrorAlert("Error", "Failed to duplicate event type. Please try again.");
         },
@@ -274,22 +281,20 @@ export default function EventTypesIOS() {
                       id: newEventType.id.toString(),
                       title: newEventType.title,
                       description: newEventType.description || "",
-                      duration: (
-                        newEventType.lengthInMinutes ||
-                        newEventType.length ||
-                        15
-                      ).toString(),
+                      duration: (newEventType.lengthInMinutes || newEventType.length || 15).toString(),
                       slug: newEventType.slug || "",
                     },
                   });
                 },
                 onError: (createError) => {
-                  const message =
-                    createError instanceof Error ? createError.message : String(createError);
+                  const message = createError instanceof Error ? createError.message : String(createError);
                   console.error("Failed to create event type", message);
                   if (__DEV__) {
                     const stack = createError instanceof Error ? createError.stack : undefined;
-                    console.debug("[EventTypes] createEventType failed", { message, stack });
+                    console.debug("[EventTypes] createEventType failed", {
+                      message,
+                      stack,
+                    });
                   }
                   showErrorAlert("Error", "Failed to create event type. Please try again.");
                 },
@@ -368,8 +373,7 @@ export default function EventTypesIOS() {
       {/* iOS Native Header with Glass UI */}
       <Stack.Header
         style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
-        blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
-      >
+        blurEffect={isLiquidGlassAvailable() ? undefined : "light"}>
         <Stack.Header.Title large>Event Types</Stack.Header.Title>
 
         <Stack.Header.Right>
@@ -381,14 +385,12 @@ export default function EventTypesIOS() {
             <Stack.Header.Menu title="Sort by">
               <Stack.Header.MenuAction
                 icon="textformat.abc"
-                onPress={() => handleSortByOption("alphabetical")}
-              >
+                onPress={() => handleSortByOption("alphabetical")}>
                 Alphabetical
               </Stack.Header.MenuAction>
               <Stack.Header.MenuAction
                 icon="calendar.badge.clock"
-                onPress={() => handleSortByOption("newest")}
-              >
+                onPress={() => handleSortByOption("newest")}>
                 Newest First
               </Stack.Header.MenuAction>
               <Stack.Header.MenuAction icon="clock" onPress={() => handleSortByOption("duration")}>
@@ -398,28 +400,33 @@ export default function EventTypesIOS() {
 
             {/* Filter Submenu - opens as separate submenu */}
             <Stack.Header.Menu title="Filter">
-              <Stack.Header.MenuAction
-                icon="checkmark.circle"
-                onPress={() => handleFilterOption("all")}
-              >
+              <Stack.Header.MenuAction icon="checkmark.circle" onPress={() => handleFilterOption("all")}>
                 All Event Types
               </Stack.Header.MenuAction>
               <Stack.Header.MenuAction icon="eye" onPress={() => handleFilterOption("active")}>
                 Active Only
               </Stack.Header.MenuAction>
-              <Stack.Header.MenuAction
-                icon="dollarsign.circle"
-                onPress={() => handleFilterOption("paid")}
-              >
+              <Stack.Header.MenuAction icon="dollarsign.circle" onPress={() => handleFilterOption("paid")}>
                 Paid Events
               </Stack.Header.MenuAction>
             </Stack.Header.Menu>
           </Stack.Header.Menu>
 
           {/* Profile Button - Opens bottom sheet */}
-          <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
-            <Stack.Header.Icon sf="person.circle.fill" />
-          </Stack.Header.Button>
+          {userProfile?.avatarUrl ? (
+            <Stack.Header.View>
+              <Pressable onPress={() => router.push("/profile-sheet")}>
+                <Image
+                  source={{ uri: getAvatarUrl(userProfile.avatarUrl) }}
+                  style={{ width: 32, height: 32, borderRadius: 16 }}
+                />
+              </Pressable>
+            </Stack.Header.View>
+          ) : (
+            <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
+              <Stack.Header.Icon sf="person.circle.fill" />
+            </Stack.Header.Button>
+          )}
         </Stack.Header.Right>
 
         {/* Search Bar */}
@@ -437,8 +444,7 @@ export default function EventTypesIOS() {
         contentContainerStyle={{ paddingBottom: 120 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
-        contentInsetAdjustmentBehavior="automatic"
-      >
+        contentInsetAdjustmentBehavior="automatic">
         {filteredEventTypes.length === 0 && searchQuery.trim() !== "" ? (
           <View className="flex-1 items-center justify-center bg-gray-50 p-5 pt-20">
             <EmptyScreen
@@ -476,8 +482,7 @@ export default function EventTypesIOS() {
         <Host matchContents>
           <ContextMenu
             modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"), padding()]}
-            activationMethod="singlePress"
-          >
+            activationMethod="singlePress">
             <ContextMenu.Items>
               <Button systemImage="link" onPress={handleOpenCreateModal} label="New Event Type" />
             </ContextMenu.Items>
