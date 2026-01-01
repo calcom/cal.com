@@ -114,7 +114,7 @@ describe("intentToCreateOrgHandler", () => {
     vi.resetAllMocks();
     await prismock.reset();
 
-    vi.mocked(OrganizationPaymentService).mockImplementation(() => {
+    vi.mocked(OrganizationPaymentService).mockImplementation(function () {
       return {
         createOrganizationOnboarding: vi
           .fn()

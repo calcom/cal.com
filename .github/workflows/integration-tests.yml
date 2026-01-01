@@ -83,7 +83,7 @@ jobs:
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
       - name: Run Tests
-        run: yarn test -- --integrationTestsOnly
+        run: VITEST_MODE=integration yarn test
       # TODO: Generate test results so we can upload them
       # - name: Upload Test Results
       #   if: ${{ always() }}
