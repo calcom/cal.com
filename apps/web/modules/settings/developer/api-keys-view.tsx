@@ -70,7 +70,7 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
         <div>
           {data?.length ? (
             <>
-              <div class="border-subtle rounded-b-lg border border-t-0">
+              <div className="border-subtle rounded-b-lg border border-t-0">
                 {data.map((apiKey, index) => (
                   <ApiKeyListItem
                     key={apiKey.id}
@@ -89,7 +89,7 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
               Icon="link"
               headline={t("create_first_api_key")}
               description={t("create_first_api_key_description", { appName: APP_NAME })}
-              class="rounded-b-lg rounded-t-none border-t-0"
+              className="rounded-b-lg rounded-t-none border-t-0"
               buttonRaw={<NewApiKeyButton />}
             />
           )}

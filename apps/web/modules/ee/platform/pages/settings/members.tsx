@@ -27,7 +27,7 @@ const PlatformMembersView = (props: Omit<UserListTableProps, "facetedTeamValues"
       <PlatformPricing
         teamId={userOrgId}
         heading={
-          <div class="mb-5 text-center text-2xl font-semibold">
+          <div className="mb-5 text-center text-2xl font-semibold">
             <h1>Subscribe to Platform</h1>
           </div>
         }
