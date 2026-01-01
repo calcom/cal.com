@@ -3,9 +3,11 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 const vitestMode = process.env.VITEST_MODE;
-const isPackagedEmbedMode = vitestMode === "packaged-embed";
-const isIntegrationMode = vitestMode === "integration";
-const isTimezoneMode = vitestMode === "timezone";
+// Support both new VITEST_MODE env var and legacy CLI flags for backwards compatibility
+// The CLI flags are passed through but Vitest 4.0 doesn't reject them when using yarn test
+const isPackagedEmbedMode = vitestMode === "packaged-embed" || process.argv.includes("--packaged-embed-tests-only");
+const isIntegrationMode = vitestMode === "integration" || process.argv.includes("--integrationTestsOnly");
+const isTimezoneMode = vitestMode === "timezone" || process.argv.includes("--timeZoneDependentTestsOnly");
 
 // Always set INTEGRATION_TEST_MODE to allow server-side imports in jsdom environment
 // This is needed because getBookingFields.ts checks for this env var to allow imports
