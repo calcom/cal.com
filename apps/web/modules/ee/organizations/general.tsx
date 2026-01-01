@@ -7,10 +7,10 @@ import { Controller, useForm } from "react-hook-form";
 
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { DisableAutofillOnBookingPageSwitch } from "~/ee/organizations/pages/components/DisableAutofillOnBookingPageSwitch";
-import { DisablePhoneOnlySMSNotificationsSwitch } from "~/ee/organizations/pages/components/DisablePhoneOnlySMSNotificationsSwitch";
-import { LockEventTypeSwitch } from "~/ee/organizations/pages/components/LockEventTypeSwitch";
-import { NoSlotsNotificationSwitch } from "~/ee/organizations/pages/components/NoSlotsNotificationSwitch";
+import { DisableAutofillOnBookingPageSwitch } from "~/ee/organizations/components/DisableAutofillOnBookingPageSwitch";
+import { DisablePhoneOnlySMSNotificationsSwitch } from "~/ee/organizations/components/DisablePhoneOnlySMSNotificationsSwitch";
+import { LockEventTypeSwitch } from "~/ee/organizations/components/LockEventTypeSwitch";
+import { NoSlotsNotificationSwitch } from "~/ee/organizations/components/NoSlotsNotificationSwitch";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
