@@ -132,18 +132,22 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
       return options;
     }, []);
 
+    // Extract booking times for stable dependency references
+    const bookingStartTime = booking?.startTime;
+    const bookingEndTime = booking?.endTime;
+
     // Calculate booking duration in minutes
     const bookingDurationMinutes = React.useMemo(() => {
-      if (!booking?.startTime || !booking?.endTime) return 30; // Default to 30 min
-      const start = new Date(booking.startTime);
-      const end = new Date(booking.endTime);
+      if (!bookingStartTime || !bookingEndTime) return 30; // Default to 30 min
+      const start = new Date(bookingStartTime);
+      const end = new Date(bookingEndTime);
       const durationMs = end.getTime() - start.getTime();
       const durationMin = Math.round(durationMs / (1000 * 60));
       // Ensure slot interval is reasonable (minimum 5 min, maximum 60 min)
       if (durationMin < 5) return 5;
       if (durationMin > 60) return 60;
       return durationMin;
-    }, [booking?.startTime, booking?.endTime]);
+    }, [bookingStartTime, bookingEndTime]);
 
     // Generate time options based on booking duration
     const timeOptions = React.useMemo(() => {
