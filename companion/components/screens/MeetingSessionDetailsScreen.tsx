@@ -57,12 +57,14 @@ export function MeetingSessionDetailsScreen({
     <View
       className={`mb-4 overflow-hidden rounded-xl ${
         transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
-      }`}>
+      }`}
+    >
       {/* Session header */}
       <View
         className={`flex-row items-center justify-between p-4 ${
           transparentBackground ? "" : "border-b border-gray-100"
-        }`}>
+        }`}
+      >
         <View className="flex-row items-center">
           <View className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}>
             <Ionicons name="videocam" size={20} color="#6B7280" />
@@ -73,7 +75,9 @@ export function MeetingSessionDetailsScreen({
         </View>
         {item.duration && (
           <View className={`rounded-full px-3 py-1 ${pillStyle}`}>
-            <Text className="text-[13px] font-medium text-gray-600">{formatDuration(item.duration)}</Text>
+            <Text className="text-[13px] font-medium text-gray-600">
+              {formatDuration(item.duration)}
+            </Text>
           </View>
         )}
       </View>
@@ -82,18 +86,24 @@ export function MeetingSessionDetailsScreen({
       <View className="p-4">
         <View className="mb-2 flex-row items-center">
           <Ionicons name="time-outline" size={18} color="#8E8E93" />
-          <Text className="ml-2 text-[15px] text-gray-600">Started: {formatDate(item.startTime)}</Text>
+          <Text className="ml-2 text-[15px] text-gray-600">
+            Started: {formatDate(item.startTime)}
+          </Text>
         </View>
         {item.endTime && (
           <View className="mb-2 flex-row items-center">
             <Ionicons name="time-outline" size={18} color="#8E8E93" />
-            <Text className="ml-2 text-[15px] text-gray-600">Ended: {formatTime(item.endTime)}</Text>
+            <Text className="ml-2 text-[15px] text-gray-600">
+              Ended: {formatTime(item.endTime)}
+            </Text>
           </View>
         )}
         {item.maxParticipants && (
           <View className="flex-row items-center">
             <Ionicons name="people-outline" size={18} color="#8E8E93" />
-            <Text className="ml-2 text-[15px] text-gray-600">Max participants: {item.maxParticipants}</Text>
+            <Text className="ml-2 text-[15px] text-gray-600">
+              Max participants: {item.maxParticipants}
+            </Text>
           </View>
         )}
       </View>
@@ -109,8 +119,11 @@ export function MeetingSessionDetailsScreen({
               key={participant.id || pIndex}
               className={`mb-2 flex-row items-center p-3 ${
                 transparentBackground ? "" : "rounded-xl bg-[#F2F2F7]"
-              }`}>
-              <View className={`mr-3 h-9 w-9 items-center justify-center rounded-full ${pillStyle}`}>
+              }`}
+            >
+              <View
+                className={`mr-3 h-9 w-9 items-center justify-center rounded-full ${pillStyle}`}
+              >
                 <Ionicons name="person" size={18} color="#6B7280" />
               </View>
               <View className="flex-1">
