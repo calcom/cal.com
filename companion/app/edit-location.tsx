@@ -45,8 +45,7 @@ export default function EditLocation() {
       <AppPressable
         onPress={handleSave}
         disabled={isSaving}
-        className={`px-4 py-2 ${isSaving ? "opacity-50" : ""}`}
-      >
+        className={`px-4 py-2 ${isSaving ? "opacity-50" : ""}`}>
         <Text className="text-[16px] font-semibold text-[#007AFF]">Save</Text>
       </AppPressable>
     ),

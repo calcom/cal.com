@@ -150,7 +150,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openRescheduleModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/reschedule",
+      pathname: "/reschedule",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -158,7 +158,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openEditLocationModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/edit-location",
+      pathname: "/edit-location",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -166,7 +166,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openAddGuestsModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/add-guests",
+      pathname: "/add-guests",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -174,7 +174,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openMarkNoShowModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/mark-no-show",
+      pathname: "/mark-no-show",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -182,7 +182,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openViewRecordingsModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/view-recordings",
+      pathname: "/view-recordings",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
