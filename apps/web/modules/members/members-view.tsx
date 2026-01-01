@@ -2,12 +2,14 @@
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import type { MemberPermissions } from "@calcom/features/users/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserListTable } from "@calcom/web/modules/users/components/UserTable/UserListTable";
 import type { UserListTableProps } from "@calcom/web/modules/users/components/UserTable/UserListTable";
-import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
 
-export const MembersView = (props: UserListTableProps & { permissions?: MemberPermissions }) => {
+export const MembersView = (
+  props: UserListTableProps & { permissions?: MemberPermissions }
+) => {
   const { t } = useLocale();
   const { permissions, ...tableProps } = props;
 
@@ -15,14 +17,25 @@ export const MembersView = (props: UserListTableProps & { permissions?: MemberPe
   const isOrgAdminOrOwner = props.org && checkAdminOrOwner(props.org.user.role);
   const canLoggedInUserSeeMembers =
     permissions?.canListMembers ??
-    ((props.org?.isPrivate && isOrgAdminOrOwner) || isOrgAdminOrOwner || !props.org?.isPrivate);
+    ((props.org?.isPrivate && isOrgAdminOrOwner) ||
+      isOrgAdminOrOwner ||
+      !props.org?.isPrivate);
 
   return (
     <LicenseRequired>
-      <div>{canLoggedInUserSeeMembers && <UserListTable {...tableProps} permissions={permissions} />}</div>
+      <div>
+        {canLoggedInUserSeeMembers && (
+          <UserListTable {...tableProps} permissions={permissions} />
+        )}
+      </div>
       {!canLoggedInUserSeeMembers && (
-        <div className="border-subtle rounded-xl border p-6" data-testid="members-privacy-warning">
-          <h2 className="text-default">{t("only_admin_can_see_members_of_org")}</h2>
+        <div
+          className="border-subtle rounded-xl border p-6"
+          data-testid="members-privacy-warning"
+        >
+          <h2 className="text-default">
+            {t("only_admin_can_see_members_of_org")}
+          </h2>
         </div>
       )}
     </LicenseRequired>

@@ -1,12 +1,10 @@
+import type { State, User } from "./MemberList";
+import type { MemberPermissions } from "@calcom/features/users/types";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { EditMemberSheet } from "@calcom/web/modules/ee/teams/components/EditMemberSheet";
 import { render } from "@testing-library/react";
 import React, { type ReactNode } from "react";
 import { vi } from "vitest";
-
-import { MembershipRole } from "@calcom/prisma/enums";
-import { EditMemberSheet } from "@calcom/web/modules/ee/teams/components/EditMemberSheet";
-import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
-
-import type { State, User } from "./MemberList";
 
 // Mock dependencies
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
@@ -71,36 +69,52 @@ vi.mock("@calcom/trpc/react", () => ({
 const mockSetEditMode = vi.fn();
 const mockSetMutationLoading = vi.fn();
 
-vi.mock("@calcom/web/modules/users/components/UserTable/EditSheet/store", () => ({
-  useEditMode: (
-    selector: (state: {
-      editMode: boolean;
-      setEditMode: typeof mockSetEditMode;
-      mutationLoading: boolean;
-      setMutationLoading: typeof mockSetMutationLoading;
-    }) => unknown
-  ) => {
-    const state = {
-      editMode: false,
-      setEditMode: mockSetEditMode,
-      mutationLoading: false,
-      setMutationLoading: mockSetMutationLoading,
-    };
-    if (typeof selector === "function") {
-      return selector(state);
-    }
-    return state;
-  },
-}));
+vi.mock(
+  "@calcom/web/modules/users/components/UserTable/EditSheet/store",
+  () => ({
+    useEditMode: (
+      selector: (state: {
+        editMode: boolean;
+        setEditMode: typeof mockSetEditMode;
+        mutationLoading: boolean;
+        setMutationLoading: typeof mockSetMutationLoading;
+      }) => unknown
+    ) => {
+      const state = {
+        editMode: false,
+        setEditMode: mockSetEditMode,
+        mutationLoading: false,
+        setMutationLoading: mockSetMutationLoading,
+      };
+      if (typeof selector === "function") {
+        return selector(state);
+      }
+      return state;
+    },
+  })
+);
 
 // Mock SheetFooterControls to verify props
-let capturedProps: { canChangeMemberRole?: boolean; canEditAttributesForUser?: boolean }[] = [];
-vi.mock("@calcom/web/modules/users/components/UserTable/EditSheet/SheetFooterControls", () => ({
-  SheetFooterControls: (props: { canChangeMemberRole?: boolean; canEditAttributesForUser?: boolean }) => {
-    capturedProps.push(props);
-    return React.createElement("div", { "data-testid": "sheet-footer-controls" }, "SheetFooterControls");
-  },
-}));
+let capturedProps: {
+  canChangeMemberRole?: boolean;
+  canEditAttributesForUser?: boolean;
+}[] = [];
+vi.mock(
+  "@calcom/web/modules/users/components/UserTable/EditSheet/SheetFooterControls",
+  () => ({
+    SheetFooterControls: (props: {
+      canChangeMemberRole?: boolean;
+      canEditAttributesForUser?: boolean;
+    }) => {
+      capturedProps.push(props);
+      return React.createElement(
+        "div",
+        { "data-testid": "sheet-footer-controls" },
+        "SheetFooterControls"
+      );
+    },
+  })
+);
 
 // Mock other UI components
 vi.mock("@calcom/ui/components/sheet", () => ({
@@ -117,23 +131,36 @@ vi.mock("@calcom/ui/components/sheet", () => ({
 }));
 
 vi.mock("@calcom/ui/components/form", () => ({
-  Form: ({ children }: { children: ReactNode }) => React.createElement("form", null, children),
-  ToggleGroup: () => React.createElement("div", { "data-testid": "toggle-group" }, "ToggleGroup"),
-  Select: () => React.createElement("div", { "data-testid": "select" }, "Select"),
+  Form: ({ children }: { children: ReactNode }) =>
+    React.createElement("form", null, children),
+  ToggleGroup: () =>
+    React.createElement(
+      "div",
+      { "data-testid": "toggle-group" },
+      "ToggleGroup"
+    ),
+  Select: () =>
+    React.createElement("div", { "data-testid": "select" }, "Select"),
 }));
 
 vi.mock("@calcom/ui/components/avatar", () => ({
-  Avatar: () => React.createElement("div", { "data-testid": "avatar" }, "Avatar"),
+  Avatar: () =>
+    React.createElement("div", { "data-testid": "avatar" }, "Avatar"),
 }));
 
 vi.mock("@calcom/ui/components/skeleton", () => ({
-  Skeleton: ({ children }: { children: ReactNode }) => React.createElement("div", null, children),
-  Loader: () => React.createElement("div", { "data-testid": "loader" }, "Loading..."),
+  Skeleton: ({ children }: { children: ReactNode }) =>
+    React.createElement("div", null, children),
+  Loader: () =>
+    React.createElement("div", { "data-testid": "loader" }, "Loading..."),
 }));
 
-vi.mock("@calcom/web/modules/users/components/UserTable/EditSheet/DisplayInfo", () => ({
-  DisplayInfo: () => <div data-testid="display-info">DisplayInfo</div>,
-}));
+vi.mock(
+  "@calcom/web/modules/users/components/UserTable/EditSheet/DisplayInfo",
+  () => ({
+    DisplayInfo: () => <div data-testid="display-info">DisplayInfo</div>,
+  })
+);
 
 describe("EditMemberSheet", () => {
   const mockDispatch = vi.fn();
