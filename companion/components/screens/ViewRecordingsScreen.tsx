@@ -41,7 +41,6 @@ export function ViewRecordingsScreen({
 }: ViewRecordingsScreenProps) {
   const insets = useSafeAreaInsets();
   const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
-  const cardStyle = transparentBackground ? "bg-transparent" : "bg-white";
   const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
 
   const handleOpenRecording = async (recording: BookingRecording) => {
@@ -56,7 +55,9 @@ export function ViewRecordingsScreen({
 
   const renderRecording = ({ item }: { item: BookingRecording }) => (
     <TouchableOpacity
-      className={`mb-3 overflow-hidden ${transparentBackground ? "" : "rounded-xl"} ${cardStyle}`}
+      className={`mb-3 overflow-hidden rounded-xl ${
+        transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+      }`}
       onPress={() => handleOpenRecording(item)}
       activeOpacity={0.7}>
       <View className="flex-row items-center p-4">

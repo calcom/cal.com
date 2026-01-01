@@ -207,7 +207,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   <View className="mb-3 flex-row items-center">
                     <Text className="mr-3 text-[15px] font-medium text-gray-600">Date</Text>
                     <TouchableOpacity
-                      className="rounded-xl bg-white/60 px-4 py-2.5"
+                      className="rounded-xl border border-gray-300/40 bg-white/60 px-4 py-2.5"
                       onPress={() => {
                         safeLogInfo("[RescheduleScreen] Opening date picker");
                         setShowDatePicker(true);
@@ -224,7 +224,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   <View className="mb-3 flex-row items-center">
                     <Text className="mr-3 text-[15px] font-medium text-gray-600">Time</Text>
                     <TouchableOpacity
-                      className="rounded-xl bg-white/60 px-4 py-2.5"
+                      className="rounded-xl border border-gray-300/40 bg-white/60 px-4 py-2.5"
                       onPress={() => {
                         safeLogInfo("[RescheduleScreen] Opening time picker");
                         setShowTimePicker(true);
@@ -237,7 +237,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                 )}
 
                 {/* Reason input */}
-                <View className="mb-3 overflow-hidden rounded-xl bg-white/60 px-4 py-3">
+                <View className="mb-3 overflow-hidden rounded-xl border border-gray-300/40 bg-white/60 px-4 py-3">
                   <TextInput
                     className="min-h-[80px] text-[17px] text-[#000]"
                     placeholder="Reason for rescheduling (optional)..."

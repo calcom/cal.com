@@ -222,7 +222,7 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
             <TouchableOpacity
               className={
                 transparentBackground
-                  ? "mb-4 flex-row items-center rounded-xl bg-white/60 px-4 py-3.5"
+                  ? "mb-4 flex-row items-center rounded-xl border border-gray-300/40 bg-white/60 px-4 py-3.5"
                   : "mb-4 flex-row items-center rounded-xl bg-white px-4 py-3.5"
               }
               onPress={() => setShowTypePicker(true)}
@@ -250,7 +250,7 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
             <View
               className={
                 transparentBackground
-                  ? "mb-4 overflow-hidden rounded-xl bg-white/60"
+                  ? "mb-4 overflow-hidden rounded-xl border border-gray-300/40 bg-white/60"
                   : "mb-4 overflow-hidden rounded-xl bg-white"
               }>
               <TextInput

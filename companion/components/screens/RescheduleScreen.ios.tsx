@@ -147,7 +147,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
 
               {/* Reason input */}
               <Text className="mb-2 px-1 text-[13px] font-medium text-gray-500">Reason (optional)</Text>
-              <View className="mb-3 overflow-hidden rounded-xl bg-white/60 px-4 py-3">
+              <View className="mb-3 overflow-hidden rounded-xl border border-gray-300/40 bg-white/60 px-4 py-3">
                 <TextInput
                   className="min-h-[80px] text-[17px] text-[#000]"
                   placeholder="Enter reason for rescheduling..."

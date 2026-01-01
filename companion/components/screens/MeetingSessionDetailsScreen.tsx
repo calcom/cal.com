@@ -51,11 +51,13 @@ export function MeetingSessionDetailsScreen({
 }: MeetingSessionDetailsScreenProps) {
   const insets = useSafeAreaInsets();
   const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
-  const cardStyle = transparentBackground ? "bg-transparent" : "bg-white";
   const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
 
   const renderSession = ({ item, index }: { item: ConferencingSession; index: number }) => (
-    <View className={`mb-4 overflow-hidden ${transparentBackground ? "" : "rounded-xl"} ${cardStyle}`}>
+    <View
+      className={`mb-4 overflow-hidden rounded-xl ${
+        transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+      }`}>
       {/* Session header */}
       <View
         className={`flex-row items-center justify-between p-4 ${

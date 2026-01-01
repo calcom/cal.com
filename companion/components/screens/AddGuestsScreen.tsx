@@ -142,11 +142,16 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={!transparentBackground}>
           {/* Email input */}
+          {transparentBackground && (
+            <Text className="mb-2 px-1 text-[13px] font-medium text-gray-500">Email *</Text>
+          )}
           <View
             className={`mb-3 overflow-hidden rounded-xl px-4 py-3 ${
-              transparentBackground ? "bg-white/60" : "bg-white"
+              transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
             }`}>
-            <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Email *</Text>
+            {!transparentBackground && (
+              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Email *</Text>
+            )}
             <TextInput
               className="h-10 text-[17px] text-[#000]"
               placeholder="guest@example.com"
@@ -161,11 +166,16 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
           </View>
 
           {/* Name input */}
+          {transparentBackground && (
+            <Text className="mb-2 px-1 text-[13px] font-medium text-gray-500">Name (optional)</Text>
+          )}
           <View
             className={`mb-4 overflow-hidden rounded-xl px-4 py-3 ${
-              transparentBackground ? "bg-white/60" : "bg-white"
+              transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
             }`}>
-            <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Name (optional)</Text>
+            {!transparentBackground && (
+              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Name (optional)</Text>
+            )}
             <TextInput
               className="h-10 text-[17px] text-[#000]"
               placeholder="Guest Name"
@@ -179,7 +189,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
           {/* Add button */}
           <TouchableOpacity
             className={`mb-6 flex-row items-center justify-center rounded-xl py-3 ${
-              transparentBackground ? "bg-white/60" : "bg-white"
+              transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
             }`}
             onPress={handleAddGuest}
             activeOpacity={0.7}
@@ -196,7 +206,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
               </Text>
               <View
                 className={`overflow-hidden rounded-xl ${
-                  transparentBackground ? "bg-white/60" : "bg-white"
+                  transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
                 }`}>
                 {guests.map((guest, index) => (
                   <View

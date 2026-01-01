@@ -185,13 +185,16 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
       <KeyboardAvoidingView behavior="padding" className={`flex-1 ${backgroundStyle}`}>
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16 }}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: insets.bottom + 16,
+          }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={!transparentBackground}>
           {transparentBackground ? (
             <>
               {/* Location Type Selector with Native Context Menu - Glass UI */}
-              <View className="mb-4 flex-row items-center rounded-xl bg-white/60 px-4 py-3">
+              <View className="mb-4 flex-row items-center rounded-xl border border-gray-300/40 bg-white/60 px-4 py-3">
                 <View className="mr-3 h-9 w-9 items-center justify-center rounded-lg bg-[#007AFF]/20">
                   <Ionicons name={selectedTypeConfig.iconName} size={20} color="#007AFF" />
                 </View>
@@ -237,7 +240,7 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
               </View>
 
               {/* Location Input - Glass UI */}
-              <View className="mb-4 overflow-hidden rounded-xl bg-white/60">
+              <View className="mb-4 overflow-hidden rounded-xl border border-gray-300/40 bg-white/60">
                 <TextInput
                   className={`px-4 py-3 text-[17px] text-[#000] ${
                     selectedTypeConfig.inputType === "multiline" ? "min-h-[100px]" : "h-[50px]"

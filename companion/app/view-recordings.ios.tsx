@@ -73,7 +73,7 @@ export default function ViewRecordingsIOS() {
               onPress={handleClose}
               style={{
                 padding: 8,
-                backgroundColor: "rgba(120, 120, 128, 0.08)",
+                backgroundColor: "rgba(120, 120, 128, 0.12)",
                 borderRadius: 20,
               }}>
               <Ionicons name="close" size={20} color="#000" />

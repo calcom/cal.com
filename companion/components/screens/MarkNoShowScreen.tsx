@@ -56,7 +56,6 @@ export function MarkNoShowScreen({
   "use no memo";
   const insets = useSafeAreaInsets();
   const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
-  const cardStyle = transparentBackground ? "bg-transparent" : "bg-white";
   const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
   const safeAttendees = Array.isArray(attendees) ? attendees : [];
   const [processingEmail, setProcessingEmail] = useState<string | null>(null);
@@ -144,40 +143,36 @@ export function MarkNoShowScreen({
     const isNoShow = item.noShow === true;
     const isProcessing = processingEmail === item.email;
     const isLast = index === safeAttendees.length - 1;
-    const itemBgStyle = isNoShow ? (transparentBackground ? "bg-[#FEF2F2]/70" : "bg-[#FEF2F2]") : cardStyle;
+
+    // For transparent mode (iOS glass UI), use consistent styling regardless of no-show state
+    const itemBgStyle = transparentBackground ? "bg-white/60" : isNoShow ? "bg-[#FEF2F2]" : "bg-white";
 
     return (
       <TouchableOpacity
         className={`flex-row items-center px-4 py-4 ${
-          !isLast ? "border-b border-gray-100" : ""
+          transparentBackground
+            ? `rounded-xl border border-gray-300/40 ${!isLast ? "mb-3" : ""}`
+            : !isLast
+              ? "border-b border-gray-100"
+              : ""
         } ${itemBgStyle}`}
         onPress={() => handleMarkNoShow(item)}
         disabled={isProcessing}
         activeOpacity={0.7}>
         <View
           className={`mr-3 h-12 w-12 items-center justify-center rounded-full ${
-            isNoShow
-              ? transparentBackground
-                ? "bg-[#FECACA]/50"
-                : "bg-[#FECACA]"
-              : transparentBackground
-                ? "bg-[#000]"
-                : pillStyle
+            transparentBackground ? "bg-[#000]" : isNoShow ? "bg-[#FECACA]" : pillStyle
           }`}>
           <Text
             className={`text-[16px] font-semibold ${
-              isNoShow ? "text-[#DC2626]" : transparentBackground ? "text-white" : "text-gray-600"
+              transparentBackground ? "text-white" : isNoShow ? "text-[#DC2626]" : "text-gray-600"
             }`}>
             {getInitials(item.name)}
           </Text>
         </View>
         <View className="mr-3 flex-1">
-          <Text className={`text-[17px] font-medium ${isNoShow ? "text-[#991B1B]" : "text-[#000]"}`}>
-            {item.name || "Unknown"}
-          </Text>
-          <Text className={`mt-0.5 text-[15px] ${isNoShow ? "text-[#DC2626]" : "text-gray-500"}`}>
-            {item.email}
-          </Text>
+          <Text className="text-[17px] font-medium text-[#000]">{item.name || "Unknown"}</Text>
+          <Text className="mt-0.5 text-[15px] text-gray-500">{item.email}</Text>
           {isNoShow && (
             <View className="mt-1.5 flex-row items-center">
               <Ionicons name="eye-off" size={12} color="#DC2626" />
@@ -235,15 +230,25 @@ export function MarkNoShowScreen({
             <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
               Attendees ({safeAttendees.length})
             </Text>
-            <View className={`overflow-hidden ${transparentBackground ? "" : "rounded-xl"}`}>
+            {transparentBackground ? (
               <FlatList
                 data={safeAttendees}
                 renderItem={renderAttendee}
                 keyExtractor={(item) => item.email}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+                scrollEnabled={false}
               />
-            </View>
+            ) : (
+              <View className="overflow-hidden rounded-xl bg-white">
+                <FlatList
+                  data={safeAttendees}
+                  renderItem={renderAttendee}
+                  keyExtractor={(item) => item.email}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+                />
+              </View>
+            )}
           </>
         )}
       </View>
