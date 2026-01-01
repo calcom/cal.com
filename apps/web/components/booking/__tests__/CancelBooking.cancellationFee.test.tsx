@@ -1,5 +1,5 @@
 import { render, screen, cleanup } from "@testing-library/react";
-import { describe, expect, it, vi, beforeAll, afterEach } from "vitest";
+import { describe, expect, it, vi, beforeAll, afterAll, afterEach } from "vitest";
 
 import * as shouldChargeModule from "@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee";
 
@@ -11,9 +11,24 @@ vi.mock("@calcom/embed-core/embed-iframe", () => ({
   sdkActionManager: null,
 }));
 
+// Store original scrollIntoView to restore later
+const originalScrollIntoView = Element.prototype.scrollIntoView;
+
 beforeAll(() => {
   // jsdom doesn't implement scrollIntoView, so we need to mock it
   Element.prototype.scrollIntoView = vi.fn();
+});
+
+afterAll(() => {
+  // Restore scrollIntoView to avoid polluting other tests in the same worker
+  if (originalScrollIntoView) {
+    Element.prototype.scrollIntoView = originalScrollIntoView;
+  } else {
+    // If it was originally undefined, delete it
+    delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView;
+  }
+  // Clean up module mocks to avoid polluting other tests
+  vi.unmock("@calcom/embed-core/embed-iframe");
 });
 
 afterEach(() => {
