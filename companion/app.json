@@ -45,7 +45,20 @@
       }
     },
     "owner": "calcoms-organization",
-    "plugins": ["expo-router", "expo-secure-store", "expo-web-browser", "expo-image"],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-image",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#ffffff",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
