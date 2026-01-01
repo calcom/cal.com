@@ -59,7 +59,7 @@ export default function ViewRecordingsIOS() {
           title: "Recordings",
           presentation: presentationStyle,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.7, 0.9],
+          sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
             backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
@@ -68,12 +68,18 @@ export default function ViewRecordingsIOS() {
             backgroundColor: "transparent",
           },
           headerBlurEffect: useGlassEffect ? undefined : "light",
-          headerLeft: () => null,
-          headerRight: () => (
-            <TouchableOpacity onPress={handleClose} style={{ padding: 8 }}>
-              <Ionicons name="close" size={24} color="#000" />
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={handleClose}
+              style={{
+                padding: 8,
+                backgroundColor: "rgba(120, 120, 128, 0.08)",
+                borderRadius: 20,
+              }}>
+              <Ionicons name="close" size={20} color="#000" />
             </TouchableOpacity>
           ),
+          headerRight: () => null,
         }}
       />
 
@@ -89,7 +95,7 @@ export default function ViewRecordingsIOS() {
           </View>
         ) : (
           <View className="mt-16 flex-1">
-            <ViewRecordingsScreenComponent recordings={recordings} />
+            <ViewRecordingsScreenComponent recordings={recordings} transparentBackground={useGlassEffect} />
           </View>
         )}
       </View>

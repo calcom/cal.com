@@ -23,6 +23,7 @@ export default function AddGuestsIOS() {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [guestCount, setGuestCount] = useState(0);
 
   const addGuestsScreenRef = useRef<AddGuestsScreenHandle>(null);
 
@@ -68,7 +69,7 @@ export default function AddGuestsIOS() {
           title: "Add Guests",
           presentation: presentationStyle,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.6, 0.8],
+          sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
             backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
@@ -77,20 +78,31 @@ export default function AddGuestsIOS() {
             backgroundColor: "transparent",
           },
           headerBlurEffect: useGlassEffect ? undefined : "light",
-          headerLeft: () => null,
-          headerRight: () => (
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={handleClose}
+              style={{
+                padding: 8,
+                backgroundColor: "rgba(120, 120, 128, 0.08)",
+                borderRadius: 20,
+              }}>
+              <Ionicons name="close" size={20} color="#000" />
+            </TouchableOpacity>
+          ),
+          headerRight: () =>
+            guestCount > 0 ? (
               <TouchableOpacity
                 onPress={handleSave}
                 disabled={isSaving}
-                style={{ padding: 8, marginRight: 8, opacity: isSaving ? 0.5 : 1 }}>
-                <Ionicons name="checkmark" size={24} color="#007AFF" />
+                style={{
+                  padding: 8,
+                  backgroundColor: "rgba(0, 122, 255, 0.08)",
+                  borderRadius: 20,
+                  opacity: isSaving ? 0.5 : 1,
+                }}>
+                <Ionicons name="checkmark" size={20} color="#007AFF" />
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleClose} style={{ padding: 8 }}>
-                <Ionicons name="close" size={24} color="#000" />
-              </TouchableOpacity>
-            </View>
-          ),
+            ) : null,
         }}
       />
 
@@ -111,6 +123,8 @@ export default function AddGuestsIOS() {
               booking={booking}
               onSuccess={handleAddGuestsSuccess}
               onSavingChange={setIsSaving}
+              onGuestCountChange={setGuestCount}
+              transparentBackground={useGlassEffect}
             />
           </View>
         )}

@@ -51,13 +51,18 @@ export function MeetingSessionDetailsScreen({
 }: MeetingSessionDetailsScreenProps) {
   const insets = useSafeAreaInsets();
   const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
+  const cardStyle = transparentBackground ? "bg-transparent" : "bg-white";
+  const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
 
   const renderSession = ({ item, index }: { item: ConferencingSession; index: number }) => (
-    <View className="mb-4 overflow-hidden rounded-xl bg-white">
+    <View className={`mb-4 overflow-hidden ${transparentBackground ? "" : "rounded-xl"} ${cardStyle}`}>
       {/* Session header */}
-      <View className="flex-row items-center justify-between border-b border-gray-100 p-4">
+      <View
+        className={`flex-row items-center justify-between p-4 ${
+          transparentBackground ? "" : "border-b border-gray-100"
+        }`}>
         <View className="flex-row items-center">
-          <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
+          <View className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}>
             <Ionicons name="videocam" size={20} color="#6B7280" />
           </View>
           <Text className="text-[17px] font-semibold text-[#000]">
@@ -65,7 +70,7 @@ export function MeetingSessionDetailsScreen({
           </Text>
         </View>
         {item.duration && (
-          <View className="rounded-full bg-[#E8E8ED] px-3 py-1">
+          <View className={`rounded-full px-3 py-1 ${pillStyle}`}>
             <Text className="text-[13px] font-medium text-gray-600">{formatDuration(item.duration)}</Text>
           </View>
         )}
@@ -93,15 +98,17 @@ export function MeetingSessionDetailsScreen({
 
       {/* Participants */}
       {item.participants && item.participants.length > 0 && (
-        <View className="border-t border-gray-100 p-4">
+        <View className={`p-4 ${transparentBackground ? "" : "border-t border-gray-100"}`}>
           <Text className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-gray-500">
             Participants ({item.participants.length})
           </Text>
           {item.participants.map((participant, pIndex) => (
             <View
               key={participant.id || pIndex}
-              className="mb-2 flex-row items-center rounded-xl bg-[#F2F2F7] p-3">
-              <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-[#E8E8ED]">
+              className={`mb-2 flex-row items-center p-3 ${
+                transparentBackground ? "" : "rounded-xl bg-[#F2F2F7]"
+              }`}>
+              <View className={`mr-3 h-9 w-9 items-center justify-center rounded-full ${pillStyle}`}>
                 <Ionicons name="person" size={18} color="#6B7280" />
               </View>
               <View className="flex-1">
@@ -123,7 +130,7 @@ export function MeetingSessionDetailsScreen({
   if (sessions.length === 0) {
     return (
       <View className={`flex-1 items-center justify-center px-8 ${backgroundStyle}`}>
-        <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-[#E8E8ED]">
+        <View className={`mb-4 h-16 w-16 items-center justify-center rounded-full ${pillStyle}`}>
           <Ionicons name="information-circle" size={32} color="#8E8E93" />
         </View>
         <Text className="text-center text-[17px] font-semibold text-[#000]">
@@ -143,7 +150,7 @@ export function MeetingSessionDetailsScreen({
           data={sessions}
           renderItem={renderSession}
           keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={!transparentBackground}
           contentContainerStyle={{ paddingBottom: 16 }}
         />
       </View>

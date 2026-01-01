@@ -24,6 +24,7 @@ export interface MarkNoShowScreenProps {
   attendees: Attendee[];
   onUpdate: (attendees: Attendee[]) => void;
   onBookingUpdate?: (booking: Booking) => void;
+  transparentBackground?: boolean;
 }
 
 const getInitials = (name: string): string => {
@@ -50,9 +51,13 @@ export function MarkNoShowScreen({
   attendees,
   onUpdate,
   onBookingUpdate,
+  transparentBackground = false,
 }: MarkNoShowScreenProps) {
   "use no memo";
   const insets = useSafeAreaInsets();
+  const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
+  const cardStyle = transparentBackground ? "bg-transparent" : "bg-white";
+  const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
   const safeAttendees = Array.isArray(attendees) ? attendees : [];
   const [processingEmail, setProcessingEmail] = useState<string | null>(null);
 
@@ -139,31 +144,35 @@ export function MarkNoShowScreen({
     const isNoShow = item.noShow === true;
     const isProcessing = processingEmail === item.email;
     const isLast = index === safeAttendees.length - 1;
+    const itemBgStyle = isNoShow ? (transparentBackground ? "bg-[#FEF2F2]/70" : "bg-[#FEF2F2]") : cardStyle;
 
     return (
       <TouchableOpacity
-        className={`flex-row items-center px-4 py-4 ${!isLast ? "border-b border-gray-100" : ""} ${
-          isNoShow ? "bg-[#FEF2F2]" : "bg-white"
-        }`}
+        className={`flex-row items-center px-4 py-4 ${
+          !isLast ? "border-b border-gray-100" : ""
+        } ${itemBgStyle}`}
         onPress={() => handleMarkNoShow(item)}
         disabled={isProcessing}
-        activeOpacity={0.7}
-      >
+        activeOpacity={0.7}>
         <View
           className={`mr-3 h-12 w-12 items-center justify-center rounded-full ${
-            isNoShow ? "bg-[#FECACA]" : "bg-[#E8E8ED]"
-          }`}
-        >
+            isNoShow
+              ? transparentBackground
+                ? "bg-[#FECACA]/50"
+                : "bg-[#FECACA]"
+              : transparentBackground
+                ? "bg-[#000]"
+                : pillStyle
+          }`}>
           <Text
-            className={`text-[16px] font-semibold ${isNoShow ? "text-[#DC2626]" : "text-gray-600"}`}
-          >
+            className={`text-[16px] font-semibold ${
+              isNoShow ? "text-[#DC2626]" : transparentBackground ? "text-white" : "text-gray-600"
+            }`}>
             {getInitials(item.name)}
           </Text>
         </View>
         <View className="mr-3 flex-1">
-          <Text
-            className={`text-[17px] font-medium ${isNoShow ? "text-[#991B1B]" : "text-[#000]"}`}
-          >
+          <Text className={`text-[17px] font-medium ${isNoShow ? "text-[#991B1B]" : "text-[#000]"}`}>
             {item.name || "Unknown"}
           </Text>
           <Text className={`mt-0.5 text-[15px] ${isNoShow ? "text-[#DC2626]" : "text-gray-500"}`}>
@@ -182,22 +191,15 @@ export function MarkNoShowScreen({
           <View className="flex-row items-center">
             <View
               className={`flex-row items-center rounded-full px-3.5 py-2 ${
-                isNoShow
-                  ? "border border-[#16A34A] bg-white"
-                  : "border border-[#FEE2E2] bg-[#FEE2E2]"
-              }`}
-            >
+                isNoShow ? "border border-[#16A34A] bg-white" : "border border-[#FEE2E2] bg-[#FEE2E2]"
+              }`}>
               <Ionicons
                 name={isNoShow ? "eye" : "eye-off"}
                 size={15}
                 color={isNoShow ? "#16A34A" : "#DC2626"}
                 style={{ marginRight: 5 }}
               />
-              <Text
-                className={`text-[14px] font-semibold ${
-                  isNoShow ? "text-[#16A34A]" : "text-[#DC2626]"
-                }`}
-              >
+              <Text className={`text-[14px] font-semibold ${isNoShow ? "text-[#16A34A]" : "text-[#DC2626]"}`}>
                 {isNoShow ? "Unmark" : "Mark"}
               </Text>
             </View>
@@ -209,23 +211,15 @@ export function MarkNoShowScreen({
 
   if (!booking) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#F2F2F7]">
+      <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
         <Text className="text-gray-500">No booking data</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-[#F2F2F7]">
+    <View className={`flex-1 ${backgroundStyle}`}>
       <View className="flex-1 p-4">
-        {/* Info note */}
-        <View className="mb-4 flex-row items-start rounded-xl bg-[#E3F2FD] p-4">
-          <Ionicons name="information-circle" size={20} color="#1976D2" />
-          <Text className="ml-3 flex-1 text-[15px] leading-5 text-[#1565C0]">
-            Tap an attendee to mark them as no-show or to undo a previous no-show marking.
-          </Text>
-        </View>
-
         {safeAttendees.length === 0 ? (
           <View className="flex-1 items-center justify-center">
             <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-[#E8E8ED]">
@@ -241,7 +235,7 @@ export function MarkNoShowScreen({
             <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
               Attendees ({safeAttendees.length})
             </Text>
-            <View className="overflow-hidden rounded-xl">
+            <View className={`overflow-hidden ${transparentBackground ? "" : "rounded-xl"}`}>
               <FlatList
                 data={safeAttendees}
                 renderItem={renderAttendee}

@@ -18,6 +18,7 @@ export interface RescheduleScreenProps {
   booking: Booking | null;
   onSuccess: () => void;
   onSavingChange?: (isSaving: boolean) => void;
+  transparentBackground?: boolean;
 }
 
 export interface RescheduleScreenHandle {
@@ -25,9 +26,10 @@ export interface RescheduleScreenHandle {
 }
 
 export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScreenProps>(
-  function RescheduleScreen({ booking, onSuccess, onSavingChange }, ref) {
+  function RescheduleScreen({ booking, onSuccess, onSavingChange, transparentBackground = false }, ref) {
     "use no memo";
     const insets = useSafeAreaInsets();
+    const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
     const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
     const [reason, setReason] = useState("");
     const [isSaving, setIsSaving] = useState(false);
@@ -60,9 +62,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
           start: selectedDateTime.toISOString(),
           reschedulingReason: reason.trim() || undefined,
         });
-        Alert.alert("Success", "Booking rescheduled successfully", [
-          { text: "OK", onPress: onSuccess },
-        ]);
+        Alert.alert("Success", "Booking rescheduled successfully", [{ text: "OK", onPress: onSuccess }]);
         setIsSaving(false);
       } catch (error) {
         safeLogError("[RescheduleScreen] Failed to reschedule:", error);
@@ -103,83 +103,121 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
 
     if (!booking) {
       return (
-        <View className="flex-1 items-center justify-center bg-[#F2F2F7]">
+        <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
           <Text className="text-gray-500">No booking data</Text>
         </View>
       );
     }
 
     return (
-      <KeyboardAvoidingView behavior="padding" className="flex-1 bg-[#F2F2F7]">
+      <KeyboardAvoidingView behavior="padding" className={`flex-1 ${backgroundStyle}`}>
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16 }}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: insets.bottom + 16,
+          }}
           keyboardShouldPersistTaps="handled"
-        >
-          {/* Booking Title Card */}
-          <View className="mb-4 flex-row items-start rounded-xl bg-white p-4">
-            <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
-              <Ionicons name="calendar" size={20} color="#6B7280" />
-            </View>
-            <View className="flex-1">
-              <Text className="text-[13px] font-medium text-gray-500">Rescheduling</Text>
-              <Text className="mt-0.5 text-[17px] font-medium text-[#000]" numberOfLines={2}>
+          showsVerticalScrollIndicator={!transparentBackground}>
+          {transparentBackground ? (
+            <>
+              {/* Booking Title */}
+              <Text className="mb-4 mt-4 text-center text-[17px] font-semibold text-[#000]" numberOfLines={2}>
                 {booking.title}
               </Text>
-            </View>
-          </View>
 
-          {/* Form Card */}
-          <View className="mb-4 overflow-hidden rounded-xl bg-white">
-            {/* Date picker */}
-            <View className="border-b border-gray-100 px-4 py-3">
-              <Text className="mb-2 text-[13px] font-medium text-gray-500">New Date</Text>
-              <Host matchContents>
-                <DatePicker
-                  onDateChange={handleDateSelected}
-                  displayedComponents={["date"]}
-                  selection={selectedDateTime}
+              {/* Date and Time pickers - side by side */}
+              <View className="mb-4 flex-row items-center justify-center">
+                <Host matchContents>
+                  <DatePicker
+                    onDateChange={handleDateSelected}
+                    displayedComponents={["date"]}
+                    selection={selectedDateTime}
+                  />
+                </Host>
+                <Text className="mx-2 text-[15px] text-gray-500">at</Text>
+                <Host matchContents>
+                  <DatePicker
+                    onDateChange={handleTimeSelected}
+                    displayedComponents={["hourAndMinute"]}
+                    selection={selectedDateTime}
+                  />
+                </Host>
+              </View>
+
+              {/* Reason input */}
+              <Text className="mb-2 px-1 text-[13px] font-medium text-gray-500">Reason (optional)</Text>
+              <View className="mb-3 overflow-hidden rounded-xl bg-white/60 px-4 py-3">
+                <TextInput
+                  className="min-h-[80px] text-[17px] text-[#000]"
+                  placeholder="Enter reason for rescheduling..."
+                  placeholderTextColor="#9CA3AF"
+                  value={reason}
+                  onChangeText={setReason}
+                  multiline
+                  textAlignVertical="top"
+                  editable={!isSaving}
                 />
-              </Host>
-            </View>
+              </View>
+            </>
+          ) : (
+            <>
+              {/* Booking Title Card */}
+              <View className="mb-4 flex-row items-start rounded-xl bg-white p-4">
+                <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
+                  <Ionicons name="calendar" size={20} color="#6B7280" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-[13px] font-medium text-gray-500">Rescheduling</Text>
+                  <Text className="mt-0.5 text-[17px] font-medium text-[#000]" numberOfLines={2}>
+                    {booking.title}
+                  </Text>
+                </View>
+              </View>
 
-            {/* Time picker */}
-            <View className="border-b border-gray-100 px-4 py-3">
-              <Text className="mb-2 text-[13px] font-medium text-gray-500">New Time</Text>
-              <Host matchContents>
-                <DatePicker
-                  onDateChange={handleTimeSelected}
-                  displayedComponents={["hourAndMinute"]}
-                  selection={selectedDateTime}
-                />
-              </Host>
-            </View>
+              {/* Form Card */}
+              <View className="mb-4 overflow-hidden rounded-xl bg-white">
+                {/* Date picker */}
+                <View className="border-b border-gray-100 px-4 py-3">
+                  <Text className="mb-2 text-[13px] font-medium text-gray-500">New Date</Text>
+                  <Host matchContents>
+                    <DatePicker
+                      onDateChange={handleDateSelected}
+                      displayedComponents={["date"]}
+                      selection={selectedDateTime}
+                    />
+                  </Host>
+                </View>
 
-            {/* Reason input */}
-            <View className="px-4 py-3">
-              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">
-                Reason (optional)
-              </Text>
-              <TextInput
-                className="min-h-[80px] text-[17px] text-[#000]"
-                placeholder="Enter reason for rescheduling..."
-                placeholderTextColor="#9CA3AF"
-                value={reason}
-                onChangeText={setReason}
-                multiline
-                textAlignVertical="top"
-                editable={!isSaving}
-              />
-            </View>
-          </View>
+                {/* Time picker */}
+                <View className="border-b border-gray-100 px-4 py-3">
+                  <Text className="mb-2 text-[13px] font-medium text-gray-500">New Time</Text>
+                  <Host matchContents>
+                    <DatePicker
+                      onDateChange={handleTimeSelected}
+                      displayedComponents={["hourAndMinute"]}
+                      selection={selectedDateTime}
+                    />
+                  </Host>
+                </View>
 
-          {/* Info note */}
-          <View className="flex-row items-start rounded-xl bg-[#E3F2FD] p-4">
-            <Ionicons name="information-circle" size={20} color="#1976D2" />
-            <Text className="ml-3 flex-1 text-[15px] leading-5 text-[#1565C0]">
-              Attendees will receive an email notification about the new time.
-            </Text>
-          </View>
+                {/* Reason input */}
+                <View className="px-4 py-3">
+                  <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Reason (optional)</Text>
+                  <TextInput
+                    className="min-h-[80px] text-[17px] text-[#000]"
+                    placeholder="Enter reason for rescheduling..."
+                    placeholderTextColor="#9CA3AF"
+                    value={reason}
+                    onChangeText={setReason}
+                    multiline
+                    textAlignVertical="top"
+                    editable={!isSaving}
+                  />
+                </View>
+              </View>
+            </>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     );
