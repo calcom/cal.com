@@ -1,8 +1,5 @@
-import type { Table } from "@tanstack/react-table";
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-
 import { DataTableSelectionBar } from "@calcom/features/data-table";
+import type { UserTableUser } from "@calcom/features/users/types/user-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -16,10 +13,15 @@ import {
   CommandList,
 } from "@calcom/ui/components/command";
 import { Icon } from "@calcom/ui/components/icon";
-import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
-
-import type { UserTableUser } from "../types";
+import type { Table } from "@tanstack/react-table";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 interface Props {
   table: Table<UserTableUser>;
@@ -28,7 +30,9 @@ interface Props {
 export function TeamListBulkAction({ table }: Props) {
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
   const [selectedValues, setSelectedValues] = useState<Set<number>>(new Set());
-  const [removeFromTeams, setRemoveFromTeams] = useState<Set<number>>(new Set());
+  const [removeFromTeams, setRemoveFromTeams] = useState<Set<number>>(
+    new Set()
+  );
   const utils = trpc.useUtils();
   const mutation = trpc.viewer.organizations.addMembersToTeams.useMutation({
     onError: (error) => {
@@ -36,7 +40,9 @@ export function TeamListBulkAction({ table }: Props) {
     },
     onSuccess: (res) => {
       showToast(
-        `${res.invitedTotalUsers} Users invited to ${Array.from(selectedValues).length} teams`,
+        `${res.invitedTotalUsers} Users invited to ${
+          Array.from(selectedValues).length
+        } teams`,
         "success"
       );
       // Optimistically update the data from query trpc cache listMembers
@@ -54,7 +60,10 @@ export function TeamListBulkAction({ table }: Props) {
       showToast(error.message, "error");
     },
     onSuccess: () => {
-      showToast(`${selectedUsers.length} Users removed from ${removeFromTeams.size} teams`, "success");
+      showToast(
+        `${selectedUsers.length} Users removed from ${removeFromTeams.size} teams`,
+        "success"
+      );
 
       utils.viewer.organizations.listMembers.invalidate();
 
@@ -65,17 +74,27 @@ export function TeamListBulkAction({ table }: Props) {
   });
 
   const { t } = useLocale();
-  const selectedUsers = table.getSelectedRowModel().flatRows.map((row) => row.original);
+  const selectedUsers = table
+    .getSelectedRowModel()
+    .flatRows.map((row) => row.original);
 
   // Add a value to the set
-  const addValue = (set: Set<number>, setSet: Dispatch<SetStateAction<Set<number>>>, value: number) => {
+  const addValue = (
+    set: Set<number>,
+    setSet: Dispatch<SetStateAction<Set<number>>>,
+    value: number
+  ) => {
     const updatedSet = new Set(set);
     updatedSet.add(value);
     setSet(updatedSet);
   };
 
   // Remove value from the set
-  const removeValue = (set: Set<number>, setSet: Dispatch<SetStateAction<Set<number>>>, value: number) => {
+  const removeValue = (
+    set: Set<number>,
+    setSet: Dispatch<SetStateAction<Set<number>>>,
+    value: number
+  ) => {
     const updatedSet = new Set(set);
     updatedSet.delete(value);
     setSet(updatedSet);
@@ -90,7 +109,11 @@ export function TeamListBulkAction({ table }: Props) {
           </DataTableSelectionBar.Button>
         </PopoverTrigger>
         {/* We dont really use shadows much - but its needed here  */}
-        <PopoverContent className="w-[200px] p-0 shadow-md" align="start" sideOffset={12}>
+        <PopoverContent
+          className="w-[200px] p-0 shadow-md"
+          align="start"
+          sideOffset={12}
+        >
           <Command>
             <CommandInput placeholder={t("search")} />
             <CommandList>
@@ -102,7 +125,8 @@ export function TeamListBulkAction({ table }: Props) {
                       user.teams.some((team) => team.id === option.id)
                     );
                     const isSelected =
-                      (selectedValues.has(option.id) || areAllUsersInTeam) && !removeFromTeams.has(option.id);
+                      (selectedValues.has(option.id) || areAllUsersInTeam) &&
+                      !removeFromTeams.has(option.id);
 
                     return (
                       <CommandItem
@@ -110,25 +134,48 @@ export function TeamListBulkAction({ table }: Props) {
                         onSelect={() => {
                           if (!isSelected) {
                             if (areAllUsersInTeam) {
-                              removeValue(removeFromTeams, setRemoveFromTeams, option.id);
+                              removeValue(
+                                removeFromTeams,
+                                setRemoveFromTeams,
+                                option.id
+                              );
                             } else {
-                              addValue(selectedValues, setSelectedValues, option.id);
+                              addValue(
+                                selectedValues,
+                                setSelectedValues,
+                                option.id
+                              );
                             }
                           } else {
                             if (areAllUsersInTeam) {
-                              addValue(removeFromTeams, setRemoveFromTeams, option.id);
+                              addValue(
+                                removeFromTeams,
+                                setRemoveFromTeams,
+                                option.id
+                              );
                             } else {
-                              removeValue(selectedValues, setSelectedValues, option.id);
+                              removeValue(
+                                selectedValues,
+                                setSelectedValues,
+                                option.id
+                              );
                             }
                           }
-                        }}>
+                        }}
+                      >
                         <span>{option.name}</span>
                         <div
                           className={classNames(
                             "border-subtle ml-auto flex h-4 w-4 items-center justify-center rounded-sm border",
-                            isSelected ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
-                          )}>
-                          <Icon name="check" className={classNames("h-4 w-4")} />
+                            isSelected
+                              ? "text-emphasis"
+                              : "opacity-50 [&_svg]:invisible"
+                          )}
+                        >
+                          <Icon
+                            name="check"
+                            className={classNames("h-4 w-4")}
+                          />
                         </div>
                       </CommandItem>
                     );
@@ -156,7 +203,8 @@ export function TeamListBulkAction({ table }: Props) {
                     isOrg: true,
                   });
                 }
-              }}>
+              }}
+            >
               {t("apply")}
             </Button>
           </div>

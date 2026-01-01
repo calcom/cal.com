@@ -1,10 +1,13 @@
-import type { Table } from "@tanstack/react-table";
-import { createContext, useContext, useState, useMemo, type PropsWithChildren } from "react";
-import type { Dispatch, SetStateAction } from "react";
-
-import { DataTableSelectionBar, type ColumnFilter } from "@calcom/features/data-table";
+import {
+  DataTableSelectionBar,
+  type ColumnFilter,
+} from "@calcom/features/data-table";
+import type { UserTableUser } from "@calcom/features/users/types/user-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
+import type {
+  Attribute as _Attribute,
+  AttributeOption,
+} from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
@@ -19,10 +22,21 @@ import {
 } from "@calcom/ui/components/command";
 import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
-
-import type { UserTableUser } from "../types";
+import type { Table } from "@tanstack/react-table";
+import {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  type PropsWithChildren,
+} from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 interface Props {
   table: Table<UserTableUser>;
@@ -47,7 +61,9 @@ const AttributesContext = createContext<AttributesContextType | null>(null);
 function AttributesProvider({ children }: PropsWithChildren) {
   const { data: attributes } = trpc.viewer.attributes.list.useQuery();
   const [selectedAttribute, setSelectedAttribute] = useState<string>();
-  const [selectedAttributeOptions, setSelectedAttributeOptions] = useState<string[]>([]);
+  const [selectedAttributeOptions, setSelectedAttributeOptions] = useState<
+    string[]
+  >([]);
 
   const foundAttributeInCache = useMemo(
     () => attributes?.find((attr) => attr.id === selectedAttribute),
@@ -63,7 +79,11 @@ function AttributesProvider({ children }: PropsWithChildren) {
     attributes,
   };
 
-  return <AttributesContext.Provider value={value}>{children}</AttributesContext.Provider>;
+  return (
+    <AttributesContext.Provider value={value}>
+      {children}
+    </AttributesContext.Provider>
+  );
 }
 
 function useAttributes() {
@@ -103,13 +123,19 @@ function SelectedAttributeToAssign() {
 
   const translateableType = getTranslateableStringFromType(foundAttribute.type);
 
-  const isSelectable = foundAttribute.type === "SINGLE_SELECT" || foundAttribute.type === "MULTI_SELECT";
+  const isSelectable =
+    foundAttribute.type === "SINGLE_SELECT" ||
+    foundAttribute.type === "MULTI_SELECT";
 
   return (
     <CommandList>
       <div className="flex items-center gap-2 border-b px-3 py-2">
         <span className="block">{foundAttribute.name}</span>
-        {translateableType && <span className="text-muted block text-xs">({t(translateableType)})</span>}
+        {translateableType && (
+          <span className="text-muted block text-xs">
+            ({t(translateableType)})
+          </span>
+        )}
       </div>
       <CommandGroup>
         {isSelectable ? (
@@ -130,12 +156,14 @@ function SelectedAttributeToAssign() {
                         return [...prev, option.id];
                       });
                     }
-                  }}>
+                  }}
+                >
                   <span>{option.value}</span>
                   <div
                     className={classNames(
                       "ml-auto flex h-4 w-4 items-center justify-center rounded-sm border"
-                    )}>
+                    )}
+                  >
                     {selectedAttributeOptions?.includes(option.id) ? (
                       <Icon name="check" className={classNames("h-4 w-4")} />
                     ) : null}
@@ -164,7 +192,11 @@ function SelectedAttributeToAssign() {
   );
 }
 
-function Content({ showMultiSelectWarning }: { showMultiSelectWarning: boolean }) {
+function Content({
+  showMultiSelectWarning,
+}: {
+  showMultiSelectWarning: boolean;
+}) {
   const { t } = useLocale();
   const {
     selectedAttribute,
@@ -190,11 +222,18 @@ function Content({ showMultiSelectWarning }: { showMultiSelectWarning: boolean }
                     onSelect={() => {
                       setSelectedAttribute(option.id);
                       setSelectedAttributeOptions([]);
-                    }}>
+                    }}
+                  >
                     <span>{option.name}</span>
                     <div
-                      className={classNames("ml-auto flex h-4 w-4 items-center justify-center rounded-sm")}>
-                      <Icon name="chevron-right" className={classNames("h-4 w-4")} />
+                      className={classNames(
+                        "ml-auto flex h-4 w-4 items-center justify-center rounded-sm"
+                      )}
+                    >
+                      <Icon
+                        name="chevron-right"
+                        className={classNames("h-4 w-4")}
+                      />
                     </div>
                   </CommandItem>
                 );
@@ -236,17 +275,18 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
   const [showMultiSelectWarning, setShowMultiSelectWarning] = useState(false);
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const bulkAssignAttributes = trpc.viewer.attributes.bulkAssignAttributes.useMutation({
-    onSuccess: (success) => {
-      setSelectedAttribute(undefined);
-      setSelectedAttributeOptions([]);
-      utils.viewer.organizations.listMembers.invalidate();
-      showToast(success.message, "success");
-    },
-    onError: (error) => {
-      showToast(`Error assigning attributes: ${error.message}`, "error");
-    },
-  });
+  const bulkAssignAttributes =
+    trpc.viewer.attributes.bulkAssignAttributes.useMutation({
+      onSuccess: (success) => {
+        setSelectedAttribute(undefined);
+        setSelectedAttributeOptions([]);
+        utils.viewer.organizations.listMembers.invalidate();
+        showToast(success.message, "success");
+      },
+      onError: (error) => {
+        showToast(`Error assigning attributes: ${error.message}`, "error");
+      },
+    });
 
   return (
     <Popover
@@ -256,7 +296,8 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
           setSelectedAttributeOptions([]);
           setShowMultiSelectWarning(false);
         }
-      }}>
+      }}
+    >
       <PopoverTrigger asChild>
         <DataTableSelectionBar.Button icon="tags" color="secondary">
           {t("add_attributes")}
@@ -278,7 +319,8 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
                   setSelectedAttribute(undefined);
                   setSelectedAttributeOptions([]);
                   setShowMultiSelectWarning(false);
-                }}>
+                }}
+              >
                 {t("clear")}
               </Button>
               <Button
@@ -312,16 +354,22 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
                       ];
                     } else {
                       attributesToAssign = [
-                        { id: foundAttributeInCache.id, value: selectedAttributeOptions[0] },
+                        {
+                          id: foundAttributeInCache.id,
+                          value: selectedAttributeOptions[0],
+                        },
                       ];
                     }
 
                     bulkAssignAttributes.mutate({
                       attributes: attributesToAssign,
-                      userIds: table.getSelectedRowModel().rows.map((row) => row.original.id),
+                      userIds: table
+                        .getSelectedRowModel()
+                        .rows.map((row) => row.original.id),
                     });
                   }
-                }}>
+                }}
+              >
                 {t("apply")}
               </Button>
             </>
@@ -335,7 +383,10 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
 export function MassAssignAttributesBulkAction({ table, filters }: Props) {
   return (
     <AttributesProvider>
-      <MassAssignAttributesBulkActionComponent table={table} filters={filters} />
+      <MassAssignAttributesBulkActionComponent
+        table={table}
+        filters={filters}
+      />
     </AttributesProvider>
   );
 }
