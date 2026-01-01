@@ -81,7 +81,7 @@ export default function MarkNoShowIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
+            backgroundColor: useGlassEffect ? "rgba(242, 242, 247, 0.8)" : "#F2F2F7",
           },
         }}
       />
@@ -99,7 +99,7 @@ export default function MarkNoShowIOS() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
+          backgroundColor: useGlassEffect ? "rgba(242, 242, 247, 0.8)" : "#F2F2F7",
           paddingTop: 56,
           paddingBottom: insets.bottom,
         }}
