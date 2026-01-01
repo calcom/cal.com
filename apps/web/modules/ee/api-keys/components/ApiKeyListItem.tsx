@@ -17,7 +17,8 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateApiKeysList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
+
+import { revalidateApiKeysList } from "~/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
 
 export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];
 

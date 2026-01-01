@@ -2,11 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDialogForm";
-import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,6 +11,10 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+
+import ApiKeyDialogForm from "~/modules/ee/api-keys/components/ApiKeyDialogForm";
+import ApiKeyListItem from "~/modules/ee/api-keys/components/ApiKeyListItem";
+import type { TApiKeys } from "~/modules/ee/api-keys/components/ApiKeyListItem";
 
 export const apiKeyModalRef = {
   current: null as null | ((show: boolean) => void),
