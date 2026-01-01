@@ -22,7 +22,8 @@
       },
       "entitlements": {
         "com.apple.developer.default-data-protection": "NSFileProtectionComplete"
-      }
+      },
+      "icon": "./assets/cal-logo.icon"
     },
     "android": {
       "adaptiveIcon": {
