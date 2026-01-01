@@ -13,6 +13,17 @@ import { showErrorAlert } from "@/utils/alerts";
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+// Map day names to numbers - module scope for React Compiler optimization
+const DAY_NAME_TO_NUMBER: Record<string, number> = {
+  Sunday: 0,
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+  Saturday: 6,
+};
+
 // Convert 24-hour time to 12-hour format with AM/PM
 const formatTime12Hour = (time24: string): string => {
   const [hours, minutes] = time24.split(":");
@@ -136,17 +147,6 @@ export const AvailabilityDetailScreen = forwardRef<
     "UTC",
   ];
 
-  // Map day names to numbers - hoisted outside fetchSchedule for React Compiler optimization
-  const dayNameToNumber: Record<string, number> = {
-    Sunday: 0,
-    Monday: 1,
-    Tuesday: 2,
-    Wednesday: 3,
-    Thursday: 4,
-    Friday: 5,
-    Saturday: 6,
-  };
-
   const processScheduleData = useCallback(
     (scheduleData: NonNullable<Awaited<ReturnType<typeof CalComAPIService.getScheduleById>>>) => {
       const name = scheduleData.name ?? "";
@@ -170,8 +170,8 @@ export const AvailabilityDetailScreen = forwardRef<
             days = slot.days
               .map((day) => {
                 // If it's a day name string (e.g., "Sunday", "Monday")
-                if (typeof day === "string" && dayNameToNumber[day] !== undefined) {
-                  return dayNameToNumber[day];
+                if (typeof day === "string" && DAY_NAME_TO_NUMBER[day] !== undefined) {
+                  return DAY_NAME_TO_NUMBER[day];
                 }
                 // If it's a number string (e.g., "0", "1")
                 if (typeof day === "string") {
