@@ -1,9 +1,7 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
-import { useMemo, useReducer, useState } from "react";
-
+import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
+import { DeleteMemberModal } from "./DeleteMemberModal";
 import {
   DataTableWrapper,
   DataTableProvider,
@@ -15,6 +13,11 @@ import {
   useDataTable,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import type {
+  UserTableState,
+  UserTableAction,
+  PlatformManagedUserTableUser,
+} from "@calcom/features/users/types/user-table";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -22,10 +25,14 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Checkbox } from "@calcom/ui/components/form";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-
-import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
-import { DeleteMemberModal } from "./DeleteMemberModal";
-import type { UserTableState, UserTableAction, PlatformManagedUserTableUser } from "./types";
+import { keepPreviousData } from "@tanstack/react-query";
+import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+} from "@tanstack/react-table";
+import { useMemo, useReducer, useState } from "react";
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -57,18 +64,23 @@ type PlatformManagedUsersTableProps = {
   oAuthClientId: string;
 };
 
-export function PlatformManagedUsersTable(props: PlatformManagedUsersTableProps) {
+export function PlatformManagedUsersTable(
+  props: PlatformManagedUsersTableProps
+) {
   return (
     <DataTableProvider
       useSegments={useSegments}
       defaultPageSize={25}
-      tableIdentifier={`platform-managed-users-${props.oAuthClientId}`}>
+      tableIdentifier={`platform-managed-users-${props.oAuthClientId}`}
+    >
       <UserListTableContent {...props} />
     </DataTableProvider>
   );
 }
 
-function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps) {
+function UserListTableContent({
+  oAuthClientId,
+}: PlatformManagedUsersTableProps) {
   const { t } = useLocale();
 
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -97,7 +109,10 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
   const totalRowCount = data?.meta?.totalRowCount ?? 0;
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
-  const flatData = useMemo(() => data?.rows ?? [], [data]) as PlatformManagedUserTableUser[];
+  const flatData = useMemo(
+    () => data?.rows ?? [],
+    [data]
+  ) as PlatformManagedUserTableUser[];
 
   const columns = useMemo(() => {
     const cols: ColumnDef<PlatformManagedUserTableUser>[] = [
@@ -111,7 +126,9 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
             aria-label="Select all"
           />
         ),
@@ -149,12 +166,14 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
               <div className="">
                 <div
                   data-testid={`member-${username}-username`}
-                  className="text-emphasis text-sm font-medium leading-none">
+                  className="text-emphasis text-sm font-medium leading-none"
+                >
                   {username || "No username"}
                 </div>
                 <div
                   data-testid={`member-${username}-email`}
-                  className="text-subtle mt-1 text-sm leading-none">
+                  className="text-subtle mt-1 text-sm leading-none"
+                >
                   {email}
                 </div>
               </div>
@@ -178,7 +197,8 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
               variant={role === "MEMBER" ? "gray" : "blue"}
               onClick={() => {
                 table.getColumn("role")?.setFilterValue([role]);
-              }}>
+              }}
+            >
               {role}
             </Badge>
           );
@@ -205,7 +225,8 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
                   data-testid={`email-${email.replace("@", "")}-pending`}
                   onClick={() => {
                     table.getColumn("role")?.setFilterValue(["PENDING"]);
-                  }}>
+                  }}
+                >
                   Pending
                 </Badge>
               )}
@@ -216,7 +237,8 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
                   variant="gray"
                   onClick={() => {
                     table.getColumn("teams")?.setFilterValue([team.name]);
-                  }}>
+                  }}
+                >
                   {team.name}
                 </Badge>
               ))}
@@ -253,7 +275,10 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
     getRowId: (row) => `${row.id}`,
   });
 
-  function reducer(state: UserTableState, action: UserTableAction): UserTableState {
+  function reducer(
+    state: UserTableState,
+    action: UserTableAction
+  ): UserTableState {
     switch (action.type) {
       case "SET_CHANGE_MEMBER_ROLE_ID":
         return { ...state, changeMemberRole: action.payload };
@@ -279,7 +304,10 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
     }
   }
 
-  const numberOfSelectedRows = useMemo(() => table.getSelectedRowModel().rows.length, [table]);
+  const numberOfSelectedRows = useMemo(
+    () => table.getSelectedRowModel().rows.length,
+    [table]
+  );
 
   return (
     <>
@@ -302,20 +330,25 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
             <DataTableSegment.SaveButton />
             <DataTableSegment.Select />
           </>
-        }>
+        }
+      >
         {numberOfSelectedRows > 0 && (
           <DataTableSelectionBar.Root className="bottom-16! justify-center md:w-max">
             <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
             <DeleteBulkUsers
-              users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+              users={table
+                .getSelectedRowModel()
+                .flatRows.map((row) => row.original)}
               onRemove={() => table.toggleAllPageRowsSelected(false)}
             />
           </DataTableSelectionBar.Root>
         )}
       </DataTableWrapper>
-      {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
+      {state.deleteMember.showModal && (
+        <DeleteMemberModal state={state} dispatch={dispatch} />
+      )}
     </>
   );
 }

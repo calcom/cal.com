@@ -1,12 +1,17 @@
-import { signIn, useSession } from "next-auth/react";
-import type { Dispatch } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import type {
+  UserTableAction,
+  UserTableState,
+} from "@calcom/features/users/types/user-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-
-import type { UserTableAction, UserTableState } from "./types";
+import {
+  DialogContent,
+  DialogFooter,
+  DialogClose,
+} from "@calcom/ui/components/dialog";
+import { signIn, useSession } from "next-auth/react";
+import type { Dispatch } from "react";
 
 export function ImpersonationMemberModal(props: {
   state: UserTableState;
@@ -26,8 +31,13 @@ export function ImpersonationMemberModal(props: {
         props.dispatch({
           type: "CLOSE_MODAL",
         })
-      }>
-      <DialogContent type="creation" title={t("impersonate")} description={t("impersonation_user_tip")}>
+      }
+    >
+      <DialogContent
+        type="creation"
+        title={t("impersonate")}
+        description={t("impersonation_user_tip")}
+      >
         <form
           onSubmit={async (e) => {
             e.preventDefault();
@@ -38,7 +48,8 @@ export function ImpersonationMemberModal(props: {
             props.dispatch({
               type: "CLOSE_MODAL",
             });
-          }}>
+          }}
+        >
           <DialogFooter showDivider className="mt-8">
             <DialogClose color="secondary">{t("cancel")}</DialogClose>
             <Button color="primary" type="submit">
