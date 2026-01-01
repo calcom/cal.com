@@ -45,8 +45,7 @@ export default function Reschedule() {
       <AppPressable
         onPress={handleSave}
         disabled={isSaving}
-        className={`px-4 py-2 ${isSaving ? "opacity-50" : ""}`}
-      >
+        className={`px-4 py-2 ${isSaving ? "opacity-50" : ""}`}>
         <Text className="text-[16px] font-semibold text-[#007AFF]">Save</Text>
       </AppPressable>
     ),
@@ -82,8 +81,8 @@ export default function Reschedule() {
         options={{
           title: "Reschedule",
           headerBackButtonDisplayMode: "minimal",
-          headerRight: Platform.OS !== "ios" ? renderHeaderRight : undefined,
-          headerShown: Platform.OS === "ios",
+          headerRight: Platform.OS === "web" ? renderHeaderRight : undefined,
+          headerShown: Platform.OS !== "android",
         }}
       />
 
