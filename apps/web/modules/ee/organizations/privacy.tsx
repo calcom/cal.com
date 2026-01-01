@@ -1,12 +1,14 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 import { DataTableProvider } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import OrgAutoJoinSetting from "@calcom/features/ee/organizations/pages/components/OrgAutoJoinSetting";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { usePathname } from "next/navigation";
-import OrgAutoJoinSetting from "~/ee/organizations/components/OrgAutoJoinSetting";
+
 import { BlocklistTable } from "~/ee/organizations/privacy/blocklist-table";
 import MakeTeamPrivateSwitch from "~/ee/teams/components/MakeTeamPrivateSwitch";
 
@@ -44,9 +46,7 @@ const PrivacyView = ({
         {currentOrg.organizationSettings?.orgAutoAcceptEmail && (
           <OrgAutoJoinSetting
             orgId={currentOrg.id}
-            orgAutoJoinEnabled={
-              !!currentOrg.organizationSettings.orgAutoJoinOnSignup
-            }
+            orgAutoJoinEnabled={!!currentOrg.organizationSettings.orgAutoJoinOnSignup}
             emailDomain={currentOrg.organizationSettings.orgAutoAcceptEmail}
           />
         )}
@@ -54,19 +54,11 @@ const PrivacyView = ({
         {watchlistPermissions?.canRead && (
           <div>
             <div>
-              <h2 className="text-emphasis text-base font-semibold">
-                {t("organization_blocklist")}
-              </h2>
-              <p className="text-muted text-sm">
-                {t("manage_blocked_emails_and_domains")}
-              </p>
+              <h2 className="text-emphasis text-base font-semibold">{t("organization_blocklist")}</h2>
+              <p className="text-muted text-sm">{t("manage_blocked_emails_and_domains")}</p>
             </div>
             <div className="mt-2">
-              <DataTableProvider
-                tableIdentifier={pathname}
-                useSegments={useSegments}
-                defaultPageSize={25}
-              >
+              <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={25}>
                 <BlocklistTable permissions={watchlistPermissions} />
               </DataTableProvider>
             </div>
