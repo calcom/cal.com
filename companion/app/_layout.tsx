@@ -21,21 +21,38 @@ function RootLayoutContent() {
           headerLargeTitle: false,
           title: Platform.OS === "ios" ? "You" : "Profile",
           presentation:
-            Platform.OS === "ios"
-              ? isLiquidGlassAvailable()
-                ? "formSheet"
-                : "modal"
-              : "containedModal",
+            Platform.OS === "ios" ? (isLiquidGlassAvailable() ? "formSheet" : "modal") : "containedModal",
           // iOS-specific sheet options (ignored on Android)
           sheetGrabberVisible: Platform.OS === "ios",
           sheetAllowedDetents: Platform.OS === "ios" ? [0.6, 0.9] : undefined,
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
-            backgroundColor:
-              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#FFFFFF",
+            backgroundColor: Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#FFFFFF",
           },
           headerStyle: {
             backgroundColor: Platform.OS === "ios" ? "transparent" : "#FFFFFF",
+          },
+          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+        }}
+      />
+      <Stack.Screen
+        name="meeting-session-details"
+        options={{
+          headerShown: true,
+          headerTransparent: Platform.OS === "ios",
+          headerLargeTitle: false,
+          title: "Session Details",
+          presentation:
+            Platform.OS === "ios" ? (isLiquidGlassAvailable() ? "formSheet" : "modal") : "containedModal",
+          // iOS-specific sheet options (ignored on Android)
+          sheetGrabberVisible: Platform.OS === "ios",
+          sheetAllowedDetents: Platform.OS === "ios" ? [0.7, 0.9] : undefined,
+          sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
+          contentStyle: {
+            backgroundColor: Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+          },
+          headerStyle: {
+            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
           },
           headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
         }}
@@ -63,8 +80,7 @@ function RootLayoutContent() {
   return (
     <View
       style={[containerStyle, Platform.OS === "web" && { pointerEvents: "auto" as const }]}
-      className={containerClass}
-    >
+      className={containerClass}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {content}
       <NetworkStatusBanner />

@@ -12,6 +12,7 @@ import type { ConferencingSession } from "@/services/types/bookings.types";
 
 export interface MeetingSessionDetailsScreenProps {
   sessions: ConferencingSession[];
+  transparentBackground?: boolean;
 }
 
 function formatDuration(seconds?: number): string {
@@ -44,8 +45,12 @@ function formatTime(dateString: string): string {
   });
 }
 
-export function MeetingSessionDetailsScreen({ sessions }: MeetingSessionDetailsScreenProps) {
+export function MeetingSessionDetailsScreen({
+  sessions,
+  transparentBackground = false,
+}: MeetingSessionDetailsScreenProps) {
   const insets = useSafeAreaInsets();
+  const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
 
   const renderSession = ({ item, index }: { item: ConferencingSession; index: number }) => (
     <View className="mb-4 overflow-hidden rounded-xl bg-white">
@@ -61,9 +66,7 @@ export function MeetingSessionDetailsScreen({ sessions }: MeetingSessionDetailsS
         </View>
         {item.duration && (
           <View className="rounded-full bg-[#E8E8ED] px-3 py-1">
-            <Text className="text-[13px] font-medium text-gray-600">
-              {formatDuration(item.duration)}
-            </Text>
+            <Text className="text-[13px] font-medium text-gray-600">{formatDuration(item.duration)}</Text>
           </View>
         )}
       </View>
@@ -72,24 +75,18 @@ export function MeetingSessionDetailsScreen({ sessions }: MeetingSessionDetailsS
       <View className="p-4">
         <View className="mb-2 flex-row items-center">
           <Ionicons name="time-outline" size={18} color="#8E8E93" />
-          <Text className="ml-2 text-[15px] text-gray-600">
-            Started: {formatDate(item.startTime)}
-          </Text>
+          <Text className="ml-2 text-[15px] text-gray-600">Started: {formatDate(item.startTime)}</Text>
         </View>
         {item.endTime && (
           <View className="mb-2 flex-row items-center">
             <Ionicons name="time-outline" size={18} color="#8E8E93" />
-            <Text className="ml-2 text-[15px] text-gray-600">
-              Ended: {formatTime(item.endTime)}
-            </Text>
+            <Text className="ml-2 text-[15px] text-gray-600">Ended: {formatTime(item.endTime)}</Text>
           </View>
         )}
         {item.maxParticipants && (
           <View className="flex-row items-center">
             <Ionicons name="people-outline" size={18} color="#8E8E93" />
-            <Text className="ml-2 text-[15px] text-gray-600">
-              Max participants: {item.maxParticipants}
-            </Text>
+            <Text className="ml-2 text-[15px] text-gray-600">Max participants: {item.maxParticipants}</Text>
           </View>
         )}
       </View>
@@ -103,8 +100,7 @@ export function MeetingSessionDetailsScreen({ sessions }: MeetingSessionDetailsS
           {item.participants.map((participant, pIndex) => (
             <View
               key={participant.id || pIndex}
-              className="mb-2 flex-row items-center rounded-xl bg-[#F2F2F7] p-3"
-            >
+              className="mb-2 flex-row items-center rounded-xl bg-[#F2F2F7] p-3">
               <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-[#E8E8ED]">
                 <Ionicons name="person" size={18} color="#6B7280" />
               </View>
@@ -126,7 +122,7 @@ export function MeetingSessionDetailsScreen({ sessions }: MeetingSessionDetailsS
 
   if (sessions.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#F2F2F7] px-8">
+      <View className={`flex-1 items-center justify-center px-8 ${backgroundStyle}`}>
         <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-[#E8E8ED]">
           <Ionicons name="information-circle" size={32} color="#8E8E93" />
         </View>
@@ -141,7 +137,7 @@ export function MeetingSessionDetailsScreen({ sessions }: MeetingSessionDetailsS
   }
 
   return (
-    <View className="flex-1 bg-[#F2F2F7]">
+    <View className={`flex-1 ${backgroundStyle}`}>
       <View className="flex-1 p-4" style={{ paddingBottom: insets.bottom }}>
         <FlatList
           data={sessions}

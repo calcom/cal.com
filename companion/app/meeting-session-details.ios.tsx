@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -14,7 +15,7 @@ import type { ConferencingSession } from "@/services/types/bookings.types";
  * - Uses modal on iPad or older iOS devices
  */
 function getPresentationStyle(): "formSheet" | "modal" {
-  if (isLiquidGlassAvailable()) {
+  if (isLiquidGlassAvailable() && osName !== "iPadOS") {
     return "formSheet";
   }
   return "modal";
@@ -93,7 +94,10 @@ export default function MeetingSessionDetailsIOS() {
           </View>
         ) : (
           <View className="mt-16 flex-1">
-            <MeetingSessionDetailsScreenComponent sessions={sessions} />
+            <MeetingSessionDetailsScreenComponent
+              sessions={sessions}
+              transparentBackground={useGlassEffect}
+            />
           </View>
         )}
       </View>
