@@ -117,7 +117,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
             <Select
               size="sm"
               id="add-attendees-as"
-              class="w-[200px]"
+              className="w-[200px]"
               options={recordOptions}
               value={createEventOnSelectedOption}
               onChange={(e) => {
@@ -218,26 +218,26 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
           </Section.SubSectionHeader>
           {onBookingWriteToEventObject ? (
             <Section.SubSectionContent>
-              <div class="text-subtle flex gap-3 px-3 py-[6px] text-sm font-medium">
-                <div class="flex-1">{t("field_name")}</div>
-                <div class="flex-1">{t("value")}</div>
-                <div class="w-10" />
+              <div className="text-subtle flex gap-3 px-3 py-[6px] text-sm font-medium">
+                <div className="flex-1">{t("field_name")}</div>
+                <div className="flex-1">{t("value")}</div>
+                <div className="w-10" />
               </div>
               <Section.SubSectionNested>
                 {Object.keys(onBookingWriteToEventObjectMap).map((key) => (
-                  <div class="flex items-center gap-2" key={key}>
-                    <div class="flex-1">
-                      <InputField value={key} readOnly size="sm" class="w-full" />
+                  <div className="flex items-center gap-2" key={key}>
+                    <div className="flex-1">
+                      <InputField value={key} readOnly size="sm" className="w-full" />
                     </div>
-                    <div class="flex-1">
+                    <div className="flex-1">
                       <InputField
                         value={onBookingWriteToEventObjectMap[key]}
                         readOnly
                         size="sm"
-                        class="w-full"
+                        className="w-full"
                       />
                     </div>
-                    <div class="flex w-10 justify-center">
+                    <div className="flex w-10 justify-center">
                       <Button
                         StartIcon="x"
                         variant="icon"
@@ -252,11 +252,11 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
                     </div>
                   </div>
                 ))}
-                <div class="mt-2 flex gap-4">
-                  <div class="flex-1">
+                <div className="mt-2 flex gap-4">
+                  <div className="flex-1">
                     <InputField
                       size="sm"
-                      class="w-full"
+                      className="w-full"
                       value={newOnBookingWriteToEventObjectField.field}
                       onChange={(e) =>
                         setNewOnBookingWriteToEventObjectField({
@@ -266,10 +266,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
                       }
                     />
                   </div>
-                  <div class="flex-1">
+                  <div className="flex-1">
                     <InputField
                       size="sm"
-                      class="w-full"
+                      className="w-full"
                       value={newOnBookingWriteToEventObjectField.value}
                       onChange={(e) =>
                         setNewOnBookingWriteToEventObjectField({
@@ -279,11 +279,11 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
                       }
                     />
                   </div>
-                  <div class="w-10" />
+                  <div className="w-10" />
                 </div>
               </Section.SubSectionNested>
               <Button
-                class="text-subtle mt-2 w-fit"
+                className="text-subtle mt-2 w-fit"
                 size="sm"
                 color="secondary"
                 disabled={
@@ -342,7 +342,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
           {onBookingChangeRecordOwner ? (
             <Section.SubSectionContent classNames={{ container: "p-3" }}>
               <div>
-                <Label for="on-booking-change-record-owner-name" class="text-subtle text-sm font-medium">
+                <Label for="on-booking-change-record-owner-name" className="text-subtle text-sm font-medium">
                   {t("salesforce_owner_name_to_change")}
                 </Label>
                 <InputField
@@ -379,12 +379,12 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
               {isRoundRobinLeadSkipEnabled ? (
                 <Section.SubSectionContent classNames={{ container: "p-3" }}>
                   <div>
-                    <Label for="round-robin-skip-check-record-on" class="text-subtle text-sm font-medium">
+                    <Label for="round-robin-skip-check-record-on" className="text-subtle text-sm font-medium">
                       {t("salesforce_check_owner_of")}
                     </Label>
                     <Select
                       size="sm"
-                      class="w-60"
+                      className="w-60"
                       options={checkOwnerOptions}
                       value={checkOwnerSelectedOption}
                       onChange={(e) => {
@@ -456,7 +456,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
                 }}
               />
             </Section.SubSectionHeader>
-            <p class="text-subtle mt-2 text-sm">
+            <p className="text-subtle mt-2 text-sm">
               {t("exclude_salesforce_bookings_from_round_robin_description")}
             </p>
           </Section.SubSection>
@@ -491,7 +491,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
           </Section.SubSectionHeader>
           {sendNoShowAttendeeData ? (
             <Section.SubSectionContent classNames={{ container: "p-3" }}>
-              <Label for="send-no-show-attendee-data-field-name" class="text-subtle text-sm font-medium">
+              <Label for="send-no-show-attendee-data-field-name" className="text-subtle text-sm font-medium">
                 Field name to check (must be checkbox data type)
               </Label>
               <InputField
