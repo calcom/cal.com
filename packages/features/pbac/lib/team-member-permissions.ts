@@ -1,7 +1,8 @@
+import { MembershipRole } from "@calcom/prisma/enums";
+import type { MemberPermissions } from "@calcom/features/users/types/user-table";
+
 import { Resource, CustomAction } from "../domain/types/permission-registry";
 import { getSpecificPermissions } from "./resource-permissions";
-import type { MemberPermissions } from "@calcom/features/users/types/user-table";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 interface TeamWithMembership {
   id: number;
@@ -25,10 +26,7 @@ export async function getTeamMemberPermissions({
   team,
 }: GetTeamMemberPermissionsOptions): Promise<MemberPermissions> {
   // Determine fallback roles for ListMembers based on team privacy
-  const fallbackRolesCanListMembers: MembershipRole[] = [
-    MembershipRole.ADMIN,
-    MembershipRole.OWNER,
-  ];
+  const fallbackRolesCanListMembers: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];
   if (!team.isPrivate) {
     fallbackRolesCanListMembers.push(MembershipRole.MEMBER);
   }
