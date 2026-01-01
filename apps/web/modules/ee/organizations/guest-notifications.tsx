@@ -2,11 +2,8 @@
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { trpc } from "@calcom/trpc/react";
-import {
-  SkeletonContainer,
-  SkeletonText,
-  SkeletonButton,
-} from "@calcom/ui/components/skeleton";
+import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/components/skeleton";
+
 import DisableGuestBookingEmailsSetting from "~/ee/organizations/components/DisableGuestBookingEmailsSetting";
 
 const SkeletonLoader = () => {
@@ -23,13 +20,8 @@ const SkeletonLoader = () => {
   );
 };
 
-const GuestNotificationsView = ({
-  permissions,
-}: {
-  permissions: { canRead: boolean; canEdit: boolean };
-}) => {
-  const { data: currentOrg, isPending } =
-    trpc.viewer.organizations.listCurrent.useQuery();
+const GuestNotificationsView = ({ permissions }: { permissions: { canRead: boolean; canEdit: boolean } }) => {
+  const { data: currentOrg, isPending } = trpc.viewer.organizations.listCurrent.useQuery();
   const isInviteOpen = !currentOrg?.user.accepted;
   const isDisabled = !permissions.canEdit || isInviteOpen;
 
@@ -46,32 +38,22 @@ const GuestNotificationsView = ({
           orgId={currentOrg.id}
           settings={{
             disableAttendeeConfirmationEmail:
-              currentOrg.organizationSettings
-                .disableAttendeeConfirmationEmail ?? false,
+              currentOrg.organizationSettings.disableAttendeeConfirmationEmail ?? false,
             disableAttendeeCancellationEmail:
-              currentOrg.organizationSettings
-                .disableAttendeeCancellationEmail ?? false,
+              currentOrg.organizationSettings.disableAttendeeCancellationEmail ?? false,
             disableAttendeeRescheduledEmail:
-              currentOrg.organizationSettings.disableAttendeeRescheduledEmail ??
-              false,
-            disableAttendeeRequestEmail:
-              currentOrg.organizationSettings.disableAttendeeRequestEmail ??
-              false,
+              currentOrg.organizationSettings.disableAttendeeRescheduledEmail ?? false,
+            disableAttendeeRequestEmail: currentOrg.organizationSettings.disableAttendeeRequestEmail ?? false,
             disableAttendeeReassignedEmail:
-              currentOrg.organizationSettings.disableAttendeeReassignedEmail ??
-              false,
+              currentOrg.organizationSettings.disableAttendeeReassignedEmail ?? false,
             disableAttendeeAwaitingPaymentEmail:
-              currentOrg.organizationSettings
-                .disableAttendeeAwaitingPaymentEmail ?? false,
+              currentOrg.organizationSettings.disableAttendeeAwaitingPaymentEmail ?? false,
             disableAttendeeRescheduleRequestEmail:
-              currentOrg.organizationSettings
-                .disableAttendeeRescheduleRequestEmail ?? false,
+              currentOrg.organizationSettings.disableAttendeeRescheduleRequestEmail ?? false,
             disableAttendeeLocationChangeEmail:
-              currentOrg.organizationSettings
-                .disableAttendeeLocationChangeEmail ?? false,
+              currentOrg.organizationSettings.disableAttendeeLocationChangeEmail ?? false,
             disableAttendeeNewEventEmail:
-              currentOrg.organizationSettings.disableAttendeeNewEventEmail ??
-              false,
+              currentOrg.organizationSettings.disableAttendeeNewEventEmail ?? false,
           }}
           readOnly={isDisabled}
         />
