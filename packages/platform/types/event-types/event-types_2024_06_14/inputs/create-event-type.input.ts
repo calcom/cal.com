@@ -49,6 +49,7 @@ import {
   TitleDefaultFieldInput_2024_06_14,
   LocationDefaultFieldInput_2024_06_14,
   UrlFieldInput_2024_06_14,
+  PhoneDefaultFieldInput_2024_06_14,
 } from "./booking-fields.input";
 import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateInputBookingFields_2024_06_14 } from "./booking-fields.input";
@@ -243,6 +244,7 @@ export class BaseCreateEventTypeInput {
       { $ref: getSchemaPath(GuestsDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(RescheduleReasonDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(PhoneFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(PhoneDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(AddressFieldInput_2024_06_14) },
       { $ref: getSchemaPath(TextFieldInput_2024_06_14) },
       { $ref: getSchemaPath(NumberFieldInput_2024_06_14) },
