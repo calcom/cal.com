@@ -53,16 +53,18 @@ vi.mock("@calcom/trpc/react", () => ({
   },
 }));
 
+const defaultFormValues = {
+  assignRRMembersUsingSegment: false,
+  rrSegmentQueryValue: null,
+  hosts: [],
+};
+
 const renderComponent = ({
   componentProps,
-  formDefaultValues = {
-    assignRRMembersUsingSegment: false,
-    rrSegmentQueryValue: null,
-    hosts: [],
-  },
+  formDefaultValues = defaultFormValues,
 }: {
   componentProps: AddMembersWithSwitchProps;
-  formDefaultValues?: Record<string, unknown>;
+  formDefaultValues?: typeof defaultFormValues;
 }) => {
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
     const methods = useForm({
