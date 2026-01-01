@@ -1,13 +1,23 @@
-import { render, screen } from "@testing-library/react";
-import * as React from "react";
-import { describe, expect, it, vi, beforeAll } from "vitest";
+import { render, screen, cleanup } from "@testing-library/react";
+import { describe, expect, it, vi, beforeAll, afterEach } from "vitest";
 
 import * as shouldChargeModule from "@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee";
 
 import CancelBooking from "../CancelBooking";
 
+// Mock the embed-iframe module to prevent it from scheduling timers/RAF that can cause
+// teardown issues when jsdom environment is destroyed
+vi.mock("@calcom/embed-core/embed-iframe", () => ({
+  sdkActionManager: null,
+}));
+
 beforeAll(() => {
+  // jsdom doesn't implement scrollIntoView, so we need to mock it
   Element.prototype.scrollIntoView = vi.fn();
+});
+
+afterEach(() => {
+  cleanup();
 });
 
 vi.mock("@calcom/trpc/react", () => ({
