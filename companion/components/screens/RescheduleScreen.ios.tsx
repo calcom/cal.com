@@ -19,6 +19,7 @@ export interface RescheduleScreenProps {
   onSuccess: () => void;
   onSavingChange?: (isSaving: boolean) => void;
   transparentBackground?: boolean;
+  useNativeHeader?: boolean;
 }
 
 export interface RescheduleScreenHandle {
@@ -26,7 +27,10 @@ export interface RescheduleScreenHandle {
 }
 
 export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScreenProps>(
-  function RescheduleScreen({ booking, onSuccess, onSavingChange, transparentBackground = false }, ref) {
+  function RescheduleScreen(
+    { booking, onSuccess, onSavingChange, transparentBackground = false },
+    ref
+  ) {
     "use no memo";
     const insets = useSafeAreaInsets();
     const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
@@ -62,7 +66,9 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
           start: selectedDateTime.toISOString(),
           reschedulingReason: reason.trim() || undefined,
         });
-        Alert.alert("Success", "Booking rescheduled successfully", [{ text: "OK", onPress: onSuccess }]);
+        Alert.alert("Success", "Booking rescheduled successfully", [
+          { text: "OK", onPress: onSuccess },
+        ]);
         setIsSaving(false);
       } catch (error) {
         safeLogError("[RescheduleScreen] Failed to reschedule:", error);
@@ -118,11 +124,15 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
             paddingBottom: insets.bottom + 16,
           }}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={!transparentBackground}>
+          showsVerticalScrollIndicator={!transparentBackground}
+        >
           {transparentBackground ? (
             <>
               {/* Booking Title */}
-              <Text className="mb-4 mt-4 text-center text-[17px] font-semibold text-[#000]" numberOfLines={2}>
+              <Text
+                className="mb-4 mt-4 text-center text-[17px] font-semibold text-[#000]"
+                numberOfLines={2}
+              >
                 {booking.title}
               </Text>
 
@@ -146,7 +156,9 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
               </View>
 
               {/* Reason input */}
-              <Text className="mb-2 px-1 text-[13px] font-medium text-gray-500">Reason (optional)</Text>
+              <Text className="mb-2 px-1 text-[13px] font-medium text-gray-500">
+                Reason (optional)
+              </Text>
               <View className="mb-3 overflow-hidden rounded-xl border border-gray-300/40 bg-white/60 px-4 py-3">
                 <TextInput
                   className="min-h-[80px] text-[17px] text-[#000]"
@@ -203,7 +215,9 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
 
                 {/* Reason input */}
                 <View className="px-4 py-3">
-                  <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Reason (optional)</Text>
+                  <Text className="mb-1.5 text-[13px] font-medium text-gray-500">
+                    Reason (optional)
+                  </Text>
                   <TextInput
                     className="min-h-[80px] text-[17px] text-[#000]"
                     placeholder="Enter reason for rescheduling..."

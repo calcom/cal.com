@@ -120,6 +120,7 @@ export default function Reschedule() {
         booking={booking}
         onSuccess={handleRescheduleSuccess}
         onSavingChange={setIsSaving}
+        useNativeHeader
       />
     </>
   );

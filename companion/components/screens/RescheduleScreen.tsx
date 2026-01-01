@@ -31,6 +31,7 @@ export interface RescheduleScreenProps {
   onSuccess: () => void;
   onSavingChange?: (isSaving: boolean) => void;
   transparentBackground?: boolean;
+  useNativeHeader?: boolean;
 }
 
 // Handle type for parent component to call submit
@@ -39,7 +40,10 @@ export interface RescheduleScreenHandle {
 }
 
 export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScreenProps>(
-  function RescheduleScreen({ booking, onSuccess, onSavingChange, transparentBackground = false }, ref) {
+  function RescheduleScreen(
+    { booking, onSuccess, onSavingChange, transparentBackground = false },
+    ref
+  ) {
     const insets = useSafeAreaInsets();
     const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
     const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
@@ -85,7 +89,9 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
           start: startTime,
           reschedulingReason,
         });
-        Alert.alert("Success", "Booking rescheduled successfully", [{ text: "OK", onPress: onSuccess }]);
+        Alert.alert("Success", "Booking rescheduled successfully", [
+          { text: "OK", onPress: onSuccess },
+        ]);
         setIsSaving(false);
       } catch (error) {
         safeLogError("[RescheduleScreen] Failed to reschedule:", error);
@@ -175,7 +181,8 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
       <>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className={`flex-1 ${backgroundStyle}`}>
+          className={`flex-1 ${backgroundStyle}`}
+        >
           <ScrollView
             className="flex-1"
             contentContainerStyle={{
@@ -183,11 +190,14 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
               paddingBottom: insets.bottom + 16,
             }}
             keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={!transparentBackground}>
+            showsVerticalScrollIndicator={!transparentBackground}
+          >
             {/* Booking Title Card */}
             {!transparentBackground && (
               <View className="mb-4 flex-row items-start rounded-xl bg-white p-4">
-                <View className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}>
+                <View
+                  className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}
+                >
                   <Ionicons name="calendar" size={20} color="#6B7280" />
                 </View>
                 <View className="flex-1">
@@ -213,7 +223,8 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                         setShowDatePicker(true);
                       }}
                       disabled={isSaving}
-                      activeOpacity={0.7}>
+                      activeOpacity={0.7}
+                    >
                       <Text className="text-[17px] font-medium text-[#000]">{formattedDate}</Text>
                     </TouchableOpacity>
                   </View>
@@ -230,7 +241,8 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                         setShowTimePicker(true);
                       }}
                       disabled={isSaving}
-                      activeOpacity={0.7}>
+                      activeOpacity={0.7}
+                    >
                       <Text className="text-[17px] font-medium text-[#000]">{formattedTime}</Text>
                     </TouchableOpacity>
                   </View>
@@ -291,7 +303,8 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                         setShowDatePicker(true);
                       }}
                       disabled={isSaving}
-                      activeOpacity={0.7}>
+                      activeOpacity={0.7}
+                    >
                       <Text className="text-[17px] font-medium text-[#000]">{formattedDate}</Text>
                     </TouchableOpacity>
                   </View>
@@ -341,7 +354,8 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                         setShowTimePicker(true);
                       }}
                       disabled={isSaving}
-                      activeOpacity={0.7}>
+                      activeOpacity={0.7}
+                    >
                       <Text className="text-[17px] font-medium text-[#000]">{formattedTime}</Text>
                     </TouchableOpacity>
                   </View>
@@ -349,7 +363,9 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
 
                 {/* Reason input */}
                 <View className="px-4 py-3">
-                  <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Reason (optional)</Text>
+                  <Text className="mb-1.5 text-[13px] font-medium text-gray-500">
+                    Reason (optional)
+                  </Text>
                   <TextInput
                     className="min-h-[80px] text-[17px] text-[#000]"
                     placeholder="Enter reason for rescheduling..."
@@ -371,11 +387,13 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
           visible={showDatePicker}
           transparent
           animationType="fade"
-          onRequestClose={() => setShowDatePicker(false)}>
+          onRequestClose={() => setShowDatePicker(false)}
+        >
           <TouchableOpacity
             className="flex-1 items-center justify-center bg-black/50"
             activeOpacity={1}
-            onPress={() => setShowDatePicker(false)}>
+            onPress={() => setShowDatePicker(false)}
+          >
             <TouchableOpacity activeOpacity={1}>
               <View className="w-[320px] overflow-hidden rounded-2xl bg-white">
                 <Text className="border-b border-gray-200 py-3 text-center text-[17px] font-semibold text-[#000]">
@@ -384,9 +402,11 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                 <ScrollView
                   style={{ maxHeight: 280 }}
                   showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ paddingVertical: 4 }}>
+                  contentContainerStyle={{ paddingVertical: 4 }}
+                >
                   {dateOptions.map((option) => {
-                    const isSelected = option.value.toDateString() === selectedDateTime.toDateString();
+                    const isSelected =
+                      option.value.toDateString() === selectedDateTime.toDateString();
                     return (
                       <TouchableOpacity
                         key={option.value.toISOString()}
@@ -397,12 +417,14 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                           newDate.setMinutes(selectedDateTime.getMinutes());
                           setSelectedDateTime(newDate);
                         }}
-                        activeOpacity={0.7}>
+                        activeOpacity={0.7}
+                      >
                         <View className="flex-row items-center justify-between">
                           <Text
                             className={`text-[17px] ${
                               isSelected ? "font-semibold text-[#007AFF]" : "text-[#000]"
-                            }`}>
+                            }`}
+                          >
                             {option.label}
                           </Text>
                           {isSelected && <Ionicons name="checkmark" size={22} color="#007AFF" />}
@@ -413,7 +435,8 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                 </ScrollView>
                 <TouchableOpacity
                   className="border-t border-gray-200 py-3"
-                  onPress={() => setShowDatePicker(false)}>
+                  onPress={() => setShowDatePicker(false)}
+                >
                   <Text className="text-center text-[17px] font-semibold text-[#007AFF]">Done</Text>
                 </TouchableOpacity>
               </View>
@@ -426,11 +449,13 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
           visible={showTimePicker}
           transparent
           animationType="fade"
-          onRequestClose={() => setShowTimePicker(false)}>
+          onRequestClose={() => setShowTimePicker(false)}
+        >
           <TouchableOpacity
             className="flex-1 items-center justify-center bg-black/50"
             activeOpacity={1}
-            onPress={() => setShowTimePicker(false)}>
+            onPress={() => setShowTimePicker(false)}
+          >
             <TouchableOpacity activeOpacity={1}>
               <View className="w-[320px] overflow-hidden rounded-2xl bg-white">
                 <Text className="border-b border-gray-200 py-3 text-center text-[17px] font-semibold text-[#000]">
@@ -439,7 +464,8 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                 <ScrollView
                   style={{ maxHeight: 280 }}
                   showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ paddingVertical: 4 }}>
+                  contentContainerStyle={{ paddingVertical: 4 }}
+                >
                   {timeOptions.map((option) => {
                     const isSelected =
                       selectedDateTime.getHours() === option.value.hour &&
@@ -454,12 +480,14 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                           newDate.setMinutes(option.value.minute);
                           setSelectedDateTime(newDate);
                         }}
-                        activeOpacity={0.7}>
+                        activeOpacity={0.7}
+                      >
                         <View className="flex-row items-center justify-between">
                           <Text
                             className={`text-[17px] ${
                               isSelected ? "font-semibold text-[#007AFF]" : "text-[#000]"
-                            }`}>
+                            }`}
+                          >
                             {option.label}
                           </Text>
                           {isSelected && <Ionicons name="checkmark" size={22} color="#007AFF" />}
@@ -470,7 +498,8 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                 </ScrollView>
                 <TouchableOpacity
                   className="border-t border-gray-200 py-3"
-                  onPress={() => setShowTimePicker(false)}>
+                  onPress={() => setShowTimePicker(false)}
+                >
                   <Text className="text-center text-[17px] font-semibold text-[#007AFF]">Done</Text>
                 </TouchableOpacity>
               </View>
