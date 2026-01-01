@@ -6,9 +6,7 @@ import type { GetServerSidePropsContext, NextApiRequest } from "next";
 const createProxifiedObject = (object: Record<string, string>) =>
   new Proxy(object, {
     set: () => {
-      throw new Error(
-        "You are trying to modify 'headers' or 'cookies', which is not supported in app dir"
-      );
+      throw new Error("You are trying to modify 'headers' or 'cookies', which is not supported in app dir");
     },
   });
 
@@ -19,12 +17,10 @@ const buildLegacyHeaders = (headers: ReadonlyHeaders) => {
 };
 
 const buildLegacyCookies = (cookies: ReadonlyRequestCookies) => {
-  const cookiesObject = cookies
-    .getAll()
-    .reduce<Record<string, string>>((acc, { name, value }) => {
-      acc[name] = value;
-      return acc;
-    }, {});
+  const cookiesObject = cookies.getAll().reduce<Record<string, string>>((acc, { name, value }) => {
+    acc[name] = value;
+    return acc;
+  }, {});
 
   return createProxifiedObject(cookiesObject);
 };
@@ -48,14 +44,8 @@ export function decodeParams(params: Params): Params {
   }, {} as Params);
 }
 
-export const buildLegacyRequest = (
-  headers: ReadonlyHeaders,
-  cookies: ReadonlyRequestCookies
-) => {
-  return {
-    headers: buildLegacyHeaders(headers),
-    cookies: buildLegacyCookies(cookies),
-  } as NextApiRequest;
+export const buildLegacyRequest = (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
+  return { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) } as NextApiRequest;
 };
 
 export const buildLegacyCtx = (
@@ -70,10 +60,7 @@ export const buildLegacyCtx = (
     // because Next.js App Router does not auto-decode query params while Pages Router does
     // e.g., params: { name: "John%20Doe" } => params: { name: "John Doe" }
     params: decodeParams(params),
-    req: {
-      headers: buildLegacyHeaders(headers),
-      cookies: buildLegacyCookies(cookies),
-    },
+    req: { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) },
     res: new Proxy(Object.create(null), {
       // const { req, res } = ctx - valid
       // res.anything - throw
