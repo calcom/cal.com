@@ -1,6 +1,6 @@
 import { updateRoleInCache, getUpdatedUser } from "./MemberChangeRoleModal";
 import type { Action, State, User } from "./MemberList";
-import type { MemberPermissions } from "@calcom/features/users/types";
+import type { MemberPermissions } from "@calcom/features/users/types/user-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";

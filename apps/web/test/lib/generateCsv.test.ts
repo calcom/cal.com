@@ -2,7 +2,7 @@ import {
   generateCsvRawForMembersTable,
   generateHeaderFromReactTable,
 } from "@calcom/features/users/lib/UserListTableUtils";
-import type { UserTableUser } from "@calcom/features/users/types";
+import type { UserTableUser } from "@calcom/features/users/types/user-table";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { Table } from "@tanstack/react-table";
 import { describe, it, expect, vi } from "vitest";

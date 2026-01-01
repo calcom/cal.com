@@ -1,9 +1,10 @@
+import type { UserTableUser } from "@calcom/features/users/types/user-table";
+import { sanitizeValue } from "@calcom/lib/csvUtils";
 import type { Table } from "@tanstack/react-table";
 
-import { sanitizeValue } from "@calcom/lib/csvUtils";
-import type { UserTableUser } from "@calcom/features/users/types";
-
-export const generateHeaderFromReactTable = (table: Table<UserTableUser>): string[] | null => {
+export const generateHeaderFromReactTable = (
+  table: Table<UserTableUser>
+): string[] | null => {
   const headerGroups = table.getHeaderGroups();
   if (!headerGroups.length) {
     return null;
@@ -11,7 +12,9 @@ export const generateHeaderFromReactTable = (table: Table<UserTableUser>): strin
 
   const { headers } = headerGroups[0];
   const HEADER_IDS_TO_EXCLUDE = ["select", "actions"]; // these columns only make sense in web page
-  const filteredHeaders = headers.filter((header) => !HEADER_IDS_TO_EXCLUDE.includes(header.id));
+  const filteredHeaders = headers.filter(
+    (header) => !HEADER_IDS_TO_EXCLUDE.includes(header.id)
+  );
   const headerNames = filteredHeaders.map((header) => {
     const h = header.column.columnDef.header;
     if (typeof h === "string") {
@@ -47,9 +50,15 @@ export const generateCsvRawForMembersTable = (
   const REQUIRED_HEADERS = ["Members", "Link", "Role", "Teams"] as const;
   // Validate required headers are present and in correct order
   const firstFourHeaders = headers.slice(0, REQUIRED_HEADERS.length);
-  if (!REQUIRED_HEADERS.every((header, index) => header === firstFourHeaders[index])) {
+  if (
+    !REQUIRED_HEADERS.every(
+      (header, index) => header === firstFourHeaders[index]
+    )
+  ) {
     throw new Error(
-      `Invalid headers structure. Expected headers to start with: ${JSON.stringify(REQUIRED_HEADERS)}`
+      `Invalid headers structure. Expected headers to start with: ${JSON.stringify(
+        REQUIRED_HEADERS
+      )}`
     );
   }
 
@@ -82,7 +91,11 @@ export const generateCsvRawForMembersTable = (
       if (!attributes?.length) return "";
 
       return sanitizeValue(
-        attributes.map((attr) => (attr.weight ? `${attr.value} (${attr.weight}%)` : attr.value)).join(",")
+        attributes
+          .map((attr) =>
+            attr.weight ? `${attr.value} (${attr.weight}%)` : attr.value
+          )
+          .join(",")
       );
     });
 

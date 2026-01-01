@@ -16,7 +16,7 @@ import {
   convertFacetedValuesToMap,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import type { MemberPermissions } from "@calcom/features/users/types";
+import type { MemberPermissions } from "@calcom/features/users/types/user-table";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

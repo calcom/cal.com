@@ -2,7 +2,7 @@
 
 import MemberList from "../components/MemberList";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import type { MemberPermissions } from "@calcom/features/users/types";
+import type { MemberPermissions } from "@calcom/features/users/types/user-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { useState } from "react";

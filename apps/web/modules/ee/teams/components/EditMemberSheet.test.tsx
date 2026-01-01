@@ -1,5 +1,5 @@
 import type { State, User } from "./MemberList";
-import type { MemberPermissions } from "@calcom/features/users/types";
+import type { MemberPermissions } from "@calcom/features/users/types/user-table";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { EditMemberSheet } from "@calcom/web/modules/ee/teams/components/EditMemberSheet";
 import { render } from "@testing-library/react";
