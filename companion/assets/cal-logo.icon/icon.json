@@ -19,7 +19,9 @@
             },
             {
               "appearance": "tinted",
-              "value": "automatic"
+              "value": {
+                "solid": "srgb:1.00000,1.00000,1.00000,1.00000"
+              }
             }
           ],
           "glass": false,
