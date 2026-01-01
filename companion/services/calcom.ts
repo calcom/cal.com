@@ -73,7 +73,9 @@ function safeParseJson(jsonString: string): Record<string, unknown> | null {
  * Safely parse JSON error response with structure validation.
  * Validates the expected error response structure before returning.
  */
-function safeParseErrorJson(jsonString: string): { error?: { message?: string }; message?: string } | null {
+function safeParseErrorJson(
+  jsonString: string
+): { error?: { message?: string }; message?: string } | null {
   if (typeof jsonString !== "string" || !jsonString.trim()) {
     return null;
   }
@@ -123,7 +125,8 @@ interface AuthConfig {
 const authConfig: AuthConfig = {};
 
 // Token refresh callback - will be set by AuthContext
-let tokenRefreshCallback: ((accessToken: string, refreshToken?: string) => Promise<void>) | null = null;
+let tokenRefreshCallback: ((accessToken: string, refreshToken?: string) => Promise<void>) | null =
+  null;
 
 // Refresh token function - will be set by AuthContext
 let refreshTokenFunction:
@@ -161,7 +164,8 @@ export const getBookingParticipation = (
     a !== undefined && b !== undefined && String(a) === String(b);
 
   const isOrganizer =
-    !!booking.user && (idEq(booking.user.id, userId) || emailEq(booking.user.email, normalizedUserEmail));
+    !!booking.user &&
+    (idEq(booking.user.id, userId) || emailEq(booking.user.email, normalizedUserEmail));
 
   const isHost =
     Array.isArray(booking.hosts) &&
@@ -333,11 +337,15 @@ async function testRawBookingsAPI(): Promise<void> {
     if (responseText?.trim()) {
       const _responseJson = safeParseJson(responseText);
       if (!_responseJson) {
-        safeLogError("[CalComAPIService] Failed to parse bookings response", { responseText });
+        safeLogError("[CalComAPIService] Failed to parse bookings response", {
+          responseText,
+        });
       }
     }
   } catch (_error) {
-    safeLogError("[CalComAPIService] testRawBookingsAPI failed", { error: _error });
+    safeLogError("[CalComAPIService] testRawBookingsAPI failed", {
+      error: _error,
+    });
   }
 }
 
@@ -1004,7 +1012,7 @@ async function getBookings(filters?: {
   }
 
   // Get current user to filter bookings
-  let currentUser;
+  let currentUser: UserProfile | undefined;
   try {
     currentUser = await getCurrentUser();
   } catch (_error) {
@@ -1205,7 +1213,13 @@ function sanitizePayload(payload: Record<string, unknown>): Record<string, unkno
   ];
 
   // Fields that can be null (to clear the value)
-  const nullableFields = ["description", "successRedirectUrl", "slotInterval", "eventName", "timeZone"];
+  const nullableFields = [
+    "description",
+    "successRedirectUrl",
+    "slotInterval",
+    "eventName",
+    "timeZone",
+  ];
 
   for (const [key, value] of Object.entries(payload)) {
     // Skip undefined values
@@ -1411,13 +1425,16 @@ async function createWebhook(input: CreateWebhookInput): Promise<Webhook> {
 async function updateWebhook(webhookId: string, updates: UpdateWebhookInput): Promise<Webhook> {
   try {
     const sanitizedUpdates = sanitizePayload(updates as Record<string, unknown>);
-    const response = await makeRequest<{ status: string; data: Webhook }>(`/webhooks/${webhookId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(sanitizedUpdates),
-    });
+    const response = await makeRequest<{ status: string; data: Webhook }>(
+      `/webhooks/${webhookId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(sanitizedUpdates),
+      }
+    );
 
     if (response?.data) {
       return response.data;
@@ -1461,7 +1478,10 @@ async function getEventTypeWebhooks(eventTypeId: number): Promise<Webhook[]> {
 }
 
 // Create a webhook for a specific event type
-async function createEventTypeWebhook(eventTypeId: number, input: CreateWebhookInput): Promise<Webhook> {
+async function createEventTypeWebhook(
+  eventTypeId: number,
+  input: CreateWebhookInput
+): Promise<Webhook> {
   try {
     const sanitizedInput = sanitizePayload(input as unknown as Record<string, unknown>);
     const response = await makeRequest<{ status: string; data: Webhook }>(
