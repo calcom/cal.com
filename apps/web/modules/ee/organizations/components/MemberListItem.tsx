@@ -1,5 +1,3 @@
-import classNames from "classnames";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { UserAvatar } from "@calcom/ui/components/avatar";
@@ -13,7 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import TeamPill, { TeamRole } from "@calcom/features/ee/teams/components/TeamPill";
+import classNames from "classnames";
+import TeamPill, { TeamRole } from "~/ee/teams/components/TeamPill";
 
 interface Props {
   member: RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"][number];
@@ -27,24 +26,38 @@ export default function MemberListItem(props: Props) {
   const name = user.name || user.username || user.email;
   const bookerUrl = props.member.bookerUrl;
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
-  const bookingLink = user.username && `${bookerUrlWithoutProtocol}/${user.username}`;
+  const bookingLink =
+    user.username && `${bookerUrlWithoutProtocol}/${user.username}`;
 
   return (
     <li className="divide-subtle divide-y px-5">
       <div className="my-4 flex justify-between">
         <div className="flex w-full flex-col justify-between overflow-hidden sm:flex-row">
           <div className="flex">
-            <UserAvatar noOrganizationIndicator size="sm" user={user} className="h-10 w-10 rounded-full" />
+            <UserAvatar
+              noOrganizationIndicator
+              size="sm"
+              user={user}
+              className="h-10 w-10 rounded-full"
+            />
 
             <div className="ms-3 inline-block overflow-hidden">
               <div className="mb-1 flex items-center">
-                <span className="text-default mr-1 text-sm font-bold leading-4">{name}</span>
+                <span className="text-default mr-1 text-sm font-bold leading-4">
+                  {name}
+                </span>
 
-                {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}
+                {!props.member.accepted && (
+                  <TeamPill color="orange" text={t("pending")} />
+                )}
                 {props.member.role && <TeamRole role={props.member.role} />}
               </div>
               <div className="text-default flex items-center">
-                <span className=" block text-sm" data-testid="member-email" data-email={user.email}>
+                <span
+                  className=" block text-sm"
+                  data-testid="member-email"
+                  data-email={user.email}
+                >
                   {user.email}
                 </span>
                 {user.username != null && (
@@ -53,7 +66,8 @@ export default function MemberListItem(props: Props) {
                     <a
                       target="_blank"
                       href={`${bookerUrl}/${user.username}`}
-                      className="text-default block truncate text-sm">
+                      className="text-default block truncate text-sm"
+                    >
                       {bookingLink}
                     </a>
                   </>
@@ -64,7 +78,10 @@ export default function MemberListItem(props: Props) {
         </div>
         {member.accepted && user.username && (
           <div className="flex items-center justify-center">
-            <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
+            <ButtonGroup
+              combined
+              containerProps={{ className: "border-default hidden md:flex" }}
+            >
               <Tooltip content={t("view_public_page")}>
                 <Button
                   target="_blank"
@@ -81,7 +98,12 @@ export default function MemberListItem(props: Props) {
             <div className="flex md:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
+                  <Button
+                    type="button"
+                    variant="icon"
+                    color="minimal"
+                    StartIcon="ellipsis"
+                  />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem className="outline-none">
@@ -90,7 +112,8 @@ export default function MemberListItem(props: Props) {
                       href={`/${user.username}`}
                       target="_blank"
                       type="button"
-                      StartIcon="external-link">
+                      StartIcon="external-link"
+                    >
                       {t("view_public_page")}
                     </DropdownItem>
                   </DropdownMenuItem>

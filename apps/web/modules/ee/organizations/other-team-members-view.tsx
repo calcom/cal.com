@@ -1,13 +1,7 @@
 "use client";
 
 // import { debounce } from "lodash";
-import { keepPreviousData } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import MemberListItem from "@calcom/features/ee/organizations/pages/components/MemberListItem";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { CreationSource } from "@calcom/prisma/enums";
@@ -16,11 +10,16 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
-
+import { keepPreviousData } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import MemberListItem from "~/ee/organizations/components/MemberListItem";
 import MakeTeamPrivateSwitch from "~/ee/teams/components/MakeTeamPrivateSwitch";
 import MemberInvitationModal from "~/ee/teams/components/MemberInvitationModal";
 
-type Members = RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"];
+type Members =
+  RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"];
 type Team = RouterOutputs["viewer"]["organizations"]["getOtherTeam"];
 
 interface MembersListProps {
@@ -33,7 +32,13 @@ interface MembersListProps {
 
 function MembersList(props: MembersListProps) {
   const { t } = useLocale();
-  const { hasNextPage, members = [], team, fetchNextPage, isFetchingNextPage } = props;
+  const {
+    hasNextPage,
+    members = [],
+    team,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = props;
 
   return (
     <div className="flex flex-col gap-y-3">
@@ -46,7 +51,9 @@ function MembersList(props: MembersListProps) {
       ) : null}
       {members?.length === 0 && (
         <div className="flex flex-col items-center justify-center">
-          <p className="text-default text-sm font-bold">{t("no_members_found")}</p>
+          <p className="text-default text-sm font-bold">
+            {t("no_members_found")}
+          </p>
         </div>
       )}
       <div className="text-default p-4 text-center">
@@ -54,7 +61,8 @@ function MembersList(props: MembersListProps) {
           color="minimal"
           loading={isFetchingNextPage}
           disabled={!hasNextPage}
-          onClick={() => fetchNextPage()}>
+          onClick={() => fetchNextPage()}
+        >
           {hasNextPage ? t("load_more_results") : t("no_more_results")}
         </Button>
       </div>
@@ -69,11 +77,15 @@ export const memberInvitationModalRef = {
 export const TeamMembersCTA = () => {
   const { t } = useLocale();
   const session = useSession();
-  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.org,
-  });
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(
+    undefined,
+    {
+      enabled: !!session.data?.user?.org,
+    }
+  );
 
-  const isOrgAdminOrOwner = currentOrg && checkAdminOrOwner(currentOrg.user.role);
+  const isOrgAdminOrOwner =
+    currentOrg && checkAdminOrOwner(currentOrg.user.role);
 
   if (!isOrgAdminOrOwner) return null;
 
@@ -84,7 +96,8 @@ export const TeamMembersCTA = () => {
       StartIcon="plus"
       className="ml-auto"
       onClick={() => memberInvitationModalRef.current?.(true)}
-      data-testid="new-member-button">
+      data-testid="new-member-button"
+    >
       {t("add")}
     </Button>
   );
@@ -99,7 +112,8 @@ const MembersView = () => {
   // const [query, setQuery] = useState<string | undefined>("");
   // const [queryToFetch, setQueryToFetch] = useState<string | undefined>("");
   const limit = 20;
-  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState<boolean>(false);
+  const [showMemberInvitationModal, setShowMemberInvitationModal] =
+    useState<boolean>(false);
 
   const {
     data: team,
