@@ -7,7 +7,7 @@ import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { UserTableAction, UserTableState } from "./types";
+import type { UserTableAction, UserTableState } from "@calcom/features/users/types/user-table";
 
 export function DeleteMemberModal({
   state,

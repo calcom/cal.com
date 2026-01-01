@@ -3,7 +3,7 @@ import type { Dispatch } from "react";
 
 import MemberChangeRoleModal from "@calcom/web/modules/ee/teams/components/MemberChangeRoleModal";
 
-import type { UserTableAction, UserTableState } from "./types";
+import type { UserTableAction, UserTableState } from "@calcom/features/users/types/user-table";
 
 export function ChangeUserRoleModal(props: { state: UserTableState; dispatch: Dispatch<UserTableAction> }) {
   const { data: session } = useSession();

@@ -1,6 +1,11 @@
-import { useEditMode } from "./store";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
+import type { Dispatch } from "react";
+import { useMemo, useState } from "react";
+import { Controller, useForm, useFormContext } from "react-hook-form";
+import { z } from "zod";
+
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import type { UserTableAction } from "@calcom/features/users/types/user-table";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,19 +24,11 @@ import {
   ToggleGroup,
 } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
-import {
-  SheetHeader,
-  SheetBody,
-  SheetFooter,
-  SheetTitle,
-} from "@calcom/ui/components/sheet";
+import { SheetHeader, SheetBody, SheetFooter, SheetTitle } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useSession } from "next-auth/react";
-import type { Dispatch } from "react";
-import { useMemo, useState } from "react";
-import { Controller, useForm, useFormContext } from "react-hook-form";
-import { z } from "zod";
+
+import type { UserTableAction } from "@calcom/features/users/types/user-table";
+import { useEditMode } from "./store";
 
 interface MembershipOption {
   value: MembershipRole | string;
@@ -103,15 +100,14 @@ export function EditForm({
 
   const isOwner = org?.role === MembershipRole.OWNER;
 
-  const { data: teamRoles, isLoading: isLoadingRoles } =
-    trpc.viewer.pbac.getTeamRoles.useQuery(
-      // @ts-expect-error this query is only ran when we have an orgId so can ignore this
-      { teamId: org?.id },
-      {
-        enabled: !!org?.id, // Only enable the query when we have a valid team ID
-        staleTime: 30000, // Cache for 30 seconds
-      }
-    );
+  const { data: teamRoles, isLoading: isLoadingRoles } = trpc.viewer.pbac.getTeamRoles.useQuery(
+    // @ts-expect-error this query is only ran when we have an orgId so can ignore this
+    { teamId: org?.id },
+    {
+      enabled: !!org?.id, // Only enable the query when we have a valid team ID
+      staleTime: 30000, // Cache for 30 seconds
+    }
+  );
 
   const membershipOptions = useMemo<MembershipOption[]>(() => {
     // Add custom roles if they exist
@@ -188,15 +184,11 @@ export function EditForm({
             timeZone: values.timeZone,
             // @ts-expect-error they're there in local types but for some reason it errors?
             attributeOptions: values.attributes
-              ? {
-                  userId: selectedUser?.id ?? "",
-                  attributes: values.attributes,
-                }
+              ? { userId: selectedUser?.id ?? "", attributes: values.attributes }
               : undefined,
           });
           setEditMode(false);
-        }}
-      >
+        }}>
         <SheetHeader>
           <SheetTitle>{t("update_profile")}</SheetTitle>
         </SheetHeader>
@@ -207,11 +199,7 @@ export function EditForm({
               name="avatar"
               render={({ field: { value } }) => (
                 <div className="flex items-center">
-                  <Avatar
-                    alt={`${selectedUser?.name} avatar`}
-                    imageSrc={value}
-                    size="mdLg"
-                  />
+                  <Avatar alt={`${selectedUser?.name} avatar`} imageSrc={value} size="mdLg" />
                   <div className="ml-4">
                     <ImageUploader
                       target="avatar"
@@ -219,9 +207,7 @@ export function EditForm({
                       buttonMsg={t("change_avatar")}
                       buttonSize="sm"
                       handleAvatarChange={(newAvatar) => {
-                        form.setValue("avatar", newAvatar, {
-                          shouldDirty: true,
-                        });
+                        form.setValue("avatar", newAvatar, { shouldDirty: true });
                       }}
                       imageSrc={value || undefined}
                     />
@@ -231,21 +217,9 @@ export function EditForm({
             />
           </div>
           <Divider />
-          <TextField
-            label={t("name")}
-            {...form.register("name")}
-            className="mb-6"
-          />
-          <TextField
-            label={t("username")}
-            {...form.register("username")}
-            className="mb-6"
-          />
-          <TextAreaField
-            label={t("about")}
-            {...form.register("bio")}
-            className="min-h-24 mb-6"
-          />
+          <TextField label={t("name")} {...form.register("name")} className="mb-6" />
+          <TextField label={t("username")} {...form.register("username")} className="mb-6" />
+          <TextAreaField label={t("about")} {...form.register("bio")} className="min-h-24 mb-6" />
           <div className="mb-6">
             <Label>{t("role")}</Label>
             {teamRoles?.length > 0 ? (
@@ -253,9 +227,7 @@ export function EditForm({
                 defaultValue={membershipOptions.find(
                   (option) => option.value === (selectedUser?.role ?? "MEMBER")
                 )}
-                value={membershipOptions.find(
-                  (option) => option.value === form.watch("role")
-                )}
+                value={membershipOptions.find((option) => option.value === form.watch("role"))}
                 options={membershipOptions}
                 onChange={(option) => {
                   if (option) {
@@ -293,8 +265,7 @@ export function EditForm({
             className="justify-center md:w-1/5"
             onClick={() => {
               setEditMode(false);
-            }}
-          >
+            }}>
             {t("cancel")}
           </Button>
 
@@ -335,48 +306,44 @@ function AttributesList(props: { selectedUserId: number }) {
   };
 
   const defaultValues = useMemo<DefaultValueType>(() => {
-    if (!usersAttributes || usersAttributesPending || !enabledAttributes)
-      return {};
+    if (!usersAttributes || usersAttributesPending || !enabledAttributes) return {};
 
-    return enabledAttributes.reduce<DefaultValueType>(
-      (acc, enabledAttr, index) => {
-        const attr = usersAttributes.find((attr) => attr.id === enabledAttr.id);
-        const key = `attributes.${index}` as const;
+    return enabledAttributes.reduce<DefaultValueType>((acc, enabledAttr, index) => {
+      const attr = usersAttributes.find((attr) => attr.id === enabledAttr.id);
+      const key = `attributes.${index}` as const;
 
-        if (!attr) {
-          acc[key] = { id: enabledAttr.id, value: "", options: [] };
-        } else if (attr.type === "MULTI_SELECT") {
-          acc[key] = {
-            id: attr.id,
-            options: attr.options.map((option) => ({
-              label: option.value,
-              value: option.id,
-              createdByDSyncId: option.createdByDSyncId ?? null,
-              weight: option.weight ?? 100,
-            })),
-          };
-        } else if (attr.type === "SINGLE_SELECT") {
-          acc[key] = {
-            id: attr.id,
-            options: [
-              {
-                label: attr.options[0]?.value,
-                value: attr.options[0]?.id,
-                createdByDSyncId: attr.options[0]?.createdByDSyncId ?? null,
-                weight: attr.options[0]?.weight ?? 100,
-              },
-            ],
-          };
-        } else if (attr.type === "TEXT") {
-          acc[key] = {
-            id: attr.id,
-            value: attr.options[0]?.value || "",
-          };
-        }
-        return acc;
-      },
-      {}
-    );
+      if (!attr) {
+        acc[key] = { id: enabledAttr.id, value: "", options: [] };
+      } else if (attr.type === "MULTI_SELECT") {
+        acc[key] = {
+          id: attr.id,
+          options: attr.options.map((option) => ({
+            label: option.value,
+            value: option.id,
+            createdByDSyncId: option.createdByDSyncId ?? null,
+            weight: option.weight ?? 100,
+          })),
+        };
+      } else if (attr.type === "SINGLE_SELECT") {
+        acc[key] = {
+          id: attr.id,
+          options: [
+            {
+              label: attr.options[0]?.value,
+              value: attr.options[0]?.id,
+              createdByDSyncId: attr.options[0]?.createdByDSyncId ?? null,
+              weight: attr.options[0]?.weight ?? 100,
+            },
+          ],
+        };
+      } else if (attr.type === "TEXT") {
+        acc[key] = {
+          id: attr.id,
+          value: attr.options[0]?.value || "",
+        };
+      }
+      return acc;
+    }, {});
   }, [usersAttributes, usersAttributesPending, enabledAttributes]);
 
   if (!enabledAttributes || !usersAttributes) return null;
@@ -399,10 +366,7 @@ function AttributesList(props: { selectedUserId: number }) {
             render={({ field: { value, ...field } }) => {
               const fieldValue = value as Attribute | undefined | null;
               return (
-                <div
-                  className="flex w-full items-center justify-center"
-                  key={attr.id}
-                >
+                <div className="flex w-full items-center justify-center" key={attr.id}>
                   {["TEXT", "NUMBER"].includes(attr.type) && (
                     <InputField
                       {...field}
@@ -427,20 +391,14 @@ function AttributesList(props: { selectedUserId: number }) {
                         containerClassName="w-full"
                         isMulti={attr.type === "MULTI_SELECT"}
                         labelProps={{
-                          className:
-                            "text-emphasis mb-2 block text-sm font-medium leading-none",
+                          className: "text-emphasis mb-2 block text-sm font-medium leading-none",
                         }}
                         label={attr.name}
                         options={getOptionsByAttributeId(attr.id)}
-                        value={
-                          attr.type === "MULTI_SELECT"
-                            ? fieldValue?.options
-                            : fieldValue?.options?.[0]
-                        }
+                        value={attr.type === "MULTI_SELECT" ? fieldValue?.options : fieldValue?.options?.[0]}
                         onChange={(value) => {
                           if (!value) return;
-                          const valueAsArray =
-                            value instanceof Array ? value : [value];
+                          const valueAsArray = value instanceof Array ? value : [value];
 
                           const updatedOptions =
                             attr.type === "MULTI_SELECT"
@@ -459,11 +417,10 @@ function AttributesList(props: { selectedUserId: number }) {
 
                           field.onChange({
                             id: attr.id,
-                            options:
-                              getOptionsEnsuringNotOwnedByCalcomNotRemoved({
-                                earlierOptions: fieldValue?.options || [],
-                                updatedOptions,
-                              }),
+                            options: getOptionsEnsuringNotOwnedByCalcomNotRemoved({
+                              earlierOptions: fieldValue?.options || [],
+                              updatedOptions,
+                            }),
                           });
                         }}
                       />
@@ -474,14 +431,10 @@ function AttributesList(props: { selectedUserId: number }) {
                             {fieldValue.options.map((option, idx) => {
                               return (
                                 <>
-                                  <div
-                                    key={option.value}
-                                    className="flex items-center justify-between"
-                                  >
+                                  <div key={option.value} className="flex items-center justify-between">
                                     <Label
                                       htmlFor={`attributes.${index}.options.${idx}.weight`}
-                                      className="text-subtle"
-                                    >
+                                      className="text-subtle">
                                       {option.label}
                                     </Label>
                                     <InputField
@@ -491,24 +444,16 @@ function AttributesList(props: { selectedUserId: number }) {
                                       step={10}
                                       value={option.weight || 100}
                                       onChange={(e) => {
-                                        const newWeight =
-                                          parseFloat(e.target.value) || 1;
-                                        const newOptions =
-                                          fieldValue?.options?.map((opt, i) =>
-                                            i === idx
-                                              ? { ...opt, weight: newWeight }
-                                              : opt
-                                          );
+                                        const newWeight = parseFloat(e.target.value) || 1;
+                                        const newOptions = fieldValue?.options?.map((opt, i) =>
+                                          i === idx ? { ...opt, weight: newWeight } : opt
+                                        );
                                         field.onChange({
                                           id: attr.id,
                                           options: newOptions,
                                         });
                                       }}
-                                      addOnSuffix={
-                                        <span className="text-subtle text-sm">
-                                          %
-                                        </span>
-                                      }
+                                      addOnSuffix={<span className="text-subtle text-sm">%</span>}
                                     />
                                   </div>
                                 </>
@@ -547,16 +492,10 @@ function getOptionsEnsuringNotOwnedByCalcomNotRemoved<
   earlierOptions: TOptionAlreadySet[];
   updatedOptions: TOptionToChoose[];
 }) {
-  const optionsNotOwnedByCalcom = earlierOptions.filter(
-    (option) => !!option.createdByDSyncId
-  );
+  const optionsNotOwnedByCalcom = earlierOptions.filter((option) => !!option.createdByDSyncId);
 
-  const newUniqueOptionsPlusNotOwnedByCalcom = [
-    ...optionsNotOwnedByCalcom,
-    ...updatedOptions,
-  ].filter(
-    (option, index, self) =>
-      index === self.findIndex((o) => o.value === option.value && o.value)
+  const newUniqueOptionsPlusNotOwnedByCalcom = [...optionsNotOwnedByCalcom, ...updatedOptions].filter(
+    (option, index, self) => index === self.findIndex((o) => o.value === option.value && o.value)
   );
 
   return newUniqueOptionsPlusNotOwnedByCalcom;
