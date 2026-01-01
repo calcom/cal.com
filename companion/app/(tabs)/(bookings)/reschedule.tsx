@@ -83,6 +83,7 @@ export default function Reschedule() {
           title: "Reschedule",
           headerBackButtonDisplayMode: "minimal",
           headerRight: Platform.OS !== "ios" ? renderHeaderRight : undefined,
+          headerShown: Platform.OS === "ios",
         }}
       />
 
