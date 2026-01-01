@@ -78,7 +78,12 @@ export default function RescheduleIOS() {
         <Stack.Header.Title>Reschedule</Stack.Header.Title>
 
         <Stack.Header.Right>
-          <Stack.Header.Button onPress={handleSave} disabled={isSaving}>
+          <Stack.Header.Button
+            onPress={handleSave}
+            disabled={isSaving}
+            variant="prominent"
+            tintColor="#000"
+          >
             <Stack.Header.Icon sf="checkmark" />
           </Stack.Header.Button>
         </Stack.Header.Right>

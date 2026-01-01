@@ -1155,7 +1155,12 @@ export default function EventTypeDetail() {
           <Stack.Header.Title>{headerTitle}</Stack.Header.Title>
 
           <Stack.Header.Right>
-            <Stack.Header.Button onPress={handleSave} disabled={saving}>
+            <Stack.Header.Button
+              onPress={handleSave}
+              disabled={saving}
+              variant="prominent"
+              tintColor="#000"
+            >
               {saveButtonText}
             </Stack.Header.Button>
           </Stack.Header.Right>

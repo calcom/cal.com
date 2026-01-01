@@ -78,7 +78,12 @@ export default function EditLocationIOS() {
         <Stack.Header.Title>Edit Location</Stack.Header.Title>
 
         <Stack.Header.Right>
-          <Stack.Header.Button onPress={handleSave} disabled={isSaving}>
+          <Stack.Header.Button
+            onPress={handleSave}
+            disabled={isSaving}
+            variant="prominent"
+            tintColor="#000"
+          >
             <Stack.Header.Icon sf="checkmark" />
           </Stack.Header.Button>
         </Stack.Header.Right>

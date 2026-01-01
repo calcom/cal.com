@@ -82,7 +82,12 @@ export default function AddGuestsIOS() {
 
         <Stack.Header.Right>
           {showSaveButton ? (
-            <Stack.Header.Button onPress={handleSave} disabled={isSaving}>
+            <Stack.Header.Button
+              onPress={handleSave}
+              disabled={isSaving}
+              variant="prominent"
+              tintColor="#000"
+            >
               <Stack.Header.Icon sf="checkmark" />
             </Stack.Header.Button>
           ) : null}
