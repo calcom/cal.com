@@ -132,7 +132,8 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className={`flex-1 ${backgroundStyle}`}>
+        className={`flex-1 ${backgroundStyle}`}
+      >
         <ScrollView
           className="flex-1"
           contentContainerStyle={{
@@ -140,7 +141,8 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
             paddingBottom: insets.bottom + 16,
           }}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={!transparentBackground}>
+          showsVerticalScrollIndicator={!transparentBackground}
+        >
           {/* Email input */}
           {transparentBackground && (
             <Text className="mb-2 px-1 text-[13px] font-medium text-gray-500">Email *</Text>
@@ -148,7 +150,8 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
           <View
             className={`mb-3 overflow-hidden rounded-xl px-4 py-3 ${
               transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
-            }`}>
+            }`}
+          >
             {!transparentBackground && (
               <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Email *</Text>
             )}
@@ -172,7 +175,8 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
           <View
             className={`mb-4 overflow-hidden rounded-xl px-4 py-3 ${
               transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
-            }`}>
+            }`}
+          >
             {!transparentBackground && (
               <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Name (optional)</Text>
             )}
@@ -193,7 +197,8 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
             }`}
             onPress={handleAddGuest}
             activeOpacity={0.7}
-            disabled={isSaving}>
+            disabled={isSaving}
+          >
             <Ionicons name="add-circle" size={22} color="#007AFF" />
             <Text className="ml-2 text-[17px] font-medium text-[#007AFF]">Add</Text>
           </TouchableOpacity>
@@ -207,24 +212,31 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
               <View
                 className={`overflow-hidden rounded-xl ${
                   transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
-                }`}>
+                }`}
+              >
                 {guests.map((guest, index) => (
                   <View
                     key={guest.email}
                     className={`flex-row items-center px-4 py-3 ${
                       index < guests.length - 1 ? "border-b border-gray-100/50" : ""
-                    }`}>
-                    <View className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}>
+                    }`}
+                  >
+                    <View
+                      className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}
+                    >
                       <Ionicons name="person" size={20} color="#6B7280" />
                     </View>
                     <View className="flex-1">
                       <Text className="text-[17px] text-[#000]">{guest.email}</Text>
-                      {guest.name && <Text className="mt-0.5 text-[15px] text-gray-500">{guest.name}</Text>}
+                      {guest.name && (
+                        <Text className="mt-0.5 text-[15px] text-gray-500">{guest.name}</Text>
+                      )}
                     </View>
                     <TouchableOpacity
                       onPress={() => handleRemoveGuest(index)}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      disabled={isSaving}>
+                      disabled={isSaving}
+                    >
                       <Ionicons name="close-circle-outline" size={24} color="#800020" />
                     </TouchableOpacity>
                   </View>

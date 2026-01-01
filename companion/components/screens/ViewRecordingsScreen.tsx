@@ -59,7 +59,8 @@ export function ViewRecordingsScreen({
         transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
       }`}
       onPress={() => handleOpenRecording(item)}
-      activeOpacity={0.7}>
+      activeOpacity={0.7}
+    >
       <View className="flex-row items-center p-4">
         <View className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}>
           <Ionicons name="videocam" size={20} color="#6B7280" />
@@ -84,7 +85,9 @@ export function ViewRecordingsScreen({
         <View className={`mb-4 h-16 w-16 items-center justify-center rounded-full ${pillStyle}`}>
           <Ionicons name="videocam-off" size={32} color="#8E8E93" />
         </View>
-        <Text className="text-center text-[17px] font-semibold text-[#000]">No recordings available</Text>
+        <Text className="text-center text-[17px] font-semibold text-[#000]">
+          No recordings available
+        </Text>
         <Text className="mt-2 text-center text-[15px] leading-5 text-gray-500">
           Recordings may take some time to process after the meeting ends.
         </Text>

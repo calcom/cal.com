@@ -11,7 +11,7 @@ permissions:
 jobs:
   trigger:
     name: Trigger CI
-    if: github.event.label.name == 'run-ci'
+    if: github.event.label.name == 'run-ci' || github.event.label.name == 'ready-for-e2e'
     runs-on: ubuntu-latest
     steps:
       - name: Verify and trigger CI

@@ -69,7 +69,11 @@ const detectLocationType = (location: string): LocationTypeId => {
   if (!location) return "link";
 
   // Check if it's a URL
-  if (location.startsWith("http://") || location.startsWith("https://") || location.startsWith("www.")) {
+  if (
+    location.startsWith("http://") ||
+    location.startsWith("https://") ||
+    location.startsWith("www.")
+  ) {
     return "link";
   }
 
@@ -84,7 +88,10 @@ const detectLocationType = (location: string): LocationTypeId => {
 };
 
 export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocationScreenProps>(
-  function EditLocationScreen({ booking, onSuccess, onSavingChange, transparentBackground = false }, ref) {
+  function EditLocationScreen(
+    { booking, onSuccess, onSavingChange, transparentBackground = false },
+    ref
+  ) {
     const insets = useSafeAreaInsets();
     const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
     const [selectedType, setSelectedType] = useState<LocationTypeId>("link");
@@ -155,7 +162,9 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
       setIsSaving(true);
       try {
         await CalComAPIService.updateLocationV2(booking.uid, locationPayload);
-        Alert.alert("Success", "Location updated successfully", [{ text: "OK", onPress: onSuccess }]);
+        Alert.alert("Success", "Location updated successfully", [
+          { text: "OK", onPress: onSuccess },
+        ]);
         setIsSaving(false);
       } catch (error) {
         safeLogError("[EditLocationScreen] Failed to update location:", error);
@@ -190,7 +199,8 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
             paddingBottom: insets.bottom + 16,
           }}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={!transparentBackground}>
+          showsVerticalScrollIndicator={!transparentBackground}
+        >
           {transparentBackground ? (
             <>
               {/* Location Type Selector with Native Context Menu - Glass UI */}
@@ -199,15 +209,23 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
                   <Ionicons name={selectedTypeConfig.iconName} size={20} color="#007AFF" />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-[17px] font-medium text-[#000]">{selectedTypeConfig.label}</Text>
-                  <Text className="mt-0.5 text-[13px] text-gray-500">{selectedTypeConfig.description}</Text>
+                  <Text className="text-[17px] font-medium text-[#000]">
+                    {selectedTypeConfig.label}
+                  </Text>
+                  <Text className="mt-0.5 text-[13px] text-gray-500">
+                    {selectedTypeConfig.description}
+                  </Text>
                 </View>
 
                 {/* Native iOS Context Menu Button */}
                 <Host matchContents>
                   <ContextMenu
-                    modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"), padding()]}
-                    activationMethod="singlePress">
+                    modifiers={[
+                      buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"),
+                      padding(),
+                    ]}
+                    activationMethod="singlePress"
+                  >
                     <ContextMenu.Items>
                       <Button
                         systemImage={LOCATION_TYPES.link.sfSymbol}
@@ -251,7 +269,9 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
                   onChangeText={setInputValue}
                   keyboardType={selectedTypeConfig.keyboardType}
                   multiline={selectedTypeConfig.inputType === "multiline"}
-                  textAlignVertical={selectedTypeConfig.inputType === "multiline" ? "top" : "center"}
+                  textAlignVertical={
+                    selectedTypeConfig.inputType === "multiline" ? "top" : "center"
+                  }
                   autoCapitalize={selectedType === "link" ? "none" : "sentences"}
                   autoCorrect={selectedType !== "link" && selectedType !== "phone"}
                   editable={!isSaving}
@@ -284,15 +304,23 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
                   <Ionicons name={selectedTypeConfig.iconName} size={20} color="#007AFF" />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-[17px] font-medium text-[#000]">{selectedTypeConfig.label}</Text>
-                  <Text className="mt-0.5 text-[13px] text-gray-500">{selectedTypeConfig.description}</Text>
+                  <Text className="text-[17px] font-medium text-[#000]">
+                    {selectedTypeConfig.label}
+                  </Text>
+                  <Text className="mt-0.5 text-[13px] text-gray-500">
+                    {selectedTypeConfig.description}
+                  </Text>
                 </View>
 
                 {/* Native iOS Context Menu Button */}
                 <Host matchContents>
                   <ContextMenu
-                    modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"), padding()]}
-                    activationMethod="singlePress">
+                    modifiers={[
+                      buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"),
+                      padding(),
+                    ]}
+                    activationMethod="singlePress"
+                  >
                     <ContextMenu.Items>
                       <Button
                         systemImage={LOCATION_TYPES.link.sfSymbol}
@@ -339,7 +367,9 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
                   onChangeText={setInputValue}
                   keyboardType={selectedTypeConfig.keyboardType}
                   multiline={selectedTypeConfig.inputType === "multiline"}
-                  textAlignVertical={selectedTypeConfig.inputType === "multiline" ? "top" : "center"}
+                  textAlignVertical={
+                    selectedTypeConfig.inputType === "multiline" ? "top" : "center"
+                  }
                   autoCapitalize={selectedType === "link" ? "none" : "sentences"}
                   autoCorrect={selectedType !== "link" && selectedType !== "phone"}
                   editable={!isSaving}

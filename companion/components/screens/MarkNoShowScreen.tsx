@@ -145,7 +145,11 @@ export function MarkNoShowScreen({
     const isLast = index === safeAttendees.length - 1;
 
     // For transparent mode (iOS glass UI), use consistent styling regardless of no-show state
-    const itemBgStyle = transparentBackground ? "bg-white/60" : isNoShow ? "bg-[#FEF2F2]" : "bg-white";
+    const itemBgStyle = transparentBackground
+      ? "bg-white/60"
+      : isNoShow
+        ? "bg-[#FEF2F2]"
+        : "bg-white";
 
     return (
       <TouchableOpacity
@@ -158,15 +162,18 @@ export function MarkNoShowScreen({
         } ${itemBgStyle}`}
         onPress={() => handleMarkNoShow(item)}
         disabled={isProcessing}
-        activeOpacity={0.7}>
+        activeOpacity={0.7}
+      >
         <View
           className={`mr-3 h-12 w-12 items-center justify-center rounded-full ${
             transparentBackground ? "bg-[#000]" : isNoShow ? "bg-[#FECACA]" : pillStyle
-          }`}>
+          }`}
+        >
           <Text
             className={`text-[16px] font-semibold ${
               transparentBackground ? "text-white" : isNoShow ? "text-[#DC2626]" : "text-gray-600"
-            }`}>
+            }`}
+          >
             {getInitials(item.name)}
           </Text>
         </View>
@@ -186,15 +193,20 @@ export function MarkNoShowScreen({
           <View className="flex-row items-center">
             <View
               className={`flex-row items-center rounded-full px-3.5 py-2 ${
-                isNoShow ? "border border-[#16A34A] bg-white" : "border border-[#FEE2E2] bg-[#FEE2E2]"
-              }`}>
+                isNoShow
+                  ? "border border-[#16A34A] bg-white"
+                  : "border border-[#FEE2E2] bg-[#FEE2E2]"
+              }`}
+            >
               <Ionicons
                 name={isNoShow ? "eye" : "eye-off"}
                 size={15}
                 color={isNoShow ? "#16A34A" : "#DC2626"}
                 style={{ marginRight: 5 }}
               />
-              <Text className={`text-[14px] font-semibold ${isNoShow ? "text-[#16A34A]" : "text-[#DC2626]"}`}>
+              <Text
+                className={`text-[14px] font-semibold ${isNoShow ? "text-[#16A34A]" : "text-[#DC2626]"}`}
+              >
                 {isNoShow ? "Unmark" : "Mark"}
               </Text>
             </View>
