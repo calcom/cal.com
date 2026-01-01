@@ -73,8 +73,8 @@ describe("Verify API key - Unit Tests", () => {
       verifyKeyByHashedKey: vi.fn(),
     } as unknown as ApiKeyService;
 
-    vi.mocked(ApiKeyService).mockImplementation(() => mockApiKeyService);
-    vi.mocked(PrismaApiKeyRepository).mockImplementation(() => ({} as unknown as PrismaApiKeyRepository));
+    vi.mocked(ApiKeyService).mockImplementation(function() { return mockApiKeyService; });
+    vi.mocked(PrismaApiKeyRepository).mockImplementation(function() { return {} as unknown as PrismaApiKeyRepository; });
 
     vi.mocked(isAdminGuard).mockReset();
     vi.mocked(isLockedOrBlocked).mockReset();
