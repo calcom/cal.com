@@ -45,6 +45,8 @@ export function ScheduleListItem({
   const { t, i18n } = useLocale();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  type AvailabilityItem = (typeof schedule.availability)[number];
+
   return (
     <li key={schedule.id}>
       <div className="hover:bg-cal-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
@@ -60,16 +62,23 @@ export function ScheduleListItem({
             </div>
             <p className="text-subtle mt-1">
               {schedule.availability
-                .filter((availability) => !!availability.days.length)
-                .map((availability) =>
+                .filter(
+                  (availability: AvailabilityItem) => !!availability.days.length
+                )
+                .map((availability: AvailabilityItem) =>
                   availabilityAsString(availability, {
                     locale: i18n.language,
                     hour12: displayOptions?.hour12,
                   })
                 )
                 // sort the availability strings as per user's weekstart (settings)
-                .sort(sortAvailabilityStrings(i18n.language, displayOptions?.weekStart))
-                .map((availabilityString) => (
+                .sort(
+                  sortAvailabilityStrings(
+                    i18n.language,
+                    displayOptions?.weekStart
+                  )
+                )
+                .map((availabilityString: string) => (
                   <Fragment key={availabilityString}>
                     {availabilityString}
                     <br />
