@@ -1,10 +1,16 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import type { Mock } from "vitest";
-import { vi } from "vitest";
+import { vi, afterEach, afterAll } from "vitest";
 
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 
 import { TestFormRenderer } from "./TestForm";
+
+// Mock @radix-ui/react-focus-scope to prevent timer leaks during test teardown
+// The focus-scope module schedules setTimeout callbacks that can fire after jsdom is destroyed
+vi.mock("@radix-ui/react-focus-scope", () => ({
+  FocusScope: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
 
 vi.mock("framer-motion", async () => {
   return {
@@ -194,6 +200,11 @@ describe("TestFormDialog", () => {
   beforeEach(() => {
     resetFindTeamMembersMatchingAttributeLogicResponse();
     vi.clearAllMocks();
+  });
+
+  afterAll(() => {
+    // Clean up the focus-scope mock to prevent cross-test pollution in the same Vitest worker
+    vi.unmock("@radix-ui/react-focus-scope");
   });
 
   it("renders the dialog when open", () => {

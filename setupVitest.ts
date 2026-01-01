@@ -1,11 +1,17 @@
+import type { CalendarService } from "@calcom/types/Calendar";
 import matchers from "@testing-library/jest-dom/matchers";
+import { cleanup } from "@testing-library/react";
 import ResizeObserver from "resize-observer-polyfill";
-import { vi, expect } from "vitest";
+import { afterEach, expect, vi } from "vitest";
 import createFetchMock from "vitest-fetch-mock";
 
-import type { CalendarService } from "@calcom/types/Calendar";
-
 global.ResizeObserver = ResizeObserver;
+
+// Global cleanup after each test to prevent React Testing Library component leaks
+// This is especially important after Vitest 4.0 upgrade which is stricter about unhandled errors
+afterEach(() => {
+  cleanup();
+});
 const fetchMocker = createFetchMock(vi);
 
 // sets globalThis.fetch and globalThis.fetchMock to our mocked version
