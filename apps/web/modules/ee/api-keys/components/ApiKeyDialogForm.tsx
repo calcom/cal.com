@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { revalidateApiKeysList } from "~/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
+import { revalidateApiKeysList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
 import type { TApiKeys } from "./ApiKeyListItem";
 
 export default function ApiKeyDialogForm({

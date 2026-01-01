@@ -11,9 +11,9 @@ import { DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { useEffect, useState } from "react";
 
-import ApiKeyDialogForm from "~/modules/ee/api-keys/components/ApiKeyDialogForm";
-import type { TApiKeys } from "~/modules/ee/api-keys/components/ApiKeyListItem";
-import ApiKeyListItem from "~/modules/ee/api-keys/components/ApiKeyListItem";
+import ApiKeyDialogForm from "~/ee/api-keys/components/ApiKeyDialogForm";
+import type { TApiKeys } from "~/ee/api-keys/components/ApiKeyListItem";
+import ApiKeyListItem from "~/ee/api-keys/components/ApiKeyListItem";
 
 export const apiKeyModalRef = {
   current: null as null | ((show: boolean) => void),
