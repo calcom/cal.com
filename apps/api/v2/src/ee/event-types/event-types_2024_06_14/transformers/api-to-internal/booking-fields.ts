@@ -12,6 +12,7 @@ import type {
   GuestsDefaultFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
   SplitNameDefaultFieldInput_2024_06_14,
+  PhoneDefaultFieldInput_2024_06_14,
 } from "@calcom/platform-types";
 
 import {
@@ -286,7 +287,7 @@ function fieldIsCustomSystemRescheduleReason(
   return "slug" in field && field.slug === "rescheduleReason";
 }
 
-function fieldIsDefaultAttendeePhone(field: InputBookingField): field is PhoneDefaultFieldOutput_2024_06_14 {
+function fieldIsDefaultAttendeePhone(field: InputBookingField): field is (PhoneDefaultFieldOutput_2024_06_14 | PhoneDefaultFieldInput_2024_06_14){
   const isPhone = "type" in field && field.type === "phone";
   const isAttendeePhoneNumber = "slug" in field && field.slug === "attendeePhoneNumber";
   return isPhone && isAttendeePhoneNumber;
