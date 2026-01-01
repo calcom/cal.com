@@ -102,6 +102,7 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   InputIntegrationLocation_2024_06_14,
   InputPhoneLocation_2024_06_14,
   PhoneFieldInput_2024_06_14,
+  PhoneDefaultFieldInput_2024_06_14,
   AddressFieldInput_2024_06_14,
   TextFieldInput_2024_06_14,
   NumberFieldInput_2024_06_14,
