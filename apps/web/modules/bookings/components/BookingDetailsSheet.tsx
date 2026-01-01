@@ -54,6 +54,7 @@ interface BookingDetailsSheetProps {
   userTimeFormat?: number;
   userId?: number;
   userEmail?: string;
+  bookingAuditEnabled?: boolean;
 }
 
 export function BookingDetailsSheet({
@@ -61,6 +62,7 @@ export function BookingDetailsSheet({
   userTimeFormat,
   userId,
   userEmail,
+  bookingAuditEnabled = false,
 }: BookingDetailsSheetProps) {
   const booking = useBookingDetailsSheetStore((state) => state.getSelectedBooking());
 
@@ -75,6 +77,7 @@ export function BookingDetailsSheet({
         userTimeFormat={userTimeFormat}
         userId={userId}
         userEmail={userEmail}
+        bookingAuditEnabled={bookingAuditEnabled}
       />
     </BookingActionsStoreProvider>
   );
@@ -86,6 +89,19 @@ interface BookingDetailsSheetInnerProps {
   userTimeFormat?: number;
   userId?: number;
   userEmail?: string;
+  bookingAuditEnabled?: boolean;
+}
+
+function useActiveSegment(bookingAuditEnabled: boolean) {
+  const [_activeSegment, setActiveSegment] = useState<"info" | "history">("info");
+
+  // Ensure that if bookingAuditEnabled is disabled, the active segment switches to "info"
+  return [
+    !bookingAuditEnabled && _activeSegment === "history"
+      ? "info"
+      : _activeSegment,
+    setActiveSegment,
+  ] as const
 }
 
 function BookingDetailsSheetInner({
@@ -94,9 +110,10 @@ function BookingDetailsSheetInner({
   userTimeFormat,
   userId,
   userEmail,
+  bookingAuditEnabled = false,
 }: BookingDetailsSheetInnerProps) {
   const { t } = useLocale();
-  const [activeSegment, setActiveSegment] = useState<"info" | "history">("info");
+  const [activeSegment, setActiveSegment] = useActiveSegment(bookingAuditEnabled);
 
   // Fetch additional booking details for reschedule information
   const { data: bookingDetails } = trpc.viewer.bookings.getBookingDetails.useQuery(
@@ -256,11 +273,13 @@ function BookingDetailsSheetInner({
               </SheetTitle>
             </div>
 
-            <SegmentedControl
-              data={[{ value: "info", label: t("info") }, { value: "history", label: t("history") }]}
-              value={activeSegment}
-              onChange={(value) => setActiveSegment(value as "info" | "history")}
-            />
+            {bookingAuditEnabled && (
+              <SegmentedControl
+                data={[{ value: "info", label: t("info") }, { value: "history", label: t("history") }]}
+                value={activeSegment}
+                onChange={(value) => setActiveSegment(value)}
+              />
+            )}
 
             {activeSegment === "info" && (
               <>
@@ -304,10 +323,8 @@ function BookingDetailsSheetInner({
               </>
             )}
 
-            {activeSegment === "history" && (
-              <div className="flex flex-col gap-5">
-                <BookingHistory bookingUid={booking.uid} />
-              </div>
+            {bookingAuditEnabled && activeSegment === "history" && (
+              <BookingHistory bookingUid={booking.uid} />
             )}
           </div>
         </SheetBody>

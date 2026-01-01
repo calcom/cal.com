@@ -1,17 +1,17 @@
 import classNames from "@calcom/ui/classNames";
 
-export type SegmentedControlData = string | { value: string; label: string };
+export type SegmentedControlData<T extends string> = T | { value: T; label: string };
 
-export interface SegmentedControlProps {
-    data: SegmentedControlData[];
-    value: string;
-    onChange: (value: string) => void;
+export interface SegmentedControlProps<T extends string> {
+    data: SegmentedControlData<T>[];
+    value: T;
+    onChange: (value: T) => void;
     disabled?: boolean;
     className?: string;
     "data-testid"?: string;
 }
 
-const SegmentedControl = function ({
+const SegmentedControl = function <T extends string>({
     data,
     value,
     onChange,
@@ -19,8 +19,8 @@ const SegmentedControl = function ({
     className,
     "data-testid": dataTestId,
     ...props
-}: SegmentedControlProps) {
-    const handleChange = (newValue: string) => {
+}: SegmentedControlProps<T>) {
+    const handleChange = (newValue: T) => {
         if (!disabled) {
             onChange(newValue);
         }
@@ -46,9 +46,10 @@ const SegmentedControl = function ({
                             htmlFor={inputId}
                             className={classNames(
                                 "inline-flex h-fit w-full items-center justify-center whitespace-nowrap rounded-lg p-1 text-md font-medium leading-none transition md:mb-0",
+                                "not-disabled:hover:shadow-outline-gray-hover not-disabled:active:shadow-outline-gray-active",
                                 isActive
-                                    ? "bg-default text-emphasis"
-                                    : "hover:bg-cal-muted hover:text-default text-subtle",
+                                    ? "bg-default text-emphasis shadow-outline-gray-rested ring-inset ring-subtle"
+                                    : "text-subtle",
                                 disabled ? "pointer-events-none opacity-30" : "cursor-pointer"
                             )}>
                             <input

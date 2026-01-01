@@ -43,9 +43,6 @@ type AuditLog = {
         displayEmail: string | null;
         displayAvatar: string | null;
     };
-    impersonatedBy?: {
-        displayName: string | null;
-    } | null;
 };
 
 interface BookingLogsFiltersProps {
