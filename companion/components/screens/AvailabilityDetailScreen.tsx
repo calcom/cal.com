@@ -220,7 +220,7 @@ export const AvailabilityDetailScreen = forwardRef<
         setOverrides([]);
       }
     },
-    [dayNameToNumber]
+    []
   );
 
   const fetchSchedule = useCallback(async () => {
