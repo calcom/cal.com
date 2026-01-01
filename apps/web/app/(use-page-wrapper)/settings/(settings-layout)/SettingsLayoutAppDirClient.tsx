@@ -717,7 +717,7 @@ const SettingsSidebarContainer = ({
   return (
     <nav
       style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
-      class={classNames(
+      className={classNames(
         "no-scrollbar bg-cal-muted stack-y-1 fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
         className,
         navigationIsOpenedOnMobile
@@ -732,7 +732,7 @@ const SettingsSidebarContainer = ({
             <React.Fragment key={tab.href}>
               {!["teams", "other_teams"].includes(tab.name) && (
                 <React.Fragment key={tab.href}>
-                  <div class={`${!tab.children?.length ? "mb-3!" : ""}`}>
+                  <div className={`${!tab.children?.length ? "mb-3!" : ""}`}>
                     <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-7 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
                       {tab && tab.icon && (
                         <Icon
@@ -768,7 +768,7 @@ const SettingsSidebarContainer = ({
                           href={child.href || "/"}
                           trackingMetadata={child.trackingMetadata}
                           textClassNames="text-emphasis font-medium text-sm"
-                          class={`px-2! h-7 w-fit ${
+                          className={`px-2! h-7 w-fit ${
                             tab.children && index === tab.children?.length - 1 && "mb-3!"
                           }`}
                           disableChevron
@@ -786,7 +786,7 @@ const SettingsSidebarContainer = ({
 
               {tab.name === "teams" && (
                 <React.Fragment key={tab.href}>
-                  <div data-testid="tab-teams" class={`${!tab.children?.length ? "mb-3" : ""}`}>
+                  <div data-testid="tab-teams" className={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>
                       <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
                         {tab && tab.icon && (
@@ -822,7 +822,7 @@ const SettingsSidebarContainer = ({
 
               {tab.name === "other_teams" && (
                 <React.Fragment key={tab.href}>
-                  <div class={`${!tab.children?.length ? "mb-3" : ""}`}>
+                  <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>
                       <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
                         {tab && tab.icon && (
@@ -1036,7 +1036,7 @@ export default function SettingsLayoutAppDirClient({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="*:flex-1 flex flex-1">
-        <div class={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
+        <div className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>
