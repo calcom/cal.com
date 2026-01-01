@@ -55,7 +55,6 @@ class AlbyPaymentService implements IAbstractPaymentService {
           referenceId: uid,
         },
       });
-      console.log("Created invoice", invoice, uid);
 
       const paymentData = await prisma.payment.create({
         data: {
