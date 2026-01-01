@@ -18,7 +18,6 @@ import {
 } from "react-native";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { EventTypeListItem } from "@/components/event-type-list-item/EventTypeListItem";
-import { FullScreenModal } from "@/components/FullScreenModal";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
   useCreateEventType,
@@ -57,7 +56,7 @@ export default function EventTypesIOS() {
   const refreshing = isFetching && !loading;
 
   const { mutate: createEventTypeMutation } = useCreateEventType();
-  const { mutate: deleteEventTypeMutation, isPending: isDeleting } = useDeleteEventType();
+  const { mutate: deleteEventTypeMutation } = useDeleteEventType();
   const { mutate: duplicateEventTypeMutation } = useDuplicateEventType();
 
   // Convert query error to string
@@ -69,9 +68,7 @@ export default function EventTypesIOS() {
     queryError?.message?.includes("401");
   const error = queryError && !isAuthError && __DEV__ ? "Failed to load event types." : null;
 
-  // Modal state for delete confirmation
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [eventTypeToDelete, setEventTypeToDelete] = useState<EventType | null>(null);
+  // No modal state needed for iOS - using native Alert for delete confirmation
 
   // Handle pull-to-refresh (offline-aware)
   const onRefresh = () => offlineAwareRefresh(refetch);
@@ -164,33 +161,35 @@ export default function EventTypesIOS() {
   };
 
   const handleDelete = (eventType: EventType) => {
-    setEventTypeToDelete(eventType);
-    setShowDeleteModal(true);
-  };
-
-  const confirmDelete = () => {
-    if (!eventTypeToDelete) return;
-
-    deleteEventTypeMutation(eventTypeToDelete.id, {
-      onSuccess: () => {
-        // Close modal and reset state
-        setShowDeleteModal(false);
-        setEventTypeToDelete(null);
-        Alert.alert("Success", "Event type deleted successfully");
-      },
-      onError: (deleteError) => {
-        const message = deleteError instanceof Error ? deleteError.message : String(deleteError);
-        console.error("Failed to delete event type", message);
-        if (__DEV__) {
-          const stack = deleteError instanceof Error ? deleteError.stack : undefined;
-          console.debug("[EventTypes] deleteEventType failed", {
-            message,
-            stack,
-          });
-        }
-        showErrorAlert("Error", "Failed to delete event type. Please try again.");
-      },
-    });
+    // Use native iOS Alert for confirmation
+    Alert.alert(
+      "Delete Event Type",
+      `Are you sure you want to delete "${eventType.title}"? This action cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            deleteEventTypeMutation(eventType.id, {
+              onSuccess: () => {
+                Alert.alert("Success", "Event type deleted successfully");
+              },
+              onError: (deleteError) => {
+                const message =
+                  deleteError instanceof Error ? deleteError.message : String(deleteError);
+                console.error("Failed to delete event type", message);
+                if (__DEV__) {
+                  const stack = deleteError instanceof Error ? deleteError.stack : undefined;
+                  console.debug("[EventTypes] deleteEventType failed", { message, stack });
+                }
+                showErrorAlert("Error", "Failed to delete event type. Please try again.");
+              },
+            });
+          },
+        },
+      ]
+    );
   };
 
   const handleDuplicate = (eventType: EventType) => {
@@ -500,64 +499,6 @@ export default function EventTypesIOS() {
           </ContextMenu>
         </Host>
       </View>
-
-      {/* Delete Confirmation Modal */}
-      <FullScreenModal
-        visible={showDeleteModal}
-        animationType="fade"
-        onRequestClose={() => {
-          if (!isDeleting) {
-            setShowDeleteModal(false);
-            setEventTypeToDelete(null);
-          }
-        }}>
-        <View className="flex-1 items-center justify-center bg-black/50 p-4">
-          <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
-            {/* Header with icon and title */}
-            <View className="p-6">
-              <View className="flex-row">
-                {/* Danger icon */}
-                <View className="mr-3 self-start rounded-full bg-red-50 p-2">
-                  <Ionicons name="alert-circle" size={20} color="#800000" />
-                </View>
-
-                {/* Title and description */}
-                <View className="flex-1">
-                  <Text className="mb-2 text-xl font-semibold text-gray-900">Delete Event Type</Text>
-                  <Text className="text-sm leading-5 text-gray-600">
-                    {eventTypeToDelete ? (
-                      <>
-                        This will permanently delete the "{eventTypeToDelete.title}" event type. This action
-                        cannot be undone.
-                      </>
-                    ) : null}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Footer with buttons */}
-            <View className="flex-row-reverse gap-2 px-6 pb-6 pt-2">
-              <TouchableOpacity
-                className={`rounded-lg bg-gray-900 px-4 py-2.5 ${isDeleting ? "opacity-50" : ""}`}
-                onPress={confirmDelete}
-                disabled={isDeleting}>
-                <Text className="text-center text-base font-medium text-white">Delete</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2.5"
-                onPress={() => {
-                  setShowDeleteModal(false);
-                  setEventTypeToDelete(null);
-                }}
-                disabled={isDeleting}>
-                <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </FullScreenModal>
     </>
   );
 }

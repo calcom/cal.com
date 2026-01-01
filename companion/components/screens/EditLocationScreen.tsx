@@ -76,6 +76,7 @@ export interface EditLocationScreenProps {
   onSavingChange?: (isSaving: boolean) => void;
   selectedType?: LocationTypeId;
   onTypeChange?: (type: LocationTypeId) => void;
+  transparentBackground?: boolean;
 }
 
 export interface EditLocationScreenHandle {
@@ -85,11 +86,7 @@ export interface EditLocationScreenHandle {
 const detectLocationType = (location: string): LocationTypeId => {
   if (!location) return "link";
 
-  if (
-    location.startsWith("http://") ||
-    location.startsWith("https://") ||
-    location.startsWith("www.")
-  ) {
+  if (location.startsWith("http://") || location.startsWith("https://") || location.startsWith("www.")) {
     return "link";
   }
 
@@ -102,18 +99,21 @@ const detectLocationType = (location: string): LocationTypeId => {
 };
 
 export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocationScreenProps>(
-  function EditLocationScreen({ booking, onSuccess, onSavingChange }, ref) {
+  function EditLocationScreen({ booking, onSuccess, onSavingChange, transparentBackground = false }, ref) {
     const insets = useSafeAreaInsets();
+    const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
+    const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
     const [selectedType, setSelectedType] = useState<LocationTypeId>("link");
     const [inputValue, setInputValue] = useState("");
     const [showTypePicker, setShowTypePicker] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
+    // Detect location type from current location but don't pre-fill the input
     useEffect(() => {
       if (booking?.location) {
         const detectedType = detectLocationType(booking.location);
         setSelectedType(detectedType);
-        setInputValue(booking.location);
+        // Don't pre-fill - keep input blank so user can enter new location
       }
     }, [booking?.location]);
 
@@ -160,9 +160,7 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
       setIsSaving(true);
       try {
         await CalComAPIService.updateLocationV2(booking.uid, locationPayload);
-        Alert.alert("Success", "Location updated successfully", [
-          { text: "OK", onPress: onSuccess },
-        ]);
+        Alert.alert("Success", "Location updated successfully", [{ text: "OK", onPress: onSuccess }]);
         setIsSaving(false);
       } catch (error) {
         safeLogError("[EditLocationScreen] Failed to update location:", error);
@@ -181,7 +179,7 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
 
     if (!booking) {
       return (
-        <View className="flex-1 items-center justify-center bg-[#F2F2F7]">
+        <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
           <Text className="text-gray-500">No booking data</Text>
         </View>
       );
@@ -191,17 +189,19 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
       <>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1 bg-[#F2F2F7]"
-        >
+          className={`flex-1 ${backgroundStyle}`}>
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16 }}
+            contentContainerStyle={{
+              padding: 16,
+              paddingBottom: insets.bottom + 16,
+            }}
             keyboardShouldPersistTaps="handled"
-          >
-            {/* Current Location Info */}
-            {booking.location && (
+            showsVerticalScrollIndicator={!transparentBackground}>
+            {/* Current Location Info - hidden in transparent mode */}
+            {!transparentBackground && booking.location && (
               <View className="mb-4 flex-row items-start rounded-xl bg-white p-4">
-                <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
+                <View className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}>
                   <Ionicons name="location" size={20} color="#6B7280" />
                 </View>
                 <View className="flex-1">
@@ -214,34 +214,45 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
             )}
 
             {/* Location Type Selector */}
-            <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
-              Location Type
-            </Text>
+            {!transparentBackground && (
+              <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
+                Location Type
+              </Text>
+            )}
             <TouchableOpacity
-              className="mb-4 flex-row items-center rounded-xl bg-white px-4 py-3.5"
+              className={
+                transparentBackground
+                  ? "mb-4 flex-row items-center rounded-xl border border-gray-300/40 bg-white/60 px-4 py-3.5"
+                  : "mb-4 flex-row items-center rounded-xl bg-white px-4 py-3.5"
+              }
               onPress={() => setShowTypePicker(true)}
               disabled={isSaving}
-              activeOpacity={0.7}
-            >
-              <View className="mr-3 h-10 w-10 items-center justify-center rounded-lg bg-[#007AFF]/10">
+              activeOpacity={0.7}>
+              <View
+                className={`mr-3 h-10 w-10 items-center justify-center rounded-lg ${
+                  transparentBackground ? "bg-[#007AFF]/20" : "bg-[#007AFF]/15"
+                }`}>
                 <Ionicons name={selectedTypeConfig.iconName} size={22} color="#007AFF" />
               </View>
               <View className="flex-1">
-                <Text className="text-[17px] font-medium text-[#000]">
-                  {selectedTypeConfig.label}
-                </Text>
-                <Text className="mt-0.5 text-[13px] text-gray-500">
-                  {selectedTypeConfig.description}
-                </Text>
+                <Text className="text-[17px] font-medium text-[#000]">{selectedTypeConfig.label}</Text>
+                <Text className="mt-0.5 text-[13px] text-gray-500">{selectedTypeConfig.description}</Text>
               </View>
               <Ionicons name="chevron-down" size={20} color="#9CA3AF" />
             </TouchableOpacity>
 
             {/* Location Input */}
-            <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
-              {selectedTypeConfig.label}
-            </Text>
-            <View className="mb-4 overflow-hidden rounded-xl bg-white">
+            {!transparentBackground && (
+              <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
+                {selectedTypeConfig.label}
+              </Text>
+            )}
+            <View
+              className={
+                transparentBackground
+                  ? "mb-4 overflow-hidden rounded-xl border border-gray-300/40 bg-white/60"
+                  : "mb-4 overflow-hidden rounded-xl bg-white"
+              }>
               <TextInput
                 className={`px-4 py-3 text-[17px] text-[#000] ${
                   selectedTypeConfig.inputType === "multiline" ? "min-h-[100px]" : "h-[50px]"
@@ -258,15 +269,6 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
                 editable={!isSaving}
               />
             </View>
-
-            {/* Info note */}
-            <View className="flex-row items-start rounded-xl bg-[#E3F2FD] p-4">
-              <Ionicons name="information-circle" size={20} color="#1976D2" />
-              <Text className="ml-3 flex-1 text-[15px] leading-5 text-[#1565C0]">
-                Updating the location will notify attendees. Note: Calendar events may not be
-                updated automatically.
-              </Text>
-            </View>
           </ScrollView>
         </KeyboardAvoidingView>
 
@@ -275,17 +277,14 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
           visible={showTypePicker}
           transparent
           animationType="fade"
-          onRequestClose={() => setShowTypePicker(false)}
-        >
+          onRequestClose={() => setShowTypePicker(false)}>
           <TouchableOpacity
             className="flex-1 items-center justify-center bg-black/50"
             activeOpacity={1}
-            onPress={() => setShowTypePicker(false)}
-          >
+            onPress={() => setShowTypePicker(false)}>
             <TouchableOpacity
               activeOpacity={1}
-              className="max-h-[70%] w-[320px] overflow-hidden rounded-2xl bg-white"
-            >
+              className="max-h-[70%] w-[320px] overflow-hidden rounded-2xl bg-white">
               <View className="border-b border-gray-200 px-4 py-3">
                 <Text className="text-center text-[17px] font-semibold text-[#000]">
                   Select Location Type
@@ -298,34 +297,25 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
                   const isSelected = item.id === selectedType;
                   return (
                     <TouchableOpacity
-                      className={`flex-row items-center px-4 py-3.5 ${
-                        isSelected ? "bg-[#EBF4FF]" : ""
-                      }`}
+                      className={`flex-row items-center px-4 py-3.5 ${isSelected ? "bg-[#EBF4FF]" : ""}`}
                       onPress={() => {
                         setSelectedType(item.id);
                         if (selectedType !== item.id) {
                           setInputValue("");
                         }
                         setShowTypePicker(false);
-                      }}
-                    >
+                      }}>
                       <View
                         className={`mr-3 h-10 w-10 items-center justify-center rounded-lg ${
                           isSelected ? "bg-[#007AFF]/20" : "bg-[#F2F2F7]"
-                        }`}
-                      >
-                        <Ionicons
-                          name={item.iconName}
-                          size={22}
-                          color={isSelected ? "#007AFF" : "#6B7280"}
-                        />
+                        }`}>
+                        <Ionicons name={item.iconName} size={22} color={isSelected ? "#007AFF" : "#6B7280"} />
                       </View>
                       <View className="flex-1">
                         <Text
                           className={`text-[17px] ${
                             isSelected ? "font-semibold text-[#007AFF]" : "text-[#000]"
-                          }`}
-                        >
+                          }`}>
                           {item.label}
                         </Text>
                         <Text className="mt-0.5 text-[13px] text-gray-500">{item.description}</Text>
@@ -337,8 +327,7 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
               />
               <TouchableOpacity
                 className="border-t border-gray-200 py-3"
-                onPress={() => setShowTypePicker(false)}
-              >
+                onPress={() => setShowTypePicker(false)}>
                 <Text className="text-center text-[17px] font-semibold text-[#007AFF]">Cancel</Text>
               </TouchableOpacity>
             </TouchableOpacity>

@@ -26,6 +26,8 @@ export interface AddGuestsScreenProps {
   booking: Booking | null;
   onSuccess: () => void;
   onSavingChange?: (isSaving: boolean) => void;
+  onGuestCountChange?: (count: number) => void;
+  transparentBackground?: boolean;
 }
 
 // Handle type for parent component to call submit
@@ -39,8 +41,13 @@ function isValidEmail(email: string): boolean {
 }
 
 export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreenProps>(
-  function AddGuestsScreen({ booking, onSuccess, onSavingChange }, ref) {
+  function AddGuestsScreen(
+    { booking, onSuccess, onSavingChange, onGuestCountChange, transparentBackground = false },
+    ref
+  ) {
     const insets = useSafeAreaInsets();
+    const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
+    const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
     const [guests, setGuests] = useState<{ email: string; name?: string }[]>([]);
@@ -50,6 +57,11 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
     useEffect(() => {
       onSavingChange?.(isSaving);
     }, [isSaving, onSavingChange]);
+
+    // Notify parent of guest count changes
+    useEffect(() => {
+      onGuestCountChange?.(guests.length);
+    }, [guests.length, onGuestCountChange]);
 
     const handleAddGuest = useCallback(() => {
       const trimmedEmail = email.trim();
@@ -111,7 +123,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
 
     if (!booking) {
       return (
-        <View className="flex-1 items-center justify-center bg-[#F2F2F7]">
+        <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
           <Text className="text-gray-500">No booking data</Text>
         </View>
       );
@@ -120,62 +132,70 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1 bg-[#F2F2F7]"
-      >
+        className={`flex-1 ${backgroundStyle}`}>
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16 }}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: insets.bottom + 16,
+          }}
           keyboardShouldPersistTaps="handled"
-        >
-          {/* Info note */}
-          <View className="mb-4 flex-row items-start rounded-xl bg-[#E3F2FD] p-4">
-            <Ionicons name="information-circle" size={20} color="#1976D2" />
-            <Text className="ml-3 flex-1 text-[15px] leading-5 text-[#1565C0]">
-              Guests will receive an email notification about this booking.
-            </Text>
+          showsVerticalScrollIndicator={!transparentBackground}>
+          {/* Email input */}
+          {transparentBackground && (
+            <Text className="mb-2 px-1 text-[13px] font-medium text-gray-500">Email *</Text>
+          )}
+          <View
+            className={`mb-3 overflow-hidden rounded-xl px-4 py-3 ${
+              transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+            }`}>
+            {!transparentBackground && (
+              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Email *</Text>
+            )}
+            <TextInput
+              className="h-10 text-[17px] text-[#000]"
+              placeholder="guest@example.com"
+              placeholderTextColor="#9CA3AF"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!isSaving}
+            />
           </View>
 
-          {/* Form Card */}
-          <View className="mb-4 overflow-hidden rounded-xl bg-white">
-            {/* Email input */}
-            <View className="border-b border-gray-100 px-4 py-3">
-              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Email *</Text>
-              <TextInput
-                className="h-10 text-[17px] text-[#000]"
-                placeholder="guest@example.com"
-                placeholderTextColor="#9CA3AF"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!isSaving}
-              />
-            </View>
-
-            {/* Name input */}
-            <View className="px-4 py-3">
+          {/* Name input */}
+          {transparentBackground && (
+            <Text className="mb-2 px-1 text-[13px] font-medium text-gray-500">Name (optional)</Text>
+          )}
+          <View
+            className={`mb-4 overflow-hidden rounded-xl px-4 py-3 ${
+              transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+            }`}>
+            {!transparentBackground && (
               <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Name (optional)</Text>
-              <TextInput
-                className="h-10 text-[17px] text-[#000]"
-                placeholder="Guest Name"
-                placeholderTextColor="#9CA3AF"
-                value={name}
-                onChangeText={setName}
-                editable={!isSaving}
-              />
-            </View>
+            )}
+            <TextInput
+              className="h-10 text-[17px] text-[#000]"
+              placeholder="Guest Name"
+              placeholderTextColor="#9CA3AF"
+              value={name}
+              onChangeText={setName}
+              editable={!isSaving}
+            />
           </View>
 
           {/* Add button */}
           <TouchableOpacity
-            className="mb-6 flex-row items-center justify-center rounded-xl bg-white py-3"
+            className={`mb-6 flex-row items-center justify-center rounded-xl py-3 ${
+              transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+            }`}
             onPress={handleAddGuest}
             activeOpacity={0.7}
-            disabled={isSaving}
-          >
+            disabled={isSaving}>
             <Ionicons name="add-circle" size={22} color="#007AFF" />
-            <Text className="ml-2 text-[17px] font-medium text-[#007AFF]">Add Guest</Text>
+            <Text className="ml-2 text-[17px] font-medium text-[#007AFF]">Add</Text>
           </TouchableOpacity>
 
           {/* Guest list */}
@@ -184,28 +204,27 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
               <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
                 Guests to add ({guests.length})
               </Text>
-              <View className="overflow-hidden rounded-xl bg-white">
+              <View
+                className={`overflow-hidden rounded-xl ${
+                  transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+                }`}>
                 {guests.map((guest, index) => (
                   <View
                     key={guest.email}
                     className={`flex-row items-center px-4 py-3 ${
-                      index < guests.length - 1 ? "border-b border-gray-100" : ""
-                    }`}
-                  >
-                    <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
+                      index < guests.length - 1 ? "border-b border-gray-100/50" : ""
+                    }`}>
+                    <View className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}>
                       <Ionicons name="person" size={20} color="#6B7280" />
                     </View>
                     <View className="flex-1">
                       <Text className="text-[17px] text-[#000]">{guest.email}</Text>
-                      {guest.name && (
-                        <Text className="mt-0.5 text-[15px] text-gray-500">{guest.name}</Text>
-                      )}
+                      {guest.name && <Text className="mt-0.5 text-[15px] text-gray-500">{guest.name}</Text>}
                     </View>
                     <TouchableOpacity
                       onPress={() => handleRemoveGuest(index)}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      disabled={isSaving}
-                    >
+                      disabled={isSaving}>
                       <Ionicons name="close-circle-outline" size={24} color="#800020" />
                     </TouchableOpacity>
                   </View>

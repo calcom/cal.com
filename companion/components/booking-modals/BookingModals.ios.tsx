@@ -1,21 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import type React from "react";
-import { useMemo } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useEffect, useMemo, useRef } from "react";
+import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { BookingActionsModal } from "@/components/BookingActionsModal";
 import { FullScreenModal } from "@/components/FullScreenModal";
 import type { Booking, EventType } from "@/services/calcom";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 
-// Empty actions result for when no booking is selected
 const EMPTY_ACTIONS: BookingActionsResult = {
   reschedule: { visible: false, enabled: false },
   rescheduleRequest: { visible: false, enabled: false },
@@ -28,14 +19,12 @@ const EMPTY_ACTIONS: BookingActionsResult = {
 };
 
 interface BookingModalsProps {
-  // Reschedule modal props
   showRescheduleModal: boolean;
   rescheduleBooking: Booking | null;
   isRescheduling: boolean;
   onRescheduleClose: () => void;
   onRescheduleSubmit: (date: string, time: string, reason?: string) => Promise<void>;
 
-  // Reject modal props
   showRejectModal: boolean;
   rejectReason: string;
   isDeclining: boolean;
@@ -43,7 +32,6 @@ interface BookingModalsProps {
   onRejectSubmit: (reason?: string) => void;
   onRejectReasonChange: (reason: string) => void;
 
-  // Filter modal props (optional for iOS)
   showFilterModal?: boolean;
   eventTypes?: EventType[];
   eventTypesLoading?: boolean;
@@ -51,17 +39,14 @@ interface BookingModalsProps {
   onFilterClose?: () => void;
   onEventTypeSelect?: (id: number | null, label?: string | null) => void;
 
-  // Booking actions modal props
   showBookingActionsModal: boolean;
   selectedBooking: Booking | null;
   onActionsClose: () => void;
   onReschedule: () => void;
   onCancel: () => void;
 
-  // User info for action gating (optional)
   currentUserEmail?: string;
 
-  // Action modal handlers (optional - if not provided, actions will be disabled)
   onEditLocation?: (booking: Booking) => void;
   onAddGuests?: (booking: Booking) => void;
   onViewRecordings?: (booking: Booking) => void;
@@ -80,7 +65,7 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
   isDeclining,
   onRejectClose,
   onRejectSubmit,
-  onRejectReasonChange,
+
   showFilterModal,
   eventTypes,
   eventTypesLoading,
@@ -99,21 +84,55 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
   onMeetingSessionDetails,
   onMarkNoShow,
 }) => {
-  // Compute actions using centralized gating
   const actions = useMemo(() => {
     if (!selectedBooking) return EMPTY_ACTIONS;
     return getBookingActions({
       booking: selectedBooking,
-      eventType: undefined, // EventType not available in this context
+      eventType: undefined,
       currentUserId: undefined,
       currentUserEmail: currentUserEmail,
-      isOnline: true, // Assume online for now
+      isOnline: true,
     });
   }, [selectedBooking, currentUserEmail]);
 
+  const hasShownRejectAlert = useRef(false);
+
+  useEffect(() => {
+    if (showRejectModal && !isDeclining && !hasShownRejectAlert.current) {
+      hasShownRejectAlert.current = true;
+      Alert.prompt(
+        "Reject the booking request?",
+        "Are you sure you want to reject the booking? We'll let the person who tried to book know. You can provide a reason below.",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+            onPress: () => {
+              hasShownRejectAlert.current = false;
+              onRejectClose();
+            },
+          },
+          {
+            text: "Reject",
+            style: "destructive",
+            onPress: (reason?: string) => {
+              hasShownRejectAlert.current = false;
+              // Pass reason directly to avoid race condition with state updates
+              onRejectSubmit(reason);
+            },
+          },
+        ],
+        "plain-text",
+        rejectReason,
+        "default"
+      );
+    } else if (!showRejectModal) {
+      hasShownRejectAlert.current = false;
+    }
+  }, [showRejectModal, isDeclining, onRejectClose, onRejectSubmit, rejectReason]);
+
   return (
     <>
-      {/* Filter Modal - Only rendered if props are provided (non-iOS) */}
       {showFilterModal !== undefined && onFilterClose && onEventTypeSelect ? (
         <FullScreenModal
           visible={showFilterModal}
@@ -174,7 +193,6 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
         </FullScreenModal>
       ) : null}
 
-      {/* Booking Actions Modal */}
       <BookingActionsModal
         visible={showBookingActionsModal}
         onClose={onActionsClose}
@@ -211,80 +229,6 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
         }}
         onCancelBooking={onCancel}
       />
-
-      {/* Reject Booking Modal */}
-      <FullScreenModal
-        visible={showRejectModal}
-        animationType="fade"
-        onRequestClose={onRejectClose}
-      >
-        <TouchableOpacity
-          className="flex-1 items-center justify-center bg-black/50 p-4"
-          activeOpacity={1}
-          onPress={onRejectClose}
-        >
-          <TouchableOpacity
-            className="w-full max-w-sm rounded-2xl bg-white"
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <View className="p-5">
-              {/* Title */}
-              <Text className="mb-1 text-lg font-semibold text-gray-900">
-                Reject the booking request?
-              </Text>
-
-              {/* Description */}
-              <Text className="mb-4 text-sm text-gray-500">
-                Are you sure you want to reject the booking? We'll let the person who tried to book
-                know. You can provide a reason below.
-              </Text>
-
-              {/* Reason Input */}
-              <View className="mb-5">
-                <Text className="mb-1.5 text-sm text-gray-700">
-                  Reason for rejecting <Text className="font-normal text-gray-400">(Optional)</Text>
-                </Text>
-                <TextInput
-                  className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm"
-                  value={rejectReason}
-                  onChangeText={onRejectReasonChange}
-                  placeholder="Enter reason..."
-                  placeholderTextColor="#9CA3AF"
-                  multiline
-                  numberOfLines={3}
-                  textAlignVertical="top"
-                  style={{ minHeight: 70 }}
-                />
-              </View>
-
-              {/* Separator */}
-              <View className="mb-4 h-px bg-gray-200" />
-
-              {/* Buttons Row */}
-              <View className="flex-row justify-end" style={{ gap: 8 }}>
-                {/* Close Button */}
-                <TouchableOpacity
-                  className="rounded-md border border-gray-300 bg-white px-4 py-2"
-                  onPress={onRejectClose}
-                >
-                  <Text className="text-sm font-medium text-gray-700">Close</Text>
-                </TouchableOpacity>
-
-                {/* Reject Button */}
-                <TouchableOpacity
-                  className="rounded-md bg-gray-900 px-4 py-2"
-                  onPress={() => onRejectSubmit()}
-                  disabled={isDeclining}
-                  style={{ opacity: isDeclining ? 0.5 : 1 }}
-                >
-                  <Text className="text-sm font-medium text-white">Reject the booking</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </FullScreenModal>
     </>
   );
 };

@@ -1,19 +1,20 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Platform, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Platform, View } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
-import type { RescheduleScreenHandle } from "@/components/screens/RescheduleScreen";
-import RescheduleScreenComponent from "@/components/screens/RescheduleScreen";
+import type { AddGuestsScreenHandle } from "@/components/screens/AddGuestsScreen";
+import AddGuestsScreenComponent from "@/components/screens/AddGuestsScreen";
 import { type Booking, CalComAPIService } from "@/services/calcom";
 
-export default function Reschedule() {
+export default function AddGuests() {
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const router = useRouter();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  const rescheduleScreenRef = useRef<RescheduleScreenHandle>(null);
+  const addGuestsScreenRef = useRef<AddGuestsScreenHandle>(null);
 
   useEffect(() => {
     if (uid) {
@@ -33,21 +34,30 @@ export default function Reschedule() {
   }, [uid, router]);
 
   const handleSave = useCallback(() => {
-    rescheduleScreenRef.current?.submit();
+    addGuestsScreenRef.current?.submit();
   }, []);
 
-  const handleRescheduleSuccess = useCallback(() => {
+  const handleAddGuestsSuccess = useCallback(() => {
     router.back();
   }, [router]);
+
+  const renderHeaderLeft = useCallback(
+    () => (
+      <AppPressable onPress={() => router.back()} className="px-2 py-2">
+        <Ionicons name="close" size={24} color="#007AFF" />
+      </AppPressable>
+    ),
+    [router]
+  );
 
   const renderHeaderRight = useCallback(
     () => (
       <AppPressable
         onPress={handleSave}
         disabled={isSaving}
-        className={`px-4 py-2 ${isSaving ? "opacity-50" : ""}`}
+        className={`px-2 py-2 ${isSaving ? "opacity-50" : ""}`}
       >
-        <Text className="text-[16px] font-semibold text-[#007AFF]">Save</Text>
+        <Ionicons name="checkmark" size={24} color="#007AFF" />
       </AppPressable>
     ),
     [handleSave, isSaving]
@@ -58,14 +68,14 @@ export default function Reschedule() {
       <>
         <Stack.Screen
           options={{
-            title: "Reschedule",
+            title: "Add Guests",
             headerBackButtonDisplayMode: "minimal",
           }}
         />
 
         {Platform.OS === "ios" && (
-          <Stack.Header style={{ shadowColor: "transparent" }}>
-            <Stack.Header.Title>Reschedule</Stack.Header.Title>
+          <Stack.Header>
+            <Stack.Header.Title>Add Guests</Stack.Header.Title>
           </Stack.Header>
         )}
 
@@ -80,28 +90,35 @@ export default function Reschedule() {
     <>
       <Stack.Screen
         options={{
-          title: "Reschedule",
+          title: "Add Guests",
           headerBackButtonDisplayMode: "minimal",
+          headerLeft: Platform.OS !== "ios" ? renderHeaderLeft : undefined,
           headerRight: Platform.OS !== "ios" ? renderHeaderRight : undefined,
         }}
       />
 
       {Platform.OS === "ios" && (
-        <Stack.Header style={{ shadowColor: "transparent" }}>
-          <Stack.Header.Title>Reschedule</Stack.Header.Title>
+        <Stack.Header>
+          <Stack.Header.Left>
+            <Stack.Header.Button onPress={() => router.back()}>
+              <Stack.Header.Icon sf="xmark" />
+            </Stack.Header.Button>
+          </Stack.Header.Left>
+
+          <Stack.Header.Title>Add Guests</Stack.Header.Title>
 
           <Stack.Header.Right>
             <Stack.Header.Button onPress={handleSave} disabled={isSaving}>
-              Save
+              <Stack.Header.Icon sf="checkmark" />
             </Stack.Header.Button>
           </Stack.Header.Right>
         </Stack.Header>
       )}
 
-      <RescheduleScreenComponent
-        ref={rescheduleScreenRef}
+      <AddGuestsScreenComponent
+        ref={addGuestsScreenRef}
         booking={booking}
-        onSuccess={handleRescheduleSuccess}
+        onSuccess={handleAddGuestsSuccess}
         onSavingChange={setIsSaving}
       />
     </>

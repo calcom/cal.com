@@ -123,7 +123,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToReschedule = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/reschedule",
+        pathname: "/reschedule",
         params: { uid: booking.uid },
       });
     },
@@ -134,7 +134,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToEditLocation = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/edit-location",
+        pathname: "/edit-location",
         params: { uid: booking.uid },
       });
     },
@@ -145,7 +145,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToAddGuests = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/add-guests",
+        pathname: "/add-guests",
         params: { uid: booking.uid },
       });
     },
@@ -156,7 +156,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToMarkNoShow = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/mark-no-show",
+        pathname: "/mark-no-show",
         params: { uid: booking.uid },
       });
     },
@@ -167,7 +167,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToViewRecordings = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/view-recordings",
+        pathname: "/view-recordings",
         params: { uid: booking.uid },
       });
     },
@@ -178,7 +178,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToMeetingSessionDetails = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/meeting-session-details",
+        pathname: "/meeting-session-details",
         params: { uid: booking.uid },
       });
     },
@@ -194,15 +194,11 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
       case "upcoming":
       case "unconfirmed":
         // Sort by start time ascending
-        return sorted.sort(
-          (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-        );
+        return sorted.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
       case "past":
       case "cancelled":
         // Sort by start time descending (latest first)
-        return sorted.sort(
-          (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-        );
+        return sorted.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
       default:
         return sorted;
     }
@@ -331,17 +327,10 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
             contentContainerStyle={{
               padding: 20,
             }}
-            refreshControl={
-              <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
-            }
+            refreshControl={<RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />}
             contentInsetAdjustmentBehavior="automatic"
-            style={{ backgroundColor: "white" }}
-          >
-            <EmptyScreen
-              icon={emptyState.icon}
-              headline={emptyState.title}
-              description={emptyState.text}
-            />
+            style={{ backgroundColor: "white" }}>
+            <EmptyScreen icon={emptyState.icon} headline={emptyState.title} description={emptyState.text} />
           </ScrollView>
         </View>
       </Activity>
@@ -353,12 +342,9 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
             contentContainerStyle={{
               padding: 20,
             }}
-            refreshControl={
-              <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
-            }
+            refreshControl={<RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />}
             contentInsetAdjustmentBehavior="automatic"
-            style={{ backgroundColor: "white" }}
-          >
+            style={{ backgroundColor: "white" }}>
             <EmptyScreen
               icon="search-outline"
               headline={`No results found for "${searchQuery}"`}
@@ -376,9 +362,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
             keyExtractor={(item) => item.key}
             renderItem={renderListItem}
             contentContainerStyle={{ paddingBottom: 90 }}
-            refreshControl={
-              <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
-            }
+            refreshControl={<RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />}
             showsVerticalScrollIndicator={false}
             contentInsetAdjustmentBehavior="automatic"
             style={{ backgroundColor: "white" }}
@@ -393,9 +377,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                 keyExtractor={(item) => item.key}
                 renderItem={renderListItem}
                 contentContainerStyle={{ paddingBottom: 90 }}
-                refreshControl={
-                  <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
-                }
+                refreshControl={<RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />}
                 showsVerticalScrollIndicator={false}
               />
             </View>

@@ -76,10 +76,7 @@ export interface BookingDetailScreenProps {
   }) => void;
 }
 
-export function BookingDetailScreen({
-  uid,
-  onActionsReady,
-}: BookingDetailScreenProps): React.JSX.Element {
+export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreenProps): React.JSX.Element {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -108,7 +105,9 @@ export function BookingDetailScreen({
         console.error("Failed to cancel booking");
         if (__DEV__) {
           const message = err instanceof Error ? err.message : String(err);
-          console.debug("[BookingDetailScreen.ios] cancelBooking failed", { message });
+          console.debug("[BookingDetailScreen.ios] cancelBooking failed", {
+            message,
+          });
         }
         showErrorAlert("Error", "Failed to cancel booking. Please try again.");
         setIsCancelling(false);
@@ -151,7 +150,7 @@ export function BookingDetailScreen({
   const openRescheduleModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/reschedule",
+      pathname: "/reschedule",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -159,7 +158,7 @@ export function BookingDetailScreen({
   const openEditLocationModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/edit-location",
+      pathname: "/edit-location",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -167,7 +166,7 @@ export function BookingDetailScreen({
   const openAddGuestsModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/add-guests",
+      pathname: "/add-guests",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -175,7 +174,7 @@ export function BookingDetailScreen({
   const openMarkNoShowModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/mark-no-show",
+      pathname: "/mark-no-show",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -183,7 +182,7 @@ export function BookingDetailScreen({
   const openViewRecordingsModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/view-recordings",
+      pathname: "/view-recordings",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -191,7 +190,7 @@ export function BookingDetailScreen({
   const openMeetingSessionDetailsModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/meeting-session-details",
+      pathname: "/meeting-session-details",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -323,15 +322,27 @@ export function BookingDetailScreen({
     const isNoShow = attendee.noShow || attendee.absent;
 
     if (isPastBooking && isNoShow) {
-      return { name: "close-circle" as const, color: "#FF3B30", label: "No-show" };
+      return {
+        name: "close-circle" as const,
+        color: "#FF3B30",
+        label: "No-show",
+      };
     }
 
     if (normalizedStatus === "pending") {
-      return { name: "help-circle" as const, color: "#8E8E93", label: "Pending" };
+      return {
+        name: "help-circle" as const,
+        color: "#8E8E93",
+        label: "Pending",
+      };
     }
 
     if (normalizedStatus === "cancelled" || normalizedStatus === "rejected") {
-      return { name: "close-circle-outline" as const, color: "#8E8E93", label: null };
+      return {
+        name: "close-circle-outline" as const,
+        color: "#8E8E93",
+        label: null,
+      };
     }
 
     return { name: "checkmark-circle" as const, color: "#34C759", label: null };
@@ -346,15 +357,13 @@ export function BookingDetailScreen({
           paddingTop: 16,
           paddingBottom: insets.bottom + 100,
         }}
-        showsVerticalScrollIndicator={false}
-      >
+        showsVerticalScrollIndicator={false}>
         {/* Title Section - iOS Calendar Style */}
         <View className="mb-8">
           {/* Meeting Title */}
           <Text
             className="mb-4 text-[26px] font-semibold leading-tight text-black"
-            style={{ letterSpacing: -0.3 }}
-          >
+            style={{ letterSpacing: -0.3 }}>
             {booking.title}
           </Text>
 
@@ -367,9 +376,7 @@ export function BookingDetailScreen({
               )}
               {durationFormatted && (
                 <View className="rounded-full bg-[#E5E5EA] px-2.5 py-1">
-                  <Text className="text-[13px] font-medium text-[#636366]">
-                    {durationFormatted}
-                  </Text>
+                  <Text className="text-[13px] font-medium text-[#636366]">{durationFormatted}</Text>
                 </View>
               )}
             </View>
@@ -389,8 +396,7 @@ export function BookingDetailScreen({
         <View className="mb-4 overflow-hidden rounded-xl bg-white">
           <AppPressable
             className="flex-row items-center justify-between px-4 py-3.5"
-            onPress={() => setParticipantsExpanded(!participantsExpanded)}
-          >
+            onPress={() => setParticipantsExpanded(!participantsExpanded)}>
             <Text className="text-[17px] text-black">Participants</Text>
             <View className="flex-row items-center">
               <Text className="mr-1 text-[17px] text-[#8E8E93]">{totalParticipants}</Text>
@@ -410,8 +416,9 @@ export function BookingDetailScreen({
                 ? booking.hosts.map((host, index) => (
                     <View
                       key={host.email || `host-${index}`}
-                      className={`flex-row items-center py-2 ${index > 0 ? "border-t border-[#E5E5EA]" : ""}`}
-                    >
+                      className={`flex-row items-center py-2 ${
+                        index > 0 ? "border-t border-[#E5E5EA]" : ""
+                      }`}>
                       <Ionicons name="star" size={18} color="#FFD60A" />
                       <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
                         {host.name || host.email || "Host"}
@@ -436,11 +443,8 @@ export function BookingDetailScreen({
                   <View
                     key={attendee.email}
                     className={`flex-row items-center py-2 ${
-                      index > 0 || booking.hosts?.length || booking.user
-                        ? "border-t border-[#E5E5EA]"
-                        : ""
-                    }`}
-                  >
+                      index > 0 || booking.hosts?.length || booking.user ? "border-t border-[#E5E5EA]" : ""
+                    }`}>
                     <Ionicons name={statusIcon.name} size={20} color={statusIcon.color} />
                     <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
                       {attendee.name || attendee.email}
@@ -462,8 +466,7 @@ export function BookingDetailScreen({
                     index > 0 || booking.attendees?.length || booking.hosts?.length || booking.user
                       ? "border-t border-[#E5E5EA]"
                       : ""
-                  }`}
-                >
+                  }`}>
                   <Ionicons name="person-outline" size={20} color="#8E8E93" />
                   <Text className="ml-2.5 flex-1 text-[15px] text-[#8E8E93]" numberOfLines={1}>
                     {guestEmail}
@@ -491,23 +494,21 @@ export function BookingDetailScreen({
             "additionalNotes",
           ];
 
-          const displayableEntries = Object.entries(booking.bookingFieldsResponses).filter(
-            ([key, value]) => {
-              if (excludedKeys.includes(key)) return false;
+          const displayableEntries = Object.entries(booking.bookingFieldsResponses).filter(([key, value]) => {
+            if (excludedKeys.includes(key)) return false;
 
-              if (value === null || value === undefined || value === "") return false;
+            if (value === null || value === undefined || value === "") return false;
 
-              if (Array.isArray(value) && value.length === 0) return false;
+            if (Array.isArray(value) && value.length === 0) return false;
 
-              if (typeof value === "object" && !Array.isArray(value) && value !== null) {
-                const obj = value as Record<string, unknown>;
-                if ("value" in obj && "optionValue" in obj) return false;
-                if (Object.keys(obj).length === 0) return false;
-              }
-
-              return true;
+            if (typeof value === "object" && !Array.isArray(value) && value !== null) {
+              const obj = value as Record<string, unknown>;
+              if ("value" in obj && "optionValue" in obj) return false;
+              if (Object.keys(obj).length === 0) return false;
             }
-          );
+
+            return true;
+          });
 
           if (displayableEntries.length === 0) return null;
 
@@ -537,10 +538,7 @@ export function BookingDetailScreen({
                     .trim();
 
                   return (
-                    <View
-                      key={key}
-                      className={`py-2 ${index > 0 ? "border-t border-[#E5E5EA]" : ""}`}
-                    >
+                    <View key={key} className={`py-2 ${index > 0 ? "border-t border-[#E5E5EA]" : ""}`}>
                       <Text className="mb-0.5 text-[13px] text-[#8E8E93]">{displayKey}</Text>
                       <Text className="text-[17px] text-black">{displayValue}</Text>
                     </View>
@@ -585,8 +583,7 @@ export function BookingDetailScreen({
                         params: { uid: fromUid },
                       });
                     }
-                  }}
-                >
+                  }}>
                   <Text className="text-[17px] text-black">Rescheduled from</Text>
                   <View className="flex-row items-center">
                     <Text className="mr-1 text-[15px] text-[#007AFF]">View original</Text>
@@ -599,12 +596,14 @@ export function BookingDetailScreen({
                 <AppPressable
                   className="flex-row items-center justify-between border-t border-[#E5E5EA] py-2"
                   onPress={() => {
-                    router.push({
-                      pathname: "/(tabs)/(bookings)/booking-detail",
-                      params: { uid: booking.rescheduledToUid },
-                    });
-                  }}
-                >
+                    const uid = booking.rescheduledToUid;
+                    if (uid) {
+                      router.push({
+                        pathname: "/(tabs)/(bookings)/booking-detail",
+                        params: { uid },
+                      });
+                    }
+                  }}>
                   <Text className="text-[17px] text-black">Rescheduled to</Text>
                   <View className="flex-row items-center">
                     <Text className="mr-1 text-[15px] text-[#007AFF]">View new</Text>
@@ -615,8 +614,11 @@ export function BookingDetailScreen({
 
               {booking.reschedulingReason && (
                 <View
-                  className={`py-2 ${booking.rescheduledFromUid || booking.rescheduledToUid || booking.fromReschedule ? "border-t border-[#E5E5EA]" : ""}`}
-                >
+                  className={`py-2 ${
+                    booking.rescheduledFromUid || booking.rescheduledToUid || booking.fromReschedule
+                      ? "border-t border-[#E5E5EA]"
+                      : ""
+                  }`}>
                   <Text className="mb-0.5 text-[13px] text-[#8E8E93]">Reason</Text>
                   <Text className="text-[17px] text-black">{booking.reschedulingReason}</Text>
                 </View>
@@ -642,9 +644,7 @@ export function BookingDetailScreen({
                 )}
 
                 {booking.cancelledByEmail && (
-                  <View
-                    className={`py-2 ${booking.cancellationReason ? "border-t border-[#E5E5EA]" : ""}`}
-                  >
+                  <View className={`py-2 ${booking.cancellationReason ? "border-t border-[#E5E5EA]" : ""}`}>
                     <Text className="mb-0.5 text-[13px] text-[#8E8E93]">Cancelled by</Text>
                     <Text className="text-[17px] text-black">{booking.cancelledByEmail}</Text>
                   </View>
@@ -652,8 +652,11 @@ export function BookingDetailScreen({
 
                 {booking.absentHost && (
                   <View
-                    className={`flex-row items-center py-2 ${booking.cancellationReason || booking.cancelledByEmail ? "border-t border-[#E5E5EA]" : ""}`}
-                  >
+                    className={`flex-row items-center py-2 ${
+                      booking.cancellationReason || booking.cancelledByEmail
+                        ? "border-t border-[#E5E5EA]"
+                        : ""
+                    }`}>
                     <Ionicons name="warning" size={18} color="#FF9500" />
                     <Text className="ml-2 text-[17px] text-black">Host was absent</Text>
                   </View>
