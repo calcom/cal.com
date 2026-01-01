@@ -70,17 +70,23 @@
   },
   "overrides": [
     {
+      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "useArrowFunction": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["**/*.tsx"],
       "javascript": {
         "jsxRuntime": "transparent"
       }
     },
     {
-      "includes": [
-        "apps/web/app/**/page.tsx",
-        "apps/web/app/**/layout.tsx",
-        "apps/web/app/pages/**/*.tsx"
-      ],
+      "includes": ["apps/web/app/**/page.tsx", "apps/web/app/**/layout.tsx", "apps/web/app/pages/**/*.tsx"],
       "linter": {
         "rules": {
           "style": {
