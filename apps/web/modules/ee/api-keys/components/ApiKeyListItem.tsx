@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -7,8 +5,7 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog } from "@calcom/ui/components/dialog";
-import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -17,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
 
 import { revalidateApiKeysList } from "~/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
 
@@ -53,20 +51,20 @@ const ApiKeyListItem = ({
   return (
     <div
       key={apiKey.id}
-      className={classNames(
+      class={classNames(
         "flex w-full justify-between px-4 py-4 sm:px-6",
         lastItem ? "" : "border-subtle border-b"
       )}>
       <div>
-        <div className="flex gap-1">
-          <p className="text-sm font-semibold"> {apiKey?.note ? apiKey.note : t("api_key_no_note")}</p>
+        <div class="flex gap-1">
+          <p class="text-sm font-semibold"> {apiKey?.note ? apiKey.note : t("api_key_no_note")}</p>
           {!neverExpires && isExpired && <Badge variant="red">{t("expired")}</Badge>}
           {!isExpired && <Badge variant="green">{t("active")}</Badge>}
         </div>
-        <div className="mt-1 flex items-center space-x-3.5">
-          <p className="text-default text-sm">
+        <div class="mt-1 flex items-center space-x-3.5">
+          <p class="text-default text-sm">
             {neverExpires ? (
-              <div className="flex flex-row space-x-3">{t("api_key_never_expires")}</div>
+              <div class="flex flex-row space-x-3">{t("api_key_never_expires")}</div>
             ) : (
               `${isExpired ? t("expired") : t("expires")} ${dayjs(apiKey?.expiresAt?.toString()).fromNow()}`
             )}
@@ -85,14 +83,14 @@ const ApiKeyListItem = ({
                 {t("edit") as string}
               </DropdownItem>
             </DropdownMenuItem>
-            <DropdownMenuItem className="hover:bg-transparent">
+            <DropdownMenuItem class="hover:bg-transparent">
               <DropdownItem
                 type="button"
                 color="destructive"
                 disabled={deleteApiKey.isPending}
                 onClick={() => setDeleteDialogOpen(true)}
                 StartIcon="trash"
-                className="rounded-t-none">
+                class="rounded-t-none">
                 {t("delete") as string}
               </DropdownItem>
             </DropdownMenuItem>
@@ -113,8 +111,8 @@ const ApiKeyListItem = ({
             });
             setDeleteDialogOpen(false);
           }}>
-          <div className="mt-2">
-            <p className="text-subtle text-sm">{t("delete_api_key_warning")}</p>
+          <div class="mt-2">
+            <p class="text-subtle text-sm">{t("delete_api_key_warning")}</p>
           </div>
         </ConfirmationDialogContent>
       </Dialog>

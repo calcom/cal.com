@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -11,10 +9,11 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { useEffect, useState } from "react";
 
 import ApiKeyDialogForm from "~/modules/ee/api-keys/components/ApiKeyDialogForm";
-import ApiKeyListItem from "~/modules/ee/api-keys/components/ApiKeyListItem";
 import type { TApiKeys } from "~/modules/ee/api-keys/components/ApiKeyListItem";
+import ApiKeyListItem from "~/modules/ee/api-keys/components/ApiKeyListItem";
 
 export const apiKeyModalRef = {
   current: null as null | ((show: boolean) => void),
@@ -71,7 +70,7 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
         <div>
           {data?.length ? (
             <>
-              <div className="border-subtle rounded-b-lg border border-t-0">
+              <div class="border-subtle rounded-b-lg border border-t-0">
                 {data.map((apiKey, index) => (
                   <ApiKeyListItem
                     key={apiKey.id}
@@ -90,7 +89,7 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
               Icon="link"
               headline={t("create_first_api_key")}
               description={t("create_first_api_key_description", { appName: APP_NAME })}
-              className="rounded-b-lg rounded-t-none border-t-0"
+              class="rounded-b-lg rounded-t-none border-t-0"
               buttonRaw={<NewApiKeyButton />}
             />
           )}

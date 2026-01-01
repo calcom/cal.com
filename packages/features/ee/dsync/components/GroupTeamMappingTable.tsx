@@ -1,14 +1,12 @@
-import type { ColumnDef } from "@tanstack/react-table";
-import { useReactTable, getCoreRowModel } from "@tanstack/react-table";
-import { usePathname } from "next/navigation";
-import { useRef, useState } from "react";
-
-import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
 import { DataTable, DataTableToolbar } from "@calcom/features/data-table/components";
+import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-
 import CreateTeamDialog from "@calcom/web/modules/ee/dsync/components/CreateTeamDialog";
+import type { ColumnDef } from "@tanstack/react-table";
+import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
+import { useRef, useState } from "react";
 import GroupNameCell from "./GroupNameCell";
 
 interface TeamGroupMapping {

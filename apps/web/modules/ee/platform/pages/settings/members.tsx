@@ -5,8 +5,8 @@ import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import NoPlatformPlan from "~/components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "~/components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "~/components/settings/platform/pricing/platform-pricing/index";
-import { UserListTable } from "~/modules/users/components/UserTable/UserListTable";
 import type { UserListTableProps } from "~/modules/users/components/UserTable/UserListTable";
+import { UserListTable } from "~/modules/users/components/UserTable/UserListTable";
 import { UserListTableSkeleton } from "~/modules/users/components/UserTable/UserListTableSkeleton";
 
 const PlatformMembersView = (props: Omit<UserListTableProps, "facetedTeamValues" | "attributes">) => {
@@ -27,7 +27,7 @@ const PlatformMembersView = (props: Omit<UserListTableProps, "facetedTeamValues"
       <PlatformPricing
         teamId={userOrgId}
         heading={
-          <div className="mb-5 text-center text-2xl font-semibold">
+          <div class="mb-5 text-center text-2xl font-semibold">
             <h1>Subscribe to Platform</h1>
           </div>
         }

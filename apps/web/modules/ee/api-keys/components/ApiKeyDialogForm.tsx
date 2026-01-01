@@ -1,21 +1,16 @@
-import Link from "next/link";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import dayjs from "@calcom/dayjs";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
-import { API_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
-import { IS_CALCOM } from "@calcom/lib/constants";
+import { API_NAME_LENGTH_MAX_LIMIT, IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogFooter } from "@calcom/ui/components/dialog";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { SelectField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { Form, SelectField, Switch, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import Link from "next/link";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import { revalidateApiKeysList } from "~/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
 import type { TApiKeys } from "./ApiKeyListItem";
@@ -97,18 +92,18 @@ export default function ApiKeyDialogForm({
     <LicenseRequired>
       {successfulNewApiKeyModal ? (
         <>
-          <div className="mb-6">
-            <h2 className="font-semi-bold font-cal text-emphasis mb-2 text-xl tracking-wide">
+          <div class="mb-6">
+            <h2 class="font-semi-bold font-cal text-emphasis mb-2 text-xl tracking-wide">
               {t("success_api_key_created")}
             </h2>
-            <div className="text-emphasis text-sm">
-              <span className="font-semibold">{t("success_api_key_created_bold_tagline")}</span>{" "}
+            <div class="text-emphasis text-sm">
+              <span class="font-semibold">{t("success_api_key_created_bold_tagline")}</span>{" "}
               {t("you_will_only_view_it_once")}
             </div>
           </div>
           <div>
-            <div className="flex">
-              <code className="bg-subtle inline-flex items-center text-default w-full truncate rounded-md rounded-r-none pl-2 pr-2 font-mono">
+            <div class="flex">
+              <code class="bg-subtle inline-flex items-center text-default w-full truncate rounded-md rounded-r-none pl-2 pr-2 font-mono">
                 {" "}
                 {apiKey}
               </code>
@@ -119,19 +114,19 @@ export default function ApiKeyDialogForm({
                     showToast(t("api_key_copied"), "success");
                   }}
                   type="button"
-                  className="rounded-l-none text-base"
+                  class="rounded-l-none text-base"
                   StartIcon="clipboard">
                   {t("copy")}
                 </Button>
               </Tooltip>
             </div>
-            <span className="text-muted text-sm">
+            <span class="text-muted text-sm">
               {apiKeyDetails.neverExpires
                 ? t("never_expires")
                 : `${t("expires")} ${apiKeyDetails?.expiresAt?.toLocaleDateString()}`}
             </span>
           </div>
-          <DialogFooter showDivider className="relative">
+          <DialogFooter showDivider class="relative">
             <Button type="button" color="secondary" onClick={handleClose} tabIndex={-1}>
               {t("done")}
             </Button>
@@ -152,26 +147,26 @@ export default function ApiKeyDialogForm({
               setSuccessfulNewApiKeyModal(true);
             }
           }}
-          className="stack-y-4">
-          <div className="mb-4 mt-1">
-            <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
+          class="stack-y-4">
+          <div class="mb-4 mt-1">
+            <h2 class="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {defaultValues ? t("edit_api_key") : t("create_api_key")}
             </h2>
             {IS_CALCOM ? (
-              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                <div className="border-emphasis relative flex w-full items-start rounded-[10px] border p-4 text-sm">
+              <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                <div class="border-emphasis relative flex w-full items-start rounded-[10px] border p-4 text-sm">
                   {t("api_key_modal_subtitle")}
                 </div>
                 <Link
                   target="_blank"
                   rel="noopener noreferrer"
                   href="https://cal.com/platform"
-                  className="border-subtle relative flex w-full items-start rounded-[10px] border p-4 text-sm">
+                  class="border-subtle relative flex w-full items-start rounded-[10px] border p-4 text-sm">
                   {t("api_key_modal_subtitle_platform")}
                 </Link>
               </div>
             ) : (
-              <p className="text-subtle mb-5 mt-1 text-sm">{t("api_key_modal_subtitle")}</p>
+              <p class="text-subtle mb-5 mt-1 text-sm">{t("api_key_modal_subtitle")}</p>
             )}
           </div>
 
@@ -194,9 +189,9 @@ export default function ApiKeyDialogForm({
             />
           </div>
           {!defaultValues && (
-            <div className="flex flex-col">
-              <div className="flex justify-between py-2">
-                <span className="text-default flex items-center text-sm font-medium">{t("expire_date")}</span>
+            <div class="flex flex-col">
+              <div class="flex justify-between py-2">
+                <span class="text-default flex items-center text-sm font-medium">{t("expire_date")}</span>
                 <Controller
                   name="neverExpires"
                   control={form.control}
@@ -243,15 +238,15 @@ export default function ApiKeyDialogForm({
                 }}
               />
               {!watchNeverExpires && (
-                <span className="text-subtle mt-2 text-xs">
+                <span class="text-subtle mt-2 text-xs">
                   {t("api_key_expires_on")}
-                  <span className="font-bold"> {dayjs(expiryDate).format("DD-MM-YYYY")}</span>
+                  <span class="font-bold"> {dayjs(expiryDate).format("DD-MM-YYYY")}</span>
                 </span>
               )}
             </div>
           )}
 
-          <DialogFooter showDivider className="relative">
+          <DialogFooter showDivider class="relative">
             <Button type="button" color="secondary" onClick={handleClose} tabIndex={-1}>
               {t("cancel")}
             </Button>
