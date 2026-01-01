@@ -8,6 +8,9 @@ import type { EditLocationScreenHandle } from "@/components/screens/EditLocation
 import EditLocationScreenComponent from "@/components/screens/EditLocationScreen";
 import { type Booking, CalComAPIService } from "@/services/calcom";
 
+// Semi-transparent background to prevent black flash while preserving glass effect
+const GLASS_BACKGROUND = "rgba(248, 248, 250, 0.01)";
+
 function getPresentationStyle(): "formSheet" | "modal" {
   if (isLiquidGlassAvailable() && osName !== "iPadOS") {
     return "formSheet";
@@ -63,7 +66,7 @@ export default function EditLocationIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
+            backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
           },
         }}
       />
@@ -92,7 +95,7 @@ export default function EditLocationIOS() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
+          backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
           paddingTop: 56,
           paddingBottom: insets.bottom,
         }}
