@@ -95,7 +95,7 @@
     "@snaplet/copycat": "4.1.0",
     "@testing-library/jest-dom": "5.17.0",
     "@testing-library/react": "16.0.1",
-    "@vitest/ui": "2.1.9",
+    "@vitest/ui": "4.0.16",
     "c8": "7.13.0",
     "checkly": "latest",
     "dotenv-checker": "1.1.5",
@@ -113,9 +113,9 @@
     "tsc-absolute": "1.0.0",
     "turbo": "2.7.1",
     "typescript": "5.9.3",
-    "vitest": "2.1.9",
-    "vitest-fetch-mock": "0.3.0",
-    "vitest-mock-extended": "2.0.2"
+    "vitest": "4.0.16",
+    "vitest-fetch-mock": "0.4.5",
+    "vitest-mock-extended": "3.1.0"
   },
   "resolutions": {
     "types-ramda": "0.29.4",
