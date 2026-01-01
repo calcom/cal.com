@@ -4,22 +4,24 @@
  * Screen content for rescheduling a booking.
  * Used with the reschedule route that has native Stack.Header.
  */
-import type { Booking } from "../../services/calcom";
-import { CalComAPIService } from "../../services/calcom";
+
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import {
-  View,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
   Text,
   TextInput,
-  Alert,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   TouchableOpacity,
-  Modal,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { Booking } from "@/services/calcom";
+import { CalComAPIService } from "@/services/calcom";
+import { safeLogError, safeLogInfo } from "@/utils/safeLogger";
 
 // Note: @expo/ui DateTimePicker components are not yet stable
 // Using a simple inline picker approach instead
@@ -37,6 +39,7 @@ export interface RescheduleScreenHandle {
 
 export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScreenProps>(
   function RescheduleScreen({ booking, onSuccess, onSavingChange }, ref) {
+    "use no memo";
     const insets = useSafeAreaInsets();
     const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -48,7 +51,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
     useEffect(() => {
       if (booking?.startTime) {
         const bookingDate = new Date(booking.startTime);
-        if (!isNaN(bookingDate.getTime())) {
+        if (!Number.isNaN(bookingDate.getTime())) {
           setSelectedDateTime(bookingDate);
           setReason("");
         }
@@ -78,13 +81,10 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
         Alert.alert("Success", "Booking rescheduled successfully", [
           { text: "OK", onPress: onSuccess },
         ]);
+        setIsSaving(false);
       } catch (error) {
-        console.error("[RescheduleScreen] Failed to reschedule:", error);
-        Alert.alert(
-          "Error",
-          error instanceof Error ? error.message : "Failed to reschedule booking"
-        );
-      } finally {
+        safeLogError("[RescheduleScreen] Failed to reschedule:", error);
+        Alert.alert("Error", "Failed to reschedule booking. Please try again.");
         setIsSaving(false);
       }
     }, [booking, selectedDateTime, reason, onSuccess]);
@@ -103,26 +103,10 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
       hour12: false,
     });
 
-    // Expose submit function to parent via ref (same pattern as senior's actionHandlersRef)
-    useImperativeHandle(
-      ref,
-      () => ({
-        submit: handleSubmit,
-      }),
-      [handleSubmit]
-    );
-
-    if (!booking) {
-      return (
-        <View className="flex-1 items-center justify-center bg-[#F2F2F7]">
-          <Text className="text-gray-500">No booking data</Text>
-        </View>
-      );
-    }
-
     // Generate date options for picker (next 90 days)
+    // Note: useMemo must be called before any conditional returns to follow React hooks rules
     const dateOptions = React.useMemo(() => {
-      const options = [];
+      const options: { label: string; value: Date }[] = [];
       const today = new Date();
       for (let i = 0; i < 90; i++) {
         const date = new Date(today);
@@ -141,7 +125,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
 
     // Generate time options (every 15 minutes)
     const timeOptions = React.useMemo(() => {
-      const options = [];
+      const options: { label: string; value: { hour: number; minute: number } }[] = [];
       for (let hour = 0; hour < 24; hour++) {
         for (let minute = 0; minute < 60; minute += 15) {
           const time = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
@@ -153,6 +137,23 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
       }
       return options;
     }, []);
+
+    // Expose submit function to parent via ref (same pattern as senior's actionHandlersRef)
+    useImperativeHandle(
+      ref,
+      () => ({
+        submit: handleSubmit,
+      }),
+      [handleSubmit]
+    );
+
+    if (!booking) {
+      return (
+        <View className="flex-1 items-center justify-center bg-[#F2F2F7]">
+          <Text className="text-gray-500">No booking data</Text>
+        </View>
+      );
+    }
 
     return (
       <>
@@ -184,7 +185,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
               <TouchableOpacity
                 className="border-b border-gray-100 px-4 py-3"
                 onPress={() => {
-                  console.log("[RescheduleScreen] Opening date picker");
+                  safeLogInfo("[RescheduleScreen] Opening date picker");
                   setShowDatePicker(true);
                 }}
                 disabled={isSaving}
@@ -203,7 +204,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
               <TouchableOpacity
                 className="border-b border-gray-100 px-4 py-3"
                 onPress={() => {
-                  console.log("[RescheduleScreen] Opening time picker");
+                  safeLogInfo("[RescheduleScreen] Opening time picker");
                   setShowTimePicker(true);
                 }}
                 disabled={isSaving}
@@ -268,12 +269,12 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={{ paddingVertical: 4 }}
                 >
-                  {dateOptions.map((option, index) => {
+                  {dateOptions.map((option) => {
                     const isSelected =
                       option.value.toDateString() === selectedDateTime.toDateString();
                     return (
                       <TouchableOpacity
-                        key={index}
+                        key={option.value.toISOString()}
                         className={`px-4 py-3 ${isSelected ? "bg-[#E8F4FD]" : ""}`}
                         onPress={() => {
                           const newDate = new Date(option.value);
@@ -330,13 +331,13 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={{ paddingVertical: 4 }}
                 >
-                  {timeOptions.map((option, index) => {
+                  {timeOptions.map((option) => {
                     const isSelected =
                       selectedDateTime.getHours() === option.value.hour &&
                       selectedDateTime.getMinutes() === option.value.minute;
                     return (
                       <TouchableOpacity
-                        key={index}
+                        key={option.label}
                         className={`px-4 py-3 ${isSelected ? "bg-[#E8F4FD]" : ""}`}
                         onPress={() => {
                           const newDate = new Date(selectedDateTime);

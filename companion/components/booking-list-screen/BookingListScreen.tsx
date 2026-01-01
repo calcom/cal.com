@@ -1,32 +1,30 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { Activity, useMemo, useState } from "react";
-import { View, Text, FlatList, RefreshControl, ScrollView, Alert } from "react-native";
-
-import type { Booking, EventType } from "../../services/calcom";
-import { LoadingSpinner } from "../LoadingSpinner";
-import { EmptyScreen } from "../EmptyScreen";
-import { BookingListItem } from "../booking-list-item/BookingListItem";
-import { BookingModals } from "../booking-modals/BookingModals";
-import { useAuth } from "../../contexts/AuthContext";
+import { Alert, FlatList, RefreshControl, ScrollView, Text, View } from "react-native";
+import { BookingListItem } from "@/components/booking-list-item/BookingListItem";
+import { BookingModals } from "@/components/booking-modals/BookingModals";
+import { EmptyScreen } from "@/components/EmptyScreen";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useAuth } from "@/contexts/AuthContext";
 import {
+  type BookingFilter,
+  useBookingActions,
   useBookings,
   useCancelBooking,
   useConfirmBooking,
   useDeclineBooking,
   useRescheduleBooking,
-  useBookingActions,
-  useBookingActionModals,
-  type BookingFilter,
-} from "../../hooks";
-import { offlineAwareRefresh } from "../../utils/network";
+} from "@/hooks";
+import type { Booking, EventType } from "@/services/calcom";
+import type { ListItem } from "@/utils/bookings-utils";
 import {
+  filterByEventType,
   getEmptyStateContent,
   groupBookingsByMonth,
   searchBookings,
-  filterByEventType,
-} from "../../utils/bookings-utils";
-import type { ListItem } from "../../utils/bookings-utils";
+} from "@/utils/bookings-utils";
+import { offlineAwareRefresh } from "@/utils/network";
 
 interface BookingListScreenProps {
   // Platform-specific header rendering
@@ -81,13 +79,9 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const {
     data: rawBookings = [],
     isLoading: loading,
-    isFetching,
     error: queryError,
     refetch,
   } = useBookings(filterParams);
-
-  // Show refresh indicator when fetching
-  const refreshing = isFetching && !loading;
 
   // Cancel booking mutation
   const { mutate: cancelBookingMutation } = useCancelBooking();
@@ -124,9 +118,6 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     isDeclining,
     isRescheduling,
   });
-
-  // Booking action modals hook
-  const { selectedBooking: actionModalBooking } = useBookingActionModals();
 
   // Navigate to reschedule screen (same pattern as booking detail)
   const handleNavigateToReschedule = React.useCallback(
@@ -311,7 +302,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         {renderHeader?.()}
         {renderFilterControls?.()}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="alert-circle" size={64} color="#FF3B30" />
+          <Ionicons name="alert-circle" size={64} color="#800020" />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
             Unable to load bookings
           </Text>
