@@ -1,8 +1,14 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
+import process from "node:process";
 
-import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import {
+  APP_NAME,
+  IS_PREMIUM_USERNAME_ENABLED,
+  IS_MAILHOG_ENABLED,
+} from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
@@ -12,7 +18,7 @@ import { expectInvitationEmailToBeReceived } from "./team/expects";
 
 test.describe.configure({ mode: "parallel" });
 
-const preventFlakyTest = async (page: Page) => {
+const preventFlakyTest = async (page: Page): Promise<void> => {
   await expect(page.locator("text=Create your account")).toBeVisible();
 };
 test.describe("Signup Main Page Test", async () => {
@@ -182,8 +188,9 @@ test.describe("Email Signup Flow Test", async () => {
     // Verify that the username is the same as the one provided and isn't accidentally changed to email derived username - That happens only for organization member signup
     expect(dbUser?.username).toBe(userToCreate.username);
   });
-  test("Signup fields prefilled with query params", async ({ page, users }) => {
-    const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
+  test("Signup fields prefilled with query params", async ({ page }) => {
+    const signupUrlWithParams =
+      "/signup?username=rick-jones&email=rick-jones%40example.com";
     await page.goto(signupUrlWithParams);
     await preventFlakyTest(page);
     const continueWithEmailButton = page.getByTestId("continue-with-email-button");
@@ -251,8 +258,12 @@ test.describe("Email Signup Flow Test", async () => {
     // Cleanup specific to this test
     // Clean up the user and token
     await prisma.user.deleteMany({ where: { email: userToCreate.email } });
-    await prisma.verificationToken.deleteMany({ where: { identifier: createdtoken.identifier } });
-    await prisma.team.deleteMany({ where: { id: createdtoken.teamId! } });
+    await prisma.verificationToken.deleteMany({
+      where: { identifier: createdtoken.identifier },
+    });
+    if (createdtoken.teamId) {
+      await prisma.team.deleteMany({ where: { id: createdtoken.teamId } });
+    }
   });
   test("Email verification sent if enabled", async ({ page, prisma, emails, users, features }) => {
     const EmailVerifyFlag = features.get("email-verification")?.enabled;
@@ -327,7 +338,9 @@ test.describe("Email Signup Flow Test", async () => {
 
       //Check newly invited member exists and is pending
       await expect(
-        page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
+        page.locator(
+          `[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`
+        )
       ).toHaveCount(1);
 
       // eslint-disable-next-line playwright/no-conditional-in-test
@@ -341,7 +354,9 @@ test.describe("Email Signup Flow Test", async () => {
 
       const url = new URL(newPage.url());
       expect(url.pathname).toBe("/signup");
-      const continueWithEmailButton = page.getByTestId("continue-with-email-button");
+      const continueWithEmailButton = page.getByTestId(
+        "continue-with-email-button"
+      );
       await expect(continueWithEmailButton).toBeVisible();
       await continueWithEmailButton.click();
       await expect(page.getByTestId("signup-submit-button")).toBeVisible();
@@ -354,7 +369,9 @@ test.describe("Email Signup Flow Test", async () => {
     });
   });
 
-  test("Checkbox for cookie consent does not need to be checked", async ({ page, users }) => {
+  test("Checkbox for cookie consent does not need to be checked", async ({
+    page,
+  }) => {
     await page.goto("/signup");
     await preventFlakyTest(page);
 
@@ -375,5 +392,326 @@ test.describe("Email Signup Flow Test", async () => {
     // the cookie consent checkbox does not need to be checked for user to proceed
     await checkbox.uncheck();
     await expect(submitButton).toBeEnabled();
+  });
+});
+
+test.describe("Cal.com Signup Handler E2E Tests", async () => {
+  test.beforeEach(async ({ features }) => {
+    features.reset();
+  });
+
+  test.afterEach(async ({ users }) => {
+    await users.deleteAll();
+  });
+
+  test("Regular signup with non-premium username creates Stripe customer", async ({
+    page,
+    users,
+    prisma,
+  }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(
+      !IS_PREMIUM_USERNAME_ENABLED,
+      "Only run on Cal.com when premium usernames are enabled"
+    );
+
+    const userToCreate = users.buildForSignup({
+      username: `testuser-${Date.now()}`,
+      password: "Password99!",
+      email: `testuser-${Date.now()}@example.com`,
+    });
+
+    await page.goto("/signup");
+    await preventFlakyTest(page);
+    const continueWithEmailButton = page.getByTestId(
+      "continue-with-email-button"
+    );
+    await expect(continueWithEmailButton).toBeVisible();
+    await continueWithEmailButton.click();
+
+    // Fill form
+    await page.locator('input[name="username"]').fill(userToCreate.username);
+    await page.locator('input[name="email"]').fill(userToCreate.email);
+    await page.locator('input[name="password"]').fill(userToCreate.password);
+
+    // Submit form
+    const submitButton = page.getByTestId("signup-submit-button");
+    await submitButton.click();
+
+    await page.waitForURL("/auth/verify-email**");
+
+    // Verify user was created
+    const dbUser = await prisma.user.findUnique({
+      where: { email: userToCreate.email },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        metadata: true,
+      },
+    });
+
+    expect(dbUser).not.toBeNull();
+    expect(dbUser?.username).toBe(userToCreate.username);
+
+    const metadata = dbUser?.metadata as { stripeCustomerId?: string } | null;
+    expect(metadata?.stripeCustomerId).toBeDefined();
+    expect(metadata?.stripeCustomerId).toMatch(/^cus_/);
+
+    if (metadata?.stripeCustomerId) {
+      const stripeCustomer = await stripe.customers.retrieve(
+        metadata.stripeCustomerId
+      );
+      if ("email" in stripeCustomer) {
+        expect(stripeCustomer.email).toBe(userToCreate.email);
+        expect(stripeCustomer.metadata?.username).toBe(userToCreate.username);
+        expect(stripeCustomer.metadata?.email).toBe(userToCreate.email);
+      }
+    }
+  });
+
+  test("Signup with token/team invite creates Stripe customer", async ({
+    page,
+    users,
+    prisma,
+  }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(
+      !IS_PREMIUM_USERNAME_ENABLED,
+      "Only run on Cal.com when premium usernames are enabled"
+    );
+
+    const token = randomBytes(32).toString("hex");
+    const userToCreate = users.buildForSignup({
+      username: `teamuser-${Date.now()}`,
+      password: "Password99!",
+    });
+
+    const createdToken = await prisma.verificationToken.create({
+      data: {
+        identifier: userToCreate.email,
+        token,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
+        team: {
+          create: {
+            name: "Test Team",
+            slug: `test-team-${Date.now()}`,
+          },
+        },
+      },
+    });
+
+    const signupUrlWithToken = `/signup?token=${token}`;
+    await page.goto(signupUrlWithToken);
+    await preventFlakyTest(page);
+    await expect(page.getByTestId("signup-submit-button")).toBeVisible();
+
+    await page.locator('input[name="password"]').fill(userToCreate.password);
+
+    const submitButton = page.getByTestId("signup-submit-button");
+    await submitButton.click();
+
+    await page.waitForURL("/getting-started**");
+
+    const dbUser = await prisma.user.findUnique({
+      where: { email: userToCreate.email },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        metadata: true,
+      },
+    });
+
+    expect(dbUser).not.toBeNull();
+
+    const stripeCustomers = await stripe.customers.list({
+      email: userToCreate.email,
+      limit: 1,
+    });
+
+    expect(stripeCustomers.data.length).toBeGreaterThan(0);
+    const stripeCustomer = stripeCustomers.data[0];
+    if ("email" in stripeCustomer) {
+      expect(stripeCustomer.email).toBe(userToCreate.email);
+      expect(stripeCustomer.metadata?.username).toBe(
+        dbUser?.username || undefined
+      );
+      expect(stripeCustomer.metadata?.email).toBe(userToCreate.email);
+    }
+
+    await prisma.verificationToken.deleteMany({
+      where: { identifier: createdToken.identifier },
+    });
+    if (createdToken.teamId) {
+      await prisma.team.deleteMany({ where: { id: createdToken.teamId } });
+    }
+  });
+
+  test("Premium username signup creates user with checkoutSessionId in metadata", async ({
+    page,
+    users,
+    prisma,
+  }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(
+      !IS_PREMIUM_USERNAME_ENABLED,
+      "Only run on Cal.com when premium usernames are enabled"
+    );
+
+    const userToCreate = users.buildForSignup({
+      username: "rock",
+      password: "Password99!",
+    });
+
+    // Ensure the premium username is available
+    await prisma.user.deleteMany({ where: { username: "rock" } });
+
+    await page.goto("/signup");
+    await preventFlakyTest(page);
+    const continueWithEmailButton = page.getByTestId(
+      "continue-with-email-button"
+    );
+    await expect(continueWithEmailButton).toBeVisible();
+    await continueWithEmailButton.click();
+
+    await page.locator('input[name="username"]').fill("rock");
+    await page.locator('input[name="email"]').fill(userToCreate.email);
+    await page.locator('input[name="password"]').fill(userToCreate.password);
+
+    const submitButton = page.getByTestId("signup-submit-button");
+    await submitButton.click();
+
+    const expectedUrl = "https://checkout.stripe.com";
+    await page.waitForURL((url) => url.href.startsWith(expectedUrl));
+
+    const dbUser = await prisma.user.findUnique({
+      where: { email: userToCreate.email },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        metadata: true,
+      },
+    });
+
+    expect(dbUser).not.toBeNull();
+    // Premium username signup should have null username until payment
+    expect(dbUser?.username).toBeNull();
+
+    const metadata = dbUser?.metadata as {
+      stripeCustomerId?: string;
+      checkoutSessionId?: string;
+    } | null;
+    expect(metadata?.stripeCustomerId).toBeDefined();
+    expect(metadata?.checkoutSessionId).toBeDefined();
+    expect(metadata?.checkoutSessionId).toMatch(/^cs_/);
+  });
+
+  test("Email verification is sent for non-premium username signup", async ({
+    page,
+    users,
+    prisma,
+    emails,
+    features,
+  }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(
+      !IS_PREMIUM_USERNAME_ENABLED,
+      "Only run on Cal.com when premium usernames are enabled"
+    );
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(!IS_MAILHOG_ENABLED, "Skipping check - MailHog disabled");
+
+    const EmailVerifyFlag = features.get("email-verification")?.enabled;
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(!EmailVerifyFlag, "Skipping check - Email verify disabled");
+
+    // Ensure email verification is enabled
+    await prisma.feature.update({
+      where: { slug: "email-verification" },
+      data: { enabled: true },
+    });
+
+    const userToCreate = users.buildForSignup({
+      email: users.trackEmail({
+        username: `calcom-verify-${Date.now()}`,
+        domain: "example.com",
+      }),
+      username: `calcom-verify-${Date.now()}`,
+      password: "Password99!",
+    });
+
+    await page.goto("/signup");
+    await preventFlakyTest(page);
+    const continueWithEmailButton = page.getByTestId(
+      "continue-with-email-button"
+    );
+    await expect(continueWithEmailButton).toBeVisible();
+    await continueWithEmailButton.click();
+
+    await page.locator('input[name="username"]').fill(userToCreate.username);
+    await page.locator('input[name="email"]').fill(userToCreate.email);
+    await page.locator('input[name="password"]').fill(userToCreate.password);
+
+    const submitButton = page.getByTestId("signup-submit-button");
+    await submitButton.click();
+
+    await page.waitForURL((url) => url.pathname.includes("/auth/verify-email"));
+
+    const receivedEmails = await getEmailsReceivedByUser({
+      emails,
+      userEmail: userToCreate.email,
+    });
+
+    expect(receivedEmails?.total).toBe(1);
+    const verifyEmail = receivedEmails?.items[0];
+    expect(verifyEmail?.subject).toBe(`${APP_NAME}: Verify your account`);
+  });
+
+  test("User creation includes creationSource metadata", async ({
+    page,
+    users,
+    prisma,
+  }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(
+      !IS_PREMIUM_USERNAME_ENABLED,
+      "Only run on Cal.com when premium usernames are enabled"
+    );
+
+    const userToCreate = users.buildForSignup({
+      username: `creationsource-${Date.now()}`,
+      password: "Password99!",
+      email: `creationsource-${Date.now()}@example.com`,
+    });
+
+    await page.goto("/signup");
+    await preventFlakyTest(page);
+    const continueWithEmailButton = page.getByTestId(
+      "continue-with-email-button"
+    );
+    await expect(continueWithEmailButton).toBeVisible();
+    await continueWithEmailButton.click();
+
+    await page.locator('input[name="username"]').fill(userToCreate.username);
+    await page.locator('input[name="email"]').fill(userToCreate.email);
+    await page.locator('input[name="password"]').fill(userToCreate.password);
+
+    const submitButton = page.getByTestId("signup-submit-button");
+    await submitButton.click();
+
+    await page.waitForURL("/auth/verify-email**");
+
+    const dbUser = await prisma.user.findUnique({
+      where: { email: userToCreate.email },
+      select: {
+        id: true,
+        creationSource: true,
+      },
+    });
+
+    expect(dbUser).not.toBeNull();
+    expect(dbUser?.creationSource).toBe("WEBAPP");
   });
 });
