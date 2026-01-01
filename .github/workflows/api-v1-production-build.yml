@@ -68,18 +68,19 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
-      - name: Generate API v1 build cache key
-        id: cache-api-v1-build-key
-        uses: ./.github/actions/cache-api-v1-build-key
       - name: Cache API v1 production build
         uses: actions/cache@v4
         id: cache-api-v1-build
+        env:
+          cache-name: api-v1-build
+          key-1: ${{ hashFiles('yarn.lock') }}
+          key-2: ${{ hashFiles('apps/api/v1/**.[jt]s', 'apps/api/v1/**.[jt]sx', '!**/node_modules') }}
         with:
           path: |
             ${{ github.workspace }}/apps/api/v1/.next
             **/.turbo/**
             **/dist/**
-          key: ${{ steps.cache-api-v1-build-key.outputs.key }}
+          key: ${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}
       - name: Log Cache Hit
         if: steps.cache-api-v1-build.outputs.cache-hit == 'true'
         run: echo "Cache hit for API v1 build. Skipping build."
