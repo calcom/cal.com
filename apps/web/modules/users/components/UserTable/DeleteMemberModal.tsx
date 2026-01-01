@@ -1,14 +1,13 @@
+import { useSession } from "next-auth/react";
+import type { Dispatch } from "react";
+
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import type {
-  UserTableAction,
-  UserTableState,
-} from "@calcom/features/users/types/user-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
-import { useSession } from "next-auth/react";
-import type { Dispatch } from "react";
+
+import type { UserTableAction, UserTableState } from "./types";
 
 export function DeleteMemberModal({
   state,
@@ -43,8 +42,7 @@ export function DeleteMemberModal({
         dispatch({
           type: "CLOSE_MODAL",
         })
-      }
-    >
+      }>
       <ConfirmationDialogContent
         variety="danger"
         title={t("remove_member")}
@@ -58,8 +56,7 @@ export function DeleteMemberModal({
             memberIds: [state?.deleteMember?.user.id],
             isOrg: true,
           });
-        }}
-      >
+        }}>
         {t("remove_member_confirmation_message")}
       </ConfirmationDialogContent>
     </Dialog>
