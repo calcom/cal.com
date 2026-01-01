@@ -1,9 +1,11 @@
-import { validateUserHasOrg } from "../../../actions/validateUserHasOrg";
-import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { redirect } from "next/navigation";
-import { OtherTeamsListing } from "~/ee/organizations/components/OtherTeamsListing";
+
+import { OtherTeamsListing } from "~/ee/organizations/pages/components/OtherTeamsListing";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+
+import { validateUserHasOrg } from "../../../actions/validateUserHasOrg";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -25,16 +27,13 @@ const Page = async () => {
   const organizationRepository = getOrganizationRepository();
   const otherTeams = organizationId
     ? await organizationRepository.findTeamsInOrgIamNotPartOf({
-        userId: session?.user.id,
-        parentId: organizationId,
-      })
+      userId: session?.user.id,
+      parentId: organizationId,
+    })
     : [];
 
   return (
-    <SettingsHeader
-      title={t("org_admin_other_teams")}
-      description={t("org_admin_other_teams_description")}
-    >
+    <SettingsHeader title={t("org_admin_other_teams")} description={t("org_admin_other_teams_description")}>
       <OtherTeamsListing teams={otherTeams} />
     </SettingsHeader>
   );
