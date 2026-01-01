@@ -41,8 +41,9 @@ export const MultiDropdownSelect = ({ options = [], value = [], ...props }: Prop
     <Select
       styles={{
         multiValue: (styles) => {
+          const { accentColor: _accentColor, ...rest } = styles;
           return {
-            ...styles,
+            ...rest,
             backgroundColor: "#F3F4F6",
             color: "#374151",
             borderRadius: "6px",
@@ -54,41 +55,53 @@ export const MultiDropdownSelect = ({ options = [], value = [], ...props }: Prop
             lineHeight: "16px",
           };
         },
-        multiValueLabel: (styles) => ({
-          ...styles,
-          paddingLeft: "0px",
-          fontSize: "14px",
-          padding: "0",
-        }),
-        multiValueRemove: (base) => ({
-          ...base,
-          color: "#4B5563",
-          padding: "0",
-          ":hover": {
-            background: "transparent",
-          },
-          "> svg": {
-            width: "16px",
-            height: "17px",
-          },
-        }),
-        control: (base) => ({
-          ...base,
-          // Brute force to remove focus outline of input
-          "& .cal-multiselect__input": {
-            borderWidth: 0,
-            boxShadow: "none",
-            caretColor: "transparent",
-          },
-        }),
-        valueContainer: (base) => ({
-          ...base,
-          display: "flex",
-          gap: "4px",
-          paddingLeft: "5px",
-          padding: "0px",
-          height: "36px",
-        }),
+        multiValueLabel: (styles) => {
+          const { accentColor: _accentColor, ...rest } = styles;
+          return {
+            ...rest,
+            paddingLeft: "0px",
+            fontSize: "14px",
+            padding: "0",
+          };
+        },
+        multiValueRemove: (base) => {
+          const { accentColor: _accentColor, ...rest } = base;
+          return {
+            ...rest,
+            color: "#4B5563",
+            padding: "0",
+            ":hover": {
+              background: "transparent",
+            },
+            "> svg": {
+              width: "16px",
+              height: "17px",
+            },
+          };
+        },
+        control: (base) => {
+          const { accentColor: _accentColor, ...rest } = base;
+          return {
+            ...rest,
+            // Brute force to remove focus outline of input
+            "& .cal-multiselect__input": {
+              borderWidth: 0,
+              boxShadow: "none",
+              caretColor: "transparent",
+            },
+          };
+        },
+        valueContainer: (base) => {
+          const { accentColor: _accentColor, ...rest } = base;
+          return {
+            ...rest,
+            display: "flex",
+            gap: "4px",
+            paddingLeft: "5px",
+            padding: "0px",
+            height: "36px",
+          };
+        },
       }}
       className="cal-multiselect"
       classNamePrefix="cal-multiselect"

@@ -91,6 +91,10 @@ describe("AddMembersWithSwitch", () => {
     onActive: vi.fn(),
     isFixed: false,
     teamId: 1,
+    assignAllTeamMembers: false,
+    setAssignAllTeamMembers: vi.fn(),
+    automaticAddAllEnabled: false,
+    groupId: null,
   };
 
   it("should render in TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_NOT_APPLICABLE state", () => {
@@ -98,8 +102,10 @@ describe("AddMembersWithSwitch", () => {
       componentProps: {
         ...defaultProps,
         assignAllTeamMembers: false,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: false,
         automaticAddAllEnabled: false,
+        groupId: null,
       },
     });
     expect(screen.queryByTestId("assign-all-team-members-toggle")).not.toBeInTheDocument();
@@ -111,8 +117,10 @@ describe("AddMembersWithSwitch", () => {
       componentProps: {
         ...defaultProps,
         assignAllTeamMembers: false,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: false,
         automaticAddAllEnabled: true,
+        groupId: null,
       },
     });
 
@@ -126,7 +134,10 @@ describe("AddMembersWithSwitch", () => {
       componentProps: {
         ...defaultProps,
         assignAllTeamMembers: true,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: false,
+        automaticAddAllEnabled: true,
+        groupId: null,
       },
       formDefaultValues: {
         assignRRMembersUsingSegment: true,
@@ -144,7 +155,10 @@ describe("AddMembersWithSwitch", () => {
       componentProps: {
         ...defaultProps,
         assignAllTeamMembers: false,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: true,
+        automaticAddAllEnabled: true,
+        groupId: null,
       },
       formDefaultValues: {
         assignRRMembersUsingSegment: true,
@@ -173,8 +187,10 @@ describe("AddMembersWithSwitch", () => {
       componentProps: {
         ...defaultProps,
         assignAllTeamMembers: true,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: true,
         automaticAddAllEnabled: true,
+        groupId: null,
       },
       formDefaultValues: {
         assignRRMembersUsingSegment: false,
