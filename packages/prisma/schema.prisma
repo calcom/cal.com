@@ -373,6 +373,10 @@ model User {
   name                String?
   /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
   email               String
+  /// @zod.string().optional()
+  /// Stores the lowercase domain part of the email (e.g., "example.com" from "user@Example.COM").
+  /// Maintained by database trigger on INSERT/UPDATE of email column.
+  emailDomain         String?              @map("email_domain")
   emailVerified       DateTime?
   password            UserPassword?
   bio                 String?
@@ -492,6 +496,7 @@ model User {
   @@index([emailVerified])
   @@index([identityProvider])
   @@index([identityProviderId])
+  // TODO: Add @@index([emailDomain]) after backfill migration with CREATE INDEX CONCURRENTLY
   @@map(name: "users")
 }
 
@@ -2105,9 +2110,13 @@ model SecondaryEmail {
   user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId             Int
   email              String
+  /// Stores the lowercase domain part of the email (e.g., "example.com" from "user@Example.COM").
+  /// Maintained by database trigger on INSERT/UPDATE of email column.
+  emailDomain        String?             @map("email_domain")
   emailVerified      DateTime?
   verificationTokens VerificationToken[]
   eventTypes         EventType[]
+  // TODO: Add @@index([emailDomain]) after backfill migration with CREATE INDEX CONCURRENTLY
 
   @@unique([email])
   @@unique([userId, email])
