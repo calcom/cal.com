@@ -1,66 +1,129 @@
 import { Ionicons } from "@expo/vector-icons";
-import { GlassView } from "expo-glass-effect";
-import { useRouter, useLocalSearchParams, Stack } from "expo-router";
-import React, { useState, useEffect } from "react";
+import * as Clipboard from "expo-clipboard";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Switch,
-  Modal,
-  Linking,
   Alert,
-  Clipboard,
   Animated,
-  Image,
+  Modal,
   Platform,
+  ScrollView,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
-import { getAppIconUrl } from "../utils/getAppIconUrl";
+import { AppPressable } from "@/components/AppPressable";
+import { AdvancedTab } from "@/components/event-type-detail/tabs/AdvancedTab";
+import { AvailabilityTab } from "@/components/event-type-detail/tabs/AvailabilityTab";
+import { BasicsTab } from "@/components/event-type-detail/tabs/BasicsTab";
+import { LimitsTab } from "@/components/event-type-detail/tabs/LimitsTab";
+import { RecurringTab } from "@/components/event-type-detail/tabs/RecurringTab";
+import { truncateTitle } from "@/components/event-type-detail/utils";
+import { buildPartialUpdatePayload } from "@/components/event-type-detail/utils/buildPartialUpdatePayload";
 import {
-  defaultLocations,
-  getDefaultLocationIconUrl,
-  isDefaultLocation,
-  DefaultLocationType,
-} from "../utils/defaultLocations";
-import { SvgImage } from "../components/SvgImage";
+  CalComAPIService,
+  type ConferencingOption,
+  type EventType,
+  type Schedule,
+} from "@/services/calcom";
+import type { LocationItem, LocationOptionGroup } from "@/types/locations";
+import { showErrorAlert } from "@/utils/alerts";
+import { openInAppBrowser } from "@/utils/browser";
 import {
-  parseBufferTime,
-  parseMinimumNotice,
-  parseFrequencyUnit,
-  parseSlotInterval,
-} from "../utils/parsers/event-type-parsers";
-import { slugify } from "../utils/slugify";
-import { BasicsTab } from "./event-type-detail/tabs/BasicsTab";
-import { AvailabilityTab } from "./event-type-detail/tabs/AvailabilityTab";
-import { LimitsTab } from "./event-type-detail/tabs/LimitsTab";
-import { AdvancedTab } from "./event-type-detail/tabs/AdvancedTab";
-import { RecurringTab } from "./event-type-detail/tabs/RecurringTab";
+  buildLocationOptions,
+  mapApiLocationToItem,
+  mapItemToApiLocation,
+  validateLocationItem,
+} from "@/utils/locationHelpers";
+import { safeLogError } from "@/utils/safeLogger";
 
-const tabs = [
+// Type definitions for extended EventType fields not in the base type
+interface EventTypeExtended {
+  lengthInMinutesOptions?: number[];
+  disableCancelling?: boolean;
+  disableRescheduling?: boolean;
+  sendCalVideoTranscription?: boolean;
+  autoTranslate?: boolean;
+  lockedTimeZone?: string;
+  hideCalendarEventDetails?: boolean;
+  hideOrganizerEmail?: boolean;
+  color?: {
+    lightThemeHex?: string;
+    darkThemeHex?: string;
+  };
+}
+
+interface BookerActiveBookingsLimitExtended {
+  disabled?: boolean;
+  maximumActiveBookings?: number;
+  count?: number;
+  offerReschedule?: boolean;
+}
+
+interface ConfirmationPolicyExtended {
+  disabled?: boolean;
+}
+
+interface RecurrenceExtended {
+  disabled?: boolean;
+  interval?: number;
+  frequency?: string;
+  occurrences?: number;
+}
+
+interface SeatsExtended {
+  disabled?: boolean;
+  seatsPerTimeSlot?: number;
+  showAttendeeInfo?: boolean;
+  showAvailabilityCount?: boolean;
+}
+
+interface ApiLocation {
+  type: string;
+  integration?: string;
+  address?: string;
+  link?: string;
+  phone?: string;
+  public?: boolean;
+}
+
+interface CreateEventTypePayload {
+  title: string;
+  slug: string;
+  lengthInMinutes: number;
+  description?: string;
+  locations?: ReturnType<typeof mapItemToApiLocation>[];
+  scheduleId?: number;
+  hidden?: boolean;
+}
+
+type TabIconName = "link" | "calendar" | "time" | "settings" | "refresh" | "ellipsis-horizontal";
+
+interface Tab {
+  id: string;
+  label: string;
+  icon: TabIconName;
+}
+
+const tabs: Tab[] = [
   { id: "basics", label: "Basics", icon: "link" },
   { id: "availability", label: "Availability", icon: "calendar" },
   { id: "limits", label: "Limits", icon: "time" },
   { id: "advanced", label: "Advanced", icon: "settings" },
   { id: "recurring", label: "Recurring", icon: "refresh" },
-  { id: "apps", label: "Apps", icon: "grid" },
-  { id: "workflows", label: "Workflows", icon: "flash" },
-  { id: "webhooks", label: "Webhooks", icon: "code" },
+  { id: "other", label: "Other", icon: "ellipsis-horizontal" },
 ];
 
 export default function EventTypeDetail() {
   const router = useRouter();
-  const { id, title, description, duration, price, currency, slug } = useLocalSearchParams<{
+  const { id, title, description, duration, slug } = useLocalSearchParams<{
     id: string;
     title: string;
     description?: string;
     duration: string;
-    price?: string;
-    currency?: string;
     slug?: string;
   }>();
 
@@ -74,11 +137,10 @@ export default function EventTypeDetail() {
   const [eventDuration, setEventDuration] = useState(duration || "30");
   const [username, setUsername] = useState("username");
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState("");
-  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
-  const [locationAddress, setLocationAddress] = useState("");
-  const [locationLink, setLocationLink] = useState("");
-  const [locationPhone, setLocationPhone] = useState("");
+  const [locations, setLocations] = useState<LocationItem[]>([]);
+  const [_locationAddress, setLocationAddress] = useState("");
+  const [_locationLink, setLocationLink] = useState("");
+  const [_locationPhone, setLocationPhone] = useState("");
   const [selectedDurations, setSelectedDurations] = useState<string[]>([]);
   const [defaultDuration, setDefaultDuration] = useState("");
   const [showDurationDropdown, setShowDurationDropdown] = useState(false);
@@ -116,14 +178,13 @@ export default function EventTypeDetail() {
   const [onlyShowFirstAvailableSlot, setOnlyShowFirstAvailableSlot] = useState(false);
   const [maxActiveBookingsPerBooker, setMaxActiveBookingsPerBooker] = useState(false);
   const [maxActiveBookingsValue, setMaxActiveBookingsValue] = useState("1");
+  const [offerReschedule, setOfferReschedule] = useState(false);
   const [limitFutureBookings, setLimitFutureBookings] = useState(false);
   const [futureBookingType, setFutureBookingType] = useState<"rolling" | "range">("rolling");
   const [rollingDays, setRollingDays] = useState("30");
   const [rollingCalendarDays, setRollingCalendarDays] = useState(false);
   const [rangeStartDate, setRangeStartDate] = useState("");
   const [rangeEndDate, setRangeEndDate] = useState("");
-  const [offsetStartTimes, setOffsetStartTimes] = useState(false);
-  const [offsetStartValue, setOffsetStartValue] = useState("0");
 
   // Advanced tab state
   const [calendarEventName, setCalendarEventName] = useState("");
@@ -142,19 +203,26 @@ export default function EventTypeDetail() {
   const [forwardParamsSuccessRedirect, setForwardParamsSuccessRedirect] = useState(false);
   const [hideOrganizerEmail, setHideOrganizerEmail] = useState(false);
   const [lockTimezone, setLockTimezone] = useState(false);
+  const [lockedTimezone, setLockedTimezone] = useState("Europe/London");
   const [allowReschedulingPastEvents, setAllowReschedulingPastEvents] = useState(false);
   const [allowBookingThroughRescheduleLink, setAllowBookingThroughRescheduleLink] = useState(false);
+  const [disableGuests, setDisableGuests] = useState(false);
   const [customReplyToEmail, setCustomReplyToEmail] = useState("");
   const [eventTypeColorLight, setEventTypeColorLight] = useState("#292929");
   const [eventTypeColorDark, setEventTypeColorDark] = useState("#FAFAFA");
 
-  // Recurring tab state
+  const [seatsEnabled, setSeatsEnabled] = useState(false);
+  const [seatsPerTimeSlot, setSeatsPerTimeSlot] = useState("2");
+  const [showAttendeeInfo, setShowAttendeeInfo] = useState(false);
+  const [showAvailabilityCount, setShowAvailabilityCount] = useState(true);
+
   const [recurringEnabled, setRecurringEnabled] = useState(false);
   const [recurringInterval, setRecurringInterval] = useState("1");
-  const [recurringFrequency, setRecurringFrequency] = useState<
-    "daily" | "weekly" | "monthly" | "yearly"
-  >("weekly");
+  const [recurringFrequency, setRecurringFrequency] = useState<"weekly" | "monthly" | "yearly">(
+    "weekly"
+  );
   const [recurringOccurrences, setRecurringOccurrences] = useState("12");
+  const [showRecurringFrequencyDropdown, setShowRecurringFrequencyDropdown] = useState(false);
 
   const bufferTimeOptions = [
     "No buffer time",
@@ -208,186 +276,26 @@ export default function EventTypeDetail() {
     "480 mins",
   ];
 
-  const formatDuration = (minutes: string) => {
-    const mins = parseInt(minutes) || 0;
-    if (mins < 60) return `${mins}m`;
-    const hours = Math.floor(mins / 60);
-    const remainingMins = mins % 60;
-    return remainingMins > 0 ? `${hours}h ${remainingMins}m` : `${hours}h`;
-  };
-
-  const truncateTitle = (text: string, maxLength: number = 20) => {
-    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
-  };
-
-  const formatAppIdToDisplayName = (appId: string): string => {
-    // Convert appId like "google-meet" to "Google Meet"
-    return appId
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
-
-  const displayNameToLocationValue = (
-    displayName: string
-  ): {
-    type: string;
-    integration?: string;
-    address?: string;
-    link?: string;
-    phone?: string;
-    public?: boolean;
-  } | null => {
-    // First check if it's a default location
-    const defaultLocation = defaultLocations.find((loc) => loc.label === displayName);
-    if (defaultLocation) {
-      // Map internal location types to API location types
-      switch (defaultLocation.type) {
-        case "attendeeInPerson":
-          return { type: "attendeeAddress" };
-        case "inPerson":
-          // For organizer address, we need to preserve existing address if available
-          // or use empty string (will be filled by organizer later)
-          return { type: "address", address: "", public: true };
-        case "link":
-          // For link meeting, we need to preserve existing link if available
-          // or use empty string (will be filled by organizer later)
-          return { type: "link", link: "", public: true };
-        case "phone":
-          return { type: "attendeePhone" };
-        case "userPhone":
-          // For organizer phone, we need to preserve existing phone if available
-          // or use empty string (will be filled by organizer later)
-          return { type: "phone", phone: "", public: true };
-        case "somewhereElse":
-          return { type: "attendeeDefined" };
-        default:
-          return { type: defaultLocation.type };
-      }
-    }
-
-    // Otherwise, find matching conferencing option
-    const option = conferencingOptions.find(
-      (opt) => formatAppIdToDisplayName(opt.appId) === displayName
+  const getLocationOptionsForDropdown = (): LocationOptionGroup[] => {
+    // Filter out conferencing options with null appId
+    const validOptions = conferencingOptions.filter(
+      (opt): opt is ConferencingOption & { appId: string } => opt.appId !== null
     );
-    if (option) {
-      return { type: "integration", integration: option.appId, public: true };
-    }
-
-    return null;
+    return buildLocationOptions(validOptions);
   };
 
-  const displayNameToAppId = (displayName: string): string | null => {
-    // Legacy function for backward compatibility - only for conferencing apps
-    const option = conferencingOptions.find(
-      (opt) => formatAppIdToDisplayName(opt.appId) === displayName
-    );
-    return option ? option.appId : null;
+  const handleAddLocation = (location: LocationItem) => {
+    setLocations((prev) => [...prev, location]);
   };
 
-  type LocationOption = { label: string; iconUrl: string | null; value: string };
-  type LocationGroup = { category: string; options: LocationOption[] };
-
-  const getLocationOptions = (): LocationGroup[] => {
-    // Group conferencing apps under "conferencing" category
-    const conferencingAppOptions: LocationOption[] = conferencingOptions.map((option) => {
-      const iconUrl = getAppIconUrl(option.type, option.appId);
-      return {
-        label: formatAppIdToDisplayName(option.appId),
-        iconUrl: iconUrl,
-        value: `integrations:${option.appId}`,
-      };
-    });
-
-    // Group default locations by their category
-    const defaultLocationOptions: LocationOption[] = defaultLocations.map((location) => ({
-      label: location.label,
-      iconUrl: location.iconUrl,
-      value: location.type,
-    }));
-
-    // Group options by category
-    const grouped: Record<string, LocationOption[]> = {};
-
-    // Add conferencing apps
-    if (conferencingAppOptions.length > 0) {
-      grouped["conferencing"] = conferencingAppOptions;
-    }
-
-    // Add default locations by category
-    defaultLocations.forEach((location) => {
-      const category = location.category;
-      if (!grouped[category]) {
-        grouped[category] = [];
-      }
-      const option = defaultLocationOptions.find((opt) => opt.value === location.type);
-      if (option) {
-        grouped[category].push(option);
-      }
-    });
-
-    // Convert to array format with category labels
-    const categoryLabels: Record<string, string> = {
-      conferencing: "Conferencing",
-      "in person": "In Person",
-      phone: "Phone",
-      other: "Other",
-    };
-
-    const result: LocationGroup[] = [];
-    for (const category in grouped) {
-      if (grouped[category].length > 0) {
-        result.push({
-          category: categoryLabels[category] || category,
-          options: grouped[category],
-        });
-      }
-    }
-
-    console.log(
-      "Total location groups:",
-      result.length,
-      result.map((g) => `${g.category}: ${g.options.length}`)
-    );
-    return result;
+  const handleRemoveLocation = (locationId: string) => {
+    setLocations((prev) => prev.filter((loc) => loc.id !== locationId));
   };
 
-  const getSelectedLocationIconUrl = (): string | null => {
-    if (!selectedLocation) return null;
-
-    // First, check if it's a default location
-    const defaultLocation = defaultLocations.find((loc) => loc.label === selectedLocation);
-    if (defaultLocation) {
-      return defaultLocation.iconUrl;
-    }
-
-    // Try to find in conferencing options
-    const option = conferencingOptions.find(
-      (opt) => formatAppIdToDisplayName(opt.appId) === selectedLocation
+  const handleUpdateLocation = (locationId: string, updates: Partial<LocationItem>) => {
+    setLocations((prev) =>
+      prev.map((loc) => (loc.id === locationId ? { ...loc, ...updates } : loc))
     );
-    if (option) {
-      return getAppIconUrl(option.type, option.appId);
-    }
-
-    // Fallback: Handle Cal Video directly (it might not be in conferencing options as it's a global app)
-    // Check if selectedLocation matches Cal Video display names
-    const calVideoNames = ["Cal Video", "Cal-Video", "cal-video"];
-    if (
-      calVideoNames.includes(selectedLocation) ||
-      selectedLocation.toLowerCase().includes("cal video")
-    ) {
-      return getAppIconUrl("daily_video", "cal-video");
-    }
-
-    // Fallback: Try to reverse the formatAppIdToDisplayName to get appId
-    // Convert "Cal Video" back to "cal-video" and try to get icon
-    const reverseAppId = selectedLocation.toLowerCase().replace(/\s+/g, "-");
-    const fallbackIconUrl = getAppIconUrl("", reverseAppId);
-    if (fallbackIconUrl) {
-      return fallbackIconUrl;
-    }
-
-    return null;
   };
 
   const toggleDurationSelection = (duration: string) => {
@@ -453,9 +361,28 @@ export default function EventTypeDetail() {
     );
   };
 
-  const fetchSchedules = async () => {
+  const fetchScheduleDetails = useCallback(async (scheduleId: number) => {
+    setScheduleDetailsLoading(true);
+    let scheduleDetails: Awaited<ReturnType<typeof CalComAPIService.getScheduleById>> | null = null;
     try {
-      setSchedulesLoading(true);
+      scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
+    } catch (error) {
+      safeLogError("Failed to fetch schedule details:", error);
+      setSelectedScheduleDetails(null);
+      setScheduleDetailsLoading(false);
+      return;
+    }
+    setSelectedScheduleDetails(scheduleDetails);
+    const timeZone = scheduleDetails?.timeZone;
+    if (timeZone) {
+      setSelectedTimezone(timeZone);
+    }
+    setScheduleDetailsLoading(false);
+  }, []);
+
+  const fetchSchedules = useCallback(async () => {
+    setSchedulesLoading(true);
+    try {
       const schedulesData = await CalComAPIService.getSchedules();
       setSchedules(schedulesData);
 
@@ -465,360 +392,383 @@ export default function EventTypeDetail() {
         setSelectedSchedule(defaultSchedule);
         await fetchScheduleDetails(defaultSchedule.id);
       }
+      setSchedulesLoading(false);
     } catch (error) {
-      console.error("Failed to fetch schedules:", error);
-    } finally {
+      safeLogError("Failed to fetch schedules:", error);
       setSchedulesLoading(false);
     }
-  };
+  }, [fetchScheduleDetails]);
 
-  const fetchScheduleDetails = async (scheduleId: number) => {
+  const fetchConferencingOptions = useCallback(async () => {
+    setConferencingLoading(true);
     try {
-      setScheduleDetailsLoading(true);
-      console.log("Fetching schedule details for ID:", scheduleId);
-      const scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
-      console.log("Raw schedule details response:", scheduleDetails);
-      setSelectedScheduleDetails(scheduleDetails);
-      if (scheduleDetails.timeZone) {
-        setSelectedTimezone(scheduleDetails.timeZone);
-      }
-    } catch (error) {
-      console.error("Failed to fetch schedule details:", error);
-      setSelectedScheduleDetails(null);
-    } finally {
-      setScheduleDetailsLoading(false);
-    }
-  };
-
-  const fetchConferencingOptions = async () => {
-    try {
-      setConferencingLoading(true);
       const options = await CalComAPIService.getConferencingOptions();
-      console.log("Fetched conferencing options:", JSON.stringify(options, null, 2));
       setConferencingOptions(options);
+      setConferencingLoading(false);
     } catch (error) {
-      console.error("Failed to fetch conferencing options:", error);
-    } finally {
+      safeLogError("Failed to fetch conferencing options:", error);
       setConferencingLoading(false);
     }
-  };
+  }, []);
 
-  const fetchEventTypeData = async () => {
-    if (!id) return;
+  const applyEventTypeData = useCallback((eventType: EventType) => {
+    setEventTypeData(eventType);
 
-    try {
-      const eventType = await CalComAPIService.getEventTypeById(parseInt(id));
-      if (eventType) {
-        setEventTypeData(eventType);
+    // Load basic fields
+    if (eventType.title) setEventTitle(eventType.title);
+    if (eventType.slug) setEventSlug(eventType.slug);
+    if (eventType.description) setEventDescription(eventType.description);
+    if (eventType.lengthInMinutes) setEventDuration(eventType.lengthInMinutes.toString());
+    if (eventType.hidden !== undefined) setIsHidden(eventType.hidden);
 
-        // Load basic fields
-        if (eventType.title) setEventTitle(eventType.title);
-        if (eventType.slug) setEventSlug(eventType.slug);
-        if (eventType.description) setEventDescription(eventType.description);
-        if (eventType.lengthInMinutes) setEventDuration(eventType.lengthInMinutes.toString());
-        if (eventType.hidden !== undefined) setIsHidden(eventType.hidden);
+    const eventTypeExt = eventType as EventType & EventTypeExtended;
+    const lengthOptions = eventTypeExt.lengthInMinutesOptions;
+    const hasLengthOptions =
+      lengthOptions && Array.isArray(lengthOptions) && lengthOptions.length > 0;
+    if (hasLengthOptions) {
+      setAllowMultipleDurations(true);
+      const durationStrings = lengthOptions.map((mins: number) => `${mins} mins`);
+      setSelectedDurations(durationStrings);
+      if (eventType.lengthInMinutes) {
+        setDefaultDuration(`${eventType.lengthInMinutes} mins`);
+      }
+    }
 
-        // Load buffer times
-        if (eventType.beforeEventBuffer) {
-          setBeforeEventBuffer(`${eventType.beforeEventBuffer} Minutes`);
-        }
-        if (eventType.afterEventBuffer) {
-          setAfterEventBuffer(`${eventType.afterEventBuffer} Minutes`);
-        }
+    // Load buffer times
+    if (eventType.beforeEventBuffer) {
+      setBeforeEventBuffer(`${eventType.beforeEventBuffer} Minutes`);
+    }
+    if (eventType.afterEventBuffer) {
+      setAfterEventBuffer(`${eventType.afterEventBuffer} Minutes`);
+    }
 
-        // Load minimum booking notice
-        if (eventType.minimumBookingNotice) {
-          const minutes = eventType.minimumBookingNotice;
-          if (minutes >= 1440) {
-            // Days
-            setMinimumNoticeValue((minutes / 1440).toString());
-            setMinimumNoticeUnit("Days");
-          } else if (minutes >= 60) {
-            // Hours
-            setMinimumNoticeValue((minutes / 60).toString());
-            setMinimumNoticeUnit("Hours");
-          } else {
-            // Minutes
-            setMinimumNoticeValue(minutes.toString());
-            setMinimumNoticeUnit("Minutes");
-          }
-        }
+    // Load minimum booking notice
+    if (eventType.minimumBookingNotice) {
+      const minutes = eventType.minimumBookingNotice;
+      if (minutes >= 1440) {
+        // Days
+        setMinimumNoticeValue((minutes / 1440).toString());
+        setMinimumNoticeUnit("Days");
+      } else if (minutes >= 60) {
+        // Hours
+        setMinimumNoticeValue((minutes / 60).toString());
+        setMinimumNoticeUnit("Hours");
+      } else {
+        // Minutes
+        setMinimumNoticeValue(minutes.toString());
+        setMinimumNoticeUnit("Minutes");
+      }
+    }
 
-        // Load slot interval
-        if (eventType.slotInterval) {
-          setSlotInterval(`${eventType.slotInterval} Minutes`);
-        }
+    // Load slot interval
+    if (eventType.slotInterval) {
+      setSlotInterval(`${eventType.slotInterval} Minutes`);
+    }
 
-        // Load booking frequency limits
-        if (eventType.bookingLimitsCount && !("disabled" in eventType.bookingLimitsCount)) {
-          setLimitBookingFrequency(true);
-          const limits = [];
-          let idCounter = 1;
-          if (eventType.bookingLimitsCount.day) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsCount.day.toString(),
-              unit: "Per day",
-            });
-          }
-          if (eventType.bookingLimitsCount.week) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsCount.week.toString(),
-              unit: "Per week",
-            });
-          }
-          if (eventType.bookingLimitsCount.month) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsCount.month.toString(),
-              unit: "Per month",
-            });
-          }
-          if (eventType.bookingLimitsCount.year) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsCount.year.toString(),
-              unit: "Per year",
-            });
-          }
-          if (limits.length > 0) {
-            setFrequencyLimits(limits);
-          }
-        }
+    // Load booking frequency limits
+    const bookingLimitsCount = eventType.bookingLimitsCount;
+    const hasBookingLimitsCount = bookingLimitsCount && !("disabled" in bookingLimitsCount);
+    if (hasBookingLimitsCount) {
+      setLimitBookingFrequency(true);
+      const limits: { id: number; value: string; unit: string }[] = [];
+      let idCounter = 1;
+      if (bookingLimitsCount.day) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsCount.day.toString(),
+          unit: "Per day",
+        });
+      }
+      if (bookingLimitsCount.week) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsCount.week.toString(),
+          unit: "Per week",
+        });
+      }
+      if (bookingLimitsCount.month) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsCount.month.toString(),
+          unit: "Per month",
+        });
+      }
+      if (bookingLimitsCount.year) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsCount.year.toString(),
+          unit: "Per year",
+        });
+      }
+      if (limits.length > 0) {
+        setFrequencyLimits(limits);
+      }
+    }
 
-        // Load duration limits
-        if (eventType.bookingLimitsDuration && !("disabled" in eventType.bookingLimitsDuration)) {
-          setLimitTotalDuration(true);
-          const limits = [];
-          let idCounter = 1;
-          if (eventType.bookingLimitsDuration.day) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsDuration.day.toString(),
-              unit: "Per day",
-            });
-          }
-          if (eventType.bookingLimitsDuration.week) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsDuration.week.toString(),
-              unit: "Per week",
-            });
-          }
-          if (eventType.bookingLimitsDuration.month) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsDuration.month.toString(),
-              unit: "Per month",
-            });
-          }
-          if (eventType.bookingLimitsDuration.year) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsDuration.year.toString(),
-              unit: "Per year",
-            });
-          }
-          if (limits.length > 0) {
-            setDurationLimits(limits);
-          }
-        }
+    // Load duration limits
+    const bookingLimitsDuration = eventType.bookingLimitsDuration;
+    const hasBookingLimitsDuration =
+      bookingLimitsDuration && !("disabled" in bookingLimitsDuration);
+    if (hasBookingLimitsDuration) {
+      setLimitTotalDuration(true);
+      const limits: { id: number; value: string; unit: string }[] = [];
+      let idCounter = 1;
+      if (bookingLimitsDuration.day) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsDuration.day.toString(),
+          unit: "Per day",
+        });
+      }
+      if (bookingLimitsDuration.week) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsDuration.week.toString(),
+          unit: "Per week",
+        });
+      }
+      if (bookingLimitsDuration.month) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsDuration.month.toString(),
+          unit: "Per month",
+        });
+      }
+      if (bookingLimitsDuration.year) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsDuration.year.toString(),
+          unit: "Per year",
+        });
+      }
+      if (limits.length > 0) {
+        setDurationLimits(limits);
+      }
+    }
 
-        // Load only show first slot
-        if (eventType.onlyShowFirstAvailableSlot !== undefined) {
-          setOnlyShowFirstAvailableSlot(eventType.onlyShowFirstAvailableSlot);
-        }
+    // Load only show first slot
+    if (eventType.onlyShowFirstAvailableSlot !== undefined) {
+      setOnlyShowFirstAvailableSlot(eventType.onlyShowFirstAvailableSlot);
+    }
 
-        // Load max active bookings
-        if (
-          eventType.bookerActiveBookingsLimit &&
-          !("disabled" in eventType.bookerActiveBookingsLimit)
-        ) {
+    if (eventType.bookerActiveBookingsLimit) {
+      const bookingLimit = eventType.bookerActiveBookingsLimit as BookerActiveBookingsLimitExtended;
+      const isBookingLimitEnabled = !("disabled" in bookingLimit);
+      if (isBookingLimitEnabled) {
+        const maxBookings = bookingLimit.maximumActiveBookings ?? bookingLimit.count;
+        if (maxBookings !== undefined) {
           setMaxActiveBookingsPerBooker(true);
-          setMaxActiveBookingsValue(eventType.bookerActiveBookingsLimit.count.toString());
+          setMaxActiveBookingsValue(maxBookings.toString());
         }
-
-        // Load booking window (future bookings limit)
-        if (eventType.bookingWindow && !("disabled" in eventType.bookingWindow)) {
-          setLimitFutureBookings(true);
-          if (eventType.bookingWindow.type === "range") {
-            setFutureBookingType("range");
-            if (
-              Array.isArray(eventType.bookingWindow.value) &&
-              eventType.bookingWindow.value.length === 2
-            ) {
-              setRangeStartDate(eventType.bookingWindow.value[0]);
-              setRangeEndDate(eventType.bookingWindow.value[1]);
-            }
-          } else {
-            setFutureBookingType("rolling");
-            if (typeof eventType.bookingWindow.value === "number") {
-              setRollingDays(eventType.bookingWindow.value.toString());
-            }
-            setRollingCalendarDays(eventType.bookingWindow.type === "calendarDays");
-          }
-        }
-
-        // Load Advanced tab fields
-        if (eventType.metadata) {
-          if (eventType.metadata.calendarEventName) {
-            setCalendarEventName(eventType.metadata.calendarEventName);
-          }
-          if (eventType.metadata.addToCalendarEmail) {
-            setAddToCalendarEmail(eventType.metadata.addToCalendarEmail);
-          }
-          if (eventType.metadata.customReplyToEmail) {
-            setCustomReplyToEmail(eventType.metadata.customReplyToEmail);
-          }
-          if (eventType.metadata.disableCancelling) {
-            setDisableCancelling(true);
-          }
-          if (eventType.metadata.disableRescheduling) {
-            setDisableRescheduling(true);
-          }
-          if (eventType.metadata.sendCalVideoTranscription) {
-            setSendCalVideoTranscription(true);
-          }
-          if (eventType.metadata.autoTranslate) {
-            setAutoTranslate(true);
-          }
-          if (eventType.metadata.hideCalendarEventDetails) {
-            setHideCalendarEventDetails(true);
-          }
-          if (eventType.metadata.hideOrganizerEmail) {
-            setHideOrganizerEmail(true);
-          }
-          if (eventType.metadata.allowReschedulingPastEvents) {
-            setAllowReschedulingPastEvents(true);
-          }
-          if (eventType.metadata.allowBookingThroughRescheduleLink) {
-            setAllowBookingThroughRescheduleLink(true);
-          }
-        }
-
-        // Load booker layouts
-        if (eventType.bookerLayouts) {
-          if (
-            eventType.bookerLayouts.enabledLayouts &&
-            Array.isArray(eventType.bookerLayouts.enabledLayouts)
-          ) {
-            setSelectedLayouts(eventType.bookerLayouts.enabledLayouts);
-          }
-          if (eventType.bookerLayouts.defaultLayout) {
-            setDefaultLayout(eventType.bookerLayouts.defaultLayout);
-          }
-        }
-
-        // Load confirmation settings
-        if (eventType.requiresConfirmation !== undefined) {
-          setRequiresConfirmation(eventType.requiresConfirmation);
-        }
-
-        // Load other boolean fields
-        if (eventType.requiresBookerEmailVerification !== undefined) {
-          setRequiresBookerEmailVerification(eventType.requiresBookerEmailVerification);
-        }
-        if (eventType.hideCalendarNotes !== undefined) {
-          setHideCalendarNotes(eventType.hideCalendarNotes);
-        }
-        if (eventType.lockTimeZoneToggleOnBookingPage !== undefined) {
-          setLockTimezone(eventType.lockTimeZoneToggleOnBookingPage);
-        }
-
-        // Load redirect URL
-        if (eventType.successRedirectUrl) {
-          setSuccessRedirectUrl(eventType.successRedirectUrl);
-          if (eventType.forwardParamsSuccessRedirect !== undefined) {
-            setForwardParamsSuccessRedirect(eventType.forwardParamsSuccessRedirect);
-          }
-        }
-
-        // Load event type colors
-        if (eventType.eventTypeColor) {
-          if (eventType.eventTypeColor.lightEventTypeColor) {
-            setEventTypeColorLight(eventType.eventTypeColor.lightEventTypeColor);
-          }
-          if (eventType.eventTypeColor.darkEventTypeColor) {
-            setEventTypeColorDark(eventType.eventTypeColor.darkEventTypeColor);
-          }
-        }
-
-        // Load recurring event settings
-        if (eventType.recurrence && !("disabled" in eventType.recurrence)) {
-          setRecurringEnabled(true);
-          setRecurringInterval(eventType.recurrence.interval.toString());
-          setRecurringFrequency(eventType.recurrence.frequency);
-          setRecurringOccurrences(eventType.recurrence.occurrences.toString());
-        }
-
-        // Extract location from event type
-        if (eventType.locations && eventType.locations.length > 0) {
-          const firstLocation = eventType.locations[0];
-
-          // Handle conferencing apps (with integration field)
-          if (firstLocation.integration) {
-            // Format the integration name (e.g., "google-meet" -> "Google Meet")
-            const formattedLocation = formatAppIdToDisplayName(firstLocation.integration);
-            setSelectedLocation(formattedLocation);
-          }
-          // Handle default locations (with type field)
-          else if (firstLocation.type) {
-            // Map API location types to internal location types
-            // Need to distinguish between organizer and attendee types based on presence of fields
-            let internalType = firstLocation.type;
-
-            // Check if it's an organizer type (has address, link, or phone field)
-            if (
-              firstLocation.type === "address" ||
-              (firstLocation.type === "phone" && firstLocation.phone)
-            ) {
-              // Organizer types
-              if (firstLocation.type === "address") {
-                internalType = "inPerson"; // Organizer address
-              } else if (firstLocation.type === "phone" && firstLocation.phone) {
-                internalType = "userPhone"; // Organizer phone
-              }
-            } else if (firstLocation.type === "link") {
-              internalType = "link"; // Link meeting
-            } else {
-              // Attendee types - map API types to internal types
-              const apiToInternalTypeMap: Record<string, string> = {
-                attendeeAddress: "attendeeInPerson",
-                attendeePhone: "phone",
-                attendeeDefined: "somewhereElse",
-              };
-
-              if (apiToInternalTypeMap[firstLocation.type]) {
-                internalType = apiToInternalTypeMap[firstLocation.type];
-              }
-            }
-
-            const defaultLocation = defaultLocations.find((loc) => loc.type === internalType);
-            if (defaultLocation) {
-              setSelectedLocation(defaultLocation.label);
-
-              // Populate location input values if they exist
-              if (firstLocation.address) {
-                setLocationAddress(firstLocation.address);
-              }
-              if (firstLocation.link) {
-                setLocationLink(firstLocation.link);
-              }
-              if (firstLocation.phone) {
-                setLocationPhone(firstLocation.phone);
-              }
-            } else {
-              // Fallback: try to format the type as display name
-              setSelectedLocation(firstLocation.type);
-            }
-          }
+        if (bookingLimit.offerReschedule !== undefined) {
+          setOfferReschedule(bookingLimit.offerReschedule);
         }
       }
-    } catch (error) {
-      console.error("Failed to fetch event type data:", error);
     }
-  };
+
+    const bookingWindow = eventType.bookingWindow;
+    const hasBookingWindow = bookingWindow && !("disabled" in bookingWindow);
+    if (hasBookingWindow) {
+      setLimitFutureBookings(true);
+      if (bookingWindow.type === "range") {
+        setFutureBookingType("range");
+        const windowValue = bookingWindow.value;
+        const isValidRange = Array.isArray(windowValue) && windowValue.length === 2;
+        if (isValidRange) {
+          setRangeStartDate(windowValue[0]);
+          setRangeEndDate(windowValue[1]);
+        }
+      } else {
+        setFutureBookingType("rolling");
+        if (typeof bookingWindow.value === "number") {
+          setRollingDays(bookingWindow.value.toString());
+        }
+        setRollingCalendarDays(bookingWindow.type === "calendarDays");
+      }
+    }
+
+    const metadata = eventType.metadata;
+
+    if (eventTypeExt.disableCancelling !== undefined) {
+      setDisableCancelling(eventTypeExt.disableCancelling);
+    } else if (metadata?.disableCancelling) {
+      setDisableCancelling(true);
+    }
+
+    if (eventTypeExt.disableRescheduling !== undefined) {
+      setDisableRescheduling(eventTypeExt.disableRescheduling);
+    } else if (metadata?.disableRescheduling) {
+      setDisableRescheduling(true);
+    }
+
+    if (eventTypeExt.sendCalVideoTranscription !== undefined) {
+      setSendCalVideoTranscription(eventTypeExt.sendCalVideoTranscription);
+    } else if (metadata?.sendCalVideoTranscription) {
+      setSendCalVideoTranscription(true);
+    }
+
+    if (eventTypeExt.autoTranslate !== undefined) {
+      setAutoTranslate(eventTypeExt.autoTranslate);
+    } else if (metadata?.autoTranslate) {
+      setAutoTranslate(true);
+    }
+
+    if (metadata) {
+      const calendarEventNameValue = metadata.calendarEventName;
+      if (typeof calendarEventNameValue === "string") {
+        setCalendarEventName(calendarEventNameValue);
+      }
+      const addToCalendarEmailValue = metadata.addToCalendarEmail;
+      if (typeof addToCalendarEmailValue === "string") {
+        setAddToCalendarEmail(addToCalendarEmailValue);
+      }
+    }
+
+    // Load booker layouts
+    const bookerLayouts = eventType.bookerLayouts;
+    if (bookerLayouts) {
+      const enabledLayouts = bookerLayouts.enabledLayouts;
+      const hasEnabledLayouts = enabledLayouts && Array.isArray(enabledLayouts);
+      if (hasEnabledLayouts) {
+        setSelectedLayouts(enabledLayouts);
+      }
+      if (bookerLayouts.defaultLayout) {
+        setDefaultLayout(bookerLayouts.defaultLayout);
+      }
+    }
+
+    if (eventType.confirmationPolicy) {
+      const policy = eventType.confirmationPolicy as ConfirmationPolicyExtended;
+      const isPolicyEnabled = !("disabled" in policy) || policy.disabled === false;
+      if (isPolicyEnabled) {
+        setRequiresConfirmation(true);
+      }
+    }
+    if (eventType.requiresConfirmation !== undefined) {
+      setRequiresConfirmation(eventType.requiresConfirmation);
+    }
+
+    if (eventType.requiresBookerEmailVerification !== undefined) {
+      setRequiresBookerEmailVerification(eventType.requiresBookerEmailVerification);
+    }
+    if (eventType.hideCalendarNotes !== undefined) {
+      setHideCalendarNotes(eventType.hideCalendarNotes);
+    }
+    if (eventType.lockTimeZoneToggleOnBookingPage !== undefined) {
+      setLockTimezone(eventType.lockTimeZoneToggleOnBookingPage);
+    }
+    if (eventTypeExt.lockedTimeZone) {
+      setLockedTimezone(eventTypeExt.lockedTimeZone);
+    }
+    if (eventTypeExt.hideCalendarEventDetails !== undefined) {
+      setHideCalendarEventDetails(eventTypeExt.hideCalendarEventDetails);
+    }
+    if (eventTypeExt.hideOrganizerEmail !== undefined) {
+      setHideOrganizerEmail(eventTypeExt.hideOrganizerEmail);
+    }
+
+    // Load redirect URL
+    if (eventType.successRedirectUrl) {
+      setSuccessRedirectUrl(eventType.successRedirectUrl);
+    }
+    if (eventType.forwardParamsSuccessRedirect !== undefined) {
+      setForwardParamsSuccessRedirect(eventType.forwardParamsSuccessRedirect);
+    }
+
+    const eventTypeExtColor = eventTypeExt.color;
+    if (eventTypeExtColor) {
+      if (eventTypeExtColor.lightThemeHex) {
+        setEventTypeColorLight(eventTypeExtColor.lightThemeHex);
+      }
+      if (eventTypeExtColor.darkThemeHex) {
+        setEventTypeColorDark(eventTypeExtColor.darkThemeHex);
+      }
+    }
+    const eventTypeColor = eventType.eventTypeColor;
+    if (eventTypeColor) {
+      if (eventTypeColor.lightEventTypeColor) {
+        setEventTypeColorLight(eventTypeColor.lightEventTypeColor);
+      }
+      if (eventTypeColor.darkEventTypeColor) {
+        setEventTypeColorDark(eventTypeColor.darkEventTypeColor);
+      }
+    }
+
+    if (eventType.recurrence) {
+      const recurrence = eventType.recurrence as RecurrenceExtended;
+      const recurrenceInterval = recurrence.interval;
+      const recurrenceFrequency = recurrence.frequency;
+      const isRecurrenceEnabled =
+        recurrence.disabled !== true && recurrenceInterval && recurrenceFrequency;
+      if (isRecurrenceEnabled) {
+        setRecurringEnabled(true);
+        setRecurringInterval(recurrenceInterval.toString());
+        const freq = recurrenceFrequency as "weekly" | "monthly" | "yearly";
+        if (freq === "weekly" || freq === "monthly" || freq === "yearly") {
+          setRecurringFrequency(freq);
+        }
+        const occurrences = recurrence.occurrences;
+        setRecurringOccurrences(occurrences?.toString() || "12");
+      }
+    }
+
+    const locations = eventType.locations;
+    const hasLocations = locations && locations.length > 0;
+    if (hasLocations) {
+      const mappedLocations = locations.map((loc: ApiLocation) => mapApiLocationToItem(loc));
+      setLocations(mappedLocations);
+
+      const firstLocation = locations[0];
+      if (firstLocation.address) {
+        setLocationAddress(firstLocation.address);
+      }
+      if (firstLocation.link) {
+        setLocationLink(firstLocation.link);
+      }
+      if (firstLocation.phone) {
+        setLocationPhone(firstLocation.phone);
+      }
+    }
+
+    if (eventType.disableGuests !== undefined) {
+      setDisableGuests(eventType.disableGuests);
+    }
+
+    if (eventType.seats) {
+      const seats = eventType.seats as SeatsExtended;
+      const seatsAreEnabled =
+        seats.disabled === false || (!("disabled" in seats) && seats.seatsPerTimeSlot);
+
+      if (seatsAreEnabled) {
+        setSeatsEnabled(true);
+        if (seats.seatsPerTimeSlot) {
+          setSeatsPerTimeSlot(seats.seatsPerTimeSlot.toString());
+        }
+        if (seats.showAttendeeInfo !== undefined) {
+          setShowAttendeeInfo(seats.showAttendeeInfo);
+        }
+        if (seats.showAvailabilityCount !== undefined) {
+          setShowAvailabilityCount(seats.showAvailabilityCount);
+        }
+      }
+    }
+  }, []);
+
+  const fetchEventTypeData = useCallback(async () => {
+    if (!id) return;
+
+    let eventType: EventType | null = null;
+    try {
+      eventType = await CalComAPIService.getEventTypeById(parseInt(id, 10));
+    } catch (error) {
+      safeLogError("Failed to fetch event type data:", error);
+      return;
+    }
+
+    if (eventType) {
+      applyEventTypeData(eventType);
+    }
+  }, [id, applyEventTypeData]);
 
   useEffect(() => {
     if (activeTab === "availability") {
@@ -827,13 +777,13 @@ export default function EventTypeDetail() {
     if (activeTab === "basics") {
       fetchConferencingOptions();
     }
-  }, [activeTab]);
+  }, [activeTab, fetchConferencingOptions, fetchSchedules]);
 
   useEffect(() => {
     // Fetch event type data and conferencing options on initial load
     fetchEventTypeData();
     fetchConferencingOptions();
-  }, [id]);
+  }, [fetchConferencingOptions, fetchEventTypeData]);
 
   useEffect(() => {
     const fetchUsername = async () => {
@@ -841,45 +791,48 @@ export default function EventTypeDetail() {
         const userUsername = await CalComAPIService.getUsername();
         setUsername(userUsername);
       } catch (error) {
-        console.error("Failed to fetch username:", error);
+        safeLogError("Failed to fetch username:", error);
       }
     };
     fetchUsername();
   }, []);
 
   const formatTime = (time: string) => {
-    try {
-      // Handle different time formats that might come from the API
-      let date: Date;
+    // Handle different time formats that might come from the API
+    // Extract conditionals outside try/catch for React Compiler
+    const isColonFormat = time.includes(":");
 
-      if (time.includes(":")) {
-        // Format like "09:00" or "09:00:00"
-        const [hours, minutes] = time.split(":").map(Number);
-        date = new Date();
-        date.setHours(hours, minutes || 0, 0, 0);
-      } else {
-        // Other formats
-        date = new Date(time);
-      }
+    let date: Date;
 
-      return date.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-    } catch (error) {
+    if (isColonFormat) {
+      // Format like "09:00" or "09:00:00"
+      const parts = time.split(":").map(Number);
+      const hours = parts[0];
+      const minutes = parts[1] || 0;
+      date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+    } else {
+      // Other formats
+      date = new Date(time);
+    }
+
+    // Check if the date is valid
+    const isValidDate = !Number.isNaN(date.getTime());
+    if (!isValidDate) {
       return time; // Return original if parsing fails
     }
+
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
   };
 
   const getDaySchedule = () => {
     if (!selectedScheduleDetails) {
-      console.log("No selectedScheduleDetails");
       return [];
     }
-
-    console.log("selectedScheduleDetails:", selectedScheduleDetails);
-    console.log("availability:", selectedScheduleDetails.availability);
 
     const daysOfWeek = [
       "Sunday",
@@ -912,8 +865,6 @@ export default function EventTypeDetail() {
         );
       });
 
-      console.log(`${day}: availability found:`, availability);
-
       return {
         day,
         available: !!availability,
@@ -926,33 +877,30 @@ export default function EventTypeDetail() {
   };
 
   const handlePreview = async () => {
+    const eventTypeSlug = eventSlug || "preview";
+    let link: string;
     try {
-      const eventTypeSlug = eventSlug || "preview";
-      const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-
-      const supported = await Linking.canOpenURL(link);
-      if (supported) {
-        await Linking.openURL(link);
-      } else {
-        Alert.alert("Error", "Cannot open this URL on your device.");
-      }
+      link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
     } catch (error) {
-      console.error("Failed to generate preview link:", error);
-      Alert.alert("Error", "Failed to generate preview link. Please try again.");
+      safeLogError("Failed to generate preview link:", error);
+      showErrorAlert("Error", "Failed to generate preview link. Please try again.");
+      return;
     }
+    await openInAppBrowser(link, "event type preview");
   };
 
   const handleCopyLink = async () => {
+    const eventTypeSlug = eventSlug || "event-link";
+    let link: string;
     try {
-      const eventTypeSlug = eventSlug || "event-link";
-      const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-
-      Clipboard.setString(link);
-      Alert.alert("Success", "Link copied!");
+      link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
     } catch (error) {
-      console.error("Failed to copy link:", error);
-      Alert.alert("Error", "Failed to copy link. Please try again.");
+      safeLogError("Failed to copy link:", error);
+      showErrorAlert("Error", "Failed to copy link. Please try again.");
+      return;
     }
+    await Clipboard.setStringAsync(link);
+    Alert.alert("Success", "Link copied!");
   };
 
   const handleDelete = () => {
@@ -962,30 +910,25 @@ export default function EventTypeDetail() {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
+          const eventTypeId = parseInt(id, 10);
+
+          if (Number.isNaN(eventTypeId)) {
+            showErrorAlert("Error", "Invalid event type ID");
+            return;
+          }
+
           try {
-            console.log("Attempting to delete event type with ID:", id);
-            const eventTypeId = parseInt(id);
-
-            if (isNaN(eventTypeId)) {
-              throw new Error("Invalid event type ID");
-            }
-
             await CalComAPIService.deleteEventType(eventTypeId);
-            console.log("Event type deleted successfully");
 
             Alert.alert("Success", "Event type deleted successfully", [
               {
                 text: "OK",
-                onPress: () => {
-                  console.log("Navigating back after successful deletion");
-                  router.back();
-                },
+                onPress: () => router.back(),
               },
             ]);
           } catch (error) {
-            console.error("Failed to delete event type:", error);
-            const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-            Alert.alert("Error", `Failed to delete event type: ${errorMessage}`);
+            safeLogError("Failed to delete event type:", error);
+            showErrorAlert("Error", "Failed to delete event type. Please try again.");
           }
         },
       },
@@ -1004,371 +947,318 @@ export default function EventTypeDetail() {
       return;
     }
 
-    const durationNum = parseInt(eventDuration);
-    if (isNaN(durationNum) || durationNum <= 0) {
+    const durationNum = parseInt(eventDuration, 10);
+    if (Number.isNaN(durationNum) || durationNum <= 0) {
       Alert.alert("Error", "Duration must be a positive number");
       return;
     }
 
-    try {
-      setSaving(true);
-
-      // Build location payload if a location is selected
-      let locationsPayload:
-        | Array<{
-            type: string;
-            integration?: string;
-            address?: string;
-            link?: string;
-            phone?: string;
-            public?: boolean;
-          }>
-        | undefined;
-
-      if (selectedLocation) {
-        const locationValue = displayNameToLocationValue(selectedLocation);
-        if (!locationValue) {
-          Alert.alert("Error", "Invalid location selected");
-          setSaving(false);
+    // Validate locations before saving
+    if (locations.length > 0) {
+      for (const loc of locations) {
+        const validation = validateLocationItem(loc);
+        if (!validation.valid) {
+          Alert.alert("Error", validation.error || "Invalid location");
           return;
         }
-
-        // Get existing location data to preserve values (address, link, phone)
-        const existingLocation = eventTypeData?.locations?.[0];
-
-        // Build location payload based on type
-        const locationPayload: {
-          type: string;
-          integration?: string;
-          address?: string;
-          link?: string;
-          phone?: string;
-          public?: boolean;
-        } = {
-          type: locationValue.type,
-        };
-
-        // Add type-specific fields based on location type
-        if (locationValue.type === "integration") {
-          locationPayload.integration = locationValue.integration;
-          locationPayload.public = locationValue.public ?? true;
-        } else if (locationValue.type === "address") {
-          locationPayload.address = locationAddress || existingLocation?.address || "";
-          locationPayload.public = true;
-        } else if (locationValue.type === "link") {
-          locationPayload.link = locationLink || existingLocation?.link || "";
-          locationPayload.public = true;
-        } else if (locationValue.type === "phone") {
-          locationPayload.phone = locationPhone || existingLocation?.phone || "";
-          locationPayload.public = true;
-        }
-
-        locationsPayload = [locationPayload];
       }
+    }
 
-      // Build the payload with all fields
-      const payload: any = {
+    // Detect create vs update mode
+    const isCreateMode = id === "new";
+
+    // Extract values with optional chaining outside try/catch for React Compiler
+    const selectedScheduleId = selectedSchedule?.id;
+
+    setSaving(true);
+
+    if (isCreateMode) {
+      // For CREATE mode, build full payload
+      const payload: CreateEventTypePayload = {
         title: eventTitle,
         slug: eventSlug,
         lengthInMinutes: durationNum,
       };
 
-      // Add optional fields if they have values
       if (eventDescription) {
         payload.description = eventDescription;
       }
 
-      if (locationsPayload) {
-        payload.locations = locationsPayload;
+      if (locations.length > 0) {
+        payload.locations = locations.map((loc) => mapItemToApiLocation(loc));
       }
 
-      if (selectedSchedule) {
-        payload.scheduleId = selectedSchedule.id;
+      if (selectedScheduleId !== undefined) {
+        payload.scheduleId = selectedScheduleId;
       }
 
-      if (isHidden !== undefined) {
-        payload.hidden = isHidden;
+      payload.hidden = isHidden;
+
+      // Create new event type
+      try {
+        await CalComAPIService.createEventType(payload);
+      } catch (error) {
+        safeLogError("Failed to save event type:", error);
+        showErrorAlert("Error", "Failed to create event type. Please try again.");
+        setSaving(false);
+        return;
       }
+      Alert.alert("Success", "Event type created successfully", [
+        {
+          text: "OK",
+          onPress: () => router.back(),
+        },
+      ]);
+      setSaving(false);
+    } else {
+      // For UPDATE mode, use partial update - only send changed fields
+      const currentFormState = {
+        // Basics
+        eventTitle,
+        eventSlug,
+        eventDescription,
+        eventDuration,
+        isHidden,
+        locations,
+        disableGuests,
 
-      // Add buffer times if set
-      if (beforeEventBuffer && beforeEventBuffer !== "No buffer time") {
-        const bufferMinutes = parseBufferTime(beforeEventBuffer);
-        if (bufferMinutes > 0) {
-          payload.beforeEventBuffer = bufferMinutes;
-        }
-      }
+        // Multiple durations
+        allowMultipleDurations,
+        selectedDurations,
+        defaultDuration,
 
-      if (afterEventBuffer && afterEventBuffer !== "No buffer time") {
-        const bufferMinutes = parseBufferTime(afterEventBuffer);
-        if (bufferMinutes > 0) {
-          payload.afterEventBuffer = bufferMinutes;
-        }
-      }
+        // Availability
+        selectedScheduleId,
 
-      // Add minimum booking notice
-      if (minimumNoticeValue && minimumNoticeUnit) {
-        const noticeMinutes = parseMinimumNotice(minimumNoticeValue, minimumNoticeUnit);
-        if (noticeMinutes > 0) {
-          payload.minimumBookingNotice = noticeMinutes;
-        }
-      }
+        // Limits
+        beforeEventBuffer,
+        afterEventBuffer,
+        minimumNoticeValue,
+        minimumNoticeUnit,
+        slotInterval,
+        limitBookingFrequency,
+        frequencyLimits,
+        limitTotalDuration,
+        durationLimits,
+        onlyShowFirstAvailableSlot,
+        maxActiveBookingsPerBooker,
+        maxActiveBookingsValue,
+        offerReschedule,
+        limitFutureBookings,
+        futureBookingType,
+        rollingDays,
+        rollingCalendarDays,
+        rangeStartDate,
+        rangeEndDate,
 
-      // Add booking limits if enabled
-      if (limitBookingFrequency && frequencyLimits.length > 0) {
-        const limitsCount: any = {};
-        frequencyLimits.forEach((limit) => {
-          const unit = parseFrequencyUnit(limit.unit);
-          if (unit) {
-            limitsCount[unit] = parseInt(limit.value) || 1;
-          }
-        });
-        if (Object.keys(limitsCount).length > 0) {
-          payload.bookingLimitsCount = limitsCount;
-        }
-      }
-
-      if (limitTotalDuration && durationLimits.length > 0) {
-        const limitsDuration: any = {};
-        durationLimits.forEach((limit) => {
-          const unit = parseFrequencyUnit(limit.unit);
-          if (unit) {
-            limitsDuration[unit] = parseInt(limit.value) || 60;
-          }
-        });
-        if (Object.keys(limitsDuration).length > 0) {
-          payload.bookingLimitsDuration = limitsDuration;
-        }
-      }
-
-      // Add slot interval if not default
-      if (slotInterval && slotInterval !== "Default") {
-        const intervalMinutes = parseSlotInterval(slotInterval);
-        if (intervalMinutes > 0) {
-          payload.slotInterval = intervalMinutes;
-        }
-      }
-
-      // Add other boolean flags
-      if (onlyShowFirstAvailableSlot) {
-        payload.onlyShowFirstAvailableSlot = true;
-      }
-
-      if (maxActiveBookingsPerBooker && maxActiveBookingsValue) {
-        const count = parseInt(maxActiveBookingsValue);
-        if (count > 0) {
-          payload.bookerActiveBookingsLimit = { count };
-        }
-      }
-
-      // Add booking window (future bookings limit)
-      if (limitFutureBookings) {
-        if (futureBookingType === "range") {
-          payload.bookingWindow = {
-            type: "range",
-            value: [rangeStartDate, rangeEndDate],
-          };
-        } else {
-          payload.bookingWindow = {
-            type: rollingCalendarDays ? "calendarDays" : "businessDays",
-            value: parseInt(rollingDays),
-            rolling: true,
-          };
-        }
-      } else {
-        payload.bookingWindow = { disabled: true };
-      }
-
-      // Add Advanced tab fields
-      if (calendarEventName) {
-        payload.metadata = payload.metadata || {};
-        payload.metadata.calendarEventName = calendarEventName;
-      }
-
-      if (addToCalendarEmail) {
-        payload.metadata = payload.metadata || {};
-        payload.metadata.addToCalendarEmail = addToCalendarEmail;
-      }
-
-      // Booker layouts
-      if (selectedLayouts.length > 0) {
-        payload.bookerLayouts = {
-          enabledLayouts: selectedLayouts,
-          defaultLayout: defaultLayout,
-        };
-      }
-
-      // Confirmation policy
-      payload.requiresConfirmation = requiresConfirmation;
-
-      // Boolean flags - always set the actual boolean value so toggling off works
-      payload.metadata = {
-        ...(payload.metadata || {}),
+        // Advanced
+        requiresConfirmation,
+        requiresBookerEmailVerification,
+        hideCalendarNotes,
+        hideCalendarEventDetails,
+        hideOrganizerEmail,
+        lockTimezone,
+        allowReschedulingPastEvents,
+        allowBookingThroughRescheduleLink,
+        successRedirectUrl,
+        forwardParamsSuccessRedirect,
+        customReplyToEmail,
+        eventTypeColorLight,
+        eventTypeColorDark,
+        calendarEventName,
+        addToCalendarEmail,
+        selectedLayouts,
+        defaultLayout,
         disableCancelling,
         disableRescheduling,
         sendCalVideoTranscription,
         autoTranslate,
-        hideCalendarEventDetails,
-        hideOrganizerEmail,
-        allowReschedulingPastEvents,
-        allowBookingThroughRescheduleLink,
+
+        // Seats
+        seatsEnabled,
+        seatsPerTimeSlot,
+        showAttendeeInfo,
+        showAvailabilityCount,
+
+        // Recurring
+        recurringEnabled,
+        recurringInterval,
+        recurringFrequency,
+        recurringOccurrences,
       };
-      payload.requiresBookerEmailVerification = requiresBookerEmailVerification;
-      payload.hideCalendarNotes = hideCalendarNotes;
-      payload.lockTimeZoneToggleOnBookingPage = lockTimezone;
 
-      // Redirect URL
-      if (successRedirectUrl) {
-        payload.successRedirectUrl = successRedirectUrl;
-        if (forwardParamsSuccessRedirect) {
-          payload.forwardParamsSuccessRedirect = true;
-        }
+      // Build partial payload with only changed fields
+      const payload = buildPartialUpdatePayload(currentFormState, eventTypeData);
+
+      if (Object.keys(payload).length === 0) {
+        Alert.alert("No Changes", "No changes were made to the event type.");
+        setSaving(false);
+        return;
       }
 
-      // Custom reply-to email
-      if (customReplyToEmail) {
-        payload.metadata = payload.metadata || {};
-        payload.metadata.customReplyToEmail = customReplyToEmail;
+      try {
+        await CalComAPIService.updateEventType(parseInt(id, 10), payload);
+      } catch (error) {
+        safeLogError("Failed to save event type:", error);
+        showErrorAlert("Error", "Failed to update event type. Please try again.");
+        setSaving(false);
+        return;
       }
-
-      // Event type colors
-      if (eventTypeColorLight || eventTypeColorDark) {
-        payload.eventTypeColor = {
-          lightEventTypeColor: eventTypeColorLight,
-          darkEventTypeColor: eventTypeColorDark,
-        };
-      }
-
-      // Recurring event
-      if (recurringEnabled) {
-        payload.recurrence = {
-          interval: parseInt(recurringInterval) || 1,
-          occurrences: parseInt(recurringOccurrences) || 12,
-          frequency: recurringFrequency,
-        };
-      } else {
-        payload.recurrence = { disabled: true };
-      }
-
-      // Detect create vs update mode
-      const isCreateMode = id === "new";
-
-      if (isCreateMode) {
-        // Create new event type
-        const newEventType = await CalComAPIService.createEventType(payload);
-        Alert.alert("Success", "Event type created successfully", [
-          {
-            text: "OK",
-            onPress: () => router.back(),
-          },
-        ]);
-      } else {
-        // Update existing event type
-        await CalComAPIService.updateEventType(parseInt(id), payload);
-        Alert.alert("Success", "Event type updated successfully");
-        // Refresh event type data
-        await fetchEventTypeData();
-      }
-    } catch (error) {
-      console.error("Failed to save event type:", error);
-      const action = id === "new" ? "create" : "update";
-      Alert.alert("Error", `Failed to ${action} event type. Please try again.`);
-    } finally {
+      Alert.alert("Success", "Event type updated successfully");
+      // Refresh event type data to sync with server
+      await fetchEventTypeData();
       setSaving(false);
     }
   };
 
+  const headerTitle = id === "new" ? "Create Event Type" : truncateTitle(title);
+  const saveButtonText = id === "new" ? "Create" : "Save";
+
+  const renderHeaderLeft = () => (
+    <AppPressable onPress={() => router.back()} className="px-2 py-2">
+      <Ionicons name="close" size={24} color="#007AFF" />
+    </AppPressable>
+  );
+
+  const renderHeaderRight = () => (
+    <AppPressable
+      onPress={handleSave}
+      disabled={saving}
+      className={`px-2 py-2 ${saving ? "opacity-50" : ""}`}
+    >
+      <Text className="text-[16px] font-semibold text-[#007AFF]">{saveButtonText}</Text>
+    </AppPressable>
+  );
+
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <View className="flex-1 bg-[#f8f9fa]">
-        {/* Glass Header */}
-        <GlassView
-          style={[
-            {
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 1000,
-              paddingHorizontal: Platform.OS === "web" ? 16 : 8,
-              paddingBottom: 12,
-              paddingTop: insets.top + 8,
-            },
-          ]}
-          glassEffectStyle="clear"
-        >
-          <View className="min-h-[44px] flex-row items-center justify-between">
-            <TouchableOpacity
-              className="h-10 w-10 items-start justify-center"
-              onPress={() => router.back()}
-            >
-              <Ionicons name="chevron-back" size={24} color="#000" />
-            </TouchableOpacity>
+      <Stack.Screen
+        options={{
+          title: headerTitle,
+          headerBackButtonDisplayMode: "minimal",
+          headerLeft:
+            Platform.OS === "android" || Platform.OS === "web" ? renderHeaderLeft : undefined,
+          headerRight:
+            Platform.OS === "android" || Platform.OS === "web" ? renderHeaderRight : undefined,
+          headerShown: Platform.OS !== "ios",
+        }}
+      />
 
-            <Text
-              className="mx-2.5 flex-1 text-center text-lg font-semibold text-black"
-              numberOfLines={1}
-            >
-              {id === "new" ? "Create Event Type" : truncateTitle(title)}
-            </Text>
+      {Platform.OS === "ios" && (
+        <Stack.Header>
+          <Stack.Header.Left>
+            <Stack.Header.Button onPress={() => router.back()}>
+              <Stack.Header.Icon sf="xmark" />
+            </Stack.Header.Button>
+          </Stack.Header.Left>
 
-            <TouchableOpacity
-              className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${saving ? "opacity-60" : ""}`}
+          <Stack.Header.Title>{headerTitle}</Stack.Header.Title>
+
+          <Stack.Header.Right>
+            <Stack.Header.Button
               onPress={handleSave}
               disabled={saving}
+              variant="prominent"
+              tintColor="#000"
             >
-              <Text className="text-base font-semibold text-white">
-                {id === "new" ? "Create" : "Save"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </GlassView>
+              {saveButtonText}
+            </Stack.Header.Button>
+          </Stack.Header.Right>
+        </Stack.Header>
+      )}
 
+      <View className="flex-1 bg-[#f8f9fa]">
         {/* Tabs */}
-        <View
-          className="absolute left-0 right-0 top-0 z-[999] border-b border-[#C6C6C8] bg-white pb-2"
-          style={{ paddingTop: insets.top + 70 }}
-        >
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 12, gap: 2 }}
+        {isLiquidGlassAvailable() ? (
+          <GlassView
+            glassEffectStyle="regular"
+            style={{
+              paddingTop: 12,
+              paddingBottom: 12,
+            }}
           >
-            {tabs.map((tab) => (
-              <TouchableOpacity
-                key={tab.id}
-                className={`min-w-[80px] items-center rounded-[20px] px-2 py-2 md:px-4 ${
-                  activeTab === tab.id ? "bg-[#EEEFF2]" : ""
-                }`}
-                onPress={() => setActiveTab(tab.id)}
-              >
-                <View className="flex-row items-center gap-1.5">
-                  <Ionicons
-                    name={tab.icon as any}
-                    size={16}
-                    color={activeTab === tab.id ? "#000" : "#666"}
-                  />
-                  <Text
-                    className={`text-sm font-medium ${activeTab === tab.id ? "font-semibold text-black" : "text-[#666]"}`}
-                  >
-                    {tab.label}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 12, gap: 4 }}
+            >
+              {tabs.map((tab) => (
+                <TouchableOpacity
+                  key={tab.id}
+                  className={`min-w-[90px] items-center rounded-[24px] px-3 py-3 md:px-5 ${
+                    activeTab === tab.id ? "bg-[rgba(0,0,0,0.08)]" : ""
+                  }`}
+                  onPress={() => setActiveTab(tab.id)}
+                >
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons
+                      name={tab.icon}
+                      size={18}
+                      color={activeTab === tab.id ? "#007AFF" : "#666"}
+                    />
+                    <Text
+                      className={`text-base font-medium ${
+                        activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"
+                      }`}
+                    >
+                      {tab.label}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </GlassView>
+        ) : (
+          <View
+            style={{
+              paddingTop: Platform.OS === "ios" ? 12 : insets.top + 70,
+              paddingBottom: 12,
+              backgroundColor: "rgba(255, 255, 255, 0.9)",
+              borderBottomWidth: 0.5,
+              borderBottomColor: "#C6C6C8",
+            }}
+          >
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 12, gap: 4 }}
+            >
+              {tabs.map((tab) => (
+                <TouchableOpacity
+                  key={tab.id}
+                  className={`min-w-[90px] items-center rounded-[24px] px-3 py-3 md:px-5 ${
+                    activeTab === tab.id ? "bg-[#EEEFF2]" : ""
+                  }`}
+                  onPress={() => setActiveTab(tab.id)}
+                >
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons
+                      name={tab.icon}
+                      size={18}
+                      color={activeTab === tab.id ? "#007AFF" : "#666"}
+                    />
+                    <Text
+                      className={`text-base font-medium ${
+                        activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"
+                      }`}
+                    >
+                      {tab.label}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Content */}
         <ScrollView
           style={{
             flex: 1,
-            paddingTop: Platform.OS === "web" ? 120 : 180,
-            paddingBottom: 250,
           }}
           contentContainerStyle={{ padding: 20, paddingBottom: 200 }}
         >
-          {activeTab === "basics" && (
+          {activeTab === "basics" ? (
             <BasicsTab
               eventTitle={eventTitle}
               setEventTitle={setEventTitle}
@@ -1385,18 +1275,15 @@ export default function EventTypeDetail() {
               setShowDurationDropdown={setShowDurationDropdown}
               defaultDuration={defaultDuration}
               setShowDefaultDurationDropdown={setShowDefaultDurationDropdown}
-              selectedLocation={selectedLocation}
-              setShowLocationDropdown={setShowLocationDropdown}
+              // Multiple locations support
+              locations={locations}
+              onAddLocation={handleAddLocation}
+              onRemoveLocation={handleRemoveLocation}
+              onUpdateLocation={handleUpdateLocation}
+              locationOptions={getLocationOptionsForDropdown()}
               conferencingLoading={conferencingLoading}
-              getSelectedLocationIconUrl={getSelectedLocationIconUrl}
-              locationAddress={locationAddress}
-              setLocationAddress={setLocationAddress}
-              locationLink={locationLink}
-              setLocationLink={setLocationLink}
-              locationPhone={locationPhone}
-              setLocationPhone={setLocationPhone}
             />
-          )}
+          ) : null}
 
           {/* Duration Multi-Select Modal */}
           <Modal
@@ -1423,13 +1310,15 @@ export default function EventTypeDetail() {
                       onPress={() => toggleDurationSelection(duration)}
                     >
                       <Text
-                        className={`text-base text-[#333] ${selectedDurations.includes(duration) ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedDurations.includes(duration) ? "font-semibold" : ""
+                        }`}
                       >
                         {duration}
                       </Text>
-                      {selectedDurations.includes(duration) && (
+                      {selectedDurations.includes(duration) ? (
                         <Ionicons name="checkmark" size={20} color="#000" />
-                      )}
+                      ) : null}
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -1470,13 +1359,15 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${defaultDuration === duration ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        defaultDuration === duration ? "font-semibold" : ""
+                      }`}
                     >
                       {duration}
                     </Text>
-                    {defaultDuration === duration && (
+                    {defaultDuration === duration ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1512,19 +1403,21 @@ export default function EventTypeDetail() {
                   >
                     <View className="flex-1 flex-row items-center justify-between">
                       <Text
-                        className={`text-base text-[#333] ${selectedSchedule?.id === schedule.id ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedSchedule?.id === schedule.id ? "font-semibold" : ""
+                        }`}
                       >
                         {schedule.name}
                       </Text>
-                      {schedule.isDefault && (
+                      {schedule.isDefault ? (
                         <Text className="rounded bg-[#E8F5E8] px-1.5 py-0.5 text-xs font-medium text-[#34C759]">
                           Default
                         </Text>
-                      )}
+                      ) : null}
                     </View>
-                    {selectedSchedule?.id === schedule.id && (
+                    {selectedSchedule?.id === schedule.id ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1578,138 +1471,22 @@ export default function EventTypeDetail() {
                       }}
                     >
                       <Text
-                        className={`text-base text-[#333] ${selectedTimezone === tz || (selectedScheduleDetails?.timeZone === tz && !selectedTimezone) ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedTimezone === tz ||
+                          (selectedScheduleDetails?.timeZone === tz && !selectedTimezone)
+                            ? "font-semibold"
+                            : ""
+                        }`}
                       >
                         {tz}
                       </Text>
-                      {(selectedTimezone === tz ||
-                        (selectedScheduleDetails?.timeZone === tz && !selectedTimezone)) && (
+                      {selectedTimezone === tz ||
+                      (selectedScheduleDetails?.timeZone === tz && !selectedTimezone) ? (
                         <Ionicons name="checkmark" size={20} color="#000" />
-                      )}
+                      ) : null}
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
-              </View>
-            </TouchableOpacity>
-          </Modal>
-
-          {/* Location Dropdown Modal */}
-          <Modal
-            visible={showLocationDropdown}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setShowLocationDropdown(false)}
-          >
-            <TouchableOpacity
-              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
-              onPress={() => setShowLocationDropdown(false)}
-            >
-              <View
-                className="w-[80%] max-w-[350px] rounded-2xl bg-white p-5"
-                style={{ maxHeight: "70%" }}
-              >
-                {conferencingLoading ? (
-                  <Text className="py-4 text-center text-base text-[#666]">
-                    Loading locations...
-                  </Text>
-                ) : (
-                  (() => {
-                    const groups = getLocationOptions();
-                    if (groups.length === 0) {
-                      return (
-                        <Text className="py-4 text-center text-base text-[#8E8E93]">
-                          No locations available
-                        </Text>
-                      );
-                    }
-                    return (
-                      <ScrollView
-                        showsVerticalScrollIndicator={true}
-                        style={{ maxHeight: 400 }}
-                        nestedScrollEnabled={true}
-                        contentContainerStyle={{ paddingBottom: 10 }}
-                      >
-                        {groups.map((group) => (
-                          <View key={group.category}>
-                            {/* Section Header */}
-                            <View className="px-2 py-2 md:px-4">
-                              <Text className="text-xs font-normal uppercase tracking-wide text-[#666]">
-                                {group.category}
-                              </Text>
-                            </View>
-                            {/* Section Options */}
-                            {group.options.map((option) => (
-                              <TouchableOpacity
-                                key={option.value}
-                                activeOpacity={0.7}
-                                className={`flex-row items-center justify-between rounded-lg px-2 py-2.5 md:px-4 ${
-                                  selectedLocation === option.label
-                                    ? "bg-[#F0F0F0]"
-                                    : "active:bg-[#F0F0F0]"
-                                }`}
-                                style={{ marginBottom: 2 }}
-                                onPress={() => {
-                                  const newLocation = defaultLocations.find(
-                                    (loc) => loc.label === option.label
-                                  );
-                                  setSelectedLocation(option.label);
-                                  setShowLocationDropdown(false);
-                                  // Clear input values that are not needed for the new location
-                                  if (!newLocation || newLocation.type !== "inPerson") {
-                                    setLocationAddress("");
-                                  }
-                                  if (!newLocation || newLocation.type !== "link") {
-                                    setLocationLink("");
-                                  }
-                                  if (!newLocation || newLocation.type !== "userPhone") {
-                                    setLocationPhone("");
-                                  }
-                                }}
-                              >
-                                <View className="flex-1 flex-row items-center">
-                                  {option.iconUrl ? (
-                                    <SvgImage
-                                      uri={option.iconUrl}
-                                      width={18}
-                                      height={18}
-                                      style={{ marginRight: 12 }}
-                                    />
-                                  ) : (
-                                    <View
-                                      style={{
-                                        width: 18,
-                                        height: 18,
-                                        backgroundColor: "#FF6B6B",
-                                        borderRadius: 4,
-                                        marginRight: 12,
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                      }}
-                                    >
-                                      <Text
-                                        style={{ color: "white", fontSize: 8, fontWeight: "bold" }}
-                                      >
-                                        ?
-                                      </Text>
-                                    </View>
-                                  )}
-                                  <Text
-                                    className={`text-base text-[#333] ${selectedLocation === option.label ? "font-semibold" : ""}`}
-                                  >
-                                    {option.label}
-                                  </Text>
-                                </View>
-                                {selectedLocation === option.label && (
-                                  <Ionicons name="checkmark" size={20} color="#000" />
-                                )}
-                              </TouchableOpacity>
-                            ))}
-                          </View>
-                        ))}
-                      </ScrollView>
-                    );
-                  })()
-                )}
               </View>
             </TouchableOpacity>
           </Modal>
@@ -1741,13 +1518,15 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${beforeEventBuffer === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        beforeEventBuffer === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
-                    {beforeEventBuffer === option && (
+                    {beforeEventBuffer === option ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1781,13 +1560,15 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${afterEventBuffer === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        afterEventBuffer === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
-                    {afterEventBuffer === option && (
+                    {afterEventBuffer === option ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1821,13 +1602,15 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${minimumNoticeUnit === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        minimumNoticeUnit === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
-                    {minimumNoticeUnit === option && (
+                    {minimumNoticeUnit === option ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1953,33 +1736,77 @@ export default function EventTypeDetail() {
                     }}
                   >
                     <Text
-                      className={`text-base text-[#333] ${slotInterval === option ? "font-semibold" : ""}`}
+                      className={`text-base text-[#333] ${
+                        slotInterval === option ? "font-semibold" : ""
+                      }`}
                     >
                       {option}
                     </Text>
-                    {slotInterval === option && (
+                    {slotInterval === option ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
               </View>
             </TouchableOpacity>
           </Modal>
 
-          {activeTab === "availability" && (
+          {/* Recurring Frequency Dropdown Modal */}
+          <Modal
+            visible={showRecurringFrequencyDropdown}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowRecurringFrequencyDropdown(false)}
+          >
+            <TouchableOpacity
+              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              onPress={() => setShowRecurringFrequencyDropdown(false)}
+            >
+              <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
+                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
+                  Repeats every
+                </Text>
+                {(["weekly", "monthly", "yearly"] as const).map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
+                      recurringFrequency === option ? "bg-[#F0F0F0]" : ""
+                    }`}
+                    onPress={() => {
+                      setRecurringFrequency(option);
+                      setShowRecurringFrequencyDropdown(false);
+                    }}
+                  >
+                    <Text
+                      className={`text-base capitalize text-[#333] ${
+                        recurringFrequency === option ? "font-semibold" : ""
+                      }`}
+                    >
+                      {option === "weekly" ? "week" : option === "monthly" ? "month" : "year"}
+                    </Text>
+                    {recurringFrequency === option ? (
+                      <Ionicons name="checkmark" size={20} color="#000" />
+                    ) : null}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
+          {activeTab === "availability" ? (
             <AvailabilityTab
               selectedSchedule={selectedSchedule}
               setShowScheduleDropdown={setShowScheduleDropdown}
               schedulesLoading={schedulesLoading}
               scheduleDetailsLoading={scheduleDetailsLoading}
               selectedScheduleDetails={selectedScheduleDetails}
-              getDaySchedule={getDaySchedule}
+              getDaySchedules={getDaySchedule}
               formatTime={formatTime}
               selectedTimezone={selectedTimezone}
             />
-          )}
+          ) : null}
 
-          {activeTab === "limits" && (
+          {activeTab === "limits" ? (
             <LimitsTab
               beforeEventBuffer={beforeEventBuffer}
               setShowBeforeBufferDropdown={setShowBeforeBufferDropdown}
@@ -1999,6 +1826,8 @@ export default function EventTypeDetail() {
               setShowFrequencyUnitDropdown={setShowFrequencyUnitDropdown}
               removeFrequencyLimit={removeFrequencyLimit}
               addFrequencyLimit={addFrequencyLimit}
+              onlyShowFirstAvailableSlot={onlyShowFirstAvailableSlot}
+              setOnlyShowFirstAvailableSlot={setOnlyShowFirstAvailableSlot}
               limitTotalDuration={limitTotalDuration}
               toggleTotalDuration={toggleTotalDuration}
               durationAnimationValue={durationAnimationValue}
@@ -2007,12 +1836,12 @@ export default function EventTypeDetail() {
               setShowDurationUnitDropdown={setShowDurationUnitDropdown}
               removeDurationLimit={removeDurationLimit}
               addDurationLimit={addDurationLimit}
-              onlyShowFirstAvailableSlot={onlyShowFirstAvailableSlot}
-              setOnlyShowFirstAvailableSlot={setOnlyShowFirstAvailableSlot}
               maxActiveBookingsPerBooker={maxActiveBookingsPerBooker}
               setMaxActiveBookingsPerBooker={setMaxActiveBookingsPerBooker}
               maxActiveBookingsValue={maxActiveBookingsValue}
               setMaxActiveBookingsValue={setMaxActiveBookingsValue}
+              offerReschedule={offerReschedule}
+              setOfferReschedule={setOfferReschedule}
               limitFutureBookings={limitFutureBookings}
               setLimitFutureBookings={setLimitFutureBookings}
               futureBookingType={futureBookingType}
@@ -2026,26 +1855,12 @@ export default function EventTypeDetail() {
               rangeEndDate={rangeEndDate}
               setRangeEndDate={setRangeEndDate}
             />
-          )}
+          ) : null}
 
-          {activeTab === "advanced" && (
+          {activeTab === "advanced" ? (
             <AdvancedTab
-              calendarEventName={calendarEventName}
-              setCalendarEventName={setCalendarEventName}
-              addToCalendarEmail={addToCalendarEmail}
-              setAddToCalendarEmail={setAddToCalendarEmail}
-              selectedLayouts={selectedLayouts}
-              setSelectedLayouts={setSelectedLayouts}
-              defaultLayout={defaultLayout}
-              setDefaultLayout={setDefaultLayout}
               requiresConfirmation={requiresConfirmation}
               setRequiresConfirmation={setRequiresConfirmation}
-              disableCancelling={disableCancelling}
-              setDisableCancelling={setDisableCancelling}
-              disableRescheduling={disableRescheduling}
-              setDisableRescheduling={setDisableRescheduling}
-              sendCalVideoTranscription={sendCalVideoTranscription}
-              setSendCalVideoTranscription={setSendCalVideoTranscription}
               autoTranslate={autoTranslate}
               setAutoTranslate={setAutoTranslate}
               requiresBookerEmailVerification={requiresBookerEmailVerification}
@@ -2058,6 +1873,8 @@ export default function EventTypeDetail() {
               setHideOrganizerEmail={setHideOrganizerEmail}
               lockTimezone={lockTimezone}
               setLockTimezone={setLockTimezone}
+              lockedTimezone={lockedTimezone}
+              setLockedTimezone={setLockedTimezone}
               allowReschedulingPastEvents={allowReschedulingPastEvents}
               setAllowReschedulingPastEvents={setAllowReschedulingPastEvents}
               allowBookingThroughRescheduleLink={allowBookingThroughRescheduleLink}
@@ -2072,10 +1889,21 @@ export default function EventTypeDetail() {
               setEventTypeColorLight={setEventTypeColorLight}
               eventTypeColorDark={eventTypeColorDark}
               setEventTypeColorDark={setEventTypeColorDark}
+              // Seats
+              seatsEnabled={seatsEnabled}
+              setSeatsEnabled={setSeatsEnabled}
+              seatsPerTimeSlot={seatsPerTimeSlot}
+              setSeatsPerTimeSlot={setSeatsPerTimeSlot}
+              showAttendeeInfo={showAttendeeInfo}
+              setShowAttendeeInfo={setShowAttendeeInfo}
+              showAvailabilityCount={showAvailabilityCount}
+              setShowAvailabilityCount={setShowAvailabilityCount}
+              // Event type ID for private links
+              eventTypeId={id}
             />
-          )}
+          ) : null}
 
-          {activeTab === "recurring" && (
+          {activeTab === "recurring" ? (
             <RecurringTab
               recurringEnabled={recurringEnabled}
               setRecurringEnabled={setRecurringEnabled}
@@ -2085,35 +1913,100 @@ export default function EventTypeDetail() {
               setRecurringFrequency={setRecurringFrequency}
               recurringOccurrences={recurringOccurrences}
               setRecurringOccurrences={setRecurringOccurrences}
+              setShowFrequencyDropdown={setShowRecurringFrequencyDropdown}
             />
-          )}
+          ) : null}
 
-          {activeTab === "apps" && (
+          {activeTab === "other" ? (
             <View className="rounded-2xl bg-white p-5 shadow-md">
-              <Text className="mb-4 text-lg font-semibold text-[#333]">Connected Apps</Text>
-              <Text className="mb-6 text-base leading-6 text-[#666]">
-                Manage app integrations for this event type.
+              <Text className="mb-2 text-lg font-semibold text-[#333]">Additional Settings</Text>
+              <Text className="mb-5 text-sm leading-5 text-[#666]">
+                Manage these settings on the web for full functionality.
               </Text>
-            </View>
-          )}
 
-          {activeTab === "workflows" && (
-            <View className="rounded-2xl bg-white p-5 shadow-md">
-              <Text className="mb-4 text-lg font-semibold text-[#333]">Workflows</Text>
-              <Text className="mb-6 text-base leading-6 text-[#666]">
-                Configure automated workflows and actions.
-              </Text>
-            </View>
-          )}
+              <View className="overflow-hidden rounded-lg border border-[#E5E5EA]">
+                {/* Apps */}
+                <TouchableOpacity
+                  onPress={() => {
+                    if (id === "new") {
+                      Alert.alert("Info", "Save the event type first to configure this setting.");
+                    } else {
+                      openInAppBrowser(
+                        `https://app.cal.com/event-types/${id}?tabName=apps`,
+                        "Apps settings"
+                      );
+                    }
+                  }}
+                  className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
+                  style={{ borderBottomWidth: 1, borderBottomColor: "#E5E5EA" }}
+                >
+                  <View className="flex-1 flex-row items-center">
+                    <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#F3F4F6]">
+                      <Ionicons name="grid" size={18} color="#333" />
+                    </View>
+                    <View className="ml-3 flex-1">
+                      <Text className="text-base font-semibold text-[#333]">Apps</Text>
+                      <Text className="text-sm text-[#666]">Manage app integrations</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="open-outline" size={20} color="#C7C7CC" />
+                </TouchableOpacity>
 
-          {activeTab === "webhooks" && (
-            <View className="rounded-2xl bg-white p-5 shadow-md">
-              <Text className="mb-4 text-lg font-semibold text-[#333]">Webhooks</Text>
-              <Text className="mb-6 text-base leading-6 text-[#666]">
-                Set up webhook endpoints for event notifications.
-              </Text>
+                {/* Workflows */}
+                <TouchableOpacity
+                  onPress={() => {
+                    if (id === "new") {
+                      Alert.alert("Info", "Save the event type first to configure this setting.");
+                    } else {
+                      openInAppBrowser(
+                        `https://app.cal.com/event-types/${id}?tabName=workflows`,
+                        "Workflows settings"
+                      );
+                    }
+                  }}
+                  className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
+                  style={{ borderBottomWidth: 1, borderBottomColor: "#E5E5EA" }}
+                >
+                  <View className="flex-1 flex-row items-center">
+                    <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#F3F4F6]">
+                      <Ionicons name="flash" size={18} color="#333" />
+                    </View>
+                    <View className="ml-3 flex-1">
+                      <Text className="text-base font-semibold text-[#333]">Workflows</Text>
+                      <Text className="text-sm text-[#666]">Configure automated actions</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="open-outline" size={20} color="#C7C7CC" />
+                </TouchableOpacity>
+
+                {/* Webhooks */}
+                <TouchableOpacity
+                  onPress={() => {
+                    if (id === "new") {
+                      Alert.alert("Info", "Save the event type first to configure this setting.");
+                    } else {
+                      openInAppBrowser(
+                        `https://app.cal.com/event-types/${id}?tabName=webhooks`,
+                        "Webhooks settings"
+                      );
+                    }
+                  }}
+                  className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
+                >
+                  <View className="flex-1 flex-row items-center">
+                    <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#F3F4F6]">
+                      <Ionicons name="code" size={18} color="#333" />
+                    </View>
+                    <View className="ml-3 flex-1">
+                      <Text className="text-base font-semibold text-[#333]">Webhooks</Text>
+                      <Text className="text-sm text-[#666]">Set up event notifications</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="open-outline" size={20} color="#C7C7CC" />
+                </TouchableOpacity>
+              </View>
             </View>
-          )}
+          ) : null}
         </ScrollView>
 
         {/* Bottom Action Bar */}
@@ -2176,7 +2069,7 @@ export default function EventTypeDetail() {
                   className="h-11 w-11 items-center justify-center"
                   onPress={handleDelete}
                 >
-                  <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                  <Ionicons name="trash-outline" size={20} color="#800020" />
                 </TouchableOpacity>
               </GlassView>
             </View>
@@ -2186,3 +2079,4 @@ export default function EventTypeDetail() {
     </>
   );
 }
+// test unused variable

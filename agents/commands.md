@@ -16,11 +16,11 @@
 
 ## Lint & Type Check
 
-- `yarn lint` - Run ESLint on codebase
-- `yarn lint:fix` - Run ESLint and fix issues
-- `yarn lint:report` - Generate lint report
+- `yarn lint` - Run Biome across the codebase
+- `yarn lint:fix` - Run Biome and apply safe fixes
+- `yarn lint:report` - Generate Biome lint report
 - `yarn type-check` - Run TypeScript type checking
-- `yarn format` - Format code with Prettier
+- `yarn format` - Format code with Biome
 
 ## Testing Commands
 
@@ -28,10 +28,16 @@
 
 - `yarn test` - Run unit tests (vitest)
 - `yarn test <filename>` - Run tests for specific file
-- `yarn test <filename> -- --integrationTestsOnly` - Run integration tests for specific file
-- `yarn test <filename> -t "<testName>" -- --integrationTestsOnly` - Run specific test by name
+- `yarn test <filename> -t "<testName>"` - Run specific test by name for specific file
 - `yarn tdd` - Run tests in watch mode
 - `yarn test:ui` - Run tests with UI interface
+
+### Integration Tests
+
+- `yarn test -- --integrationTestsOnly` - Run integration tests (vitest)
+- `yarn test <filename> -- --integrationTestsOnly` - Run integration tests for specific file
+- `yarn test <filename> -t "<testName>" -- --integrationTestsOnly` - Run specific integration test by name for specific file
+
 
 ### End-to-End Tests
 

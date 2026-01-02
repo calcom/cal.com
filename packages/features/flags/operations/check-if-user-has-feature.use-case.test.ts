@@ -14,6 +14,7 @@ it("returns if user has access to feature", async () => {
       featureId: "mock-feature",
       assignedBy: "1",
       updatedAt: new Date(),
+      enabled: true,
     },
   });
   await expect(checkIfUserHasFeatureUseCase(userId, "nonexistent-feature")).resolves.toBe(false);
