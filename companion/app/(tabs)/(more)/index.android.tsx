@@ -1,18 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Header } from "@/components/Header";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Text as UIText } from "@/components/ui/text";
 import { useAuth } from "@/contexts/AuthContext";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
@@ -27,7 +15,6 @@ interface MoreMenuItem {
 
 export default function MoreAndroid() {
   const { logout } = useAuth();
-  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const performLogout = async () => {
     try {
@@ -44,12 +31,16 @@ export default function MoreAndroid() {
   };
 
   const handleSignOut = () => {
-    setShowLogoutDialog(true);
-  };
-
-  const confirmLogout = () => {
-    setShowLogoutDialog(false);
-    performLogout();
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: () => {
+          void performLogout();
+        },
+      },
+    ]);
   };
 
   const menuItems: MoreMenuItem[] = [
@@ -137,24 +128,6 @@ export default function MoreAndroid() {
           </Text>
         </Text>
       </ScrollView>
-
-      {/* Sign Out AlertDialog */}
-      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Sign Out</AlertDialogTitle>
-            <AlertDialogDescription>Are you sure you want to sign out?</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onPress={() => setShowLogoutDialog(false)}>
-              <UIText>Cancel</UIText>
-            </AlertDialogCancel>
-            <AlertDialogAction onPress={confirmLogout}>
-              <UIText>Sign Out</UIText>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </View>
   );
 }

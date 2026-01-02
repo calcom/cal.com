@@ -1,7 +1,7 @@
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { RefreshControl, ScrollView, Share, Text, TextInput, View } from "react-native";
+import { Alert, RefreshControl, ScrollView, Share, Text, TextInput, View } from "react-native";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { EventTypeListItem } from "@/components/event-type-list-item/EventTypeListItem";
 import { Header } from "@/components/Header";
@@ -48,9 +48,7 @@ export default function EventTypesAndroid() {
   // Toast state management
   const { toast, showToast } = useToast();
 
-  // AlertDialog state for confirmations
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [eventTypeToDelete, setEventTypeToDelete] = useState<EventType | null>(null);
+  // Note: Delete confirmation uses native Alert.alert() on Android
 
   // Use React Query hooks
   const {
@@ -140,32 +138,36 @@ export default function EventTypesAndroid() {
   };
 
   const handleDelete = (eventType: EventType) => {
-    setEventTypeToDelete(eventType);
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDelete = () => {
-    if (!eventTypeToDelete) return;
-
-    deleteEventTypeMutation(eventTypeToDelete.id, {
-      onSuccess: () => {
-        setShowDeleteDialog(false);
-        setEventTypeToDelete(null);
-        showToast("Event type deleted");
-      },
-      onError: (err) => {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error("Failed to delete event type", message);
-        if (__DEV__) {
-          const stack = err instanceof Error ? err.stack : undefined;
-          console.debug("[EventTypes] deleteEventType failed", {
-            message,
-            stack,
-          });
-        }
-        showToast("Failed to delete event type", "error");
-      },
-    });
+    Alert.alert(
+      "Delete Event Type",
+      `This will permanently delete "${eventType.title}". This action cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            deleteEventTypeMutation(eventType.id, {
+              onSuccess: () => {
+                showToast("Event type deleted");
+              },
+              onError: (err) => {
+                const message = err instanceof Error ? err.message : String(err);
+                console.error("Failed to delete event type", message);
+                if (__DEV__) {
+                  const stack = err instanceof Error ? err.stack : undefined;
+                  console.debug("[EventTypes] deleteEventType failed", {
+                    message,
+                    stack,
+                  });
+                }
+                showToast("Failed to delete event type", "error");
+              },
+            });
+          },
+        },
+      ]
+    );
   };
 
   const handleDuplicate = (eventType: EventType) => {
@@ -402,34 +404,6 @@ export default function EventTypesAndroid() {
             </AlertDialogCancel>
             <AlertDialogAction onPress={handleCreateEventType} disabled={creating}>
               <UIText>Continue</UIText>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Delete Confirmation AlertDialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Event Type</AlertDialogTitle>
-            <AlertDialogDescription>
-              {eventTypeToDelete
-                ? `This will permanently delete "${eventTypeToDelete.title}". This action cannot be undone.`
-                : "This action cannot be undone."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onPress={() => {
-                setShowDeleteDialog(false);
-                setEventTypeToDelete(null);
-              }}
-              disabled={isDeleting}
-            >
-              <UIText>Cancel</UIText>
-            </AlertDialogCancel>
-            <AlertDialogAction onPress={confirmDelete} disabled={isDeleting}>
-              <UIText>Delete</UIText>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

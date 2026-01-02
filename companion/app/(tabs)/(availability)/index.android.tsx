@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { FlatList, RefreshControl, Text, TextInput, View } from "react-native";
+import { Alert, FlatList, RefreshControl, Text, TextInput, View } from "react-native";
 import { AvailabilityListItem } from "@/components/availability-list-item/AvailabilityListItem";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { Header } from "@/components/Header";
@@ -43,9 +43,7 @@ export default function AvailabilityAndroid() {
   // Toast state management
   const { toast, showToast } = useToast();
 
-  // AlertDialog state for delete confirmation
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [scheduleToDelete, setScheduleToDelete] = useState<Schedule | null>(null);
+  // Note: Delete confirmation uses native Alert.alert() on Android
 
   // Use React Query hooks
   const {
@@ -114,23 +112,27 @@ export default function AvailabilityAndroid() {
   };
 
   const handleDelete = (schedule: Schedule) => {
-    setScheduleToDelete(schedule);
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDelete = () => {
-    if (!scheduleToDelete) return;
-
-    deleteScheduleMutation(scheduleToDelete.id, {
-      onSuccess: () => {
-        setShowDeleteDialog(false);
-        setScheduleToDelete(null);
-        showToast("Schedule deleted");
-      },
-      onError: () => {
-        showToast("Failed to delete schedule", "error");
-      },
-    });
+    Alert.alert(
+      "Delete Schedule",
+      `This will permanently delete "${schedule.name}". This action cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            deleteScheduleMutation(schedule.id, {
+              onSuccess: () => {
+                showToast("Schedule deleted");
+              },
+              onError: () => {
+                showToast("Failed to delete schedule", "error");
+              },
+            });
+          },
+        },
+      ]
+    );
   };
 
   const handleCreateNew = () => {
@@ -323,34 +325,6 @@ export default function AvailabilityAndroid() {
             </AlertDialogCancel>
             <AlertDialogAction onPress={handleCreateSchedule} disabled={creating}>
               <UIText>Continue</UIText>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Delete Confirmation AlertDialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Schedule</AlertDialogTitle>
-            <AlertDialogDescription>
-              {scheduleToDelete
-                ? `This will permanently delete "${scheduleToDelete.name}". This action cannot be undone.`
-                : "This action cannot be undone."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onPress={() => {
-                setShowDeleteDialog(false);
-                setScheduleToDelete(null);
-              }}
-              disabled={isDeleting}
-            >
-              <UIText>Cancel</UIText>
-            </AlertDialogCancel>
-            <AlertDialogAction onPress={confirmDelete} disabled={isDeleting}>
-              <UIText>Delete</UIText>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
