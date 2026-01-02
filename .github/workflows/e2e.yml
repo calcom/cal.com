@@ -88,6 +88,8 @@ jobs:
       - run: yarn prisma generate
       - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/cache-build
+      - name: Copy App Store Static Files
+        run: yarn workspace @calcom/web copy-app-store-static
       - name: Run Tests
         run: yarn e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }} --workers=2
       - name: Upload Test Results
