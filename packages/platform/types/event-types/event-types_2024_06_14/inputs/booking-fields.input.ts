@@ -329,7 +329,7 @@ export class RescheduleReasonDefaultFieldInput_2024_06_14 {
 }
 
 export class PhoneDefaultFieldInput_2024_06_14 {
-  @IsString()
+  @IsIn(inputBookingFieldTypes)
   @DocsProperty({
     default: "phone",
   })
