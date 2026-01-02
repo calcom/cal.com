@@ -255,7 +255,6 @@ export default async function main() {
 if (require.main === module) {
   (async () => {
     await main();
-    await seedAppData();
   })()
     .catch((e) => {
       console.error(e);
