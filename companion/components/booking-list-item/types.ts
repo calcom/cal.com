@@ -1,4 +1,4 @@
-import type { Booking } from "../../services/calcom";
+import type { Booking } from "@/services/calcom";
 
 export interface BookingListItemProps {
   booking: Booking;

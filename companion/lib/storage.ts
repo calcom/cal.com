@@ -4,8 +4,8 @@
  */
 
 export {
-  secureStorage,
   generalStorage,
   isChromeStorageAvailable,
   type StorageAdapter,
-} from "../utils/storage";
+  secureStorage,
+} from "@/utils/storage";
