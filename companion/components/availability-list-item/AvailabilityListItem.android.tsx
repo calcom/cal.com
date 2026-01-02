@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import React from "react";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -101,7 +102,7 @@ export const AvailabilityListItem = ({
 
           <DropdownMenuContent insets={contentInsets} sideOffset={8} className="w-44" align="end">
             {scheduleActions.map((action, index) => (
-              <View key={action.label}>
+              <React.Fragment key={action.label}>
                 {/* Add separator before destructive actions */}
                 {index === destructiveStartIndex && destructiveStartIndex > 0 && (
                   <DropdownMenuSeparator />
@@ -117,7 +118,7 @@ export const AvailabilityListItem = ({
                     {action.label}
                   </Text>
                 </DropdownMenuItem>
-              </View>
+              </React.Fragment>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>

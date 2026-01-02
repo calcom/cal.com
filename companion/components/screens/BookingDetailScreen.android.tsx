@@ -228,7 +228,9 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
         console.error("Failed to cancel booking");
         if (__DEV__) {
           const message = err instanceof Error ? err.message : String(err);
-          console.debug("[BookingDetailScreen.android] cancelBooking failed", { message });
+          console.debug("[BookingDetailScreen.android] cancelBooking failed", {
+            message,
+          });
         }
         showErrorAlert("Error", "Failed to cancel booking. Please try again.");
         setIsCancelling(false);
@@ -404,7 +406,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const dropdownActions = useMemo(() => {
     if (!booking) return [];
 
-    const startTime = booking.start || booking.startTime || "";
+    const _startTime = booking.start || booking.startTime || "";
     const endTime = booking.end || booking.endTime || "";
     const isPast = new Date(endTime) < new Date();
     const isCancelled = booking.status.toLowerCase() === "cancelled";
