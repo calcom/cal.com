@@ -377,7 +377,7 @@ export class PhoneDefaultFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if URL contains query parameter `&attendeePhoneNumber=+37122222222`,\
-      the guests field will be prefilled with this value and disabled.",
+      the phone field will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
 }
