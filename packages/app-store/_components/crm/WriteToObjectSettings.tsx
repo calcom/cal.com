@@ -1,9 +1,7 @@
 import { useState, useMemo } from "react";
 
-import { CrmFieldType, DateFieldType, WhenToWrite } from "@calcom/app-store/_lib/crm-enums";
+import { WhenToWrite } from "@calcom/app-store/_lib/crm-enums";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-export { CrmFieldType, DateFieldType, WhenToWrite } from "@calcom/app-store/_lib/crm-enums";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 import { InputField } from "@calcom/ui/components/form";
@@ -11,55 +9,24 @@ import { Select } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
 import { showToast } from "@calcom/ui/components/toast";
 
-export enum BookingActionEnum {
-  ON_BOOKING = "on_booking",
-  ON_CANCEL = "on_cancel",
-}
+import type { SelectOption, WriteToRecordEntrySchema, WriteToObjectSettingsProps } from "./WriteToObjectSettings.types";
+import {
+  DATE_FIELD_TYPE,
+  CHECKBOX_FIELD_TYPE,
+  buildFieldTypeOptions,
+  buildDateFieldValueOptions,
+  buildWhenToWriteOptions,
+  buildCheckboxFieldValueOptions,
+} from "./WriteToObjectSettings.utils";
 
-export interface SelectOption<T = string> {
-  label: string;
-  value: T;
-}
-
-export interface WriteToRecordEntry {
-  fieldType: CrmFieldType;
-  value: string | boolean;
-  whenToWrite: WhenToWrite;
-}
-
-interface WriteToRecordEntrySchema {
-  field: string;
-  fieldType: CrmFieldType;
-  value: string | boolean;
-  whenToWrite: WhenToWrite;
-}
-
-interface WriteToObjectSettingsProps {
-  bookingAction: BookingActionEnum;
-  optionLabel: string;
-  optionEnabled: boolean;
-  optionSwitchOnChange: (checked: boolean) => void;
-  writeToObjectData: Record<string, WriteToRecordEntry>;
-  updateWriteToObjectData: (data: Record<string, WriteToRecordEntry>) => void;
-  supportedFieldTypes: readonly CrmFieldType[];
-  supportedDateFields?: readonly DateFieldType[];
-  supportedWriteTriggers?: readonly WhenToWrite[];
-}
-
-const DATE_FIELD_TYPE = CrmFieldType.DATE;
-const CHECKBOX_FIELD_TYPE = CrmFieldType.CHECKBOX;
-
-const FIELD_TYPE_LABELS: Record<CrmFieldType, string> = {
-  [CrmFieldType.TEXT]: "text",
-  [CrmFieldType.STRING]: "text",
-  [CrmFieldType.DATE]: "date",
-  [CrmFieldType.DATETIME]: "datetime",
-  [CrmFieldType.PHONE]: "phone",
-  [CrmFieldType.CHECKBOX]: "checkbox",
-  [CrmFieldType.PICKLIST]: "picklist",
-  [CrmFieldType.CUSTOM]: "custom",
-  [CrmFieldType.TEXTAREA]: "textarea",
-};
+export { CrmFieldType, DateFieldType, WhenToWrite } from "@calcom/app-store/_lib/crm-enums";
+export {
+  BookingActionEnum,
+  type SelectOption,
+  type WriteToRecordEntry,
+  type WriteToRecordEntrySchema,
+  type WriteToObjectSettingsProps,
+} from "./WriteToObjectSettings.types";
 
 const WriteToObjectSettings = ({
   bookingAction,
@@ -75,44 +42,23 @@ const WriteToObjectSettings = ({
   const { t } = useLocale();
 
   const fieldTypeOptions = useMemo(
-    () =>
-      supportedFieldTypes.map((type) => ({
-        label: t(FIELD_TYPE_LABELS[type]),
-        value: type,
-      })),
+    () => buildFieldTypeOptions(supportedFieldTypes, t),
     [supportedFieldTypes, t]
   );
 
-  const dateFieldValueOptions = useMemo(() => {
-    const defaultDateFields =
-      bookingAction === BookingActionEnum.ON_CANCEL
-        ? [DateFieldType.BOOKING_CANCEL_DATE, DateFieldType.BOOKING_START_DATE, DateFieldType.BOOKING_CREATED_DATE]
-        : [DateFieldType.BOOKING_START_DATE, DateFieldType.BOOKING_CREATED_DATE];
+  const dateFieldValueOptions = useMemo(
+    () => buildDateFieldValueOptions(bookingAction, supportedDateFields, t),
+    [supportedDateFields, bookingAction, t]
+  );
 
-    const fields = supportedDateFields ?? defaultDateFields;
-    const labelMap: Record<DateFieldType, string> = {
-      [DateFieldType.BOOKING_CANCEL_DATE]: "booking_cancel_date",
-      [DateFieldType.BOOKING_START_DATE]: "booking_start_date",
-      [DateFieldType.BOOKING_CREATED_DATE]: "booking_created_date",
-    };
-    return fields.map((type) => ({ label: t(labelMap[type]), value: type }));
-  }, [supportedDateFields, bookingAction, t]);
-
-  const whenToWriteOptions = useMemo(() => {
-    const labelMap: Record<WhenToWrite, string> = {
-      [WhenToWrite.EVERY_BOOKING]:
-        bookingAction === BookingActionEnum.ON_CANCEL ? "salesforce_on_every_cancellation" : "on_every_booking",
-      [WhenToWrite.FIELD_EMPTY]: "only_if_field_is_empty",
-    };
-    return supportedWriteTriggers.map((trigger) => ({ label: t(labelMap[trigger]), value: trigger }));
-  }, [supportedWriteTriggers, bookingAction, t]);
+  const whenToWriteOptions = useMemo(
+    () => buildWhenToWriteOptions(supportedWriteTriggers, bookingAction, t),
+    [supportedWriteTriggers, bookingAction, t]
+  );
 
   const showWhenToWriteColumn = whenToWriteOptions.length > 1;
 
-  const checkboxFieldValueOptions: SelectOption<boolean>[] = [
-    { label: t("true"), value: true },
-    { label: t("false"), value: false },
-  ];
+  const checkboxFieldValueOptions = useMemo(() => buildCheckboxFieldValueOptions(t), [t]);
 
   const [fieldTypeSelectedOption, setFieldTypeSelectedOption] = useState(fieldTypeOptions[0]);
   const [dateFieldSelectedOption, setDateFieldSelectedOption] = useState(dateFieldValueOptions[0]);
