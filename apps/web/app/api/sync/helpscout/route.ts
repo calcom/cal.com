@@ -1,5 +1,5 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { createHmac } from "crypto";
+import { createHmac } from "node:crypto";
 import { headers } from "next/headers";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";

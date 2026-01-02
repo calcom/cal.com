@@ -27,6 +27,7 @@
       "!!**/dist",
       "!!**/build",
       "!!**/public",
+      "!!**/*.d.ts",
       "!!public",
       "!!apps/web/public/embed",
       "!!packages/prisma/zod",
@@ -90,7 +91,7 @@
       "linter": {
         "rules": {
           "nursery": {
-            "useQwikValidLexicalScope": "warn",
+            "useQwikValidLexicalScope": "off",
             "useExplicitType": "warn",
             "noReactForwardRef": "warn",
             "noTernary": "warn",
@@ -110,7 +111,8 @@
           },
           "style": {
             "useExportsLast": "warn",
-            "noProcessEnv": "warn"
+            "noProcessEnv": "warn",
+            "useNodejsImportProtocol": "error"
           },
           "complexity": {
             "noExcessiveLinesPerFunction": "warn"
