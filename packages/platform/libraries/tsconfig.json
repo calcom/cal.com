@@ -2,7 +2,7 @@
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
     "module": "CommonJS",
-    "target": "ES2021",
+    "target": "ES2022",
     "jsx": "react-jsx",
     "resolveJsonModule": true,
     "types": ["jest"],

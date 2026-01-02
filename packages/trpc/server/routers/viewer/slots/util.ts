@@ -149,7 +149,20 @@ function withSlotsCache(
 }
 
 export class AvailableSlotsService {
-  constructor(public readonly dependencies: IAvailableSlotsService) {}
+  public getAvailableSlots: (
+    args: GetScheduleOptions
+  ) => Promise<IGetAvailableSlots>;
+
+
+  constructor(public readonly dependencies: IAvailableSlotsService) {
+    this.getAvailableSlots = withReporting(
+      withSlotsCache(
+        dependencies.redisClient,
+        this._getAvailableSlots.bind(this)
+      ),
+      "getAvailableSlots"
+    );
+  }
 
   private async _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
@@ -1003,10 +1016,7 @@ export class AvailableSlotsService {
     "getRegularOrDynamicEventType"
   );
 
-  getAvailableSlots = withReporting(
-    withSlotsCache(this.dependencies.redisClient, this._getAvailableSlots.bind(this)),
-    "getAvailableSlots"
-  );
+
 
   async _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
     const {
