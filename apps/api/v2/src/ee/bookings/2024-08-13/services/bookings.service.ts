@@ -49,6 +49,7 @@ import {
   handleMarkNoShow,
   confirmBookingHandler,
   getCalendarLinks,
+  distributedTracing,
 } from "@calcom/platform-libraries";
 import { PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
 import {
@@ -1131,12 +1132,20 @@ export class BookingsService_2024_08_13 {
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
     const userCalendars = await this.usersRepository.findByIdWithCalendars(requestUser.id);
 
+    const traceContext = distributedTracing.createTrace("api_v2_confirm_booking", {
+      meta: {
+        userId: requestUser.id.toString(),
+        bookingUid,
+      },
+    });
+
     await confirmBookingHandler({
       ctx: {
         user: {
           ...requestUser,
           destinationCalendar: userCalendars?.destinationCalendar ?? null,
         },
+        traceContext,
       },
       input: {
         bookingId: booking.id,
@@ -1163,12 +1172,20 @@ export class BookingsService_2024_08_13 {
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
     const userCalendars = await this.usersRepository.findByIdWithCalendars(requestUser.id);
 
+    const traceContext = distributedTracing.createTrace("api_v2_decline_booking", {
+      meta: {
+        userId: requestUser.id.toString(),
+        bookingUid,
+      },
+    });
+
     await confirmBookingHandler({
       ctx: {
         user: {
           ...requestUser,
           destinationCalendar: userCalendars?.destinationCalendar ?? null,
         },
+        traceContext,
       },
       input: {
         bookingId: booking.id,
