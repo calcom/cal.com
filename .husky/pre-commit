@@ -1,6 +1,3 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
 if [ -f .git/MERGE_HEAD ]; then
   echo "Merge detected. Skipping lint-staged and generators."
   exit 0
