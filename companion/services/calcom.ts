@@ -337,11 +337,15 @@ async function testRawBookingsAPI(): Promise<void> {
     if (responseText?.trim()) {
       const _responseJson = safeParseJson(responseText);
       if (!_responseJson) {
-        safeLogError("[CalComAPIService] Failed to parse bookings response", { responseText });
+        safeLogError("[CalComAPIService] Failed to parse bookings response", {
+          responseText,
+        });
       }
     }
   } catch (_error) {
-    safeLogError("[CalComAPIService] testRawBookingsAPI failed", { error: _error });
+    safeLogError("[CalComAPIService] testRawBookingsAPI failed", {
+      error: _error,
+    });
   }
 }
 
@@ -928,7 +932,7 @@ async function getBookingByUid(bookingUid: string): Promise<Booking> {
     }
     throw new Error("Invalid response from get booking API");
   } catch (error) {
-    console.error("getBookingByUid error");
+    console.error("getBookingByUid error:", error);
     throw error;
   }
 }
@@ -1008,7 +1012,7 @@ async function getBookings(filters?: {
   }
 
   // Get current user to filter bookings
-  let currentUser;
+  let currentUser: UserProfile | undefined;
   try {
     currentUser = await getCurrentUser();
   } catch (_error) {

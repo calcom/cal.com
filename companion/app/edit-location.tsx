@@ -1,6 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Platform, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Platform, View } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
 import type { EditLocationScreenHandle } from "@/components/screens/EditLocationScreen";
 import EditLocationScreenComponent from "@/components/screens/EditLocationScreen";
@@ -40,14 +41,23 @@ export default function EditLocation() {
     router.back();
   }, [router]);
 
+  const renderHeaderLeft = useCallback(
+    () => (
+      <AppPressable onPress={() => router.back()} className="px-2 py-2">
+        <Ionicons name="close" size={24} color="#007AFF" />
+      </AppPressable>
+    ),
+    [router]
+  );
+
   const renderHeaderRight = useCallback(
     () => (
       <AppPressable
         onPress={handleSave}
         disabled={isSaving}
-        className={`px-4 py-2 ${isSaving ? "opacity-50" : ""}`}
+        className={`px-2 py-2 ${isSaving ? "opacity-50" : ""}`}
       >
-        <Text className="text-[16px] font-semibold text-[#007AFF]">Save</Text>
+        <Ionicons name="checkmark" size={24} color="#007AFF" />
       </AppPressable>
     ),
     [handleSave, isSaving]
@@ -63,9 +73,8 @@ export default function EditLocation() {
           }}
         />
 
-        {/* iOS-only Stack.Header */}
         {Platform.OS === "ios" && (
-          <Stack.Header style={{ shadowColor: "transparent" }}>
+          <Stack.Header>
             <Stack.Header.Title>Edit Location</Stack.Header.Title>
           </Stack.Header>
         )}
@@ -83,17 +92,24 @@ export default function EditLocation() {
         options={{
           title: "Edit Location",
           headerBackButtonDisplayMode: "minimal",
+          headerLeft: Platform.OS !== "ios" ? renderHeaderLeft : undefined,
           headerRight: Platform.OS !== "ios" ? renderHeaderRight : undefined,
         }}
       />
 
       {Platform.OS === "ios" && (
-        <Stack.Header style={{ shadowColor: "transparent" }}>
+        <Stack.Header>
+          <Stack.Header.Left>
+            <Stack.Header.Button onPress={() => router.back()}>
+              <Stack.Header.Icon sf="xmark" />
+            </Stack.Header.Button>
+          </Stack.Header.Left>
+
           <Stack.Header.Title>Edit Location</Stack.Header.Title>
 
           <Stack.Header.Right>
             <Stack.Header.Button onPress={handleSave} disabled={isSaving}>
-              Save
+              <Stack.Header.Icon sf="checkmark" />
             </Stack.Header.Button>
           </Stack.Header.Right>
         </Stack.Header>
