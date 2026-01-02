@@ -490,11 +490,12 @@ async function expectValidReactEmbedSnippet(
    { embedType, calLink, bookerUrl }: { embedType: EmbedType; calLink: string; bookerUrl?: string }
  ) {
    bookerUrl = bookerUrl ?? `${WEBAPP_URL}`;
-
    const previewIframe = page.locator('[data-testid="embed-preview"]');
    await expect(previewIframe).toBeVisible({ timeout: 10000 });
 
-   await expect(previewIframe).toHaveAttribute("src", new RegExp(
-     `^/preview\\.html\\?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${encodeURIComponent(EMBED_LIB_URL)}&bookerUrl=${encodeURIComponent(bookerUrl)}`
-   ));
+   const expectedRegex = new RegExp(
+     `^(https?://[^/]+)?/embed/preview\\.html\\?embedType=${embedType}&calLink=${calLink.replace(/\//g, '\\/')}&embedLibUrl=${encodeURIComponent(EMBED_LIB_URL)}&bookerUrl=${encodeURIComponent(bookerUrl)}`
+   );
+
+   await expect(previewIframe).toHaveAttribute("src", expectedRegex);
  }
