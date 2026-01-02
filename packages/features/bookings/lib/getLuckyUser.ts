@@ -1,5 +1,5 @@
 import { acrossQueryValueCompatiblity } from "@calcom/app-store/_utils/raqb/raqbUtils.server";
-import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
+import type { Fields, FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import type { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
@@ -12,10 +12,9 @@ import type { UserRepository } from "@calcom/features/users/repositories/UserRep
 import logger from "@calcom/lib/logger";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { Prisma } from "@calcom/prisma/client";
-import type { User, Booking, SelectedCalendar } from "@calcom/prisma/client";
+import type { Booking, Prisma, SelectedCalendar, User } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
-import { RRTimestampBasis, RRResetInterval } from "@calcom/prisma/enums";
+import { RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
@@ -87,6 +86,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
   }[];
   routingFormResponse: RoutingFormResponse | null;
   meetingStartTime?: Date;
+  excludeSalesforceBookingsFromRR?: boolean;
 }
 
 // === Utility Functions kept outside of the class ===
@@ -370,7 +370,7 @@ export class LuckyUserService implements ILuckyUserService {
   private filterUsersBasedOnWeights<
     T extends PartialUser & {
       weight?: number | null;
-    }
+    },
   >({
     availableUsers,
     bookingsOfAvailableUsersOfInterval,
@@ -493,7 +493,7 @@ export class LuckyUserService implements ILuckyUserService {
     T extends PartialUser & {
       priority?: number | null;
       weight?: number | null;
-    }
+    },
   >(
     allRRHosts: GetLuckyUserParams<T>["allRRHosts"],
     attributesQueryValueChild: Record<
@@ -693,15 +693,18 @@ export class LuckyUserService implements ILuckyUserService {
       )
     );
 
-    return usersBusyTimesQuery.reduce((usersBusyTime, userBusyTimeQuery, index) => {
-      if (userBusyTimeQuery.success) {
-        usersBusyTime.push({
-          userId: usersWithCredentials[index].id,
-          busyTimes: userBusyTimeQuery.data,
-        });
-      }
-      return usersBusyTime;
-    }, [] as { userId: number; busyTimes: Awaited<ReturnType<typeof getBusyCalendarTimes>>["data"] }[]);
+    return usersBusyTimesQuery.reduce(
+      (usersBusyTime, userBusyTimeQuery, index) => {
+        if (userBusyTimeQuery.success) {
+          usersBusyTime.push({
+            userId: usersWithCredentials[index].id,
+            busyTimes: userBusyTimeQuery.data,
+          });
+        }
+        return usersBusyTime;
+      },
+      [] as { userId: number; busyTimes: Awaited<ReturnType<typeof getBusyCalendarTimes>>["data"] }[]
+    );
   }
 
   private async getBookingsOfInterval({
@@ -712,6 +715,7 @@ export class LuckyUserService implements ILuckyUserService {
     includeNoShowInRRCalculation,
     rrTimestampBasis,
     meetingStartTime,
+    excludeSalesforceBookingsFromRR,
   }: {
     eventTypeId: number;
     users: { id: number; email: string }[];
@@ -720,6 +724,7 @@ export class LuckyUserService implements ILuckyUserService {
     includeNoShowInRRCalculation: boolean;
     rrTimestampBasis: RRTimestampBasis;
     meetingStartTime?: Date;
+    excludeSalesforceBookingsFromRR?: boolean;
   }) {
     return await this.bookingRepository.getAllBookingsForRoundRobin({
       eventTypeId: eventTypeId,
@@ -729,6 +734,7 @@ export class LuckyUserService implements ILuckyUserService {
       virtualQueuesData,
       includeNoShowInRRCalculation,
       rrTimestampBasis,
+      excludeSalesforceBookingsFromRR,
     });
   }
 
@@ -736,11 +742,12 @@ export class LuckyUserService implements ILuckyUserService {
     T extends PartialUser & {
       priority?: number | null;
       weight?: number | null;
-    }
+    },
   >(getLuckyUserParams: GetLuckyUserParams<T>): Promise<FetchedData> {
     const startTime = performance.now();
 
-    const { availableUsers, allRRHosts, eventType, meetingStartTime } = getLuckyUserParams;
+    const { availableUsers, allRRHosts, eventType, meetingStartTime, excludeSalesforceBookingsFromRR } =
+      getLuckyUserParams;
     const notAvailableHosts = (function getNotAvailableHosts() {
       const availableUserIds = new Set(availableUsers.map((user) => user.id));
       return allRRHosts.reduce(
@@ -763,9 +770,8 @@ export class LuckyUserService implements ILuckyUserService {
       );
     })();
 
-    const { attributeWeights, virtualQueuesData } = await this.prepareQueuesAndAttributesData(
-      getLuckyUserParams
-    );
+    const { attributeWeights, virtualQueuesData } =
+      await this.prepareQueuesAndAttributesData(getLuckyUserParams);
 
     const interval =
       eventType.isRRWeightsEnabled && getLuckyUserParams.eventType.team?.rrResetInterval
@@ -804,6 +810,7 @@ export class LuckyUserService implements ILuckyUserService {
         includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
         rrTimestampBasis,
         meetingStartTime,
+        excludeSalesforceBookingsFromRR,
       }),
       this.getBookingsOfInterval({
         eventTypeId: eventType.id,
@@ -813,6 +820,7 @@ export class LuckyUserService implements ILuckyUserService {
         includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
         rrTimestampBasis,
         meetingStartTime,
+        excludeSalesforceBookingsFromRR,
       }),
       this.getBookingsOfInterval({
         eventTypeId: eventType.id,
@@ -824,6 +832,7 @@ export class LuckyUserService implements ILuckyUserService {
         includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
         rrTimestampBasis,
         meetingStartTime,
+        excludeSalesforceBookingsFromRR,
       }),
       this.hostRepository.findHostsCreatedInInterval({
         eventTypeId: eventType.id,
@@ -917,7 +926,7 @@ export class LuckyUserService implements ILuckyUserService {
     T extends PartialUser & {
       priority?: number | null;
       weight?: number | null;
-    }
+    },
   >(getLuckyUserParams: GetLuckyUserParams<T>) {
     // Early return if only one available user to avoid unnecessary data fetching
     if (getLuckyUserParams.availableUsers.length === 1) {
@@ -938,7 +947,7 @@ export class LuckyUserService implements ILuckyUserService {
     T extends PartialUser & {
       priority?: number | null;
       weight?: number | null;
-    }
+    },
   >({ availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T> & FetchedData) {
     const {
       eventType,

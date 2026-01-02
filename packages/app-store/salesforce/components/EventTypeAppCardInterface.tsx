@@ -1,26 +1,28 @@
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-
-import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
+
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { InputField, Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { InputField, Label, Select, Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
 import { showToast } from "@calcom/ui/components/toast";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import { SalesforceRecordEnum } from "../lib/enums";
 import type { appDataSchema } from "../zod";
 import WriteToObjectSettings, { BookingActionEnum } from "./components/WriteToObjectSettings";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType, onAppInstallSuccess }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  app,
+  eventType,
+  onAppInstallSuccess,
+}) {
   const pathname = usePathname();
 
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
@@ -43,6 +45,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const onBookingWriteToRecord = getAppData("onBookingWriteToRecord") ?? false;
   const onBookingWriteToRecordFields = getAppData("onBookingWriteToRecordFields") ?? {};
   const ignoreGuests = getAppData("ignoreGuests") ?? false;
+  const excludeSalesforceBookingsFromRR = getAppData("excludeSalesforceBookingsFromRR") ?? false;
   const roundRobinSkipFallbackToLeadOwner = getAppData("roundRobinSkipFallbackToLeadOwner") ?? false;
   const onCancelWriteToEventRecord = getAppData("onCancelWriteToEventRecord") ?? false;
   const onCancelWriteToEventRecordFields = getAppData("onCancelWriteToEventRecordFields") ?? {};
@@ -339,9 +342,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           {onBookingChangeRecordOwner ? (
             <Section.SubSectionContent classNames={{ container: "p-3" }}>
               <div>
-                <Label
-                  htmlFor="on-booking-change-record-owner-name"
-                  className="text-subtle text-sm font-medium">
+                <Label for="on-booking-change-record-owner-name" className="text-subtle text-sm font-medium">
                   {t("salesforce_owner_name_to_change")}
                 </Label>
                 <InputField
@@ -378,9 +379,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               {isRoundRobinLeadSkipEnabled ? (
                 <Section.SubSectionContent classNames={{ container: "p-3" }}>
                   <div>
-                    <Label
-                      htmlFor="round-robin-skip-check-record-on"
-                      className="text-subtle text-sm font-medium">
+                    <Label for="round-robin-skip-check-record-on" className="text-subtle text-sm font-medium">
                       {t("salesforce_check_owner_of")}
                     </Label>
                     <Select
@@ -441,6 +440,28 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           </>
         ) : null}
 
+        {/* Only show this toggle when the event type is Round Robin */}
+        {eventType.schedulingType === SchedulingType.ROUND_ROBIN && (
+          <Section.SubSection>
+            <Section.SubSectionHeader
+              icon="refresh-ccw"
+              title={t("exclude_salesforce_bookings_from_round_robin")}
+              labelFor="exclude-salesforce-bookings-from-rr">
+              <Switch
+                id="exclude-salesforce-bookings-from-rr"
+                size="sm"
+                checked={excludeSalesforceBookingsFromRR}
+                onCheckedChange={(checked) => {
+                  setAppData("excludeSalesforceBookingsFromRR", checked);
+                }}
+              />
+            </Section.SubSectionHeader>
+            <p className="text-subtle mt-2 text-sm">
+              {t("exclude_salesforce_bookings_from_round_robin_description")}
+            </p>
+          </Section.SubSection>
+        )}
+
         <Section.SubSection>
           <WriteToObjectSettings
             bookingAction={BookingActionEnum.ON_CANCEL}
@@ -470,9 +491,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           </Section.SubSectionHeader>
           {sendNoShowAttendeeData ? (
             <Section.SubSectionContent classNames={{ container: "p-3" }}>
-              <Label
-                htmlFor="send-no-show-attendee-data-field-name"
-                className="text-subtle text-sm font-medium">
+              <Label for="send-no-show-attendee-data-field-name" className="text-subtle text-sm font-medium">
                 Field name to check (must be checkbox data type)
               </Label>
               <InputField

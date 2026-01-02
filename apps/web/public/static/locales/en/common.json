@@ -3486,6 +3486,8 @@
   "visitors_browser_language": "Visitor's browser language",
   "name_or_email": "Name or Email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "If no contact is found, fallback to lead owner if it exists",
+  "exclude_salesforce_bookings_from_round_robin": "Only count Round-Robin assigned bookings",
+  "exclude_salesforce_bookings_from_round_robin_description": "When enabled, only bookings assigned via Round-Robin logic count towards Round-Robin calculations. Bookings assigned due to Salesforce ownership will not count.",
   "credit_purchase_failed": "Credit purchase failed. Please try again or contact support.",
   "minimum_of_credits_required": "Minimum of 50 credits required",
   "enable_delegation_credential": "Enable Delegation Credential",

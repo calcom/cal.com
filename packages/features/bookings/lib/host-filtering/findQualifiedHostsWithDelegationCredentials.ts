@@ -1,12 +1,13 @@
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import type { RoutingFormResponse } from "@calcom/features/bookings/lib/getLuckyUser";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { EventType } from "@calcom/features/users/lib/getRoutedUsers";
 import {
   findMatchingHostsWithEventSegment,
   getNormalizedHostsWithDelegationCredentials,
 } from "@calcom/features/users/lib/getRoutedUsers";
-import type { EventType } from "@calcom/features/users/lib/getRoutedUsers";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
@@ -80,7 +81,7 @@ export class QualifiedHostsService {
       id: number;
       credentials: CredentialPayload[];
       userLevelSelectedCalendars: SelectedCalendar[];
-    } & Record<string, unknown>
+    } & Record<string, unknown>,
   >({
     eventType,
     rescheduleUid,
@@ -99,6 +100,7 @@ export class QualifiedHostsService {
       rescheduleWithSameRoundRobinHost: boolean;
       includeNoShowInRRCalculation: boolean;
       rrHostSubsetEnabled?: boolean;
+      metadata?: Prisma.JsonValue;
     } & EventType;
     rescheduleUid: string | null;
     routedTeamMemberIds: number[];
@@ -218,6 +220,9 @@ export class QualifiedHostsService {
       };
     }
 
+    const salesforceAppData = eventTypeAppMetadataOptionalSchema.parse(
+      (eventType.metadata as Record<string, unknown>)?.apps
+    )?.salesforce;
     const hostsAfterFairnessMatching = applyFilterWithFallback(
       hostsAfterRoutedTeamMemberIdsMatching,
       await filterHostsByLeadThreshold({
@@ -225,6 +230,7 @@ export class QualifiedHostsService {
         hosts: hostsAfterRoutedTeamMemberIdsMatching,
         maxLeadThreshold: eventType.maxLeadThreshold ?? null,
         routingFormResponse,
+        excludeSalesforceBookingsFromRR: salesforceAppData?.excludeSalesforceBookingsFromRR,
       })
     );
 
