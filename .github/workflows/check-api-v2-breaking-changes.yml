@@ -39,7 +39,9 @@ jobs:
 
       - name: Generate Swagger
         working-directory: apps/api/v2
-        run: yarn generate-swagger
+        run: |
+          yarn prisma generate
+          yarn generate-swagger
 
       - name: Check API v2 breaking changes
         run: |
