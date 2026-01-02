@@ -1,4 +1,4 @@
-import prismaMock from "../mocks/prisma";
+import prismaMock from "../../../tests/libs/__mocks__/prisma";
 
 import "vitest-fetch-mock";
 

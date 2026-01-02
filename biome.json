@@ -43,7 +43,8 @@
       "!!test-results",
       "!!packages/lib/raqb/resolveQueryValue.test.ts",
       "!!packages/ui/components/editor/plugins/ToolbarPlugin.tsx",
-      "!!packages/embeds/embed-core/src/lib/domUtils.ts"
+      "!!packages/embeds/embed-core/src/lib/domUtils.ts",
+      "!!packages/testing"
     ]
   },
   "javascript": {
