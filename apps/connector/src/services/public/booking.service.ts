@@ -1,5 +1,7 @@
 import { PrismaClient } from "@calcom/prisma";
+import { CalIdMembershipRole } from "@calcom/prisma/client";
 import type { GetBookingsInput } from "@/schema/booking.schema";
+import { TeamRepository } from "@/repositories/team.repository";
 
 import { BaseService } from "../base.service";
 
@@ -10,12 +12,14 @@ import type { RescheduleBookingInput } from "@calcom/platform-types";
 
 export class BookingService extends BaseService {
   private bookingRepository: BookingRepository;
+  private teamRepository: TeamRepository;
   private oAuthClientRepository: OAuthClientRepository;
   private eventTypesRepository: EventTypeRepository;
 
   constructor(prisma: PrismaClient) {
     super(prisma);
     this.bookingRepository = new BookingRepository(prisma);
+    this.teamRepository = new TeamRepository(prisma);
     this.oAuthClientRepository = new OAuthClientRepository(prisma);
     this.eventTypesRepository = new EventTypeRepository(prisma);
   }
@@ -96,13 +100,23 @@ export class BookingService extends BaseService {
     return undefined;
   }
 
- 
-
   async bookingExists(userId: number, id: number): Promise<boolean> {
     try {
-      return await this.bookingRepository.existsByUserIdAndId(userId, id);
+      const existsOnTheUser = await this.bookingRepository.existsByUserIdAndId(userId, id);
+
+      const booking = await this.bookingRepository.getBookingById(id);
+
+      if(!booking.eventType.calIdTeamId) {
+        return existsOnTheUser;
+      }
+      else {
+        const membership =  await this.teamRepository.getUserMembershipInTeam(userId, booking.eventType.calIdTeamId);
+
+        return membership &&
+        ([CalIdMembershipRole.ADMIN, CalIdMembershipRole.OWNER] as CalIdMembershipRole[]).includes(membership.role)
+      }
     } catch (error) {
-      this.logError("eventTypeExists", error);
+      this.logError("bookingExists", error);
       throw error;
     }
   }
