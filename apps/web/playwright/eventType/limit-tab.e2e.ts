@@ -18,8 +18,11 @@ test.describe("Limits Tab - Event Type", () => {
     await bookingPage.updateEventType();
     const eventTypePage = await bookingPage.previewEventType();
 
-    await expect(eventTypePage.getByTestId("time")).toBeVisible({ timeout: 15000 });
-    const counter = await eventTypePage.getByTestId("time").count();
+    const timeSlots = eventTypePage.getByTestId("time");
+    await timeSlots.waitFor({ state: "visible", timeout: 15000 });
+
+    const counter = await timeSlots.count();
     await bookingPage.checkTimeSlotsCount(eventTypePage, counter);
   });
+
 });
