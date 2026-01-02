@@ -19238,6 +19238,9 @@
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
                 },
                 {
+                  "$ref": "#/components/schemas/PhoneDefaultFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/AddressFieldInput_2024_06_14"
                 },
                 {
@@ -21551,6 +21554,9 @@
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
                 },
                 {
+                  "$ref": "#/components/schemas/PhoneDefaultFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/AddressFieldInput_2024_06_14"
                 },
                 {
@@ -23531,6 +23537,9 @@
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
                 },
                 {
+                  "$ref": "#/components/schemas/PhoneDefaultFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/AddressFieldInput_2024_06_14"
                 },
                 {
@@ -24125,6 +24134,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/PhoneDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/AddressFieldInput_2024_06_14"
@@ -33692,6 +33704,154 @@
         ]
       },
       "AddGuestsOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+                }
+              }
+            ],
+            "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateBookingLocationInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "description": "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UpdateInputAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeeAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeeDefinedLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeePhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputLinkLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputPhoneLocation_2024_08_13"
+              }
+            ]
+          }
+        }
+      },
+      "UpdateBookingLocationOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+                }
+              }
+            ],
+            "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateBookingLocationInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "description": "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UpdateInputAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeeAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeeDefinedLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeePhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputLinkLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputPhoneLocation_2024_08_13"
+              }
+            ]
+          }
+        }
+      },
+      "UpdateBookingLocationOutput_2024_08_13": {
         "type": "object",
         "properties": {
           "status": {

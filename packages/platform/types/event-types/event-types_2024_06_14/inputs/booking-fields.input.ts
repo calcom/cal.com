@@ -362,12 +362,12 @@ export class PhoneDefaultFieldInput_2024_06_14 {
 
   @IsString()
   @IsOptional()
-  @DocsProperty()
+  @DocsPropertyOptional()
   label?: string;
 
   @IsString()
   @IsOptional()
-  @DocsProperty()
+  @DocsPropertyOptional()
   placeholder?: string;
 
   @IsBoolean()
@@ -1030,7 +1030,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
         slugs.push(slug);
       }
 
-      const indexByType = fieldNeedsType && slug !== "attendeePhoneNumber"
+      const indexByType = fieldNeedsType && slug !== "attendeePhoneNumber";
 
       const ClassType = indexByType ? this.classMap[type] : this.classMap[slug];
       if (!ClassType) {
