@@ -1,6 +1,5 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity, Switch, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Animated, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 interface FrequencyLimit {
   id: number;
@@ -36,7 +35,7 @@ interface LimitsTabProps {
   toggleBookingFrequency: (value: boolean) => void;
   frequencyAnimationValue: Animated.Value;
   frequencyLimits: FrequencyLimit[];
-  updateFrequencyLimit: (id: number, field: string, value: string) => void;
+  updateFrequencyLimit: (id: number, field: "value" | "unit", value: string) => void;
   setShowFrequencyUnitDropdown: (id: number) => void;
   removeFrequencyLimit: (id: number) => void;
   addFrequencyLimit: () => void;
@@ -50,7 +49,7 @@ interface LimitsTabProps {
   toggleTotalDuration: (value: boolean) => void;
   durationAnimationValue: Animated.Value;
   durationLimits: DurationLimit[];
-  updateDurationLimit: (id: number, field: string, value: string) => void;
+  updateDurationLimit: (id: number, field: "value" | "unit", value: string) => void;
   setShowDurationUnitDropdown: (id: number) => void;
   removeDurationLimit: (id: number) => void;
   addDurationLimit: () => void;
@@ -119,7 +118,7 @@ export function LimitsTab(props: LimitsTabProps) {
               value={props.minimumNoticeValue}
               onChangeText={(text) => {
                 const numericValue = text.replace(/[^0-9]/g, "");
-                const num = parseInt(numericValue) || 0;
+                const num = parseInt(numericValue, 10) || 0;
                 if (num >= 0) {
                   props.setMinimumNoticeValue(numericValue || "0");
                 }
@@ -183,7 +182,7 @@ export function LimitsTab(props: LimitsTabProps) {
             },
           ]}
         >
-          {props.limitBookingFrequency && (
+          {props.limitBookingFrequency ? (
             <>
               {props.frequencyLimits.map((limit) => (
                 <View key={limit.id} className="mt-4 flex-row items-center gap-3">
@@ -192,7 +191,7 @@ export function LimitsTab(props: LimitsTabProps) {
                     value={limit.value}
                     onChangeText={(text) => {
                       const numericValue = text.replace(/[^0-9]/g, "");
-                      const num = parseInt(numericValue) || 0;
+                      const num = parseInt(numericValue, 10) || 0;
                       if (num >= 0) {
                         props.updateFrequencyLimit(limit.id, "value", numericValue || "0");
                       }
@@ -208,14 +207,14 @@ export function LimitsTab(props: LimitsTabProps) {
                     <Text className="text-base text-black">{limit.unit}</Text>
                     <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                   </TouchableOpacity>
-                  {props.frequencyLimits.length > 1 && (
+                  {props.frequencyLimits.length > 1 ? (
                     <TouchableOpacity
                       className="h-10 w-10 items-center justify-center rounded-lg border border-[#FFCCC7] bg-[#FFF1F0]"
                       onPress={() => props.removeFrequencyLimit(limit.id)}
                     >
                       <Ionicons name="trash-outline" size={20} color="#800000" />
                     </TouchableOpacity>
-                  )}
+                  ) : null}
                 </View>
               ))}
               <TouchableOpacity
@@ -226,7 +225,7 @@ export function LimitsTab(props: LimitsTabProps) {
                 <Text className="text-base font-medium text-black">Add Limit</Text>
               </TouchableOpacity>
             </>
-          )}
+          ) : null}
         </Animated.View>
       </View>
 
@@ -282,7 +281,7 @@ export function LimitsTab(props: LimitsTabProps) {
             },
           ]}
         >
-          {props.limitTotalDuration && (
+          {props.limitTotalDuration ? (
             <>
               {props.durationLimits.map((limit) => (
                 <View key={limit.id} className="mt-4 flex-row items-center gap-3">
@@ -292,7 +291,7 @@ export function LimitsTab(props: LimitsTabProps) {
                       value={limit.value}
                       onChangeText={(text) => {
                         const numericValue = text.replace(/[^0-9]/g, "");
-                        const num = parseInt(numericValue) || 0;
+                        const num = parseInt(numericValue, 10) || 0;
                         if (num >= 0) {
                           props.updateDurationLimit(limit.id, "value", numericValue || "0");
                         }
@@ -310,14 +309,14 @@ export function LimitsTab(props: LimitsTabProps) {
                     <Text className="text-base text-black">{limit.unit}</Text>
                     <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                   </TouchableOpacity>
-                  {props.durationLimits.length > 1 && (
+                  {props.durationLimits.length > 1 ? (
                     <TouchableOpacity
                       className="h-10 w-10 items-center justify-center rounded-lg border border-[#FFCCC7] bg-[#FFF1F0]"
                       onPress={() => props.removeDurationLimit(limit.id)}
                     >
                       <Ionicons name="trash-outline" size={20} color="#800000" />
                     </TouchableOpacity>
-                  )}
+                  ) : null}
                 </View>
               ))}
               <TouchableOpacity
@@ -328,7 +327,7 @@ export function LimitsTab(props: LimitsTabProps) {
                 <Text className="text-base font-medium text-black">Add Limit</Text>
               </TouchableOpacity>
             </>
-          )}
+          ) : null}
         </Animated.View>
       </View>
 
@@ -350,7 +349,7 @@ export function LimitsTab(props: LimitsTabProps) {
             thumbColor="#FFFFFF"
           />
         </View>
-        {props.maxActiveBookingsPerBooker && (
+        {props.maxActiveBookingsPerBooker ? (
           <View className="mt-4 gap-3">
             <View className="flex-row items-center gap-3">
               <TextInput
@@ -358,7 +357,7 @@ export function LimitsTab(props: LimitsTabProps) {
                 value={props.maxActiveBookingsValue}
                 onChangeText={(text) => {
                   const numericValue = text.replace(/[^0-9]/g, "");
-                  const num = parseInt(numericValue) || 0;
+                  const num = parseInt(numericValue, 10) || 0;
                   if (num >= 0) {
                     props.setMaxActiveBookingsValue(numericValue || "1");
                   }
@@ -385,7 +384,7 @@ export function LimitsTab(props: LimitsTabProps) {
               </Text>
             </TouchableOpacity>
           </View>
-        )}
+        ) : null}
       </View>
 
       {/* 5. Limit Future Bookings Card */}
@@ -404,7 +403,7 @@ export function LimitsTab(props: LimitsTabProps) {
             thumbColor="#FFFFFF"
           />
         </View>
-        {props.limitFutureBookings && (
+        {props.limitFutureBookings ? (
           <View className="mt-4 gap-3">
             {/* Rolling option */}
             <TouchableOpacity
@@ -416,9 +415,9 @@ export function LimitsTab(props: LimitsTabProps) {
                   props.futureBookingType === "rolling" ? "border-[#007AFF]" : "border-[#C7C7CC]"
                 }`}
               >
-                {props.futureBookingType === "rolling" && (
+                {props.futureBookingType === "rolling" ? (
                   <View className="h-2.5 w-2.5 rounded-full bg-[#007AFF]" />
-                )}
+                ) : null}
               </View>
               <View className="flex-1">
                 <View className="flex-row flex-wrap items-center gap-2">
@@ -460,13 +459,13 @@ export function LimitsTab(props: LimitsTabProps) {
                   props.futureBookingType === "range" ? "border-[#007AFF]" : "border-[#C7C7CC]"
                 }`}
               >
-                {props.futureBookingType === "range" && (
+                {props.futureBookingType === "range" ? (
                   <View className="h-2.5 w-2.5 rounded-full bg-[#007AFF]" />
-                )}
+                ) : null}
               </View>
               <View className="flex-1">
                 <Text className="mb-2 text-base text-[#333]">Within a date range</Text>
-                {props.futureBookingType === "range" && (
+                {props.futureBookingType === "range" ? (
                   <View className="gap-2">
                     <TextInput
                       className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-2 text-base text-black"
@@ -483,11 +482,11 @@ export function LimitsTab(props: LimitsTabProps) {
                       placeholderTextColor="#8E8E93"
                     />
                   </View>
-                )}
+                ) : null}
               </View>
             </TouchableOpacity>
           </View>
-        )}
+        ) : null}
       </View>
     </View>
   );

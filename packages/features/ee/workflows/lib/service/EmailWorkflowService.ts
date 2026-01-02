@@ -27,6 +27,7 @@ import type { VariablesType } from "../reminders/templates/customTemplate";
 import customTemplate, {
   transformBookingResponsesToVariableFormat,
 } from "../reminders/templates/customTemplate";
+import { replaceCloakedLinksInHtml } from "../reminders/utils";
 import emailRatingTemplate from "../reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../reminders/templates/emailReminderTemplate";
 import type {
@@ -288,13 +289,37 @@ export class EmailWorkflowService {
         timeZone = evt.organizer.timeZone;
         break;
       case WorkflowActions.EMAIL_ATTENDEE: {
-        // check if first attendee of sendTo is present in the attendees list, if not take the evt attendee
-        const attendeeEmailToBeUsedInMailFromEvt = evt.attendees.find(
-          (attendee) => attendee.email === sendTo[0]
-        );
-        attendeeToBeUsedInMail = attendeeEmailToBeUsedInMailFromEvt
-          ? attendeeEmailToBeUsedInMailFromEvt
-          : evt.attendees[0];
+        // For seated events, get the correct attendee based on seatReferenceUid
+        if (seatReferenceUid) {
+          const seatAttendeeData = await this.bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
+            seatReferenceUid
+          );
+          if (seatAttendeeData?.attendee) {
+            const nameParts = seatAttendeeData.attendee.name.split(" ").map((part: string) => part.trim());
+            const firstName = nameParts[0];
+            const lastName = nameParts.slice(1).join(" ");
+            attendeeToBeUsedInMail = {
+              name: seatAttendeeData.attendee.name,
+              firstName,
+              lastName: lastName || undefined,
+              email: seatAttendeeData.attendee.email,
+              phoneNumber: seatAttendeeData.attendee.phoneNumber || null,
+              timeZone: seatAttendeeData.attendee.timeZone,
+              language: { locale: seatAttendeeData.attendee.locale || "en" },
+            };
+          } else {
+            // Fallback to first attendee if seat attendee not found
+            attendeeToBeUsedInMail = evt.attendees[0];
+          }
+        } else {
+          // For non-seated events, check if first attendee of sendTo is present in the attendees list, if not take the evt attendee
+          const attendeeEmailToBeUsedInMailFromEvt = evt.attendees.find(
+            (attendee) => attendee.email === sendTo[0]
+          );
+          attendeeToBeUsedInMail = attendeeEmailToBeUsedInMailFromEvt
+            ? attendeeEmailToBeUsedInMailFromEvt
+            : evt.attendees[0];
+        }
         name = attendeeToBeUsedInMail.name;
         attendeeName = evt.organizer.name;
         timeZone = attendeeToBeUsedInMail.timeZone;
@@ -355,9 +380,9 @@ export class EmailWorkflowService {
         rescheduleReason: evt.rescheduleReason,
         ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
         noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
-        attendeeTimezone: evt.attendees[0].timeZone,
-        eventTimeInAttendeeTimezone: dayjs(startTime).tz(evt.attendees[0].timeZone),
-        eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(evt.attendees[0].timeZone),
+        attendeeTimezone: attendeeToBeUsedInMail.timeZone,
+        eventTimeInAttendeeTimezone: dayjs(startTime).tz(attendeeToBeUsedInMail.timeZone),
+        eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(attendeeToBeUsedInMail.timeZone),
       };
 
       const locale = isEmailAttendeeAction
@@ -455,7 +480,7 @@ export class EmailWorkflowService {
 
     return {
       subject: emailContent.emailSubject,
-      html: emailContent.emailBody,
+      html: replaceCloakedLinksInHtml(emailContent.emailBody),
       ...(!evt.hideOrganizerEmail && {
         replyTo: customReplyToEmail || evt.organizer.email,
       }),
