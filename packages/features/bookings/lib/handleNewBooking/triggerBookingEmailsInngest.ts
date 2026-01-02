@@ -1,3 +1,10 @@
+import {
+  sendScheduledEmailsAndSMS,
+  sendAttendeeRequestEmailAndSMS,
+  sendOrganizerRequestEmail,
+  sendRescheduledEmailsAndSMS,
+  sendCancelledEmailsAndSMS,
+} from "@calcom/emails";
 import { INNGEST_ID } from "@calcom/lib/constants";
 import type { EventNameObjectType } from "@calcom/lib/event";
 import logger from "@calcom/lib/logger";
@@ -65,16 +72,64 @@ export async function triggerBookingEmailsInngest(options: TriggerBookingEmailsO
       emailType: options.emailType,
     });
   } catch (error) {
-    // Log error but don't throw - booking should still succeed even if email queuing fails
-    // Emails will be retried by Inngest automatically
-    logger.error("Failed to queue booking emails in Inngest", {
+    // Log error and fall back to synchronous email sending
+    logger.error("Failed to queue booking emails in Inngest, falling back to synchronous sending", {
       error,
       bookingUid: options.calEvent.uid,
       bookingId: options.calEvent.bookingId,
       emailType: options.emailType,
     });
 
-    // In production, you might want to fall back to synchronous email sending
-    // For now, we'll let Inngest retry automatically
+    try {
+      // Fallback to synchronous email sending if Inngest fails
+      if (options.emailType === "scheduled") {
+        await sendScheduledEmailsAndSMS(
+          options.calEvent,
+          options.eventNameObject,
+          options.isHostConfirmationEmailsDisabled,
+          options.isAttendeeConfirmationEmailDisabled,
+          options.eventTypeMetadata,
+          options.curAttendee
+        );
+      } else if (options.emailType === "rescheduled") {
+        await sendRescheduledEmailsAndSMS(options.calEvent, options.eventTypeMetadata);
+      } else if (options.emailType === "cancelled") {
+        await sendCancelledEmailsAndSMS(
+          options.calEvent,
+          options.eventNameObject
+            ? { eventName: options.eventNameObject.eventName }
+            : { eventName: undefined },
+          options.eventTypeMetadata
+        );
+      } else if (options.emailType === "request") {
+        if (options.firstAttendee) {
+          await sendOrganizerRequestEmail(options.calEvent, options.eventTypeMetadata);
+          await sendAttendeeRequestEmailAndSMS(
+            options.calEvent,
+            options.firstAttendee,
+            options.eventTypeMetadata
+          );
+        } else {
+          logger.error("Cannot send request emails: firstAttendee is required", {
+            bookingUid: options.calEvent.uid,
+            bookingId: options.calEvent.bookingId,
+          });
+        }
+      }
+
+      logger.info("Booking emails sent synchronously as fallback", {
+        bookingUid: options.calEvent.uid,
+        bookingId: options.calEvent.bookingId,
+        emailType: options.emailType,
+      });
+    } catch (fallbackError) {
+      // If fallback also fails, log but don't throw - booking should still succeed
+      logger.error("Failed to send booking emails synchronously as fallback", {
+        error: fallbackError,
+        bookingUid: options.calEvent.uid,
+        bookingId: options.calEvent.bookingId,
+        emailType: options.emailType,
+      });
+    }
   }
 }
