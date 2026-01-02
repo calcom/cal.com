@@ -121,7 +121,7 @@ function AlertDialogAction({
   ...props
 }: AlertDialogPrimitive.ActionProps & React.RefAttributes<AlertDialogPrimitive.ActionRef>) {
   return (
-    <TextClassContext.Provider value={buttonTextVariants({ className })}>
+    <TextClassContext.Provider value={buttonTextVariants()}>
       <AlertDialogPrimitive.Action className={cn(buttonVariants(), className)} {...props} />
     </TextClassContext.Provider>
   );
@@ -132,7 +132,7 @@ function AlertDialogCancel({
   ...props
 }: AlertDialogPrimitive.CancelProps & React.RefAttributes<AlertDialogPrimitive.CancelRef>) {
   return (
-    <TextClassContext.Provider value={buttonTextVariants({ className, variant: "outline" })}>
+    <TextClassContext.Provider value={buttonTextVariants({ variant: "outline" })}>
       <AlertDialogPrimitive.Cancel
         className={cn(buttonVariants({ variant: "outline" }), className)}
         {...props}

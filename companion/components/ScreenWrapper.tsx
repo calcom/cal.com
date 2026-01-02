@@ -110,7 +110,12 @@ export function ScreenWrapper({
     );
   }
 
-  return <>{children}</>;
+  return (
+    <View className="flex-1 bg-gray-100">
+      {showHeader && <Header />}
+      {children}
+    </View>
+  );
 }
 
 export type { EmptyStateConfig, ScreenWrapperProps };
