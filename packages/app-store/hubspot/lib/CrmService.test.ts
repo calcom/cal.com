@@ -5,7 +5,7 @@ import type { z } from "zod";
 
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { CrmFieldType, DateFieldType } from "../../_lib/crm-enums";
+import { CrmFieldType, DateFieldType, WhenToWrite } from "../../_lib/crm-enums";
 import type { appDataSchema } from "../zod";
 
 type AppOptions = z.infer<typeof appDataSchema>;
@@ -633,7 +633,7 @@ describe("HubspotCalendarService", () => {
       mockAppOptions({
         onBookingWriteToEventObject: false,
         onBookingWriteToEventObjectFields: {
-          custom_field: { fieldType: CrmFieldType.TEXT, value: "test" },
+          custom_field: { fieldType: CrmFieldType.TEXT, value: "test", whenToWrite: WhenToWrite.EVERY_BOOKING },
         },
       });
 
@@ -658,8 +658,8 @@ describe("HubspotCalendarService", () => {
       mockAppOptions({
         onBookingWriteToEventObject: true,
         onBookingWriteToEventObjectFields: {
-          custom_name: { fieldType: CrmFieldType.TEXT, value: "{name}", whenToWrite: "on_booking" },
-          custom_static: { fieldType: CrmFieldType.TEXT, value: "Static Value", whenToWrite: "on_booking" },
+          custom_name: { fieldType: CrmFieldType.TEXT, value: "{name}", whenToWrite: WhenToWrite.EVERY_BOOKING },
+          custom_static: { fieldType: CrmFieldType.TEXT, value: "Static Value", whenToWrite: WhenToWrite.EVERY_BOOKING },
         },
       });
 
@@ -683,7 +683,7 @@ describe("HubspotCalendarService", () => {
       mockAppOptions({
         onBookingWriteToEventObject: true,
         onBookingWriteToEventObjectFields: {
-          nonexistent_field: { fieldType: CrmFieldType.TEXT, value: "test", whenToWrite: "on_booking" },
+          nonexistent_field: { fieldType: CrmFieldType.TEXT, value: "test", whenToWrite: WhenToWrite.EVERY_BOOKING },
         },
       });
 
@@ -701,7 +701,7 @@ describe("HubspotCalendarService", () => {
       mockAppOptions({
         onBookingWriteToEventObject: true,
         onBookingWriteToEventObjectFields: {
-          custom_field: { fieldType: CrmFieldType.TEXT, value: "{unknown}", whenToWrite: "on_booking" },
+          custom_field: { fieldType: CrmFieldType.TEXT, value: "{unknown}", whenToWrite: WhenToWrite.EVERY_BOOKING },
         },
       });
 
@@ -721,7 +721,7 @@ describe("HubspotCalendarService", () => {
       mockAppOptions({
         onBookingWriteToEventObject: true,
         onBookingWriteToEventObjectFields: {
-          is_active: { fieldType: CrmFieldType.CHECKBOX, value: true, whenToWrite: "on_booking" },
+          is_active: { fieldType: CrmFieldType.CHECKBOX, value: true, whenToWrite: WhenToWrite.EVERY_BOOKING },
         },
       });
 
@@ -744,7 +744,7 @@ describe("HubspotCalendarService", () => {
           meeting_date: {
             fieldType: CrmFieldType.DATE,
             value: DateFieldType.BOOKING_START_DATE,
-            whenToWrite: "on_booking",
+            whenToWrite: WhenToWrite.EVERY_BOOKING,
           },
         },
       });
@@ -765,7 +765,7 @@ describe("HubspotCalendarService", () => {
       mockAppOptions({
         onBookingWriteToEventObject: true,
         onBookingWriteToEventObjectFields: {
-          utm_source_field: { fieldType: CrmFieldType.TEXT, value: "{utm:source}", whenToWrite: "on_booking" },
+          utm_source_field: { fieldType: CrmFieldType.TEXT, value: "{utm:source}", whenToWrite: WhenToWrite.EVERY_BOOKING },
         },
       });
 
