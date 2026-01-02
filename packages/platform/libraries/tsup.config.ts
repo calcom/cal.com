@@ -162,6 +162,8 @@ const alias = {
   tslog: path.resolve(__dirname, "../../../apps/api/v2/src/lib/logger.bridge.ts"),
 };
 
+const reactShim = path.resolve(__dirname, "./react-shim.js");
+
 export default defineConfig([
   {
     entry,
@@ -181,7 +183,7 @@ export default defineConfig([
     esbuildOptions(options) {
       options.alias = alias;
       options.conditions = ["node", "import", "require", "default"];
-      options.jsx = "automatic";
+      options.inject = [reactShim];
     },
     treeshake: true,
   },
@@ -203,7 +205,7 @@ export default defineConfig([
     esbuildOptions(options) {
       options.alias = alias;
       options.conditions = ["node", "import", "require", "default"];
-      options.jsx = "automatic";
+      options.inject = [reactShim];
     },
     treeshake: true,
   },
