@@ -35,12 +35,12 @@ async function cancelAttendeeSeat(
     evt: CalendarEvent;
     eventTypeInfo: EventTypeInfo;
   },
-  eventTypeMetadata: EventTypeMetadata
+  eventTypeMetadata: EventTypeMetadata,
+  teamId?: number
 ) {
   const input = bookingCancelAttendeeSeatSchema.safeParse({
     seatReferenceUid: data.seatReferenceUid,
   });
-
 
   const { webhooks, evt, eventTypeInfo } = dataForWebhooks;
   if (!input.success) {
@@ -52,7 +52,7 @@ async function cancelAttendeeSeat(
   const bookingToDelete = data.bookingToDelete;
   if (!bookingToDelete?.attendees.length || bookingToDelete.attendees.length < 2) {
     console.log("Attendees length less than 2, skipping seat cancellation");
-    return ;
+    return;
   }
 
   if (!bookingToDelete.userId) {
@@ -79,6 +79,13 @@ async function cancelAttendeeSeat(
   ]);
 
   const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
+
+  await processPaymentRefund({
+    booking: bookingToDelete,
+    teamId,
+    attendee,
+  });
+
   const bookingToDeleteUser = bookingToDelete.user ?? null;
   const delegationCredentials = bookingToDeleteUser
     ? // We fetch delegation credentials with ServiceAccount key as CalendarService instance created later in the flow needs it

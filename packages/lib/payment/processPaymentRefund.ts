@@ -1,8 +1,8 @@
-import type { Payment, Prisma } from "@prisma/client";
-import { t } from "i18next";
+import type { Attendee, Payment, Prisma } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import { sendPaymentNotProcessableEmail } from "@calcom/emails";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -10,30 +10,62 @@ import { getPaymentAppData } from "../getPaymentAppData";
 import { handlePaymentRefund } from "./handlePaymentRefund";
 import { RefundPolicy } from "./types";
 
+export type PaymentWithSeatAndAttendee = Prisma.PaymentGetPayload<{
+  include: {
+    bookingSeat: {
+      include: {
+        attendee: true;
+      };
+    };
+  };
+}>;
+
 export const processPaymentRefund = async ({
   booking,
+  attendee,
   teamId,
 }: {
   booking: {
     startTime: Date;
+    createdAt: Date;
     endTime: Date;
-    payment: Payment[];
+    payment: PaymentWithSeatAndAttendee[];
+    responses: any;
     eventType: {
+      name: string;
       owner?: {
         id: number;
       } | null;
       metadata?: Prisma.JsonValue;
+      hosts: {
+        email: string;
+        name: string;
+      }[];
     } | null;
   };
+  attendee: Pick<Attendee, "name" | "email" | "phoneNumber">;
   teamId?: number | null;
 }) => {
-  console.log("Processing payment refund enter");
 
   const { startTime, eventType, payment } = booking;
 
   if (!teamId && !eventType?.owner) return;
 
-  const successPayment: Payment = payment.find((p) => p.success);
+  const successPayment = payment.find((p) => {
+    const success = p.success;
+
+    const seatedBooking = p.bookingSeat;
+
+    if (!seatedBooking) return success;
+
+    if (
+      seatedBooking.attendee.email === attendee.email ||
+      seatedBooking.attendee.phoneNumber === attendee.phoneNumber
+    ) {
+      return success;
+    }
+    return false;
+  });
   if (!successPayment) return;
 
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata);
@@ -97,8 +129,46 @@ export const processPaymentRefund = async ({
     if (dayjs().isAfter(refundDeadline)) return;
   }
 
-  // sendPaymentNotProcessableEmail here
+  const daysSincePayment = dayjs().diff(dayjs(booking.createdAt), "days");
 
-  console.log("Handle payment refund appData: ", appData);
+  const hosts = eventType?.owner?.id
+    ? await prisma.user.findMany({
+        where: {
+          id: eventType.owner.id,
+        },
+        select: {
+          email: true,
+          name: true,
+          timeZone: true,
+        },
+      })
+    : null;
+
+  if (daysSincePayment > 180 && hosts && hosts.length > 0) {
+    const host = hosts[0];
+
+    const payload = {
+      user: {
+        name: host.name,
+        email: host.email,
+        timeZone: host.timeZone,
+      },
+      attendee: {
+        name: attendee.name,
+        email: attendee.email,
+      },
+      booking: {
+        title: booking.eventType?.name ?? "NA",
+        startTime: booking.startTime,
+        amount: successPayment.amount.toString(),
+        currency: successPayment.currency,
+        paymentDate: booking.createdAt,
+        paymentId: successPayment.externalId,
+      },
+    };
+
+    await sendPaymentNotProcessableEmail(payload);
+  }
+
   await handlePaymentRefund(successPayment.id, paymentAppCredential);
 };

@@ -1,13 +1,26 @@
-import type { TFunction } from "i18next";
 import { APP_NAME, COMPANY_NAME, EMAIL_FROM_NAME } from "@calcom/lib/constants";
+
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
 
-export type RefundNotProcessableInput = {
-  language: TFunction;
+export function formatInTimeZone(
+  utcDate: string | Date,
+  timeZone: string,
+  options?: Intl.DateTimeFormatOptions
+) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    dateStyle: "medium",
+    timeStyle: "short",
+    ...options,
+  }).format(new Date(utcDate));
+}
+
+export type PaymentNotProcessableInput = {
   user: {
     name?: string | null;
     email: string;
+    timeZone: string;
   };
   attendee: {
     name: string;
@@ -19,52 +32,70 @@ export type RefundNotProcessableInput = {
     amount: string;
     currency: string;
     paymentDate: string;
+    paymentId: string;
   };
 };
 
-export default class RefundNotProcessableEmail extends BaseEmail {
-  refundNotProcessableInput: RefundNotProcessableInput;
+export default class PaymentNotProcessableEmail extends BaseEmail {
+  paymentNotProcessableInput: PaymentNotProcessableInput;
 
-  constructor(refundEvent: RefundNotProcessableInput) {
+  constructor(paymentEvent: PaymentNotProcessableInput) {
     super();
-    this.name = "SEND_REFUND_NOT_PROCESSABLE_EMAIL";
-    this.refundNotProcessableInput = refundEvent;
+    this.name = "SEND_PAYMENT_NOT_PROCESSABLE_EMAIL";
+    this.paymentNotProcessableInput = paymentEvent;
   }
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
-    return {
-      to: `${this.refundNotProcessableInput.user.name} <${this.refundNotProcessableInput.user.email}>`,
+    const { user, attendee, booking } = this.paymentNotProcessableInput;
+
+    const subject = `Refund Could Not Be Processed - ${APP_NAME}`;
+
+    const payload = {
+      to: `${user.name ?? ""} <${user.email}>`,
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
-      subject: this.refundNotProcessableInput.language("refund_not_processable_subject", {
-        appName: APP_NAME,
+      subject,
+      html: await renderEmail("PaymentNotProcessableEmail", {
+        user,
+        attendee,
+        booking,
       }),
-      html: await renderEmail("RefundNotProcessable", this.refundNotProcessableInput),
       text: this.getTextBody(),
     };
+
+    console.log("Processing payment not processable email payload", payload);
+
+    return payload;
   }
 
   protected getTextBody(): string {
+    const { user, attendee, booking } = this.paymentNotProcessableInput;
+
+    const startTime = formatInTimeZone(booking.startTime, user.timeZone);
+
+    const paymentDate = formatInTimeZone(booking.paymentDate, user.timeZone, { timeStyle: undefined });
+
     return `
-${this.refundNotProcessableInput.language("refund_not_processable_subject", { appName: APP_NAME })}
-${this.refundNotProcessableInput.language("refund_not_processable_email_header")}
-${this.refundNotProcessableInput.language("hi_user_name", { name: this.refundNotProcessableInput.user.name })},
-${this.refundNotProcessableInput.language("refund_not_processable_body", {
-  attendeeName: this.refundNotProcessableInput.attendee.name,
-  bookingTitle: this.refundNotProcessableInput.booking.title,
-  startTime: this.refundNotProcessableInput.booking.startTime,
-})}
-${this.refundNotProcessableInput.language("refund_window_exceeded", {
-  amount: this.refundNotProcessableInput.booking.amount,
-  currency: this.refundNotProcessableInput.booking.currency,
-  paymentDate: this.refundNotProcessableInput.booking.paymentDate,
-})}
-${this.refundNotProcessableInput.language("refund_not_processable_action_required")}
-${this.refundNotProcessableInput.language("attendee_contact_info", {
-  attendeeName: this.refundNotProcessableInput.attendee.name,
-  attendeeEmail: this.refundNotProcessableInput.attendee.email,
-})}
-${this.refundNotProcessableInput.language("need_help_contact_support")}
-${this.refundNotProcessableInput.language("the_calcom_team", { companyName: COMPANY_NAME })}
-`.replace(/(<([^>]+)>)/gi, "");
+Refund Could Not Be Processed - ${APP_NAME}
+
+Hi ${user.name ?? ""},
+
+${attendee.name} has cancelled their booking for "${
+      booking.title
+    }" scheduled for ${startTime}. However, we were unable to process the refund automatically.
+
+The refund amount of ${booking.amount} ${booking.currency} cannot be processed because the payment '${
+      booking.paymentId
+    }' was made on ${paymentDate}, which exceeds the 6-month refund window required by our payment processor.
+
+To resolve this matter, you may need to issue a manual refund directly to the attendee or discuss alternative arrangements.
+
+Attendee Contact Information:
+Name: ${attendee.name}
+Email: ${attendee.email}
+
+If you need assistance or have questions about this cancellation, please contact our support team.
+
+The ${COMPANY_NAME} Team
+`.trim();
   }
 }

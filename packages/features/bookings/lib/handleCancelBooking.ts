@@ -3,7 +3,7 @@ import {
   normalizeDateForComparison,
 } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import { sendCancelledReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
-import type { CalIdWorkflow, Prisma } from "@prisma/client";
+import type { Attendee, CalIdWorkflow, Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import bookingCancelPaymentHandler from "@calcom/app-store/_utils/payments/bookingCancelPaymentHandler";
@@ -444,7 +444,8 @@ async function handler(input: CancelBookingInput) {
     const response = await cancelAttendeeSeat(
       { seatReferenceUid, bookingToDelete },
       { evt, eventTypeInfo, webhooks },
-      bookingToDelete.eventType?.metadata as EventTypeMetadata
+      bookingToDelete.eventType?.metadata as EventTypeMetadata,
+      teamId
     );
 
     if (response) {
@@ -627,12 +628,17 @@ async function handler(input: CancelBookingInput) {
     updatedBookings.push(updatedBooking);
     //Refund is handled below using bookingCancelPaymentHandler
 
-    console.log("Processing payment refund start");
-
     if (!!bookingToDelete.payment.length) {
+      const refundingAttendee: Pick<Attendee, "name" | "email" | "phoneNumber"> = {
+        name: bookingToDelete.responses?.name,
+        email: bookingToDelete.responses?.email,
+        phoneNumber: bookingToDelete.responses?.attendeePhoneNumber,
+      };
+
       await processPaymentRefund({
         booking: bookingToDelete,
         teamId,
+        attendee: refundingAttendee,
       });
     }
   }

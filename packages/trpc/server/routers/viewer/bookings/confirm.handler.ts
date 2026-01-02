@@ -343,10 +343,19 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   } else {
     evt.rejectionReason = rejectionReason;
 
+    // NOTE: Seated bookings can't require confirmation, so we don't need to handle attendee-wise refunds here.
+
+    const refundingAttendee: Pick<Attendee, "name" | "email" | "phoneNumber"> = {
+      name: booking.responses.name,
+      email: booking.responses.email,
+      phoneNumber: booking.responses.attendeePhoneNumber,
+    };
+
     // Handle refunds
     if (!!booking.payment.length) {
       await processPaymentRefund({
         booking: booking,
+        attendee: refundingAttendee,
         teamId: booking.eventType?.calIdTeamId,
       });
     }
