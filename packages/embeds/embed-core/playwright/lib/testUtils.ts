@@ -111,13 +111,10 @@ export const ensureEmbedIframe = async ({
   return embedIframe;
 };
 
-async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {
+async function selectFirstAvailableTimeSlotNextMonth(frame: Frame) {
   await frame.click('[data-testid="incrementMonth"]');
-  await expect(
-    frame.locator('[data-testid="day"][data-disabled="false"]')
-  ).toHaveCount.greaterThan(0, { timeout: 10000 });
-  await frame.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await frame.click('[data-testid="time"]:not([data-disabled="true"])');
+  await frame.locator('[data-testid="day"][data-disabled="false"]').first().click();
+  await frame.locator('[data-testid="time"]:not([data-disabled="true"])').first().click();
 }
 
 export async function bookFirstEvent(username: string, frame: Frame, page: Page) {
@@ -140,8 +137,8 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   // This doesn't seem to be replicable with the speed of a person, only during automation.
   // It would also allow correct snapshot to be taken for current month.
   await expect(
-      frame.locator('[data-testid="day"][data-disabled="false"]')
-    ).toHaveCount.greaterThan(0, { timeout: 10000 });
+    frame.locator('[data-testid="day"][data-disabled="false"]').first()
+  ).toBeVisible({ timeout: 10000 });
   // expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
   // Remove /embed from the end if present.
   return bookEvent({ frame, page });

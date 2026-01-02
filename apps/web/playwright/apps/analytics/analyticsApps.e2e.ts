@@ -17,7 +17,6 @@ test.describe("check analytics Apps", () => {
         await user.apiLogin();
         await page.goto("apps/categories/analytics");
         await appsPage.installAnalyticsAppSkipConfigure(app);
-        // eslint-disable-next-line playwright/no-wait-for-timeout
         await page.waitForLoadState('networkidle');
         await page.goto("/event-types");
         await appsPage.goToEventType("30 min");

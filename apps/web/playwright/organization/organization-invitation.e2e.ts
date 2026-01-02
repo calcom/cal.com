@@ -698,114 +698,114 @@ async function inviteAnEmail(
   await page.getByTestId("invite-new-member-button").click();
   const response = await submitPromise;
   expect(response.status()).toBe(200);
+}
 
-  async function expectUserToBeAMemberOfOrganization({
-    page,
-    orgSlug,
-    username,
-    email,
-    role,
-    isMemberShipAccepted,
-  }: {
-    page: Page;
-    orgSlug: string | null;
-    username: string;
-    role: string;
-    isMemberShipAccepted: boolean;
-    email: string;
-  }) {
-    // Check newly invited member is not pending anymore
-    await page.goto(`/settings/organizations/${orgSlug}/members`);
+async function expectUserToBeAMemberOfOrganization({
+  page,
+  orgSlug,
+  username,
+  email,
+  role,
+  isMemberShipAccepted,
+}: {
+  page: Page;
+  orgSlug: string | null;
+  username: string;
+  role: string;
+  isMemberShipAccepted: boolean;
+  email: string;
+}) {
+  // Check newly invited member is not pending anymore
+  await page.goto(`/settings/organizations/${orgSlug}/members`);
+  await expect(
+    page.locator(`[data-testid="member-${username}-username"]`)
+  ).toHaveText(username);
+  await expect(
+    page.locator(`[data-testid="member-${username}-email"]`)
+  ).toHaveText(email);
+  expect(
+    (
+      await page
+        .locator(`[data-testid="member-${username}-role"]`)
+        .textContent()
+    )?.toLowerCase()
+  ).toBe(role.toLowerCase());
+  if (isMemberShipAccepted) {
     await expect(
-      page.locator(`[data-testid="member-${username}-username"]`)
-    ).toHaveText(username);
+      page.locator(`[data-testid2="member-${username}-pending"]`)
+    ).toBeHidden();
+  } else {
     await expect(
-      page.locator(`[data-testid="member-${username}-email"]`)
-    ).toHaveText(email);
-    expect(
-      (
-        await page
-          .locator(`[data-testid="member-${username}-role"]`)
-          .textContent()
-      )?.toLowerCase()
-    ).toBe(role.toLowerCase());
-    if (isMemberShipAccepted) {
-      await expect(
-        page.locator(`[data-testid2="member-${username}-pending"]`)
-      ).toBeHidden();
-    } else {
-      await expect(
-        page.locator(`[data-testid2="member-${username}-pending"]`)
-      ).toBeVisible();
+      page.locator(`[data-testid2="member-${username}-pending"]`)
+    ).toBeVisible();
+  }
+}
+
+async function expectUserToBeAMemberOfTeam({
+  page,
+  teamId,
+  email,
+  role: _role,
+  username,
+  isMemberShipAccepted,
+}: {
+  page: Page;
+  username: string;
+  role: string;
+  teamId: number;
+  isMemberShipAccepted: boolean;
+  email: string;
+}) {
+  // Check newly invited member is not pending anymore
+  await page.goto(`/settings/teams/${teamId}/members`);
+
+  // Substituição mínima: espera o elemento do email do membro aparecer
+  const memberEmailLocator = page.locator(
+    `[data-testid="member-${username}"] [data-testid="${
+      isMemberShipAccepted
+        ? "member-email"
+        : `email-${email.replace("@", "")}-pending`
+    }"]`
+  );
+
+  await expect(memberEmailLocator).toBeVisible({ timeout: 10000 });
+
+  expect((await memberEmailLocator.textContent())?.toLowerCase()).toBe(
+    email.toLowerCase()
+  );
+
+  if (isMemberShipAccepted) {
+    await expect(
+      page.locator(`[data-testid="email-${email.replace("@", "")}-pending"]`)
+    ).toBeHidden();
+  } else {
+    await expect(
+      page.locator(`[data-testid="email-${email.replace("@", "")}-pending"]`)
+    ).toBeVisible();
+  }
+}
+
+function assertInviteLink(
+  inviteLink: string | null | undefined
+): asserts inviteLink is string {
+  if (!inviteLink) throw new Error("Invite link not found");
+}
+
+async function copyInviteLink(page: Page, teamPage?: boolean) {
+  if (teamPage) {
+    const url = page.url();
+    const teamIdMatch = url.match(/\/settings\/teams\/(\d+)/);
+    if (teamIdMatch?.[1]) {
+      await page.goto(`/settings/teams/${teamIdMatch[1]}/members`);
+      await expect(page.getByTestId("new-member-button")).toBeVisible({
+        timeout: 10000,
+      });
     }
+    await page.getByTestId("new-member-button").click();
+  } else {
+    await page.getByTestId("new-organization-member-button").click();
   }
 
-  async function expectUserToBeAMemberOfTeam({
-    page,
-    teamId,
-    email,
-    role: _role,
-    username,
-    isMemberShipAccepted,
-  }: {
-    page: Page;
-    username: string;
-    role: string;
-    teamId: number;
-    isMemberShipAccepted: boolean;
-    email: string;
-  }) {
-    // Check newly invited member is not pending anymore
-    await page.goto(`/settings/teams/${teamId}/members`);
-
-    // Substituição mínima: espera o elemento do email do membro aparecer
-    const memberEmailLocator = page.locator(
-      `[data-testid="member-${username}"] [data-testid="${
-        isMemberShipAccepted
-          ? "member-email"
-          : `email-${email.replace("@", "")}-pending`
-      }"]`
-    );
-
-    await expect(memberEmailLocator).toBeVisible({ timeout: 10000 });
-
-    expect((await memberEmailLocator.textContent())?.toLowerCase()).toBe(
-      email.toLowerCase()
-    );
-
-    if (isMemberShipAccepted) {
-      await expect(
-        page.locator(`[data-testid="email-${email.replace("@", "")}-pending"]`)
-      ).toBeHidden();
-    } else {
-      await expect(
-        page.locator(`[data-testid="email-${email.replace("@", "")}-pending"]`)
-      ).toBeVisible();
-    }
-  }
-
-  function assertInviteLink(
-    inviteLink: string | null | undefined
-  ): asserts inviteLink is string {
-    if (!inviteLink) throw new Error("Invite link not found");
-  }
-
-  async function copyInviteLink(page: Page, teamPage?: boolean) {
-    if (teamPage) {
-      const url = page.url();
-      const teamIdMatch = url.match(/\/settings\/teams\/(\d+)/);
-      if (teamIdMatch?.[1]) {
-        await page.goto(`/settings/teams/${teamIdMatch[1]}/members`);
-        await expect(page.getByTestId("new-member-button")).toBeVisible({
-          timeout: 10000,
-        });
-      }
-      await page.getByTestId("new-member-button").click();
-    } else {
-      await page.getByTestId("new-organization-member-button").click();
-    }
-
-    const inviteLink = await getInviteLink(page);
-    return inviteLink;
-  }
+  const inviteLink = await getInviteLink(page);
+  return inviteLink;
 }
