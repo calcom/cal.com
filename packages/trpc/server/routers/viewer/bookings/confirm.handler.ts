@@ -63,6 +63,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       description: true,
       customInputs: true,
       startTime: true,
+      createdAt: true,
       endTime: true,
       attendees: true,
       eventTypeId: true,
@@ -345,14 +346,14 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
     // NOTE: Seated bookings can't require confirmation, so we don't need to handle attendee-wise refunds here.
 
-    const refundingAttendee: Pick<Attendee, "name" | "email" | "phoneNumber"> = {
-      name: booking.responses.name,
-      email: booking.responses.email,
-      phoneNumber: booking.responses.attendeePhoneNumber,
-    };
-
     // Handle refunds
     if (!!booking.payment.length) {
+      const refundingAttendee: Pick<Attendee, "name" | "email" | "phoneNumber"> = {
+        name: booking.responses?.name,
+        email: booking.responses?.email,
+        phoneNumber: booking.responses?.attendeePhoneNumber,
+      };
+
       await processPaymentRefund({
         booking: booking,
         attendee: refundingAttendee,

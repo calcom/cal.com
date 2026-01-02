@@ -57,7 +57,7 @@ export const processPaymentRefund = async ({
 
     if (booking.responses) return success; // If there are booking responses, the booking is not seat-based, so we only check for success
 
-    const hasEmail = seatedBooking.attendee.email;
+    const hasEmail = seatedBooking?.attendee?.email;
     const sameEmail = seatedBooking?.attendee?.email === attendee?.email;
     const samePhone = seatedBooking?.attendee?.phoneNumber === attendee?.phoneNumber;
 
@@ -68,7 +68,7 @@ export const processPaymentRefund = async ({
   });
   if (!successPayment) return;
 
-  const paymentDate = successPayment.bookingSeat.createdAt || booking.createdAt;
+  const paymentDate = successPayment.bookingSeat?.createdAt || booking.createdAt;
 
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata);
 
