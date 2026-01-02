@@ -1,6 +1,6 @@
 import "@calcom/lib/__mocks__/logger";
 
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import type { GetServerSidePropsContext } from "next";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -26,9 +26,9 @@ vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository");
 vi.mock("@calcom/features/users/repositories/UserRepository", () => {
   return {
-    UserRepository: vi.fn().mockImplementation(() => ({
+    UserRepository: vi.fn().mockImplementation(function() { return {
       enrichUserWithItsProfile: vi.fn(),
-    })),
+    }; }),
   };
 });
 vi.mock("@calcom/features/ee/organizations/lib/orgDomains");
@@ -89,13 +89,12 @@ describe("getRoutedUrl", () => {
     const mockEnrichUserWithItsProfile = vi.fn().mockImplementation(async ({ user }) => user);
     const mockUserRepository = vi.mocked(UserRepository);
     if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
-      mockUserRepository.mockImplementation(
-        () =>
-          ({
-            enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any)
-      );
+      mockUserRepository.mockImplementation(function () {
+        return {
+          enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+      });
     }
     vi.mocked(isAuthorizedToViewFormOnOrgDomain).mockReturnValue(true);
     vi.mocked(getSerializableForm).mockResolvedValue(mockSerializableForm as never);
