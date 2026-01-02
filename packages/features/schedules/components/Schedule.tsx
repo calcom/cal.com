@@ -471,6 +471,16 @@ const LazySelect = ({
 
         if (looksLikeTime && !parsedTime.isValid()) {
           setTimeInputError(true);
+        } else if (parsedTime.isValid()) {
+          const parsedDate = parseTimeString(trimmedValue, userTimeFormat);
+          if (parsedDate) {
+            const parsedDayjs = dayjs(parsedDate);
+            const violatesMin = min ? !parsedDayjs.isAfter(min) : false;
+            const violatesMax = max ? !parsedDayjs.isBefore(max) : false;
+            setTimeInputError(Boolean(violatesMin || violatesMax));
+          } else {
+            setTimeInputError(false);
+          }
         } else {
           setTimeInputError(false);
         }
@@ -478,7 +488,7 @@ const LazySelect = ({
         setTimeInputError(false);
       }
     },
-    [userTimeFormat]
+    [userTimeFormat, min, max]
   );
 
   const filteredOptions = React.useMemo(() => {
@@ -494,25 +504,33 @@ const LazySelect = ({
       const parsedTime = parseTimeString(trimmedInput, userTimeFormat);
 
       if (parsedTime) {
-        const parsedTimestamp = parsedTime.valueOf();
-        const existsInOptions = options.some(
-          (option) => option.value === parsedTimestamp
-        );
+        const parsedDayjs = dayjs(parsedTime);
+        // Validate against min/max bounds using same logic as filter function
+        const withinBounds =
+          (!min || parsedDayjs.isAfter(min)) &&
+          (!max || parsedDayjs.isBefore(max));
 
-        if (!existsInOptions) {
-          const manualOption: IOption = {
-            label: dayjs(parsedTime)
-              .utc()
-              .format(userTimeFormat === 12 ? "h:mma" : "HH:mm"),
-            value: parsedTimestamp,
-          };
-          return [manualOption, ...dropdownOptions];
+        if (withinBounds) {
+          const parsedTimestamp = parsedTime.valueOf();
+          const existsInOptions = options.some(
+            (option) => option.value === parsedTimestamp
+          );
+
+          if (!existsInOptions) {
+            const manualOption: IOption = {
+              label: dayjs(parsedTime)
+                .utc()
+                .format(userTimeFormat === 12 ? "h:mma" : "HH:mm"),
+              value: parsedTimestamp,
+            };
+            return [manualOption, ...dropdownOptions];
+          }
         }
       }
     }
 
     return dropdownOptions;
-  }, [inputValue, options, defaultFilter, userTimeFormat]);
+  }, [inputValue, options, defaultFilter, userTimeFormat, min, max]);
 
   const currentValue = dayjs(value).toDate().valueOf();
   const currentOption =
