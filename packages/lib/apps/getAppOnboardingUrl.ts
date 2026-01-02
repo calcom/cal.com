@@ -1,4 +1,4 @@
-import { stringify } from "querystring";
+import { stringify } from "node:querystring";
 
 import type { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 

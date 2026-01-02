@@ -1,4 +1,4 @@
-import { stringify } from "querystring";
+import { stringify } from "node:querystring";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 
