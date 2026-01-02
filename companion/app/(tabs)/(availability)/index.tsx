@@ -94,7 +94,8 @@ export default function Availability() {
       <Stack.Header
         style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
         blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
-        hidden={Platform.OS === "android"}>
+        hidden={Platform.OS === "android"}
+      >
         <Stack.Header.Title large>Availability</Stack.Header.Title>
         <Stack.Header.Right>
           {/* New Menu */}

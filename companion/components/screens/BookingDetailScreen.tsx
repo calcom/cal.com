@@ -446,7 +446,8 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
             headerRight: () => (
               <AppPressable
                 className="h-10 w-10 items-center justify-center rounded-full"
-                onPress={() => setShowActionsModal(true)}>
+                onPress={() => setShowActionsModal(true)}
+              >
                 <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
               </AppPressable>
             ),
@@ -478,7 +479,9 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
                     </View>
                     <View className="flex-1">
                       <View className="mb-1 flex-row flex-wrap items-center">
-                        <Text className="text-base font-medium text-[#333]">{booking.user.name}</Text>
+                        <Text className="text-base font-medium text-[#333]">
+                          {booking.user.name}
+                        </Text>
                         <View className="ml-2 rounded bg-[#007AFF] px-2 py-0.5">
                           <Text className="text-xs font-medium text-white">host</Text>
                         </View>
@@ -490,7 +493,8 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
                   booking.hosts.map((host, hostIndex) => (
                     <View
                       key={host.email ?? host.name}
-                      className={`flex-row items-start ${hostIndex > 0 ? "mt-4" : ""}`}>
+                      className={`flex-row items-start ${hostIndex > 0 ? "mt-4" : ""}`}
+                    >
                       <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-black">
                         <Text className="text-base font-semibold text-white">
                           {getInitials(host.name || "Host")}
@@ -498,7 +502,9 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
                       </View>
                       <View className="flex-1">
                         <View className="mb-1 flex-row flex-wrap items-center">
-                          <Text className="text-base font-medium text-[#333]">{host.name || "Host"}</Text>
+                          <Text className="text-base font-medium text-[#333]">
+                            {host.name || "Host"}
+                          </Text>
                           <View className="ml-2 rounded bg-[#007AFF] px-2 py-0.5">
                             <Text className="text-xs font-medium text-white">host</Text>
                           </View>
@@ -517,11 +523,15 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
                     (attendee as { noShow?: boolean; absent?: boolean }).noShow === true ||
                     (attendee as { noShow?: boolean; absent?: boolean }).absent === true;
                   return (
-                    <View key={attendee.email} className={`flex-row items-start ${index > 0 ? "mt-4" : ""}`}>
+                    <View
+                      key={attendee.email}
+                      className={`flex-row items-start ${index > 0 ? "mt-4" : ""}`}
+                    >
                       <View
                         className={`mr-3 h-12 w-12 items-center justify-center rounded-full ${
                           isNoShow ? "bg-[#DC2626]" : "bg-black"
-                        }`}>
+                        }`}
+                      >
                         <Text className="text-base font-semibold text-white">
                           {getInitials(attendee.name)}
                         </Text>
@@ -531,13 +541,16 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
                           <Text
                             className={`text-base font-medium ${
                               isNoShow ? "text-[#DC2626]" : "text-[#333]"
-                            }`}>
+                            }`}
+                          >
                             {attendee.name}
                           </Text>
                           {isNoShow && (
                             <View className="ml-2 flex-row items-center rounded-full bg-[#FEE2E2] px-2 py-0.5">
                               <Ionicons name="eye-off" size={12} color="#DC2626" />
-                              <Text className="ml-1 text-xs font-medium text-[#DC2626]">No-show</Text>
+                              <Text className="ml-1 text-xs font-medium text-[#DC2626]">
+                                No-show
+                              </Text>
                             </View>
                           )}
                         </View>
@@ -557,7 +570,10 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
             <View className="mb-2 rounded-2xl bg-white p-6">
               <Text className="mb-4 text-base font-medium text-[#666]">Where</Text>
               {locationProvider.url ? (
-                <AppPressable onPress={handleJoinMeeting} className="flex-row flex-wrap items-center">
+                <AppPressable
+                  onPress={handleJoinMeeting}
+                  className="flex-row flex-wrap items-center"
+                >
                   {locationProvider.iconUrl ? (
                     <SvgImage
                       uri={locationProvider.iconUrl}
@@ -588,7 +604,8 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
           ) : null}
 
           {/* Recurring Event Section */}
-          {booking.recurringEventId || (booking as { recurringBookingUid?: string }).recurringBookingUid ? (
+          {booking.recurringEventId ||
+          (booking as { recurringBookingUid?: string }).recurringBookingUid ? (
             <View className="mb-2 rounded-2xl bg-white p-6">
               <Text className="mb-2 text-base font-medium text-[#666]">Recurring Event</Text>
               <Text className="text-base text-[#666]">Every 2 weeks for 6 occurrences</Text>
@@ -607,11 +624,19 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
           {locationProvider?.url ? (
             <AppPressable
               onPress={handleJoinMeeting}
-              className="mb-2 flex-row items-center justify-center rounded-lg bg-black px-6 py-4">
+              className="mb-2 flex-row items-center justify-center rounded-lg bg-black px-6 py-4"
+            >
               {locationProvider.iconUrl ? (
-                <SvgImage uri={locationProvider.iconUrl} width={20} height={20} style={{ marginRight: 8 }} />
+                <SvgImage
+                  uri={locationProvider.iconUrl}
+                  width={20}
+                  height={20}
+                  style={{ marginRight: 8 }}
+                />
               ) : null}
-              <Text className="text-base font-semibold text-white">Join {locationProvider.label}</Text>
+              <Text className="text-base font-semibold text-white">
+                Join {locationProvider.label}
+              </Text>
             </AppPressable>
           ) : null}
         </ScrollView>
@@ -639,7 +664,9 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
           <View className="absolute inset-0 items-center justify-center bg-black/50">
             <View className="rounded-2xl bg-white px-8 py-6">
               <ActivityIndicator size="large" color="#000" />
-              <Text className="mt-3 text-base font-medium text-gray-700">Cancelling booking...</Text>
+              <Text className="mt-3 text-base font-medium text-gray-700">
+                Cancelling booking...
+              </Text>
             </View>
           </View>
         )}

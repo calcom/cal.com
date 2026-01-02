@@ -21,13 +21,18 @@ function RootLayoutContent() {
           headerLargeTitle: false,
           title: Platform.OS === "ios" ? "You" : "Profile",
           presentation:
-            Platform.OS === "ios" ? (isLiquidGlassAvailable() ? "formSheet" : "modal") : "containedModal",
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
           // iOS-specific sheet options (ignored on Android)
           sheetGrabberVisible: Platform.OS === "ios",
           sheetAllowedDetents: Platform.OS === "ios" ? [0.6, 0.9] : undefined,
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
-            backgroundColor: Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#FFFFFF",
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#FFFFFF",
           },
           headerStyle: {
             backgroundColor: Platform.OS === "ios" ? "transparent" : "#FFFFFF",
@@ -43,13 +48,18 @@ function RootLayoutContent() {
           headerLargeTitle: false,
           title: "Session Details",
           presentation:
-            Platform.OS === "ios" ? (isLiquidGlassAvailable() ? "formSheet" : "modal") : "containedModal",
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
           // iOS-specific sheet options (ignored on Android)
           sheetGrabberVisible: Platform.OS === "ios",
           sheetAllowedDetents: Platform.OS === "ios" ? [0.7, 0.9] : undefined,
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
-            backgroundColor: Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
           },
           headerStyle: {
             backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
@@ -65,12 +75,17 @@ function RootLayoutContent() {
           headerLargeTitle: false,
           title: "Edit Location",
           presentation:
-            Platform.OS === "ios" ? (isLiquidGlassAvailable() ? "formSheet" : "modal") : "containedModal",
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
           sheetGrabberVisible: Platform.OS === "ios",
           sheetAllowedDetents: Platform.OS === "ios" ? [0.5, 0.7] : undefined,
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
-            backgroundColor: Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
           },
           headerStyle: {
             backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
@@ -86,12 +101,17 @@ function RootLayoutContent() {
           headerLargeTitle: false,
           title: "Mark No-Show",
           presentation:
-            Platform.OS === "ios" ? (isLiquidGlassAvailable() ? "formSheet" : "modal") : "containedModal",
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
           sheetGrabberVisible: Platform.OS === "ios",
           sheetAllowedDetents: Platform.OS === "ios" ? [0.4, 0.6] : undefined,
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
-            backgroundColor: Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
           },
           headerStyle: {
             backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
@@ -107,12 +127,17 @@ function RootLayoutContent() {
           headerLargeTitle: false,
           title: "Recordings",
           presentation:
-            Platform.OS === "ios" ? (isLiquidGlassAvailable() ? "formSheet" : "modal") : "containedModal",
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
           sheetGrabberVisible: Platform.OS === "ios",
           sheetAllowedDetents: Platform.OS === "ios" ? [0.7, 0.9] : undefined,
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
-            backgroundColor: Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
           },
           headerStyle: {
             backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
@@ -128,12 +153,17 @@ function RootLayoutContent() {
           headerLargeTitle: false,
           title: "Add Guests",
           presentation:
-            Platform.OS === "ios" ? (isLiquidGlassAvailable() ? "formSheet" : "modal") : "containedModal",
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
           sheetGrabberVisible: Platform.OS === "ios",
           sheetAllowedDetents: Platform.OS === "ios" ? [0.6, 0.8] : undefined,
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
-            backgroundColor: Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
           },
           headerStyle: {
             backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
@@ -149,12 +179,17 @@ function RootLayoutContent() {
           headerLargeTitle: false,
           title: "Reschedule",
           presentation:
-            Platform.OS === "ios" ? (isLiquidGlassAvailable() ? "formSheet" : "modal") : "containedModal",
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
           sheetGrabberVisible: Platform.OS === "ios",
           sheetAllowedDetents: Platform.OS === "ios" ? [0.8, 0.95] : undefined,
           sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
           contentStyle: {
-            backgroundColor: Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
           },
           headerStyle: {
             backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
@@ -185,7 +220,8 @@ function RootLayoutContent() {
   return (
     <View
       style={[containerStyle, Platform.OS === "web" && { pointerEvents: "auto" as const }]}
-      className={containerClass}>
+      className={containerClass}
+    >
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {content}
       <NetworkStatusBanner />
