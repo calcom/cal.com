@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "删除日程安排会将其从所有活动类型中删除。此操作无法撤消。",
   "schedule_created_successfully": "{{scheduleName}} 时间表已成功创建",
   "availability_updated_successfully": "{{scheduleName}} 日程更新成功",
+  "bulk_updated_schedule_successfully": "已批量将所选事件类型更新为默认日程",
   "schedule_deleted_successfully": "已成功删除时间表",
   "default_schedule_name": "工作时间",
   "new_schedule_heading": "创建可预约时间表",

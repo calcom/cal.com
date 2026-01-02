@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Deleting a schedule will remove it from all event types. This action cannot be undone.",
   "schedule_created_successfully": "{{scheduleName}} schedule created successfully",
   "availability_updated_successfully": "{{scheduleName}} schedule updated successfully",
+  "bulk_updated_schedule_successfully": "Bulk updated selected event types with default schedule",
   "schedule_deleted_successfully": "Schedule deleted successfully",
   "default_schedule_name": "Working Hours",
   "new_schedule_heading": "Create an availability schedule",

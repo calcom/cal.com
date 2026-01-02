@@ -131,7 +131,6 @@ export class TeamsEventTypesService {
     });
 
     const eventType = await this.teamsEventTypesRepository.getEventTypeById(eventTypeId);
-    this.logger.debug("nl debug - update team event type - eventType", JSON.stringify(eventType, null, 2));
 
     if (!eventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);

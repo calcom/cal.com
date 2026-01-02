@@ -34,6 +34,6 @@
     "@calcom/tsconfig": "workspace:*",
     "@calcom/types": "workspace:*",
     "@faker-js/faker": "7.6.0",
-    "typescript": "5.9.2"
+    "typescript": "5.9.3"
   }
 }

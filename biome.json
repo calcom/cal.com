@@ -27,6 +27,7 @@
       "!!**/dist",
       "!!**/build",
       "!!**/public",
+      "!!**/*.d.ts",
       "!!public",
       "!!apps/web/public/embed",
       "!!packages/prisma/zod",
@@ -59,26 +60,104 @@
   },
   "linter": {
     "enabled": true,
+    "domains": {
+      "next": "recommended",
+      "react": "recommended"
+    },
     "rules": {
       "recommended": true,
-      "correctness": "warn",
-      "suspicious": "warn",
-      "complexity": "warn",
-      "performance": "warn",
-      "nursery": "warn",
-      "a11y": "warn",
-      "style": "warn",
-      "security": "warn"
+      "a11y": "off"
     }
   },
   "overrides": [
+    {
+      "includes": ["**/*.tsx"],
+      "javascript": {
+        "jsxRuntime": "transparent"
+      }
+    },
+    {
+      "includes": ["apps/web/app/**/page.tsx", "apps/web/app/**/layout.tsx", "apps/web/app/pages/**/*.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*"],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "useQwikValidLexicalScope": "off",
+            "useExplicitType": "warn",
+            "noReactForwardRef": "warn",
+            "noTernary": "warn",
+            "noUnresolvedImports": "warn"
+          },
+          "correctness": {
+            "useImportExtensions": "warn",
+            "noProcessGlobal": "warn",
+            "useExhaustiveDependencies": "warn",
+            "noUnknownProperty": "warn",
+            "noUnreachable": "warn",
+            "noEmptyPattern": "warn",
+            "noSwitchDeclarations": "warn",
+            "useHookAtTopLevel": "warn",
+            "useJsxKeyInIterable": "warn",
+            "noUnsafeOptionalChaining": "warn"
+          },
+          "style": {
+            "useExportsLast": "warn",
+            "noProcessEnv": "warn",
+            "useNodejsImportProtocol": "error"
+          },
+          "complexity": {
+            "noExcessiveLinesPerFunction": "warn"
+          },
+          "performance": {
+            "noImgElement": "warn"
+          },
+          "suspicious": {
+            "noReactSpecificProps": "warn",
+            "noDoubleEquals": "warn",
+            "noAssignInExpressions": "warn",
+            "noExplicitAny": "warn",
+            "useIterableCallbackReturn": "warn",
+            "noImplicitAnyLet": "warn",
+            "noRedeclare": "warn",
+            "noControlCharactersInRegex": "warn",
+            "noArrayIndexKey": "warn",
+            "noShadowRestrictedNames": "warn",
+            "noAsyncPromiseExecutor": "warn"
+          },
+          "security": {
+            "noBlankTarget": "warn",
+            "noDangerouslySetInnerHtml": "warn"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "useArrowFunction": "off",
+            "noExcessiveLinesPerFunction": "off"
+          }
+        }
+      }
+    },
     {
       "includes": ["packages/lib/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
       "linter": {
         "rules": {
           "style": {
             "noRestrictedImports": {
-              "level": "warn",
+              "level": "error",
               "options": {
                 "patterns": [
                   {
@@ -110,7 +189,7 @@
         "rules": {
           "style": {
             "noRestrictedImports": {
-              "level": "warn",
+              "level": "error",
               "options": {
                 "patterns": [
                   {
@@ -134,7 +213,7 @@
         "rules": {
           "style": {
             "noRestrictedImports": {
-              "level": "warn",
+              "level": "error",
               "options": {
                 "patterns": [
                   {
@@ -154,7 +233,7 @@
         "rules": {
           "style": {
             "noRestrictedImports": {
-              "level": "warn",
+              "level": "error",
               "options": {
                 "patterns": [
                   {
@@ -165,22 +244,6 @@
               }
             }
           }
-        }
-      }
-    },
-    {
-      "includes": ["companion/**/*.{ts,tsx,js,jsx}"],
-      "javascript": {
-        "formatter": {
-          "lineWidth": 100
-        }
-      }
-    },
-    {
-      "includes": ["apps/website/lib/utils/wordlist/wordlist.ts"],
-      "javascript": {
-        "formatter": {
-          "quoteProperties": "preserve"
         }
       }
     }

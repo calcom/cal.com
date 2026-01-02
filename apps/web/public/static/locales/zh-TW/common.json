@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "若刪除行程，該行程將從所有活動類型中移除。此操作無法復原。",
   "schedule_created_successfully": "成功新增行程表 {{scheduleName}}",
   "availability_updated_successfully": "{{scheduleName}} 日程更新成功",
+  "bulk_updated_schedule_successfully": "已批次更新所選事件類型為預設排程",
   "schedule_deleted_successfully": "成功刪除行程表",
   "default_schedule_name": "工作時間",
   "new_schedule_heading": "新增開放時間行程表",

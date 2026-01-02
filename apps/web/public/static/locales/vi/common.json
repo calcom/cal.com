@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Theo tác xóa một lịch hẹn sẽ xóa bỏ đi lịch hẹn đó ra khỏi tất cả các loại sự kiện. Thao tác này không thể hồi lại được.",
   "schedule_created_successfully": "Đã tạo thành công lịch {{scheduleName}}",
   "availability_updated_successfully": "Đã cập nhật thành công lịch {{scheduleName}}",
+  "bulk_updated_schedule_successfully": "Đã cập nhật hàng loạt các loại sự kiện đã chọn với lịch trình mặc định",
   "schedule_deleted_successfully": "Đã xóa lịch thành công",
   "default_schedule_name": "Giờ làm việc",
   "new_schedule_heading": "Tạo lịch khả dụng",
