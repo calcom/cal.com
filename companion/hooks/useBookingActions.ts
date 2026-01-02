@@ -346,12 +346,16 @@ export const useBookingActions = ({
 
   /**
    * Submit rejection with reason (used by iOS custom modal)
+   * @param reasonOverride - Optional reason passed directly to avoid race condition with state updates
    */
-  const handleSubmitReject = () => {
+  const handleSubmitReject = (reasonOverride?: string) => {
     if (!rejectBooking) return;
 
+    // Use passed reason if provided, otherwise fall back to state
+    const reason = reasonOverride !== undefined ? reasonOverride : rejectReason;
+
     declineMutation(
-      { uid: rejectBooking.uid, reason: rejectReason || undefined },
+      { uid: rejectBooking.uid, reason: reason || undefined },
       {
         onSuccess: () => {
           setShowRejectModal(false);
