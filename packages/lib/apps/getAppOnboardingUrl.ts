@@ -1,7 +1,5 @@
-import type { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
-
-const stringify = (obj: Record<string, string | number | number[]>): string =>
-  new URLSearchParams(obj).toString();
+// biome-ignore lint/style/useNodejsImportProtocol: Vite env
+import { stringify } from "querystring";
 
 export const getAppOnboardingUrl = ({
   slug,
