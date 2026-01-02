@@ -45,7 +45,6 @@ export function SearchHeader({
         onChangeText={onSearchChange}
         autoCapitalize="none"
         autoCorrect={false}
-        clearButtonMode="while-editing"
       />
       <TouchableOpacity
         className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"

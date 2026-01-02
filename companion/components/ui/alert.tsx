@@ -1,9 +1,9 @@
-import { Icon } from "@/components/ui/icon";
-import { Text, TextClassContext } from "@/components/ui/text";
-import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react-native";
 import * as React from "react";
 import { View, type ViewProps } from "react-native";
+import { Icon } from "@/components/ui/icon";
+import { Text, TextClassContext } from "@/components/ui/text";
+import { cn } from "@/lib/utils";
 
 function Alert({
   className,
@@ -20,11 +20,7 @@ function Alert({
   }) {
   return (
     <TextClassContext.Provider
-      value={cn(
-        "text-sm text-foreground",
-        variant === "destructive" && "text-destructive",
-        className
-      )}
+      value={cn("text-sm text-foreground", variant === "destructive" && "text-destructive")}
     >
       <View
         role="alert"

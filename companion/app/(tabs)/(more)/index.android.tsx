@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Header } from "@/components/Header";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,8 +13,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Text as UIText } from "@/components/ui/text";
-import { Header } from "@/components/Header";
 import { useAuth } from "@/contexts/AuthContext";
+import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 
 interface MoreMenuItem {
@@ -38,7 +39,7 @@ export default function MoreAndroid() {
         const stack = error instanceof Error ? error.stack : undefined;
         console.debug("[More] logout failed", { message, stack });
       }
-      Alert.alert("Error", "Failed to sign out. Please try again.");
+      showErrorAlert("Error", "Failed to sign out. Please try again.");
     }
   };
 
