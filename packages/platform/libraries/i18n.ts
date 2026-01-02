@@ -1,16 +1,20 @@
 import { createInstance } from "i18next";
 import type { i18n as I18nInstance } from "i18next";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { fetchWithTimeout } from "@calcom/lib/fetchWithTimeout";
 import logger from "@calcom/lib/logger";
 
-/* eslint-disable @typescript-eslint/no-require-imports */
-const { i18n } = require("@calcom/config/next-i18next.config");
-const path = require("node:path");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const require = createRequire(import.meta.url);
+const i18nConfig = require("@calcom/config/next-i18next.config");
+const { i18n } = i18nConfig;
 const translationsPath = path.resolve(__dirname, "../../../../apps/web/public/static/locales/en/common.json");
 const englishTranslations: Record<string, string> = require(translationsPath);
-/* eslint-enable @typescript-eslint/no-require-imports */
 
 const translationCache = new Map<string, Record<string, string>>([["en-common", englishTranslations]]);
 const i18nInstanceCache = new Map<string, I18nInstance>();
