@@ -247,6 +247,7 @@ async function handler(input: CancelBookingInput) {
     cancelledDates, //  Array of ISO date strings for specific instances to cancel
   } = bookingCancelInput.parse(body);
   const bookingToDelete = await getBookingToDelete(id, uid);
+
   const deleteType = cancelledDates && cancelledDates.length > 0 ? "instance" : "series";
   const {
     userId,

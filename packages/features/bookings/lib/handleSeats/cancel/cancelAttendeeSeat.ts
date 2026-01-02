@@ -7,6 +7,7 @@ import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@cal
 import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
@@ -65,6 +66,14 @@ async function cancelAttendeeSeat(
 
   if (!seatReference) throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
 
+  const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
+
+  await processPaymentRefund({
+    booking: bookingToDelete,
+    teamId,
+    attendee,
+  });
+
   await Promise.all([
     prisma.bookingSeat.delete({
       where: {
@@ -77,14 +86,6 @@ async function cancelAttendeeSeat(
       },
     }),
   ]);
-
-  const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
-
-  await processPaymentRefund({
-    booking: bookingToDelete,
-    teamId,
-    attendee,
-  });
 
   const bookingToDeleteUser = bookingToDelete.user ?? null;
   const delegationCredentials = bookingToDeleteUser
