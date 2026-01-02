@@ -37,3 +37,5 @@ export type AppFlags = {
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;
+
+export type FeatureState = "enabled" | "disabled" | "inherit";
