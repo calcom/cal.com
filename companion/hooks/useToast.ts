@@ -48,7 +48,7 @@ export function useToast(autoDismissMs = 2500) {
       const timer = setTimeout(hideToast, autoDismissMs);
       return () => clearTimeout(timer);
     }
-  }, [toast.visible, autoDismissMs, hideToast]);
+  }, [toast.visible, toast.message, toast.type, autoDismissMs, hideToast]);
 
   return { toast, showToast, hideToast };
 }

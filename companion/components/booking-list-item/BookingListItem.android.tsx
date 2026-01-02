@@ -186,39 +186,41 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
           onReject={onReject}
         />
 
-        {/* Dropdown Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Pressable
-              className="items-center justify-center rounded-lg border border-cal-border"
-              style={{ width: 32, height: 32 }}
-            >
-              <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
-            </Pressable>
-          </DropdownMenuTrigger>
+        {/* Dropdown Menu - only show when there are visible actions */}
+        {visibleActions.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Pressable
+                className="items-center justify-center rounded-lg border border-cal-border"
+                style={{ width: 32, height: 32 }}
+              >
+                <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
+              </Pressable>
+            </DropdownMenuTrigger>
 
-          <DropdownMenuContent insets={contentInsets} sideOffset={8} className="w-52" align="end">
-            {visibleActions.map((action, index) => (
-              <React.Fragment key={action.label}>
-                {/* Add separator before destructive actions */}
-                {index === destructiveStartIndex && destructiveStartIndex > 0 && (
-                  <DropdownMenuSeparator />
-                )}
-                <DropdownMenuItem variant={action.variant} onPress={action.onPress}>
-                  <Ionicons
-                    name={action.icon}
-                    size={18}
-                    color={action.variant === "destructive" ? "#DC2626" : "#374151"}
-                    style={{ marginRight: 8 }}
-                  />
-                  <Text className={action.variant === "destructive" ? "text-destructive" : ""}>
-                    {action.label}
-                  </Text>
-                </DropdownMenuItem>
-              </React.Fragment>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <DropdownMenuContent insets={contentInsets} sideOffset={8} className="w-52" align="end">
+              {visibleActions.map((action, index) => (
+                <React.Fragment key={action.label}>
+                  {/* Add separator before destructive actions */}
+                  {index === destructiveStartIndex && destructiveStartIndex > 0 && (
+                    <DropdownMenuSeparator />
+                  )}
+                  <DropdownMenuItem variant={action.variant} onPress={action.onPress}>
+                    <Ionicons
+                      name={action.icon}
+                      size={18}
+                      color={action.variant === "destructive" ? "#DC2626" : "#374151"}
+                      style={{ marginRight: 8 }}
+                    />
+                    <Text className={action.variant === "destructive" ? "text-destructive" : ""}>
+                      {action.label}
+                    </Text>
+                  </DropdownMenuItem>
+                </React.Fragment>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </View>
     </View>
   );

@@ -242,7 +242,10 @@ export default function EventTypes() {
                   console.error("Failed to delete event type", message);
                   if (__DEV__) {
                     const stack = error instanceof Error ? error.stack : undefined;
-                    console.debug("[EventTypes] deleteEventType failed", { message, stack });
+                    console.debug("[EventTypes] deleteEventType failed", {
+                      message,
+                      stack,
+                    });
                   }
                   showErrorAlert("Error", "Failed to delete event type. Please try again.");
                 },
@@ -279,7 +282,10 @@ export default function EventTypes() {
         console.error("Failed to delete event type", message);
         if (__DEV__) {
           const stack = error instanceof Error ? error.stack : undefined;
-          console.debug("[EventTypes] deleteEventType failed", { message, stack });
+          console.debug("[EventTypes] deleteEventType failed", {
+            message,
+            stack,
+          });
         }
         if (Platform.OS === "web") {
           showToastMessage("Failed to delete event type");
@@ -324,7 +330,10 @@ export default function EventTypes() {
           console.error("Failed to duplicate event type", message);
           if (__DEV__) {
             const stack = error instanceof Error ? error.stack : undefined;
-            console.debug("[EventTypes] duplicateEventType failed", { message, stack });
+            console.debug("[EventTypes] duplicateEventType failed", {
+              message,
+              stack,
+            });
           }
           if (Platform.OS === "web") {
             showToastMessage("Failed to duplicate event type");
@@ -423,7 +432,10 @@ export default function EventTypes() {
           console.error("Failed to create event type", message);
           if (__DEV__) {
             const stack = error instanceof Error ? error.stack : undefined;
-            console.debug("[EventTypes] createEventType failed", { message, stack });
+            console.debug("[EventTypes] createEventType failed", {
+              message,
+              stack,
+            });
           }
           showErrorAlert("Error", "Failed to create event type. Please try again.");
         },
@@ -591,7 +603,12 @@ export default function EventTypes() {
 
       {/* Create Event Type Modal - Android uses AlertDialog */}
       {Platform.OS === "android" ? (
-        <AlertDialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <AlertDialog
+          open={showCreateModal}
+          onOpenChange={(open) => {
+            if (!open) handleCloseCreateModal();
+          }}
+        >
           <AlertDialogContent>
             <AlertDialogHeader className="items-start">
               <AlertDialogTitle>

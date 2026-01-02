@@ -52,18 +52,26 @@ export const AvailabilityListItem = ({
           },
         ]
       : []),
-    {
-      label: "Duplicate",
-      icon: "copy-outline" as const,
-      onPress: () => onDuplicate?.(schedule),
-      variant: "default" as const,
-    },
-    {
-      label: "Delete",
-      icon: "trash-outline" as const,
-      onPress: () => onDelete?.(schedule),
-      variant: "destructive" as const,
-    },
+    ...(onDuplicate
+      ? [
+          {
+            label: "Duplicate",
+            icon: "copy-outline" as const,
+            onPress: () => onDuplicate(schedule),
+            variant: "default" as const,
+          },
+        ]
+      : []),
+    ...(onDelete
+      ? [
+          {
+            label: "Delete",
+            icon: "trash-outline" as const,
+            onPress: () => onDelete(schedule),
+            variant: "destructive" as const,
+          },
+        ]
+      : []),
   ];
 
   // Find the index where destructive actions start
