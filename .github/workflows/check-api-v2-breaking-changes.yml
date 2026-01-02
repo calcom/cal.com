@@ -21,8 +21,6 @@ env:
   REDIS_URL: "redis://localhost:6379"
   STRIPE_API_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
   STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
   WEB_APP_URL: "https://app.cal.com"
 
 jobs:
@@ -39,21 +37,11 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
 
-      - name: Generate Prisma schemas
-        run: yarn workspace @calcom/prisma prisma generate
-
-      - name: Copy Swagger module
-        working-directory: apps/api/v2
-        run: yarn copy-swagger-module
-
-      - name: Build API v2 with Turbo
-        run: |
-          export NODE_OPTIONS="--max_old_space_size=4096"
-          yarn turbo run build --filter=@calcom/api-v2...
-
       - name: Generate Swagger
         working-directory: apps/api/v2
-        run: node ./dist/apps/api/v2/src/swagger/generate-swagger-script.js
+        run: |
+          yarn prisma generate
+          yarn generate-swagger
 
       - name: Check API v2 breaking changes
         run: |
