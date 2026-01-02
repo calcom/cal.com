@@ -409,14 +409,14 @@ const TimeRangeField = ({
   );
 };
 
-function parseTimeString(
+export function parseTimeString(
   input: string,
   timeFormat: number | null
 ): Date | null {
   if (!input.trim()) return null;
 
-  const format = timeFormat === 12 ? "h:mma" : "HH:mm";
-  const parsed = dayjs(input, format, true); // strict parsing
+  const formats = timeFormat === 12 ? ["h:mma", "HH:mm"] : ["HH:mm", "h:mma"];
+  const parsed = dayjs(input, formats, true); // strict parsing
 
   if (!parsed.isValid()) return null;
 
@@ -482,7 +482,6 @@ const LazySelect = ({
   );
 
   const filteredOptions = React.useMemo(() => {
-
     const dropdownOptions = options.filter((option) =>
       defaultFilter(
         { ...option, data: option.label, value: option.label },
@@ -495,7 +494,6 @@ const LazySelect = ({
       const parsedTime = parseTimeString(trimmedInput, userTimeFormat);
 
       if (parsedTime) {
-
         const parsedTimestamp = parsedTime.valueOf();
         const existsInOptions = options.some(
           (option) => option.value === parsedTimestamp
