@@ -8,7 +8,7 @@ import { DataTable, DataTableToolbar } from "@calcom/features/data-table/compone
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
-import CreateTeamDialog from "./CreateTeamDialog";
+import CreateTeamDialog from "@calcom/web/modules/ee/dsync/components/CreateTeamDialog";
 import GroupNameCell from "./GroupNameCell";
 
 interface TeamGroupMapping {

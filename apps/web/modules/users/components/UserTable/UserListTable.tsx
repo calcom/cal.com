@@ -27,7 +27,7 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import {
   generateCsvRawForMembersTable,
   generateHeaderFromReactTable,
-} from "@calcom/features/users/lib/UserListTableUtils";
+} from "~/users/lib/UserListTableUtils";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";

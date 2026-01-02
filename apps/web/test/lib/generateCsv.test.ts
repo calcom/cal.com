@@ -4,9 +4,9 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateCsvRawForMembersTable,
   generateHeaderFromReactTable,
-} from "@calcom/features/users/lib/UserListTableUtils";
+} from "~/users/lib/UserListTableUtils";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { UserTableUser } from "@calcom/web/modules/users/components/UserTable/types";
+import type { UserTableUser } from "~/users/components/UserTable/types";
 
 function createMockTable(data: UserTableUser[]): Table<UserTableUser> {
   return {
