@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
@@ -12,6 +12,17 @@ import { showErrorAlert } from "@/utils/alerts";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// Map day names to numbers - module scope for React Compiler optimization
+const DAY_NAME_TO_NUMBER: Record<string, number> = {
+  Sunday: 0,
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+  Saturday: 6,
+};
 
 // Convert 24-hour time to 12-hour format with AM/PM
 const formatTime12Hour = (time24: string): string => {
@@ -76,10 +87,17 @@ const TIME_OPTIONS = generateTimeOptions();
 
 export interface AvailabilityDetailScreenProps {
   id: string;
+  useNativeHeader?: boolean;
 }
 
-export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) {
-  "use no memo";
+export interface AvailabilityDetailScreenHandle {
+  save: () => void;
+}
+
+export const AvailabilityDetailScreen = forwardRef<
+  AvailabilityDetailScreenHandle,
+  AvailabilityDetailScreenProps
+>(function AvailabilityDetailScreen({ id, useNativeHeader = false }, ref) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -129,98 +147,107 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
     "UTC",
   ];
 
-  const fetchSchedule = useCallback(async () => {
-    setLoading(true);
-    try {
-      const scheduleData = await CalComAPIService.getScheduleById(Number(id));
+  const processScheduleData = useCallback(
+    (scheduleData: NonNullable<Awaited<ReturnType<typeof CalComAPIService.getScheduleById>>>) => {
+      const name = scheduleData.name ?? "";
+      const tz = scheduleData.timeZone ?? "UTC";
+      const isDefaultSchedule = scheduleData.isDefault ?? false;
 
-      if (scheduleData) {
-        setSchedule(scheduleData);
-        setScheduleName(scheduleData.name || "");
-        setTimeZone(scheduleData.timeZone || "UTC");
-        setIsDefault(scheduleData.isDefault || false);
+      setSchedule(scheduleData);
+      setScheduleName(name);
+      setTimeZone(tz);
+      setIsDefault(isDefaultSchedule);
 
-        // Convert availability array to day-indexed object
-        const availabilityMap: Record<number, ScheduleAvailability[]> = {};
+      // Convert availability array to day-indexed object
+      const availabilityMap: Record<number, ScheduleAvailability[]> = {};
 
-        // Map day names to numbers
-        const dayNameToNumber: Record<string, number> = {
-          Sunday: 0,
-          Monday: 1,
-          Tuesday: 2,
-          Wednesday: 3,
-          Thursday: 4,
-          Friday: 5,
-          Saturday: 6,
-        };
-
-        if (scheduleData.availability && Array.isArray(scheduleData.availability)) {
-          scheduleData.availability.forEach((slot) => {
-            // Handle both string day names and number day formats
-            let days: number[] = [];
-            if (Array.isArray(slot.days)) {
-              days = slot.days
-                .map((day) => {
-                  // If it's a day name string (e.g., "Sunday", "Monday")
-                  if (typeof day === "string" && dayNameToNumber[day] !== undefined) {
-                    return dayNameToNumber[day];
+      const availabilityArray = scheduleData.availability;
+      if (availabilityArray && Array.isArray(availabilityArray)) {
+        availabilityArray.forEach((slot) => {
+          // Handle both string day names and number day formats
+          let days: number[] = [];
+          if (Array.isArray(slot.days)) {
+            days = slot.days
+              .map((day) => {
+                // If it's a day name string (e.g., "Sunday", "Monday")
+                if (typeof day === "string" && DAY_NAME_TO_NUMBER[day] !== undefined) {
+                  return DAY_NAME_TO_NUMBER[day];
+                }
+                // If it's a number string (e.g., "0", "1")
+                if (typeof day === "string") {
+                  const parsed = parseInt(day, 10);
+                  if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 6) {
+                    return parsed;
                   }
-                  // If it's a number string (e.g., "0", "1")
-                  if (typeof day === "string") {
-                    const parsed = parseInt(day, 10);
-                    if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 6) {
-                      return parsed;
-                    }
-                  }
-                  // If it's already a number
-                  if (typeof day === "number" && day >= 0 && day <= 6) {
-                    return day;
-                  }
-                  return null;
-                })
-                .filter((day): day is number => day !== null);
+                }
+                // If it's already a number
+                if (typeof day === "number" && day >= 0 && day <= 6) {
+                  return day;
+                }
+                return null;
+              })
+              .filter((day): day is number => day !== null);
+          }
+
+          days.forEach((day) => {
+            if (!availabilityMap[day]) {
+              availabilityMap[day] = [];
             }
-
-            days.forEach((day) => {
-              if (!availabilityMap[day]) {
-                availabilityMap[day] = [];
-              }
-              availabilityMap[day].push({
-                days: [day.toString()],
-                startTime: slot.startTime || "09:00:00",
-                endTime: slot.endTime || "17:00:00",
-              });
+            const startTime = slot.startTime ?? "09:00:00";
+            const endTime = slot.endTime ?? "17:00:00";
+            availabilityMap[day].push({
+              days: [day.toString()],
+              startTime,
+              endTime,
             });
           });
-        }
-
-        setAvailability(availabilityMap);
-
-        // Load overrides if they exist
-        if (scheduleData.overrides && Array.isArray(scheduleData.overrides)) {
-          const formattedOverrides = scheduleData.overrides.map((override) => ({
-            date: override.date || "",
-            startTime: override.startTime || "00:00",
-            endTime: override.endTime || "00:00",
-          }));
-          setOverrides(formattedOverrides);
-        } else {
-          setOverrides([]);
-        }
+        });
       }
-      setLoading(false);
+
+      setAvailability(availabilityMap);
+
+      // Load overrides if they exist
+      const overridesArray = scheduleData.overrides;
+      if (overridesArray && Array.isArray(overridesArray)) {
+        const formattedOverrides = overridesArray.map((override) => {
+          const date = override.date ?? "";
+          const startTime = override.startTime ?? "00:00";
+          const endTime = override.endTime ?? "00:00";
+          return { date, startTime, endTime };
+        });
+        setOverrides(formattedOverrides);
+      } else {
+        setOverrides([]);
+      }
+    },
+    []
+  );
+
+  const fetchSchedule = useCallback(async () => {
+    setLoading(true);
+    let scheduleData: Awaited<ReturnType<typeof CalComAPIService.getScheduleById>> = null;
+    try {
+      scheduleData = await CalComAPIService.getScheduleById(Number(id));
     } catch (error) {
       // Avoid logging raw error objects from API calls (may contain sensitive response data).
       console.error("Error fetching schedule");
       if (__DEV__) {
         const message = error instanceof Error ? error.message : String(error);
-        console.debug("[AvailabilityDetailScreen] fetchSchedule failed", { message });
+        console.debug("[AvailabilityDetailScreen] fetchSchedule failed", {
+          message,
+        });
       }
       showErrorAlert("Error", "Failed to load schedule. Please try again.");
       router.back();
       setLoading(false);
+      return;
     }
-  }, [id, router]);
+
+    if (scheduleData) {
+      processScheduleData(scheduleData);
+    }
+    setLoading(false);
+  }, [id, router, processScheduleData]);
 
   useEffect(() => {
     if (id) {
@@ -354,6 +381,11 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
     }
   };
 
+  // Expose save method to parent via ref
+  useImperativeHandle(ref, () => ({
+    save: handleSave,
+  }));
+
   const handleSetAsDefault = async () => {
     try {
       await CalComAPIService.updateSchedule(Number(id), {
@@ -464,52 +496,54 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
 
   return (
     <View className="flex-1 bg-[#f8f9fa]">
-      {/* Glass Header */}
-      <GlassView
-        style={[
-          {
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-            paddingHorizontal: 16,
-            paddingBottom: 12,
-            paddingTop: insets.top + 8,
-          },
-        ]}
-        glassEffectStyle="clear"
-      >
-        <View className="min-h-[44px] flex-row items-center justify-between">
-          <AppPressable
-            className="h-10 w-10 items-start justify-center"
-            onPress={() => router.back()}
-          >
-            <Ionicons name="chevron-back" size={24} color="#000" />
-          </AppPressable>
+      {/* Glass Header - only show when not using native header */}
+      {!useNativeHeader && (
+        <GlassView
+          style={[
+            {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1000,
+              paddingHorizontal: 16,
+              paddingBottom: 12,
+              paddingTop: insets.top + 8,
+            },
+          ]}
+          glassEffectStyle="clear"
+        >
+          <View className="min-h-[44px] flex-row items-center justify-between">
+            <AppPressable
+              className="h-10 w-10 items-start justify-center"
+              onPress={() => router.back()}
+            >
+              <Ionicons name="chevron-back" size={24} color="#000" />
+            </AppPressable>
 
-          <Text
-            className="mx-2.5 flex-1 text-center text-lg font-semibold text-black"
-            numberOfLines={1}
-          >
-            Edit Availability
-          </Text>
+            <Text
+              className="mx-2.5 flex-1 text-center text-lg font-semibold text-black"
+              numberOfLines={1}
+            >
+              Edit Availability
+            </Text>
 
-          <AppPressable
-            className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${
-              saving ? "opacity-60" : ""
-            }`}
-            onPress={handleSave}
-            disabled={saving}
-          >
-            <Text className="text-base font-semibold text-white">Save</Text>
-          </AppPressable>
-        </View>
-      </GlassView>
+            <AppPressable
+              className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${
+                saving ? "opacity-60" : ""
+              }`}
+              onPress={handleSave}
+              disabled={saving}
+            >
+              <Text className="text-base font-semibold text-white">Save</Text>
+            </AppPressable>
+          </View>
+        </GlassView>
+      )}
 
       <ScrollView
         className="flex-1"
-        style={{ paddingTop: insets.top + 70 }}
+        style={{ paddingTop: useNativeHeader ? 0 : insets.top + 70 }}
         contentContainerStyle={{ padding: 16, paddingBottom: 200 }}
       >
         <View className="gap-4">
@@ -551,7 +585,9 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                         onValueChange={() => toggleDay(dayIndex)}
                         trackColor={{ false: "#E5E5EA", true: "#34C759" }}
                         thumbColor="#fff"
-                        style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+                        style={{
+                          transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
+                        }}
                       />
                       <Text
                         className="ml-1 text-base font-medium text-[#333]"
@@ -563,7 +599,11 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                         <View className="flex-row items-center gap-2">
                           <AppPressable
                             onPress={() =>
-                              setShowTimePicker({ dayIndex, slotIndex: 0, type: "start" })
+                              setShowTimePicker({
+                                dayIndex,
+                                slotIndex: 0,
+                                type: "start",
+                              })
                             }
                             className="rounded-lg border border-[#E5E5EA] bg-white px-2 py-1"
                             style={{ width: 85 }}
@@ -575,7 +615,11 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
                           <Text className="text-base text-[#666]">-</Text>
                           <AppPressable
                             onPress={() =>
-                              setShowTimePicker({ dayIndex, slotIndex: 0, type: "end" })
+                              setShowTimePicker({
+                                dayIndex,
+                                slotIndex: 0,
+                                type: "end",
+                              })
                             }
                             className="rounded-lg border border-[#E5E5EA] bg-white px-2 py-1"
                             style={{ width: 85 }}
@@ -1017,4 +1061,4 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
       </FullScreenModal>
     </View>
   );
-}
+});
