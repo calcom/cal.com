@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import type { Mock } from "vitest";
-import { vi } from "vitest";
+import { vi, beforeEach, afterEach, describe, expect, it } from "vitest";
 
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 
@@ -194,6 +194,15 @@ describe("TestFormDialog", () => {
   beforeEach(() => {
     resetFindTeamMembersMatchingAttributeLogicResponse();
     vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    // Flush any pending timers (like Radix FocusScope setTimeout) before cleanup
+    // to prevent them from firing after jsdom teardown
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
+    cleanup();
   });
 
   it("renders the dialog when open", () => {

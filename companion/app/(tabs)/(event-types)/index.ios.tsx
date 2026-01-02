@@ -18,7 +18,6 @@ import {
 } from "react-native";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { EventTypeListItem } from "@/components/event-type-list-item/EventTypeListItem";
-import { FullScreenModal } from "@/components/FullScreenModal";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
   useCreateEventType,
@@ -57,7 +56,7 @@ export default function EventTypesIOS() {
   const refreshing = isFetching && !loading;
 
   const { mutate: createEventTypeMutation } = useCreateEventType();
-  const { mutate: deleteEventTypeMutation, isPending: isDeleting } = useDeleteEventType();
+  const { mutate: deleteEventTypeMutation } = useDeleteEventType();
   const { mutate: duplicateEventTypeMutation } = useDuplicateEventType();
 
   // Convert query error to string
@@ -69,9 +68,7 @@ export default function EventTypesIOS() {
     queryError?.message?.includes("401");
   const error = queryError && !isAuthError && __DEV__ ? "Failed to load event types." : null;
 
-  // Modal state for delete confirmation
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [eventTypeToDelete, setEventTypeToDelete] = useState<EventType | null>(null);
+  // No modal state needed for iOS - using native Alert for delete confirmation
 
   // Handle pull-to-refresh (offline-aware)
   const onRefresh = () => offlineAwareRefresh(refetch);
@@ -164,33 +161,35 @@ export default function EventTypesIOS() {
   };
 
   const handleDelete = (eventType: EventType) => {
-    setEventTypeToDelete(eventType);
-    setShowDeleteModal(true);
-  };
-
-  const confirmDelete = () => {
-    if (!eventTypeToDelete) return;
-
-    deleteEventTypeMutation(eventTypeToDelete.id, {
-      onSuccess: () => {
-        // Close modal and reset state
-        setShowDeleteModal(false);
-        setEventTypeToDelete(null);
-        Alert.alert("Success", "Event type deleted successfully");
-      },
-      onError: (deleteError) => {
-        const message = deleteError instanceof Error ? deleteError.message : String(deleteError);
-        console.error("Failed to delete event type", message);
-        if (__DEV__) {
-          const stack = deleteError instanceof Error ? deleteError.stack : undefined;
-          console.debug("[EventTypes] deleteEventType failed", {
-            message,
-            stack,
-          });
-        }
-        showErrorAlert("Error", "Failed to delete event type. Please try again.");
-      },
-    });
+    // Use native iOS Alert for confirmation
+    Alert.alert(
+      "Delete Event Type",
+      `Are you sure you want to delete "${eventType.title}"? This action cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            deleteEventTypeMutation(eventType.id, {
+              onSuccess: () => {
+                Alert.alert("Success", "Event type deleted successfully");
+              },
+              onError: (deleteError) => {
+                const message =
+                  deleteError instanceof Error ? deleteError.message : String(deleteError);
+                console.error("Failed to delete event type", message);
+                if (__DEV__) {
+                  const stack = deleteError instanceof Error ? deleteError.stack : undefined;
+                  console.debug("[EventTypes] deleteEventType failed", { message, stack });
+                }
+                showErrorAlert("Error", "Failed to delete event type. Please try again.");
+              },
+            });
+          },
+        },
+      ]
+    );
   };
 
   const handleDuplicate = (eventType: EventType) => {
@@ -219,7 +218,8 @@ export default function EventTypesIOS() {
           });
         },
         onError: (duplicateError) => {
-          const message = duplicateError instanceof Error ? duplicateError.message : String(duplicateError);
+          const message =
+            duplicateError instanceof Error ? duplicateError.message : String(duplicateError);
           console.error("Failed to duplicate event type", message);
           if (__DEV__) {
             const stack = duplicateError instanceof Error ? duplicateError.stack : undefined;
@@ -282,13 +282,18 @@ export default function EventTypesIOS() {
                       id: newEventType.id.toString(),
                       title: newEventType.title,
                       description: newEventType.description || "",
-                      duration: (newEventType.lengthInMinutes || newEventType.length || 15).toString(),
+                      duration: (
+                        newEventType.lengthInMinutes ||
+                        newEventType.length ||
+                        15
+                      ).toString(),
                       slug: newEventType.slug || "",
                     },
                   });
                 },
                 onError: (createError) => {
-                  const message = createError instanceof Error ? createError.message : String(createError);
+                  const message =
+                    createError instanceof Error ? createError.message : String(createError);
                   console.error("Failed to create event type", message);
                   if (__DEV__) {
                     const stack = createError instanceof Error ? createError.stack : undefined;
@@ -374,7 +379,8 @@ export default function EventTypesIOS() {
       {/* iOS Native Header with Glass UI */}
       <Stack.Header
         style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
-        blurEffect={isLiquidGlassAvailable() ? undefined : "light"}>
+        blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
+      >
         <Stack.Header.Title large>Event Types</Stack.Header.Title>
 
         <Stack.Header.Right>
@@ -386,12 +392,14 @@ export default function EventTypesIOS() {
             <Stack.Header.Menu title="Sort by">
               <Stack.Header.MenuAction
                 icon="textformat.abc"
-                onPress={() => handleSortByOption("alphabetical")}>
+                onPress={() => handleSortByOption("alphabetical")}
+              >
                 Alphabetical
               </Stack.Header.MenuAction>
               <Stack.Header.MenuAction
                 icon="calendar.badge.clock"
-                onPress={() => handleSortByOption("newest")}>
+                onPress={() => handleSortByOption("newest")}
+              >
                 Newest First
               </Stack.Header.MenuAction>
               <Stack.Header.MenuAction icon="clock" onPress={() => handleSortByOption("duration")}>
@@ -401,13 +409,19 @@ export default function EventTypesIOS() {
 
             {/* Filter Submenu - opens as separate submenu */}
             <Stack.Header.Menu title="Filter">
-              <Stack.Header.MenuAction icon="checkmark.circle" onPress={() => handleFilterOption("all")}>
+              <Stack.Header.MenuAction
+                icon="checkmark.circle"
+                onPress={() => handleFilterOption("all")}
+              >
                 All Event Types
               </Stack.Header.MenuAction>
               <Stack.Header.MenuAction icon="eye" onPress={() => handleFilterOption("active")}>
                 Active Only
               </Stack.Header.MenuAction>
-              <Stack.Header.MenuAction icon="dollarsign.circle" onPress={() => handleFilterOption("paid")}>
+              <Stack.Header.MenuAction
+                icon="dollarsign.circle"
+                onPress={() => handleFilterOption("paid")}
+              >
                 Paid Events
               </Stack.Header.MenuAction>
             </Stack.Header.Menu>
@@ -445,7 +459,8 @@ export default function EventTypesIOS() {
         contentContainerStyle={{ paddingBottom: 120 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
-        contentInsetAdjustmentBehavior="automatic">
+        contentInsetAdjustmentBehavior="automatic"
+      >
         {filteredEventTypes.length === 0 && searchQuery.trim() !== "" ? (
           <View className="flex-1 items-center justify-center bg-gray-50 p-5 pt-20">
             <EmptyScreen
@@ -483,7 +498,8 @@ export default function EventTypesIOS() {
         <Host matchContents>
           <ContextMenu
             modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"), padding()]}
-            activationMethod="singlePress">
+            activationMethod="singlePress"
+          >
             <ContextMenu.Items>
               <Button systemImage="link" onPress={handleOpenCreateModal} label="New Event Type" />
             </ContextMenu.Items>
@@ -500,64 +516,6 @@ export default function EventTypesIOS() {
           </ContextMenu>
         </Host>
       </View>
-
-      {/* Delete Confirmation Modal */}
-      <FullScreenModal
-        visible={showDeleteModal}
-        animationType="fade"
-        onRequestClose={() => {
-          if (!isDeleting) {
-            setShowDeleteModal(false);
-            setEventTypeToDelete(null);
-          }
-        }}>
-        <View className="flex-1 items-center justify-center bg-black/50 p-4">
-          <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
-            {/* Header with icon and title */}
-            <View className="p-6">
-              <View className="flex-row">
-                {/* Danger icon */}
-                <View className="mr-3 self-start rounded-full bg-red-50 p-2">
-                  <Ionicons name="alert-circle" size={20} color="#800000" />
-                </View>
-
-                {/* Title and description */}
-                <View className="flex-1">
-                  <Text className="mb-2 text-xl font-semibold text-gray-900">Delete Event Type</Text>
-                  <Text className="text-sm leading-5 text-gray-600">
-                    {eventTypeToDelete ? (
-                      <>
-                        This will permanently delete the "{eventTypeToDelete.title}" event type. This action
-                        cannot be undone.
-                      </>
-                    ) : null}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Footer with buttons */}
-            <View className="flex-row-reverse gap-2 px-6 pb-6 pt-2">
-              <TouchableOpacity
-                className={`rounded-lg bg-gray-900 px-4 py-2.5 ${isDeleting ? "opacity-50" : ""}`}
-                onPress={confirmDelete}
-                disabled={isDeleting}>
-                <Text className="text-center text-base font-medium text-white">Delete</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2.5"
-                onPress={() => {
-                  setShowDeleteModal(false);
-                  setEventTypeToDelete(null);
-                }}
-                disabled={isDeleting}>
-                <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </FullScreenModal>
     </>
   );
 }

@@ -71,6 +71,7 @@
     "expo-linking": "8.0.12-canary-20251230-fc48ddc",
     "expo-router": "7.0.0-canary-20251230-fc48ddc",
     "expo-secure-store": "15.0.9-canary-20251230-fc48ddc",
+    "expo-splash-screen": "31.0.14-canary-20251230-fc48ddc",
     "expo-status-bar": "3.0.10-canary-20251230-fc48ddc",
     "expo-web-browser": "15.0.11-canary-20251230-fc48ddc",
     "nativewind": "4.2.1",
