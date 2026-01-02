@@ -21,7 +21,7 @@ import {
 
 @Injectable()
 export class OutlookService implements OAuthCalendarApp {
-  private redirectUri = `${this.config.get("api.url")}/calendars/${OFFICE_365_CALENDAR}/save`;
+  private redirectUri: string;
 
   constructor(
     private readonly config: ConfigService,
@@ -29,7 +29,9 @@ export class OutlookService implements OAuthCalendarApp {
     private readonly credentialRepository: CredentialsRepository,
     private readonly tokensRepository: TokensRepository,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository
-  ) {}
+  ) {
+    this.redirectUri = `${this.config.get("api.url") ?? ""}/calendars/${OFFICE_365_CALENDAR}/save`;
+  }
 
   async connect(
     authorization: string,

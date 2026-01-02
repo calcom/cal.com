@@ -140,7 +140,7 @@ export class BaseFormWorkflowStepDto extends BaseWorkflowStepDto {
   @ApiProperty({ description: "Action to perform", example: EMAIL_HOST, enum: STEP_ACTIONS })
   @IsString()
   @IsIn(FORM_ALLOWED_STEP_ACTIONS)
-  action!: FormAllowedStepAction;
+  declare action: FormAllowedStepAction;
 }
 
 export class WorkflowEmailHostStepDto extends BaseWorkflowStepDto {

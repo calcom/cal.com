@@ -5,7 +5,6 @@ import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { UpdateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/update-organization-team.input";
-import { OrgTeamOutputResponseDto } from "@/modules/organizations/teams/index/outputs/organization-team.output";
 import { CreateTeamInput } from "@/modules/teams/teams/inputs/create-team.input";
 import { CreateTeamOutput } from "@/modules/teams/teams/outputs/teams/create-team.output";
 import { GetTeamOutput } from "@/modules/teams/teams/outputs/teams/get-team.output";
@@ -97,7 +96,7 @@ export class TeamsController {
   @Delete("/:teamId")
   @ApiOperation({ summary: "Delete a team" })
   @Roles("TEAM_OWNER")
-  async deleteTeam(@Param("teamId", ParseIntPipe) teamId: number): Promise<OrgTeamOutputResponseDto> {
+  async deleteTeam(@Param("teamId", ParseIntPipe) teamId: number): Promise<UpdateTeamOutput> {
     const team = await this.teamsRepository.delete(teamId);
     return {
       status: SUCCESS_STATUS,

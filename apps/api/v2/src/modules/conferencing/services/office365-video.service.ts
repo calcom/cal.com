@@ -19,14 +19,16 @@ const zoomAppKeysSchema = z.object({
 @Injectable()
 export class Office365VideoService {
   private logger = new Logger("Office365VideoService");
-  private redirectUri = `${this.config.get("api.url")}/conferencing/${OFFICE_365_VIDEO}/oauth/callback`;
+  private redirectUri: string;
   private scopes = ["OnlineMeetings.ReadWrite", "offline_access"];
 
   constructor(
     private readonly config: ConfigService,
     private readonly appsRepository: AppsRepository,
     private readonly credentialsRepository: CredentialsRepository
-  ) {}
+  ) {
+    this.redirectUri = `${this.config.get("api.url") ?? ""}/conferencing/${OFFICE_365_VIDEO}/oauth/callback`;
+  }
 
   async getOffice365AppKeys() {
     const app = await this.appsRepository.getAppBySlug(OFFICE_365_VIDEO);

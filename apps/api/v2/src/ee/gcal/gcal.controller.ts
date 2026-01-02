@@ -43,15 +43,16 @@ const CALENDAR_SCOPES = [
 @ApiExcludeController(true)
 export class GcalController {
   private readonly logger = new Logger("Platform Gcal Provider");
+  private redirectUri: string;
 
   constructor(
     private readonly credentialRepository: CredentialsRepository,
     private readonly config: ConfigService,
     private readonly gcalService: GCalService,
     private readonly calendarsService: CalendarsService
-  ) {}
-
-  private redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
+  ) {
+    this.redirectUri = `${this.config.get("api.url") ?? ""}/gcal/oauth/save`;
+  }
 
   @Get("/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
