@@ -4,9 +4,9 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateCsvRawForMembersTable,
   generateHeaderFromReactTable,
-} from "~/users/lib/UserListTableUtils";
+} from "../../modules/users/lib/UserListTableUtils";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { UserTableUser } from "~/users/components/UserTable/types";
+import type { UserTableUser } from "../../modules/users/components/UserTable/types";
 
 function createMockTable(data: UserTableUser[]): Table<UserTableUser> {
   return {
@@ -55,6 +55,7 @@ function createMockTable(data: UserTableUser[]): Table<UserTableUser> {
   } as unknown as Table<UserTableUser>;
 }
 
+// biome-ignore lint/complexity/noExcessiveLinesPerFunction: Test suite with multiple test cases
 describe("generate Csv for Org Users Table", () => {
   const orgDomain = "https://acme.cal.com";
   const mockAttributeIds = ["attr1", "attr2"];
