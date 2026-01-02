@@ -373,7 +373,6 @@ model User {
   name                String?
   /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
   email               String
-  /// @zod.string().nullish()
   /// Stores the lowercase domain part of the email (e.g., "example.com" from "user@Example.COM").
   /// Maintained by database trigger on INSERT/UPDATE of email column.
   emailDomain         String?              @map("email_domain")
