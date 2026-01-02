@@ -1064,6 +1064,17 @@ export const getOptions = ({
               return true;
             }
           }
+          log.error(
+            `Userid ${user.id} trying to login with the wrong provider`,
+            {
+              userId: user.id,
+              account: {
+                providerAccountId: account?.providerAccountId,
+                type: account?.type,
+                provider: account?.provider,
+              },
+            }
+          );
           return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
         }
 
