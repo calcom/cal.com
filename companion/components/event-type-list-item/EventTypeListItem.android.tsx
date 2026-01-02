@@ -75,7 +75,7 @@ export const EventTypeListItem = ({
             </Pressable>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent insets={contentInsets} sideOffset={8} className="w-56" align="end">
+          <DropdownMenuContent insets={contentInsets} sideOffset={8} className="w-44" align="end">
             {/* Preview & Copy Actions */}
             <DropdownMenuItem onPress={() => handlePreview(item)}>
               <Ionicons name="open-outline" size={18} color="#374151" style={{ marginRight: 8 }} />
