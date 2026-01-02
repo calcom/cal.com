@@ -39,15 +39,6 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
 
-      - name: Cache API v2 build
-        uses: actions/cache@v4
-        id: cache-api-v2-build
-        with:
-          path: |
-            apps/api/v2/dist
-            .turbo
-          key: ${{ runner.os }}-api-v2-build-${{ hashFiles('yarn.lock', 'apps/api/v2/**/*.ts', 'packages/platform-*/**/*.ts', 'packages/trpc/**/*.ts', '!**/node_modules', '!**/dist') }}
-
       - name: Generate Prisma schemas
         run: yarn workspace @calcom/prisma prisma generate
 
@@ -56,10 +47,9 @@ jobs:
         run: yarn copy-swagger-module
 
       - name: Build API v2 with Turbo
-        if: steps.cache-api-v2-build.outputs.cache-hit != 'true'
         run: |
           export NODE_OPTIONS="--max_old_space_size=4096"
-          yarn turbo run build --filter=@calcom/api-v2
+          yarn turbo run build --filter=@calcom/api-v2...
 
       - name: Generate Swagger
         working-directory: apps/api/v2
