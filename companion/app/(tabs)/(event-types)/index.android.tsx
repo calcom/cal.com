@@ -13,7 +13,6 @@ import {
 } from "react-native";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { EventTypeListItem } from "@/components/event-type-list-item/EventTypeListItem";
-import { FullScreenModal } from "@/components/FullScreenModal";
 import { Header } from "@/components/Header";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
@@ -37,7 +36,6 @@ import { CalComAPIService, type EventType } from "@/services/calcom";
 import { openInAppBrowser } from "@/utils/browser";
 import { getEventDuration } from "@/utils/getEventDuration";
 import { offlineAwareRefresh } from "@/utils/network";
-import { shadows } from "@/utils/shadows";
 import { slugify } from "@/utils/slugify";
 
 // Toast state type
@@ -463,78 +461,46 @@ export default function EventTypesAndroid() {
         </View>
       </ScrollView>
 
-      {/* Create Event Type Modal */}
-      <FullScreenModal
-        visible={showCreateModal}
-        animationType="fade"
-        onRequestClose={handleCloseCreateModal}
-      >
-        <TouchableOpacity
-          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
-          activeOpacity={1}
-          onPress={handleCloseCreateModal}
-        >
-          <TouchableOpacity
-            className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white"
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-            style={shadows.xl()}
-          >
-            {/* Header */}
-            <View className="px-8 pb-4 pt-6">
-              <Text className="mb-2 text-2xl font-semibold text-[#111827]">
-                Add a new event type
-              </Text>
-              <Text className="text-sm text-[#6B7280]">
-                Set up event types to offer different types of meetings.
-              </Text>
-            </View>
+      {/* Create Event Type AlertDialog */}
+      <AlertDialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Add a new event type</AlertDialogTitle>
+            <AlertDialogDescription>
+              Set up event types to offer different types of meetings.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-            {/* Content */}
-            <View className="px-8 pb-6">
-              <View className="mb-4">
-                <Text className="mb-2 text-sm font-medium text-[#374151]">Title</Text>
-                <TextInput
-                  className={`rounded-md border bg-white px-3 py-2.5 text-base text-[#111827] ${
-                    validationError ? "border-red-500" : "border-[#D1D5DB] focus:border-black"
-                  }`}
-                  placeholder="Quick Chat"
-                  placeholderTextColor="#9CA3AF"
-                  value={newEventTitle}
-                  onChangeText={handleTitleChange}
-                  autoFocus
-                  autoCapitalize="words"
-                  returnKeyType="done"
-                  onSubmitEditing={handleCreateEventType}
-                />
-                {validationError ? (
-                  <Text className="mt-1.5 text-sm text-red-500">{validationError}</Text>
-                ) : null}
-              </View>
-            </View>
+          {/* Title Input */}
+          <View className="px-1">
+            <Text className="mb-2 text-sm font-medium text-gray-700">Title</Text>
+            <TextInput
+              className={`rounded-md border bg-white px-3 py-2.5 text-base text-gray-900 ${
+                validationError ? "border-red-500" : "border-gray-300"
+              }`}
+              placeholder="Quick Chat"
+              placeholderTextColor="#9CA3AF"
+              value={newEventTitle}
+              onChangeText={handleTitleChange}
+              autoCapitalize="words"
+              returnKeyType="done"
+              onSubmitEditing={handleCreateEventType}
+            />
+            {validationError ? (
+              <Text className="mt-1.5 text-sm text-red-500">{validationError}</Text>
+            ) : null}
+          </View>
 
-            {/* Footer */}
-            <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4">
-              <View className="flex-row justify-end gap-2 space-x-2">
-                <TouchableOpacity
-                  className="rounded-xl border border-[#D1D5DB] bg-white px-4 py-2"
-                  onPress={handleCloseCreateModal}
-                  disabled={creating}
-                >
-                  <Text className="text-base font-medium text-[#374151]">Close</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  className={`rounded-xl bg-[#111827] px-4 py-2 ${creating ? "opacity-60" : ""}`}
-                  onPress={handleCreateEventType}
-                  disabled={creating}
-                >
-                  <Text className="text-base font-medium text-white">Continue</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </FullScreenModal>
+          <AlertDialogFooter>
+            <AlertDialogCancel onPress={handleCloseCreateModal} disabled={creating}>
+              <UIText>Cancel</UIText>
+            </AlertDialogCancel>
+            <AlertDialogAction onPress={handleCreateEventType} disabled={creating}>
+              <UIText>Continue</UIText>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Confirmation AlertDialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

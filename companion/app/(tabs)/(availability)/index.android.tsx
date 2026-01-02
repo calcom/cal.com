@@ -1,20 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Alert,
-  FlatList,
-  RefreshControl,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { AppPressable } from "@/components/AppPressable";
+import { FlatList, RefreshControl, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { AvailabilityListItem } from "@/components/availability-list-item/AvailabilityListItem";
 import { EmptyScreen } from "@/components/EmptyScreen";
-import { FullScreenModal } from "@/components/FullScreenModal";
 import { Header } from "@/components/Header";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
@@ -37,9 +26,7 @@ import {
   useSetScheduleAsDefault,
 } from "@/hooks";
 import { CalComAPIService } from "@/services/calcom";
-import { showErrorAlert } from "@/utils/alerts";
 import { offlineAwareRefresh } from "@/utils/network";
-import { shadows } from "@/utils/shadows";
 
 // Toast state type
 type ToastState = {
@@ -388,76 +375,46 @@ export default function AvailabilityAndroid() {
         </View>
       </View>
 
-      {/* Create Schedule Modal */}
-      <FullScreenModal
-        visible={showCreateModal}
-        animationType="fade"
-        onRequestClose={handleCloseCreateModal}
-      >
-        <TouchableOpacity
-          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
-          activeOpacity={1}
-          onPress={handleCloseCreateModal}
-        >
-          <TouchableOpacity
-            className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white"
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-            style={shadows.xl()}
-          >
-            {/* Header */}
-            <View className="px-8 pb-4 pt-6">
-              <Text className="mb-2 text-2xl font-semibold text-[#111827]">Add a new schedule</Text>
-              <Text className="text-sm text-[#6B7280]">
-                Create a new availability schedule for your event types.
-              </Text>
-            </View>
+      {/* Create Schedule AlertDialog */}
+      <AlertDialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Add a new schedule</AlertDialogTitle>
+            <AlertDialogDescription>
+              Create a new availability schedule for your event types.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-            {/* Content */}
-            <View className="px-8 pb-6">
-              <View className="mb-4">
-                <Text className="mb-2 text-sm font-medium text-[#374151]">Name</Text>
-                <TextInput
-                  className={`rounded-md border bg-white px-3 py-2.5 text-base text-[#111827] ${
-                    validationError ? "border-red-500" : "border-[#D1D5DB] focus:border-black"
-                  }`}
-                  placeholder="Working Hours"
-                  placeholderTextColor="#9CA3AF"
-                  value={newScheduleName}
-                  onChangeText={handleNameChange}
-                  autoFocus
-                  autoCapitalize="words"
-                  returnKeyType="done"
-                  onSubmitEditing={handleCreateSchedule}
-                />
-                {validationError ? (
-                  <Text className="mt-1.5 text-sm text-red-500">{validationError}</Text>
-                ) : null}
-              </View>
-            </View>
+          {/* Name Input */}
+          <View className="px-1">
+            <Text className="mb-2 text-sm font-medium text-gray-700">Name</Text>
+            <TextInput
+              className={`rounded-md border bg-white px-3 py-2.5 text-base text-gray-900 ${
+                validationError ? "border-red-500" : "border-gray-300"
+              }`}
+              placeholder="Working Hours"
+              placeholderTextColor="#9CA3AF"
+              value={newScheduleName}
+              onChangeText={handleNameChange}
+              autoCapitalize="words"
+              returnKeyType="done"
+              onSubmitEditing={handleCreateSchedule}
+            />
+            {validationError ? (
+              <Text className="mt-1.5 text-sm text-red-500">{validationError}</Text>
+            ) : null}
+          </View>
 
-            {/* Footer */}
-            <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4">
-              <View className="flex-row justify-end gap-2 space-x-2">
-                <TouchableOpacity
-                  className="rounded-xl border border-[#D1D5DB] bg-white px-4 py-2"
-                  onPress={handleCloseCreateModal}
-                  disabled={creating}
-                >
-                  <Text className="text-base font-medium text-[#374151]">Close</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  className={`rounded-xl bg-[#111827] px-4 py-2 ${creating ? "opacity-60" : ""}`}
-                  onPress={handleCreateSchedule}
-                  disabled={creating}
-                >
-                  <Text className="text-base font-medium text-white">Continue</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </FullScreenModal>
+          <AlertDialogFooter>
+            <AlertDialogCancel onPress={handleCloseCreateModal} disabled={creating}>
+              <UIText>Cancel</UIText>
+            </AlertDialogCancel>
+            <AlertDialogAction onPress={handleCreateSchedule} disabled={creating}>
+              <UIText>Continue</UIText>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Confirmation AlertDialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

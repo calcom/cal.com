@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -29,12 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Text as UIText } from "@/components/ui/text";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  type BookingFilter,
-  useCancelBooking,
-  useConfirmBooking,
-  useDeclineBooking,
-} from "@/hooks";
+import { useCancelBooking, useConfirmBooking, useDeclineBooking } from "@/hooks";
 import { useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
 import { useBookings } from "@/hooks/useBookings";
 import type { Booking, EventType } from "@/services/calcom";
@@ -620,22 +615,18 @@ export default function BookingsAndroid() {
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Event</AlertDialogTitle>
+            <AlertDialogTitle>Cancel event</AlertDialogTitle>
             <AlertDialogDescription>
-              {bookingToCancel
-                ? `Are you sure you want to cancel "${bookingToCancel.title}"?`
-                : "Are you sure you want to cancel this event?"}
+              Cancellation reason will be shared with guests
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           {/* Cancellation Reason Input */}
           <View className="px-1">
-            <Text className="mb-2 text-sm font-medium text-gray-700">
-              Cancellation Reason (optional)
-            </Text>
+            <Text className="mb-2 text-sm font-medium text-gray-700">Reason for cancellation</Text>
             <TextInput
               className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900"
-              placeholder="Enter reason for cancellation..."
+              placeholder="Why are you cancelling?"
               placeholderTextColor="#9CA3AF"
               value={cancelReason}
               onChangeText={setCancelReason}
@@ -655,10 +646,10 @@ export default function BookingsAndroid() {
               }}
               disabled={isCancelling}
             >
-              <UIText>Keep Event</UIText>
+              <UIText>Nevermind</UIText>
             </AlertDialogCancel>
             <AlertDialogAction onPress={confirmCancel} disabled={isCancelling}>
-              <UIText>Cancel Event</UIText>
+              <UIText>Cancel event</UIText>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
