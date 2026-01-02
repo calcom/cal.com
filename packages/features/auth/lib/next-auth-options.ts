@@ -1035,7 +1035,12 @@ export const getOptions = ({
             } else {
               return true;
             }
-          } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
+          } else if (
+            existingUserWithEmail.identityProvider === IdentityProvider.CAL
+          ) {
+            log.error(
+              `Userid ${user.id} already exists with CAL identity provider`
+            );
             return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
           } else if (
             existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
@@ -1064,6 +1069,17 @@ export const getOptions = ({
               return true;
             }
           }
+          log.error(
+            `Userid ${user.id} trying to login with the wrong provider`,
+            {
+              userId: user.id,
+              account: {
+                providerAccountId: account?.providerAccountId,
+                type: account?.type,
+                provider: account?.provider,
+              },
+            }
+          );
           return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
         }
 
