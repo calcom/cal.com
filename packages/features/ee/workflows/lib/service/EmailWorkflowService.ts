@@ -26,6 +26,7 @@ import type { VariablesType } from "../reminders/templates/customTemplate";
 import customTemplate, {
   transformBookingResponsesToVariableFormat,
 } from "../reminders/templates/customTemplate";
+import { replaceCloakedLinksInHtml } from "../reminders/utils";
 import emailRatingTemplate from "../reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../reminders/templates/emailReminderTemplate";
 import type {
@@ -474,7 +475,7 @@ export class EmailWorkflowService {
 
     return {
       subject: emailContent.emailSubject,
-      html: emailContent.emailBody,
+      html: replaceCloakedLinksInHtml(emailContent.emailBody),
       ...(!evt.hideOrganizerEmail && {
         replyTo: customReplyToEmail || evt.organizer.email,
       }),
