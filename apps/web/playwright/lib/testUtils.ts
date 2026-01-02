@@ -416,19 +416,32 @@ export async function fillStripeTestCheckout(page: Page) {
 
 export function goToUrlWithErrorHandling({ page, url }: { page: Page; url: string }) {
   return new Promise<{ success: boolean; url: string }>(async (resolve) => {
+    let resolved = false;
     const onRequestFailed = (request: PlaywrightRequest) => {
+      // Only consider it a navigation failure if it's the main document request
+      // Ignore failures for subresources like images, scripts, RSC requests, etc.
+      if (!request.isNavigationRequest() || request.frame() !== page.mainFrame()) {
+        const failedToLoadUrl = request.url();
+        console.log("goToUrlWithErrorHandling: Failed to load URL:", failedToLoadUrl);
+        return;
+      }
+      if (resolved) return;
+      resolved = true;
       const failedToLoadUrl = request.url();
-      console.log("goToUrlWithErrorHandling: Failed to load URL:", failedToLoadUrl);
+      console.log("goToUrlWithErrorHandling: Navigation failed for URL:", failedToLoadUrl);
       resolve({ success: false, url: failedToLoadUrl });
     };
     page.on("requestfailed", onRequestFailed);
     try {
-      await page.goto(url);
+      await page.goto(url, { waitUntil: "domcontentloaded" });
     } catch {
       // do nothing
     }
     page.off("requestfailed", onRequestFailed);
-    resolve({ success: true, url: page.url() });
+    if (!resolved) {
+      resolved = true;
+      resolve({ success: true, url: page.url() });
+    }
   });
 }
 
