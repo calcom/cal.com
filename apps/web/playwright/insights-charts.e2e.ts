@@ -282,7 +282,7 @@ test.describe("Insights > Charts Loading", () => {
 
       // Verify no charts are in error state
       const errorCharts = page.locator('[data-testid="chart-card"][data-loading-state="error"]');
-      await expect(errorCharts).toHaveCount(0);
+      await expect(errorCharts).toHaveCount(0, { timeout: 0 });
     });
   });
 });
