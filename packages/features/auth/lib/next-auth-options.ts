@@ -1035,7 +1035,12 @@ export const getOptions = ({
             } else {
               return true;
             }
-          } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
+          } else if (
+            existingUserWithEmail.identityProvider === IdentityProvider.CAL
+          ) {
+            log.error(
+              `Userid ${user.id} already exists with CAL identity provider`
+            );
             return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
           } else if (
             existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
