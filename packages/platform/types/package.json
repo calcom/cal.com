@@ -1,6 +1,7 @@
 {
   "name": "@calcom/platform-types",
   "version": "0.0.0",
+  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.js",
   "private": true,
