@@ -54,10 +54,15 @@ export async function getServerSession(options: {
     return cachedSession;
   }
 
-  const email = token.email.toLowerCase();
+  const userId = token.sub ? Number(token.sub) : null;
+
+  if (!userId || userId <= 0) {
+    log.warn("Invalid or missing user ID in token", { sub: token.sub });
+    return null;
+  }
 
   const userFromDb = await prisma.user.findUnique({
-    where: { email },
+    where: { id: userId },
   });
 
   if (!userFromDb) {
