@@ -27,11 +27,13 @@ env:
   VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
   JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
   NODE_ENV: ${{ vars.CI_NODE_ENV }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 jobs:
   e2e:
     timeout-minutes: 20
     name: E2E API v2 (${{ matrix.shard }}/${{ strategy.job-total }})
-    runs-on: buildjet-16vcpu-ubuntu-2204
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     services:
       postgres:
         image: postgres:13
@@ -43,10 +45,11 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: calendso
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+          --health-start-period 2s
         ports:
           - 5432:5432
       redis:
@@ -74,13 +77,22 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
+      - name: Build platform packages with Turbo
+        run: |
+          yarn turbo run build \
+            --filter=@calcom/platform-constants \
+            --filter=@calcom/platform-enums \
+            --filter=@calcom/platform-utils \
+            --filter=@calcom/platform-types \
+            --filter=@calcom/platform-libraries \
+            --filter=@calcom/trpc
 
       - name: Run Tests
         working-directory: apps/api/v2
         run: |
-          yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+          yarn test:e2e:ci --shard=${{ matrix.shard }}/${{ strategy.job-total }}
           EXIT_CODE=$?
-          echo "yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }} command exit code: $EXIT_CODE"
+          echo "yarn test:e2e:ci --shard=${{ matrix.shard }}/${{ strategy.job-total }} command exit code: $EXIT_CODE"
           exit $EXIT_CODE
 
       - name: Upload Test Results
@@ -88,4 +100,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results-api-v2-shard-${{ matrix.shard }}
-          path: test-results
+          path: apps/api/v2/test-results
+          if-no-files-found: ignore
+          retention-days: 7
