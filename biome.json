@@ -27,6 +27,7 @@
       "!!**/dist",
       "!!**/build",
       "!!**/public",
+      "!!**/*.d.ts",
       "!!public",
       "!!apps/web/public/embed",
       "!!packages/prisma/zod",
@@ -76,11 +77,7 @@
       }
     },
     {
-      "includes": [
-        "apps/web/app/**/page.tsx",
-        "apps/web/app/**/layout.tsx",
-        "apps/web/app/pages/**/*.tsx"
-      ],
+      "includes": ["apps/web/app/**/page.tsx", "apps/web/app/**/layout.tsx", "apps/web/app/pages/**/*.tsx"],
       "linter": {
         "rules": {
           "style": {
@@ -94,7 +91,7 @@
       "linter": {
         "rules": {
           "nursery": {
-            "useQwikValidLexicalScope": "warn",
+            "useQwikValidLexicalScope": "off",
             "useExplicitType": "warn",
             "noReactForwardRef": "warn",
             "noTernary": "warn",
@@ -114,7 +111,8 @@
           },
           "style": {
             "useExportsLast": "warn",
-            "noProcessEnv": "warn"
+            "noProcessEnv": "warn",
+            "useNodejsImportProtocol": "error"
           },
           "complexity": {
             "noExcessiveLinesPerFunction": "warn"
@@ -143,12 +141,23 @@
       }
     },
     {
+      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "useArrowFunction": "off",
+            "noExcessiveLinesPerFunction": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["packages/lib/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
       "linter": {
         "rules": {
           "style": {
             "noRestrictedImports": {
-              "level": "warn",
+              "level": "error",
               "options": {
                 "patterns": [
                   {
@@ -180,7 +189,7 @@
         "rules": {
           "style": {
             "noRestrictedImports": {
-              "level": "warn",
+              "level": "error",
               "options": {
                 "patterns": [
                   {
@@ -204,7 +213,7 @@
         "rules": {
           "style": {
             "noRestrictedImports": {
-              "level": "warn",
+              "level": "error",
               "options": {
                 "patterns": [
                   {
@@ -224,7 +233,7 @@
         "rules": {
           "style": {
             "noRestrictedImports": {
-              "level": "warn",
+              "level": "error",
               "options": {
                 "patterns": [
                   {

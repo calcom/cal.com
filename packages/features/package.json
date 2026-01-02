@@ -45,6 +45,6 @@
   "devDependencies": {
     "@testing-library/react-hooks": "8.0.1",
     "@types/web-push": "3.6.3",
-    "trigger.dev": "4.1.0"
+    "trigger.dev": "4.3.1"
   }
 }
