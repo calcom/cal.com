@@ -57,11 +57,11 @@ export const processPaymentRefund = async ({
 
     if (booking.responses) return success; // If there are booking responses, the booking is not seat-based, so we only check for success
 
-    if (
-      seatedBooking &&
-      (seatedBooking.attendee.email === attendee.email ||
-        seatedBooking.attendee.phoneNumber === attendee.phoneNumber)
-    ) {
+    const hasEmail = seatedBooking.attendee.email;
+    const sameEmail = seatedBooking?.attendee?.email === attendee?.email;
+    const samePhone = seatedBooking?.attendee?.phoneNumber === attendee?.phoneNumber;
+
+    if (seatedBooking && (hasEmail ? sameEmail : samePhone)) {
       return success;
     }
     return false;
