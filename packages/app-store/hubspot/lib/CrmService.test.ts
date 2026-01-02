@@ -444,9 +444,9 @@ describe("HubspotCalendarService", () => {
 
     describe("TEXT-like field types", () => {
       it("should return null if fieldValue is not a string", async () => {
-        // @ts-expect-error - Testing private method
+        // @ts-expect-error - Testing private method with invalid fieldValue type
         const result = await service.getFieldValue({
-          fieldValue: 123,
+          fieldValue: 123 as unknown as string,
           fieldType: CrmFieldType.TEXT,
           fieldName: "text_field",
         });
@@ -585,7 +585,7 @@ describe("HubspotCalendarService", () => {
         // @ts-expect-error - Testing private method with invalid type
         const result = await service.getFieldValue({
           fieldValue: "some value",
-          fieldType: "UNSUPPORTED_TYPE",
+          fieldType: "UNSUPPORTED_TYPE" as unknown as CrmFieldType,
           fieldName: "unsupported_field",
         });
 
