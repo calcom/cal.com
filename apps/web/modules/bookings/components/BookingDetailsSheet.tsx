@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -93,15 +93,22 @@ interface BookingDetailsSheetInnerProps {
 }
 
 function useActiveSegment(bookingAuditEnabled: boolean) {
-  const [_activeSegment, setActiveSegment] = useState<"info" | "history">("info");
+  const [activeSegment, setActiveSegmentInStore] = useBookingDetailsSheetStore((state) => [state.activeSegment, state.setActiveSegment]);
 
-  // Ensure that if bookingAuditEnabled is disabled, the active segment switches to "info"
-  return [
-    !bookingAuditEnabled && _activeSegment === "history"
-      ? "info"
-      : _activeSegment,
-    setActiveSegment,
-  ] as const
+  const getDerivedActiveSegment = ({ activeSegment, bookingAuditEnabled }: { activeSegment: "info" | "history" | null, bookingAuditEnabled: boolean }) => {
+    if (!bookingAuditEnabled && activeSegment === "history") {
+      return "info";
+    }
+    return activeSegment ?? "info";
+  }
+
+  const derivedActiveSegment = getDerivedActiveSegment({ activeSegment, bookingAuditEnabled });
+
+  const setDerivedActiveSegment = (segment: "info" | "history") => {
+    setActiveSegmentInStore(getDerivedActiveSegment({ activeSegment: segment, bookingAuditEnabled }));
+  };
+
+  return [derivedActiveSegment, setDerivedActiveSegment] as const;
 }
 
 function BookingDetailsSheetInner({
@@ -136,6 +143,7 @@ function BookingDetailsSheetInner({
       navigatePrevious: state.navigatePrevious,
       isTransitioning: state.isTransitioning,
       setSelectedBookingUid: state.setSelectedBookingUid,
+      setActiveSegment: state.setActiveSegment,
       canGoNext: hasNextInArray || (isLastInArray && state.capabilities?.canNavigateToNextPeriod()),
       canGoPrev: hasPreviousInArray || (isFirstInArray && state.capabilities?.canNavigateToPreviousPeriod()),
     };
@@ -143,6 +151,7 @@ function BookingDetailsSheetInner({
 
   const handleClose = () => {
     navigation.setSelectedBookingUid(null);
+    navigation.setActiveSegment(null);
   };
 
   const handleNext = () => {

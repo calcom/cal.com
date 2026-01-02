@@ -55,7 +55,6 @@ const SegmentedControl = function <T extends string>({
                             <input
                                 type="radio"
                                 id={inputId}
-                                name="segmented-control"
                                 value={itemValue}
                                 checked={isActive}
                                 onChange={() => handleChange(itemValue)}
