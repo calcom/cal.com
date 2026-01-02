@@ -2,7 +2,6 @@
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
     "resolveJsonModule": true,
     "types": ["jest"],
     "outDir": "./dist",

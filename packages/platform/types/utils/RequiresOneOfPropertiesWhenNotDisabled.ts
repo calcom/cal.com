@@ -31,9 +31,6 @@ export function RequiresAtLeastOnePropertyWhenNotDisabled(validationOptions?: Va
             return true;
           }
 
-          // note(Devin): With ES2022 class fields, Object.keys() includes properties that are undefined
-          // (e.g., maximumActiveBookings, offerReschedule) because they're emitted as runtime class fields.
-          // We need to check for properties that have defined values, not just keys that exist.
           const otherProperties = Object.entries(obj).filter(
             ([key, value]) => key !== "disabled" && value !== undefined
           );
