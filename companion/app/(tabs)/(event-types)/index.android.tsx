@@ -1,20 +1,12 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  RefreshControl,
-  ScrollView,
-  Share,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useMemo, useState } from "react";
+import { RefreshControl, ScrollView, Share, Text, TextInput, View } from "react-native";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { EventTypeListItem } from "@/components/event-type-list-item/EventTypeListItem";
 import { Header } from "@/components/Header";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ScreenWrapper } from "@/components/ScreenWrapper";
+import { SearchHeader } from "@/components/SearchHeader";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,24 +18,21 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Text as UIText } from "@/components/ui/text";
+import { Toast } from "@/components/ui/toast";
 import {
   useCreateEventType,
   useDeleteEventType,
   useDuplicateEventType,
   useEventTypes,
+  useToast,
 } from "@/hooks";
-import { CalComAPIService, type EventType } from "@/services/calcom";
+import type { EventType } from "@/services/calcom";
+import { CalComAPIService } from "@/services/calcom";
 import { openInAppBrowser } from "@/utils/browser";
+import { getDisplayError } from "@/utils/error";
 import { getEventDuration } from "@/utils/getEventDuration";
 import { offlineAwareRefresh } from "@/utils/network";
 import { slugify } from "@/utils/slugify";
-
-// Toast state type
-type ToastState = {
-  visible: boolean;
-  message: string;
-  type: "success" | "error";
-};
 
 export default function EventTypesAndroid() {
   const router = useRouter();
@@ -56,12 +45,8 @@ export default function EventTypesAndroid() {
   // Inline validation error for create modal
   const [validationError, setValidationError] = useState("");
 
-  // Toast state (fixed position snackbar at bottom)
-  const [toast, setToast] = useState<ToastState>({
-    visible: false,
-    message: "",
-    type: "success",
-  });
+  // Toast state management
+  const { toast, showToast } = useToast();
 
   // AlertDialog state for confirmations
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -83,30 +68,11 @@ export default function EventTypesAndroid() {
   const { mutate: deleteEventTypeMutation, isPending: isDeleting } = useDeleteEventType();
   const { mutate: duplicateEventTypeMutation } = useDuplicateEventType();
 
-  // Convert query error to string
-  const isAuthError =
-    queryError?.message?.includes("Authentication") ||
-    queryError?.message?.includes("sign in") ||
-    queryError?.message?.includes("401");
-  const error = queryError && !isAuthError && __DEV__ ? "Failed to load event types." : null;
+  // Convert query error to user-friendly message
+  const error = getDisplayError(queryError, "event types");
 
   // Copied state for UI feedback
   const [copiedEventTypeId, setCopiedEventTypeId] = useState<number | null>(null);
-
-  // Function to show toast (snackbar at bottom)
-  const showToast = useCallback((message: string, type: "success" | "error" = "success") => {
-    setToast({ visible: true, message, type });
-  }, []);
-
-  // Auto-dismiss toast after 2.5 seconds
-  useEffect(() => {
-    if (toast.visible) {
-      const timer = setTimeout(() => {
-        setToast({ visible: false, message: "", type: "success" });
-      }, 2500);
-      return () => clearTimeout(timer);
-    }
-  }, [toast.visible]);
 
   // Handle pull-to-refresh (offline-aware)
   const onRefresh = () => offlineAwareRefresh(refetch);
@@ -123,10 +89,6 @@ export default function EventTypesAndroid() {
         eventType.description?.toLowerCase().includes(searchLower)
     );
   }, [eventTypes, searchQuery]);
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
 
   const handleEventTypePress = (eventType: EventType) => {
     handleEdit(eventType);
@@ -258,10 +220,6 @@ export default function EventTypesAndroid() {
   };
 
   const handleCreateNew = () => {
-    handleOpenCreateModal();
-  };
-
-  const handleOpenCreateModal = () => {
     setShowCreateModal(true);
   };
 
@@ -332,72 +290,17 @@ export default function EventTypesAndroid() {
     }
   };
 
-  if (loading) {
-    return (
-      <View className="flex-1 bg-gray-100">
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <LoadingSpinner size="large" />
-        </View>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View className="flex-1 bg-gray-100">
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="alert-circle" size={64} color="#800020" />
-          <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
-            Unable to load event types
-          </Text>
-          <Text className="mb-6 text-center text-base text-gray-500">{error}</Text>
-          <TouchableOpacity className="rounded-lg bg-black px-6 py-3" onPress={() => refetch()}>
-            <Text className="text-base font-semibold text-white">Retry</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  if (eventTypes.length === 0) {
-    return (
-      <View className="flex-1 bg-gray-100">
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <EmptyScreen
-            icon="link-outline"
-            headline="Create your first event type"
-            description="Event types enable you to share links that show available times on your calendar and allow people to make bookings with you."
-            buttonText="New"
-            onButtonPress={handleCreateNew}
-          />
-        </View>
-      </View>
-    );
-  }
-
-  if (filteredEventTypes.length === 0 && searchQuery.trim() !== "") {
+  // Handle search empty state
+  if (filteredEventTypes.length === 0 && searchQuery.trim() !== "" && !loading) {
     return (
       <View className="flex-1 bg-gray-100">
         <Header />
-        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-          <TextInput
-            className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-            placeholder="Search event types"
-            placeholderTextColor="#9CA3AF"
-            value={searchQuery}
-            onChangeText={handleSearch}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-          />
-          <TouchableOpacity
-            className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-            onPress={handleCreateNew}
-          >
-            <Ionicons name="add" size={18} color="#fff" />
-            <Text className="text-base font-semibold text-white">New</Text>
-          </TouchableOpacity>
-        </View>
+        <SearchHeader
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          placeholder="Search event types"
+          onNewPress={handleCreateNew}
+        />
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <EmptyScreen
             icon="search-outline"
@@ -410,27 +313,29 @@ export default function EventTypesAndroid() {
   }
 
   return (
-    <>
+    <ScreenWrapper
+      loading={loading}
+      error={error}
+      onRetry={refetch}
+      errorTitle="Unable to load event types"
+      isEmpty={eventTypes.length === 0}
+      emptyProps={{
+        icon: "link-outline",
+        headline: "Create your first event type",
+        description:
+          "Event types enable you to share links that show available times on your calendar and allow people to make bookings with you.",
+        buttonText: "New",
+        onButtonPress: handleCreateNew,
+      }}
+      showHeader={false}
+    >
       <Header />
-      <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-        <TextInput
-          className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-          placeholder="Search event types"
-          placeholderTextColor="#9CA3AF"
-          value={searchQuery}
-          onChangeText={handleSearch}
-          autoCapitalize="none"
-          autoCorrect={false}
-          clearButtonMode="while-editing"
-        />
-        <TouchableOpacity
-          className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-          onPress={handleCreateNew}
-        >
-          <Ionicons name="add" size={18} color="#fff" />
-          <Text className="text-base font-semibold text-white">New</Text>
-        </TouchableOpacity>
-      </View>
+      <SearchHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        placeholder="Search event types"
+        onNewPress={handleCreateNew}
+      />
 
       <ScrollView
         style={{ backgroundColor: "white" }}
@@ -531,31 +436,7 @@ export default function EventTypesAndroid() {
       </AlertDialog>
 
       {/* Toast Snackbar */}
-      {toast.visible && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: 100,
-            left: 16,
-            right: 16,
-          }}
-          pointerEvents="none"
-        >
-          <View
-            className={`flex-row items-center rounded-lg px-4 py-3 shadow-lg ${
-              toast.type === "error" ? "bg-red-600" : "bg-gray-800"
-            }`}
-          >
-            <Ionicons
-              name={toast.type === "error" ? "close-circle" : "checkmark-circle"}
-              size={20}
-              color="white"
-              style={{ marginRight: 8 }}
-            />
-            <Text className="flex-1 text-sm font-medium text-white">{toast.message}</Text>
-          </View>
-        </View>
-      )}
-    </>
+      <Toast {...toast} />
+    </ScreenWrapper>
   );
 }

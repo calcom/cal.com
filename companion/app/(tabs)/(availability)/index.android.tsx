@@ -1,11 +1,11 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { FlatList, RefreshControl, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useMemo, useState } from "react";
+import { FlatList, RefreshControl, Text, TextInput, View } from "react-native";
 import { AvailabilityListItem } from "@/components/availability-list-item/AvailabilityListItem";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { Header } from "@/components/Header";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ScreenWrapper } from "@/components/ScreenWrapper";
+import { SearchHeader } from "@/components/SearchHeader";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Text as UIText } from "@/components/ui/text";
+import { Toast } from "@/components/ui/toast";
 import {
   type Schedule,
   useCreateSchedule,
@@ -24,16 +25,11 @@ import {
   useDuplicateSchedule,
   useSchedules,
   useSetScheduleAsDefault,
+  useToast,
 } from "@/hooks";
 import { CalComAPIService } from "@/services/calcom";
+import { getDisplayError } from "@/utils/error";
 import { offlineAwareRefresh } from "@/utils/network";
-
-// Toast state type
-type ToastState = {
-  visible: boolean;
-  message: string;
-  type: "success" | "error";
-};
 
 export default function AvailabilityAndroid() {
   const router = useRouter();
@@ -44,12 +40,8 @@ export default function AvailabilityAndroid() {
   // Inline validation error for create modal
   const [validationError, setValidationError] = useState("");
 
-  // Toast state (fixed position snackbar at bottom)
-  const [toast, setToast] = useState<ToastState>({
-    visible: false,
-    message: "",
-    type: "success",
-  });
+  // Toast state management
+  const { toast, showToast } = useToast();
 
   // AlertDialog state for delete confirmation
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -72,27 +64,8 @@ export default function AvailabilityAndroid() {
   const { mutate: duplicateScheduleMutation } = useDuplicateSchedule();
   const { mutate: setAsDefaultMutation } = useSetScheduleAsDefault();
 
-  // Convert query error to string
-  const isAuthError =
-    queryError?.message?.includes("Authentication") ||
-    queryError?.message?.includes("sign in") ||
-    queryError?.message?.includes("401");
-  const error = queryError && !isAuthError && __DEV__ ? "Failed to load availability." : null;
-
-  // Function to show toast (snackbar at bottom)
-  const showToast = useCallback((message: string, type: "success" | "error" = "success") => {
-    setToast({ visible: true, message, type });
-  }, []);
-
-  // Auto-dismiss toast after 2.5 seconds
-  useEffect(() => {
-    if (toast.visible) {
-      const timer = setTimeout(() => {
-        setToast({ visible: false, message: "", type: "success" });
-      }, 2500);
-      return () => clearTimeout(timer);
-    }
-  }, [toast.visible]);
+  // Convert query error to user-friendly message
+  const error = getDisplayError(queryError, "availability");
 
   // Handle pull-to-refresh (offline-aware)
   const onRefresh = () => offlineAwareRefresh(refetch);
@@ -105,10 +78,6 @@ export default function AvailabilityAndroid() {
     const searchLower = searchQuery.toLowerCase();
     return schedules.filter((schedule) => schedule.name.toLowerCase().includes(searchLower));
   }, [schedules, searchQuery]);
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
 
   const handleSchedulePress = (schedule: Schedule) => {
     router.push({
@@ -247,75 +216,17 @@ export default function AvailabilityAndroid() {
     }
   };
 
-  if (loading) {
+  // Handle search empty state
+  if (filteredSchedules.length === 0 && searchQuery.trim() !== "" && !loading) {
     return (
       <View className="flex-1 bg-gray-100">
         <Header />
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <LoadingSpinner size="large" />
-        </View>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View className="flex-1 bg-gray-100">
-        <Header />
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="alert-circle" size={64} color="#800020" />
-          <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
-            Unable to load availability
-          </Text>
-          <Text className="mb-6 text-center text-base text-gray-500">{error}</Text>
-          <TouchableOpacity className="rounded-lg bg-black px-6 py-3" onPress={() => refetch()}>
-            <Text className="text-base font-semibold text-white">Retry</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  if (schedules.length === 0) {
-    return (
-      <View className="flex-1 bg-gray-100">
-        <Header />
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <EmptyScreen
-            icon="time-outline"
-            headline="Create an availability schedule"
-            description="Creating availability schedules allows you to manage availability across event types. They can be applied to one or more event types."
-            buttonText="New"
-            onButtonPress={handleCreateNew}
-          />
-        </View>
-      </View>
-    );
-  }
-
-  if (filteredSchedules.length === 0 && searchQuery.trim() !== "") {
-    return (
-      <View className="flex-1 bg-gray-100">
-        <Header />
-        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-          <TextInput
-            className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-            placeholder="Search schedules"
-            placeholderTextColor="#9CA3AF"
-            value={searchQuery}
-            onChangeText={handleSearch}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-          />
-          <TouchableOpacity
-            className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-            onPress={handleCreateNew}
-          >
-            <Ionicons name="add" size={18} color="#fff" />
-            <Text className="text-base font-semibold text-white">New</Text>
-          </TouchableOpacity>
-        </View>
+        <SearchHeader
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          placeholder="Search schedules"
+          onNewPress={handleCreateNew}
+        />
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <EmptyScreen
             icon="search-outline"
@@ -328,27 +239,28 @@ export default function AvailabilityAndroid() {
   }
 
   return (
-    <>
+    <ScreenWrapper
+      loading={loading}
+      error={error}
+      onRetry={refetch}
+      errorTitle="Unable to load availability"
+      isEmpty={schedules.length === 0}
+      emptyProps={{
+        icon: "time-outline",
+        headline: "Create an availability schedule",
+        description:
+          "Creating availability schedules allows you to manage availability across event types. They can be applied to one or more event types.",
+        buttonText: "New",
+        onButtonPress: handleCreateNew,
+      }}
+    >
       <Header />
-      <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-        <TextInput
-          className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-          placeholder="Search schedules"
-          placeholderTextColor="#9CA3AF"
-          value={searchQuery}
-          onChangeText={handleSearch}
-          autoCapitalize="none"
-          autoCorrect={false}
-          clearButtonMode="while-editing"
-        />
-        <TouchableOpacity
-          className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-          onPress={handleCreateNew}
-        >
-          <Ionicons name="add" size={18} color="#fff" />
-          <Text className="text-base font-semibold text-white">New</Text>
-        </TouchableOpacity>
-      </View>
+      <SearchHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        placeholder="Search schedules"
+        onNewPress={handleCreateNew}
+      />
 
       <View className="flex-1 px-2 pt-4 md:px-4">
         <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
@@ -445,31 +357,7 @@ export default function AvailabilityAndroid() {
       </AlertDialog>
 
       {/* Toast Snackbar */}
-      {toast.visible && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: 100,
-            left: 16,
-            right: 16,
-          }}
-          pointerEvents="none"
-        >
-          <View
-            className={`flex-row items-center rounded-lg px-4 py-3 shadow-lg ${
-              toast.type === "error" ? "bg-red-600" : "bg-gray-800"
-            }`}
-          >
-            <Ionicons
-              name={toast.type === "error" ? "close-circle" : "checkmark-circle"}
-              size={20}
-              color="white"
-              style={{ marginRight: 8 }}
-            />
-            <Text className="flex-1 text-sm font-medium text-white">{toast.message}</Text>
-          </View>
-        </View>
-      )}
-    </>
+      <Toast {...toast} />
+    </ScreenWrapper>
   );
 }

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -28,9 +28,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Text as UIText } from "@/components/ui/text";
+import { Toast } from "@/components/ui/toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCancelBooking, useConfirmBooking, useDeclineBooking } from "@/hooks";
-import { useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
+import {
+  useActiveBookingFilter,
+  useCancelBooking,
+  useConfirmBooking,
+  useDeclineBooking,
+  useToast,
+} from "@/hooks";
 import { useBookings } from "@/hooks/useBookings";
 import type { Booking, EventType } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
@@ -41,15 +47,9 @@ import {
   groupBookingsByMonth,
   searchBookings,
 } from "@/utils/bookings-utils";
+import { getDisplayError } from "@/utils/error";
 import { offlineAwareRefresh } from "@/utils/network";
 import { safeLogError } from "@/utils/safeLogger";
-
-// Toast state type
-type ToastState = {
-  visible: boolean;
-  message: string;
-  type: "success" | "error";
-};
 
 export default function BookingsAndroid() {
   const router = useRouter();
@@ -62,12 +62,8 @@ export default function BookingsAndroid() {
   const [eventTypesLoading, setEventTypesLoading] = useState(false);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
-  // Toast state (fixed position snackbar at bottom)
-  const [toast, setToast] = useState<ToastState>({
-    visible: false,
-    message: "",
-    type: "success",
-  });
+  // Toast state management
+  const { toast, showToast } = useToast();
 
   // AlertDialog state for cancel confirmation
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -108,27 +104,8 @@ export default function BookingsAndroid() {
   // Decline booking mutation
   const { mutate: declineBookingMutation, isPending: isDeclining } = useDeclineBooking();
 
-  // Convert query error to string
-  const isAuthError =
-    queryError?.message?.includes("Authentication") ||
-    queryError?.message?.includes("sign in") ||
-    queryError?.message?.includes("401");
-  const error = queryError && !isAuthError && __DEV__ ? "Failed to load bookings." : null;
-
-  // Function to show toast (snackbar at bottom)
-  const showToast = useCallback((message: string, type: "success" | "error" = "success") => {
-    setToast({ visible: true, message, type });
-  }, []);
-
-  // Auto-dismiss toast after 2.5 seconds
-  useEffect(() => {
-    if (toast.visible) {
-      const timer = setTimeout(() => {
-        setToast({ visible: false, message: "", type: "success" });
-      }, 2500);
-      return () => clearTimeout(timer);
-    }
-  }, [toast.visible]);
+  // Convert query error to user-friendly message
+  const error = getDisplayError(queryError, "bookings");
 
   // Sort bookings based on active filter
   const bookings = useMemo(() => {
@@ -656,31 +633,7 @@ export default function BookingsAndroid() {
       </AlertDialog>
 
       {/* Toast Snackbar */}
-      {toast.visible && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: 100,
-            left: 16,
-            right: 16,
-          }}
-          pointerEvents="none"
-        >
-          <View
-            className={`flex-row items-center rounded-lg px-4 py-3 shadow-lg ${
-              toast.type === "error" ? "bg-red-600" : "bg-gray-800"
-            }`}
-          >
-            <Ionicons
-              name={toast.type === "error" ? "close-circle" : "checkmark-circle"}
-              size={20}
-              color="white"
-              style={{ marginRight: 8 }}
-            />
-            <Text className="flex-1 text-sm font-medium text-white">{toast.message}</Text>
-          </View>
-        </View>
-      )}
+      <Toast {...toast} />
     </>
   );
 }
