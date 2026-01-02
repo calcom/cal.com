@@ -70,16 +70,6 @@
   },
   "overrides": [
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx"],
-      "linter": {
-        "rules": {
-          "complexity": {
-            "useArrowFunction": "off"
-          }
-        }
-      }
-    },
-    {
       "includes": ["**/*.tsx"],
       "javascript": {
         "jsxRuntime": "transparent"
@@ -144,6 +134,17 @@
           "security": {
             "noBlankTarget": "warn",
             "noDangerouslySetInnerHtml": "warn"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "useArrowFunction": "off",
+            "noExcessiveLinesPerFunction": "off"
           }
         }
       }
