@@ -187,6 +187,8 @@ test.describe("Email Signup Flow Test", async () => {
     const dbUser = await prisma.user.findUnique({ where: { email: userToCreate.email } });
     // Verify that the username is the same as the one provided and isn't accidentally changed to email derived username - That happens only for organization member signup
     expect(dbUser?.username).toBe(userToCreate.username);
+    // Track user for cleanup
+    await users.set(userToCreate.email);
   });
   test("Signup fields prefilled with query params", async ({ page }) => {
     const signupUrlWithParams =
@@ -453,6 +455,8 @@ test.describe("Cal.com Signup Handler E2E Tests", async () => {
 
     expect(dbUser).not.toBeNull();
     expect(dbUser?.username).toBe(userToCreate.username);
+    // Track user for cleanup
+    await users.set(userToCreate.email);
 
     const metadata = dbUser?.metadata as { stripeCustomerId?: string } | null;
     expect(metadata?.stripeCustomerId).toBeDefined();
@@ -524,6 +528,8 @@ test.describe("Cal.com Signup Handler E2E Tests", async () => {
     });
 
     expect(dbUser).not.toBeNull();
+    // Track user for cleanup
+    await users.set(userToCreate.email);
 
     const stripeCustomers = await stripe.customers.list({
       email: userToCreate.email,
@@ -598,6 +604,8 @@ test.describe("Cal.com Signup Handler E2E Tests", async () => {
     expect(dbUser).not.toBeNull();
     // Premium username signup should have null username until payment
     expect(dbUser?.username).toBeNull();
+    // Track user for cleanup
+    await users.set(userToCreate.email);
 
     const metadata = dbUser?.metadata as {
       stripeCustomerId?: string;
@@ -659,6 +667,9 @@ test.describe("Cal.com Signup Handler E2E Tests", async () => {
 
     await page.waitForURL((url) => url.pathname.includes("/auth/verify-email"));
 
+    // Track user for cleanup
+    await users.set(userToCreate.email);
+
     const receivedEmails = await getEmailsReceivedByUser({
       emails,
       userEmail: userToCreate.email,
@@ -713,5 +724,7 @@ test.describe("Cal.com Signup Handler E2E Tests", async () => {
 
     expect(dbUser).not.toBeNull();
     expect(dbUser?.creationSource).toBe("WEBAPP");
+    // Track user for cleanup
+    await users.set(userToCreate.email);
   });
 });
