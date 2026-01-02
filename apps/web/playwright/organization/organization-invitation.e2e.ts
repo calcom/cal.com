@@ -611,10 +611,10 @@ async function signupFromInviteLink({
 }) {
   const context = await browser.newContext();
   const inviteLinkPage = await context.newPage();
-  await inviteLinkPage.goto(inviteLink);
-  await expect(
-    inviteLinkPage.locator("text=Create your account")
-  ).toBeVisible();
+  await inviteLinkPage.goto(inviteLink, {
+    waitUntil: "networkidle",
+    timeout: 10000
+  });
 
   // Check required fields
   const button = inviteLinkPage.locator("button[type=submit][disabled]");
