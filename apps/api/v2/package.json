@@ -20,7 +20,7 @@
     "dev": "yarn dev:build && ts-node scripts/docker-start.ts && yarn copy-swagger-module && yarn start --watch",
     "dev:no-docker": "yarn dev:build && yarn copy-swagger-module && yarn start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node ./dist/apps/api/v2/src/main.js",
+    "start:prod": "node ./dist/main.js",
     "test": "yarn dev:build && jest",
     "test:watch": "yarn dev:build && jest --watch",
     "test:cov": "yarn dev:build && jest --coverage",
@@ -31,7 +31,7 @@
     "prisma": "yarn workspace @calcom/prisma prisma",
     "generate-schemas": "yarn prisma generate && yarn prisma format",
     "copy-swagger-module": "ts-node -r tsconfig-paths/register src/swagger/copy-swagger-module.ts",
-    "generate-swagger": "yarn copy-swagger-module && yarn build && node ./dist/apps/api/v2/src/swagger/generate-swagger-script.js",
+    "generate-swagger": "yarn copy-swagger-module && yarn build && node ./dist/swagger/generate-swagger-script.js",
     "prepare": "yarn run snyk-protect",
     "snyk-protect": "snyk-protect"
   },
