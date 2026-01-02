@@ -38,6 +38,8 @@
   },
   "dependencies": {
     "@axiomhq/winston": "1.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "@calcom/platform-constants": "workspace:*",
     "@calcom/platform-enums": "workspace:*",
     "@calcom/platform-libraries": "workspace:*",
