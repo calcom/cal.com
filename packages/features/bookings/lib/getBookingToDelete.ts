@@ -5,6 +5,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 
 export const bookingToDeleteSelect = {
   ...bookingMinimalSelect,
+  createdAt: true,
   recurringEventId: true,
   userId: true,
   user: {
@@ -30,7 +31,15 @@ export const bookingToDeleteSelect = {
       delegationCredentialId: true,
     },
   },
-  payment: true,
+  payment: {
+    include: {
+      bookingSeat: {
+        include: {
+          attendee: true,
+        },
+      },
+    },
+  },
   paid: true,
   eventType: {
     select: {
@@ -108,13 +117,15 @@ export const bookingToDeleteSelect = {
   status: true,
 };
 export async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
-  return await prisma.booking.findUniqueOrThrow({
+  const data =  await prisma.booking.findUniqueOrThrow({
     where: {
       id,
       uid,
     },
     select: bookingToDeleteSelect,
   });
+
+  return data;
 }
 
 export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;

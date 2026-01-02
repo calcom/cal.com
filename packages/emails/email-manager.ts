@@ -83,6 +83,8 @@ import OrganizerRequestReminderEmail from "./templates/organizer-request-reminde
 import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested-to-reschedule-email";
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
+import type { RefundNotProcessableInput } from "./templates/payment-not-processable";
+import PaymentNotProcessableEmail from "./templates/payment-not-processable";
 import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
@@ -954,4 +956,8 @@ export const sendDelegationCredentialDisabledEmail = async ({
 
 export const sendBookingsExportEmail = async (bookingExportEmailprops: BookingExportEmailProps) => {
   await sendEmail(() => new BookingExportEmail(bookingExportEmailprops));
+};
+
+export const sendPaymentNotProcessableEmail = async (input: RefundNotProcessableInput) => {
+  await sendEmail(() => new PaymentNotProcessableEmail(input));
 };

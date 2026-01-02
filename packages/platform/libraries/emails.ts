@@ -10,9 +10,12 @@ import OrganizerReassignedEmail from "@calcom/emails/templates/organizer-reassig
 import OrganizerRequestEmail from "@calcom/emails/templates/organizer-request-email";
 import OrganizerRescheduledEmail from "@calcom/emails/templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "@calcom/emails/templates/organizer-scheduled-email";
+import PaymentNotProcessableEmail from "@calcom/emails/templates/payment-not-processable";
 import { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEmail";
 import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import { verifyEmailCodeHandler } from "@calcom/trpc/server/routers/viewer/workflows/verifyEmailCode.handler";
+
+export { PaymentNotProcessableEmail };
 
 export { AttendeeVerifyEmail };
 

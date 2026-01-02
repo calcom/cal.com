@@ -143,19 +143,24 @@ export class PaymentService implements IAbstractPaymentService {
     if (!payment.externalId) throw new Error("Payment externalId not found");
     return payment.externalId as string;
   }
+
   private async getPaymentRefNo(where: Prisma.PaymentWhereInput) {
     const payment = await prisma.payment.findFirst({ where });
+
     if (!payment) throw new Error("Payment not found");
-    if (!payment.externalId) throw new Error("Payment externalId not found");
-    if (!payment) {
-      throw new Error("Payment not found");
+
+    if (payment.refunded) {
+      throw new Error("Payment is already refunded");
     }
+
+    if (!payment.externalId) throw new Error("Payment externalId not found");
 
     const paymentdata = isPrismaObjOrUndefined(payment.data);
 
     if (!paymentdata) {
       throw new Error("Payment data not found");
     }
+
     return paymentdata.paymentId as string;
   }
   async refund(paymentId: number): Promise<Payment> {
@@ -163,7 +168,6 @@ export class PaymentService implements IAbstractPaymentService {
       const paymentRefNo = await this.getPaymentRefNo({
         id: paymentId,
         success: true,
-        refunded: false,
       });
 
       const refundInitiated = await this.razorpay.initiateRefund(paymentRefNo as string);
