@@ -30,7 +30,7 @@ test.describe("Team", () => {
       });
       await page.goto(`/settings/teams/${team.id}/members`);
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+      await page.waitForLoadState("networkidle");
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
@@ -85,14 +85,14 @@ test.describe("Team", () => {
 
       await page.goto(`/settings/teams/${team.id}/members`);
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+      await page.waitForLoadState("networkidle");
       await page.getByTestId("new-member-button").click();
       const inviteLink = await getInviteLink(page);
 
       const context = await browser.newContext();
       const inviteLinkPage = await context.newPage();
       await inviteLinkPage.goto(inviteLink);
-      await inviteLinkPage.waitForTimeout(3000);
+      await inviteLinkPage.waitForLoadState("networkidle");
 
       await inviteLinkPage.locator("button[type=submit]").click();
       await expect(inviteLinkPage.locator('[data-testid="field-error"]')).toHaveCount(2);
@@ -119,7 +119,7 @@ test.describe("Team", () => {
       });
       await page.goto(`/settings/teams/${team.id}/members`);
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+      await page.waitForLoadState("networkidle");
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
@@ -170,7 +170,7 @@ test.describe("Team", () => {
     await page.goto(`/settings/teams/${team.id}/settings`);
     await page.goto(`/settings/teams/${team.id}/members`);
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+    await page.waitForLoadState("networkidle");
     await page.getByTestId("new-member-button").click();
     await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
     const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
@@ -218,7 +218,7 @@ test.describe("Team", () => {
 
     await test.step("Send invitation to existing user", async () => {
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("networkidle");
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUser.email);
       const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
@@ -285,7 +285,7 @@ test.describe("Team", () => {
 
     await test.step("Send invitation to specific user", async () => {
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("networkidle");
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUser.email);
       const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");

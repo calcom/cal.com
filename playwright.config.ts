@@ -109,6 +109,7 @@ const config: PlaywrightTestConfig = {
     locale: "en-US",
     trace: "retain-on-failure",
     headless,
+    video: "off"
   },
   projects: [
     {

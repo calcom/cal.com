@@ -113,17 +113,11 @@ export const ensureEmbedIframe = async ({
 
 async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {
   await frame.click('[data-testid="incrementMonth"]');
-
-  // @TODO: Find a better way to make test wait for full month change render to end
-  // so it can click up on the right day, also when done, resolve other todos as well
-  // The problem is that the Month Text changes instantly but we don't know when the corresponding dates are visible
-
-  // Waiting for full month increment
-  await frame.waitForTimeout(1000);
-  // expect(await page.screenshot()).toMatchSnapshot("availability-page-2.png");
-  // TODO: Find out why the first day is always booked on tests
+  await expect(
+    frame.locator('[data-testid="day"][data-disabled="false"]')
+  ).toHaveCount.greaterThan(0, { timeout: 10000 });
   await frame.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await frame.click('[data-testid="time"]');
+  await frame.click('[data-testid="time"]:not([data-disabled="true"])');
 }
 
 export async function bookFirstEvent(username: string, frame: Frame, page: Page) {
@@ -145,7 +139,9 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   // There is a bug where if we don't let current month fully render and quickly click go to next month, current month gets rendered
   // This doesn't seem to be replicable with the speed of a person, only during automation.
   // It would also allow correct snapshot to be taken for current month.
-  await frame.waitForTimeout(1000);
+  await expect(
+      frame.locator('[data-testid="day"][data-disabled="false"]')
+    ).toHaveCount.greaterThan(0, { timeout: 10000 });
   // expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
   // Remove /embed from the end if present.
   return bookEvent({ frame, page });

@@ -58,7 +58,6 @@ test.describe("Embed Code Generator Tests", () => {
         });
 
         // To prevent early timeouts
-        await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
           calLink: `${pro.username}/multiple-duration`,
@@ -95,7 +94,6 @@ test.describe("Embed Code Generator Tests", () => {
         });
 
         // To prevent early timeouts
-        await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "floating-popup",
           calLink: `${pro.username}/multiple-duration`,
@@ -132,7 +130,6 @@ test.describe("Embed Code Generator Tests", () => {
         });
 
         // To prevent early timeouts
-        await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "element-click",
           calLink: `${pro.username}/multiple-duration`,
@@ -171,7 +168,6 @@ test.describe("Embed Code Generator Tests", () => {
         });
 
         // To prevent early timeouts
-        await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
           calLink: decodeURIComponent(embedUrl),
@@ -228,7 +224,6 @@ test.describe("Embed Code Generator Tests", () => {
         });
 
         // To prevent early timeouts
-        await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
           calLink: `${user.username}/multiple-duration`,
@@ -268,7 +263,6 @@ test.describe("Embed Code Generator Tests", () => {
         });
 
         // To prevent early timeouts
-        await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "floating-popup",
           calLink: `${user.username}/multiple-duration`,
@@ -307,7 +301,6 @@ test.describe("Embed Code Generator Tests", () => {
         });
 
         // To prevent early timeouts
-        await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "element-click",
           calLink: `${user.username}/multiple-duration`,
@@ -324,9 +317,9 @@ function chooseEmbedType(page: Page, embedType: EmbedType) {
 }
 
 async function goToReactCodeTab(page: Page) {
-  // To prevent early timeo
-  await page.waitForTimeout(1000);
-  await page.locator("[data-testid=horizontal-tab-react]").click();
+  const reactTab = page.locator("[data-testid=horizontal-tab-react]");
+  await expect(reactTab).toBeVisible({ timeout: 5000 });
+  await reactTab.click();
 }
 
 async function clickEmbedButton(page: Page) {
@@ -492,12 +485,16 @@ async function expectValidReactEmbedSnippet(
 /**
  * Let's just check if iframe is opened with preview.html. preview.html tests are responsibility of embed-core
  */
-async function expectToContainValidPreviewIframe(
-  page: Page,
-  { embedType, calLink, bookerUrl }: { embedType: EmbedType; calLink: string; bookerUrl?: string }
-) {
-  bookerUrl = bookerUrl || `${WEBAPP_URL}`;
-  expect(await page.locator("[data-testid=embed-preview]").getAttribute("src")).toContain(
-    `/preview.html?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${EMBED_LIB_URL}&bookerUrl=${bookerUrl}`
-  );
-}
+ async function expectToContainValidPreviewIframe(
+   page: Page,
+   { embedType, calLink, bookerUrl }: { embedType: EmbedType; calLink: string; bookerUrl?: string }
+ ) {
+   bookerUrl = bookerUrl ?? `${WEBAPP_URL}`;
+
+   const previewIframe = page.locator('[data-testid="embed-preview"]');
+   await expect(previewIframe).toBeVisible({ timeout: 10000 });
+
+   await expect(previewIframe).toHaveAttribute("src", new RegExp(
+     `^/preview\\.html\\?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${encodeURIComponent(EMBED_LIB_URL)}&bookerUrl=${encodeURIComponent(bookerUrl)}`
+   ));
+ }
