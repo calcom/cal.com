@@ -19,10 +19,6 @@ inputs:
     description: "Skip yarn install if node_modules cache is hit. Use this for jobs that only need to check that cache exists."
     required: false
     default: "false"
-  run-prisma-generate:
-    description: "Run yarn prisma generate after install. Set to false if you want to run it separately."
-    required: false
-    default: "true"
 
 runs:
   using: "composite"
@@ -125,8 +121,3 @@ runs:
         YARN_NM_MODE: "hardlinks-local" # Reduce node_modules size
         # Other environment variables
         HUSKY: "0" # By default do not run HUSKY install
-
-    - name: Generate Prisma client
-      if: ${{ inputs.run-prisma-generate == 'true' && (inputs.skip-install-if-cache-hit != 'true' || steps.all-caches-check.outputs.all-hit != 'true') }}
-      shell: bash
-      run: yarn prisma generate
