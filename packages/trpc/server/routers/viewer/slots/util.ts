@@ -152,8 +152,6 @@ export class AvailableSlotsService {
   getAvailableSlots: (args: GetScheduleOptions) => Promise<IGetAvailableSlots>;
 
   constructor(public readonly dependencies: IAvailableSlotsService) {
-    // Initialize getAvailableSlots in constructor to avoid class field initializer
-    // accessing this.dependencies before it's assigned (modern JS class field semantics)
     this.getAvailableSlots = withReporting(
       withSlotsCache(this.dependencies.redisClient, this._getAvailableSlots.bind(this)),
       "getAvailableSlots"

@@ -181,6 +181,7 @@ export default defineConfig([
     esbuildOptions(options) {
       options.alias = alias;
       options.conditions = ["node", "import", "require", "default"];
+      options.jsx = "automatic";
     },
     treeshake: true,
   },
@@ -202,6 +203,7 @@ export default defineConfig([
     esbuildOptions(options) {
       options.alias = alias;
       options.conditions = ["node", "import", "require", "default"];
+      options.jsx = "automatic";
     },
     treeshake: true,
   },
