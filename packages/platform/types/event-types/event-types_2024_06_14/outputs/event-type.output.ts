@@ -529,7 +529,7 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @IsOptional()
   @IsBoolean()
   @ApiPropertyOptional()
-  hideCalendarEventDetails?: boolean;
+  declare hideCalendarEventDetails: boolean | undefined;
 
   @ValidateNested()
   @Type(() => EventTypeTeam)
