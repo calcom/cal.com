@@ -91,7 +91,7 @@
       "linter": {
         "rules": {
           "nursery": {
-            "useQwikValidLexicalScope": "warn",
+            "useQwikValidLexicalScope": "off",
             "useExplicitType": "warn",
             "noReactForwardRef": "warn",
             "noTernary": "warn",
