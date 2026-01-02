@@ -57,7 +57,7 @@
     "./add-members-switch/AddMembersWithSwitchWebWrapper": "./add-members-switch/AddMembersWithSwitchWebWrapper.tsx",
     "./availability/AvailabilitySettings": "./availability/AvailabilitySettings.tsx",
     "./booker": "./booker/index.ts",
-    "./components/ui/shell": "./components/ui/shell.tsx",
+    "./components/ui/shell": "./src/components/ui/shell.tsx",
     "./connect/conferencing-apps/ConferencingAppsViewWebWrapper": "./connect/conferencing-apps/ConferencingAppsViewWebWrapper.tsx",
     "./destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper": "./destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper.tsx",
     "./dist/index.ts": "./index.ts",
