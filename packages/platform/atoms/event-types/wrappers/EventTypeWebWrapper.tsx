@@ -9,6 +9,7 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import WebShell from "@calcom/web/modules/shell/Shell";
 import { EventPermissionProvider } from "@calcom/features/pbac/client/context/EventPermissionContext";
 import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -429,7 +430,8 @@ const EventTypeWeb = ({
       isUpdating={updateMutation.isPending}
       isPlatform={false}
       tabName={tabName}
-      tabsNavigation={tabsNavigation}>
+      tabsNavigation={tabsNavigation}
+      ShellComponent={WebShell}>
       <>
         {slugExistsChildrenDialogOpen.length ? (
           <ManagedEventTypeDialog

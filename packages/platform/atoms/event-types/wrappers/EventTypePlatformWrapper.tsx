@@ -12,6 +12,7 @@ import type {
   FormValues,
   EventTypePlatformWrapperRef,
 } from "@calcom/features/eventtypes/lib/types";
+import { Shell as PlatformShell } from "../../src/components/ui/shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventAdvancedTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/advanced/EventAdvancedTab";
@@ -358,7 +359,8 @@ const EventType = forwardRef<
         tabName={currentTab}
         tabsNavigation={tabsNavigation}
         allowDelete={allowDelete}
-        saveButtonRef={saveButtonRef}>
+        saveButtonRef={saveButtonRef}
+        ShellComponent={PlatformShell}>
         <>
           {slugExistsChildrenDialogOpen.length ? (
             <ManagedEventTypeDialog

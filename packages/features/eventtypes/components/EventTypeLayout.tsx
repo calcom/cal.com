@@ -1,4 +1,4 @@
-import { useMemo, useState, Suspense } from "react";
+import { useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -27,10 +27,19 @@ import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import WebShell from "@calcom/web/modules/shell/Shell";
 
-import { Shell as PlatformShell } from "../../../platform/atoms/src/components/ui/shell";
 import { DeleteDialog } from "./dialogs/DeleteDialog";
+
+export type ShellProps = {
+  backPath?: string | boolean;
+  title?: string;
+  heading?: React.ReactNode;
+  subtitle?: React.ReactNode;
+  CTA?: React.ReactNode;
+  children: React.ReactNode;
+};
+
+export type ShellComponent = React.ComponentType<ShellProps>;
 
 type Props = {
   children: React.ReactNode;
@@ -48,6 +57,7 @@ type Props = {
   tabsNavigation: VerticalTabItemProps[];
   allowDelete?: boolean;
   saveButtonRef?: React.RefObject<HTMLButtonElement>;
+  ShellComponent: ShellComponent;
 };
 
 function EventTypeSingleLayout({
@@ -66,6 +76,7 @@ function EventTypeSingleLayout({
   tabsNavigation,
   allowDelete = true,
   saveButtonRef,
+  ShellComponent: Shell,
 }: Props) {
   const { t } = useLocale();
   const eventTypesLockedByOrg = eventType.team?.parent?.organizationSettings?.lockEventTypeCreationForUsers;
@@ -92,10 +103,6 @@ function EventTypeSingleLayout({
     team ? `team/${team.slug}` : formMethods.getValues("users")[0].username
   }/${formMethods.getValues("slug")}`;
   const isManagedEvent = formMethods.getValues("schedulingType") === SchedulingType.MANAGED ? "_managed" : "";
-
-  const [Shell] = useMemo(() => {
-    return isPlatform ? [PlatformShell] : [WebShell];
-  }, [isPlatform]);
   const teamId = eventType.team?.id;
 
   return (

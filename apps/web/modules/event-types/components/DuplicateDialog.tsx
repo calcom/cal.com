@@ -21,7 +21,8 @@ import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
+
+import { revalidateEventTypesList } from "~/app/(use-page-wrapper)/(main-nav)/event-types/actions";
 
 const querySchema = z.object({
   title: z.string().min(1),
