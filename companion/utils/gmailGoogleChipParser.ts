@@ -54,7 +54,7 @@ export function parseGoogleChip(chipElement: HTMLElement): ParsedGoogleChip | nu
         tzMatch = paramsAttr.match(/\\"([^\\]+)\\"\]/);
       }
 
-      if (tzMatch && tzMatch[1]) {
+      if (tzMatch?.[1]) {
         timezone = tzMatch[1]; // e.g., "Asia/Kolkata"
       }
     }
