@@ -51,10 +51,10 @@ export class StripeService {
     this.stripe = new Stripe(configService.get("stripe.apiKey", { infer: true }) ?? "", {
       apiVersion: "2020-08-27",
     });
-    this.redirectUri = `${this.config.get("api.url")}/stripe/save`;
-    this.webAppUrl = this.config.get("app.baseUrl");
-    this.environment = this.config.get("env.type");
-    this.teamMonthlyPriceId = this.config.get("stripe.teamMonthlyPriceId");
+    this.redirectUri = `${this.config.get("api.url") ?? ""}/stripe/save`;
+    this.webAppUrl = this.config.get("app.baseUrl") ?? "";
+    this.environment = this.config.get("env.type") ?? "";
+    this.teamMonthlyPriceId = this.config.get("stripe.teamMonthlyPriceId") ?? "";
   }
 
   getStripe() {
