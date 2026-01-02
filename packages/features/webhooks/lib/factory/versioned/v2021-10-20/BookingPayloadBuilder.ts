@@ -56,6 +56,7 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
           status: BookingStatus.PENDING,
           triggerEvent: dto.triggerEvent,
           createdAt: dto.createdAt,
+          extra: { oneTimePassword: dto.booking.oneTimePassword ?? undefined },
         });
 
       case WebhookTriggerEvents.BOOKING_REJECTED:
@@ -118,7 +119,9 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
 
       default: {
         const _exhaustiveCheck: never = dto;
-        throw new Error(`Unsupported booking trigger: ${JSON.stringify(_exhaustiveCheck)}`);
+        throw new Error(
+          `Unsupported booking trigger: ${JSON.stringify(_exhaustiveCheck)}`
+        );
       }
     }
   }
@@ -129,7 +132,10 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
   private buildBookingPayload<T extends keyof BookingExtraDataMap>(
     params: BookingPayloadParams<T>
   ): WebhookPayload {
-    const utcOffsetOrganizer = getUTCOffsetByTimezone(params.evt.organizer?.timeZone, params.evt.startTime);
+    const utcOffsetOrganizer = getUTCOffsetByTimezone(
+      params.evt.organizer?.timeZone,
+      params.evt.startTime
+    );
     const organizer = {
       ...params.evt.organizer,
       utcOffset: utcOffsetOrganizer,
@@ -164,7 +170,6 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
         currency: params.eventType?.currency,
         length: params.eventType?.length,
         smsReminderNumber: params.booking.smsReminderNumber || undefined,
-        oneTimePassword: params.booking.oneTimePassword || undefined,
         description: params.evt.description || params.evt.additionalNotes,
         ...(params.extra || {}),
       },

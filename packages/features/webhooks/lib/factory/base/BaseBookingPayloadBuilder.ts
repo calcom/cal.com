@@ -2,7 +2,7 @@ import type { BookingStatus } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import type { EventTypeInfo, BookingWebhookEventDTO } from "../../dto/types";
+import type { BookingWebhookEventDTO, EventTypeInfo } from "../../dto/types";
 import type { WebhookPayload } from "../types";
 import type { IBookingPayloadBuilder } from "../versioned/PayloadBuilderFactory";
 
@@ -11,8 +11,11 @@ import type { IBookingPayloadBuilder } from "../versioned/PayloadBuilderFactory"
  */
 export type BookingExtraDataMap = {
   [WebhookTriggerEvents.BOOKING_CREATED]: null;
-  [WebhookTriggerEvents.BOOKING_CANCELLED]: { cancelledBy?: string; cancellationReason?: string };
-  [WebhookTriggerEvents.BOOKING_REQUESTED]: null;
+  [WebhookTriggerEvents.BOOKING_CANCELLED]: {
+    cancelledBy?: string;
+    cancellationReason?: string;
+  };
+  [WebhookTriggerEvents.BOOKING_REQUESTED]: { oneTimePassword?: string };
   [WebhookTriggerEvents.BOOKING_REJECTED]: null;
   [WebhookTriggerEvents.BOOKING_RESCHEDULED]: {
     rescheduleId?: number;
@@ -21,7 +24,10 @@ export type BookingExtraDataMap = {
     rescheduleEndTime?: string;
     rescheduledBy?: string;
   };
-  [WebhookTriggerEvents.BOOKING_PAID]: { paymentId?: number; paymentData?: Record<string, unknown> };
+  [WebhookTriggerEvents.BOOKING_PAID]: {
+    paymentId?: number;
+    paymentData?: Record<string, unknown>;
+  };
   [WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED]: {
     paymentId?: number;
     paymentData?: Record<string, unknown>;
@@ -53,7 +59,9 @@ export interface BookingPayloadParams<T extends keyof BookingExtraDataMap> {
  * Each webhook version should have its own concrete implementation in
  * versioned/v{VERSION}/BookingPayloadBuilder.ts
  */
-export abstract class BaseBookingPayloadBuilder implements IBookingPayloadBuilder {
+export abstract class BaseBookingPayloadBuilder
+  implements IBookingPayloadBuilder
+{
   /**
    * Build the booking webhook payload.
    * Each version must implement this method with its specific payload structure.
