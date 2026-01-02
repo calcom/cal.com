@@ -1,5 +1,3 @@
-import crypto from "crypto";
-
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -81,11 +79,6 @@ const meetingPasswordRequirementSchema = z
 
 export type MeetingPasswordRequirement = z.infer<typeof meetingPasswordRequirementSchema>;
 
-const DIGITS = "0123456789";
-const LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
-const UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const SPECIAL_CHARS = "@_-*";
-
 function hasInvalidConsecutiveChars(password: string, consecutiveLength: number | undefined): boolean {
   if (!consecutiveLength || consecutiveLength < 4) return false;
 
@@ -128,7 +121,10 @@ function validatePasswordAgainstRequirements(
     return false;
   }
 
-  if (requirements.have_special_character && !/[!@#$%^&*()_\-+=[\]{}|;:,.<>?]/.test(password)) {
+  if (
+    requirements.have_special_character &&
+    !/[!@#$%^&*()_\-+=[\]{}|;:,.<>?]/.test(password)
+  ) {
     return false;
   }
 
@@ -141,86 +137,19 @@ function validatePasswordAgainstRequirements(
   return true;
 }
 
-function generateCompliantPassword(requirements: NonNullable<MeetingPasswordRequirement>): string {
-  const minLength = Math.max(requirements.length ?? 6, 6);
-
-  if (requirements.only_allow_numeric) {
-    // When only_allow_numeric is true and consecutive_characters_length is also set,
-    // avoid generating passwords like "123456" that Zoom will reject.
-    for (let attempt = 0; attempt < 10; attempt++) {
-      const chars: string[] = [];
-      for (let i = 0; i < minLength; i++) {
-        chars.push(DIGITS[crypto.randomInt(DIGITS.length)]);
-      }
-      const candidate = chars.join("");
-      if (!hasInvalidConsecutiveChars(candidate, requirements.consecutive_characters_length)) {
-        return candidate;
-      }
-    }
-  }
-
-  const chars: string[] = [];
-
-  let allowedChars = "";
-
-  if (requirements.have_letter || requirements.have_upper_and_lower_characters) {
-    chars.push(LOWERCASE[crypto.randomInt(LOWERCASE.length)]);
-    allowedChars += LOWERCASE;
-  }
-
-  if (requirements.have_upper_and_lower_characters) {
-    chars.push(UPPERCASE[crypto.randomInt(UPPERCASE.length)]);
-    allowedChars += UPPERCASE;
-  } else if (requirements.have_letter) {
-    allowedChars += UPPERCASE;
-  }
-
-  if (requirements.have_number) {
-    chars.push(DIGITS[crypto.randomInt(DIGITS.length)]);
-    allowedChars += DIGITS;
-  }
-
-  if (requirements.have_special_character) {
-    chars.push(SPECIAL_CHARS[crypto.randomInt(SPECIAL_CHARS.length)]);
-    allowedChars += SPECIAL_CHARS;
-  }
-
-  if (!allowedChars) {
-    allowedChars = LOWERCASE + UPPERCASE + DIGITS;
-  }
-
-  while (chars.length < minLength) {
-    chars.push(allowedChars[crypto.randomInt(allowedChars.length)]);
-  }
-
-  for (let i = chars.length - 1; i > 0; i--) {
-    const j = crypto.randomInt(i + 1);
-    [chars[i], chars[j]] = [chars[j], chars[i]];
-  }
-
-  return chars.join("");
-}
-
 function getCompliantPassword(
   defaultPassword: string | null | undefined,
   requirements: MeetingPasswordRequirement
 ): string | undefined {
-  if (!requirements) {
-    return undefined;
+  if (!requirements ) {
+    return defaultPassword ?? undefined;
   }
 
   if (defaultPassword && validatePasswordAgainstRequirements(defaultPassword, requirements)) {
     return defaultPassword;
   }
 
-  const generatedPassword = generateCompliantPassword(requirements);
-  log.debug("Generated compliant password for Zoom meeting", {
-    usedGeneratedPassword: true,
-    requiresNumericOnly: requirements.only_allow_numeric ?? false,
-    minLength: requirements.length ?? 6,
-  });
-
-  return generatedPassword;
+  return undefined;
 }
 
 /** @link https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings */
@@ -373,7 +302,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     };
   };
 
-/**
+  /**
    * Zoom is known to return xml response in some cases.
    * e.g. Wrong request or some special case of invalid token
    */
