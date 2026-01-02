@@ -130,14 +130,8 @@ export default function EventTypes() {
       return;
     }
 
-    if (Platform.OS !== "ios") {
-      // Fallback for non-iOS platforms (Android)
-      Alert.alert(eventType.title, eventType.description || "", [
-        { text: "Cancel", style: "cancel" },
-        { text: "Edit", onPress: () => handleEdit(eventType) },
-        { text: "Duplicate", onPress: () => handleDuplicate(eventType) },
-        { text: "Delete", style: "destructive", onPress: () => handleDelete(eventType) },
-      ]);
+    // Android handles long-press via DropdownMenu in EventTypeListItem.android.tsx
+    if (Platform.OS === "android") {
       return;
     }
 

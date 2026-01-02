@@ -1,4 +1,5 @@
 import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { Image } from "expo-image";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, Platform, Pressable } from "react-native";
@@ -7,7 +8,6 @@ import { useCreateSchedule, useUserProfile } from "@/hooks";
 import { CalComAPIService } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 import { getAvatarUrl } from "@/utils/getAvatarUrl";
-import { Image } from "expo-image";
 
 export default function Availability() {
   const router = useRouter();
