@@ -28,19 +28,6 @@ jobs:
     name: Check API v2 breaking changes
     timeout-minutes: 10
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    services:
-      redis:
-        image: redis:latest
-        credentials:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - uses: docker/login-action@v3
         with:
