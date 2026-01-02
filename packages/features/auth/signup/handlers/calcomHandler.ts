@@ -17,12 +17,13 @@ import logger from "@calcom/lib/logger";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
 import { getTrackingFromCookies } from "@calcom/lib/tracking";
-import { prisma } from "@calcom/prisma";
+import { prisma, Prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { buildLegacyRequest } from "@calcom/web/lib/buildLegacyCtx";
 
+import { SIGNUP_ERROR_CODES } from "../constants";
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import {
   findTokenByToken,
@@ -167,29 +168,33 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     });
     if (team) {
       const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
-      const user = await prisma.user.upsert({
-        where: { email },
-        update: {
-          username,
-          emailVerified: new Date(Date.now()),
-          identityProvider: IdentityProvider.CAL,
-          password: {
-            upsert: {
-              create: { hash: hashedPassword },
-              update: { hash: hashedPassword },
-            },
+
+      let user;
+      try {
+        user = await prisma.user.create({
+          data: {
+            username,
+            email,
+            emailVerified: new Date(Date.now()),
+            identityProvider: IdentityProvider.CAL,
+            password: { create: { hash: hashedPassword } },
+            organizationId,
           },
-          organizationId,
-        },
-        create: {
-          username,
-          email,
-          identityProvider: IdentityProvider.CAL,
-          password: { create: { hash: hashedPassword } },
-          organizationId,
-        },
-      });
-      // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies
+          select: { id: true },
+        });
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+          const target = error.meta?.target as string[] | undefined;
+          if (target?.includes("email")) {
+            return NextResponse.json(
+              { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
+              { status: 409 }
+            );
+          }
+        }
+        throw error;
+      }
+
       await createOrUpdateMemberships({
         user,
         team,
