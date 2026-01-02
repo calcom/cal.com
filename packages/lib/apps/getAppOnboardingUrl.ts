@@ -1,6 +1,9 @@
-import { stringify } from "node:querystring";
 
 import type { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
+
+const stringify = (obj: Record<string, string>) =>
+  new URLSearchParams(obj).toString();
+
 
 export const getAppOnboardingUrl = ({
   slug,
