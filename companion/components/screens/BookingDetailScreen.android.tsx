@@ -1,9 +1,27 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Text as DropdownText } from "@/components/ui/text";
+import { Text as UIText } from "@/components/ui/text";
 import { SvgImage } from "@/components/SvgImage";
 import { useAuth } from "@/contexts/AuthContext";
 import { type Booking, CalComAPIService } from "@/services/calcom";
@@ -188,6 +206,8 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const [booking, setBooking] = useState<Booking | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState("");
 
   const contentInsets = {
     top: insets.top,
@@ -241,19 +261,21 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
 
   const handleCancelBooking = useCallback(() => {
     if (!booking) return;
+    setCancellationReason("");
+    setShowCancelDialog(true);
+  }, [booking]);
 
-    Alert.alert("Cancel Booking", `Are you sure you want to cancel "${booking.title}"?`, [
-      { text: "No", style: "cancel" },
-      {
-        text: "Yes, Cancel",
-        style: "destructive",
-        onPress: () => {
-          // For Android, just cancel with default reason
-          performCancelBooking("Cancelled by host");
-        },
-      },
-    ]);
-  }, [booking, performCancelBooking]);
+  const handleConfirmCancel = useCallback(() => {
+    const reason = cancellationReason.trim() || "Cancelled by host";
+    setShowCancelDialog(false);
+    setCancellationReason("");
+    performCancelBooking(reason);
+  }, [cancellationReason, performCancelBooking]);
+
+  const handleCloseCancelDialog = useCallback(() => {
+    setShowCancelDialog(false);
+    setCancellationReason("");
+  }, []);
 
   // Navigate to reschedule screen
   const openRescheduleModal = useCallback(() => {
@@ -564,11 +586,11 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
                         color={action.variant === "destructive" ? "#DC2626" : "#374151"}
                         style={{ marginRight: 8 }}
                       />
-                      <DropdownText
+                      <UIText
                         className={action.variant === "destructive" ? "text-destructive" : ""}
                       >
                         {action.label}
-                      </DropdownText>
+                      </UIText>
                     </DropdownMenuItem>
                   </React.Fragment>
                 ))}
@@ -776,6 +798,48 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
           </View>
         )}
       </View>
+
+      {/* Cancel Event AlertDialog */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader className="items-start">
+            <AlertDialogTitle>
+              <UIText className="text-left text-lg font-semibold">Cancel event</UIText>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <UIText className="text-left text-sm text-muted-foreground">
+                Cancellation reason will be shared with guests
+              </UIText>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {/* Reason Input */}
+          <View>
+            <UIText className="mb-2 text-sm font-medium">Reason for cancellation</UIText>
+            <TextInput
+              className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827]"
+              placeholder="Why are you cancelling?"
+              placeholderTextColor="#9CA3AF"
+              value={cancellationReason}
+              onChangeText={setCancellationReason}
+              autoFocus
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+              style={{ minHeight: 80 }}
+            />
+          </View>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onPress={handleCloseCancelDialog}>
+              <UIText>Nevermind</UIText>
+            </AlertDialogCancel>
+            <AlertDialogAction onPress={handleConfirmCancel}>
+              <UIText className="text-white">Cancel event</UIText>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
