@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Plan silindiğinde tüm etkinlik türlerinden kaldırılır. Bu işlem geri alınamaz.",
   "schedule_created_successfully": "{{scheduleName}} planı başarıyla oluşturuldu",
   "availability_updated_successfully": "{{scheduleName}} planı başarıyla güncellendi",
+  "bulk_updated_schedule_successfully": "Seçili etkinlik türleri varsayılan programla toplu olarak güncellendi",
   "schedule_deleted_successfully": "Plan başarıyla silindi",
   "default_schedule_name": "Çalışma Saatleri",
   "new_schedule_heading": "Müsaitlik planı oluşturun",

@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Het verwijderen van een planning verwijdert deze uit alle gebeurtenistypen. Deze actie kan niet ongedaan worden gemaakt.",
   "schedule_created_successfully": "Planning {{scheduleName}} aangemaakt",
   "availability_updated_successfully": "Beschikbaarheid bijgewerkt",
+  "bulk_updated_schedule_successfully": "Geselecteerde evenementtypen zijn bulksgewijs bijgewerkt met standaardschema",
   "schedule_deleted_successfully": "Planning verwijderd",
   "default_schedule_name": "Werktijden",
   "new_schedule_heading": "Beschikbaarheidsschema aanmaken",

@@ -43,7 +43,7 @@ import { plainToClass } from "class-transformer";
 import { Request } from "express";
 
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
-import { OrgTeamOutputDto, type SkipTakePagination } from "@calcom/platform-types";
+import { OrgTeamOutputDto, SkipTakePagination } from "@calcom/platform-types";
 import type { Team } from "@calcom/prisma/client";
 
 @Controller({
