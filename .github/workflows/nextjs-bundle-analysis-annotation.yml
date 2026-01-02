@@ -16,6 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/yarn-install
+        with:
+          run-prisma-generate: "false"
       - run: yarn prisma generate
       - uses: ./.github/actions/cache-build
       - name: Download base branch bundle stats
