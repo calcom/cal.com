@@ -46,7 +46,6 @@ export const processPaymentRefund = async ({
   attendee: Pick<Attendee, "name" | "email" | "phoneNumber">;
   teamId?: number | null;
 }) => {
-
   const { startTime, eventType, payment } = booking;
 
   if (!teamId && !eventType?.owner) return;
@@ -56,11 +55,12 @@ export const processPaymentRefund = async ({
 
     const seatedBooking = p.bookingSeat;
 
-    if (!seatedBooking) return success;
+    if (booking.responses) return success; // If there are booking responses, the booking is not seat-based, so we only check for success
 
     if (
-      seatedBooking.attendee.email === attendee.email ||
-      seatedBooking.attendee.phoneNumber === attendee.phoneNumber
+      seatedBooking &&
+      (seatedBooking.attendee.email === attendee.email ||
+        seatedBooking.attendee.phoneNumber === attendee.phoneNumber)
     ) {
       return success;
     }
@@ -68,18 +68,14 @@ export const processPaymentRefund = async ({
   });
   if (!successPayment) return;
 
+  const paymentDate = successPayment.bookingSeat.createdAt || booking.createdAt;
+
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata);
+
   const appData = getPaymentAppData({
     currency: successPayment.currency,
     metadata: eventTypeMetadata,
     price: successPayment.amount,
-  });
-
-  console.log("Processing payment refund appData: ", {
-    appData,
-    eventType,
-    payment,
-    startTime,
   });
 
   if (!appData?.refundPolicy || appData.refundPolicy === RefundPolicy.NEVER) return;
@@ -129,7 +125,7 @@ export const processPaymentRefund = async ({
     if (dayjs().isAfter(refundDeadline)) return;
   }
 
-  const daysSincePayment = dayjs().diff(dayjs(booking.createdAt), "days");
+  const daysSincePayment = dayjs().diff(dayjs(paymentDate), "days");
 
   const hosts = eventType?.owner?.id
     ? await prisma.user.findMany({
@@ -162,7 +158,7 @@ export const processPaymentRefund = async ({
         startTime: booking.startTime,
         amount: successPayment.amount.toString(),
         currency: successPayment.currency,
-        paymentDate: booking.createdAt,
+        paymentDate: paymentDate,
         paymentId: successPayment.externalId,
       },
     };
