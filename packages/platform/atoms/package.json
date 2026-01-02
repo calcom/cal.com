@@ -25,8 +25,8 @@
     "@types/node": "20.17.23",
     "@types/react": "18.0.26",
     "@types/react-dom": "18.2.6",
-    "@vitejs/plugin-react": "2.2.0",
-    "@vitejs/plugin-react-swc": "3.7.0",
+    "@vitejs/plugin-react": "5.1.2",
+    "@vitejs/plugin-react-swc": "4.2.2",
     "autoprefixer": "10.4.19",
     "cssnano": "7.1.2",
     "jest": "29.7.0",
@@ -36,9 +36,9 @@
     "postcss-prefixer": "3.0.0",
     "postcss-prefixwrap": "1.46.0",
     "ts-jest": "29.1.4",
-    "typescript": "5.9.2",
-    "vite": "5.4.21",
-    "vite-plugin-dts": "3.7.3",
+    "typescript": "5.9.3",
+    "vite": "6.4.1",
+    "vite-plugin-dts": "4.5.4",
     "vite-plugin-inspect": "0.8.4"
   },
   "files": [
@@ -84,14 +84,13 @@
     "clsx": "2.1.1",
     "dompurify": "3.3.1",
     "marked": "15.0.6",
-    "react-use": "17.5.0",
+    "react-use": "17.6.0",
     "tailwind-merge": "1.13.2",
     "tailwindcss": "4.1.17"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0",
-    "typescript": "^5.0.0"
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "main": "./dist/cal-atoms.umd.cjs"
 }

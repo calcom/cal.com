@@ -123,7 +123,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToReschedule = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/reschedule",
+        pathname: "/reschedule",
         params: { uid: booking.uid },
       });
     },
@@ -134,7 +134,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToEditLocation = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/edit-location",
+        pathname: "/edit-location",
         params: { uid: booking.uid },
       });
     },
@@ -145,7 +145,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToAddGuests = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/add-guests",
+        pathname: "/add-guests",
         params: { uid: booking.uid },
       });
     },
@@ -156,7 +156,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToMarkNoShow = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/mark-no-show",
+        pathname: "/mark-no-show",
         params: { uid: booking.uid },
       });
     },
@@ -167,7 +167,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToViewRecordings = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/view-recordings",
+        pathname: "/view-recordings",
         params: { uid: booking.uid },
       });
     },
@@ -178,7 +178,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToMeetingSessionDetails = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/meeting-session-details",
+        pathname: "/meeting-session-details",
         params: { uid: booking.uid },
       });
     },
