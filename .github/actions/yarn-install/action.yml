@@ -121,3 +121,12 @@ runs:
         YARN_NM_MODE: "hardlinks-local" # Reduce node_modules size
         # Other environment variables
         HUSKY: "0" # By default do not run HUSKY install
+
+    # Run post-install tasks (e.g., code generation) that may not run when caches are restored.
+    # This ensures generated files are always up-to-date regardless of cache state.
+    - name: Run post-install tasks
+      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.all-caches-check.outputs.all-hit != 'true' }}
+      shell: bash
+      run: yarn turbo run post-install
+      env:
+        HUSKY: "0"
