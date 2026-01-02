@@ -1,9 +1,10 @@
-import type { Payment } from "@prisma/client";
+import type { Payment, Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
 export interface BookingCancelPaymentHandlerInput {
@@ -13,6 +14,7 @@ export interface BookingCancelPaymentHandlerInput {
       id: number;
     };
     teamId: number;
+    calIdTeamId: number;
   } | null;
 }
 
@@ -29,10 +31,10 @@ const bookingCancelPaymentHandler = async (booking: BookingCancelPaymentHandlerI
   // Determine event type owner ID
   if (booking.eventType?.owner) {
     eventTypeOwnerId = booking.eventType.owner.id;
-  } else if (booking.eventType?.teamId) {
-    const teamOwner = await prisma.membership.findFirst({
+  } else if (booking.eventType?.calIdTeamId) {
+    const teamOwner = await prisma.calIdMembership.findFirst({
       where: {
-        teamId: booking.eventType.teamId,
+        teamId: booking.eventType.calIdTeamId,
         role: MembershipRole.OWNER,
       },
       select: {
