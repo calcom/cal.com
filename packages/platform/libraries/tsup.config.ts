@@ -1,22 +1,21 @@
 import { defineConfig } from "tsup";
-import path from "path";
-import type { Plugin } from "esbuild";
+import path from "node:path";
+import type { Plugin, BuildOptions, PluginBuild } from "esbuild";
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __dirname: string = path.dirname(new URL(import.meta.url).pathname);
 
-// Plugin to handle relative path aliases that esbuild doesn't support natively
 const relativeAliasPlugin: Plugin = {
   name: "relative-alias",
-  setup(build) {
-    // Redirect ./server/i18n and ../server/i18n to our local i18n.ts
+  setup(build: PluginBuild): void {
     build.onResolve({ filter: /^\.\.?\/server\/i18n$/ }, () => {
       return { path: path.resolve(__dirname, "./i18n.ts") };
     });
   },
 };
 
-// External dependencies that should not be bundled
-const external = [
+const reactShimPath: string = path.resolve(__dirname, "./react-shim.js");
+
+const external: string[] = [
   // Node.js built-ins
   "fs",
   "path",
@@ -27,10 +26,10 @@ const external = [
   "perf_hooks",
   "querystring",
 
-  // React - NOT external, bundled inline for email templates
-  // "react",
-  // "react-dom",
-  // "react/jsx-runtime",
+  // React - external, but we use banner to ensure it's available globally
+  "react",
+  "react-dom",
+  "react/jsx-runtime",
   "react-i18next",
 
   // Prisma
@@ -122,7 +121,7 @@ const external = [
   "jsdom",
 ];
 
-const entry = {
+const entry: Record<string, string> = {
   index: "./index.ts",
   schedules: "./schedules.ts",
   emails: "./emails.ts",
@@ -138,7 +137,7 @@ const entry = {
   pbac: "./pbac.ts",
 };
 
-const noExternalPackages = [
+const noExternalPackages: string[] = [
   "@calcom/dayjs",
   "@calcom/lib",
   "@calcom/trpc",
@@ -149,7 +148,7 @@ const noExternalPackages = [
   "@calcom/app-store",
 ];
 
-const alias = {
+const alias: Record<string, string> = {
   "@calcom/lib/server/i18n": path.resolve(__dirname, "./i18n.ts"),
   "@": path.resolve(__dirname, "./src"),
   "@calcom/lib": path.resolve(__dirname, "../../lib"),
@@ -178,9 +177,10 @@ export default defineConfig([
       "process.env.USE_POOL": '"true"',
     },
     esbuildPlugins: [relativeAliasPlugin],
-    esbuildOptions(options) {
+    esbuildOptions(options: BuildOptions): void {
       options.alias = alias;
       options.conditions = ["node", "import", "require", "default"];
+      options.inject = [reactShimPath];
     },
     treeshake: true,
   },
@@ -199,9 +199,10 @@ export default defineConfig([
       "process.env.USE_POOL": '"true"',
     },
     esbuildPlugins: [relativeAliasPlugin],
-    esbuildOptions(options) {
+    esbuildOptions(options: BuildOptions): void {
       options.alias = alias;
       options.conditions = ["node", "import", "require", "default"];
+      options.inject = [reactShimPath];
     },
     treeshake: true,
   },
