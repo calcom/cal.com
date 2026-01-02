@@ -27,10 +27,10 @@ const external = [
   "perf_hooks",
   "querystring",
 
-  // React
-  "react",
-  "react-dom",
-  "react/jsx-runtime",
+  // React - NOT external, bundled inline for email templates
+  // "react",
+  // "react-dom",
+  // "react/jsx-runtime",
   "react-i18next",
 
   // Prisma
@@ -162,8 +162,6 @@ const alias = {
   tslog: path.resolve(__dirname, "../../../apps/api/v2/src/lib/logger.bridge.ts"),
 };
 
-const reactShim = path.resolve(__dirname, "./react-shim.js");
-
 export default defineConfig([
   {
     entry,
@@ -183,7 +181,6 @@ export default defineConfig([
     esbuildOptions(options) {
       options.alias = alias;
       options.conditions = ["node", "import", "require", "default"];
-      options.inject = [reactShim];
     },
     treeshake: true,
   },
@@ -205,7 +202,6 @@ export default defineConfig([
     esbuildOptions(options) {
       options.alias = alias;
       options.conditions = ["node", "import", "require", "default"];
-      options.inject = [reactShim];
     },
     treeshake: true,
   },
