@@ -29,6 +29,7 @@ jobs:
           always-auth: false
       - name: Setup node, yarn and install dependencies
         uses: ./.github/actions/yarn-install
+      - run: yarn prisma generate
       - name: Install npm at version supporting OIDC
         run: npm install -g npm@11.5.1
       - name: Create Release Pull Request or Publish to npm
