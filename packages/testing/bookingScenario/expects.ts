@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "../mocks/prisma";
 
 import type { InputEventType, getOrganizer, CalendarServiceMethodMock } from "./bookingScenario";
 
@@ -23,7 +23,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
+import type { Fixtures } from "../fixtures";
 
 import { DEFAULT_TIMEZONE_BOOKER } from "./getMockRequestDataForBooking";
 

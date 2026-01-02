@@ -1,7 +1,7 @@
 import {
   enableEmailFeature,
   mockNoTranslations,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "./bookingScenario";
 
 import { beforeEach, afterEach } from "vitest";
 

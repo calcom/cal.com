@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
+import i18nMock from "../mocks/libServerI18n";
+import prismock from "../mocks/prisma";
 
 import type Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
