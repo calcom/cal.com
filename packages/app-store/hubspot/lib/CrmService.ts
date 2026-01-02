@@ -203,22 +203,26 @@ export default class HubspotCalendarService implements CRM {
         return null;
       }
 
-      if (!fieldValue.startsWith("{") && !fieldValue.endsWith("}")) {
+      // Check if the value contains any placeholder patterns
+      const hasPlaceholder = fieldValue.includes("{");
+
+      // If no placeholders, return as static value
+      if (!hasPlaceholder) {
         log.info("Returning static value");
         return fieldValue;
       }
 
       let valueToWrite = fieldValue;
 
-      // Extract from UTM tracking
-      if (fieldValue.startsWith("{utm:")) {
+      // Extract from UTM tracking (only for pure UTM tokens like {utm:source})
+      if (fieldValue.startsWith("{utm:") && fieldValue.endsWith("}") && !fieldValue.slice(1, -1).includes("{")) {
         if (!bookingUid) {
           log.error(`BookingUid not passed. Cannot get tracking values without it`);
           return null;
         }
         valueToWrite = await this.getTextValueFromBookingTracking(fieldValue, bookingUid, fieldName);
       } else {
-        // Extract from booking form responses
+        // Extract from booking form responses (handles embedded placeholders like "Hello {name}!")
         if (!calEventResponses) {
           log.error(`CalEventResponses not passed. Cannot get booking form responses`);
           return null;
@@ -226,8 +230,10 @@ export default class HubspotCalendarService implements CRM {
         valueToWrite = this.getTextValueFromBookingResponse(fieldValue, calEventResponses);
       }
 
-      if (valueToWrite === fieldValue) {
-        log.error("No responses found returning nothing");
+      // If the value is purely a placeholder token and couldn't be resolved, return null
+      // Otherwise return the (possibly partially) resolved value
+      if (valueToWrite === fieldValue && fieldValue.startsWith("{") && fieldValue.endsWith("}")) {
+        log.warn(`Placeholder ${fieldValue} could not be resolved`);
         return null;
       }
 
