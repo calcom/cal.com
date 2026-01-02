@@ -1,11 +1,8 @@
 // Razorpay settings
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useState, useEffect } from "react";
-import {
-  currencyOptions,
-  currencySymbols,
-  isAcceptedCurrencyCode,
-} from "@calcom/app-store/razorpay/lib/currencyOptions";
+
+import { currencyOptions, isAcceptedCurrencyCode } from "@calcom/app-store/razorpay/lib/currencyOptions";
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RefundPolicy } from "@calcom/lib/payment/types";
@@ -13,6 +10,7 @@ import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Select, TextField } from "@calcom/ui/components/form";
 import { Radio, RadioField, RadioIndicator } from "@calcom/ui/components/radio";
+
 import { RazorpayPaymentOptions as paymentOptions } from "../zod";
 
 type Option = { value: string; label: string };
@@ -28,9 +26,17 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   const currency = "INR";
 
   const [selectedCurrency, setSelectedCurrency] = useState(currencyOptions.find((c) => c.value === "INR"));
-  const [currencySymbol, setCurrencySymbol] = useState(
-    isAcceptedCurrencyCode(currency) ? currencySymbols[currency] : ""
-  );
+
+  const getCurrencySymbol = (locale: string, currency: string) =>
+    (0)
+      .toLocaleString(locale, {
+        style: "currency",
+        currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      })
+      .replace(/\d/g, "")
+      .trim();
 
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions?.find((option) => paymentOption === option.value) || {
@@ -79,7 +85,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
         <TextField
           label="Price"
           labelSrOnly
-          addOnLeading={currencySymbol}
+          addOnLeading={selectedCurrency?.value ? getCurrencySymbol("en", selectedCurrency.value) : ""}
           addOnSuffix={selectedCurrency?.value ?? "INR"}
           step="0.01"
           min="0.5"
@@ -113,7 +119,6 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           onChange={(e) => {
             if (e) {
               setSelectedCurrency(e);
-              setCurrencySymbol(currencySymbols[e.value]);
               setAppData("currency", e.value);
             }
           }}
