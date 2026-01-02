@@ -2,6 +2,7 @@ import { LockReason, lockUser } from "@calcom/features/ee/api-keys/lib/autoLock"
 import { URL_SCANNING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 
+// biome-ignore lint/nursery/useExplicitType: Logger type is inferred from getSubLogger
 const log = logger.getSubLogger({ prefix: ["[urlScanner]"] });
 
 // Cloudflare URL Scanner API configuration
@@ -40,7 +41,7 @@ interface CloudflareScanResultResponse {
   };
 }
 
-export interface UrlScanResult {
+interface UrlScanResult {
   url: string;
   scanId: string;
   status: "pending" | "completed" | "error";
@@ -50,35 +51,25 @@ export interface UrlScanResult {
 }
 
 /**
- * Extracts URLs from HTML content.
- * Extracts both href attributes from anchor tags and bare URLs from text.
+ * Gets the error message from an unknown error.
  */
-export function extractUrlsFromHtml(html: string): string[] {
-  const urls = new Set<string>();
-
-  // Extract href attributes from anchor tags
-  const hrefRegex = /href=["']([^"']+)["']/gi;
-  const hrefMatches = html.matchAll(hrefRegex);
-  for (const match of hrefMatches) {
-    const url = match[1];
-    if (isValidHttpUrl(url)) {
-      urls.add(normalizeUrl(url));
-    }
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
   }
+  return "Unknown error";
+}
 
-  // Extract bare URLs from text content
-  const bareUrlRegex = /https?:\/\/[^\s<>"']+/gi;
-  const bareMatches = html.matchAll(bareUrlRegex);
-  for (const match of bareMatches) {
-    const url = match[0];
-    // Clean up trailing punctuation that might have been captured
-    const cleanUrl = url.replace(/[.,;:!?)]+$/, "");
-    if (isValidHttpUrl(cleanUrl)) {
-      urls.add(normalizeUrl(cleanUrl));
-    }
-  }
-
-  return Array.from(urls);
+/**
+ * Creates an error result for a scan.
+ */
+function createErrorResult(scanId: string, errorMessage: string): UrlScanResult {
+  return {
+    url: "",
+    scanId,
+    status: "error",
+    error: errorMessage,
+  };
 }
 
 /**
@@ -110,10 +101,42 @@ function normalizeUrl(urlString: string): string {
 }
 
 /**
+ * Extracts URLs from HTML content.
+ * Extracts both href attributes from anchor tags and bare URLs from text.
+ */
+function extractUrlsFromHtml(html: string): string[] {
+  const urls = new Set<string>();
+
+  // Extract href attributes from anchor tags
+  const hrefRegex = /href=["']([^"']+)["']/gi;
+  for (const match of Array.from(html.matchAll(hrefRegex))) {
+    const url = match[1];
+    if (isValidHttpUrl(url)) {
+      urls.add(normalizeUrl(url));
+    }
+  }
+
+  // Extract bare URLs from text content
+  const bareUrlRegex = /https?:\/\/[^\s<>"']+/gi;
+  for (const match of Array.from(html.matchAll(bareUrlRegex))) {
+    const url = match[0];
+    // Clean up trailing punctuation that might have been captured
+    const cleanUrl = url.replace(/[.,;:!?)]+$/, "");
+    if (isValidHttpUrl(cleanUrl)) {
+      urls.add(normalizeUrl(cleanUrl));
+    }
+  }
+
+  return Array.from(urls);
+}
+
+/**
  * Submits a URL to Cloudflare URL Scanner for scanning.
  */
-export async function submitUrlForScanning(url: string): Promise<{ scanId: string } | { error: string }> {
+async function submitUrlForScanning(url: string): Promise<{ scanId: string } | { error: string }> {
+  // biome-ignore lint/style/noProcessEnv lint/correctness/noProcessGlobal: Server-side only, credentials from env
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  // biome-ignore lint/style/noProcessEnv lint/correctness/noProcessGlobal: Server-side only, credentials from env
   const apiToken = process.env.CLOUDFLARE_URL_SCANNER_API_TOKEN;
 
   if (!accountId || !apiToken) {
@@ -144,27 +167,44 @@ export async function submitUrlForScanning(url: string): Promise<{ scanId: strin
     log.info(`Submitted URL for scanning`, { url, scanId: data.result.uuid });
     return { scanId: data.result.uuid };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage = getErrorMessage(error);
     log.error(`Error submitting URL for scanning: ${errorMessage}`, { url });
     return { error: errorMessage };
   }
 }
 
 /**
+ * Parses the scan result response from Cloudflare API.
+ */
+function parseScanResultResponse(scanId: string, data: CloudflareScanResultResponse): UrlScanResult {
+  if (!data.success || !data.result?.scan) {
+    const errorMessage = data.errors?.[0]?.message || "Unknown error getting scan result";
+    return createErrorResult(scanId, errorMessage);
+  }
+
+  const { task, verdicts } = data.result.scan;
+
+  return {
+    url: task.url,
+    scanId,
+    status: "completed",
+    malicious: verdicts.overall.malicious,
+    categories: verdicts.overall.categories,
+  };
+}
+
+/**
  * Gets the result of a URL scan from Cloudflare.
  * Returns null if the scan is still in progress.
  */
-export async function getScanResult(scanId: string): Promise<UrlScanResult | null> {
+async function getScanResult(scanId: string): Promise<UrlScanResult | null> {
+  // biome-ignore lint/style/noProcessEnv lint/correctness/noProcessGlobal: Server-side only, credentials from env
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  // biome-ignore lint/style/noProcessEnv lint/correctness/noProcessGlobal: Server-side only, credentials from env
   const apiToken = process.env.CLOUDFLARE_URL_SCANNER_API_TOKEN;
 
   if (!accountId || !apiToken) {
-    return {
-      url: "",
-      scanId,
-      status: "error",
-      error: "Cloudflare URL Scanner credentials not configured",
-    };
+    return createErrorResult(scanId, "Cloudflare URL Scanner credentials not configured");
   }
 
   try {
@@ -183,44 +223,15 @@ export async function getScanResult(scanId: string): Promise<UrlScanResult | nul
     if (!response.ok) {
       const errorText = await response.text();
       log.error(`Error getting scan result: ${response.status} ${errorText}`, { scanId });
-      return {
-        url: "",
-        scanId,
-        status: "error",
-        error: `HTTP ${response.status}: ${errorText}`,
-      };
+      return createErrorResult(scanId, `HTTP ${response.status}: ${errorText}`);
     }
 
     const data = (await response.json()) as CloudflareScanResultResponse;
-
-    if (!data.success || !data.result?.scan) {
-      const errorMessage = data.errors?.[0]?.message || "Unknown error getting scan result";
-      return {
-        url: "",
-        scanId,
-        status: "error",
-        error: errorMessage,
-      };
-    }
-
-    const { task, verdicts } = data.result.scan;
-
-    return {
-      url: task.url,
-      scanId,
-      status: "completed",
-      malicious: verdicts.overall.malicious,
-      categories: verdicts.overall.categories,
-    };
+    return parseScanResultResponse(scanId, data);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage = getErrorMessage(error);
     log.error(`Error getting scan result: ${errorMessage}`, { scanId });
-    return {
-      url: "",
-      scanId,
-      status: "error",
-      error: errorMessage,
-    };
+    return createErrorResult(scanId, errorMessage);
   }
 }
 
@@ -229,7 +240,7 @@ export async function getScanResult(scanId: string): Promise<UrlScanResult | nul
  * This is a synchronous scan that polls for results.
  * For async scanning, use submitUrlForScanning and getScanResult separately.
  */
-export async function scanUrls(urls: string[]): Promise<UrlScanResult[]> {
+async function scanUrls(urls: string[]): Promise<UrlScanResult[]> {
   if (!URL_SCANNING_ENABLED || urls.length === 0) {
     return [];
   }
@@ -256,7 +267,7 @@ export async function scanUrls(urls: string[]): Promise<UrlScanResult[]> {
   while (pendingScans.size > 0) {
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
 
-    for (const [scanId, { url, attempts }] of pendingScans.entries()) {
+    for (const [scanId, { url, attempts }] of Array.from(pendingScans.entries())) {
       if (attempts >= MAX_POLL_ATTEMPTS) {
         results.push({
           url,
@@ -286,7 +297,7 @@ export async function scanUrls(urls: string[]): Promise<UrlScanResult[]> {
  * Checks if any URLs are malicious and locks the user if so.
  * Returns true if malicious URLs were found and user was locked.
  */
-export async function checkUrlsAndLockIfMalicious(
+async function checkUrlsAndLockIfMalicious(
   urls: string[],
   userId: number,
   context: { workflowStepId?: number; eventTypeId?: number; whitelistWorkflows?: boolean }
@@ -323,6 +334,17 @@ export async function checkUrlsAndLockIfMalicious(
 /**
  * Checks if URL scanning is enabled.
  */
-export function isUrlScanningEnabled(): boolean {
+function isUrlScanningEnabled(): boolean {
   return URL_SCANNING_ENABLED;
 }
+
+// Export all public functions and types at the end
+export type { UrlScanResult };
+export {
+  extractUrlsFromHtml,
+  submitUrlForScanning,
+  getScanResult,
+  scanUrls,
+  checkUrlsAndLockIfMalicious,
+  isUrlScanningEnabled,
+};
