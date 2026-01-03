@@ -33,7 +33,7 @@ import type {
   InputClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
+import { FormBuilder } from "./FormBuilder";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
