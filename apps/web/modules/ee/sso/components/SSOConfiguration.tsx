@@ -1,9 +1,9 @@
 "use client";
 
-import ConnectionInfo from "@calcom/ee/sso/components/ConnectionInfo";
+import ConnectionInfo from "./ConnectionInfo";
+import OIDCConnection from "./OIDCConnection";
+import SAMLConnection from "./SAMLConnection";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import OIDCConnection from "@calcom/features/ee/sso/components/OIDCConnection";
-import SAMLConnection from "@calcom/features/ee/sso/components/SAMLConnection";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
