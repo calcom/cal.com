@@ -181,7 +181,7 @@ const AddConferencingButton = () => {
   const { t } = useLocale();
 
   return (
-    <Button color="secondary" StartIcon="plus" href="/apps/categories/conferencing">
+    <Button color="secondary" StartIcon="plus" size="sm" variant="fab" href="/apps/categories/conferencing">
       {t("add")}
     </Button>
   );

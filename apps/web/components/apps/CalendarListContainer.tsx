@@ -70,7 +70,7 @@ const AddCalendarButton = () => {
   const { t } = useLocale();
   return (
     <>
-      <Button color="secondary" StartIcon="plus" href="/apps/categories/calendar">
+      <Button color="secondary" StartIcon="plus" size="sm" variant="fab" href="/apps/categories/calendar">
         {t("add_calendar")}
       </Button>
     </>
