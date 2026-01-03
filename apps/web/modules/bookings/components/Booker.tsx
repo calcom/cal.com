@@ -23,27 +23,27 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 
-import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
-import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
-import { BookEventForm } from "./components/BookEventForm";
-import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
-import { DatePicker } from "./components/DatePicker";
-import { DryRunMessage } from "./components/DryRunMessage";
-import { EventMeta } from "./components/EventMeta";
-import { HavingTroubleFindingTime } from "./components/HavingTroubleFindingTime";
-import { Header } from "./components/Header";
-import { InstantBooking } from "./components/InstantBooking";
-import { LargeCalendar } from "./components/LargeCalendar";
-import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
-import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
-import { BookerSection } from "./components/Section";
-import { NotFound } from "./components/Unavailable";
-import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
-import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
-import framerFeatures from "./framer-features";
-import type { BookerProps, WrappedBookerProps } from "./types";
-import { isBookingDryRun } from "./utils/isBookingDryRun";
-import { isTimeSlotAvailable } from "./utils/isTimeslotAvailable";
+import { VerifyCodeDialog } from "./VerifyCodeDialog";
+import { AvailableTimeSlots } from "@calcom/features/bookings/Booker/components/AvailableTimeSlots";
+import { BookEventForm } from "@calcom/features/bookings/Booker/components/BookEventForm";
+import { BookFormAsModal } from "@calcom/features/bookings/Booker/components/BookEventForm/BookFormAsModal";
+import { DatePicker } from "@calcom/features/bookings/Booker/components/DatePicker";
+import { DryRunMessage } from "@calcom/features/bookings/Booker/components/DryRunMessage";
+import { EventMeta } from "@calcom/features/bookings/Booker/components/EventMeta";
+import { HavingTroubleFindingTime } from "@calcom/features/bookings/Booker/components/HavingTroubleFindingTime";
+import { Header } from "@calcom/features/bookings/Booker/components/Header";
+import { InstantBooking } from "@calcom/features/bookings/Booker/components/InstantBooking";
+import { LargeCalendar } from "@calcom/features/bookings/Booker/components/LargeCalendar";
+import { OverlayCalendar } from "@calcom/features/bookings/Booker/components/OverlayCalendar/OverlayCalendar";
+import { RedirectToInstantMeetingModal } from "@calcom/features/bookings/Booker/components/RedirectToInstantMeetingModal";
+import { BookerSection } from "@calcom/features/bookings/Booker/components/Section";
+import { NotFound } from "@calcom/features/bookings/Booker/components/Unavailable";
+import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/features/bookings/Booker/components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
+import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "@calcom/features/bookings/Booker/config";
+import framerFeatures from "@calcom/features/bookings/Booker/framer-features";
+import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
+import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
+import { isTimeSlotAvailable } from "@calcom/features/bookings/Booker/utils/isTimeslotAvailable";
 
 const BookerComponent = ({
   username,
