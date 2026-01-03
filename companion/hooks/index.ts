@@ -11,9 +11,9 @@
  */
 
 // Re-export query keys for advanced use cases
-export { queryKeys } from "../config/cache.config";
+export { queryKeys } from "@/config/cache.config";
 // Re-export query context utilities
-export { useQueryContext } from "../contexts/QueryContext";
+export { useQueryContext } from "@/contexts/QueryContext";
 // UI State Management hooks
 export {
   type BookingFilter,
@@ -63,6 +63,8 @@ export {
   useSetScheduleAsDefault,
   useUpdateSchedule,
 } from "./useSchedules";
+// Toast hook
+export { type ToastState, type ToastType, useToast } from "./useToast";
 // User Profile hooks
 export {
   type UpdateUserProfileInput,

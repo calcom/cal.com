@@ -10,8 +10,8 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
-import { type Booking, CalComAPIService } from "../services/calcom";
+import { CACHE_CONFIG, queryKeys } from "@/config/cache.config";
+import { type Booking, CalComAPIService } from "@/services/calcom";
 
 /**
  * Filter options for fetching bookings
