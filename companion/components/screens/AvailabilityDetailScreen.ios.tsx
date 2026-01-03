@@ -16,7 +16,6 @@ import type { ScheduleAvailability } from "@/services/types";
 import { showErrorAlert } from "@/utils/alerts";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const DAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 // Map day names to numbers
 const DAY_NAME_TO_NUMBER: Record<string, number> = {
@@ -64,7 +63,7 @@ const formatAvailabilityDisplay = (
   Object.keys(timeRangeMap).forEach((timeKey) => {
     const days = timeRangeMap[timeKey].sort((a, b) => a - b);
     const [startTime, endTime] = timeKey.split("-");
-    const dayNames = days.map((day) => DAY_ABBREVIATIONS[day]).join(", ");
+    const dayNames = days.map((day) => DAYS[day]).join(", ");
     const timeRange = `${formatTime12Hour(startTime)} - ${formatTime12Hour(endTime)}`;
     formatted.push(`${dayNames}, ${timeRange}`);
   });
@@ -309,22 +308,22 @@ export const AvailabilityDetailScreen = forwardRef<
         showsVerticalScrollIndicator={false}
       >
         {/* Schedule Title Section - iOS Calendar Style */}
-        <View className="mb-8">
-          <Text
-            className="mb-2 text-[26px] font-semibold leading-tight text-black"
-            style={{ letterSpacing: -0.3 }}
-          >
-            {scheduleName || "Untitled Schedule"}
-          </Text>
-
-          {/* Default Badge and Timezone */}
-          <View className="flex-row items-center">
+        <View className="mb-4">
+          <View className="mb-2 flex-row flex-wrap items-center">
+            <Text
+              className="text-[26px] font-semibold leading-tight text-black"
+              style={{ letterSpacing: -0.3 }}
+            >
+              {scheduleName || "Untitled Schedule"}
+            </Text>
             {isDefault && (
-              <View className="mr-2 rounded-full bg-[#34C759] px-2.5 py-1">
-                <Text className="text-[13px] font-medium text-white">Default</Text>
-              </View>
+              <Ionicons
+                name="star-outline"
+                size={20}
+                color="#000000"
+                style={{ marginLeft: 6, marginTop: 2 }}
+              />
             )}
-            <Text className="text-[15px] text-[#8E8E93]">{timeZone}</Text>
           </View>
         </View>
 
@@ -376,7 +375,7 @@ export const AvailabilityDetailScreen = forwardRef<
                 return (
                   <View
                     key={day}
-                    className={`flex-row items-center py-2.5 ${
+                    className={`flex-row items-center py-3 ${
                       dayIndex > 0 ? "border-t border-[#E5E5EA]" : ""
                     }`}
                   >
@@ -386,15 +385,15 @@ export const AvailabilityDetailScreen = forwardRef<
                       }`}
                     />
                     <Text
-                      className={`w-12 text-[15px] font-medium ${
+                      className={`w-24 text-[15px] font-medium ${
                         isEnabled ? "text-black" : "text-[#8E8E93]"
                       }`}
                     >
-                      {DAY_ABBREVIATIONS[dayIndex]}
+                      {DAYS[dayIndex]}
                     </Text>
 
                     {isEnabled ? (
-                      <View className="flex-1">
+                      <View className="flex-1 items-end">
                         {daySlots.map((slot, slotIndex) => (
                           <Text
                             key={`${slotIndex}-${slot.startTime}`}
@@ -405,7 +404,9 @@ export const AvailabilityDetailScreen = forwardRef<
                         ))}
                       </View>
                     ) : (
-                      <Text className="flex-1 text-[15px] text-[#8E8E93]">Unavailable</Text>
+                      <Text className="flex-1 text-right text-[15px] text-[#8E8E93]">
+                        Unavailable
+                      </Text>
                     )}
                   </View>
                 );

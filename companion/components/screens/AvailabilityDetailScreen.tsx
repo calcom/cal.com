@@ -6,6 +6,7 @@ import { ActivityIndicator, Alert, ScrollView, Switch, Text, TextInput, View } f
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import { FullScreenModal } from "@/components/FullScreenModal";
+import { TIMEZONES } from "@/constants/timezones";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 import type { ScheduleAvailability } from "@/services/types";
 import { showErrorAlert } from "@/utils/alerts";
@@ -134,21 +135,8 @@ export const AvailabilityDetailScreen = forwardRef<
     type: "start" | "end";
   } | null>(null);
 
-  // Common timezones
-  const timezones = [
-    "America/New_York",
-    "America/Chicago",
-    "America/Denver",
-    "America/Los_Angeles",
-    "Europe/London",
-    "Europe/Paris",
-    "Europe/Berlin",
-    "Asia/Tokyo",
-    "Asia/Shanghai",
-    "Asia/Kolkata",
-    "Australia/Sydney",
-    "UTC",
-  ];
+  // Use all supported timezones from the shared constants
+  const timezones = TIMEZONES;
 
   const processScheduleData = useCallback(
     (scheduleData: NonNullable<Awaited<ReturnType<typeof CalComAPIService.getScheduleById>>>) => {

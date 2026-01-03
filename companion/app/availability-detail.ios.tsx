@@ -79,19 +79,19 @@ export default function AvailabilityDetailIOS() {
           <Stack.Header.Menu>
             <Stack.Header.Label>Edit</Stack.Header.Label>
 
-            {/* Edit Name and Timezone */}
+            {/* Name and Timezone */}
             <Stack.Header.MenuAction icon="pencil" onPress={handleEditNameAndTimezone}>
-              Edit Name and Timezone
+              Name and Timezone
             </Stack.Header.MenuAction>
 
-            {/* Edit Working Hours */}
+            {/* Working Hours */}
             <Stack.Header.MenuAction icon="clock" onPress={handleEditWorkingHours}>
-              Edit Working Hours
+              Working Hours
             </Stack.Header.MenuAction>
 
-            {/* Add/Edit Date Override */}
+            {/* Date Override */}
             <Stack.Header.MenuAction icon="calendar.badge.plus" onPress={handleEditOverride}>
-              Add/Edit Date Override
+              Date Override
             </Stack.Header.MenuAction>
 
             {/* Set as Default */}

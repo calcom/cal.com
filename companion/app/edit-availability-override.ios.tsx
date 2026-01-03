@@ -8,9 +8,6 @@ import type { EditAvailabilityOverrideScreenHandle } from "@/components/screens/
 import EditAvailabilityOverrideScreenComponent from "@/components/screens/EditAvailabilityOverrideScreen.ios";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 
-// Semi-transparent background to prevent black flash while preserving glass effect
-const GLASS_BACKGROUND = "rgba(248, 248, 250, 0.01)";
-
 function getPresentationStyle(): "formSheet" | "modal" {
   if (isLiquidGlassAvailable() && osName !== "iPadOS") {
     return "formSheet";
@@ -19,7 +16,10 @@ function getPresentationStyle(): "formSheet" | "modal" {
 }
 
 export default function EditAvailabilityOverrideIOS() {
-  const { id, overrideIndex } = useLocalSearchParams<{ id: string; overrideIndex?: string }>();
+  const { id, overrideIndex } = useLocalSearchParams<{
+    id: string;
+    overrideIndex?: string;
+  }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [schedule, setSchedule] = useState<Schedule | null>(null);
@@ -66,10 +66,10 @@ export default function EditAvailabilityOverrideIOS() {
           title: isEditing ? "Edit Override" : "Add Override",
           presentation: presentationStyle,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.7, 0.9],
+          sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+            backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
           },
         }}
       />
@@ -98,7 +98,7 @@ export default function EditAvailabilityOverrideIOS() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+          backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
           paddingTop: 56,
           paddingBottom: insets.bottom,
         }}

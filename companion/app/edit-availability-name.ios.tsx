@@ -8,9 +8,6 @@ import type { EditAvailabilityNameScreenHandle } from "@/components/screens/Edit
 import EditAvailabilityNameScreenComponent from "@/components/screens/EditAvailabilityNameScreen.ios";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 
-// Semi-transparent background to prevent black flash while preserving glass effect
-const GLASS_BACKGROUND = "rgba(248, 248, 250, 0.01)";
-
 function getPresentationStyle(): "formSheet" | "modal" {
   if (isLiquidGlassAvailable() && osName !== "iPadOS") {
     return "formSheet";
@@ -63,10 +60,10 @@ export default function EditAvailabilityNameIOS() {
           title: "Edit Name & Timezone",
           presentation: presentationStyle,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.5, 0.7],
+          sheetAllowedDetents: [0.5, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+            backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
           },
         }}
       />
@@ -95,7 +92,7 @@ export default function EditAvailabilityNameIOS() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+          backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
           paddingTop: 56,
           paddingBottom: insets.bottom,
         }}

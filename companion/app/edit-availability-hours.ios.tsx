@@ -7,9 +7,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import EditAvailabilityHoursScreenComponent from "@/components/screens/EditAvailabilityHoursScreen.ios";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 
-// Semi-transparent background to prevent black flash while preserving glass effect
-const GLASS_BACKGROUND = "rgba(248, 248, 250, 0.01)";
-
 function getPresentationStyle(): "formSheet" | "modal" {
   if (isLiquidGlassAvailable() && osName !== "iPadOS") {
     return "formSheet";
@@ -61,7 +58,7 @@ export default function EditAvailabilityHoursIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+            backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
           },
         }}
       />
@@ -79,7 +76,7 @@ export default function EditAvailabilityHoursIOS() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+          backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
           paddingTop: 56,
           paddingBottom: insets.bottom,
         }}

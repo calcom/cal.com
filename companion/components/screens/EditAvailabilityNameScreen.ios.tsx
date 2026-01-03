@@ -12,25 +12,16 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import { Alert, KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { TIMEZONES as ALL_TIMEZONES } from "@/constants/timezones";
 import type { Schedule } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 
-// Common timezones
-const TIMEZONES = [
-  { id: "America/New_York", label: "New York (EST)" },
-  { id: "America/Chicago", label: "Chicago (CST)" },
-  { id: "America/Denver", label: "Denver (MST)" },
-  { id: "America/Los_Angeles", label: "Los Angeles (PST)" },
-  { id: "Europe/London", label: "London (GMT)" },
-  { id: "Europe/Paris", label: "Paris (CET)" },
-  { id: "Europe/Berlin", label: "Berlin (CET)" },
-  { id: "Asia/Tokyo", label: "Tokyo (JST)" },
-  { id: "Asia/Shanghai", label: "Shanghai (CST)" },
-  { id: "Asia/Kolkata", label: "Kolkata (IST)" },
-  { id: "Australia/Sydney", label: "Sydney (AEDT)" },
-  { id: "UTC", label: "UTC" },
-] as const;
+// Format timezones for display
+const TIMEZONES = ALL_TIMEZONES.map((tz) => ({
+  id: tz,
+  label: tz.replace(/_/g, " "),
+}));
 
 export interface EditAvailabilityNameScreenProps {
   schedule: Schedule | null;
