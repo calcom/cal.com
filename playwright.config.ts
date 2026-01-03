@@ -1,8 +1,8 @@
 import type { Frame, PlaywrightTestConfig } from "@playwright/test";
 import { devices, expect } from "@playwright/test";
 import dotEnv from "dotenv";
-import * as os from "os";
-import * as path from "path";
+import * as os from "node:os";
+import * as path from "node:path";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
@@ -13,12 +13,12 @@ const outputDir = path.join(__dirname, "test-results");
 // Dev Server on local can be slow to start up and process requests. So, keep timeouts really high on local, so that tests run reliably locally
 
 // So, if not in CI, keep the timers high, if the test is stuck somewhere and there is unnecessary wait developer can see in browser that it's stuck
-const DEFAULT_NAVIGATION_TIMEOUT = process.env.CI ? 30000 : 120000;
-const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 30000 : 120000;
+const DEFAULT_NAVIGATION_TIMEOUT = process.env.CI ? 10000 : 120000;
+const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 10000 : 120000;
 
 // Test Timeout can hit due to slow expect, slow navigation.
 // So, it should me much higher than sum of expect and navigation timeouts as there can be many async expects and navigations in a single test
-const DEFAULT_TEST_TIMEOUT = process.env.CI ? 60000 : 240000;
+const DEFAULT_TEST_TIMEOUT = process.env.CI ? 30000 : 240000;
 
 const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 
