@@ -1,6 +1,5 @@
 // Timezone constants for the companion app
-// This list should match the timezones available on the main Cal.com website
-// Source: packages/lib/timeZones.ts
+// Source: cal.com/packages/lib/timeZones.ts
 
 export const TIMEZONES = [
   "Africa/Abidjan",

@@ -1,9 +1,3 @@
-/**
- * EditAvailabilityNameScreen Component
- *
- * Fallback implementation for editing schedule name and timezone.
- */
-
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import { Alert, KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "react-native";

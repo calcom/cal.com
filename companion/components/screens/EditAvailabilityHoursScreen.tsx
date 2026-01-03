@@ -1,10 +1,3 @@
-/**
- * EditAvailabilityHoursScreen Component
- *
- * Fallback implementation showing list of days.
- * Tapping a day navigates to EditAvailabilityDayScreen.
- */
-
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef } from "react";
 import { ScrollView, Text, View } from "react-native";

@@ -1,10 +1,3 @@
-/**
- * EditAvailabilityNameScreen Component (iOS)
- *
- * iOS-specific implementation for editing schedule name and timezone.
- * Uses native iOS ContextMenu for timezone selection.
- */
-
 import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
 import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";

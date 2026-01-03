@@ -1,9 +1,3 @@
-/**
- * EditAvailabilityDayScreen Component
- *
- * Fallback implementation for editing a single day's availability.
- */
-
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import { Alert, ScrollView, Switch, Text, View } from "react-native";
@@ -396,10 +390,11 @@ export const EditAvailabilityDayScreen = forwardRef<
           </View>
           <ScrollView>
             {TIME_OPTIONS.map((time) => {
+              const slotIndex = showTimePicker?.slotIndex ?? 0;
               const currentTime =
                 showTimePicker?.type === "start"
-                  ? slots[showTimePicker?.slotIndex]?.startTime
-                  : slots[showTimePicker?.slotIndex]?.endTime;
+                  ? slots[slotIndex]?.startTime
+                  : slots[slotIndex]?.endTime;
               const isSelected = currentTime === time;
 
               return (

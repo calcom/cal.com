@@ -1,10 +1,3 @@
-/**
- * EditAvailabilityOverrideScreen Component (iOS)
- *
- * iOS-specific implementation for adding/editing date overrides.
- * Uses native iOS DatePicker for date and time selection.
- */
-
 import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";

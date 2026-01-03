@@ -1,9 +1,3 @@
-/**
- * EditAvailabilityOverrideScreen Component
- *
- * Fallback implementation for adding/editing date overrides.
- */
-
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import { Alert, ScrollView, Switch, Text, TextInput, View } from "react-native";
