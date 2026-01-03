@@ -29,7 +29,7 @@ import { BookEventForm } from "@calcom/features/bookings/Booker/components/BookE
 import { BookFormAsModal } from "@calcom/features/bookings/Booker/components/BookEventForm/BookFormAsModal";
 import { DatePicker } from "@calcom/features/bookings/Booker/components/DatePicker";
 import { DryRunMessage } from "@calcom/features/bookings/Booker/components/DryRunMessage";
-import { EventMeta } from "@calcom/features/bookings/Booker/components/EventMeta";
+import { EventMeta } from "./EventMeta";
 import { HavingTroubleFindingTime } from "@calcom/features/bookings/Booker/components/HavingTroubleFindingTime";
 import { Header } from "@calcom/features/bookings/Booker/components/Header";
 import { InstantBooking } from "@calcom/features/bookings/Booker/components/InstantBooking";

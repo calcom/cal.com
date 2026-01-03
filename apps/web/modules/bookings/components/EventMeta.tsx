@@ -18,10 +18,10 @@ import type { EventTypeTranslation } from "@calcom/prisma/client";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
 import i18nConfigration from "../../../../../i18n.json";
-import { fadeInUp } from "../config";
-import { FromToTime } from "../utils/dates";
-import { ScrollableWithGradients } from "./ScrollableWithGradients";
-import { useBookerTime } from "./hooks/useBookerTime";
+import { fadeInUp } from "@calcom/features/bookings/Booker/config";
+import { FromToTime } from "@calcom/features/bookings/Booker/utils/dates";
+import { ScrollableWithGradients } from "@calcom/features/bookings/Booker/components/ScrollableWithGradients";
+import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 
 const WebTimezoneSelect = dynamic(
   () => import("@calcom/features/components/timezone-select").then((mod) => mod.TimezoneSelect),
