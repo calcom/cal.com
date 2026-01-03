@@ -297,6 +297,12 @@ const BookerPlatformWrapperComponent = (
       Boolean(timezone) &&
       !event?.isPending &&
       event?.data?.id != null,
+    // Only include booker timezone in the query key when the event type uses
+    // the booker's timezone for its restriction schedule. This avoids extra
+    // refetches for regular booking pages.
+    includeBookerTimezoneInQueryKey: Boolean(
+      event?.data?.restrictionScheduleId && event?.data?.useBookerTimezone
+    ),
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
     _silentCalendarFailures: silentlyHandleCalendarFailures,
