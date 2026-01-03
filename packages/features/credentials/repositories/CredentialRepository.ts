@@ -330,7 +330,7 @@ export class CredentialRepository {
     });
   }
 
-  async findByAppIdAndKeyValue<T>({
+  async findByAppIdAndKeyValueIncludeAttributeSyncs<T>({
     appId,
     keyPath,
     value,
@@ -349,7 +349,16 @@ export class CredentialRepository {
           equals: value,
         },
       },
-      select: { ...safeCredentialSelect, key: keyFields ? true : false },
+      select: {
+        ...safeCredentialSelect,
+        integrationAttributeSyncs: {
+          include: {
+            attributeSyncRule: true,
+            syncFieldMappings: true,
+          },
+        },
+        key: keyFields ? true : false,
+      },
     });
 
     if (!credential || !keyFields) {
@@ -357,15 +366,12 @@ export class CredentialRepository {
     }
 
     const key = credential.key as Record<string, unknown>;
-    const filteredKey = keyFields.reduce(
-      (acc, field) => {
-        if (field in key) {
-          acc[field] = key[field];
-        }
-        return acc;
-      },
-      {} as Record<string, unknown>
-    );
+    const filteredKey = keyFields.reduce((acc, field) => {
+      if (field in key) {
+        acc[field] = key[field];
+      }
+      return acc;
+    }, {} as Record<string, unknown>);
 
     return { ...credential, key: filteredKey };
   }
