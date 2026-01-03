@@ -3,7 +3,7 @@ import { useRef } from "react";
 import type { HorizontalTabItemProps } from "./HorizontalTabItem";
 import HorizontalTabItem from "./HorizontalTabItem";
 
-interface NavTabProps {
+export interface NavTabProps {
   tabs: HorizontalTabItemProps[];
   linkShallow?: boolean;
   linkScroll?: boolean;
@@ -41,7 +41,7 @@ const HorizontalTabs = ({
       inline: "center",
     });
     if (activeHref) lastScrolledActiveHrefRef.current = activeHref;
-  });
+  }, [scrollActiveTabIntoView, tabs]);
 
   return (
     <div className="mb-4 max-w-full lg:mb-5">
