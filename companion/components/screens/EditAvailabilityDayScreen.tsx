@@ -246,7 +246,17 @@ export const EditAvailabilityDayScreen = forwardRef<
   );
 
   const handleSubmit = useCallback(async () => {
-    if (!schedule) return;
+    if (!schedule || isSaving) return;
+
+    // Validate all slots have end time after start time
+    if (isEnabled) {
+      for (const slot of slots) {
+        if (slot.endTime <= slot.startTime) {
+          Alert.alert("Error", "End time must be after start time for all slots");
+          return;
+        }
+      }
+    }
 
     const daySlots: ScheduleAvailability[] = isEnabled
       ? slots.map((s) => ({
@@ -271,7 +281,7 @@ export const EditAvailabilityDayScreen = forwardRef<
       showErrorAlert("Error", "Failed to update schedule. Please try again.");
       setIsSaving(false);
     }
-  }, [schedule, dayIndex, dayName, isEnabled, slots, onSuccess]);
+  }, [schedule, dayIndex, dayName, isEnabled, slots, onSuccess, isSaving]);
 
   useImperativeHandle(
     ref,

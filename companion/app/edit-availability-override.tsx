@@ -40,8 +40,9 @@ export default function EditAvailabilityOverride() {
   }, [id, router]);
 
   const handleSave = useCallback(() => {
+    if (isSaving) return;
     screenRef.current?.submit();
-  }, []);
+  }, [isSaving]);
 
   const handleSuccess = useCallback(() => {
     router.back();

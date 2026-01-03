@@ -59,7 +59,7 @@ export const EditAvailabilityNameScreen = forwardRef<
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (!schedule) return;
+    if (!schedule || isSaving) return;
 
     const trimmedName = name.trim();
     if (!trimmedName) {
@@ -79,7 +79,7 @@ export const EditAvailabilityNameScreen = forwardRef<
       showErrorAlert("Error", "Failed to update schedule. Please try again.");
       setIsSaving(false);
     }
-  }, [schedule, name, timezone, onSuccess]);
+  }, [schedule, name, timezone, onSuccess, isSaving]);
 
   // Expose submit to parent via ref
   useImperativeHandle(

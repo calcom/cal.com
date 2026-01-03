@@ -186,9 +186,15 @@ export const EditAvailabilityOverrideScreen = forwardRef<
   );
 
   const handleSubmit = useCallback(async () => {
-    if (!schedule) return;
+    if (!schedule || isSaving) return;
 
     const dateStr = dateToDateString(selectedDate);
+
+    // Validate end time is after start time (only when not marking as unavailable)
+    if (!isUnavailable && endTime <= startTime) {
+      Alert.alert("Error", "End time must be after start time");
+      return;
+    }
 
     // Build the new override
     const newOverride = {
@@ -249,6 +255,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
     isEditing,
     overrideIndex,
     saveOverrides,
+    isSaving,
   ]);
 
   // Expose submit to parent via ref

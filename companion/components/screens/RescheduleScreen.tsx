@@ -70,7 +70,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
     }, [isSaving, onSavingChange]);
 
     const handleSubmit = useCallback(async () => {
-      if (!booking) return;
+      if (!booking || isSaving) return;
 
       // Validate the date is in the future
       if (selectedDateTime <= new Date()) {
@@ -98,7 +98,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
         Alert.alert("Error", "Failed to reschedule booking. Please try again.");
         setIsSaving(false);
       }
-    }, [booking, selectedDateTime, reason, onSuccess]);
+    }, [booking, selectedDateTime, reason, onSuccess, isSaving]);
 
     // Helper function to format date as YYYY-MM-DD in local timezone (avoids UTC conversion issues)
     const formatLocalDate = (date: Date) => {

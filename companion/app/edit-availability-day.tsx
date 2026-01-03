@@ -39,8 +39,9 @@ export default function EditAvailabilityDay() {
   }, [id, router]);
 
   const handleSave = useCallback(() => {
+    if (isSaving) return;
     screenRef.current?.submit();
-  }, []);
+  }, [isSaving]);
 
   const handleSuccess = useCallback(() => {
     router.back();

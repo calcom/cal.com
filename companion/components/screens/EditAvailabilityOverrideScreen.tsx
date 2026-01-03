@@ -169,7 +169,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
   );
 
   const handleSubmit = useCallback(async () => {
-    if (!schedule) return;
+    if (!schedule || isSaving) return;
 
     if (!selectedDate) {
       Alert.alert("Error", "Please enter a date (YYYY-MM-DD format)");
@@ -180,6 +180,12 @@ export const EditAvailabilityOverrideScreen = forwardRef<
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(selectedDate)) {
       Alert.alert("Error", "Please enter date in YYYY-MM-DD format");
+      return;
+    }
+
+    // Validate end time is after start time (only when not marking as unavailable)
+    if (!isUnavailable && endTime <= startTime) {
+      Alert.alert("Error", "End time must be after start time");
       return;
     }
 
@@ -237,6 +243,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
     isEditing,
     overrideIndex,
     saveOverrides,
+    isSaving,
   ]);
 
   useImperativeHandle(
