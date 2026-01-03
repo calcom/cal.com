@@ -2,11 +2,11 @@ import { useFormContext } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { TeamMembers } from "@calcom/features/eventtypes/components/EventType";
-import { EventAvailabilityTab } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import { EventAvailabilityTab } from "@calcom/web/modules/event-types/components/tabs/availability/EventAvailabilityTab";
 
 export type EventAvailabilityTabWebWrapperProps = {
   eventType: EventTypeSetup;
