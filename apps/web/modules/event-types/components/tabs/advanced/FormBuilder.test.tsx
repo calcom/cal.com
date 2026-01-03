@@ -16,7 +16,7 @@ import {
   pageObject,
   expectScenario,
   getLocationBookingField,
-} from "./testUtils";
+} from "@calcom/features/form-builder/testUtils";
 
 vi.mock("@formkit/auto-animate/react", () => ({
   useAutoAnimate: () => [null],
