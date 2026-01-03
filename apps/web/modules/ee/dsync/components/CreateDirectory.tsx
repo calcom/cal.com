@@ -9,7 +9,7 @@ import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Form, TextField, SelectField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { directoryProviders } from "../lib/directoryProviders";
+import { directoryProviders } from "@calcom/features/ee/dsync/lib/directoryProviders";
 
 const defaultValues = {
   name: "",
