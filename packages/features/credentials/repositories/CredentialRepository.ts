@@ -25,7 +25,7 @@ type CredentialUpdateInput = {
 };
 
 export class CredentialRepository {
-  constructor(private primaClient: PrismaClient) { }
+  constructor(private primaClient: PrismaClient) {}
 
   async findByCredentialId(id: number) {
     return this.primaClient.credential.findUnique({
@@ -328,5 +328,45 @@ export class CredentialRepository {
         },
       },
     });
+  }
+
+  async findByAppIdAndKeyValue<T>({
+    appId,
+    keyPath,
+    value,
+    keyFields,
+  }: {
+    appId: string;
+    keyPath: string[];
+    value: T;
+    keyFields?: string[];
+  }) {
+    const credential = await prisma.credential.findFirst({
+      where: {
+        appId,
+        key: {
+          path: keyPath,
+          equals: value,
+        },
+      },
+      select: { ...safeCredentialSelect, key: keyFields ? true : false },
+    });
+
+    if (!credential || !keyFields) {
+      return credential;
+    }
+
+    const key = credential.key as Record<string, unknown>;
+    const filteredKey = keyFields.reduce(
+      (acc, field) => {
+        if (field in key) {
+          acc[field] = key[field];
+        }
+        return acc;
+      },
+      {} as Record<string, unknown>
+    );
+
+    return { ...credential, key: filteredKey };
   }
 }
