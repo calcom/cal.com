@@ -15,6 +15,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AppPressable } from "@/components/AppPressable";
 import { AdvancedTab } from "@/components/event-type-detail/tabs/AdvancedTab";
 import { AvailabilityTab } from "@/components/event-type-detail/tabs/AvailabilityTab";
 import { BasicsTab } from "@/components/event-type-detail/tabs/BasicsTab";
@@ -117,7 +118,6 @@ const tabs: Tab[] = [
 ];
 
 export default function EventTypeDetail() {
-  "use no memo";
   const router = useRouter();
   const { id, title, description, duration, slug } = useLocalSearchParams<{
     id: string;
@@ -363,18 +363,21 @@ export default function EventTypeDetail() {
 
   const fetchScheduleDetails = useCallback(async (scheduleId: number) => {
     setScheduleDetailsLoading(true);
+    let scheduleDetails: Awaited<ReturnType<typeof CalComAPIService.getScheduleById>> | null = null;
     try {
-      const scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
-      setSelectedScheduleDetails(scheduleDetails);
-      if (scheduleDetails?.timeZone) {
-        setSelectedTimezone(scheduleDetails.timeZone);
-      }
-      setScheduleDetailsLoading(false);
+      scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
     } catch (error) {
       safeLogError("Failed to fetch schedule details:", error);
       setSelectedScheduleDetails(null);
       setScheduleDetailsLoading(false);
+      return;
     }
+    setSelectedScheduleDetails(scheduleDetails);
+    const timeZone = scheduleDetails?.timeZone;
+    if (timeZone) {
+      setSelectedTimezone(timeZone);
+    }
+    setScheduleDetailsLoading(false);
   }, []);
 
   const fetchSchedules = useCallback(async () => {
@@ -408,344 +411,364 @@ export default function EventTypeDetail() {
     }
   }, []);
 
+  const applyEventTypeData = useCallback((eventType: EventType) => {
+    setEventTypeData(eventType);
+
+    // Load basic fields
+    if (eventType.title) setEventTitle(eventType.title);
+    if (eventType.slug) setEventSlug(eventType.slug);
+    if (eventType.description) setEventDescription(eventType.description);
+    if (eventType.lengthInMinutes) setEventDuration(eventType.lengthInMinutes.toString());
+    if (eventType.hidden !== undefined) setIsHidden(eventType.hidden);
+
+    const eventTypeExt = eventType as EventType & EventTypeExtended;
+    const lengthOptions = eventTypeExt.lengthInMinutesOptions;
+    const hasLengthOptions =
+      lengthOptions && Array.isArray(lengthOptions) && lengthOptions.length > 0;
+    if (hasLengthOptions) {
+      setAllowMultipleDurations(true);
+      const durationStrings = lengthOptions.map((mins: number) => `${mins} mins`);
+      setSelectedDurations(durationStrings);
+      if (eventType.lengthInMinutes) {
+        setDefaultDuration(`${eventType.lengthInMinutes} mins`);
+      }
+    }
+
+    // Load buffer times
+    if (eventType.beforeEventBuffer) {
+      setBeforeEventBuffer(`${eventType.beforeEventBuffer} Minutes`);
+    }
+    if (eventType.afterEventBuffer) {
+      setAfterEventBuffer(`${eventType.afterEventBuffer} Minutes`);
+    }
+
+    // Load minimum booking notice
+    if (eventType.minimumBookingNotice) {
+      const minutes = eventType.minimumBookingNotice;
+      if (minutes >= 1440) {
+        // Days
+        setMinimumNoticeValue((minutes / 1440).toString());
+        setMinimumNoticeUnit("Days");
+      } else if (minutes >= 60) {
+        // Hours
+        setMinimumNoticeValue((minutes / 60).toString());
+        setMinimumNoticeUnit("Hours");
+      } else {
+        // Minutes
+        setMinimumNoticeValue(minutes.toString());
+        setMinimumNoticeUnit("Minutes");
+      }
+    }
+
+    // Load slot interval
+    if (eventType.slotInterval) {
+      setSlotInterval(`${eventType.slotInterval} Minutes`);
+    }
+
+    // Load booking frequency limits
+    const bookingLimitsCount = eventType.bookingLimitsCount;
+    const hasBookingLimitsCount = bookingLimitsCount && !("disabled" in bookingLimitsCount);
+    if (hasBookingLimitsCount) {
+      setLimitBookingFrequency(true);
+      const limits: { id: number; value: string; unit: string }[] = [];
+      let idCounter = 1;
+      if (bookingLimitsCount.day) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsCount.day.toString(),
+          unit: "Per day",
+        });
+      }
+      if (bookingLimitsCount.week) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsCount.week.toString(),
+          unit: "Per week",
+        });
+      }
+      if (bookingLimitsCount.month) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsCount.month.toString(),
+          unit: "Per month",
+        });
+      }
+      if (bookingLimitsCount.year) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsCount.year.toString(),
+          unit: "Per year",
+        });
+      }
+      if (limits.length > 0) {
+        setFrequencyLimits(limits);
+      }
+    }
+
+    // Load duration limits
+    const bookingLimitsDuration = eventType.bookingLimitsDuration;
+    const hasBookingLimitsDuration =
+      bookingLimitsDuration && !("disabled" in bookingLimitsDuration);
+    if (hasBookingLimitsDuration) {
+      setLimitTotalDuration(true);
+      const limits: { id: number; value: string; unit: string }[] = [];
+      let idCounter = 1;
+      if (bookingLimitsDuration.day) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsDuration.day.toString(),
+          unit: "Per day",
+        });
+      }
+      if (bookingLimitsDuration.week) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsDuration.week.toString(),
+          unit: "Per week",
+        });
+      }
+      if (bookingLimitsDuration.month) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsDuration.month.toString(),
+          unit: "Per month",
+        });
+      }
+      if (bookingLimitsDuration.year) {
+        limits.push({
+          id: idCounter++,
+          value: bookingLimitsDuration.year.toString(),
+          unit: "Per year",
+        });
+      }
+      if (limits.length > 0) {
+        setDurationLimits(limits);
+      }
+    }
+
+    // Load only show first slot
+    if (eventType.onlyShowFirstAvailableSlot !== undefined) {
+      setOnlyShowFirstAvailableSlot(eventType.onlyShowFirstAvailableSlot);
+    }
+
+    if (eventType.bookerActiveBookingsLimit) {
+      const bookingLimit = eventType.bookerActiveBookingsLimit as BookerActiveBookingsLimitExtended;
+      const isBookingLimitEnabled = !("disabled" in bookingLimit);
+      if (isBookingLimitEnabled) {
+        const maxBookings = bookingLimit.maximumActiveBookings ?? bookingLimit.count;
+        if (maxBookings !== undefined) {
+          setMaxActiveBookingsPerBooker(true);
+          setMaxActiveBookingsValue(maxBookings.toString());
+        }
+        if (bookingLimit.offerReschedule !== undefined) {
+          setOfferReschedule(bookingLimit.offerReschedule);
+        }
+      }
+    }
+
+    const bookingWindow = eventType.bookingWindow;
+    const hasBookingWindow = bookingWindow && !("disabled" in bookingWindow);
+    if (hasBookingWindow) {
+      setLimitFutureBookings(true);
+      if (bookingWindow.type === "range") {
+        setFutureBookingType("range");
+        const windowValue = bookingWindow.value;
+        const isValidRange = Array.isArray(windowValue) && windowValue.length === 2;
+        if (isValidRange) {
+          setRangeStartDate(windowValue[0]);
+          setRangeEndDate(windowValue[1]);
+        }
+      } else {
+        setFutureBookingType("rolling");
+        if (typeof bookingWindow.value === "number") {
+          setRollingDays(bookingWindow.value.toString());
+        }
+        setRollingCalendarDays(bookingWindow.type === "calendarDays");
+      }
+    }
+
+    const metadata = eventType.metadata;
+
+    if (eventTypeExt.disableCancelling !== undefined) {
+      setDisableCancelling(eventTypeExt.disableCancelling);
+    } else if (metadata?.disableCancelling) {
+      setDisableCancelling(true);
+    }
+
+    if (eventTypeExt.disableRescheduling !== undefined) {
+      setDisableRescheduling(eventTypeExt.disableRescheduling);
+    } else if (metadata?.disableRescheduling) {
+      setDisableRescheduling(true);
+    }
+
+    if (eventTypeExt.sendCalVideoTranscription !== undefined) {
+      setSendCalVideoTranscription(eventTypeExt.sendCalVideoTranscription);
+    } else if (metadata?.sendCalVideoTranscription) {
+      setSendCalVideoTranscription(true);
+    }
+
+    if (eventTypeExt.autoTranslate !== undefined) {
+      setAutoTranslate(eventTypeExt.autoTranslate);
+    } else if (metadata?.autoTranslate) {
+      setAutoTranslate(true);
+    }
+
+    if (metadata) {
+      const calendarEventNameValue = metadata.calendarEventName;
+      if (typeof calendarEventNameValue === "string") {
+        setCalendarEventName(calendarEventNameValue);
+      }
+      const addToCalendarEmailValue = metadata.addToCalendarEmail;
+      if (typeof addToCalendarEmailValue === "string") {
+        setAddToCalendarEmail(addToCalendarEmailValue);
+      }
+    }
+
+    // Load booker layouts
+    const bookerLayouts = eventType.bookerLayouts;
+    if (bookerLayouts) {
+      const enabledLayouts = bookerLayouts.enabledLayouts;
+      const hasEnabledLayouts = enabledLayouts && Array.isArray(enabledLayouts);
+      if (hasEnabledLayouts) {
+        setSelectedLayouts(enabledLayouts);
+      }
+      if (bookerLayouts.defaultLayout) {
+        setDefaultLayout(bookerLayouts.defaultLayout);
+      }
+    }
+
+    if (eventType.confirmationPolicy) {
+      const policy = eventType.confirmationPolicy as ConfirmationPolicyExtended;
+      const isPolicyEnabled = !("disabled" in policy) || policy.disabled === false;
+      if (isPolicyEnabled) {
+        setRequiresConfirmation(true);
+      }
+    }
+    if (eventType.requiresConfirmation !== undefined) {
+      setRequiresConfirmation(eventType.requiresConfirmation);
+    }
+
+    if (eventType.requiresBookerEmailVerification !== undefined) {
+      setRequiresBookerEmailVerification(eventType.requiresBookerEmailVerification);
+    }
+    if (eventType.hideCalendarNotes !== undefined) {
+      setHideCalendarNotes(eventType.hideCalendarNotes);
+    }
+    if (eventType.lockTimeZoneToggleOnBookingPage !== undefined) {
+      setLockTimezone(eventType.lockTimeZoneToggleOnBookingPage);
+    }
+    if (eventTypeExt.lockedTimeZone) {
+      setLockedTimezone(eventTypeExt.lockedTimeZone);
+    }
+    if (eventTypeExt.hideCalendarEventDetails !== undefined) {
+      setHideCalendarEventDetails(eventTypeExt.hideCalendarEventDetails);
+    }
+    if (eventTypeExt.hideOrganizerEmail !== undefined) {
+      setHideOrganizerEmail(eventTypeExt.hideOrganizerEmail);
+    }
+
+    // Load redirect URL
+    if (eventType.successRedirectUrl) {
+      setSuccessRedirectUrl(eventType.successRedirectUrl);
+    }
+    if (eventType.forwardParamsSuccessRedirect !== undefined) {
+      setForwardParamsSuccessRedirect(eventType.forwardParamsSuccessRedirect);
+    }
+
+    const eventTypeExtColor = eventTypeExt.color;
+    if (eventTypeExtColor) {
+      if (eventTypeExtColor.lightThemeHex) {
+        setEventTypeColorLight(eventTypeExtColor.lightThemeHex);
+      }
+      if (eventTypeExtColor.darkThemeHex) {
+        setEventTypeColorDark(eventTypeExtColor.darkThemeHex);
+      }
+    }
+    const eventTypeColor = eventType.eventTypeColor;
+    if (eventTypeColor) {
+      if (eventTypeColor.lightEventTypeColor) {
+        setEventTypeColorLight(eventTypeColor.lightEventTypeColor);
+      }
+      if (eventTypeColor.darkEventTypeColor) {
+        setEventTypeColorDark(eventTypeColor.darkEventTypeColor);
+      }
+    }
+
+    if (eventType.recurrence) {
+      const recurrence = eventType.recurrence as RecurrenceExtended;
+      const recurrenceInterval = recurrence.interval;
+      const recurrenceFrequency = recurrence.frequency;
+      const isRecurrenceEnabled =
+        recurrence.disabled !== true && recurrenceInterval && recurrenceFrequency;
+      if (isRecurrenceEnabled) {
+        setRecurringEnabled(true);
+        setRecurringInterval(recurrenceInterval.toString());
+        const freq = recurrenceFrequency as "weekly" | "monthly" | "yearly";
+        if (freq === "weekly" || freq === "monthly" || freq === "yearly") {
+          setRecurringFrequency(freq);
+        }
+        const occurrences = recurrence.occurrences;
+        setRecurringOccurrences(occurrences?.toString() || "12");
+      }
+    }
+
+    const locations = eventType.locations;
+    const hasLocations = locations && locations.length > 0;
+    if (hasLocations) {
+      const mappedLocations = locations.map((loc: ApiLocation) => mapApiLocationToItem(loc));
+      setLocations(mappedLocations);
+
+      const firstLocation = locations[0];
+      if (firstLocation.address) {
+        setLocationAddress(firstLocation.address);
+      }
+      if (firstLocation.link) {
+        setLocationLink(firstLocation.link);
+      }
+      if (firstLocation.phone) {
+        setLocationPhone(firstLocation.phone);
+      }
+    }
+
+    if (eventType.disableGuests !== undefined) {
+      setDisableGuests(eventType.disableGuests);
+    }
+
+    if (eventType.seats) {
+      const seats = eventType.seats as SeatsExtended;
+      const seatsAreEnabled =
+        seats.disabled === false || (!("disabled" in seats) && seats.seatsPerTimeSlot);
+
+      if (seatsAreEnabled) {
+        setSeatsEnabled(true);
+        if (seats.seatsPerTimeSlot) {
+          setSeatsPerTimeSlot(seats.seatsPerTimeSlot.toString());
+        }
+        if (seats.showAttendeeInfo !== undefined) {
+          setShowAttendeeInfo(seats.showAttendeeInfo);
+        }
+        if (seats.showAvailabilityCount !== undefined) {
+          setShowAvailabilityCount(seats.showAvailabilityCount);
+        }
+      }
+    }
+  }, []);
+
   const fetchEventTypeData = useCallback(async () => {
     if (!id) return;
 
+    let eventType: EventType | null = null;
     try {
-      const eventType = await CalComAPIService.getEventTypeById(parseInt(id, 10));
-      if (eventType) {
-        setEventTypeData(eventType);
-
-        // Load basic fields
-        if (eventType.title) setEventTitle(eventType.title);
-        if (eventType.slug) setEventSlug(eventType.slug);
-        if (eventType.description) setEventDescription(eventType.description);
-        if (eventType.lengthInMinutes) setEventDuration(eventType.lengthInMinutes.toString());
-        if (eventType.hidden !== undefined) setIsHidden(eventType.hidden);
-
-        const eventTypeExt = eventType as EventType & EventTypeExtended;
-        if (
-          eventTypeExt.lengthInMinutesOptions &&
-          Array.isArray(eventTypeExt.lengthInMinutesOptions) &&
-          eventTypeExt.lengthInMinutesOptions.length > 0
-        ) {
-          setAllowMultipleDurations(true);
-          const durationStrings = eventTypeExt.lengthInMinutesOptions.map(
-            (mins: number) => `${mins} mins`
-          );
-          setSelectedDurations(durationStrings);
-          if (eventType.lengthInMinutes) {
-            setDefaultDuration(`${eventType.lengthInMinutes} mins`);
-          }
-        }
-
-        // Load buffer times
-        if (eventType.beforeEventBuffer) {
-          setBeforeEventBuffer(`${eventType.beforeEventBuffer} Minutes`);
-        }
-        if (eventType.afterEventBuffer) {
-          setAfterEventBuffer(`${eventType.afterEventBuffer} Minutes`);
-        }
-
-        // Load minimum booking notice
-        if (eventType.minimumBookingNotice) {
-          const minutes = eventType.minimumBookingNotice;
-          if (minutes >= 1440) {
-            // Days
-            setMinimumNoticeValue((minutes / 1440).toString());
-            setMinimumNoticeUnit("Days");
-          } else if (minutes >= 60) {
-            // Hours
-            setMinimumNoticeValue((minutes / 60).toString());
-            setMinimumNoticeUnit("Hours");
-          } else {
-            // Minutes
-            setMinimumNoticeValue(minutes.toString());
-            setMinimumNoticeUnit("Minutes");
-          }
-        }
-
-        // Load slot interval
-        if (eventType.slotInterval) {
-          setSlotInterval(`${eventType.slotInterval} Minutes`);
-        }
-
-        // Load booking frequency limits
-        if (eventType.bookingLimitsCount && !("disabled" in eventType.bookingLimitsCount)) {
-          setLimitBookingFrequency(true);
-          const limits: { id: number; value: string; unit: string }[] = [];
-          let idCounter = 1;
-          if (eventType.bookingLimitsCount.day) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsCount.day.toString(),
-              unit: "Per day",
-            });
-          }
-          if (eventType.bookingLimitsCount.week) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsCount.week.toString(),
-              unit: "Per week",
-            });
-          }
-          if (eventType.bookingLimitsCount.month) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsCount.month.toString(),
-              unit: "Per month",
-            });
-          }
-          if (eventType.bookingLimitsCount.year) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsCount.year.toString(),
-              unit: "Per year",
-            });
-          }
-          if (limits.length > 0) {
-            setFrequencyLimits(limits);
-          }
-        }
-
-        // Load duration limits
-        if (eventType.bookingLimitsDuration && !("disabled" in eventType.bookingLimitsDuration)) {
-          setLimitTotalDuration(true);
-          const limits: { id: number; value: string; unit: string }[] = [];
-          let idCounter = 1;
-          if (eventType.bookingLimitsDuration.day) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsDuration.day.toString(),
-              unit: "Per day",
-            });
-          }
-          if (eventType.bookingLimitsDuration.week) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsDuration.week.toString(),
-              unit: "Per week",
-            });
-          }
-          if (eventType.bookingLimitsDuration.month) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsDuration.month.toString(),
-              unit: "Per month",
-            });
-          }
-          if (eventType.bookingLimitsDuration.year) {
-            limits.push({
-              id: idCounter++,
-              value: eventType.bookingLimitsDuration.year.toString(),
-              unit: "Per year",
-            });
-          }
-          if (limits.length > 0) {
-            setDurationLimits(limits);
-          }
-        }
-
-        // Load only show first slot
-        if (eventType.onlyShowFirstAvailableSlot !== undefined) {
-          setOnlyShowFirstAvailableSlot(eventType.onlyShowFirstAvailableSlot);
-        }
-
-        if (eventType.bookerActiveBookingsLimit) {
-          const bookingLimit =
-            eventType.bookerActiveBookingsLimit as BookerActiveBookingsLimitExtended;
-          if (!("disabled" in bookingLimit)) {
-            const maxBookings = bookingLimit.maximumActiveBookings ?? bookingLimit.count;
-            if (maxBookings !== undefined) {
-              setMaxActiveBookingsPerBooker(true);
-              setMaxActiveBookingsValue(maxBookings.toString());
-            }
-            if (bookingLimit.offerReschedule !== undefined) {
-              setOfferReschedule(bookingLimit.offerReschedule);
-            }
-          }
-        }
-
-        if (eventType.bookingWindow && !("disabled" in eventType.bookingWindow)) {
-          setLimitFutureBookings(true);
-          if (eventType.bookingWindow.type === "range") {
-            setFutureBookingType("range");
-            if (
-              Array.isArray(eventType.bookingWindow.value) &&
-              eventType.bookingWindow.value.length === 2
-            ) {
-              setRangeStartDate(eventType.bookingWindow.value[0]);
-              setRangeEndDate(eventType.bookingWindow.value[1]);
-            }
-          } else {
-            setFutureBookingType("rolling");
-            if (typeof eventType.bookingWindow.value === "number") {
-              setRollingDays(eventType.bookingWindow.value.toString());
-            }
-            setRollingCalendarDays(eventType.bookingWindow.type === "calendarDays");
-          }
-        }
-
-        if (eventTypeExt.disableCancelling !== undefined) {
-          setDisableCancelling(eventTypeExt.disableCancelling);
-        } else if (eventType.metadata?.disableCancelling) {
-          setDisableCancelling(true);
-        }
-
-        if (eventTypeExt.disableRescheduling !== undefined) {
-          setDisableRescheduling(eventTypeExt.disableRescheduling);
-        } else if (eventType.metadata?.disableRescheduling) {
-          setDisableRescheduling(true);
-        }
-
-        if (eventTypeExt.sendCalVideoTranscription !== undefined) {
-          setSendCalVideoTranscription(eventTypeExt.sendCalVideoTranscription);
-        } else if (eventType.metadata?.sendCalVideoTranscription) {
-          setSendCalVideoTranscription(true);
-        }
-
-        if (eventTypeExt.autoTranslate !== undefined) {
-          setAutoTranslate(eventTypeExt.autoTranslate);
-        } else if (eventType.metadata?.autoTranslate) {
-          setAutoTranslate(true);
-        }
-
-        if (eventType.metadata) {
-          const calendarEventNameValue = eventType.metadata.calendarEventName;
-          if (typeof calendarEventNameValue === "string") {
-            setCalendarEventName(calendarEventNameValue);
-          }
-          const addToCalendarEmailValue = eventType.metadata.addToCalendarEmail;
-          if (typeof addToCalendarEmailValue === "string") {
-            setAddToCalendarEmail(addToCalendarEmailValue);
-          }
-        }
-
-        // Load booker layouts
-        if (eventType.bookerLayouts) {
-          if (
-            eventType.bookerLayouts.enabledLayouts &&
-            Array.isArray(eventType.bookerLayouts.enabledLayouts)
-          ) {
-            setSelectedLayouts(eventType.bookerLayouts.enabledLayouts);
-          }
-          if (eventType.bookerLayouts.defaultLayout) {
-            setDefaultLayout(eventType.bookerLayouts.defaultLayout);
-          }
-        }
-
-        if (eventType.confirmationPolicy) {
-          const policy = eventType.confirmationPolicy as ConfirmationPolicyExtended;
-          if (!("disabled" in policy) || policy.disabled === false) {
-            setRequiresConfirmation(true);
-          }
-        }
-        if (eventType.requiresConfirmation !== undefined) {
-          setRequiresConfirmation(eventType.requiresConfirmation);
-        }
-
-        if (eventType.requiresBookerEmailVerification !== undefined) {
-          setRequiresBookerEmailVerification(eventType.requiresBookerEmailVerification);
-        }
-        if (eventType.hideCalendarNotes !== undefined) {
-          setHideCalendarNotes(eventType.hideCalendarNotes);
-        }
-        if (eventType.lockTimeZoneToggleOnBookingPage !== undefined) {
-          setLockTimezone(eventType.lockTimeZoneToggleOnBookingPage);
-        }
-        if (eventTypeExt.lockedTimeZone) {
-          setLockedTimezone(eventTypeExt.lockedTimeZone);
-        }
-        if (eventTypeExt.hideCalendarEventDetails !== undefined) {
-          setHideCalendarEventDetails(eventTypeExt.hideCalendarEventDetails);
-        }
-        if (eventTypeExt.hideOrganizerEmail !== undefined) {
-          setHideOrganizerEmail(eventTypeExt.hideOrganizerEmail);
-        }
-
-        // Load redirect URL
-        if (eventType.successRedirectUrl) {
-          setSuccessRedirectUrl(eventType.successRedirectUrl);
-        }
-        if (eventType.forwardParamsSuccessRedirect !== undefined) {
-          setForwardParamsSuccessRedirect(eventType.forwardParamsSuccessRedirect);
-        }
-
-        if (eventTypeExt.color) {
-          if (eventTypeExt.color.lightThemeHex) {
-            setEventTypeColorLight(eventTypeExt.color.lightThemeHex);
-          }
-          if (eventTypeExt.color.darkThemeHex) {
-            setEventTypeColorDark(eventTypeExt.color.darkThemeHex);
-          }
-        }
-        if (eventType.eventTypeColor) {
-          if (eventType.eventTypeColor.lightEventTypeColor) {
-            setEventTypeColorLight(eventType.eventTypeColor.lightEventTypeColor);
-          }
-          if (eventType.eventTypeColor.darkEventTypeColor) {
-            setEventTypeColorDark(eventType.eventTypeColor.darkEventTypeColor);
-          }
-        }
-
-        if (eventType.recurrence) {
-          const recurrence = eventType.recurrence as RecurrenceExtended;
-          if (recurrence.disabled !== true && recurrence.interval && recurrence.frequency) {
-            setRecurringEnabled(true);
-            setRecurringInterval(recurrence.interval.toString());
-            const freq = recurrence.frequency as "weekly" | "monthly" | "yearly";
-            if (freq === "weekly" || freq === "monthly" || freq === "yearly") {
-              setRecurringFrequency(freq);
-            }
-            setRecurringOccurrences(recurrence.occurrences?.toString() || "12");
-          }
-        }
-
-        if (eventType.locations && eventType.locations.length > 0) {
-          const mappedLocations = eventType.locations.map((loc: ApiLocation) =>
-            mapApiLocationToItem(loc)
-          );
-          setLocations(mappedLocations);
-
-          const firstLocation = eventType.locations[0];
-          if (firstLocation.address) {
-            setLocationAddress(firstLocation.address);
-          }
-          if (firstLocation.link) {
-            setLocationLink(firstLocation.link);
-          }
-          if (firstLocation.phone) {
-            setLocationPhone(firstLocation.phone);
-          }
-        }
-
-        if (eventType.disableGuests !== undefined) {
-          setDisableGuests(eventType.disableGuests);
-        }
-
-        if (eventType.seats) {
-          const seats = eventType.seats as SeatsExtended;
-          const seatsAreEnabled =
-            seats.disabled === false || (!("disabled" in seats) && seats.seatsPerTimeSlot);
-
-          if (seatsAreEnabled) {
-            setSeatsEnabled(true);
-            if (seats.seatsPerTimeSlot) {
-              setSeatsPerTimeSlot(seats.seatsPerTimeSlot.toString());
-            }
-            if (seats.showAttendeeInfo !== undefined) {
-              setShowAttendeeInfo(seats.showAttendeeInfo);
-            }
-            if (seats.showAvailabilityCount !== undefined) {
-              setShowAvailabilityCount(seats.showAvailabilityCount);
-            }
-          }
-        }
-      }
+      eventType = await CalComAPIService.getEventTypeById(parseInt(id, 10));
     } catch (error) {
       safeLogError("Failed to fetch event type data:", error);
+      return;
     }
-  }, [id]);
+
+    if (eventType) {
+      applyEventTypeData(eventType);
+    }
+  }, [id, applyEventTypeData]);
 
   useEffect(() => {
     if (activeTab === "availability") {
@@ -775,28 +798,35 @@ export default function EventTypeDetail() {
   }, []);
 
   const formatTime = (time: string) => {
-    try {
-      // Handle different time formats that might come from the API
-      let date: Date;
+    // Handle different time formats that might come from the API
+    // Extract conditionals outside try/catch for React Compiler
+    const isColonFormat = time.includes(":");
 
-      if (time.includes(":")) {
-        // Format like "09:00" or "09:00:00"
-        const [hours, minutes] = time.split(":").map(Number);
-        date = new Date();
-        date.setHours(hours, minutes || 0, 0, 0);
-      } else {
-        // Other formats
-        date = new Date(time);
-      }
+    let date: Date;
 
-      return date.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-    } catch {
+    if (isColonFormat) {
+      // Format like "09:00" or "09:00:00"
+      const parts = time.split(":").map(Number);
+      const hours = parts[0];
+      const minutes = parts[1] || 0;
+      date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+    } else {
+      // Other formats
+      date = new Date(time);
+    }
+
+    // Check if the date is valid
+    const isValidDate = !Number.isNaN(date.getTime());
+    if (!isValidDate) {
       return time; // Return original if parsing fails
     }
+
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
   };
 
   const getDaySchedule = () => {
@@ -847,27 +877,30 @@ export default function EventTypeDetail() {
   };
 
   const handlePreview = async () => {
+    const eventTypeSlug = eventSlug || "preview";
+    let link: string;
     try {
-      const eventTypeSlug = eventSlug || "preview";
-      const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-      await openInAppBrowser(link, "event type preview");
+      link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
     } catch (error) {
       safeLogError("Failed to generate preview link:", error);
       showErrorAlert("Error", "Failed to generate preview link. Please try again.");
+      return;
     }
+    await openInAppBrowser(link, "event type preview");
   };
 
   const handleCopyLink = async () => {
+    const eventTypeSlug = eventSlug || "event-link";
+    let link: string;
     try {
-      const eventTypeSlug = eventSlug || "event-link";
-      const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-
-      await Clipboard.setStringAsync(link);
-      Alert.alert("Success", "Link copied!");
+      link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
     } catch (error) {
       safeLogError("Failed to copy link:", error);
       showErrorAlert("Error", "Failed to copy link. Please try again.");
+      return;
     }
+    await Clipboard.setStringAsync(link);
+    Alert.alert("Success", "Link copied!");
   };
 
   const handleDelete = () => {
@@ -934,199 +967,213 @@ export default function EventTypeDetail() {
     // Detect create vs update mode
     const isCreateMode = id === "new";
 
+    // Extract values with optional chaining outside try/catch for React Compiler
+    const selectedScheduleId = selectedSchedule?.id;
+
     setSaving(true);
-    try {
-      if (isCreateMode) {
-        // For CREATE mode, build full payload
-        const payload: CreateEventTypePayload = {
-          title: eventTitle,
-          slug: eventSlug,
-          lengthInMinutes: durationNum,
-        };
 
-        if (eventDescription) {
-          payload.description = eventDescription;
-        }
+    if (isCreateMode) {
+      // For CREATE mode, build full payload
+      const payload: CreateEventTypePayload = {
+        title: eventTitle,
+        slug: eventSlug,
+        lengthInMinutes: durationNum,
+      };
 
-        if (locations.length > 0) {
-          payload.locations = locations.map((loc) => mapItemToApiLocation(loc));
-        }
-
-        if (selectedSchedule) {
-          payload.scheduleId = selectedSchedule.id;
-        }
-
-        payload.hidden = isHidden;
-
-        // Create new event type
-        await CalComAPIService.createEventType(payload);
-        Alert.alert("Success", "Event type created successfully", [
-          {
-            text: "OK",
-            onPress: () => router.back(),
-          },
-        ]);
-        setSaving(false);
-      } else {
-        // For UPDATE mode, use partial update - only send changed fields
-        const currentFormState = {
-          // Basics
-          eventTitle,
-          eventSlug,
-          eventDescription,
-          eventDuration,
-          isHidden,
-          locations,
-          disableGuests,
-
-          // Multiple durations
-          allowMultipleDurations,
-          selectedDurations,
-          defaultDuration,
-
-          // Availability
-          selectedScheduleId: selectedSchedule?.id,
-
-          // Limits
-          beforeEventBuffer,
-          afterEventBuffer,
-          minimumNoticeValue,
-          minimumNoticeUnit,
-          slotInterval,
-          limitBookingFrequency,
-          frequencyLimits,
-          limitTotalDuration,
-          durationLimits,
-          onlyShowFirstAvailableSlot,
-          maxActiveBookingsPerBooker,
-          maxActiveBookingsValue,
-          offerReschedule,
-          limitFutureBookings,
-          futureBookingType,
-          rollingDays,
-          rollingCalendarDays,
-          rangeStartDate,
-          rangeEndDate,
-
-          // Advanced
-          requiresConfirmation,
-          requiresBookerEmailVerification,
-          hideCalendarNotes,
-          hideCalendarEventDetails,
-          hideOrganizerEmail,
-          lockTimezone,
-          allowReschedulingPastEvents,
-          allowBookingThroughRescheduleLink,
-          successRedirectUrl,
-          forwardParamsSuccessRedirect,
-          customReplyToEmail,
-          eventTypeColorLight,
-          eventTypeColorDark,
-          calendarEventName,
-          addToCalendarEmail,
-          selectedLayouts,
-          defaultLayout,
-          disableCancelling,
-          disableRescheduling,
-          sendCalVideoTranscription,
-          autoTranslate,
-
-          // Seats
-          seatsEnabled,
-          seatsPerTimeSlot,
-          showAttendeeInfo,
-          showAvailabilityCount,
-
-          // Recurring
-          recurringEnabled,
-          recurringInterval,
-          recurringFrequency,
-          recurringOccurrences,
-        };
-
-        // Build partial payload with only changed fields
-        const payload = buildPartialUpdatePayload(currentFormState, eventTypeData);
-
-        if (Object.keys(payload).length === 0) {
-          Alert.alert("No Changes", "No changes were made to the event type.");
-          setSaving(false);
-          return;
-        }
-
-        await CalComAPIService.updateEventType(parseInt(id, 10), payload);
-        Alert.alert("Success", "Event type updated successfully");
-        // Refresh event type data to sync with server
-        await fetchEventTypeData();
-        setSaving(false);
+      if (eventDescription) {
+        payload.description = eventDescription;
       }
-    } catch (error) {
-      safeLogError("Failed to save event type:", error);
-      const action = isCreateMode ? "create" : "update";
-      showErrorAlert("Error", `Failed to ${action} event type. Please try again.`);
+
+      if (locations.length > 0) {
+        payload.locations = locations.map((loc) => mapItemToApiLocation(loc));
+      }
+
+      if (selectedScheduleId !== undefined) {
+        payload.scheduleId = selectedScheduleId;
+      }
+
+      payload.hidden = isHidden;
+
+      // Create new event type
+      try {
+        await CalComAPIService.createEventType(payload);
+      } catch (error) {
+        safeLogError("Failed to save event type:", error);
+        showErrorAlert("Error", "Failed to create event type. Please try again.");
+        setSaving(false);
+        return;
+      }
+      Alert.alert("Success", "Event type created successfully", [
+        {
+          text: "OK",
+          onPress: () => router.back(),
+        },
+      ]);
+      setSaving(false);
+    } else {
+      // For UPDATE mode, use partial update - only send changed fields
+      const currentFormState = {
+        // Basics
+        eventTitle,
+        eventSlug,
+        eventDescription,
+        eventDuration,
+        isHidden,
+        locations,
+        disableGuests,
+
+        // Multiple durations
+        allowMultipleDurations,
+        selectedDurations,
+        defaultDuration,
+
+        // Availability
+        selectedScheduleId,
+
+        // Limits
+        beforeEventBuffer,
+        afterEventBuffer,
+        minimumNoticeValue,
+        minimumNoticeUnit,
+        slotInterval,
+        limitBookingFrequency,
+        frequencyLimits,
+        limitTotalDuration,
+        durationLimits,
+        onlyShowFirstAvailableSlot,
+        maxActiveBookingsPerBooker,
+        maxActiveBookingsValue,
+        offerReschedule,
+        limitFutureBookings,
+        futureBookingType,
+        rollingDays,
+        rollingCalendarDays,
+        rangeStartDate,
+        rangeEndDate,
+
+        // Advanced
+        requiresConfirmation,
+        requiresBookerEmailVerification,
+        hideCalendarNotes,
+        hideCalendarEventDetails,
+        hideOrganizerEmail,
+        lockTimezone,
+        allowReschedulingPastEvents,
+        allowBookingThroughRescheduleLink,
+        successRedirectUrl,
+        forwardParamsSuccessRedirect,
+        customReplyToEmail,
+        eventTypeColorLight,
+        eventTypeColorDark,
+        calendarEventName,
+        addToCalendarEmail,
+        selectedLayouts,
+        defaultLayout,
+        disableCancelling,
+        disableRescheduling,
+        sendCalVideoTranscription,
+        autoTranslate,
+
+        // Seats
+        seatsEnabled,
+        seatsPerTimeSlot,
+        showAttendeeInfo,
+        showAvailabilityCount,
+
+        // Recurring
+        recurringEnabled,
+        recurringInterval,
+        recurringFrequency,
+        recurringOccurrences,
+      };
+
+      // Build partial payload with only changed fields
+      const payload = buildPartialUpdatePayload(currentFormState, eventTypeData);
+
+      if (Object.keys(payload).length === 0) {
+        Alert.alert("No Changes", "No changes were made to the event type.");
+        setSaving(false);
+        return;
+      }
+
+      try {
+        await CalComAPIService.updateEventType(parseInt(id, 10), payload);
+      } catch (error) {
+        safeLogError("Failed to save event type:", error);
+        showErrorAlert("Error", "Failed to update event type. Please try again.");
+        setSaving(false);
+        return;
+      }
+      Alert.alert("Success", "Event type updated successfully");
+      // Refresh event type data to sync with server
+      await fetchEventTypeData();
       setSaving(false);
     }
   };
 
+  const headerTitle = id === "new" ? "Create Event Type" : truncateTitle(title);
+  const saveButtonText = id === "new" ? "Create" : "Save";
+
+  const renderHeaderLeft = () => (
+    <AppPressable onPress={() => router.back()} className="px-2 py-2">
+      <Ionicons name="close" size={24} color="#007AFF" />
+    </AppPressable>
+  );
+
+  const renderHeaderRight = () => (
+    <AppPressable
+      onPress={handleSave}
+      disabled={saving}
+      className={`px-2 py-2 ${saving ? "opacity-50" : ""}`}
+    >
+      <Text className="text-[16px] font-semibold text-[#007AFF]">{saveButtonText}</Text>
+    </AppPressable>
+  );
+
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <View className="flex-1 bg-[#f8f9fa]">
-        {/* Glass Header */}
-        <GlassView
-          style={[
-            {
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 1000,
-              paddingHorizontal: Platform.OS === "web" ? 16 : 8,
-              paddingBottom: 12,
-              paddingTop: insets.top + 8,
-            },
-          ]}
-          glassEffectStyle="clear"
-        >
-          <View className="min-h-[44px] flex-row items-center justify-between">
-            <TouchableOpacity
-              className="h-10 w-10 items-start justify-center"
-              onPress={() => router.back()}
-            >
-              <Ionicons name="chevron-back" size={24} color="#000" />
-            </TouchableOpacity>
+      <Stack.Screen
+        options={{
+          title: headerTitle,
+          headerBackButtonDisplayMode: "minimal",
+          headerLeft:
+            Platform.OS === "android" || Platform.OS === "web" ? renderHeaderLeft : undefined,
+          headerRight:
+            Platform.OS === "android" || Platform.OS === "web" ? renderHeaderRight : undefined,
+          headerShown: Platform.OS !== "ios",
+        }}
+      />
 
-            <Text
-              className="mx-2.5 flex-1 text-center text-lg font-semibold text-black"
-              numberOfLines={1}
-            >
-              {id === "new" ? "Create Event Type" : truncateTitle(title)}
-            </Text>
+      {Platform.OS === "ios" && (
+        <Stack.Header>
+          <Stack.Header.Left>
+            <Stack.Header.Button onPress={() => router.back()}>
+              <Stack.Header.Icon sf="xmark" />
+            </Stack.Header.Button>
+          </Stack.Header.Left>
 
-            <TouchableOpacity
-              className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${
-                saving ? "opacity-60" : ""
-              }`}
+          <Stack.Header.Title>{headerTitle}</Stack.Header.Title>
+
+          <Stack.Header.Right>
+            <Stack.Header.Button
               onPress={handleSave}
               disabled={saving}
+              variant="prominent"
+              tintColor="#000"
             >
-              <Text className="text-base font-semibold text-white">
-                {id === "new" ? "Create" : "Save"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </GlassView>
+              {saveButtonText}
+            </Stack.Header.Button>
+          </Stack.Header.Right>
+        </Stack.Header>
+      )}
 
+      <View className="flex-1 bg-[#f8f9fa]">
         {/* Tabs */}
         {isLiquidGlassAvailable() ? (
           <GlassView
             glassEffectStyle="regular"
             style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              top: 0,
-              zIndex: 999,
-              paddingTop: insets.top + 70,
+              paddingTop: 12,
               paddingBottom: 12,
             }}
           >
@@ -1164,12 +1211,7 @@ export default function EventTypeDetail() {
         ) : (
           <View
             style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              top: 0,
-              zIndex: 999,
-              paddingTop: insets.top + 70,
+              paddingTop: Platform.OS === "ios" ? 12 : insets.top + 70,
               paddingBottom: 12,
               backgroundColor: "rgba(255, 255, 255, 0.9)",
               borderBottomWidth: 0.5,
@@ -1213,8 +1255,6 @@ export default function EventTypeDetail() {
         <ScrollView
           style={{
             flex: 1,
-            paddingTop: Platform.OS === "web" ? 120 : 180,
-            paddingBottom: 250,
           }}
           contentContainerStyle={{ padding: 20, paddingBottom: 200 }}
         >
