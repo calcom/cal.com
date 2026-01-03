@@ -1,15 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { Image } from "expo-image";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/hooks";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { getAvatarUrl } from "@/utils/getAvatarUrl";
-import { Image } from "expo-image";
-import { useUserProfile } from "@/hooks";
 
 interface MoreMenuItem {
   name: string;
