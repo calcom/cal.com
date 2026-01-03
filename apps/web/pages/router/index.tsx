@@ -2,7 +2,7 @@
 
 import Head from "next/head";
 
-import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
@@ -21,7 +21,7 @@ export default function Router({ form, message, errorMessage }: inferSSRProps<ty
             <div
               className="prose prose-sm dark:prose-invert max-w-none"
               dangerouslySetInnerHTML={{
-                __html: markdownToSafeHTMLClient(message || errorMessage),
+                __html: markdownToSafeHTML(message || errorMessage),
               }}
             />
           </div>
