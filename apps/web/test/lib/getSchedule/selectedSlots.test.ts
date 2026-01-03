@@ -7,7 +7,7 @@ import {
   type ScenarioData,
 } from "../../utils/bookingScenario/bookingScenario";
 
-import type { IncomingMessage } from "http";
+import type { IncomingMessage } from "node:http";
 import { describe, test, beforeEach, vi } from "vitest";
 import type { z } from "zod";
 

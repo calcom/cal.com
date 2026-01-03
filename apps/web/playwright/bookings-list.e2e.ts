@@ -455,7 +455,7 @@ test.describe("Bookings", () => {
       .click();
     await bookingsGetResponse2;
 
-    await expect(page.locator('[data-testid="booking-item"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="booking-item"]')).toHaveCount(0, { timeout: 0 });
   });
 
   test.describe("Filter Dropdown Item Search", () => {

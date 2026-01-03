@@ -1,7 +1,6 @@
-import { createReadStream, existsSync } from "fs";
-import { promises as fs } from "fs";
-import { IncomingMessage, ServerResponse } from "http";
-import { extname, join, normalize } from "path";
+import { createReadStream, existsSync, promises as fs } from "node:fs";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import { extname, join, normalize } from "node:path";
 
 const distDir = join(process.cwd(), "dist");
 

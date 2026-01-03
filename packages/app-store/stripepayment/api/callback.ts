@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { stringify } from "querystring";
+import { stringify } from "node:querystring";
 
 import type { Prisma } from "@calcom/prisma/client";
 

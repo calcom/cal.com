@@ -49,12 +49,12 @@ describe("dismissBookingReportHandler", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(PermissionCheckService).mockImplementation(
-      () => mockPermissionCheckService as InstanceType<typeof PermissionCheckService>
-    );
-    vi.mocked(PrismaBookingReportRepository).mockImplementation(
-      () => mockReportRepo as InstanceType<typeof PrismaBookingReportRepository>
-    );
+    vi.mocked(PermissionCheckService).mockImplementation(function () {
+      return mockPermissionCheckService as InstanceType<typeof PermissionCheckService>;
+    });
+    vi.mocked(PrismaBookingReportRepository).mockImplementation(function () {
+      return mockReportRepo as InstanceType<typeof PrismaBookingReportRepository>;
+    });
   });
 
   describe("access control", () => {

@@ -96,7 +96,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
         onSuccess: () => {
           utils.viewer.availability.list.invalidate();
           revalidateAvailabilityList();
-          showToast(t("success"), "success");
+          showToast(t("bulk_updated_schedule_successfully"), "success");
           callback();
         },
       }

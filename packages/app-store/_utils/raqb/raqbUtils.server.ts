@@ -6,16 +6,16 @@
 import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-query-builder";
 
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
-import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
-import { resolveQueryValue } from "@calcom/lib/raqb/resolveQueryValue";
+import { resolveQueryValue } from "@calcom/app-store/routing-forms/lib/resolveQueryValue";
+import type {
+  LocalRoute,
+  Attribute,
+  AttributeOptionValueWithType,
+  AttributeOptionValue,
+} from "@calcom/app-store/routing-forms/types/types";
 import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import { caseInsensitive } from "@calcom/lib/raqb/utils";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type {
-  AttributeOptionValueWithType,
-  AttributeOptionValue,
-  Attribute,
-} from "@calcom/lib/service/attribute/server/getAttributes";
 import { AttributeType } from "@calcom/prisma/enums";
 
 function ensureArray(value: string | string[]) {

@@ -179,7 +179,10 @@ type ConferenceResult = {
 const mockEventManagerReschedule = async (config?: MockEventManagerConfig) => {
   const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const spy = vi.spyOn(EventManager.prototype as any, "reschedule");
+  const existingSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
+  // Clear any existing mock calls from previous tests
+  existingSpy.mockClear();
+  const spy = existingSpy;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   spy.mockImplementation(async (event: any) => {

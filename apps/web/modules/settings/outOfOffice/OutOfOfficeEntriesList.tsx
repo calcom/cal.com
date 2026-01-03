@@ -135,8 +135,18 @@ function OutOfOfficeEntriesListContent({
   const flatData = useMemo(
     () =>
       isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
-    [data, selectedTab, isPending, isFetching, searchTerm]
+    [data, isPending, isFetching]
   ) as OutOfOfficeEntry[];
+
+  const deleteOutOfOfficeEntryMutation = trpc.viewer.ooo.outOfOfficeEntryDelete.useMutation({
+    onSuccess: () => {
+      showToast(t("success_deleted_entry_out_of_office"), "success");
+      setDeletedEntry((previousValue) => previousValue + 1);
+    },
+    onError: () => {
+      showToast(`An error occurred`, "error");
+    },
+  });
 
   const memoColumns = useMemo(() => {
     const columnHelper = createColumnHelper<OutOfOfficeEntry>();
@@ -333,7 +343,7 @@ function OutOfOfficeEntriesListContent({
         },
       }),
     ];
-  }, [selectedTab, isPending, isFetching, onOpenEditDialog, t]);
+  }, [selectedTab, isPending, isFetching, onOpenEditDialog, t, deleteOutOfOfficeEntryMutation, totalRowCount]);
 
   const table = useReactTable({
     data: flatData,
@@ -347,16 +357,6 @@ function OutOfOfficeEntriesListContent({
     manualPagination: true,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-  });
-
-  const deleteOutOfOfficeEntryMutation = trpc.viewer.ooo.outOfOfficeEntryDelete.useMutation({
-    onSuccess: () => {
-      showToast(t("success_deleted_entry_out_of_office"), "success");
-      setDeletedEntry((previousValue) => previousValue + 1);
-    },
-    onError: () => {
-      showToast(`An error occurred`, "error");
-    },
   });
 
   return (
@@ -388,7 +388,7 @@ function OutOfOfficeEntriesListContent({
         EmptyView={
           <EmptyScreen
             className="mt-6"
-            headline={selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_title") : t("ooo_empty_title")}
+            headline={searchTerm ? t("no_result_found_for", {searchTerm}) : selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_title") : t("ooo_empty_title")}
             description={
               selectedTab === OutOfOfficeTab.TEAM
                 ? t("ooo_team_empty_description")

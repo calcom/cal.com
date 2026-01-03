@@ -1,8 +1,7 @@
-import { AppPressable } from "./AppPressable";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { View, Text, ActivityIndicator } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AppPressable } from "./AppPressable";
 
 interface GlassModalHeaderProps {
   title: string;

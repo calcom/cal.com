@@ -1,32 +1,50 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { Activity, useMemo, useState } from "react";
-import { View, Text, FlatList, RefreshControl, ScrollView, Alert } from "react-native";
-
-import type { Booking, EventType } from "../../services/calcom";
-import { LoadingSpinner } from "../LoadingSpinner";
-import { EmptyScreen } from "../EmptyScreen";
-import { BookingListItem } from "../booking-list-item/BookingListItem";
-import { BookingModals } from "../booking-modals/BookingModals";
-import { useAuth } from "../../contexts/AuthContext";
 import {
+  Alert,
+  FlatList,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { BookingListItem } from "@/components/booking-list-item/BookingListItem";
+import { BookingModals } from "@/components/booking-modals/BookingModals";
+import { EmptyScreen } from "@/components/EmptyScreen";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Text as UIText } from "@/components/ui/text";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  type BookingFilter,
+  useBookingActions,
   useBookings,
   useCancelBooking,
   useConfirmBooking,
   useDeclineBooking,
   useRescheduleBooking,
-  useBookingActions,
-  useBookingActionModals,
-  type BookingFilter,
-} from "../../hooks";
-import { offlineAwareRefresh } from "../../utils/network";
+} from "@/hooks";
+import type { Booking, EventType } from "@/services/calcom";
+import type { ListItem } from "@/utils/bookings-utils";
 import {
+  filterByEventType,
   getEmptyStateContent,
   groupBookingsByMonth,
   searchBookings,
-  filterByEventType,
-} from "../../utils/bookings-utils";
-import type { ListItem } from "../../utils/bookings-utils";
+} from "@/utils/bookings-utils";
+import { offlineAwareRefresh } from "@/utils/network";
 
 interface BookingListScreenProps {
   // Platform-specific header rendering
@@ -81,13 +99,9 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const {
     data: rawBookings = [],
     isLoading: loading,
-    isFetching,
     error: queryError,
     refetch,
   } = useBookings(filterParams);
-
-  // Show refresh indicator when fetching
-  const refreshing = isFetching && !loading;
 
   // Cancel booking mutation
   const { mutate: cancelBookingMutation } = useCancelBooking();
@@ -106,6 +120,11 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     showRejectModal,
     rejectReason,
     setRejectReason,
+    showCancelModal,
+    cancelReason,
+    setCancelReason,
+    handleSubmitCancel,
+    handleCloseCancelModal,
     selectedBooking,
     setSelectedBooking,
     handleBookingPress,
@@ -125,14 +144,11 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     isRescheduling,
   });
 
-  // Booking action modals hook
-  const { selectedBooking: actionModalBooking } = useBookingActionModals();
-
   // Navigate to reschedule screen (same pattern as booking detail)
   const handleNavigateToReschedule = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/reschedule",
+        pathname: "/reschedule",
         params: { uid: booking.uid },
       });
     },
@@ -143,7 +159,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToEditLocation = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/edit-location",
+        pathname: "/edit-location",
         params: { uid: booking.uid },
       });
     },
@@ -154,7 +170,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToAddGuests = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/add-guests",
+        pathname: "/add-guests",
         params: { uid: booking.uid },
       });
     },
@@ -165,7 +181,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToMarkNoShow = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/mark-no-show",
+        pathname: "/mark-no-show",
         params: { uid: booking.uid },
       });
     },
@@ -176,7 +192,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToViewRecordings = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/view-recordings",
+        pathname: "/view-recordings",
         params: { uid: booking.uid },
       });
     },
@@ -187,7 +203,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToMeetingSessionDetails = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/meeting-session-details",
+        pathname: "/meeting-session-details",
         params: { uid: booking.uid },
       });
     },
@@ -311,7 +327,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         {renderHeader?.()}
         {renderFilterControls?.()}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="alert-circle" size={64} color="#FF3B30" />
+          <Ionicons name="alert-circle" size={64} color="#800020" />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
             Unable to load bookings
           </Text>
@@ -472,7 +488,49 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         }}
       />
 
-      {/* Action Modals */}
+      {/* Cancel Event AlertDialog for Android */}
+      {Platform.OS === "android" && (
+        <AlertDialog open={showCancelModal} onOpenChange={handleCloseCancelModal}>
+          <AlertDialogContent>
+            <AlertDialogHeader className="items-start">
+              <AlertDialogTitle>
+                <UIText className="text-left text-lg font-semibold">Cancel event</UIText>
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                <UIText className="text-left text-sm text-muted-foreground">
+                  Cancellation reason will be shared with guests
+                </UIText>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            {/* Reason Input */}
+            <View>
+              <UIText className="mb-2 text-sm font-medium">Reason for cancellation</UIText>
+              <TextInput
+                className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827]"
+                placeholder="Why are you cancelling?"
+                placeholderTextColor="#9CA3AF"
+                value={cancelReason}
+                onChangeText={setCancelReason}
+                autoFocus
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                style={{ minHeight: 80 }}
+              />
+            </View>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel onPress={handleCloseCancelModal}>
+                <UIText>Nevermind</UIText>
+              </AlertDialogCancel>
+              <AlertDialogAction onPress={handleSubmitCancel}>
+                <UIText className="text-white">Cancel event</UIText>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 };

@@ -64,6 +64,8 @@ describe("roundRobinReassignment test", () => {
     const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
+    // Clear any existing mock calls from previous tests
+    eventManagerSpy.mockClear();
     eventManagerSpy.mockResolvedValue({ referencesToCreate: [] });
 
     const users = testUsers;
@@ -197,6 +199,8 @@ describe("roundRobinReassignment test", () => {
     const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
+    // Clear any existing mock calls from previous tests
+    eventManagerSpy.mockClear();
 
     const users = testUsers;
 

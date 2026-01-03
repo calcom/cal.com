@@ -48,9 +48,9 @@ vi.mock("./removeUserFromOrg", () => ({
 }));
 
 vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
-  UserRepository: vi.fn().mockImplementation(() => ({
+  UserRepository: vi.fn().mockImplementation(function() { return {
     isAMemberOfOrganization: vi.fn().mockResolvedValue(false),
-  })),
+  }; }),
 }));
 
 async function createMockOrganization({ id, name, slug }: { id: number; name: string; slug: string }) {
@@ -191,12 +191,11 @@ describe("handleUserEvents", () => {
       };
 
       const { UserRepository } = await import("@calcom/features/users/repositories/UserRepository");
-      vi.mocked(UserRepository).mockImplementation(
-        () =>
-          ({
-            isAMemberOfOrganization: vi.fn().mockResolvedValue(true),
-          } as unknown as InstanceType<typeof UserRepository>)
-      );
+      vi.mocked(UserRepository).mockImplementation(function () {
+        return {
+          isAMemberOfOrganization: vi.fn().mockResolvedValue(true),
+        } as unknown as InstanceType<typeof UserRepository>;
+      });
 
       await expect(handleUserEvents(event, organizationId)).resolves.not.toThrow();
     });
@@ -292,12 +291,11 @@ describe("handleUserEvents", () => {
       };
 
       const { UserRepository } = await import("@calcom/features/users/repositories/UserRepository");
-      vi.mocked(UserRepository).mockImplementation(
-        () =>
-          ({
-            isAMemberOfOrganization: vi.fn().mockResolvedValue(false),
-          } as unknown as InstanceType<typeof UserRepository>)
-      );
+      vi.mocked(UserRepository).mockImplementation(function () {
+        return {
+          isAMemberOfOrganization: vi.fn().mockResolvedValue(false),
+        } as unknown as InstanceType<typeof UserRepository>;
+      });
 
       const inviteExistingUserToOrg = (await import("./users/inviteExistingUserToOrg")).default;
       const sendExistingUserTeamInviteEmails = (
@@ -377,12 +375,11 @@ describe("handleUserEvents", () => {
       };
 
       const { UserRepository } = await import("@calcom/features/users/repositories/UserRepository");
-      vi.mocked(UserRepository).mockImplementation(
-        () =>
-          ({
-            isAMemberOfOrganization: vi.fn().mockResolvedValue(true),
-          } as unknown as InstanceType<typeof UserRepository>)
-      );
+      vi.mocked(UserRepository).mockImplementation(function () {
+        return {
+          isAMemberOfOrganization: vi.fn().mockResolvedValue(true),
+        } as unknown as InstanceType<typeof UserRepository>;
+      });
 
       const { assignValueToUserInOrgBulk } = await import("./assignValueToUser");
 

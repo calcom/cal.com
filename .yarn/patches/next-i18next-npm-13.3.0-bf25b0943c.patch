@@ -2,8 +2,8 @@ diff --git a/dist/commonjs/serverSideTranslations.js b/dist/commonjs/serverSideT
 index bcad3d02fbdfab8dacb1d85efd79e98623a0c257..fff668f598154a13c4030d1b4a90d5d9c18214ad 100644
 --- a/dist/commonjs/serverSideTranslations.js
 +++ b/dist/commonjs/serverSideTranslations.js
-@@ -36,7 +36,6 @@ var _fs = _interopRequireDefault(require("fs"));
- var _path = _interopRequireDefault(require("path"));
+@@ -36,7 +36,6 @@ var _fs = _interopRequireDefault(require("node:fs"));
+ var _path = _interopRequireDefault(require("node:path"));
  var _createConfig = require("./config/createConfig");
  var _node = _interopRequireDefault(require("./createClient/node"));
 -var _appWithTranslation = require("./appWithTranslation");

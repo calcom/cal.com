@@ -203,7 +203,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
               <DropdownMenuItem>
                 <DropdownItem
                   type="button"
+                  color="destructive"
                   StartIcon="log-out"
+                  className="rounded-t-none"
                   aria-hidden="true"
                   onClick={() => {
                     signOut({ callbackUrl: "/auth/logout" });

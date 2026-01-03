@@ -57,7 +57,7 @@ test.describe("Unpublished Organization Redirection", () => {
         await expect(page.getByTestId("empty-screen")).toBeVisible();
 
         // Ensure that the team name is not displayed.
-        await expect(page.getByTestId("team-name")).toHaveCount(0);
+        await expect(page.getByTestId("team-name")).toHaveCount(0, { timeout: 0 });
       });
     });
 
@@ -101,8 +101,8 @@ test.describe("Unpublished Organization Redirection", () => {
         await expect(page.getByTestId("empty-screen")).toBeVisible();
 
         // Ensure user profile elements are not visible.
-        await expect(page.locator('[data-testid="name-title"]')).toHaveCount(0);
-        await expect(page.locator('[data-testid="event-types"]')).toHaveCount(0);
+        await expect(page.locator('[data-testid="name-title"]')).toHaveCount(0, { timeout: 0 });
+        await expect(page.locator('[data-testid="event-types"]')).toHaveCount(0, { timeout: 0 });
       });
     });
 

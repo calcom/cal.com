@@ -4,8 +4,8 @@
  * This hook provides real-time network status for components.
  * Used to disable mutations when offline.
  */
-import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
-import { useState, useEffect } from "react";
+import NetInfo, { type NetInfoState } from "@react-native-community/netinfo";
+import { useEffect, useState } from "react";
 
 interface NetworkStatus {
   isOnline: boolean;

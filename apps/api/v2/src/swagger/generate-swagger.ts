@@ -2,15 +2,19 @@ import { getEnv } from "@/env";
 import { Logger } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
-import {
+import type {
   PathItemObject,
   PathsObject,
   OperationObject,
 } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import "dotenv/config";
-import * as fs from "fs";
-import { Server } from "http";
+import * as fs from "node:fs";
+import type { Server } from "node:http";
 import { spawnSync } from "node:child_process";
+import { createRequire } from "node:module";
+
+const nodeRequire = createRequire(__filename);
+const biomeBin = nodeRequire.resolve("@biomejs/biome/bin/biome");
 
 const HttpMethods: (keyof PathItemObject)[] = ["get", "post", "put", "delete", "patch", "options", "head"];
 
@@ -28,7 +32,7 @@ export async function generateSwaggerForApp(app: NestExpressApplication<Server>)
   if (fs.existsSync(docsOutputFile) && getEnv("NODE_ENV") === "development") {
     fs.unlinkSync(docsOutputFile);
     fs.writeFileSync(docsOutputFile, stringifiedContents, { encoding: "utf8" });
-    spawnSync("npx", ["prettier", docsOutputFile, "--write"], { stdio: "inherit" });
+    spawnSync("node", [biomeBin, "format", "--write", docsOutputFile], { stdio: "inherit" });
   }
 
   if (!process.env.DOCS_URL) {

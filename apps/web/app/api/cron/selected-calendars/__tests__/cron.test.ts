@@ -11,9 +11,9 @@ import { handleCreateSelectedCalendars, isSameEmail } from "../route";
 const getPrimaryCalendarMock = vi.fn();
 vi.mock("@calcom/app-store/googlecalendar/lib/CalendarService", () => {
   return {
-    default: vi.fn().mockImplementation(() => ({
+    default: vi.fn().mockImplementation(function() { return {
       getPrimaryCalendar: getPrimaryCalendarMock,
-    })),
+    }; }),
   };
 });
 

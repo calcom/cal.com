@@ -111,7 +111,6 @@ import zoho_bigin_config_json from "./zoho-bigin/config.json";
 import zohocalendar_config_json from "./zohocalendar/config.json";
 import zohocrm_config_json from "./zohocrm/config.json";
 import { metadata as zoomvideo__metadata_ts } from "./zoomvideo/_metadata";
-
 export const appStoreMetadata = {
   alby: alby_config_json,
   amie: amie_config_json,

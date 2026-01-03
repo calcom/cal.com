@@ -1,4 +1,4 @@
-import { randomBytes, createHash } from "crypto";
+import { randomBytes, createHash } from "node:crypto";
 
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";

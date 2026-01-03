@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 
 import dayjs from "@calcom/dayjs";
 import { prisma } from "@calcom/prisma";

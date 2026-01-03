@@ -1106,17 +1106,49 @@ export async function login(
   await responsePromise;
 }
 
+/**
+ * Helper to retry network requests that may fail with transient errors like ECONNRESET
+ */
+async function retryOnNetworkError<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  delayMs = 500
+): Promise<T> {
+  let lastError: Error | undefined;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+      const errorMessage = lastError.message || "";
+      // Only retry on transient network errors
+      const isRetryable =
+        errorMessage.includes("ECONNRESET") ||
+        errorMessage.includes("ECONNREFUSED") ||
+        errorMessage.includes("ETIMEDOUT") ||
+        errorMessage.includes("socket hang up");
+
+      if (!isRetryable || attempt === maxRetries) {
+        throw lastError;
+      }
+      // Wait before retrying with exponential backoff
+      await new Promise((resolve) => setTimeout(resolve, delayMs * attempt));
+    }
+  }
+  throw lastError;
+}
+
 export async function apiLogin(
   user: Pick<User, "username"> & Partial<Pick<User, "email">> & { password: string | null },
   page: Page,
   navigateToUrl?: string
 ) {
-  // Get CSRF token
-  const csrfToken = await page
-    .context()
-    .request.get("/api/auth/csrf")
-    .then((response) => response.json())
-    .then((json) => json.csrfToken);
+  // Get CSRF token with retry for transient network errors
+  const csrfToken = await retryOnNetworkError(async () => {
+    const response = await page.context().request.get("/api/auth/csrf");
+    const json = await response.json();
+    return json.csrfToken;
+  });
 
   // Make the login request
   const loginData = {
@@ -1128,9 +1160,11 @@ export async function apiLogin(
     csrfToken,
   };
 
-  const response = await page.context().request.post("/api/auth/callback/credentials", {
-    data: loginData,
-  });
+  const response = await retryOnNetworkError(() =>
+    page.context().request.post("/api/auth/callback/credentials", {
+      data: loginData,
+    })
+  );
 
   expect(response.status()).toBe(200);
 

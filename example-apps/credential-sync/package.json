@@ -5,12 +5,10 @@
   "scripts": {
     "dev": "PORT=5100 next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint ."
+    "start": "next start"
   },
   "dependencies": {
     "@calcom/atoms": "workspace:*",
-    "@calcom/eslint-config": "workspace:*",
     "@prisma/client": "6.16.1",
     "next": "14.2.35",
     "prisma": "6.16.1",
@@ -25,6 +23,6 @@
     "dotenv": "16.6.1",
     "postcss": "8.5.6",
     "tailwindcss": "3.4.1",
-    "typescript": "4.9.5"
+    "typescript": "5.9.3"
   }
 }

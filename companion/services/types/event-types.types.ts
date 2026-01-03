@@ -225,6 +225,18 @@ export interface EventType {
   disableCancelling?: boolean;
   minimumRescheduleNotice?: number;
   allowReschedulingPastBookings?: boolean;
+
+  // Additional properties from API responses
+  hideCalendarEventDetails?: boolean;
+  hideOrganizerEmail?: boolean;
+  allowReschedulingCancelledBookings?: boolean;
+  customReplyToEmail?: string;
+  color?: {
+    lightThemeHex?: string;
+    darkThemeHex?: string;
+  };
+  sendCalVideoTranscription?: boolean;
+  autoTranslate?: boolean;
 }
 
 export interface CreateEventTypeInput {

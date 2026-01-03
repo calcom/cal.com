@@ -14,9 +14,9 @@ import { handleNoShowFee } from "./handleNoShowFee";
 vi.mock("@calcom/app-store/payment.services.generated", () => ({
   PaymentServiceMap: {
     stripepayment: Promise.resolve({
-      PaymentService: vi.fn().mockImplementation(() => ({
+      PaymentService: vi.fn().mockImplementation(function() { return {
         chargeCard: vi.fn(),
-      })),
+      }; }),
     }),
   },
 }));
@@ -43,9 +43,9 @@ vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => (
 }));
 
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
-  TeamRepository: vi.fn().mockImplementation(() => ({
+  TeamRepository: vi.fn().mockImplementation(function() { return {
     findParentOrganizationByTeamId: vi.fn(),
-  })),
+  }; }),
 }));
 
 vi.mock("@calcom/prisma", () => ({
@@ -62,7 +62,7 @@ describe("handleNoShowFee", () => {
     };
 
     const paymentServiceModule = await PaymentServiceMap.stripepayment;
-    vi.mocked(paymentServiceModule.PaymentService).mockImplementation(() => mockPaymentService);
+    vi.mocked(paymentServiceModule.PaymentService).mockImplementation(function() { return mockPaymentService; });
   });
 
   const mockBooking = {
@@ -211,7 +211,7 @@ describe("handleNoShowFee", () => {
       const mockTeamRepository = {
         findParentOrganizationByTeamId: vi.fn().mockResolvedValue({ id: 2 }),
       };
-      vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepository);
+      vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepository; });
 
       const result = await handleNoShowFee({
         booking: teamBooking,

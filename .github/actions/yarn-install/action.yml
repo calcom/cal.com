@@ -15,12 +15,16 @@ inputs:
   node_version:
     required: false
     default: v20.x
+  skip-install-if-cache-hit:
+    description: "Skip yarn install if node_modules cache is hit. Use this for jobs that only need to check that cache exists."
+    required: false
+    default: "false"
 
 runs:
   using: "composite"
   steps:
     - name: Use Node ${{ inputs.node_version }}
-      uses: buildjet/setup-node@v4
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node_version }}
     - name: Expose yarn config as "$GITHUB_OUTPUT"
@@ -29,10 +33,57 @@ runs:
       run: |
         echo "CACHE_FOLDER=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
 
+    # When skip-install-if-cache-hit is true, first check if all caches exist without downloading (lookup-only mode)
+    # This avoids downloading ~1.2GB of cache data when we just want to verify caches exist
+    - name: Check yarn cache (lookup-only)
+      if: ${{ inputs.skip-install-if-cache-hit == 'true' }}
+      uses: actions/cache/restore@v4
+      id: yarn-download-cache-check
+      with:
+        path: ${{ steps.yarn-config.outputs.CACHE_FOLDER }}
+        key: yarn-download-cache-${{ hashFiles('yarn.lock') }}
+        lookup-only: true
+
+    - name: Check node_modules cache (lookup-only)
+      if: ${{ inputs.skip-install-if-cache-hit == 'true' }}
+      uses: actions/cache/restore@v4
+      id: yarn-nm-cache-check
+      with:
+        path: |
+          **/node_modules/
+          !**/.next/node_modules/
+        key: ${{ runner.os }}-yarn-nm-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
+        lookup-only: true
+
+    - name: Check yarn install state cache (lookup-only)
+      if: ${{ inputs.skip-install-if-cache-hit == 'true' }}
+      uses: actions/cache/restore@v4
+      id: yarn-install-state-cache-check
+      with:
+        path: .yarn/ci-cache/
+        key: ${{ runner.os }}-yarn-install-state-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
+        lookup-only: true
+
+    # Compute whether all caches hit (only in skip mode)
+    - name: Check if all caches hit
+      if: ${{ inputs.skip-install-if-cache-hit == 'true' }}
+      id: all-caches-check
+      shell: bash
+      run: |
+        if [[ "${{ steps.yarn-download-cache-check.outputs.cache-hit }}" == "true" && \
+              "${{ steps.yarn-nm-cache-check.outputs.cache-hit }}" == "true" && \
+              "${{ steps.yarn-install-state-cache-check.outputs.cache-hit }}" == "true" ]]; then
+          echo "all-hit=true" >> $GITHUB_OUTPUT
+        else
+          echo "all-hit=false" >> $GITHUB_OUTPUT
+        fi
+
     # Yarn rotates the downloaded cache archives, @see https://github.com/actions/setup-node/issues/325
     # Yarn cache is also reusable between arch and os.
+    # Only restore if not in skip mode, or if skip mode but any cache check missed
     - name: Restore yarn cache
-      uses: buildjet/cache@v4
+      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.all-caches-check.outputs.all-hit != 'true' }}
+      uses: actions/cache@v4
       id: yarn-download-cache
       with:
         path: ${{ steps.yarn-config.outputs.CACHE_FOLDER }}
@@ -40,25 +91,28 @@ runs:
 
     # Invalidated on yarn.lock changes
     - name: Restore node_modules
+      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.all-caches-check.outputs.all-hit != 'true' }}
       id: yarn-nm-cache
-      uses: buildjet/cache@v4
+      uses: actions/cache@v4
       with:
-        path: "**/node_modules/"
+        path: |
+          **/node_modules/
+          !**/.next/node_modules/
         key: ${{ runner.os }}-yarn-nm-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
 
     # Invalidated on yarn.lock changes
     - name: Restore yarn install state
+      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.all-caches-check.outputs.all-hit != 'true' }}
       id: yarn-install-state-cache
-      uses: buildjet/cache@v4
+      uses: actions/cache@v4
       with:
         path: .yarn/ci-cache/
         key: ${{ runner.os }}-yarn-install-state-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
 
     - name: Install dependencies
+      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.all-caches-check.outputs.all-hit != 'true' }}
       shell: bash
-      run: |
-        yarn install --inline-builds
-        yarn prisma generate
+      run: yarn install --inline-builds
       env:
         # CI optimizations. Overrides yarnrc.yml options (or their defaults) in the CI action.
         YARN_ENABLE_IMMUTABLE_INSTALLS: "false" # So it doesn't try to remove our private submodule deps

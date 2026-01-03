@@ -1,4 +1,4 @@
-import { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "../client";
 
 export function excludePendingPaymentsExtension() {
   return Prisma.defineExtension({

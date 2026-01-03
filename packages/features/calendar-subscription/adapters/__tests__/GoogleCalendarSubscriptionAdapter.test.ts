@@ -94,9 +94,11 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
     };
 
     const { CalendarAuth } = await import("../__mocks__/CalendarAuth");
-    vi.mocked(CalendarAuth).mockImplementation(() => ({
-      getClient: vi.fn().mockResolvedValue(mockClient),
-    }));
+    vi.mocked(CalendarAuth).mockImplementation(function() {
+      return {
+        getClient: vi.fn().mockResolvedValue(mockClient),
+      };
+    });
 
     adapter = new GoogleCalendarSubscriptionAdapter();
     vi.clearAllMocks();

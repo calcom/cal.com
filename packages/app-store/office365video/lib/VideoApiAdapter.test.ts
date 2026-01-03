@@ -34,7 +34,7 @@ vi.mock("../../_utils/getParsedAppKeysFromSlug", () => ({
 
 const mockRequestRaw = vi.fn();
 vi.mock("../../_utils/oauth/OAuthManager", () => ({
-  OAuthManager: vi.fn().mockImplementation(() => {
+  OAuthManager: vi.fn().mockImplementation(function() {
     return { requestRaw: mockRequestRaw };
   }),
 }));

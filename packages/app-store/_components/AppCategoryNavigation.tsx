@@ -35,7 +35,7 @@ const AppCategoryNavigation = ({
       <div className="hidden xl:block">
         <VerticalTabs tabs={appCategories} sticky linkShallow itemClassname={classNames?.verticalTabsItem} />
       </div>
-      <div className="block overflow-x-scroll xl:hidden">
+      <div className="block xl:hidden">
         <HorizontalTabs tabs={appCategories} linkShallow />
       </div>
       <main className={classNames?.container ?? containerClassname} ref={animationRef}>

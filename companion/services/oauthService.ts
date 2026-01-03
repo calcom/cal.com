@@ -5,6 +5,9 @@ import * as Crypto from "expo-crypto";
 import * as WebBrowser from "expo-web-browser";
 import { Platform } from "react-native";
 
+import { fetchWithTimeout } from "@/utils/network";
+import { safeLogWarn } from "@/utils/safeLogger";
+
 WebBrowser.maybeCompleteAuthSession();
 
 // Message types for extension communication
@@ -89,7 +92,6 @@ export interface OAuthConfig {
 export class CalComOAuthService {
   private config: OAuthConfig;
   private codeVerifier: string | null = null;
-  private state: string | null = null;
 
   constructor(config: OAuthConfig) {
     this.config = config;
@@ -101,7 +103,6 @@ export class CalComOAuthService {
     const state = this.generateRandomBase64Url();
 
     this.codeVerifier = codeVerifier;
-    this.state = state;
 
     return { codeVerifier, codeChallenge, state };
   }
@@ -344,14 +345,18 @@ export class CalComOAuthService {
     tokenRequest: Record<string, string>,
     tokenEndpoint: string
   ): Promise<OAuthTokens> {
-    const response = await fetch(tokenEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json",
+    const response = await fetchWithTimeout(
+      tokenEndpoint,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+        body: new URLSearchParams(tokenRequest).toString(),
       },
-      body: new URLSearchParams(tokenRequest).toString(),
-    });
+      30000
+    );
 
     if (!response.ok) {
       throw new Error("Token exchange failed");
@@ -427,7 +432,6 @@ export class CalComOAuthService {
 
   clearPKCEParams(): void {
     this.codeVerifier = null;
-    this.state = null;
   }
 
   async syncTokensToExtension(tokens: OAuthTokens): Promise<void> {
@@ -437,7 +441,7 @@ export class CalComOAuthService {
 
     const sessionToken = await getExtensionSessionToken();
     if (!sessionToken) {
-      console.warn("No session token available for token sync");
+      safeLogWarn("No session token available for token sync");
       return;
     }
 
@@ -461,7 +465,7 @@ export class CalComOAuthService {
         if (event.data.success) {
           resolve();
         } else {
-          console.warn("Failed to sync tokens to extension:", event.data.error);
+          safeLogWarn("Failed to sync tokens to extension", event.data.error);
           resolve();
         }
       };
@@ -481,7 +485,7 @@ export class CalComOAuthService {
 
     const sessionToken = await getExtensionSessionToken();
     if (!sessionToken) {
-      console.warn("No session token available for token clear");
+      safeLogWarn("No session token available for token clear");
       return;
     }
 
@@ -505,7 +509,7 @@ export class CalComOAuthService {
         if (event.data.success) {
           resolve();
         } else {
-          console.warn("Failed to clear tokens from extension:", event.data.error);
+          safeLogWarn("Failed to clear tokens from extension", event.data.error);
           resolve();
         }
       };
@@ -618,10 +622,6 @@ function getBrowserSpecificOAuthConfig(): { clientId: string; redirectUri: strin
         clientId: process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID_EDGE || defaultClientId,
         redirectUri: process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI_EDGE || defaultRedirectUri,
       };
-
-    case "chrome":
-    case "brave":
-    case "unknown":
     default:
       // Chrome, Brave, and unknown browsers use the default configuration
       return { clientId: defaultClientId, redirectUri: defaultRedirectUri };

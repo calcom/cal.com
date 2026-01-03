@@ -1,13 +1,25 @@
 name: Cache production build binaries
 description: "Cache or restore if necessary"
-inputs:
-  node_version:
-    required: false
-    default: v18.x
 runs:
   using: "composite"
   steps:
+    - name: Generate cache key
+      id: cache-key
+      uses: ./.github/actions/cache-build-key
+      with:
+        branch_key: ${{ github.head_ref || github.ref_name }}
+    - name: Cache production build
+      uses: actions/cache@v4
+      id: cache-build
+      with:
+        path: |
+          ${{ github.workspace }}/apps/web/.next
+          ${{ github.workspace }}/apps/web/public/embed
+          **/.turbo/**
+          **/dist/**
+        key: ${{ steps.cache-key.outputs.key }}
     - run: |
         export NODE_OPTIONS="--max_old_space_size=8192"
         yarn build
+      if: steps.cache-build.outputs.cache-hit != 'true'
       shell: bash

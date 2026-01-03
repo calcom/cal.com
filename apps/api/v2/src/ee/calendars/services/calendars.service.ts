@@ -75,7 +75,6 @@ export class CalendarsService {
       eventTypeId: null,
       prisma: this.dbWrite.prisma as unknown as PrismaClient,
     });
-    console.log("saving cache", JSON.stringify(result));
     await this.calendarsCacheService.setConnectedAndDestinationCalendarsCache(userId, result);
 
     return result;

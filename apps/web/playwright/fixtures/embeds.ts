@@ -17,6 +17,46 @@ export const createEmbedsFixture = (page: Page) => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
           window.eventsFiredStoreForPlaywright = window.eventsFiredStoreForPlaywright || {};
+
+          // Add a postMessage listener immediately to capture __iframeReady events
+          // This avoids the race condition where the event fires before Cal.ns[namespace] is ready
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          if (!window.postMessageListenerAdded) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-ignore
+            window.postMessageListenerAdded = true;
+            window.addEventListener("message", (event) => {
+              // Filter for Cal.com embed messages
+              if (
+                event.data &&
+                typeof event.data === "object" &&
+                event.data.originator === "CAL" &&
+                event.data.type
+              ) {
+                const { type, namespace, data } = event.data;
+                console.log("PlaywrightTest postMessage:", `Received ${type} for namespace ${namespace}`);
+
+                // Set iframeReady when we receive __iframeReady event for our namespace
+                if (type === "__iframeReady" && namespace === calNamespace) {
+                  console.log("PlaywrightTest postMessage:", "Setting window.iframeReady = true");
+                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                  //@ts-ignore
+                  window.iframeReady = true;
+                }
+
+                // Store the event in our event store
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                //@ts-ignore
+                const store = window.eventsFiredStoreForPlaywright;
+                if (store) {
+                  const eventStore = (store[`${type}-${namespace}`] = store[`${type}-${namespace}`] || []);
+                  eventStore.push({ type, namespace, fullType: `CAL:${namespace}:${type}`, data });
+                }
+              }
+            });
+          }
+
           document.addEventListener("DOMContentLoaded", function tryAddingListener() {
             if (parent !== window) {
               // Firefox seems to execute this snippet for iframe as well. Avoid that. It must be executed only for parent frame.

@@ -242,8 +242,8 @@ test.describe("Organization Creation Flows - Comprehensive Suite", () => {
 
       // Verify billing fields are NOT visible to regular users
       if (IS_TEAM_BILLING_ENABLED) {
-        await expect(page.locator("input[name=seats]")).not.toBeVisible();
-        await expect(page.locator("input[name=pricePerSeat]")).not.toBeVisible();
+        await expect(page.locator("input[name=seats]")).not.toBeVisible({ timeout: 0 });
+        await expect(page.locator("input[name=pricePerSeat]")).not.toBeVisible({ timeout: 0 });
 
         // Verify "Upgrade to Organizations" UI is shown
         await expect(page.getByText(/upgrade to organizations/i)).toBeVisible();
@@ -439,9 +439,9 @@ test.describe("Organization Creation Flows - Comprehensive Suite", () => {
       await page.goto("/settings/organizations/new");
 
       // Should NOT see admin billing fields
-      await expect(page.locator("input[name=seats]")).not.toBeVisible();
-      await expect(page.locator("input[name=pricePerSeat]")).not.toBeVisible();
-      await expect(page.locator("#billingPeriod")).not.toBeVisible();
+      await expect(page.locator("input[name=seats]")).not.toBeVisible({ timeout: 0 });
+      await expect(page.locator("input[name=pricePerSeat]")).not.toBeVisible({ timeout: 0 });
+      await expect(page.locator("#billingPeriod")).not.toBeVisible({ timeout: 0 });
 
       // Should see upgrade/pricing UI
       await expect(page.getByText(/upgrade to organizations/i)).toBeVisible();

@@ -52,7 +52,6 @@ import { appKeysSchema as zoho_bigin_zod_ts } from "./zoho-bigin/zod";
 import { appKeysSchema as zohocalendar_zod_ts } from "./zohocalendar/zod";
 import { appKeysSchema as zohocrm_zod_ts } from "./zohocrm/zod";
 import { appKeysSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
-
 export const appKeysSchemas = {
   alby: alby_zod_ts,
   basecamp3: basecamp3_zod_ts,

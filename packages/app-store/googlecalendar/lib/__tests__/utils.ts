@@ -177,7 +177,7 @@ export const createMockJWTInstance = ({
     createGToken: vi.fn(),
   };
 
-  vi.mocked(JWT).mockImplementation(() => {
+  vi.mocked(JWT).mockImplementation(function() {
     setLastCreatedJWT(mockJWTInstance);
     return mockJWTInstance as unknown as JWT;
   });

@@ -289,7 +289,7 @@ function isEventInPast(eventElement: Element): boolean {
     // Short date format: "Dec 20, 2024"
     /(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})/i,
     // Numeric format: "12/20/2024" or "20/12/2024"
-    /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/,
+    /(\d{1,2})[/-](\d{1,2})[/-](\d{4})/,
   ];
 
   const months: Record<string, number> = {
@@ -374,7 +374,7 @@ function isEventInPast(eventElement: Element): boolean {
   if (eventStartAttr) {
     try {
       const eventDate = new Date(eventStartAttr);
-      if (!isNaN(eventDate.getTime())) {
+      if (!Number.isNaN(eventDate.getTime())) {
         return eventDate < now;
       }
     } catch {
@@ -443,7 +443,7 @@ function parseAttendees(eventPopup: Element): AttendeeInfo[] {
     // Extract name from the SDqFWd span (Google Calendar's name display)
     let name = email.split("@")[0];
     const nameSpan = el.querySelector(".SDqFWd span");
-    if (nameSpan && nameSpan.textContent) {
+    if (nameSpan?.textContent) {
       const nameText = nameSpan.textContent.trim();
       // Only use if it's not just the email
       if (nameText !== email && nameText.includes("@") === false) {
@@ -689,7 +689,9 @@ function showConfirmDialog(
  */
 function showAlert(message: string, type: "error" | "success" | "info" = "info"): void {
   // Remove existing alerts
-  document.querySelectorAll(".cal-noshow-alert").forEach((el) => el.remove());
+  for (const el of document.querySelectorAll(".cal-noshow-alert")) {
+    el.remove();
+  }
 
   const alert = document.createElement("div");
   alert.className = `cal-noshow-alert ${type}`;
@@ -1092,7 +1094,7 @@ async function injectNoShowButtons(eventPopup: Element): Promise<void> {
         ? nameContainer.querySelector(".SDqFWd span, .SDqFWd")
         : attendee.element.querySelector(".SDqFWd span, .SDqFWd");
 
-      if (nameSpan && nameSpan.parentElement) {
+      if (nameSpan?.parentElement) {
         // Insert button AFTER the name span (on the right side)
         // Check if button already exists at this location
         const parent = nameSpan.parentElement;
@@ -1162,7 +1164,7 @@ async function injectNoShowButtons(eventPopup: Element): Promise<void> {
       const emailElement = eventPopup.querySelector(`[data-email="${attendee.email}"]`);
       if (emailElement && emailElement !== eventPopup) {
         const nameSpan = emailElement.querySelector(".SDqFWd span, .SDqFWd");
-        if (nameSpan && nameSpan.parentElement) {
+        if (nameSpan?.parentElement) {
           nameSpan.parentElement.insertBefore(buttonContainer, nameSpan.nextSibling);
           inserted = true;
         } else if (emailElement.parentElement) {

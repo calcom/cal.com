@@ -1,3 +1,7 @@
-yarn lint-staged
+if [ -f .git/MERGE_HEAD ]; then
+  echo "Merge detected. Skipping lint-staged and generators."
+  exit 0
+fi
 
+yarn lint-staged
 yarn app-store:build && git add packages/app-store/*.generated.*

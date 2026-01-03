@@ -33,9 +33,11 @@ describe("handleSeats", () => {
 
   describe("Correct parameters being passed into handleSeats from handleNewBooking", () => {
     vi.mock("./handleSeats");
+
     test("On new booking handleSeats is not called", async () => {
       const handleNewBooking = getNewBookingHandler();
       const spy = vi.spyOn(handleSeatsModule, "default");
+      spy.mockClear();
 
       const booker = getBooker({
         email: "booker@example.com",
@@ -97,6 +99,7 @@ describe("handleSeats", () => {
 
     test("handleSeats is called when a new attendee is added", async () => {
       const spy = vi.spyOn(handleSeatsModule, "default");
+      spy.mockClear();
       const handleNewBooking = getNewBookingHandler();
 
       const booker = getBooker({
@@ -242,6 +245,7 @@ describe("handleSeats", () => {
 
     test("handleSeats is called on rescheduling a seated event", async () => {
       const spy = vi.spyOn(handleSeatsModule, "default");
+      spy.mockClear();
       const handleNewBooking = getNewBookingHandler();
 
       const booker = getBooker({

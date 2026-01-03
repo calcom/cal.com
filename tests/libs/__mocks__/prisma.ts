@@ -1,6 +1,6 @@
 import { type DMMF } from "@prisma/client/runtime/client";
 import { getDMMF } from "@prisma/internals";
-import { readFileSync } from "fs";
+import { readFileSync } from "node:fs";
 import { beforeEach, vi } from "vitest";
 import { createPrismock } from "prismock/build/main/lib/client";
 
@@ -84,7 +84,7 @@ vi.mock("@calcom/prisma", async (importOriginal) => {
   const PrismockClientClass = createPrismock(
     PrismaWithDMMF as unknown as typeof Prisma & { dmmf: DMMF.Document }
   );
-  
+
   prismockInstance = new PrismockClientClass();
 
   if (!prismockInstance.$queryRaw) {
