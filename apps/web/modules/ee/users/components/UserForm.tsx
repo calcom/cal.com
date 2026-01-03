@@ -1,3 +1,5 @@
+"use client";
+
 import { noop } from "lodash";
 import { Controller, useForm } from "react-hook-form";
 

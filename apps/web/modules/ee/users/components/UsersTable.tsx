@@ -1,3 +1,5 @@
+"use client";
+
 import { keepPreviousData } from "@tanstack/react-query";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -22,7 +24,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { withLicenseRequired } from "../../common/components/LicenseRequired";
+import { withLicenseRequired } from "@calcom/features/ee/common/components/LicenseRequired";
 
 const { Cell, ColumnTitle, Header, Row } = Table;
 

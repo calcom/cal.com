@@ -6,9 +6,9 @@ import { getParserWithGeneric } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
-import LicenseRequired from "../../common/components/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { userBodySchema } from "@calcom/features/ee/users/schemas/userBodySchema";
 import { UserForm } from "../components/UserForm";
-import { userBodySchema } from "../schemas/userBodySchema";
 
 const UsersAddView = () => {
   const pathname = usePathname();
