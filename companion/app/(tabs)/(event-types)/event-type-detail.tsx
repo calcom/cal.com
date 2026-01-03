@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { Activity, useCallback, useEffect, useState } from "react";
 import {
   Alert,
   Animated,
@@ -1194,58 +1194,13 @@ export default function EventTypeDetail() {
           style={{
             flex: 1,
           }}
-          contentContainerStyle={{ padding: 20, paddingBottom: 200 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: 200 }}
           contentInsetAdjustmentBehavior="automatic"
         >
-          {/* {isLiquidGlassAvailable() ? (
-            <GlassView
-              glassEffectStyle="regular"
-              style={{
-                paddingTop: 12,
-                paddingBottom: 12,
-              }}
-            >
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 12, gap: 4 }}
-              >
-                {tabs.map((tab) => (
-                  <TouchableOpacity
-                    key={tab.id}
-                    className={`min-w-[90px] items-center rounded-[24px] px-3 py-3 md:px-5 ${
-                      activeTab === tab.id ? "bg-[rgba(0,0,0,0.08)]" : ""
-                    }`}
-                    onPress={() => setActiveTab(tab.id)}
-                  >
-                    <View className="flex-row items-center gap-2">
-                      <Ionicons
-                        name={tab.icon}
-                        size={18}
-                        color={activeTab === tab.id ? "#007AFF" : "#666"}
-                      />
-                      <Text
-                        className={`text-base font-medium ${
-                          activeTab === tab.id
-                            ? "font-semibold text-[#007AFF]"
-                            : "text-[#666]"
-                        }`}
-                      >
-                        {tab.label}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </GlassView>
-          ) : (
+          <Activity mode={Platform.OS !== "ios" ? "visible" : "hidden"}>
             <View
               style={{
-                paddingTop: Platform.OS === "ios" ? 12 : insets.top + 70,
                 paddingBottom: 12,
-                backgroundColor: "rgba(255, 255, 255, 0.9)",
-                borderBottomWidth: 0.5,
-                borderBottomColor: "#C6C6C8",
               }}
             >
               <ScrollView
@@ -1269,9 +1224,7 @@ export default function EventTypeDetail() {
                       />
                       <Text
                         className={`text-base font-medium ${
-                          activeTab === tab.id
-                            ? "font-semibold text-[#007AFF]"
-                            : "text-[#666]"
+                          activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"
                         }`}
                       >
                         {tab.label}
@@ -1281,7 +1234,7 @@ export default function EventTypeDetail() {
                 ))}
               </ScrollView>
             </View>
-          )} */}
+          </Activity>
 
           {activeTab === "basics" ? (
             <BasicsTab
@@ -2035,7 +1988,7 @@ export default function EventTypeDetail() {
 
           <View className="rounded-2xl bg-white p-5 mt-3 gap-3">
             <View className="h-12 flex-row items-center justify-between">
-              <Text className="text-[#333]">Hidden</Text>
+              <Text>Hidden</Text>
               <Switch
                 value={isHidden}
                 onValueChange={setIsHidden}
@@ -2048,7 +2001,7 @@ export default function EventTypeDetail() {
               className="h-12 flex-row items-center justify-between"
               onPress={handlePreview}
             >
-              <Text className=" text-[#333]">Preview</Text>
+              <Text>Preview</Text>
               <Ionicons name="open-outline" size={20} color="#000" />
             </TouchableOpacity>
 
@@ -2056,7 +2009,7 @@ export default function EventTypeDetail() {
               className="h-12 flex-row items-center justify-between"
               onPress={handleCopyLink}
             >
-              <Text className=" text-[#333]">Copy Link</Text>
+              <Text>Copy Link</Text>
               <Ionicons name="link-outline" size={20} color="#000" />
             </TouchableOpacity>
 
@@ -2064,8 +2017,8 @@ export default function EventTypeDetail() {
               className="h-12 flex-row items-center justify-between"
               onPress={handleDelete}
             >
-              <Text className=" text-[#800020]">Delete</Text>
-              <Ionicons name="trash-outline" size={20} color="#800020" />
+              <Text className="text-red-500">Delete</Text>
+              <Ionicons name="trash-outline" size={20} color="#ef4444" />
             </TouchableOpacity>
           </View>
         </ScrollView>
