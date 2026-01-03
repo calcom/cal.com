@@ -2596,7 +2596,7 @@ __metadata:
     city-timezones: "npm:1.2.1"
     class-variance-authority: "npm:0.7.1"
     date-fns-tz: "npm:3.2.0"
-    framer-motion: "npm:10.12.8"
+    framer-motion: "npm:^12.23.26"
     p-limit: "npm:6.2.0"
     react-select: "npm:5.8.0"
     react-sticky-box: "npm:2.0.4"
@@ -4422,22 +4422,6 @@ __metadata:
   version: 0.8.0
   resolution: "@emotion/hash@npm:0.8.0"
   checksum: 10/4b35d88a97e67275c1d990c96d3b0450451d089d1508619488fc0acb882cb1ac91e93246d471346ebd1b5402215941ef4162efe5b51534859b39d8b3a0e3ffaa
-  languageName: node
-  linkType: hard
-
-"@emotion/is-prop-valid@npm:^0.8.2":
-  version: 0.8.8
-  resolution: "@emotion/is-prop-valid@npm:0.8.8"
-  dependencies:
-    "@emotion/memoize": "npm:0.7.4"
-  checksum: 10/e85bdeb9d9d23de422f271e0f5311a0142b15055bb7e610440dbf250f0cdfd049df88af72a49e2c6081954481f1cbeca9172e2116ff536b38229397dfbed8082
-  languageName: node
-  linkType: hard
-
-"@emotion/memoize@npm:0.7.4":
-  version: 0.7.4
-  resolution: "@emotion/memoize@npm:0.7.4"
-  checksum: 10/4e3920d4ec95995657a37beb43d3f4b7d89fed6caa2b173a4c04d10482d089d5c3ea50bbc96618d918b020f26ed6e9c4026bbd45433566576c1f7b056c3271dc
   languageName: node
   linkType: hard
 
@@ -23675,24 +23659,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"framer-motion@npm:10.12.8":
-  version: 10.12.8
-  resolution: "framer-motion@npm:10.12.8"
+"framer-motion@npm:^12.23.26":
+  version: 12.23.26
+  resolution: "framer-motion@npm:12.23.26"
   dependencies:
-    "@emotion/is-prop-valid": "npm:^0.8.2"
+    motion-dom: "npm:^12.23.23"
+    motion-utils: "npm:^12.23.6"
     tslib: "npm:^2.4.0"
   peerDependencies:
-    react: ^18.0.0
-    react-dom: ^18.0.0
-  dependenciesMeta:
+    "@emotion/is-prop-valid": "*"
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
     "@emotion/is-prop-valid":
       optional: true
-  peerDependenciesMeta:
     react:
       optional: true
     react-dom:
       optional: true
-  checksum: 10/da98b7c5ae4909ec6d913595ea1da84a891842c8348a0d2e479fcdfb9d50af54127c31ed91bff7bc58e021332900f89f42f402b67b3f311e5d4aa0529c793e0f
+  checksum: 10/29d51ac57ce8c2599664bf706d7a83c2aba4fe1dee1c0c7d75d5c45c120b1c2ca5d257c3ff608992b26bf8e9cf258cacf231b0873d7b16f01c5eeb42b9831f78
   languageName: node
   linkType: hard
 
@@ -30096,6 +30081,22 @@ __metadata:
     socks:
       optional: true
   checksum: 10/eb47da9ef00331aca1804426424a8630f9e42c48bf6021786ebb1766b1d53bda62c64498b41627b5fe5c01260ec5ca2e8cbc2468e394df5d5b874cee646e9c06
+  languageName: node
+  linkType: hard
+
+"motion-dom@npm:^12.23.23":
+  version: 12.23.23
+  resolution: "motion-dom@npm:12.23.23"
+  dependencies:
+    motion-utils: "npm:^12.23.6"
+  checksum: 10/6bec34c28b478622bd23ce919c0d64e7f372cbc3f88e665f1e34fbf590e9bb53eebea086fb28f4e0c31941bd5274e086dc9b5360b68c4976891b94c4e92ca01a
+  languageName: node
+  linkType: hard
+
+"motion-utils@npm:^12.23.6":
+  version: 12.23.6
+  resolution: "motion-utils@npm:12.23.6"
+  checksum: 10/fae741319e72389eca8f3e73e644ffe6501409d00c7febb2f9b836629ae86ef735e73d670d0591706ca5e93ce10228ddbcff0ecdeb09b4cd8df14df7007aedd9
   languageName: node
   linkType: hard
 
