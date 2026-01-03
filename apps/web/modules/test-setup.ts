@@ -60,7 +60,7 @@ vi.mock("@calcom/embed-core/embed-iframe", () => {
   };
 });
 
-vi.mock("@calcom/features/bookings/components/event-meta/Price", () => {
+vi.mock("@calcom/web/modules/bookings/components/event-meta/Price", () => {
   return {};
 });
 

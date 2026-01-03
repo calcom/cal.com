@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { VerifyCodeDialog } from "@calcom/features/bookings/components/VerifyCodeDialog";
+import { VerifyCodeDialog } from "@calcom/web/modules/bookings/components/VerifyCodeDialog";
 import { isValidEmail } from "@calcom/features/isValidEmail";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";

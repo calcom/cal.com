@@ -19,10 +19,10 @@ import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import { useBookerTime } from "../Booker/components/hooks/useBookerTime";
-import { getQueryParam } from "../Booker/utils/query-param";
-import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
-import type { Slots } from "../types";
+import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { useCheckOverlapWithOverlay } from "@calcom/features/bookings/lib/useCheckOverlapWithOverlay";
+import type { Slots } from "@calcom/features/bookings/types";
 import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
 
 type TOnTimeSelect = (
