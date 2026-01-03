@@ -4,9 +4,9 @@ import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
 import type { AppCardApp } from "@calcom/app-store/types";
-import AppListCard from "@calcom/features/apps/components/AppListCard";
-import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
-import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
+import AppListCard from "@calcom/web/modules/apps/components/AppListCard";
+import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/web/modules/apps/components/AppSetDefaultLinkDialog";
+import { AppSetDefaultLinkDialog } from "@calcom/web/modules/apps/components/AppSetDefaultLinkDialog";
 import type {
   BulkUpdatParams,
   EventTypes,

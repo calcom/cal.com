@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
+import { SkeletonLoader } from "@calcom/web/modules/apps/components/SkeletonLoader";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";

@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { useShouldShowArrows } from "@calcom/features/apps/components/AllApps";
+import { useShouldShowArrows } from "@calcom/web/modules/apps/components/AllApps";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

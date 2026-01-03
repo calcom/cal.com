@@ -3,11 +3,11 @@
 import { useReducer } from "react";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
-import { AppList, type HandleDisconnect } from "@calcom/features/apps/components/AppList";
-import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
-import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
-import type { RemoveAppParams } from "@calcom/features/apps/components/DisconnectIntegrationModal";
-import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
+import { AppList, type HandleDisconnect } from "@calcom/web/modules/apps/components/AppList";
+import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/web/modules/apps/components/AppSetDefaultLinkDialog";
+import DisconnectIntegrationModal from "@calcom/web/modules/apps/components/DisconnectIntegrationModal";
+import type { RemoveAppParams } from "@calcom/web/modules/apps/components/DisconnectIntegrationModal";
+import { SkeletonLoader } from "@calcom/web/modules/apps/components/SkeletonLoader";
 import type { BulkUpdatParams } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
