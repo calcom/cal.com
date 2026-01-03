@@ -1,3 +1,5 @@
+"use client";
+
 import ConnectionInfo from "@calcom/ee/sso/components/ConnectionInfo";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import OIDCConnection from "@calcom/features/ee/sso/components/OIDCConnection";
