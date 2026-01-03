@@ -1,3 +1,4 @@
+import { PortalHost } from "@rn-primitives/portal";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack } from "expo-router";
 import { Platform, StatusBar, View } from "react-native";
@@ -225,6 +226,7 @@ function RootLayoutContent() {
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {content}
       <NetworkStatusBanner />
+      <PortalHost />
     </View>
   );
 }
