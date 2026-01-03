@@ -740,6 +740,8 @@ test.describe("Premium Username Signup Tests", async () => {
 
     // Check that the URL matches the expected URL
     expect(url).toContain(expectedUrl);
+    // Track user for cleanup
+    await users.set(userToCreate.email);
     // TODO: complete the stripe checkout flow
   });
 
