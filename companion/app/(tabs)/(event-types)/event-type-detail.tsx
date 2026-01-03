@@ -2032,25 +2032,8 @@ export default function EventTypeDetail() {
               </View>
             </View>
           ) : null}
-        </ScrollView>
 
-        {/* Bottom Action Bar */}
-        <GlassView
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            paddingTop: 16,
-            paddingHorizontal: 20,
-            backgroundColor: "#f8f9fa",
-            borderTopWidth: 0.5,
-            borderTopColor: "#E5E5EA",
-            paddingBottom: insets.bottom + 12,
-          }}
-          glassEffectStyle="clear"
-        >
-          <View className="flex-row items-center justify-between">
+          <View className="rounded-2xl bg-white p-5 mt-3">
             <View className="flex-row items-center gap-2">
               <Text className="text-base font-medium text-[#333]">Hidden</Text>
               <Switch
@@ -2062,44 +2045,29 @@ export default function EventTypeDetail() {
             </View>
 
             <View className="flex-row items-center gap-3">
-              <GlassView
-                className="overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]"
-                glassEffectStyle="clear"
+              <TouchableOpacity
+                className="h-11 w-11 items-center justify-center"
+                onPress={handlePreview}
               >
-                <TouchableOpacity
-                  className="h-11 w-11 items-center justify-center"
-                  onPress={handlePreview}
-                >
-                  <Ionicons name="open-outline" size={20} color="#000" />
-                </TouchableOpacity>
-              </GlassView>
+                <Ionicons name="open-outline" size={20} color="#000" />
+              </TouchableOpacity>
 
-              <GlassView
-                className="overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]"
-                glassEffectStyle="clear"
+              <TouchableOpacity
+                className="h-11 w-11 items-center justify-center"
+                onPress={handleCopyLink}
               >
-                <TouchableOpacity
-                  className="h-11 w-11 items-center justify-center"
-                  onPress={handleCopyLink}
-                >
-                  <Ionicons name="link-outline" size={20} color="#000" />
-                </TouchableOpacity>
-              </GlassView>
+                <Ionicons name="link-outline" size={20} color="#000" />
+              </TouchableOpacity>
 
-              <GlassView
-                className="overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]"
-                glassEffectStyle="clear"
+              <TouchableOpacity
+                className="h-11 w-11 items-center justify-center"
+                onPress={handleDelete}
               >
-                <TouchableOpacity
-                  className="h-11 w-11 items-center justify-center"
-                  onPress={handleDelete}
-                >
-                  <Ionicons name="trash-outline" size={20} color="#800020" />
-                </TouchableOpacity>
-              </GlassView>
+                <Ionicons name="trash-outline" size={20} color="#800020" />
+              </TouchableOpacity>
             </View>
           </View>
-        </GlassView>
+        </ScrollView>
       </View>
     </>
   );
