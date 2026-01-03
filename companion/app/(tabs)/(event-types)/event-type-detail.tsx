@@ -2033,9 +2033,9 @@ export default function EventTypeDetail() {
             </View>
           ) : null}
 
-          <View className="rounded-2xl bg-white p-5 mt-3">
-            <View className="flex-row items-center gap-2">
-              <Text className="text-base font-medium text-[#333]">Hidden</Text>
+          <View className="rounded-2xl bg-white p-5 mt-3 gap-3">
+            <View className="h-12 flex-row items-center justify-between">
+              <Text className="text-[#333]">Hidden</Text>
               <Switch
                 value={isHidden}
                 onValueChange={setIsHidden}
@@ -2044,28 +2044,29 @@ export default function EventTypeDetail() {
               />
             </View>
 
-            <View className="flex-row items-center gap-3">
-              <TouchableOpacity
-                className="h-11 w-11 items-center justify-center"
-                onPress={handlePreview}
-              >
-                <Ionicons name="open-outline" size={20} color="#000" />
-              </TouchableOpacity>
+            <TouchableOpacity
+              className="h-12 flex-row items-center justify-between"
+              onPress={handlePreview}
+            >
+              <Text className=" text-[#333]">Preview</Text>
+              <Ionicons name="open-outline" size={20} color="#000" />
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                className="h-11 w-11 items-center justify-center"
-                onPress={handleCopyLink}
-              >
-                <Ionicons name="link-outline" size={20} color="#000" />
-              </TouchableOpacity>
+            <TouchableOpacity
+              className="h-12 flex-row items-center justify-between"
+              onPress={handleCopyLink}
+            >
+              <Text className=" text-[#333]">Copy Link</Text>
+              <Ionicons name="link-outline" size={20} color="#000" />
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                className="h-11 w-11 items-center justify-center"
-                onPress={handleDelete}
-              >
-                <Ionicons name="trash-outline" size={20} color="#800020" />
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              className="h-12 flex-row items-center justify-between"
+              onPress={handleDelete}
+            >
+              <Text className=" text-[#800020]">Delete</Text>
+              <Ionicons name="trash-outline" size={20} color="#800020" />
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </View>
