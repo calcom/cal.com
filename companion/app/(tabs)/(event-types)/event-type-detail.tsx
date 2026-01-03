@@ -38,6 +38,7 @@ import {
   validateLocationItem,
 } from "@/utils/locationHelpers";
 import { safeLogError } from "@/utils/safeLogger";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 
 // Type definitions for extended EventType fields not in the base type
 interface EventTypeExtended {
@@ -1140,12 +1141,14 @@ export default function EventTypeDetail() {
           headerRight:
             Platform.OS === "android" || Platform.OS === "web" ? renderHeaderRight : undefined,
           headerShown: Platform.OS !== "ios",
-          headerTransparent: Platform.select({ ios: true }),
+          headerTransparent: Platform.select({
+            ios: true,
+          }),
         }}
       />
 
       {Platform.OS === "ios" && (
-        <Stack.Header>
+        <Stack.Header blurEffect={isLiquidGlassAvailable() ? undefined : "light"}>
           <Stack.Header.Right>
             <Stack.Header.Menu>
               <Stack.Header.Label>
