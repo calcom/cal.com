@@ -253,9 +253,12 @@ export const EditAvailabilityDayScreen = forwardRef<
     if (!schedule || isSaving) return;
 
     // Validate all slots have end time after start time
+    // Compare time strings to avoid issues with Date object day components
     if (isEnabled) {
       for (const slot of slots) {
-        if (slot.endTime <= slot.startTime) {
+        const startTimeStr = dateToTimeString(slot.startTime);
+        const endTimeStr = dateToTimeString(slot.endTime);
+        if (endTimeStr <= startTimeStr) {
           Alert.alert("Error", "End time must be after start time for all slots");
           return;
         }

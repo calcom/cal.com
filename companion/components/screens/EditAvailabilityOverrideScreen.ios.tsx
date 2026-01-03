@@ -191,7 +191,10 @@ export const EditAvailabilityOverrideScreen = forwardRef<
     const dateStr = dateToDateString(selectedDate);
 
     // Validate end time is after start time (only when not marking as unavailable)
-    if (!isUnavailable && endTime <= startTime) {
+    // Compare time strings to avoid issues with Date object day components
+    const startTimeStr = dateToTimeString(startTime);
+    const endTimeStr = dateToTimeString(endTime);
+    if (!isUnavailable && endTimeStr <= startTimeStr) {
       Alert.alert("Error", "End time must be after start time");
       return;
     }
