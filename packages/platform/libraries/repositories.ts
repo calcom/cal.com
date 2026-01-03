@@ -1,4 +1,4 @@
-export { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
+export { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 export { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 export { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
 export { ScheduleRepository as PrismaScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
