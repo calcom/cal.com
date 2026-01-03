@@ -47,6 +47,15 @@ export default function EditAvailabilityOverride() {
     router.back();
   }, [router]);
 
+  const handleEditOverride = useCallback(
+    (index: number) => {
+      // Push a new edit screen on top of the current one
+      // This allows user to go back to the override list after editing
+      router.push(`/edit-availability-override?id=${id}&overrideIndex=${index}` as never);
+    },
+    [id, router]
+  );
+
   const title = isEditing ? "Edit Override" : "Add Override";
 
   if (isLoading) {
@@ -84,6 +93,7 @@ export default function EditAvailabilityOverride() {
         overrideIndex={editingIndex}
         onSuccess={handleSuccess}
         onSavingChange={setIsSaving}
+        onEditOverride={handleEditOverride}
       />
     </View>
   );

@@ -8,6 +8,9 @@ import type { EditAvailabilityOverrideScreenHandle } from "@/components/screens/
 import EditAvailabilityOverrideScreenComponent from "@/components/screens/EditAvailabilityOverrideScreen.ios";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 
+// Semi-transparent background to prevent black flash while preserving glass effect
+const GLASS_BACKGROUND = "rgba(248, 248, 250, 0.01)";
+
 function getPresentationStyle(): "formSheet" | "modal" {
   if (isLiquidGlassAvailable() && osName !== "iPadOS") {
     return "formSheet";
@@ -56,6 +59,15 @@ export default function EditAvailabilityOverrideIOS() {
     router.back();
   }, [router]);
 
+  const handleEditOverride = useCallback(
+    (index: number) => {
+      // Push a new edit screen on top of the current one
+      // This allows user to go back to the override list after editing
+      router.push(`/edit-availability-override?id=${id}&overrideIndex=${index}` as never);
+    },
+    [id, router]
+  );
+
   const presentationStyle = getPresentationStyle();
   const useGlassEffect = isLiquidGlassAvailable();
 
@@ -69,7 +81,7 @@ export default function EditAvailabilityOverrideIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
+            backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
           },
         }}
       />
@@ -98,7 +110,6 @@ export default function EditAvailabilityOverrideIOS() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
           paddingTop: 56,
           paddingBottom: insets.bottom,
         }}
@@ -114,6 +125,7 @@ export default function EditAvailabilityOverrideIOS() {
             overrideIndex={editingIndex}
             onSuccess={handleSuccess}
             onSavingChange={setIsSaving}
+            onEditOverride={handleEditOverride}
             transparentBackground={useGlassEffect}
           />
         )}

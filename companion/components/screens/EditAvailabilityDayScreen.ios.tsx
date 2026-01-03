@@ -170,7 +170,7 @@ export const EditAvailabilityDayScreen = forwardRef<
   const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
 
   const [isEnabled, setIsEnabled] = useState(false);
-  const [slots, setSlots] = useState<{ startTime: string; endTime: string }[]>([]);
+  const [slots, setSlots] = useState<{ startTime: Date; endTime: Date }[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   const dayName = DAYS[dayIndex] || "Day";
@@ -183,13 +183,18 @@ export const EditAvailabilityDayScreen = forwardRef<
         setIsEnabled(true);
         setSlots(
           daySlots.map((s) => ({
-            startTime: s.startTime.substring(0, 5),
-            endTime: s.endTime.substring(0, 5),
+            startTime: timeStringToDate(s.startTime.substring(0, 5)),
+            endTime: timeStringToDate(s.endTime.substring(0, 5)),
           }))
         );
       } else {
         setIsEnabled(false);
-        setSlots([{ startTime: "09:00", endTime: "17:00" }]);
+        setSlots([
+          {
+            startTime: timeStringToDate("09:00"),
+            endTime: timeStringToDate("17:00"),
+          },
+        ]);
       }
     }
   }, [schedule, dayIndex]);
@@ -203,14 +208,25 @@ export const EditAvailabilityDayScreen = forwardRef<
     (value: boolean) => {
       setIsEnabled(value);
       if (value && slots.length === 0) {
-        setSlots([{ startTime: "09:00", endTime: "17:00" }]);
+        setSlots([
+          {
+            startTime: timeStringToDate("09:00"),
+            endTime: timeStringToDate("17:00"),
+          },
+        ]);
       }
     },
     [slots.length]
   );
 
   const handleAddSlot = useCallback(() => {
-    setSlots((prev) => [...prev, { startTime: "09:00", endTime: "17:00" }]);
+    setSlots((prev) => [
+      ...prev,
+      {
+        startTime: timeStringToDate("09:00"),
+        endTime: timeStringToDate("17:00"),
+      },
+    ]);
   }, []);
 
   const handleRemoveSlot = useCallback((index: number) => {
@@ -218,19 +234,17 @@ export const EditAvailabilityDayScreen = forwardRef<
   }, []);
 
   const handleStartTimeChange = useCallback((index: number, date: Date) => {
-    const timeStr = dateToTimeString(date);
     setSlots((prev) => {
       const newSlots = [...prev];
-      newSlots[index] = { ...newSlots[index], startTime: timeStr };
+      newSlots[index] = { ...newSlots[index], startTime: date };
       return newSlots;
     });
   }, []);
 
   const handleEndTimeChange = useCallback((index: number, date: Date) => {
-    const timeStr = dateToTimeString(date);
     setSlots((prev) => {
       const newSlots = [...prev];
-      newSlots[index] = { ...newSlots[index], endTime: timeStr };
+      newSlots[index] = { ...newSlots[index], endTime: date };
       return newSlots;
     });
   }, []);
@@ -242,8 +256,8 @@ export const EditAvailabilityDayScreen = forwardRef<
     const daySlots: ScheduleAvailability[] = isEnabled
       ? slots.map((s) => ({
           days: [dayIndex.toString()],
-          startTime: `${s.startTime}:00`,
-          endTime: `${s.endTime}:00`,
+          startTime: `${dateToTimeString(s.startTime)}:00`,
+          endTime: `${dateToTimeString(s.endTime)}:00`,
         }))
       : [];
 
@@ -334,7 +348,7 @@ export const EditAvailabilityDayScreen = forwardRef<
                       <DatePicker
                         onDateChange={(date) => handleStartTimeChange(index, date)}
                         displayedComponents={["hourAndMinute"]}
-                        selection={timeStringToDate(slot.startTime)}
+                        selection={slot.startTime}
                       />
                     </Host>
                   </View>
@@ -349,7 +363,7 @@ export const EditAvailabilityDayScreen = forwardRef<
                       <DatePicker
                         onDateChange={(date) => handleEndTimeChange(index, date)}
                         displayedComponents={["hourAndMinute"]}
-                        selection={timeStringToDate(slot.endTime)}
+                        selection={slot.endTime}
                       />
                     </Host>
                   </View>

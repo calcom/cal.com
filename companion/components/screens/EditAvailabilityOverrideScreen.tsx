@@ -50,6 +50,7 @@ export interface EditAvailabilityOverrideScreenProps {
   overrideIndex?: number;
   onSuccess: () => void;
   onSavingChange?: (isSaving: boolean) => void;
+  onEditOverride?: (index: number) => void;
   transparentBackground?: boolean;
 }
 
@@ -61,7 +62,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
   EditAvailabilityOverrideScreenHandle,
   EditAvailabilityOverrideScreenProps
 >(function EditAvailabilityOverrideScreen(
-  { schedule, overrideIndex, onSuccess, onSavingChange },
+  { schedule, overrideIndex, onSuccess, onSavingChange, onEditOverride },
   ref
 ) {
   const insets = useSafeAreaInsets();
@@ -112,12 +113,11 @@ export const EditAvailabilityOverrideScreen = forwardRef<
   );
 
   const saveOverrides = useCallback(
-    async (newOverrides: { date: string; startTime: string; endTime: string }[]) => {
+    async (
+      newOverrides: { date: string; startTime: string; endTime: string }[],
+      successMessage: string
+    ) => {
       if (!schedule) return;
-
-      const successMessage = isEditing
-        ? "Override updated successfully"
-        : "Override added successfully";
 
       setIsSaving(true);
       try {
@@ -131,7 +131,41 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         setIsSaving(false);
       }
     },
-    [schedule, isEditing, onSuccess]
+    [schedule, onSuccess]
+  );
+
+  const handleDeleteOverride = useCallback(
+    (indexToDelete: number) => {
+      if (!schedule || !schedule.overrides) return;
+
+      const override = schedule.overrides[indexToDelete];
+      const dateDisplay = formatDateForDisplay(override?.date ?? "");
+
+      Alert.alert(
+        "Delete Override",
+        `Are you sure you want to delete the override for ${dateDisplay}?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              const newOverrides = schedule.overrides
+                ? schedule.overrides
+                    .filter((_, idx) => idx !== indexToDelete)
+                    .map((o) => ({
+                      date: o.date ?? "",
+                      startTime: (o.startTime ?? "00:00").substring(0, 5),
+                      endTime: (o.endTime ?? "00:00").substring(0, 5),
+                    }))
+                : [];
+              await saveOverrides(newOverrides, "Override deleted successfully");
+            },
+          },
+        ]
+      );
+    },
+    [schedule, saveOverrides]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -165,6 +199,10 @@ export const EditAvailabilityOverrideScreen = forwardRef<
       }));
     }
 
+    const successMessage = isEditing
+      ? "Override updated successfully"
+      : "Override added successfully";
+
     if (isEditing && overrideIndex !== undefined) {
       newOverrides[overrideIndex] = newOverride;
     } else {
@@ -179,7 +217,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
               text: "Replace",
               onPress: async () => {
                 newOverrides[existingIndex] = newOverride;
-                await saveOverrides(newOverrides);
+                await saveOverrides(newOverrides, "Override replaced successfully");
               },
             },
           ]
@@ -189,7 +227,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
       newOverrides.push(newOverride);
     }
 
-    await saveOverrides(newOverrides);
+    await saveOverrides(newOverrides, successMessage);
   }, [
     schedule,
     selectedDate,
@@ -298,13 +336,14 @@ export const EditAvailabilityOverrideScreen = forwardRef<
           </Text>
           <View className="overflow-hidden rounded-lg border border-gray-200">
             {schedule.overrides.map((override, index) => (
-              <View
+              <AppPressable
                 key={override.date}
                 className={`flex-row items-center justify-between px-4 py-3 ${
                   index > 0 ? "border-t border-gray-200" : ""
                 }`}
+                onPress={() => onEditOverride?.(index)}
               >
-                <View>
+                <View className="flex-1">
                   <Text className="text-[15px] text-black">
                     {formatDateForDisplay(override.date ?? "")}
                   </Text>
@@ -312,11 +351,26 @@ export const EditAvailabilityOverrideScreen = forwardRef<
                     <Text className="text-[13px] text-red-500">Unavailable</Text>
                   ) : (
                     <Text className="text-[13px] text-gray-500">
-                      {override.startTime} – {override.endTime}
+                      {formatTime12Hour(override.startTime ?? "00:00")} –{" "}
+                      {formatTime12Hour(override.endTime ?? "00:00")}
                     </Text>
                   )}
                 </View>
-              </View>
+                <View className="flex-row items-center">
+                  <AppPressable
+                    className="rounded-full bg-red-100 p-2"
+                    onPress={() => handleDeleteOverride(index)}
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+                  </AppPressable>
+                  <AppPressable
+                    className="ml-3 rounded-full bg-gray-100 p-2"
+                    onPress={() => onEditOverride?.(index)}
+                  >
+                    <Ionicons name="chevron-forward" size={18} color="#8E8E93" />
+                  </AppPressable>
+                </View>
+              </AppPressable>
             ))}
           </View>
         </>

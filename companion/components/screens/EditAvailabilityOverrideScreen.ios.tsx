@@ -1,11 +1,21 @@
 import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
-import { Alert, ScrollView, Switch, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Schedule } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
+
+// Convert 24-hour time to 12-hour format with AM/PM
+const formatTime12Hour = (time24: string): string => {
+  const [hours, minutes] = time24.split(":");
+  const hour = parseInt(hours, 10);
+  const min = minutes || "00";
+  const period = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${hour12}:${min} ${period}`;
+};
 
 // Parse time string to Date object (for DatePicker)
 const timeStringToDate = (timeStr: string): Date => {
@@ -54,6 +64,7 @@ export interface EditAvailabilityOverrideScreenProps {
   overrideIndex?: number;
   onSuccess: () => void;
   onSavingChange?: (isSaving: boolean) => void;
+  onEditOverride?: (index: number) => void;
   transparentBackground?: boolean;
 }
 
@@ -65,7 +76,14 @@ export const EditAvailabilityOverrideScreen = forwardRef<
   EditAvailabilityOverrideScreenHandle,
   EditAvailabilityOverrideScreenProps
 >(function EditAvailabilityOverrideScreen(
-  { schedule, overrideIndex, onSuccess, onSavingChange, transparentBackground = false },
+  {
+    schedule,
+    overrideIndex,
+    onSuccess,
+    onSavingChange,
+    onEditOverride,
+    transparentBackground = false,
+  },
   ref
 ) {
   const insets = useSafeAreaInsets();
@@ -75,8 +93,8 @@ export const EditAvailabilityOverrideScreen = forwardRef<
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isUnavailable, setIsUnavailable] = useState(false);
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("17:00");
+  const [startTime, setStartTime] = useState<Date>(timeStringToDate("09:00"));
+  const [endTime, setEndTime] = useState<Date>(timeStringToDate("17:00"));
   const [isSaving, setIsSaving] = useState(false);
 
   // Initialize from existing override if editing
@@ -88,8 +106,8 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         const start = override.startTime ?? "00:00";
         const end = override.endTime ?? "00:00";
         setIsUnavailable(start === "00:00" && end === "00:00");
-        setStartTime(start === "00:00" ? "09:00" : start);
-        setEndTime(end === "00:00" ? "17:00" : end);
+        setStartTime(timeStringToDate(start === "00:00" ? "09:00" : start));
+        setEndTime(timeStringToDate(end === "00:00" ? "17:00" : end));
       }
     }
   }, [schedule, isEditing, overrideIndex]);
@@ -104,21 +122,19 @@ export const EditAvailabilityOverrideScreen = forwardRef<
   }, []);
 
   const handleStartTimeChange = useCallback((date: Date) => {
-    setStartTime(dateToTimeString(date));
+    setStartTime(date);
   }, []);
 
   const handleEndTimeChange = useCallback((date: Date) => {
-    setEndTime(dateToTimeString(date));
+    setEndTime(date);
   }, []);
 
   const saveOverrides = useCallback(
-    async (newOverrides: { date: string; startTime: string; endTime: string }[]) => {
+    async (
+      newOverrides: { date: string; startTime: string; endTime: string }[],
+      successMessage: string
+    ) => {
       if (!schedule) return;
-
-      // Compute message before try/catch to help React Compiler optimization
-      const successMessage = isEditing
-        ? "Override updated successfully"
-        : "Override added successfully";
 
       setIsSaving(true);
       try {
@@ -132,7 +148,41 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         setIsSaving(false);
       }
     },
-    [schedule, isEditing, onSuccess]
+    [schedule, onSuccess]
+  );
+
+  const handleDeleteOverride = useCallback(
+    (indexToDelete: number) => {
+      if (!schedule || !schedule.overrides) return;
+
+      const override = schedule.overrides[indexToDelete];
+      const dateDisplay = formatDateForDisplay(dateStringToDate(override?.date ?? ""));
+
+      Alert.alert(
+        "Delete Override",
+        `Are you sure you want to delete the override for ${dateDisplay}?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              const newOverrides = schedule.overrides
+                ? schedule.overrides
+                    .filter((_, idx) => idx !== indexToDelete)
+                    .map((o) => ({
+                      date: o.date ?? "",
+                      startTime: (o.startTime ?? "00:00").substring(0, 5),
+                      endTime: (o.endTime ?? "00:00").substring(0, 5),
+                    }))
+                : [];
+              await saveOverrides(newOverrides, "Override deleted successfully");
+            },
+          },
+        ]
+      );
+    },
+    [schedule, saveOverrides]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -143,8 +193,8 @@ export const EditAvailabilityOverrideScreen = forwardRef<
     // Build the new override
     const newOverride = {
       date: dateStr,
-      startTime: isUnavailable ? "00:00" : startTime,
-      endTime: isUnavailable ? "00:00" : endTime,
+      startTime: isUnavailable ? "00:00" : dateToTimeString(startTime),
+      endTime: isUnavailable ? "00:00" : dateToTimeString(endTime),
     };
 
     // Build new overrides array
@@ -157,6 +207,10 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         endTime: (o.endTime ?? "00:00").substring(0, 5),
       }));
     }
+
+    const successMessage = isEditing
+      ? "Override updated successfully"
+      : "Override added successfully";
 
     if (isEditing && overrideIndex !== undefined) {
       // Update existing override
@@ -174,7 +228,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
               text: "Replace",
               onPress: async () => {
                 newOverrides[existingIndex] = newOverride;
-                await saveOverrides(newOverrides);
+                await saveOverrides(newOverrides, "Override replaced successfully");
               },
             },
           ]
@@ -185,7 +239,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
       newOverrides.push(newOverride);
     }
 
-    await saveOverrides(newOverrides);
+    await saveOverrides(newOverrides, successMessage);
   }, [
     schedule,
     selectedDate,
@@ -288,7 +342,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
                   <DatePicker
                     onDateChange={handleStartTimeChange}
                     displayedComponents={["hourAndMinute"]}
-                    selection={timeStringToDate(startTime)}
+                    selection={startTime}
                   />
                 </Host>
               </View>
@@ -301,7 +355,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
                   <DatePicker
                     onDateChange={handleEndTimeChange}
                     displayedComponents={["hourAndMinute"]}
-                    selection={timeStringToDate(endTime)}
+                    selection={endTime}
                   />
                 </Host>
               </View>
@@ -322,13 +376,14 @@ export const EditAvailabilityOverrideScreen = forwardRef<
             }`}
           >
             {schedule.overrides.map((override, index) => (
-              <View
+              <Pressable
                 key={override.date}
                 className={`flex-row items-center justify-between px-4 py-3 ${
                   index > 0 ? "border-t border-[#E5E5EA]" : ""
                 }`}
+                onPress={() => onEditOverride?.(index)}
               >
-                <View>
+                <View className="flex-1">
                   <Text className="text-[15px] text-black">
                     {formatDateForDisplay(dateStringToDate(override.date ?? ""))}
                   </Text>
@@ -336,11 +391,26 @@ export const EditAvailabilityOverrideScreen = forwardRef<
                     <Text className="text-[13px] text-[#FF3B30]">Unavailable</Text>
                   ) : (
                     <Text className="text-[13px] text-[#8E8E93]">
-                      {override.startTime} – {override.endTime}
+                      {formatTime12Hour(override.startTime ?? "00:00")} –{" "}
+                      {formatTime12Hour(override.endTime ?? "00:00")}
                     </Text>
                   )}
                 </View>
-              </View>
+                <View className="flex-row items-center">
+                  <Pressable
+                    className="rounded-full bg-[#FF3B30]/10 p-2"
+                    onPress={() => handleDeleteOverride(index)}
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+                  </Pressable>
+                  <Pressable
+                    className="ml-3 rounded-full bg-[#8E8E93]/10 p-2"
+                    onPress={() => onEditOverride?.(index)}
+                  >
+                    <Ionicons name="chevron-forward" size={18} color="#8E8E93" />
+                  </Pressable>
+                </View>
+              </Pressable>
             ))}
           </View>
         </>
