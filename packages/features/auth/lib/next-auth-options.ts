@@ -843,7 +843,10 @@ export const getOptions = ({
           },
           where: {
             identityProvider: idP,
-            identityProviderId: account.providerAccountId,
+            identityProviderId: {
+              equals: account.providerAccountId,
+              mode: "insensitive",
+            },
           },
         });
 
