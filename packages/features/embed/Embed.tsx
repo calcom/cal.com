@@ -296,6 +296,7 @@ const EmailEmbed = ({
     isTeamEvent,
     duration: selectedDuration,
     useApiV2: false,
+    useBookerTimezone: eventType?.useBookerTimezone,
   });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
@@ -401,9 +402,9 @@ const EmailEmbed = ({
                 className="w-full"
                 selectedSlots={
                   eventType.slug &&
-                  selectedDatesAndTimes &&
-                  selectedDatesAndTimes[eventType.slug] &&
-                  selectedDatesAndTimes[eventType.slug][selectedDate as string]
+                    selectedDatesAndTimes &&
+                    selectedDatesAndTimes[eventType.slug] &&
+                    selectedDatesAndTimes[eventType.slug][selectedDate as string]
                     ? selectedDatesAndTimes[eventType.slug][selectedDate as string]
                     : undefined
                 }
@@ -578,11 +579,9 @@ const EmailEmbedPreview = ({
                                       sortedTimes.map((time) => {
                                         // If teamId is present on eventType and is not null, it means it is a team event.
                                         // So we add 'team/' to the url.
-                                        const bookingURL = `${eventType.bookerUrl}/${
-                                          eventType.teamId !== null ? "team/" : ""
-                                        }${username}/${
-                                          eventType.slug
-                                        }?duration=${selectedDuration}&date=${key}&month=${month}&slot=${time}&cal.tz=${timezone}`;
+                                        const bookingURL = `${eventType.bookerUrl}/${eventType.teamId !== null ? "team/" : ""
+                                          }${username}/${eventType.slug
+                                          }?duration=${selectedDuration}&date=${key}&month=${month}&slot=${time}&cal.tz=${timezone}`;
                                         return (
                                           <td
                                             key={time}
@@ -731,15 +730,15 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       isActive: tabName === embedParams.embedTabName,
       ...(noQueryParamMode
         ? {
-            onClick: () => {
-              gotoState({ embedTabName: tabName });
-            },
-            // We still pass the href(which is unique) so that all the tabs aren't marked as active
-            href: t.href,
-          }
+          onClick: () => {
+            gotoState({ embedTabName: tabName });
+          },
+          // We still pass the href(which is unique) so that all the tabs aren't marked as active
+          href: t.href,
+        }
         : {
-            href: s(t.href),
-          }),
+          href: s(t.href),
+        }),
     };
   });
   const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
@@ -1174,7 +1173,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       )}
                       {/* Conditionally render Hide Details Switch only if NOT Atom embed AND not disabled by prop */}
                       {!eventTypeHideOptionDisabled &&
-                      embedParams.embedTabName !== EmbedTabName.ATOM_REACT ? (
+                        embedParams.embedTabName !== EmbedTabName.ATOM_REACT ? (
                         <div className="mb-6 flex items-center justify-start space-x-2 rtl:space-x-reverse">
                           <Switch
                             checked={previewState.hideEventTypeDetails}
@@ -1387,14 +1386,14 @@ export const EmbedDialog = ({
       <Dialog
         {...(noQueryParamMode
           ? {
-              open: embedState !== null,
-              onOpenChange: (open) => !open && handleDialogClose(),
-            }
+            open: embedState !== null,
+            onOpenChange: (open) => !open && handleDialogClose(),
+          }
           : {
-              // Must not set name when noQueryParam mode as required by Dialog component
-              name: "embed",
-              clearQueryParamsOnClose: queryParamsForDialog,
-            })}>
+            // Must not set name when noQueryParam mode as required by Dialog component
+            name: "embed",
+            clearQueryParamsOnClose: queryParamsForDialog,
+          })}>
         {!embedParams.embedType ? (
           <ChooseEmbedTypesDialogContent types={types} noQueryParamMode={noQueryParamMode} />
         ) : (
