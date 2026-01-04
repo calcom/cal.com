@@ -1,3 +1,15 @@
+import {
+  routingFormFieldTypes,
+  isValidRoutingFormFieldType as isValidType,
+  getFieldTypeConfig,
+  fieldTypeNeedsOptions,
+} from "@calcom/features/form-builder/fieldTypesForRoutingForms";
+import type { FieldType } from "@calcom/prisma/zod-utils";
+
+/**
+ * @deprecated Use FieldType from @calcom/prisma/zod-utils instead.
+ * This enum is kept for backwards compatibility with existing code.
+ */
 export const enum RoutingFormFieldType {
   TEXT = "text",
   NUMBER = "number",
@@ -6,47 +18,26 @@ export const enum RoutingFormFieldType {
   MULTI_SELECT = "multiselect",
   PHONE = "phone",
   EMAIL = "email",
+  ADDRESS = "address",
+  CHECKBOX = "checkbox",
+  RADIO = "radio",
+  BOOLEAN = "boolean",
+  URL = "url",
+  MULTIEMAIL = "multiemail",
 }
 
-export const isValidRoutingFormFieldType = (type: string): type is RoutingFormFieldType => {
-  return [
-    RoutingFormFieldType.TEXT,
-    RoutingFormFieldType.NUMBER,
-    RoutingFormFieldType.TEXTAREA,
-    RoutingFormFieldType.SINGLE_SELECT,
-    RoutingFormFieldType.MULTI_SELECT,
-    RoutingFormFieldType.PHONE,
-    RoutingFormFieldType.EMAIL,
-  ].includes(type as RoutingFormFieldType);
-};
 
-export const FieldTypes = [
-  {
-    label: "Short Text",
-    value: RoutingFormFieldType.TEXT,
-  },
-  {
-    label: "Number",
-    value: RoutingFormFieldType.NUMBER,
-  },
-  {
-    label: "Long Text",
-    value: RoutingFormFieldType.TEXTAREA,
-  },
-  {
-    label: "Single Selection",
-    value: RoutingFormFieldType.SINGLE_SELECT,
-  },
-  {
-    label: "Multiple Selection",
-    value: RoutingFormFieldType.MULTI_SELECT,
-  },
-  {
-    label: "Phone",
-    value: RoutingFormFieldType.PHONE,
-  },
-  {
-    label: "Email",
-    value: RoutingFormFieldType.EMAIL,
-  },
-] as const;
+export const isValidRoutingFormFieldType = isValidType;
+
+
+export const FieldTypes = routingFormFieldTypes;
+
+export { getFieldTypeConfig, fieldTypeNeedsOptions };
+
+export function isFieldTypeWithOptions(type: string): boolean {
+  return fieldTypeNeedsOptions(type);
+}
+
+export function getDefaultFieldType(): FieldType {
+  return "text";
+}

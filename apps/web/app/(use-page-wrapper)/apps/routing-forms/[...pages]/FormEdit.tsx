@@ -6,7 +6,7 @@ import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
-import { FieldTypes } from "@calcom/app-store/routing-forms/lib/FieldTypes";
+import { FieldTypes, isFieldTypeWithOptions } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -104,13 +104,9 @@ function Field({
               {...hookForm.register(`${hookFieldNamespace}.label`)}
               onChange={(e) => {
                 const newLabel = e.target.value;
-                // Use label from useWatch which is guaranteed to be the previous value
-                // since useWatch updates reactively (after re-render), not synchronously
                 const previousLabel = label || "";
                 hookForm.setValue(`${hookFieldNamespace}.label`, newLabel, { shouldDirty: true });
                 const currentIdentifier = hookForm.getValues(`${hookFieldNamespace}.identifier`);
-                // Only auto-update identifier if it was auto-generated from the previous label
-                // This preserves manual identifier changes
                 const isIdentifierGeneratedFromPreviousLabel = currentIdentifier === getFieldIdentifier(previousLabel);
                 if (!currentIdentifier || isIdentifierGeneratedFromPreviousLabel) {
                   hookForm.setValue(`${hookFieldNamespace}.identifier`, getFieldIdentifier(newLabel), { shouldDirty: true });
@@ -188,17 +184,17 @@ function Field({
               }}
             />
           </div>
-          {["select", "multiselect"].includes(fieldType) ? (
+          {isFieldTypeWithOptions(fieldType) ? (
             <div className="bg-cal-muted w-full rounded-[10px] p-2">
               <Label className="text-subtle">{t("options")}</Label>
               <MultiOptionInput
                 fieldArrayName={`${hookFieldNamespace}.options`}
                 disabled={!!router}
-                optionPlaceholders={["< 10", "10 - 100", "100 - 500", "> 500"]}
-                defaultNumberOfOptions={4}
+                optionPlaceholders={["Option 1", "Option 2", "Option 3", "Option 4"]}
+                defaultNumberOfOptions={fieldType === "boolean" ? 2 : 4}
                 pasteDelimiters={["\n", ","]}
                 showMoveButtons={true}
-                minOptions={1}
+                minOptions={fieldType === "boolean" ? 2 : 1}
                 addOptionLabel={t("add_an_option")}
                 addOptionButtonColor="minimal"
               />
