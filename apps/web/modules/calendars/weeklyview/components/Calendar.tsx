@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useRef } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
-import { CalendarStoreContext, createCalendarStore, useCalendarStore } from "../state/store";
+import { CalendarStoreContext, createCalendarStore, useCalendarStore } from "@calcom/features/calendars/weeklyview/state/store";
 import "../styles/styles.css";
-import type { CalendarComponentProps } from "../types/state";
-import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
+import type { CalendarComponentProps } from "@calcom/features/calendars/weeklyview/types/state";
+import { getDaysBetweenDates, getHoursToDisplay } from "@calcom/features/calendars/weeklyview/utils";
 import { DateValues } from "./DateValues";
 import { CurrentTime } from "./currentTime";
 import { AvailableCellsForDay, EmptyCell } from "./event/Empty";

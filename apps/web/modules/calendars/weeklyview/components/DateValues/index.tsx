@@ -4,8 +4,8 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
-import { useCalendarStore } from "../../state/store";
-import type { BorderColor } from "../../types/common";
+import { useCalendarStore } from "@calcom/features/calendars/weeklyview/../state/store";
+import type { BorderColor } from "@calcom/features/calendars/weeklyview/../types/common";
 
 type Props = {
   showBorder: boolean;
