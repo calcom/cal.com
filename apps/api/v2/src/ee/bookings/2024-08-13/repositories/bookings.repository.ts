@@ -163,6 +163,25 @@ export class BookingsRepository_2024_08_13 {
     });
   }
 
+  async getBookingByUidWithUserAndEventDetails(uid: string) {
+    return this.dbRead.prisma.booking.findUnique({
+      where: { uid },
+      include: {
+        attendees: true,
+        references: true,
+        user: {
+          include: {
+            credentials: true,
+            destinationCalendar: true,
+            profiles: true,
+          },
+        },
+        eventType: true,
+        destinationCalendar: true,
+      },
+    });
+  }
+
   async getRecurringByUid(uid: string) {
     return this.dbRead.prisma.booking.findMany({
       where: {
