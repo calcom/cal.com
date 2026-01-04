@@ -65,6 +65,34 @@ export function isTextMessageToSpecificNumber(action?: WorkflowActions) {
   return action === WorkflowActions.SMS_NUMBER || action === WorkflowActions.WHATSAPP_NUMBER;
 }
 
+export function isHostAction(action: WorkflowActions) {
+  return action === WorkflowActions.EMAIL_HOST;
+}
+
+export function hasCancellationWorkflowsForRecipients(
+  workflows: { trigger: WorkflowTriggerEvents; steps: { action: WorkflowActions }[] }[]
+): { attendee: boolean; host: boolean } {
+  let attendee = false;
+  let host = false;
+
+  for (const workflow of workflows) {
+    if (workflow.trigger !== WorkflowTriggerEvents.EVENT_CANCELLED) continue;
+
+    for (const step of workflow.steps) {
+      if (isAttendeeAction(step.action)) {
+        attendee = true;
+      }
+      if (isHostAction(step.action)) {
+        host = true;
+      }
+    }
+
+    if (attendee && host) break;
+  }
+
+  return { attendee, host };
+}
+
 export function getWhatsappTemplateForTrigger(trigger: WorkflowTriggerEvents): WorkflowTemplates {
   switch (trigger) {
     case "NEW_EVENT":
