@@ -17,7 +17,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Form } from "@calcom/ui/components/form";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
-import { EventTypeSingleLayout } from "./EventTypeLayout";
+import { EventTypeSingleLayout, type ShellComponent } from "./EventTypeLayout";
 
 export type Host = {
   isFixed: boolean;
@@ -66,6 +66,7 @@ export type EventTypeComponentProps = EventTypeSetupProps & {
   tabsNavigation: VerticalTabItemProps[];
   allowDelete?: boolean;
   saveButtonRef?: React.RefObject<HTMLButtonElement>;
+  ShellComponent: ShellComponent;
 };
 
 export const EventType = ({
@@ -85,6 +86,7 @@ export const EventType = ({
   children,
   allowDelete = true,
   saveButtonRef,
+  ShellComponent,
 }: EventTypeComponentProps) => {
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -105,7 +107,8 @@ export const EventType = ({
         isPlatform={isPlatform}
         allowDelete={allowDelete}
         tabsNavigation={tabsNavigation}
-        saveButtonRef={saveButtonRef}>
+        saveButtonRef={saveButtonRef}
+        ShellComponent={ShellComponent}>
         <Form form={formMethods} id="event-type-form" handleSubmit={handleSubmit}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
         </Form>

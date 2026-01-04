@@ -1,5 +1,7 @@
 import type { RouterOutputs } from "@calcom/trpc/react";
 
+export type { MemberPermissions } from "@calcom/types/MemberPermissions";
+
 export type UserTableUser = RouterOutputs["viewer"]["organizations"]["listMembers"]["rows"][number];
 
 export type PlatformManagedUserTableUser = Omit<
@@ -52,13 +54,3 @@ export type PlatformManagedUserTableAction =
   | {
       type: "CLOSE_MODAL";
     };
-
-export interface MemberPermissions {
-  canListMembers: boolean;
-  canInvite: boolean;
-  canChangeMemberRole: boolean;
-  canRemove: boolean;
-  canImpersonate: boolean;
-  canEditAttributesForUser?: boolean;
-  canViewAttributes?: boolean;
-}

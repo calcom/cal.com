@@ -11,10 +11,10 @@ import {
   getMockBookingAttendee,
   getGoogleCalendarCredential,
   mockCalendarToHaveNoBusySlots,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { expectBookingCreatedWebhookToHaveBeenFired } from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/bookingScenario/bookingScenario";
+import { expectBookingCreatedWebhookToHaveBeenFired } from "@calcom/testing/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/bookingScenario/setupAndTeardown";
 
 import { describe, test, vi, expect } from "vitest";
 

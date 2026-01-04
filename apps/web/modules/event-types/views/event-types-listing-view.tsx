@@ -11,8 +11,9 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
-import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
+
+import { DuplicateDialog } from "~/event-types/components/DuplicateDialog";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { filterActiveLinks } from "@calcom/lib/hashedLinksUtils";

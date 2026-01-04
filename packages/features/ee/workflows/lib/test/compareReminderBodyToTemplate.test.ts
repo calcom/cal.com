@@ -4,7 +4,7 @@ import { vi, expect, test, describe } from "vitest";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
-import en from "@calcom/web/public/static/locales/en/common.json";
+import en from "@calcom/testing/locales/en/common.json";
 
 import { getTemplateBodyForAction } from "../actionHelperFunctions";
 import compareReminderBodyToTemplate from "../compareReminderBodyToTemplate";

@@ -11,13 +11,13 @@ import {
   getOrganizer,
   TestData,
   getScenarioData,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/bookingScenario/bookingScenario";
+import { getMockRequestDataForBooking } from "@calcom/testing/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/bookingScenario/setupAndTeardown";
 
 import { vi, describe, expect, beforeEach } from "vitest";
 
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
