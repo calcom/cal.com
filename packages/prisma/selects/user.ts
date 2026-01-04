@@ -2,6 +2,7 @@ import type { Prisma } from "../client";
 
 export const availabilityUserSelect = {
   id: true,
+  uuid: true,
   timeZone: true,
   email: true,
   bufferTime: true,
