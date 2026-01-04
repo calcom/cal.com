@@ -42,14 +42,14 @@ import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { useBookerTime } from "../bookings/Booker/components/hooks/useBookerTime";
-import { EmbedTabName } from "./lib/EmbedTabs";
-import { buildCssVarsPerTheme } from "./lib/buildCssVarsPerTheme";
-import { EmbedTheme } from "./lib/constants";
-import { getDimension } from "./lib/getDimension";
-import { useEmbedDialogCtx } from "./lib/hooks/useEmbedDialogCtx";
-import { useEmbedParams } from "./lib/hooks/useEmbedParams";
-import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState, EmbedConfig } from "./types";
+import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { EmbedTabName } from "@calcom/features/embed/lib/EmbedTabs";
+import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
+import { EmbedTheme } from "@calcom/features/embed/lib/constants";
+import { getDimension } from "@calcom/features/embed/lib/getDimension";
+import { useEmbedDialogCtx } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
+import { useEmbedParams } from "@calcom/features/embed/lib/hooks/useEmbedParams";
+import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState, EmbedConfig } from "@calcom/features/embed/types";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
 type EmbedDialogProps = {
