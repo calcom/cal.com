@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useRef, useState } from "react";
 
@@ -11,6 +11,7 @@ import { ColorPicker, Label } from "@calcom/ui/components/form";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingOrganizationBrowserView } from "../../components/onboarding-organization-browser-view";
+import { useMigrationFlow } from "../../hooks/useMigrationFlow";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationBrandViewProps = {
@@ -19,8 +20,10 @@ type OrganizationBrandViewProps = {
 
 export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const { organizationDetails, organizationBrand, setOrganizationBrand } = useOnboardingStore();
+  const { isMigrationFlow, hasTeams } = useMigrationFlow();
 
   const [_logoFile, setLogoFile] = useState<File | null>(null);
   const [_bannerFile, setBannerFile] = useState<File | null>(null);
@@ -72,6 +75,17 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
     setOrganizationBrand({ color });
   };
 
+  const getNextStep = () => {
+    const migrateParam = searchParams?.get("migrate");
+    const queryString = migrateParam ? `?migrate=${migrateParam}` : "";
+
+    // If migration flow and has teams, go to migrate-teams, otherwise go to teams
+    if (isMigrationFlow && hasTeams) {
+      return `/onboarding/organization/migrate-teams${queryString}`;
+    }
+    return `/onboarding/organization/teams${queryString}`;
+  };
+
   const handleContinue = () => {
     posthog.capture("onboarding_organization_brand_continue_clicked", {
       has_logo: !!logoPreview,
@@ -84,7 +98,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
       banner: bannerPreview,
       color: brandColor,
     });
-    router.push("/onboarding/organization/teams");
+    router.push(getNextStep());
   };
 
   const handleSkip = () => {
@@ -93,8 +107,10 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
     router.push("/onboarding/organization/teams");
   };
 
+  const totalSteps = isMigrationFlow && hasTeams ? 6 : 4;
+
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={2} totalSteps={4}>
+    <OnboardingLayout userEmail={userEmail} currentStep={2} totalSteps={totalSteps}>
       {/* Left column - Main content */}
       <OnboardingCard
         title={t("onboarding_org_brand_title")}
