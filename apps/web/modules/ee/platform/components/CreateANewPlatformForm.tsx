@@ -7,8 +7,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { uuid } from "short-uuid";
 
-import { deriveOrgNameFromEmail } from "@calcom/ee/organizations/components/CreateANewOrganizationForm";
-import { deriveSlugFromEmail } from "@calcom/ee/organizations/components/CreateANewOrganizationForm";
+import { deriveOrgNameFromEmail, deriveSlugFromEmail } from "~/ee/organizations/components/CreateANewOrganizationForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { UserPermissionRole } from "@calcom/prisma/enums";

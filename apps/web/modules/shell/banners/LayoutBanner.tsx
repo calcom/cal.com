@@ -4,7 +4,7 @@ import ImpersonatingBanner, {
 import {
   OrgUpgradeBanner,
   type OrgUpgradeBannerProps,
-} from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
+} from "~/ee/organizations/components/OrgUpgradeBanner";
 import {
   TeamsUpgradeBanner,
   type TeamsUpgradeBannerProps,
