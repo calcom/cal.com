@@ -10,7 +10,6 @@ import "@calcom/features/bookings/Booker/components/__mocks__/Section";
 import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
 import "@calcom/lib/__mocks__/logger";
 
-import React from "react";
 import { vi } from "vitest";
 
 import "@calcom/dayjs/__mocks__";
@@ -20,6 +19,7 @@ import { Booker } from "./Booker";
 import { render, screen } from "@calcom/features/bookings/Booker/__tests__/test-utils";
 
 vi.mock("framer-motion", async (importOriginal) => {
+  // biome-ignore lint/suspicious/noExplicitAny: framer-motion types are complex
   const actual = (await importOriginal()) as any;
   return {
     ...actual,
@@ -68,6 +68,7 @@ vi.mock("@calcom/features/calendars/NoAvailabilityDialog", () => ({
   },
 }));
 
+// biome-ignore lint/nursery/useExplicitType: test mock object
 const mockSchedule = {
   data: {
     slots: {
@@ -87,6 +88,7 @@ vi.mock("@calcom/atoms/hooks/useIsPlatform", () => ({
 }));
 
 // Update defaultProps to include missing required props
+// biome-ignore lint/nursery/useExplicitType: test mock object
 const defaultProps = {
   username: "testuser",
   eventSlug: "test-event",
@@ -114,8 +116,15 @@ const defaultProps = {
     handleBookEvent: vi.fn(),
     errors: {},
     loadingStates: {},
-    expiryTime: 0,
+    expiryTime: undefined,
     instantVideoMeetingUrl: "",
+    bookingForm: {
+      watch: vi.fn(),
+      setValue: vi.fn(),
+      getValues: vi.fn().mockReturnValue({ responses: {} }),
+    },
+    bookerFormErrorRef: { current: null },
+    instantConnectCooldownMs: 0,
   },
   verifyEmail: {
     isEmailVerificationModalVisible: false,
