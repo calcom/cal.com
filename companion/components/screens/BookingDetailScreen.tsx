@@ -52,8 +52,8 @@ const formatTime12Hour = (dateString: string): string => {
   return `${hour12}:${minStr}${period}`;
 };
 
-// Get timezone from date string
-const getTimezone = (_dateString: string): string => {
+// Get user's local timezone for display
+const getTimezone = (): string => {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return timeZone || "";
 };
@@ -268,7 +268,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openRescheduleModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/reschedule",
+      pathname: "/reschedule",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -277,7 +277,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openEditLocationModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/edit-location",
+      pathname: "/edit-location",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -286,7 +286,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openAddGuestsModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/add-guests",
+      pathname: "/add-guests",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -295,7 +295,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openMarkNoShowModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/mark-no-show",
+      pathname: "/mark-no-show",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -304,7 +304,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openViewRecordingsModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/view-recordings",
+      pathname: "/view-recordings",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -313,7 +313,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openMeetingSessionDetailsModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/meeting-session-details",
+      pathname: "/meeting-session-details",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -434,7 +434,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const endTime = booking.end || booking.endTime || "";
   const dateFormatted = formatDateFull(startTime);
   const timeFormatted = `${formatTime12Hour(startTime)} - ${formatTime12Hour(endTime)}`;
-  const timezone = getTimezone(startTime);
+  const timezone = getTimezone();
   const locationProvider = getLocationProvider(booking.location, booking.responses);
 
   return (
@@ -607,8 +607,9 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
           {booking.recurringEventId ||
           (booking as { recurringBookingUid?: string }).recurringBookingUid ? (
             <View className="mb-2 rounded-2xl bg-white p-6">
-              <Text className="mb-2 text-base font-medium text-[#666]">Recurring Event</Text>
-              <Text className="text-base text-[#666]">Every 2 weeks for 6 occurrences</Text>
+              <Text className="text-base font-medium text-[#666]">
+                This is part of a recurring event
+              </Text>
             </View>
           ) : null}
 
