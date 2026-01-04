@@ -8,7 +8,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 
-import { TestForm } from "../../components/apps/routing-forms/TestForm";
+import { TestForm } from "../../../components/apps/routing-forms/TestForm";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 export default function InsightsVirtualQueuesPage() {
