@@ -2,24 +2,22 @@ import { randomBytes, createHash } from "node:crypto";
 import { totp } from "otplib";
 
 import {
-  sendChangeOfEmailVerificationLink,
   sendEmailVerificationCode,
   sendEmailVerificationLink,
+  sendChangeOfEmailVerificationLink,
 } from "@calcom/emails/auth-email-service";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
-import { createHash, randomBytes } from "crypto";
-import { totp } from "otplib";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
