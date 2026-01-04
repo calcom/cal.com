@@ -1,4 +1,4 @@
-import type { BookerEvent } from "bookings/types";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 
 export const mockEvent: BookerEvent = {
   id: 1,

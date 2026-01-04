@@ -29,7 +29,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import WebShell from "@calcom/web/modules/shell/Shell";
 
-import { Shell as PlatformShell } from "../../../../platform/atoms/src/components/ui/shell";
+import { Shell as PlatformShell } from "@calcom/platform/atoms/src/components/ui/shell";
 import { DeleteDialog } from "./dialogs/DeleteDialog";
 
 type Props = {

@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import classNames from "@calcom/ui/classNames";
 
-import { OutOfOfficeInSlots } from "@calcom/features/calendars/weeklyview/../../bookings/Booker/components/OutOfOfficeInSlots";
+import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
 import { useCalendarStore } from "@calcom/features/calendars/weeklyview/state/store";
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 import type { GridCellToDateProps } from "@calcom/features/calendars/weeklyview/utils";
