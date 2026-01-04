@@ -37,9 +37,11 @@ export default class AttendeeVerifyEmail extends BaseEmail {
   protected getTextBody(): string {
     return `
 ${this.verifyAccountInput.language(
-  `verify_email_subject${
-    this.verifyAccountInput.isVerifyingEmail ? "_verifying_email" : ""
-  }`,
+  this.verifyAccountInput.hideBranding
+    ? `hide_branding_verify_email_subject`
+    : `verify_email_subject${
+        this.verifyAccountInput.isVerifyingEmail ? "_verifying_email" : ""
+      }`,
   { appName: APP_NAME }
 )}
 ${this.verifyAccountInput.language("verify_email_email_header")}
