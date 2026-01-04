@@ -32,11 +32,11 @@ import {
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { fieldTypesConfigMap } from "./fieldTypes";
-import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
-import type { fieldsSchema } from "./schema";
-import { getFieldIdentifier } from "./utils/getFieldIdentifier";
-import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
+import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import type { fieldsSchema } from "@calcom/features/form-builder/schema";
+import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
+import { getConfig as getVariantsConfig } from "@calcom/features/form-builder/utils/variantsConfig";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
