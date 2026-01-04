@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import type { TApiKeys } from "~/ee/api-keys/components/ApiKeyListItem";
-import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import ApiKeyDialogForm from "~/ee/api-keys/components/ApiKeyDialogForm";
 import ApiKeyListItem from "~/ee/api-keys/components/ApiKeyListItem";
