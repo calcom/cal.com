@@ -20,7 +20,11 @@ export default class AttendeeVerifyEmail extends BaseEmail {
       to: `${this.verifyAccountInput.user.name} <${this.verifyAccountInput.user.email}>`,
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       subject: this.verifyAccountInput.language(
-        `verify_email_subject${this.verifyAccountInput.isVerifyingEmail ? "_verifying_email" : ""}`,
+        this.verifyAccountInput.hideBranding
+          ? `hide_branding_verify_email_subject`
+          : `verify_email_subject${
+              this.verifyAccountInput.isVerifyingEmail ? "_verifying_email" : ""
+            }`,
         {
           appName: APP_NAME,
         }
@@ -33,17 +37,22 @@ export default class AttendeeVerifyEmail extends BaseEmail {
   protected getTextBody(): string {
     return `
 ${this.verifyAccountInput.language(
-  `verify_email_subject${this.verifyAccountInput.isVerifyingEmail ? "_verifying_email" : ""}`,
+  `verify_email_subject${
+    this.verifyAccountInput.isVerifyingEmail ? "_verifying_email" : ""
+  }`,
   { appName: APP_NAME }
 )}
 ${this.verifyAccountInput.language("verify_email_email_header")}
-${this.verifyAccountInput.language("hi_user_name", { name: this.verifyAccountInput.user.name })},
+${this.verifyAccountInput.language("hi_user_name", {
+  name: this.verifyAccountInput.user.name,
+})},
 ${this.verifyAccountInput.language("verify_email_by_code_email_body")}
 ${this.verifyAccountInput.verificationEmailCode}
-${this.verifyAccountInput.language("happy_scheduling")} ${this.verifyAccountInput.language(
-      "the_calcom_team",
-      { companyName: COMPANY_NAME }
-    )}
+${this.verifyAccountInput.language(
+  "happy_scheduling"
+)} ${this.verifyAccountInput.language("the_calcom_team", {
+      companyName: COMPANY_NAME,
+    })}
 `.replace(/(<([^>]+)>)/gi, "");
   }
 }
