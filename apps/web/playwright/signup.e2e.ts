@@ -103,7 +103,7 @@ test.describe("Email Signup Flow Test", async () => {
       const alertMessageInner = await alert.innerText();
 
       expect(alertMessage).toBeDefined();
-      expect(alertMessageInner).toContain(alertMessageInner);
+      expect(alertMessageInner).toContain(alertMessage);
     });
   });
   test("Email is taken", async ({ page, users }) => {
@@ -138,7 +138,7 @@ test.describe("Email Signup Flow Test", async () => {
       const alertMessageInner = await alert.innerText();
 
       expect(alertMessage).toBeDefined();
-      expect(alertMessageInner).toContain(alertMessageInner);
+      expect(alertMessageInner).toContain(alertMessage);
     });
   });
   test("Signup with valid (non premium) username", async ({ page, users }) => {
@@ -257,7 +257,6 @@ test.describe("Email Signup Flow Test", async () => {
     expect(await usernameField.inputValue()).toBe(expectedUsername);
     expect(await emailField.inputValue()).toBe(userToCreate.email);
 
-    // Cleanup specific to this test
     // Clean up the user and token
     await prisma.user.deleteMany({ where: { email: userToCreate.email } });
     await prisma.verificationToken.deleteMany({
@@ -346,7 +345,6 @@ test.describe("Email Signup Flow Test", async () => {
     await page.goto(`/settings/teams/${team.id}/settings`);
 
     await test.step("Invite User to team", async () => {
-      // TODO: This invite logic should live in a fixture - its used in team and orgs invites (Duplicated from team/org invites)
       const invitedUserEmail = `rick_${Date.now()}@domain-${Date.now()}.com`;
       await page.locator(`button:text("${t("add")}")`).click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
@@ -700,52 +698,7 @@ test.describe("Premium Username Signup Tests", async () => {
     await users.deleteAll();
   });
 
-  test("Premium Username Flow - creates stripe checkout", async ({
-    page,
-    users,
-    prisma,
-  }) => {
-    // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(!IS_PREMIUM_USERNAME_ENABLED, "Only run on Cal.com");
-    const userToCreate = users.buildForSignup({
-      username: "rock",
-      password: "Password99!",
-    });
-    // Ensure the premium username is available
-    await prisma.user.deleteMany({ where: { username: "rock" } });
-
-    // Signup with premium username name
-    await page.goto("/signup");
-    await preventFlakyTest(page);
-    const continueWithEmailButton = page.getByTestId(
-      "continue-with-email-button"
-    );
-    await expect(continueWithEmailButton).toBeVisible();
-    await continueWithEmailButton.click();
-
-    // Fill form
-    await page.locator('input[name="username"]').fill("rock");
-    await page.locator('input[name="email"]').fill(userToCreate.email);
-    await page.locator('input[name="password"]').fill(userToCreate.password);
-
-    // Submit form
-    const submitButton = page.getByTestId("signup-submit-button");
-    await submitButton.click();
-
-    // Check that stripe checkout is present
-    const expectedUrl = "https://checkout.stripe.com";
-
-    await page.waitForURL((url) => url.href.startsWith(expectedUrl));
-    const url = page.url();
-
-    // Check that the URL matches the expected URL
-    expect(url).toContain(expectedUrl);
-    // Track user for cleanup
-    await users.set(userToCreate.email);
-    // TODO: complete the stripe checkout flow
-  });
-
-  test("Premium username signup creates user with checkoutSessionId in metadata", async ({
+  test("Premium username signup flow - Stripe checkout and DB metadata", async ({
     page,
     users,
     prisma,
@@ -772,16 +725,22 @@ test.describe("Premium Username Signup Tests", async () => {
     await expect(continueWithEmailButton).toBeVisible();
     await continueWithEmailButton.click();
 
+    // Fill form
     await page.locator('input[name="username"]').fill("rock");
     await page.locator('input[name="email"]').fill(userToCreate.email);
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
+    // Submit form
     const submitButton = page.getByTestId("signup-submit-button");
     await submitButton.click();
 
+    // Check that stripe checkout is present
     const expectedUrl = "https://checkout.stripe.com";
     await page.waitForURL((url) => url.href.startsWith(expectedUrl));
+    const url = page.url();
+    expect(url).toContain(expectedUrl);
 
+    // Verify user was created with correct metadata
     const dbUser = await prisma.user.findUnique({
       where: { email: userToCreate.email },
       select: {
@@ -805,5 +764,19 @@ test.describe("Premium Username Signup Tests", async () => {
     expect(metadata?.stripeCustomerId).toBeDefined();
     expect(metadata?.checkoutSessionId).toBeDefined();
     expect(metadata?.checkoutSessionId).toMatch(/^cs_/);
+
+    // Cleanup Stripe customer
+    if (metadata?.stripeCustomerId) {
+      try {
+        await stripe.customers.del(metadata.stripeCustomerId);
+      } catch (error) {
+        // Stripe customer may already be deleted or not exist
+        // Log error but don't fail the test
+        console.error(
+          `Failed to delete Stripe customer ${metadata.stripeCustomerId}:`,
+          error
+        );
+      }
+    }
   });
 });
