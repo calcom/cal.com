@@ -96,6 +96,7 @@ export async function getServerSession(options: {
     expires: new Date(typeof token.exp === "number" ? token.exp * 1000 : Date.now()).toISOString(),
     user: {
       id: user.id,
+      uuid: user.uuid,
       name: user.name,
       username: user.username,
       email: user.email,

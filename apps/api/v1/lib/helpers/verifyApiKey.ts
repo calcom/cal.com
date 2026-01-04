@@ -36,9 +36,10 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
     return res.status(401).json({ error: result.error });
   }
 
-  // save the user id in the request for later use
-  req.userId = result.userId!;
-  req.user = result.user!;
+  // save the user id and uuid in the request for later use
+  req.userId = result.userId;
+  req.userUuid = result.user.uuid;
+  req.user = result.user;
 
   const { isAdmin, scope } = await isAdminGuard(req);
   const userIsLockedOrBlocked = await isLockedOrBlocked(req);
