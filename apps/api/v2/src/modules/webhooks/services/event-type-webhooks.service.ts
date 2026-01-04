@@ -20,7 +20,9 @@ export class EventTypeWebhooksService {
       body.subscriberUrl
     );
     if (existingWebhook) {
-      throw new ConflictException("Webhook with this subscriber url already exists for this event type");
+      throw new ConflictException(
+        `Webhook with subscriber url ${body.subscriberUrl} already exists for this event type. Existing webhook ID: ${existingWebhook.id}`
+      );
     }
     return this.webhooksRepository.createEventTypeWebhook(eventTypeId, {
       ...body,
