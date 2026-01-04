@@ -7,6 +7,8 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
 import isSmsCalEmail from "./isSmsCalEmail";
+import { markdownToSafeHTML } from "./markdownToSafeHTML";
+import { stripMarkdown } from "./stripMarkdown";
 
 const translator = short();
 
@@ -64,11 +66,16 @@ export const getWho = (
   }`;
 };
 
-export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNotes">, t: TFunction) => {
-  if (!calEvent.additionalNotes) {
-    return "";
-  }
-  return `${t("additional_notes")}:\n${calEvent.additionalNotes}`;
+export const getAdditionalNote = (
+  calEvent: Pick<CalendarEvent, "additionalNotes">,
+  t: TFunction,
+  stripMarkdownForIcs = false
+) => {
+  if (!calEvent.additionalNotes) return "";
+  const text = stripMarkdownForIcs
+    ? stripMarkdown(calEvent.additionalNotes, { preserveNewlines: true })
+    : calEvent.additionalNotes;
+  return `${t("additional_notes")}:\n${text}`;
 };
 
 export const getUserFieldsResponses = (
@@ -141,11 +148,23 @@ const htmlToPlainText = (html: string): string => {
   );
 };
 
-export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: TFunction) => {
+export const getDescription = (
+  calEvent: Pick<CalendarEvent, "description">,
+  t: TFunction,
+  stripMarkdownForIcs = false
+) => {
   if (!calEvent.description) {
     return "";
   }
-  const plainText = htmlToPlainText(calEvent.description);
+
+  // First convert HTML to plain text (handles rich text editor content)
+  let plainText = htmlToPlainText(calEvent.description);
+
+  // Then strip markdown if needed (for ICS files and plain text emails)
+  if (stripMarkdownForIcs) {
+    plainText = stripMarkdown(plainText, { preserveNewlines: true });
+  }
+
   return `${t("description")}\n${plainText}`;
 };
 
@@ -342,7 +361,7 @@ type RichDescriptionCalEvent = Parameters<typeof getCancellationReason>[0] &
   Parameters<typeof getWhen>[0] &
   Parameters<typeof getLocation>[0] &
   Parameters<typeof getDescription>[0] &
-  Parameters<typeof getAdditionalNotes>[0] &
+  Parameters<typeof getAdditionalNote>[0] &
   Parameters<typeof getUserFieldsResponses>[0] &
   Parameters<typeof getAppsStatus>[0] &
   Parameters<typeof getManageLink>[0] &
@@ -359,14 +378,20 @@ export const getRichDescriptionHTML = (
   const textToHtml = (text: string) => {
     if (!text) return "";
     const lines = text.split("\n").filter(Boolean);
-    return lines
-      .map((line, index) => {
-        if (index === 0) {
-          return `<p><strong>${line}</strong></p>`;
-        }
-        return `<p>${line}</p>`;
-      })
-      .join("");
+    const firstLine = lines.shift();
+    if (!firstLine) return "";
+    let html = `<p><strong>${firstLine}</strong></p>`;
+    if (lines.length > 0) {
+      html += `<p>${lines.join("<br>")}</p>`;
+    }
+    return html;
+  };
+
+  // Helper function to render markdown content to safe HTML
+  const markdownContentToHTML = (title: string, content: string | null | undefined) => {
+    if (!content) return "";
+    const html = markdownToSafeHTML(content);
+    return `<p><strong>${title}</strong></p>${html}`;
   };
 
   // Convert the manage link to a clickable hyperlink
@@ -389,8 +414,8 @@ export const getRichDescriptionHTML = (
     textToHtml(getWhat(calEvent, t)),
     textToHtml(getWhen(calEvent, t)),
     textToHtml(getWho(calEvent, t)),
-    textToHtml(getDescription(calEvent, t)),
-    textToHtml(getAdditionalNotes(calEvent, t)),
+    markdownContentToHTML(t("description"), calEvent.description),
+    markdownContentToHTML(t("additional_notes"), calEvent.additionalNotes),
     textToHtml(getUserFieldsResponses(calEvent, t)),
     includeAppStatus ? textToHtml(getAppsStatus(calEvent, t)) : "",
     manageLinkHtml,
@@ -414,14 +439,15 @@ export const getRichDescription = (
   const t = t_ ?? calEvent.organizer.language.translate;
 
   // Join all parts with single newlines and remove extra whitespace
+  // NOTE: We pass true to strip markdown since this is used for ICS files and plain text emails
   const parts = [
     getCancellationReason(calEvent, t),
     getWhat(calEvent, t),
     getWhen(calEvent, t),
     getWho(calEvent, t),
     `${t("where")}:\n${getLocation(calEvent)}`,
-    getDescription(calEvent, t),
-    getAdditionalNotes(calEvent, t),
+    getDescription(calEvent, t, true), // Strip markdown for ICS
+    getAdditionalNote(calEvent, t, true), // Strip markdown for ICS
     getUserFieldsResponses(calEvent, t),
     includeAppStatus ? getAppsStatus(calEvent, t) : "",
     // TODO: Only the original attendee can make changes to the event
