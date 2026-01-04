@@ -3,7 +3,7 @@ import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 
-import { useCalendarStore } from "@calcom/features/calendars/weeklyview/../state/store";
+import { useCalendarStore } from "@calcom/features/calendars/weeklyview/state/store";
 import { BlockedTimeCell } from "./BlockedTimeCell";
 
 type Props = {
