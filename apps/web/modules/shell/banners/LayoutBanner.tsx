@@ -1,6 +1,6 @@
 import ImpersonatingBanner, {
   type ImpersonatingBannerProps,
-} from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
+} from "~/ee/impersonation/components/ImpersonatingBanner";
 import {
   OrgUpgradeBanner,
   type OrgUpgradeBannerProps,
