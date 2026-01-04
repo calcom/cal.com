@@ -106,6 +106,11 @@ export class ScheduleRepository {
         name: true,
         availability: true,
         timeZone: true,
+        // Sync-related fields for Google Calendar Working Location
+        syncSource: true,
+        syncLastAt: true,
+        syncError: true,
+        syncConfig: true,
       },
     });
 
@@ -127,6 +132,10 @@ export class ScheduleRepository {
         userId: userId,
       },
     });
+
+    // Synced schedules are read-only for availability editing
+    const isSynced = !!schedule.syncSource;
+
     // disabling utc casting while fetching WorkingHours
     return {
       id: schedule.id,
@@ -139,8 +148,13 @@ export class ScheduleRepository {
       dateOverrides: transformDateOverridesForAtom(schedule, timeZone),
       isDefault: !scheduleId || defaultScheduleId === schedule.id,
       isLastSchedule: schedulesCount <= 1,
-      readOnly: schedule.userId !== userId && !isManagedEventType,
+      readOnly: (schedule.userId !== userId && !isManagedEventType) || isSynced,
       userId: schedule.userId,
+      // Sync-related fields
+      syncSource: schedule.syncSource,
+      syncLastAt: schedule.syncLastAt,
+      syncError: schedule.syncError,
+      syncConfig: schedule.syncConfig,
     };
   }
 
