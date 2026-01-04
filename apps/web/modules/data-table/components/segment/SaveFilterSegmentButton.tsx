@@ -19,7 +19,7 @@ import { Form, Input, Label, Select, Switch } from "@calcom/ui/components/form";
 import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { useDataTable } from "../../hooks";
+import { useDataTable } from "@calcom/features/data-table/hooks";
 
 interface FormValues {
   name: string;

@@ -11,7 +11,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { useDataTable, useFilterableColumns } from "../../hooks";
+import { useDataTable, useFilterableColumns } from "@calcom/features/data-table/hooks";
 
 export interface AddFilterButtonProps<TData> {
   table: Table<TData>;

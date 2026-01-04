@@ -16,12 +16,12 @@ import {
 } from "@calcom/ui/components/command";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { useDataTable, useFilterValue } from "../../hooks";
+import { useDataTable, useFilterValue } from "@calcom/features/data-table/hooks";
 import type {
   FacetedValue,
   FilterableColumn as _FilterableColumn,
   FilterValueSchema,
-} from "../../lib/types";
+} from "@calcom/features/data-table/lib/types";
 import type { FilterType } from "@calcom/types/data-table";
 
 type FilterableColumn = Extract<

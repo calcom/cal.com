@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/co
 import { Form, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { FilterSegmentOutput } from "../../lib/types";
+import type { FilterSegmentOutput } from "@calcom/features/data-table/lib/types";
 
 type FormValues = {
   name: string;

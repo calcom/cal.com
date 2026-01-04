@@ -15,13 +15,13 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 
-import { useDataTable } from "../../hooks";
+import { useDataTable } from "@calcom/features/data-table/hooks";
 import type {
   FilterSegmentOutput,
   CombinedFilterSegment,
   SystemFilterSegmentInternal,
   UserFilterSegment,
-} from "../../lib/types";
+} from "@calcom/features/data-table/lib/types";
 import { DeleteSegmentDialog } from "./DeleteSegmentDialog";
 import { DuplicateSegmentDialog } from "./DuplicateSegmentDialog";
 import { RenameSegmentDialog } from "./RenameSegmentDialog";

@@ -2,7 +2,7 @@
 
 import { type Table } from "@tanstack/react-table";
 
-import { useDisplayedFilterCount } from "../../hooks";
+import { useDisplayedFilterCount } from "@calcom/features/data-table/hooks";
 import { ActiveFilters } from "./ActiveFilters";
 import { AddFilterButton } from "./AddFilterButton";
 

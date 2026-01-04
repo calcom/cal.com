@@ -1,7 +1,7 @@
 "use client";
 
-import type { FilterableColumn } from "../../lib/types";
-import { ColumnFilterType } from "../../lib/types";
+import type { FilterableColumn } from "@calcom/features/data-table/lib/types";
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { MultiSelectFilterOptions } from "./MultiSelectFilterOptions";
 import { NumberFilterOptions } from "./NumberFilterOptions";
 import { SingleSelectFilterOptions } from "./SingleSelectFilterOptions";

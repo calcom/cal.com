@@ -7,14 +7,14 @@ import { Button } from "@calcom/ui/components/button";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 
-import { useFilterValue } from "../../hooks";
-import { type FilterableColumn, type FilterValue, ZFilterValue, ColumnFilterType } from "../../lib/types";
+import { useFilterValue } from "@calcom/features/data-table/hooks";
+import { type FilterableColumn, type FilterValue, ZFilterValue, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import {
   isSingleSelectFilterValue,
   isMultiSelectFilterValue,
   isTextFilterValue,
   isNumberFilterValue,
-} from "../../lib/utils";
+} from "@calcom/features/data-table/lib/utils";
 import { FilterOptions } from "./FilterOptions";
 import { useFilterPopoverOpen } from "./useFilterPopoverOpen";
 import { numberFilterOperatorOptions, useTextFilterOperatorOptions } from "./utils";

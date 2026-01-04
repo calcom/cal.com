@@ -2,8 +2,8 @@
 
 import { type Table } from "@tanstack/react-table";
 
-import { useDataTable, useFilterableColumns } from "../../hooks";
-import { ColumnFilterType } from "../../lib/types";
+import { useDataTable, useFilterableColumns } from "@calcom/features/data-table/hooks";
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { DateRangeFilter } from "./DateRangeFilter";
 import { FilterPopover } from "./FilterPopover";
 

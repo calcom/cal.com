@@ -2,9 +2,9 @@
 
 import type { FilterType } from "@calcom/types/data-table";
 
-import { useDataTable } from "../../hooks";
-import type { FilterableColumn } from "../../lib/types";
-import { ZSingleSelectFilterValue, ColumnFilterType } from "../../lib/types";
+import { useDataTable } from "@calcom/features/data-table/hooks";
+import type { FilterableColumn } from "@calcom/features/data-table/lib/types";
+import { ZSingleSelectFilterValue, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { BaseSelectFilterOptions } from "./BaseSelectFilterOptions";
 
 export type SingleSelectFilterOptionsProps = {

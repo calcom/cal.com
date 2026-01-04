@@ -19,7 +19,7 @@ import { DateRangePicker } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 
-import { useDataTable, useFilterValue } from "../../hooks";
+import { useDataTable, useFilterValue } from "@calcom/features/data-table/hooks";
 import {
   CUSTOM_PRESET,
   CUSTOM_PRESET_VALUE,
@@ -29,10 +29,10 @@ import {
   getDateRangeFromPreset,
   getCompatiblePresets,
   type PresetOption,
-} from "../../lib/dateRange";
-import { preserveLocalTime } from "../../lib/preserveLocalTime";
-import type { FilterableColumn, DateRangeFilterOptions } from "../../lib/types";
-import { ZDateRangeFilterValue, ColumnFilterType } from "../../lib/types";
+} from "@calcom/features/data-table/lib/dateRange";
+import { preserveLocalTime } from "@calcom/features/data-table/lib/preserveLocalTime";
+import type { FilterableColumn, DateRangeFilterOptions } from "@calcom/features/data-table/lib/types";
+import { ZDateRangeFilterValue, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import type { FilterType } from "@calcom/types/data-table";
 import { useFilterPopoverOpen } from "./useFilterPopoverOpen";
 

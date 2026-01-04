@@ -1,4 +1,4 @@
-import type { NumberFilterOperator, TextFilterOperator } from "../../lib/types";
+import type { NumberFilterOperator, TextFilterOperator } from "@calcom/features/data-table/lib/types";
 
 export type NumberFilterOperatorOption = {
   label: string;

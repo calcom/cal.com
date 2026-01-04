@@ -10,7 +10,7 @@ import classNames from "@calcom/ui/classNames";
 import { Button, type ButtonProps } from "@calcom/ui/components/button";
 import { FilterSearchField } from "@calcom/ui/components/form";
 
-import { useColumnFilters, useDataTable } from "../hooks";
+import { useColumnFilters, useDataTable } from "@calcom/features/data-table/hooks";
 
 interface DataTableToolbarProps extends ComponentPropsWithoutRef<"div"> {
   children: React.ReactNode;

@@ -6,9 +6,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Form, Select, Input } from "@calcom/ui/components/form";
 
-import { useFilterValue, useDataTable } from "../../hooks";
-import type { FilterableColumn } from "../../lib/types";
-import { ZTextFilterValue, ColumnFilterType } from "../../lib/types";
+import { useFilterValue, useDataTable } from "@calcom/features/data-table/hooks";
+import type { FilterableColumn } from "@calcom/features/data-table/lib/types";
+import { ZTextFilterValue, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import type { FilterType } from "@calcom/types/data-table";
 import { useTextFilterOperatorOptions } from "./utils";
 
