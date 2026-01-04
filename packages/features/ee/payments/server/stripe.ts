@@ -1,18 +1,21 @@
 import Stripe from "stripe";
 
 declare global {
-  // eslint-disable-next-line no-var
   var stripe: Stripe | undefined;
 }
 
-const stripe =
-  globalThis.stripe ||
-  new Stripe(process.env.STRIPE_PRIVATE_KEY!, {
+export default function getStripe(key?: string) {
+  if (globalThis.stripe) return globalThis.stripe;
+
+  const stripeKey = key || process.env.STRIPE_PRIVATE_KEY;
+
+  if (!stripeKey) {
+    throw new Error("STRIPE_PRIVATE_KEY is missing");
+  }
+
+  globalThis.stripe = new Stripe(stripeKey, {
     apiVersion: "2020-08-27",
   });
 
-if (process.env.NODE_ENV !== "production") {
-  globalThis.stripe = stripe;
+  return globalThis.stripe;
 }
-
-export default stripe;
