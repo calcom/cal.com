@@ -27,7 +27,7 @@ import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { SheetHeader, SheetBody, SheetFooter, SheetTitle } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { UserTableAction } from "../types";
+import type { UserTableAction } from "@calcom/features/users/types/user-table";
 import { useEditMode } from "./store";
 
 interface MembershipOption {

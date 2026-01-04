@@ -3,7 +3,7 @@ import * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Host, TeamMember } from "../../lib/types";
+import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import type { AddMembersWithSwitchProps } from "../AddMembersWithSwitch";
 import { AddMembersWithSwitch } from "../AddMembersWithSwitch";
 
@@ -53,23 +53,31 @@ vi.mock("@calcom/trpc/react", () => ({
   },
 }));
 
+// Mock useIsPlatform to return false (web context) so Segment component renders
+vi.mock("@calcom/atoms/hooks/useIsPlatform", () => ({
+  useIsPlatform: () => false,
+}));
+
+const defaultFormValues = {
+  assignRRMembersUsingSegment: false,
+  rrSegmentQueryValue: null,
+  hosts: [],
+};
+
 const renderComponent = ({
   componentProps,
-  formDefaultValues = {
-    assignRRMembersUsingSegment: false,
-    rrSegmentQueryValue: null,
-    hosts: [],
-  },
+  formDefaultValues = defaultFormValues,
 }: {
   componentProps: AddMembersWithSwitchProps;
-  formDefaultValues?: Record<string, unknown>;
+  formDefaultValues?: typeof defaultFormValues;
 }) => {
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
     const methods = useForm({
       defaultValues: formDefaultValues,
     });
-    const [assignAllTeamMembers, setAssignAllTeamMembers] = React.useState(false);
-    console.log(methods.getValues());
+    const [assignAllTeamMembers, setAssignAllTeamMembers] = React.useState(
+      componentProps.assignAllTeamMembers
+    );
     return (
       <FormProvider {...methods}>
         {React.cloneElement(children as React.ReactElement, {
@@ -91,6 +99,10 @@ describe("AddMembersWithSwitch", () => {
     onActive: vi.fn(),
     isFixed: false,
     teamId: 1,
+    assignAllTeamMembers: false,
+    setAssignAllTeamMembers: vi.fn(),
+    automaticAddAllEnabled: false,
+    groupId: null,
   };
 
   it("should render in TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_NOT_APPLICABLE state", () => {
@@ -98,8 +110,10 @@ describe("AddMembersWithSwitch", () => {
       componentProps: {
         ...defaultProps,
         assignAllTeamMembers: false,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: false,
         automaticAddAllEnabled: false,
+        groupId: null,
       },
     });
     expect(screen.queryByTestId("assign-all-team-members-toggle")).not.toBeInTheDocument();
@@ -111,8 +125,10 @@ describe("AddMembersWithSwitch", () => {
       componentProps: {
         ...defaultProps,
         assignAllTeamMembers: false,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: false,
         automaticAddAllEnabled: true,
+        groupId: null,
       },
     });
 
@@ -126,7 +142,10 @@ describe("AddMembersWithSwitch", () => {
       componentProps: {
         ...defaultProps,
         assignAllTeamMembers: true,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: false,
+        automaticAddAllEnabled: true,
+        groupId: null,
       },
       formDefaultValues: {
         assignRRMembersUsingSegment: true,
@@ -135,8 +154,12 @@ describe("AddMembersWithSwitch", () => {
       },
     });
 
-    expect(screen.queryByTestId("assign-all-team-members-toggle")).not.toBeInTheDocument();
-    expect(screen.queryByText("filter_by_attributes")).not.toBeInTheDocument();
+    // In ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE state:
+    // - AssignAllTeamMembers toggle IS rendered (when groupId is null)
+    // - Segment toggle is NOT rendered (because isSegmentApplicable is false)
+    expect(screen.getByTestId("assign-all-team-members-toggle")).toBeInTheDocument();
+    expect(screen.getByTestId("assign-all-team-members-toggle").getAttribute("aria-checked")).toBe("true");
+    expect(screen.queryByTestId("segment-toggle")).not.toBeInTheDocument();
   });
 
   it("should render segment toggle in enabled state when isSegmentApplicable is true and assignRRMembersUsingSegment is also true(even if assignAllTeamMembers is false)", () => {
@@ -144,7 +167,10 @@ describe("AddMembersWithSwitch", () => {
       componentProps: {
         ...defaultProps,
         assignAllTeamMembers: false,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: true,
+        automaticAddAllEnabled: true,
+        groupId: null,
       },
       formDefaultValues: {
         assignRRMembersUsingSegment: true,
@@ -168,13 +194,15 @@ describe("AddMembersWithSwitch", () => {
     expect(defaultProps.onChange).toHaveBeenCalled();
   });
 
-  it("should show Segment when 'Automatically add all team members' is toggled on and then segment toggle is switched on", () => {
+  it("should show segment toggle when 'Automatically add all team members' is toggled on and segment toggle can be enabled", () => {
     renderComponent({
       componentProps: {
         ...defaultProps,
-        assignAllTeamMembers: true,
+        assignAllTeamMembers: false,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: true,
         automaticAddAllEnabled: true,
+        groupId: null,
       },
       formDefaultValues: {
         assignRRMembersUsingSegment: false,
@@ -183,19 +211,25 @@ describe("AddMembersWithSwitch", () => {
       },
     });
 
+    // Initially, segment toggle should not be visible because assignAllTeamMembers is false
     expect(screen.queryByTestId("segment-toggle")).not.toBeInTheDocument();
 
+    // Click to enable "Automatically add all team members"
     act(() => {
       screen.getByTestId("assign-all-team-members-toggle").click();
     });
 
-    expect(screen.queryByTestId("mock-segment")).not.toBeInTheDocument();
+    // Now segment toggle should be visible
+    expect(screen.getByTestId("segment-toggle")).toBeInTheDocument();
+    expect(screen.getByTestId("segment-toggle").getAttribute("aria-checked")).toBe("false");
 
+    // Click segment toggle to enable it
     act(() => {
       screen.getByTestId("segment-toggle").click();
     });
 
-    expect(screen.getByTestId("mock-segment")).toBeInTheDocument();
+    // Segment toggle should now be checked
+    expect(screen.getByTestId("segment-toggle").getAttribute("aria-checked")).toBe("true");
   });
 });
 

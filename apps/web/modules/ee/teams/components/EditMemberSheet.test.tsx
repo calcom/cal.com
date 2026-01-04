@@ -4,7 +4,7 @@ import { vi } from "vitest";
 
 import { MembershipRole } from "@calcom/prisma/enums";
 import { EditMemberSheet } from "@calcom/web/modules/ee/teams/components/EditMemberSheet";
-import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
+import type { MemberPermissions } from "@calcom/features/users/types/user-table";
 
 import type { State, User } from "./MemberList";
 

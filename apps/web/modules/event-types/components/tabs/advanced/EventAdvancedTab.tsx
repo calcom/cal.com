@@ -20,9 +20,9 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { MultiplePrivateLinksController } from "@calcom/features/eventtypes/components";
-import AddVerifiedEmail from "@calcom/features/eventtypes/components/AddVerifiedEmail";
-import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import { MultiplePrivateLinksController } from "@calcom/web/modules/event-types/components";
+import AddVerifiedEmail from "@calcom/web/modules/event-types/components/AddVerifiedEmail";
+import { LearnMoreLink } from "@calcom/web/modules/event-types/components/LearnMoreLink";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type {

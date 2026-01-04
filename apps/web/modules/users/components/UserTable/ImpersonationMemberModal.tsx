@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 
-import type { UserTableAction, UserTableState } from "./types";
+import type { UserTableAction, UserTableState } from "@calcom/features/users/types/user-table";
 
 export function ImpersonationMemberModal(props: {
   state: UserTableState;

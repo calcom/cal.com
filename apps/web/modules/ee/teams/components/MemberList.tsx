@@ -59,7 +59,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import TeamAvailabilityModal from "@calcom/web/modules/ee/teams/components/TeamAvailabilityModal";
 import { DynamicLink } from "@calcom/web/modules/users/components/UserTable/BulkActions/DynamicLink";
-import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
+import type { MemberPermissions } from "@calcom/features/users/types/user-table";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";

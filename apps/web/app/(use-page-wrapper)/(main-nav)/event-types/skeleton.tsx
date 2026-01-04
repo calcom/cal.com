@@ -2,7 +2,7 @@
 
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 
-import { EventTypesSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
+import { EventTypesSkeletonLoader } from "@calcom/web/modules/event-types/components/SkeletonLoader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export function EventTypesSkeleton() {

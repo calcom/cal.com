@@ -9,7 +9,7 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Sheet, SheetContent, SheetBody, SheetHeader, SheetFooter } from "@calcom/ui/components/sheet";
 import { Loader } from "@calcom/ui/components/skeleton";
 
-import type { UserTableAction, UserTableState } from "../types";
+import type { UserTableAction, UserTableState } from "@calcom/features/users/types/user-table";
 import { DisplayInfo } from "./DisplayInfo";
 import { EditForm } from "./EditUserForm";
 import { OrganizationBanner } from "./OrganizationBanner";

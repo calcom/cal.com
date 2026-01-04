@@ -17,7 +17,7 @@ import {
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import type { UserTableUser, UserTableAction } from "./types";
+import type { UserTableUser, UserTableAction } from "@calcom/features/users/types/user-table";
 
 export function TableActions({
   user,

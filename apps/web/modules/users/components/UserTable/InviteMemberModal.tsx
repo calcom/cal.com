@@ -9,7 +9,7 @@ import usePlatformMe from "@calcom/web/components/settings/platform/hooks/usePla
 
 import MemberInvitationModal from "~/ee/teams/components/MemberInvitationModal";
 
-import type { UserTableAction } from "./types";
+import type { UserTableAction } from "@calcom/features/users/types/user-table";
 
 interface Props {
   dispatch: Dispatch<UserTableAction>;

@@ -10,7 +10,7 @@ import classNames from "classnames";
 import Link from "next/link";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
+import EventTypeDescription from "@calcom/web/modules/event-types/components/EventTypeDescription";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";

@@ -1,8 +1,13 @@
-import type { GroupBase, Props, ValueContainerProps } from "react-select";
+import type { CSSObjectWithLabel, GroupBase, Props, ValueContainerProps } from "react-select";
 import { components } from "react-select";
 
 import { Icon } from "@calcom/ui/components/icon";
 import { Select } from "@calcom/ui/components/form";
+
+// Helper to merge react-select styles with type safety
+const mergeStyles = (base: CSSObjectWithLabel, overrides: Record<string, unknown>): CSSObjectWithLabel => {
+  return { ...base, ...overrides } as CSSObjectWithLabel;
+};
 
 const LimitedChipsContainer = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>({
   children,
@@ -40,9 +45,8 @@ export const MultiDropdownSelect = ({ options = [], value = [], ...props }: Prop
   return (
     <Select
       styles={{
-        multiValue: (styles) => {
-          return {
-            ...styles,
+        multiValue: (base) =>
+          mergeStyles(base, {
             backgroundColor: "#F3F4F6",
             color: "#374151",
             borderRadius: "6px",
@@ -52,43 +56,42 @@ export const MultiDropdownSelect = ({ options = [], value = [], ...props }: Prop
             fontWeight: "500",
             margin: "0px",
             lineHeight: "16px",
-          };
-        },
-        multiValueLabel: (styles) => ({
-          ...styles,
-          paddingLeft: "0px",
-          fontSize: "14px",
-          padding: "0",
-        }),
-        multiValueRemove: (base) => ({
-          ...base,
-          color: "#4B5563",
-          padding: "0",
-          ":hover": {
-            background: "transparent",
-          },
-          "> svg": {
-            width: "16px",
-            height: "17px",
-          },
-        }),
-        control: (base) => ({
-          ...base,
-          // Brute force to remove focus outline of input
-          "& .cal-multiselect__input": {
-            borderWidth: 0,
-            boxShadow: "none",
-            caretColor: "transparent",
-          },
-        }),
-        valueContainer: (base) => ({
-          ...base,
-          display: "flex",
-          gap: "4px",
-          paddingLeft: "5px",
-          padding: "0px",
-          height: "36px",
-        }),
+          }),
+        multiValueLabel: (base) =>
+          mergeStyles(base, {
+            paddingLeft: "0px",
+            fontSize: "14px",
+            padding: "0",
+          }),
+        multiValueRemove: (base) =>
+          mergeStyles(base, {
+            color: "#4B5563",
+            padding: "0",
+            ":hover": {
+              background: "transparent",
+            },
+            "> svg": {
+              width: "16px",
+              height: "17px",
+            },
+          }),
+        control: (base) =>
+          mergeStyles(base, {
+            // Brute force to remove focus outline of input
+            "& .cal-multiselect__input": {
+              borderWidth: 0,
+              boxShadow: "none",
+              caretColor: "transparent",
+            },
+          }),
+        valueContainer: (base) =>
+          mergeStyles(base, {
+            display: "flex",
+            gap: "4px",
+            paddingLeft: "5px",
+            padding: "0px",
+            height: "36px",
+          }),
       }}
       className="cal-multiselect"
       classNamePrefix="cal-multiselect"

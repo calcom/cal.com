@@ -52,7 +52,7 @@ import { EditUserSheet } from "./EditSheet/EditUserSheet";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
-import type { UserTableState, UserTableAction, UserTableUser, MemberPermissions } from "./types";
+import type { UserTableState, UserTableAction, UserTableUser, MemberPermissions } from "@calcom/features/users/types/user-table";
 
 const initialState: UserTableState = {
   changeMemberRole: {

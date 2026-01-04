@@ -25,7 +25,7 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DeleteMemberModal } from "./DeleteMemberModal";
-import type { UserTableState, UserTableAction, PlatformManagedUserTableUser } from "./types";
+import type { UserTableState, UserTableAction, PlatformManagedUserTableUser } from "@calcom/features/users/types/user-table";
 
 const initialState: UserTableState = {
   changeMemberRole: {

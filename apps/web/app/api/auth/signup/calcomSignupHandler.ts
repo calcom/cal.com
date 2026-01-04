@@ -21,14 +21,14 @@ import { prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
-import { buildLegacyRequest } from "@calcom/web/lib/buildLegacyCtx";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
+import { joinAnyChildTeamOnOrgInvite } from "@calcom/features/auth/signup/utils/organization";
 import {
   findTokenByToken,
   throwIfTokenExpired,
   validateAndGetCorrectedUsernameForTeam,
-} from "../utils/token";
+} from "@calcom/features/auth/signup/utils/token";
 
 const log = logger.getSubLogger({ prefix: ["signupCalcomHandler"] });
 

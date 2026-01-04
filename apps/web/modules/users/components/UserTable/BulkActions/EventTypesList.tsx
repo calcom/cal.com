@@ -21,7 +21,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { UserTableUser } from "../types";
+import type { UserTableUser } from "@calcom/features/users/types/user-table";
 
 interface Props {
   table: Table<UserTableUser>;

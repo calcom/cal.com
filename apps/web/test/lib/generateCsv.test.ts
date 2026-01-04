@@ -6,7 +6,7 @@ import {
   generateHeaderFromReactTable,
 } from "@calcom/features/users/lib/UserListTableUtils";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { UserTableUser } from "@calcom/web/modules/users/components/UserTable/types";
+import type { UserTableUser } from "@calcom/features/users/types/user-table";
 
 function createMockTable(data: UserTableUser[]): Table<UserTableUser> {
   return {

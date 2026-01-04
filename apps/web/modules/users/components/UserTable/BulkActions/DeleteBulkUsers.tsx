@@ -5,7 +5,7 @@ import { trpc } from "@calcom/trpc/react";
 import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { UserTableUser } from "../types";
+import type { UserTableUser } from "@calcom/features/users/types/user-table";
 
 interface Props {
   users: Array<{ id: UserTableUser["id"] }>;
