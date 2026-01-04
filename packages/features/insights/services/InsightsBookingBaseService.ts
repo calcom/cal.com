@@ -305,8 +305,42 @@ export class InsightsBookingBaseService {
     }
 
     if (id === "status" && isMultiSelectFilterValue(value)) {
-      const statusValues = value.data.map((status) => Prisma.sql`${status}::"BookingStatus"`);
-      return Prisma.sql`"status" IN (${Prisma.join(statusValues)})`;
+      const statusValuesRaw = value.data as unknown as string[];
+      const statusValues = statusValuesRaw
+        .filter((s) => s !== "rescheduled" && s !== "cancelled")
+        .map((status) => Prisma.sql`${status}::"BookingStatus"`);
+      const hasRescheduled = statusValuesRaw.includes("rescheduled");
+      const hasCancelled = statusValuesRaw.includes("cancelled");
+
+      const conditions: Prisma.Sql[] = [];
+
+      if (statusValues.length > 0) {
+        conditions.push(Prisma.sql`"status" IN (${Prisma.join(statusValues)})`);
+      }
+
+      // If both cancelled and rescheduled are selected, we simply want all cancelled bookings check
+      // because rescheduled bookings are effectively a subset of cancelled bookings in the DB
+      // with the rescheduled flag set.
+      if (hasCancelled && hasRescheduled) {
+        conditions.push(Prisma.sql`"status" = 'cancelled'`);
+      } else {
+        if (hasCancelled) {
+          // If only cancelled is selected, we want cancelled bookings that are NOT rescheduled
+          conditions.push(
+            Prisma.sql`"status" = 'cancelled' AND ("rescheduled" IS NULL OR "rescheduled" = false)`
+          );
+        }
+        if (hasRescheduled) {
+          // If only rescheduled is selected, we check for the rescheduled flag
+          conditions.push(Prisma.sql`"rescheduled" = true`);
+        }
+      }
+
+      if (conditions.length === 0) {
+        return null;
+      }
+
+      return Prisma.sql`(${Prisma.join(conditions, " OR ")})`;
     }
 
     if (id === "paid" && isSingleSelectFilterValue(value)) {

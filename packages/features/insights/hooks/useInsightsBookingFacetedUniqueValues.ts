@@ -3,17 +3,18 @@ import { useCallback } from "react";
 
 import { convertFacetedValuesToMap, type FacetedValue } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, BookingStatusWithRescheduled } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
 import { bookingStatusToText } from "../lib/bookingStatusToText";
 
-const statusOrder: Record<BookingStatus, number> = {
+const statusOrder: Record<BookingStatusWithRescheduled, number> = {
   [BookingStatus.ACCEPTED]: 1,
   [BookingStatus.PENDING]: 2,
   [BookingStatus.AWAITING_HOST]: 3,
   [BookingStatus.CANCELLED]: 4,
   [BookingStatus.REJECTED]: 5,
+  RESCHEDULED: 6,
 };
 
 export const useInsightsBookingFacetedUniqueValues = ({
@@ -48,36 +49,36 @@ export const useInsightsBookingFacetedUniqueValues = ({
   );
 
   return useCallback(
-    (_: Table<any>, columnId: string) => (): Map<FacetedValue, number> => {
-      if (columnId === "status") {
-        return convertFacetedValuesToMap(
-          Object.keys(statusOrder).map((status) => ({
+    <TData>(_: Table<TData>, columnId: string) =>
+      (): Map<FacetedValue, number> => {
+        if (columnId === "status") {
+          const options = Object.keys(statusOrder).map((status) => ({
             value: status.toLowerCase(),
-            label: bookingStatusToText(status as BookingStatus),
-          }))
-        );
-      } else if (columnId === "userId") {
-        return convertFacetedValuesToMap(
-          users?.map((user) => ({
-            label: user.name ?? user.email,
-            value: user.id,
-          })) ?? []
-        );
-      } else if (columnId === "eventTypeId") {
-        return convertFacetedValuesToMap(
-          eventTypes?.map((eventType) => ({
-            value: eventType.id,
-            label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
-          })) ?? []
-        );
-      } else if (columnId === "paid") {
-        return convertFacetedValuesToMap([
-          { value: "true", label: t("paid") },
-          { value: "false", label: t("free") },
-        ]);
-      }
-      return new Map<FacetedValue, number>();
-    },
+            label: bookingStatusToText(status as BookingStatusWithRescheduled),
+          }));
+          return convertFacetedValuesToMap(options);
+        } else if (columnId === "userId") {
+          return convertFacetedValuesToMap(
+            users?.map((user) => ({
+              label: user.name ?? user.email,
+              value: user.id,
+            })) ?? []
+          );
+        } else if (columnId === "eventTypeId") {
+          return convertFacetedValuesToMap(
+            eventTypes?.map((eventType) => ({
+              value: eventType.id,
+              label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
+            })) ?? []
+          );
+        } else if (columnId === "paid") {
+          return convertFacetedValuesToMap([
+            { value: "true", label: t("paid") },
+            { value: "false", label: t("free") },
+          ]);
+        }
+        return new Map<FacetedValue, number>();
+      },
     [users, eventTypes, t]
   );
 };
