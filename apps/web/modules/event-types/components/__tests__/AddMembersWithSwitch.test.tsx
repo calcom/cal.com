@@ -3,7 +3,7 @@ import * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Host, TeamMember } from "../../lib/types";
+import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import type { AddMembersWithSwitchProps } from "../AddMembersWithSwitch";
 import { AddMembersWithSwitch } from "../AddMembersWithSwitch";
 
