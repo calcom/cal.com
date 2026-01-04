@@ -63,6 +63,95 @@ export const zoomMeetingsSchema = z.object({
 
 export type ZoomUserSettings = z.infer<typeof zoomUserSettingsSchema>;
 
+const meetingPasswordRequirementSchema = z
+  .object({
+    length: z.number().optional(),
+    have_letter: z.boolean().optional(),
+    have_number: z.boolean().optional(),
+    have_special_character: z.boolean().optional(),
+    have_upper_and_lower_characters: z.boolean().optional(),
+    only_allow_numeric: z.boolean().optional(),
+    consecutive_characters_length: z.number().optional(),
+    weak_enhance_detection: z.boolean().optional(),
+  })
+  .passthrough()
+  .optional();
+
+export type MeetingPasswordRequirement = z.infer<typeof meetingPasswordRequirementSchema>;
+
+function hasInvalidConsecutiveChars(password: string, consecutiveLength: number | undefined): boolean {
+  if (!consecutiveLength || consecutiveLength < 4) return false;
+
+  const maxRun = consecutiveLength - 1;
+  let run = 1;
+
+  for (let i = 1; i < password.length; i++) {
+    if (password.charCodeAt(i) === password.charCodeAt(i - 1) + 1) {
+      run++;
+      if (run > maxRun) return true;
+    } else {
+      run = 1;
+    }
+  }
+
+  return false;
+}
+
+function validatePasswordAgainstRequirements(
+  password: string,
+  requirements: NonNullable<MeetingPasswordRequirement>
+): boolean {
+  if (requirements.length && password.length < requirements.length) {
+    return false;
+  }
+
+  if (hasInvalidConsecutiveChars(password, requirements.consecutive_characters_length)) {
+    return false;
+  }
+
+  if (requirements.only_allow_numeric) {
+    return /^\d+$/.test(password);
+  }
+
+  if (requirements.have_letter && !/[a-zA-Z]/.test(password)) {
+    return false;
+  }
+
+  if (requirements.have_number && !/\d/.test(password)) {
+    return false;
+  }
+
+  if (
+    requirements.have_special_character &&
+    !/[!@#$%^&*()_\-+=[\]{}|;:,.<>?]/.test(password)
+  ) {
+    return false;
+  }
+
+  if (requirements.have_upper_and_lower_characters) {
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function getCompliantPassword(
+  defaultPassword: string | null | undefined,
+  requirements: MeetingPasswordRequirement
+): string | undefined {
+  if (!requirements ) {
+    return defaultPassword ?? undefined;
+  }
+
+  if (defaultPassword && validatePasswordAgainstRequirements(defaultPassword, requirements)) {
+    return defaultPassword;
+  }
+
+  return undefined;
+}
+
 /** @link https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings */
 export const zoomUserSettingsSchema = z.object({
   recording: z
@@ -73,6 +162,7 @@ export const zoomUserSettingsSchema = z.object({
   schedule_meeting: z
     .object({
       default_password_for_scheduled_meetings: z.string().nullish(),
+      meeting_password_requirement: meetingPasswordRequirementSchema,
     })
     .nullish(),
   in_meeting: z
@@ -84,7 +174,8 @@ export const zoomUserSettingsSchema = z.object({
 
 // https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
 // append comma separated settings here, to retrieve only these specific settings
-const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording,waiting_room";
+const settingsApiFilterResp =
+  "default_password_for_scheduled_meetings,meeting_password_requirement,auto_recording,waiting_room";
 
 type ZoomRecurrence = {
   end_date_time?: string;
@@ -176,6 +267,11 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     const userSettings = await getUserSettings();
     const recurrence = getRecurrence(event);
     const waitingRoomEnabled = userSettings?.in_meeting?.waiting_room ?? false;
+
+    const passwordRequirements = userSettings?.schedule_meeting?.meeting_password_requirement;
+    const defaultPassword = userSettings?.schedule_meeting?.default_password_for_scheduled_meetings;
+    const password = getCompliantPassword(defaultPassword, passwordRequirements);
+
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       topic: event.title,
@@ -184,8 +280,8 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
       timezone: event.organizer.timeZone,
-      password: userSettings?.schedule_meeting?.default_password_for_scheduled_meetings ?? undefined,
       agenda: truncateAgenda(event.description),
+      ...(password && { password }),
       settings: {
         host_video: true,
         participant_video: true,
