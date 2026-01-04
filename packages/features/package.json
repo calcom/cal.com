@@ -25,7 +25,7 @@
     "city-timezones": "1.2.1",
     "class-variance-authority": "0.7.1",
     "date-fns-tz": "3.2.0",
-    "framer-motion": "^12.23.26",
+    "framer-motion": "12.23.26",
     "p-limit": "6.2.0",
     "react-select": "5.8.0",
     "react-sticky-box": "2.0.4",

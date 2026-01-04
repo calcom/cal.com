@@ -2596,7 +2596,7 @@ __metadata:
     city-timezones: "npm:1.2.1"
     class-variance-authority: "npm:0.7.1"
     date-fns-tz: "npm:3.2.0"
-    framer-motion: "npm:^12.23.26"
+    framer-motion: "npm:12.23.26"
     p-limit: "npm:6.2.0"
     react-select: "npm:5.8.0"
     react-sticky-box: "npm:2.0.4"
@@ -23659,7 +23659,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"framer-motion@npm:^12.23.26":
+"framer-motion@npm:12.23.26":
   version: 12.23.26
   resolution: "framer-motion@npm:12.23.26"
   dependencies:
