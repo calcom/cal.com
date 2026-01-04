@@ -6,14 +6,21 @@ import {
   useOrgBranding,
   type OrganizationBranding,
 } from "@calcom/features/ee/organizations/context/provider";
+import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
 import UnconfirmedBookingBadge from "../../bookings/components/UnconfirmedBookingBadge";
 import { KBarTrigger } from "../Kbar";
 import { TeamInviteBadge } from "../TeamInviteBadge";
+import { useBottomNavItems } from "../useBottomNavItems";
 import type { NavigationItemType } from "./NavigationItem";
-import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "./NavigationItem";
+import {
+  NavigationItem,
+  MobileNavigationItem,
+  MobileNavigationMoreItem,
+} from "./NavigationItem";
 
 export const MORE_SEPARATOR_NAME = "more";
 
@@ -62,7 +69,10 @@ const getNavigationItems = (
     moreOnMobile: true,
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
+      return (
+        (path?.startsWith(item.href) ?? false) &&
+        !(path?.includes("routing-forms/") ?? false)
+      );
     },
     child: [
       {
@@ -108,7 +118,8 @@ const getNavigationItems = (
     name: "insights",
     href: "/insights",
     icon: "chart-bar",
-    isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
+    isCurrent: ({ pathname: path, item }) =>
+      path?.startsWith(item.href) ?? false,
     moreOnMobile: true,
     child: hasInsightsAccess
       ? [
@@ -120,18 +131,21 @@ const getNavigationItems = (
           {
             name: "routing",
             href: "/insights/routing",
-            isCurrent: ({ pathname: path }) => path?.startsWith("/insights/routing") ?? false,
+            isCurrent: ({ pathname: path }) =>
+              path?.startsWith("/insights/routing") ?? false,
           },
           {
             name: "router_position",
             href: "/insights/router-position",
-            isCurrent: ({ pathname: path }) => path?.startsWith("/insights/router-position") ?? false,
+            isCurrent: ({ pathname: path }) =>
+              path?.startsWith("/insights/router-position") ?? false,
           },
           {
             name: "call_history",
             href: "/insights/call-history",
             // icon: "phone",
-            isCurrent: ({ pathname: path }) => path?.startsWith("/insights/call-history") ?? false,
+            isCurrent: ({ pathname: path }) =>
+              path?.startsWith("/insights/call-history") ?? false,
           },
         ]
       : undefined,
@@ -197,19 +211,34 @@ const useNavigationItems = (isPlatformNavigation = false) => {
       ? getNavigationItems(orgBranding, hasInsightsAccess)
       : platformNavigationItems;
 
-    const desktopNavigationItems = items.filter((item) => item.name !== MORE_SEPARATOR_NAME);
+    const desktopNavigationItems = items.filter(
+      (item) => item.name !== MORE_SEPARATOR_NAME
+    );
     const mobileNavigationBottomItems = items.filter(
-      (item) => (!item.moreOnMobile && !item.onlyDesktop) || item.name === MORE_SEPARATOR_NAME
+      (item) =>
+        (!item.moreOnMobile && !item.onlyDesktop) ||
+        item.name === MORE_SEPARATOR_NAME
     );
     const mobileNavigationMoreItems = items.filter(
-      (item) => item.moreOnMobile && !item.onlyDesktop && item.name !== MORE_SEPARATOR_NAME
+      (item) =>
+        item.moreOnMobile &&
+        !item.onlyDesktop &&
+        item.name !== MORE_SEPARATOR_NAME
     );
 
-    return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
+    return {
+      desktopNavigationItems,
+      mobileNavigationBottomItems,
+      mobileNavigationMoreItems,
+    };
   }, [hasPaidPlan, isPending, isPlatformNavigation, orgBranding]);
 };
 
-export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
+export const Navigation = ({
+  isPlatformNavigation = false,
+}: {
+  isPlatformNavigation?: boolean;
+}) => {
   const { desktopNavigationItems } = useNavigationItems(isPlatformNavigation);
 
   return (
@@ -234,9 +263,14 @@ export function MobileNavigationContainer({
   return <MobileNavigation isPlatformNavigation={isPlatformNavigation} />;
 }
 
-const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
+const MobileNavigation = ({
+  isPlatformNavigation = false,
+}: {
+  isPlatformNavigation?: boolean;
+}) => {
   const isEmbed = useIsEmbed();
-  const { mobileNavigationBottomItems } = useNavigationItems(isPlatformNavigation);
+  const { mobileNavigationBottomItems } =
+    useNavigationItems(isPlatformNavigation);
 
   return (
     <>
@@ -244,7 +278,8 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
         className={classNames(
           "pwa:pb-[max(0.25rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-cal-muted/40 border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
-        )}>
+        )}
+      >
         {mobileNavigationBottomItems.map((item) => (
           <MobileNavigationItem key={item.name} item={item} />
         ))}
@@ -257,10 +292,29 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
 
 export const MobileNavigationMoreItems = () => {
   const { mobileNavigationMoreItems } = useNavigationItems();
+  const { data: session } = useSession();
+  const user = session?.user;
+
+  const isAdmin = user?.role === UserPermissionRole.ADMIN;
+  const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${
+    user?.orgAwareUsername ?? user?.username
+  }`;
+
+  const bottomNavItems = useBottomNavItems({
+    publicPageUrl,
+    isAdmin,
+    user,
+  });
+
+  const filteredBottomNavItems = bottomNavItems.filter(
+    (item: NavigationItemType) => item.name !== "settings"
+  );
+
+  const allItems = [...mobileNavigationMoreItems, ...filteredBottomNavItems];
 
   return (
     <ul className="border-subtle mt-2 rounded-md border">
-      {mobileNavigationMoreItems.map((item) => (
+      {allItems.map((item) => (
         <MobileNavigationMoreItem key={item.name} item={item} />
       ))}
     </ul>
