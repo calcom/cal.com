@@ -9,7 +9,7 @@ import {
   FailedBookingsByField,
   RoutedToPerPeriod,
   RoutingFunnel,
-} from "@calcom/features/insights/components/routing";
+} from "@calcom/web/modules/insights/components/routing";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 

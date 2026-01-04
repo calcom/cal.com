@@ -6,8 +6,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
-import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
-import { valueFormatter } from "../../lib/valueFormatter";
+import { useInsightsBookingParameters } from "@calcom/features/insights/hooks/useInsightsBookingParameters";
+import { valueFormatter } from "@calcom/features/insights/lib/valueFormatter";
 import { ChartCard } from "../ChartCard";
 
 const COLOR = {

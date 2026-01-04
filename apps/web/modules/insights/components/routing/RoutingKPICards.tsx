@@ -6,7 +6,7 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import { valueFormatter } from "../../lib";
+import { valueFormatter } from "@calcom/features/insights/lib";
 import { ChartCard } from "../ChartCard";
 
 export const RoutingKPICards = () => {

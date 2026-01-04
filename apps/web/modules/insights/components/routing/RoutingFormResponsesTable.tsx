@@ -1,7 +1,7 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-import { TimezoneBadge } from "@calcom/features/insights/components/booking";
+import { TimezoneBadge } from "@calcom/web/modules/insights/components/booking";
 
 import { useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -19,12 +19,12 @@ import type { FilterType } from "@calcom/types/data-table";
 import { useInsightsRoutingParameters } from "@calcom/features/insights/hooks/useInsightsRoutingParameters";
 import { trpc } from "@calcom/trpc/react";
 
-import { RoutingFormResponsesDownload } from "../../filters/Download";
-import { OrgTeamsFilter } from "../../filters/OrgTeamsFilter";
-import { useInsightsColumns } from "../../hooks/useInsightsColumns";
-import { useInsightsOrgTeams } from "../../hooks/useInsightsOrgTeams";
-import { useInsightsRoutingFacetedUniqueValues } from "../../hooks/useInsightsRoutingFacetedUniqueValues";
-import type { RoutingFormTableRow } from "../../lib/types";
+import { RoutingFormResponsesDownload } from "@calcom/features/insights/filters/Download";
+import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
+import { useInsightsColumns } from "@calcom/features/insights/hooks/useInsightsColumns";
+import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
+import { useInsightsRoutingFacetedUniqueValues } from "@calcom/features/insights/hooks/useInsightsRoutingFacetedUniqueValues";
+import type { RoutingFormTableRow } from "@calcom/features/insights/lib/types";
 import { RoutingKPICards } from "./RoutingKPICards";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

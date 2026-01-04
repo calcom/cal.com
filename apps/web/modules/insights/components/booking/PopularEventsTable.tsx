@@ -3,7 +3,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
-import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
+import { useInsightsBookingParameters } from "@calcom/features/insights/hooks/useInsightsBookingParameters";
 import { ChartCard, ChartCardItem } from "../ChartCard";
 
 export const PopularEventsTable = () => {

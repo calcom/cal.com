@@ -4,7 +4,7 @@ import { useInsightsRoutingParameters } from "@calcom/features/insights/hooks/us
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
-import { useToggleableLegend } from "../../hooks/useToggleableLegend";
+import { useToggleableLegend } from "@calcom/features/insights/hooks/useToggleableLegend";
 import { ChartCard } from "../ChartCard";
 import { RoutingFunnelContent, legend } from "./RoutingFunnelContent";
 import { RoutingFunnelSkeleton } from "./RoutingFunnelSkeleton";

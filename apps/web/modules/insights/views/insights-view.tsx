@@ -31,7 +31,7 @@ import {
   RecentNoShowGuestsChart,
   RecentFeedbackTable,
   TimezoneBadge,
-} from "@calcom/features/insights/components/booking";
+} from "@calcom/web/modules/insights/components/booking";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { DateTargetSelector, type DateTarget } from "@calcom/features/insights/filters/DateTargetSelector";
 import { Download } from "@calcom/features/insights/filters/Download";
