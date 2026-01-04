@@ -51,6 +51,7 @@ export const apiHandlers = {
   intercom: import("./intercom/api"),
   jelly: import("./jelly/api"),
   jitsivideo: import("./jitsivideo/api"),
+  kmeet: import("./kmeet/api"),
   larkcalendar: import("./larkcalendar/api"),
   lindy: import("./lindy/api"),
   linear: import("./linear/api"),

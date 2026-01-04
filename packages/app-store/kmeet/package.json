@@ -1,0 +1,8 @@
+{
+  "name": "@calcom/kmeet",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Infomaniak kMeet video conferencing for unlimited and secure meetings",
+  "main": "./index.ts",
+  "types": "./index.ts"
+}
