@@ -15,8 +15,8 @@ import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { TimeFormatToggle } from "../../components/TimeFormatToggle";
-import type { BookerLayout } from "../types";
+import { TimeFormatToggle } from "@calcom/web/modules/bookings/components/TimeFormatToggle";
+import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 
 export function Header({
   extraDays,

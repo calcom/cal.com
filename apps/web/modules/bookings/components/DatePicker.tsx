@@ -11,7 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
 import type { PeriodData } from "@calcom/types/Event";
 
-import type { Slots } from "../../types";
+import type { Slots } from "@calcom/features/bookings/types";
 
 const useMoveToNextMonthOnNoAvailability = ({
   browsingDate,

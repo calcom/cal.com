@@ -5,7 +5,7 @@ import { forwardRef } from "react";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import classNames from "@calcom/ui/classNames";
 
-import type { BookerAreas, BookerLayout } from "../types";
+import type { BookerAreas, BookerLayout } from "@calcom/features/bookings/Booker/types";
 
 /**
  * Define what grid area a section should be in.

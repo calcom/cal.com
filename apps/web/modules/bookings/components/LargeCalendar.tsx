@@ -9,9 +9,9 @@ import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import { localStorage } from "@calcom/lib/webstorage";
 
-import type { useScheduleForEventReturnType } from "../utils/event";
-import { getQueryParam } from "../utils/query-param";
-import { useOverlayCalendarStore } from "./OverlayCalendar/store";
+import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
 
 export const LargeCalendar = ({
   extraDays,
