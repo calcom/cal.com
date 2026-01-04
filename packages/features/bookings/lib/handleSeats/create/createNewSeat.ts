@@ -126,7 +126,10 @@ const createNewSeat = async (
   }
   const copyEvent = cloneDeep(evt);
   copyEvent.uid = seatedBooking.uid;
-  if (noEmail !== true) {
+  
+  const requiresPayment = !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0 && !!seatedBooking;
+  
+  if (noEmail !== true && !requiresPayment) {
     let isHostConfirmationEmailsDisabled = false;
     let isAttendeeConfirmationEmailDisabled = false;
 
@@ -158,7 +161,7 @@ const createNewSeat = async (
 
   const foundBooking = await findBookingQuery(seatedBooking.id);
 
-  if (!Number.isNaN(paymentAppData.price) && paymentAppData.price > 0 && !!seatedBooking) {
+  if (requiresPayment) {
     const credentialPaymentAppCategories = await prisma.credential.findMany({
       where: {
         ...(paymentAppData.credentialId ? { id: paymentAppData.credentialId } : { userId: organizerUser.id }),
@@ -208,6 +211,13 @@ const createNewSeat = async (
       bookerEmail,
       bookerPhoneNumber,
     });
+
+    if (payment?.id && newBookingSeat?.id) {
+      await prisma.bookingSeat.update({
+        where: { id: newBookingSeat.id },
+        data: { paymentId: payment.id },
+      });
+    }
 
     resultBooking = { ...foundBooking };
     resultBooking["message"] = "Payment required";
