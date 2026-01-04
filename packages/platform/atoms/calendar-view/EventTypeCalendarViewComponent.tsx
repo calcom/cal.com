@@ -105,6 +105,9 @@ export const EventTypeCalendarViewComponent = (
       Boolean(timezone) &&
       (isTeamEvent ? !isTeamPending : !isPending) &&
       Boolean(event?.data?.id),
+    includeBookerTimezoneInQueryKey: Boolean(
+      event?.data?.restrictionScheduleId && event?.data?.useBookerTimezone
+    ),
     orgSlug: undefined,
     eventTypeSlug: isDynamic ? "dynamic" : props.eventSlug || "",
   });

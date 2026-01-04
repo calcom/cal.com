@@ -153,6 +153,12 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     isTeamEvent: props.isTeamEvent ?? !!event.data?.team,
     useApiV2: props.useApiV2,
     bookerLayout,
+    // Only include booker timezone in the query key when the event type uses
+    // the booker's timezone for its restriction schedule. This avoids extra
+    // refetches for regular booking pages.
+    includeBookerTimezoneInQueryKey: Boolean(
+      event?.data?.restrictionScheduleId && event?.data?.useBookerTimezone
+    ),
     ...(props.entity.orgSlug ? { orgSlug: props.entity.orgSlug } : {}),
   });
   const bookings = useBookings({
