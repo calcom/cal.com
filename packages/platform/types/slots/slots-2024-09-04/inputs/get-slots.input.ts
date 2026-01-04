@@ -29,6 +29,15 @@ export class GetAvailableSlotsInput_2024_09_04 {
   })
   start!: string;
 
+  @Transform(({ value }) => {
+    const maxEndTime = new Date();
+    maxEndTime.setUTCFullYear(maxEndTime.getUTCFullYear() + 1);
+    const endTime = new Date(value);
+    if (endTime > maxEndTime) {
+      return maxEndTime.toISOString();
+    }
+    return value;
+  })
   @IsDateString({ strict: true })
   @ApiProperty({
     type: String,
@@ -38,7 +47,9 @@ export class GetAvailableSlotsInput_2024_09_04 {
       Must be in UTC timezone as ISO 8601 datestring.
       
       You can pass date without hours which defaults to end of day or specify hours:
-      2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z`,
+      2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z
+      
+      Note: The end date will be automatically clamped to a maximum of 1 year from today to prevent excessive resource usage.`,
     example: "2050-09-06",
   })
   end!: string;

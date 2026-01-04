@@ -20,7 +20,7 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { advanceTo, clear } from "jest-date-mock";
-import { DateTime } from "luxon";
+import { DateTime, Settings } from "luxon";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { AttendeeRepositoryFixture } from "test/fixtures/repository/attendee.repository.fixture";
@@ -208,6 +208,22 @@ describe("Slots 2024-09-04 Endpoints", () => {
       bootstrap(app as NestExpressApplication);
 
       await app.init();
+    });
+
+    // Set system time to 2050-09-04 so that the 2050-09-05 to 2050-09-09 date range
+    // is within 1 year from "now" and doesn't get clamped by the date range limit
+    // We need to mock both jest-date-mock (for new Date()) and Luxon's Settings.now (for DateTime.utc())
+    let originalSettingsNow: typeof Settings.now;
+    beforeEach(() => {
+      const mockDate = new Date("2050-09-04T00:00:00.000Z");
+      advanceTo(mockDate);
+      originalSettingsNow = Settings.now;
+      Settings.now = () => mockDate.getTime();
+    });
+
+    afterEach(() => {
+      clear();
+      Settings.now = originalSettingsNow;
     });
 
     it("should get slots in UTC by event type id", async () => {
@@ -431,9 +447,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     it("should reserve a slot and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
-      const now = "2049-09-05T12:00:00.000Z";
+      // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+      // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
+      const now = "2050-09-05T08:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
+      Settings.now = () => newDate.getTime();
 
       const slotStartTime = "2050-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
@@ -500,7 +519,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
       const reserveResponseBody: GetReservedSlotOutput_2024_09_04 = reserveResponse.body;
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+       
       const { reservationDuration: _1, ...rest } = reservedSlot;
       expect(reserveResponseBody.data).toEqual(rest);
     });
@@ -566,9 +585,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     it("should update a reserved slot and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
-      const now = "2049-09-05T14:00:00.000Z";
+      // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+      // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
+      const now = "2050-09-05T12:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
+      Settings.now = () => newDate.getTime();
 
       const slotStartTime = "2050-09-05T13:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
@@ -675,9 +697,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     it("should reserve a slot as event type owner with custom duration and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
-      const now = "2049-09-05T12:00:00.000Z";
+      // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+      // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
+      const now = "2050-09-05T08:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
+      Settings.now = () => newDate.getTime();
 
       const slotStartTime = "2050-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
@@ -731,9 +756,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     it("should reserve a slot as someone who shares team with event type owner with custom duration and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
-      const now = "2049-09-05T12:00:00.000Z";
+      // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+      // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
+      const now = "2050-09-05T08:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
+      Settings.now = () => newDate.getTime();
 
       const slotStartTime = "2050-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
@@ -788,7 +816,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should do a booking and slot should not be available at that time", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${eventTypeId}`,
+        uid: `booking-uid-${eventTypeId}-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -833,7 +861,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should do a booking for seated event and slot should show attendees count and bookingUid", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${seatedEventType.id}`,
+        uid: `booking-uid-${seatedEventType.id}-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -962,7 +990,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should do a booking for seated event and slot should show attendees count and bookingUid and return range format", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${seatedEventType.id}`,
+        uid: `booking-uid-${seatedEventType.id}-range-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -1344,9 +1372,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
       it("should reserve a slot with slot duration for variable event type length", async () => {
         // note(Lauris): mock current date to test slots release time
-        const now = "2049-09-05T12:00:00.000Z";
+        // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+        // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
+        const now = "2050-09-05T08:00:00.000Z";
         const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
         advanceTo(newDate);
+        Settings.now = () => newDate.getTime();
 
         const slotDuration = 60;
         const slotStartTime = "2050-09-05T10:00:00.000Z";
@@ -1502,13 +1533,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     describe("booking status", () => {
       const startTime = "2050-09-12T11:00:00.000Z";
-      const testBookingUid = `booking-uid-${eventTypeId}-booking-status-test`;
 
       describe("cant reserve", () => {
         it("should not be able to reserve a slot if booking is accepted during that time", async () => {
           const booking = await bookingsRepositoryFixture.create({
             status: "ACCEPTED",
-            uid: testBookingUid,
+            uid: `booking-uid-${eventTypeId}-accepted-${randomString()}`,
             title: "booking title",
             startTime,
             endTime: "2050-09-12T12:00:00.000Z",
@@ -1548,7 +1578,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         it("should not be able to reserve a slot if booking is pending during that time", async () => {
           const booking = await bookingsRepositoryFixture.create({
             status: "PENDING",
-            uid: testBookingUid,
+            uid: `booking-uid-${eventTypeId}-pending-${randomString()}`,
             title: "booking title",
             startTime,
             endTime: "2050-09-12T12:00:00.000Z",
@@ -1588,7 +1618,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         it("should not be able to reserve a slot if booking is awaiting host during that time", async () => {
           const booking = await bookingsRepositoryFixture.create({
             status: "AWAITING_HOST",
-            uid: testBookingUid,
+            uid: `booking-uid-${eventTypeId}-awaiting-${randomString()}`,
             title: "booking title",
             startTime,
             endTime: "2050-09-12T12:00:00.000Z",
@@ -1630,7 +1660,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         it("should be able to reserve a slot if booking is cancelled during that time", async () => {
           const booking = await bookingsRepositoryFixture.create({
             status: "CANCELLED",
-            uid: testBookingUid,
+            uid: `booking-uid-${eventTypeId}-cancelled-${randomString()}`,
             title: "booking title",
             startTime,
             endTime: "2050-09-12T12:00:00.000Z",
@@ -1679,7 +1709,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         it("should be able to reserve a slot if booking is rejected during that time", async () => {
           const booking = await bookingsRepositoryFixture.create({
             status: "REJECTED",
-            uid: testBookingUid,
+            uid: `booking-uid-${eventTypeId}-rejected-${randomString()}`,
             title: "booking title",
             startTime,
             endTime: "2050-09-12T12:00:00.000Z",
