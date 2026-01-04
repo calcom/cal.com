@@ -8,7 +8,7 @@ import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 
-import { useWelcomeModal } from "../hooks/useWelcomeModal";
+import { useWelcomeModal } from "@calcom/features/ee/organizations/hooks/useWelcomeModal";
 
 const features = [
   "1_parent_team_unlimited_subteams",
