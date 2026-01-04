@@ -1,13 +1,11 @@
+import dayjs from "@calcom/dayjs";
 import type { TFunction } from "i18next";
 import { RRule } from "rrule";
-
-import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
-import type { RecurringEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person, RecurringEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 
@@ -48,10 +46,26 @@ export function WhenInfo(props: {
     return dayjs(props.calEvent.endTime).tz(timeZone).locale(locale).format(format);
   }
 
+  function getPreviousRecipientStart(format: string): string | null {
+    if (!props.calEvent.previousStartTime) {
+      return null;
+    }
+    return dayjs(props.calEvent.previousStartTime).tz(timeZone).locale(locale).format(format);
+  }
+
+  function getPreviousRecipientEnd(format: string): string | null {
+    if (!props.calEvent.previousEndTime) {
+      return null;
+    }
+    return dayjs(props.calEvent.previousEndTime).tz(timeZone).locale(locale).format(format);
+  }
+
   const recurringInfo = getRecurringWhen({
     recurringEvent: props.calEvent.recurringEvent,
     attendee: props.calEvent.attendees[0],
   });
+
+  const hasPreviousTime = props.calEvent.previousStartTime && props.calEvent.previousEndTime;
 
   return (
     <div>
@@ -62,6 +76,16 @@ export function WhenInfo(props: {
         }
         description={
           <span data-testid="when">
+            {hasPreviousTime && (
+              <>
+                <span style={{ textDecoration: "line-through", opacity: 0.6 }}>
+                  {recurringEvent?.count ? `${t("starting")} ` : ""}
+                  {getPreviousRecipientStart(`dddd, LL | ${timeFormat}`)} -{" "}
+                  {getPreviousRecipientEnd(timeFormat)} <span style={{ color: "#4B5563" }}>({timeZone})</span>
+                </span>
+                <br />
+              </>
+            )}
             {recurringEvent?.count ? `${t("starting")} ` : ""}
             {getRecipientStart(`dddd, LL | ${timeFormat}`)} - {getRecipientEnd(timeFormat)}{" "}
             <span style={{ color: "#4B5563" }}>({timeZone})</span>
