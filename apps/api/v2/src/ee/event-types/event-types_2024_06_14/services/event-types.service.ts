@@ -40,7 +40,7 @@ export class EventTypesService_2024_06_14 {
 
   async createUserEventType(user: UserWithProfile, body: InputEventTransformed_2024_06_14) {
     if (body.bookingFields) {
-      this.checkHasUserAccessibleEmailBookingField(body.bookingFields);
+      this.checkEmailOrPhoneAccessible(body.bookingFields);
     }
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
@@ -117,13 +117,28 @@ export class EventTypesService_2024_06_14 {
     await this.checkUserOwnsSchedule(userId, body.scheduleId);
   }
 
-  checkHasUserAccessibleEmailBookingField(bookingFields: (SystemField | CustomField)[]) {
+  checkEmailOrPhoneAccessible(bookingFields: (SystemField | CustomField)[]) {
+    if (bookingFields.length === 0) {
+      return;
+    }
+
+    const attendeePhoneNumberField = bookingFields.find(
+      (field) => field.type === "phone" && field.name === "attendeePhoneNumber"
+    );
+
     const emailField = bookingFields.find((field) => field.type === "email" && field.name === "email");
-    const isEmailFieldRequiredAndVisible = emailField?.required && !emailField?.hidden;
-    if (!isEmailFieldRequiredAndVisible) {
-      throw new BadRequestException(
-        "checkIsEmailUserAccessible - Email booking field must be required and visible"
-      );
+
+    if (emailField?.hidden && attendeePhoneNumberField?.hidden) {
+      throw new BadRequestException("booking_fields_email_and_phone_both_hidden");
+    }
+    if (!emailField?.required && !attendeePhoneNumberField?.required) {
+      throw new BadRequestException("booking_fields_email_or_phone_required");
+    }
+    if (emailField?.hidden && !attendeePhoneNumberField?.required) {
+      throw new BadRequestException("booking_fields_phone_required_when_email_hidden");
+    }
+    if (attendeePhoneNumberField?.hidden && !emailField?.required) {
+      throw new BadRequestException("booking_fields_email_required_when_phone_hidden");
     }
   }
 
@@ -307,7 +322,7 @@ export class EventTypesService_2024_06_14 {
     user: UserWithProfile
   ) {
     if (body.bookingFields) {
-      this.checkHasUserAccessibleEmailBookingField(body.bookingFields);
+      this.checkEmailOrPhoneAccessible(body.bookingFields);
     }
     await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);

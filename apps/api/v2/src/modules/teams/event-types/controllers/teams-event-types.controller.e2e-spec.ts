@@ -206,7 +206,7 @@ describe("Organizations Event Types Endpoints", () => {
       return request(app.getHttpServer()).post(`/v2/teams/${team.id}/event-types`).send(body).expect(404);
     });
 
-    it("should not be able to create phone-only event type", async () => {
+    it("should be able to create phone-only event type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         title: "Phone coding consultation",
         slug: "phone-coding-consultation",
@@ -247,13 +247,7 @@ describe("Organizations Event Types Endpoints", () => {
         ],
       };
 
-      const response = await request(app.getHttpServer())
-        .post(`/v2/teams/${team.id}/event-types`)
-        .send(body)
-        .expect(400);
-      expect(response.body.error.message).toBe(
-        "checkIsEmailUserAccessible - Email booking field must be required and visible"
-      );
+      return await request(app.getHttpServer()).post(`/v2/teams/${team.id}/event-types`).send(body).expect(201);
     });
 
     it("should not allow creating an event type with integration not installed on team", async () => {
