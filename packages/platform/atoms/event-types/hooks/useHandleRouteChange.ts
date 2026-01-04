@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import type {
   EventTypeAssignedUsers,
   EventTypeHosts,
-} from "@calcom/web/modules/event-types/components/EventType";
+} from "@calcom/features/eventtypes/lib/types";
 import { checkForEmptyAssignment } from "@calcom/features/eventtypes/lib/checkForEmptyAssignment";
 
 export const useHandleRouteChange = ({
