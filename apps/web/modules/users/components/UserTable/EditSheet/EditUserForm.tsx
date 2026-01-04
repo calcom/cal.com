@@ -9,8 +9,11 @@ import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
+import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Divider } from "@calcom/ui/components/divider";
@@ -22,10 +25,12 @@ import {
   Label,
   TextField,
   ToggleGroup,
+  SettingsToggle,
 } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { SheetHeader, SheetBody, SheetFooter, SheetTitle } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
+import { IntervalLimitsManager } from "@calcom/web/modules/event-types/components/tabs/limits/EventLimitsTab";
 
 import type { UserTableAction } from "../types";
 import { useEditMode } from "./store";
@@ -62,6 +67,15 @@ const editSchema = z.object({
   role: z.union([z.nativeEnum(MembershipRole), z.string()]),
   timeZone: timeZoneSchema,
   attributes: z.array(attributeSchema).optional(),
+  bookingLimits: z
+    .object({
+      PER_DAY: z.number().optional(),
+      PER_WEEK: z.number().optional(),
+      PER_MONTH: z.number().optional(),
+      PER_YEAR: z.number().optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
 type EditSchema = z.infer<typeof editSchema>;
@@ -69,7 +83,7 @@ type EditSchema = z.infer<typeof editSchema>;
 export function EditForm({
   selectedUser,
   avatarUrl,
-  domainUrl,
+  domainUrl: _domainUrl,
   dispatch,
   canEditAttributesForUser,
 }: {
@@ -80,7 +94,7 @@ export function EditForm({
   canEditAttributesForUser?: boolean;
 }) {
   const setEditMode = useEditMode((state) => state.setEditMode);
-  const [mutationLoading, setMutationLoading] = useState(false);
+  const [, setMutationLoading] = useState(false);
   const { t } = useLocale();
   const session = useSession();
   const org = session?.data?.user?.org;
@@ -95,12 +109,13 @@ export function EditForm({
       bio: selectedUser?.bio ?? "",
       role: selectedUser?.role ?? "",
       timeZone: selectedUser?.timeZone ?? "",
+      bookingLimits: parseBookingLimit(selectedUser?.bookingLimits) ?? null,
     },
   });
 
   const isOwner = org?.role === MembershipRole.OWNER;
 
-  const { data: teamRoles, isLoading: isLoadingRoles } = trpc.viewer.pbac.getTeamRoles.useQuery(
+  const { data: teamRoles, isLoading: _isLoadingRoles } = trpc.viewer.pbac.getTeamRoles.useQuery(
     // @ts-expect-error this query is only ran when we have an orgId so can ignore this
     { teamId: org?.id },
     {
@@ -172,6 +187,13 @@ export function EditForm({
         form={form}
         className="flex h-full flex-col"
         handleSubmit={(values) => {
+          if (values.bookingLimits) {
+            const isValid = validateIntervalLimitOrder(values.bookingLimits);
+            if (!isValid) {
+              showToast(t("event_setup_booking_limits_error"), "error");
+              return;
+            }
+          }
           setMutationLoading(true);
           mutation.mutate({
             userId: selectedUser?.id ?? "",
@@ -182,6 +204,7 @@ export function EditForm({
             avatar: values.avatar,
             bio: values.bio,
             timeZone: values.timeZone,
+            bookingLimits: values.bookingLimits ?? null,
             // @ts-expect-error they're there in local types but for some reason it errors?
             attributeOptions: values.attributes
               ? { userId: selectedUser?.id ?? "", attributes: values.attributes }
@@ -257,6 +280,39 @@ export function EditForm({
               <AttributesList selectedUserId={selectedUser?.id} />
             </>
           )}
+          <Controller
+            name="bookingLimits"
+            control={form.control}
+            render={({ field: { value, onChange } }) => {
+              const isChecked = Boolean(value && Object.keys(value).length > 0);
+              return (
+                <SettingsToggle
+                  toggleSwitchAtTheEnd={true}
+                  labelClassName="text-sm"
+                  title={t("limit_booking_frequency")}
+                  description={t("limit_member_booking_frequency_description")}
+                  checked={isChecked}
+                  onCheckedChange={(active) => {
+                    if (active) {
+                      onChange({
+                        PER_DAY: 1,
+                      });
+                    } else {
+                      onChange(null);
+                    }
+                  }}
+                  switchContainerClassName={classNames(
+                    "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+                    isChecked && "rounded-b-none"
+                  )}
+                  childrenClassName="lg:ml-0">
+                  <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                    <IntervalLimitsManager propertyName="bookingLimits" defaultLimit={1} step={1} />
+                  </div>
+                </SettingsToggle>
+              );
+            }}
+          />
         </SheetBody>
         <SheetFooter>
           <Button
@@ -292,7 +348,6 @@ function AttributesList(props: { selectedUserId: number }) {
   const { data: attributes } = trpc.viewer.attributes.list.useQuery();
   const enabledAttributes = attributes?.filter((attr) => attr.enabled);
 
-  const { t } = useLocale();
   const { control, getFieldState } = useFormContext();
 
   const getOptionsByAttributeId = (attributeId: string) => {
@@ -425,7 +480,7 @@ function AttributesList(props: { selectedUserId: number }) {
                         }}
                       />
                       {attr.isWeightsEnabled && fieldValue?.options && (
-                        <div className="mt-3 stack-y-2">
+                        <div className="stack-y-2 mt-3">
                           <Label>Weights</Label>
                           <div className="">
                             {fieldValue.options.map((option, idx) => {

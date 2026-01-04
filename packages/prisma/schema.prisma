@@ -726,6 +726,8 @@ model Membership {
   createdAt            DateTime?         @default(now())
   updatedAt            DateTime?         @updatedAt
   Host                 Host[]
+  /// @zod.import(["import { intervalLimitsType } from '../../zod-utils'"]).custom.use(intervalLimitsType)
+  bookingLimits        Json?
 
   @@unique([userId, teamId])
   @@index([teamId])

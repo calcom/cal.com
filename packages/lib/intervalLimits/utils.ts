@@ -2,7 +2,8 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
-import type { IntervalLimitUnit } from "./intervalLimitSchema";
+import { ascendingLimitKeys, intervalLimitKeyToUnit } from "./intervalLimit";
+import type { IntervalLimit, IntervalLimitUnit } from "./intervalLimitSchema";
 
 /**
  * Extracts date parameters from a booking and period
@@ -71,4 +72,27 @@ export function getUnitFromBusyTime(start: Dayjs, end: Dayjs): IntervalLimitUnit
   } else {
     return "day";
   }
+}
+
+/**
+ * Formats interval limits into a human-readable string
+ * @param limits The interval limits to format
+ * @param t Translation function to get localized unit names
+ * @returns Formatted string like "5 per day, 20 per week"
+ */
+export function formatIntervalLimits(
+  limits: IntervalLimit | null | undefined,
+  t: (key: string) => string
+): string {
+  if (!limits || Object.keys(limits).length === 0) {
+    return "";
+  }
+
+  return ascendingLimitKeys
+    .filter((key) => limits[key] !== undefined && limits[key] !== null)
+    .map((key) => {
+      const unit = intervalLimitKeyToUnit(key);
+      return `${limits[key]} ${t(`per_${unit}`).toLowerCase()}`;
+    })
+    .join(", ");
 }
