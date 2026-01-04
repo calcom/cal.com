@@ -10,7 +10,9 @@ import { BookingRepository } from "./BookingRepository";
 
 // Track resources to clean up
 const createdBookingIds: number[] = [];
+const createdEventTypeIds: number[] = [];
 let testUserId: number;
+let testUser2Id: number;
 let testEventTypeId: number | null = null;
 
 async function clearTestBookings() {
@@ -22,6 +24,13 @@ async function clearTestBookings() {
       where: { id: { in: createdBookingIds } },
     });
     createdBookingIds.length = 0;
+  }
+
+  if (createdEventTypeIds.length > 0) {
+    await prisma.eventType.deleteMany({
+      where: { id: { in: createdEventTypeIds } },
+    });
+    createdEventTypeIds.length = 0;
   }
 }
 
@@ -342,6 +351,271 @@ describe("BookingRepository (Integration Tests)", () => {
       expect(bookings[0].startTime.toISOString()).toBe(
         "2025-06-26T00:00:00.000Z"
       );
+    });
+  });
+});
+
+describe("_findAllExistingBookingsForEventTypeBetween", () => {
+  beforeAll(async () => {
+    const testUser = await prisma.user.findFirstOrThrow({
+      where: { email: "member0-acme@example.com" },
+    });
+    testUserId = testUser.id;
+
+    const testUser2 = await prisma.user.findFirstOrThrow({
+      where: { email: { not: "member0-acme@example.com" } },
+    });
+    testUser2Id = testUser2.id;
+  });
+
+  beforeEach(() => {
+    vi.setSystemTime(new Date("2025-05-01T12:00:00.000Z"));
+    vi.resetAllMocks();
+  });
+
+  afterEach(async () => {
+    await clearTestBookings();
+    vi.useRealTimers();
+  });
+
+  describe("Cross-event-type PENDING bookings with requiresConfirmationWillBlockSlot", () => {
+    it("PENDING booking with block slot enabled should block slots globally for all event types", async () => {
+      // Create Event Type A
+      const eventTypeA = await prisma.eventType.create({
+        data: {
+          title: "Event Type A",
+          slug: `event-type-a-${Date.now()}`,
+          description: "Event Type A with slot blocking",
+          userId: testUserId,
+          length: 60,
+          requiresConfirmation: true,
+          requiresConfirmationWillBlockSlot: true,
+        },
+      });
+      createdEventTypeIds.push(eventTypeA.id);
+
+      // Create Event Type B
+      const eventTypeB = await prisma.eventType.create({
+        data: {
+          title: "Event Type B",
+          slug: `event-type-b-${Date.now()}`,
+          description: "Event Type B",
+          userId: testUserId,
+          length: 60,
+          requiresConfirmation: false,
+          requiresConfirmationWillBlockSlot: false,
+        },
+      });
+      createdEventTypeIds.push(eventTypeB.id);
+
+      // create a PENDING booking for Event Type A
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: "pending-booking-type-a",
+          eventTypeId: eventTypeA.id,
+          status: BookingStatus.PENDING,
+          attendees: {
+            create: {
+              email: "test1@example.com",
+              noShow: false,
+              name: "Test 1",
+              timeZone: "America/Toronto",
+            },
+          },
+          startTime: new Date("2025-05-01T14:00:00.000Z"),
+          endTime: new Date("2025-05-01T15:00:00.000Z"),
+          title: "PENDING Event Type A Booking",
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const bookingRepo = new BookingRepository(prisma);
+      const userIdAndEmailMap = new Map([[testUserId, "test1@example.com"]]);
+
+      // finding PENDING bookings that has blocked slots globally for all event types
+      const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+        startDate: new Date("2025-05-01T13:00:00.000Z"),
+        endDate: new Date("2025-05-01T16:00:00.000Z"),
+        userIdAndEmailMap,
+      });
+
+      expect(bookings).toHaveLength(1);
+    });
+
+    it("should NOT include PENDING bookings that don't block slots", async () => {
+      const eventType = await prisma.eventType.create({
+        data: {
+          title: "Non-blocking Event Type",
+          slug: `non-blocking-event-type-${Date.now()}`,
+          description: "This event type doesn't block slots",
+          userId: testUserId,
+          length: 60,
+          requiresConfirmation: true,
+          requiresConfirmationWillBlockSlot: false,
+        },
+      });
+      createdEventTypeIds.push(eventType.id);
+
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: "pending-non-blocking",
+          eventTypeId: eventType.id,
+          status: BookingStatus.PENDING,
+          attendees: {
+            create: {
+              email: "test1@example.com",
+              noShow: false,
+              name: "Test 1",
+              timeZone: "America/Toronto",
+            },
+          },
+          startTime: new Date("2025-05-01T14:00:00.000Z"),
+          endTime: new Date("2025-05-01T15:00:00.000Z"),
+          title: "PENDING Non-blocking Event",
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const bookingRepo = new BookingRepository(prisma);
+      const userIdAndEmailMap = new Map([[testUserId, "test1@example.com"]]);
+
+      const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+        startDate: new Date("2025-05-01T13:00:00.000Z"),
+        endDate: new Date("2025-05-01T16:00:00.000Z"),
+        userIdAndEmailMap,
+      });
+
+      expect(bookings).toHaveLength(0);
+    });
+
+    it("should remove duplicate PENDING bookings when organizer books their own event type", async () => {
+      // Create event type with slot blocking
+      const eventType = await prisma.eventType.create({
+        data: {
+          title: "Self-Booking Event Type",
+          slug: `self-booking-event-type-${Date.now()}`,
+          description: "Event type for self-booking scenario",
+          userId: testUserId,
+          length: 60,
+          requiresConfirmation: true,
+          requiresConfirmationWillBlockSlot: true,
+        },
+      });
+      createdEventTypeIds.push(eventType.id);
+
+      // Create a PENDING booking where organizer is also an attendee
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: "pending-self-booking",
+          eventTypeId: eventType.id,
+          status: BookingStatus.PENDING,
+          attendees: {
+            create: {
+              email: "organizer@example.com",
+              noShow: false,
+              name: "Organizer",
+              timeZone: "America/Toronto",
+            },
+          },
+          startTime: new Date("2025-05-01T14:00:00.000Z"),
+          endTime: new Date("2025-05-01T15:00:00.000Z"),
+          title: "PENDING Self-Booking",
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const bookingRepo = new BookingRepository(prisma);
+      const userIdAndEmailMap = new Map([[testUserId, "organizer@example.com"]]);
+
+      const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+        startDate: new Date("2025-05-01T13:00:00.000Z"),
+        endDate: new Date("2025-05-01T16:00:00.000Z"),
+        userIdAndEmailMap,
+      });
+
+      // Should return only 1 booking, not 2
+      // The booking appears in both pendingAndBlockingBookingsWhereUserIsOrganizer
+      // and pendingAndBlockingBookingsWhereUserIsAttendee queries
+      expect(bookings).toHaveLength(1);
+      expect(bookings[0].uid).toBe("pending-self-booking");
+      expect(bookings[0].status).toBe(BookingStatus.PENDING);
+    });
+
+    it("should include separate PENDING bookings when organizer and attendee are different people", async () => {
+      // Create event type with slot blocking
+      const eventType = await prisma.eventType.create({
+        data: {
+          title: "Multi-User Event Type",
+          slug: `multi-user-event-type-${Date.now()}`,
+          description: "Event type for multi-user scenario",
+          userId: testUserId,
+          length: 60,
+          requiresConfirmation: true,
+          requiresConfirmationWillBlockSlot: true,
+        },
+      });
+      createdEventTypeIds.push(eventType.id);
+
+      // Create a PENDING booking where organizer hosts for a different attendee
+      const booking1 = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: "pending-organizer-booking",
+          eventTypeId: eventType.id,
+          status: BookingStatus.PENDING,
+          attendees: {
+            create: {
+              email: "attendee@example.com",
+              noShow: false,
+              name: "Attendee",
+              timeZone: "America/Toronto",
+            },
+          },
+          startTime: new Date("2025-05-01T14:00:00.000Z"),
+          endTime: new Date("2025-05-01T15:00:00.000Z"),
+          title: "PENDING Organizer Booking",
+        },
+      });
+      createdBookingIds.push(booking1.id);
+
+      // Create another PENDING booking where organizer is an attendee on someone else's event
+      const booking2 = await prisma.booking.create({
+        data: {
+          userId: testUser2Id,
+          uid: "pending-attendee-booking",
+          eventTypeId: eventType.id,
+          status: BookingStatus.PENDING,
+          attendees: {
+            create: {
+              email: "organizer@example.com",
+              noShow: false,
+              name: "Organizer as Attendee",
+              timeZone: "America/Toronto",
+            },
+          },
+          startTime: new Date("2025-05-01T16:00:00.000Z"),
+          endTime: new Date("2025-05-01T17:00:00.000Z"),
+          title: "PENDING Attendee Booking",
+        },
+      });
+      createdBookingIds.push(booking2.id);
+
+      const bookingRepo = new BookingRepository(prisma);
+      const userIdAndEmailMap = new Map([[testUserId, "organizer@example.com"]]);
+
+      const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+        startDate: new Date("2025-05-01T13:00:00.000Z"),
+        endDate: new Date("2025-05-01T18:00:00.000Z"),
+        userIdAndEmailMap,
+      });
+
+      // Should return both bookings with no duplicates
+      expect(bookings).toHaveLength(2);
+      expect(bookings.map((b) => b.uid)).toContain("pending-organizer-booking");
+      expect(bookings.map((b) => b.uid)).toContain("pending-attendee-booking");
     });
   });
 });
