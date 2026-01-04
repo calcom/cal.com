@@ -1,5 +1,5 @@
 import "@calcom/features/bookings/Booker/__mocks__/config";
-import "@calcom/features/bookings/Booker/components/OverlayCalendar/__mocks__/OverlayCalendar";
+import "@calcom/web/modules/bookings/components/OverlayCalendar/__mocks__/OverlayCalendar";
 import "@calcom/features/bookings/Booker/components/__mocks__/AvailableTimeSlots";
 import "@calcom/features/bookings/Booker/components/__mocks__/DatePicker";
 import "@calcom/features/bookings/Booker/components/__mocks__/DryRunMessage";
@@ -16,8 +16,8 @@ import { vi } from "vitest";
 import "@calcom/dayjs/__mocks__";
 import "@calcom/features/auth/Turnstile";
 
-import { Booker } from "../Booker";
-import { render, screen } from "./test-utils";
+import { Booker } from "./Booker";
+import { render, screen } from "@calcom/features/bookings/Booker/__tests__/test-utils";
 
 vi.mock("framer-motion", async (importOriginal) => {
   const actual = (await importOriginal()) as any;
@@ -27,7 +27,7 @@ vi.mock("framer-motion", async (importOriginal) => {
 });
 
 // Mock components that we don't want to test
-vi.mock("../components/BookEventForm", () => ({
+vi.mock("./BookEventForm", () => ({
   BookEventForm: ({
     isTimeslotUnavailable,
     onCancel,
@@ -45,7 +45,7 @@ vi.mock("../components/BookEventForm", () => ({
   },
 }));
 
-vi.mock("../components/BookEventForm/BookFormAsModal", () => ({
+vi.mock("./BookEventForm/BookFormAsModal", () => ({
   BookFormAsModal: () => {
     return <div data-testid="book-form-as-modal">Mock Book Form As Modal</div>;
   },
@@ -62,7 +62,7 @@ const mockEvent = {
   isPending: false,
 };
 
-vi.mock("../../../calendars/NoAvailabilityDialog", () => ({
+vi.mock("@calcom/features/calendars/NoAvailabilityDialog", () => ({
   default: () => {
     return null;
   },

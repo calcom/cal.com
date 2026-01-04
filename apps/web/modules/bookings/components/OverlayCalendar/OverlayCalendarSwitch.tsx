@@ -6,7 +6,7 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 
-import { useOverlayCalendarStore } from "./store";
+import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
 
 interface OverlayCalendarSwitchProps {
   enabled?: boolean;

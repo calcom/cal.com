@@ -9,10 +9,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { DialogContent } from "@calcom/ui/components/dialog";
 
-import { getDurationFormatted } from "../../../components/event-meta/Duration";
-import { FromTime } from "../../utils/dates";
-import { useEvent } from "../../utils/event";
-import { useBookerTime } from "../hooks/useBookerTime";
+import { getDurationFormatted } from "../event-meta/Duration";
+import { FromTime } from "@calcom/features/bookings/Booker/utils/dates";
+import { useEvent } from "@calcom/features/bookings/Booker/utils/event";
+import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 
 const BookEventFormWrapper = ({ children, onCancel }: { onCancel: () => void; children: ReactNode }) => {
   const { data } = useEvent();

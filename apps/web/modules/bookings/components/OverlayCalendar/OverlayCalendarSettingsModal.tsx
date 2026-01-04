@@ -13,7 +13,7 @@ import { ListItem, ListItemText, ListItemTitle } from "@calcom/ui/components/lis
 import { SkeletonContainer } from "@calcom/ui/components/skeleton";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import type { UseCalendarsReturnType } from "../hooks/useCalendars";
+import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
 
 interface IOverlayCalendarSettingsModalProps {
   open?: boolean;
