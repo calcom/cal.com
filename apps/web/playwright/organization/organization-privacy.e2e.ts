@@ -12,7 +12,7 @@ test.afterEach(async ({ users, orgs }) => {
 });
 
 test.describe("Organization - Privacy", () => {
-  test(`Private Org \n 
+  test(`Private Org \n
         1) Org Member cannot see members of orgs\n
         2) Org Owner/Admin can see members`, async ({ page, browser, users, orgs }) => {
     const org = await orgs.create({
@@ -62,7 +62,7 @@ test.describe("Organization - Privacy", () => {
     await expect(membersPrivacyWarning).toBeVisible();
     await secondContext.close();
   });
-  test(`Private Org - Private Team\n 
+  test(`Private Org - Private Team\n
         1) Team Member cannot see members in team\n
         2) Team Admin/Owner can see members in team`, async ({ page, browser, users, orgs }) => {
     const org = await orgs.create({
@@ -129,14 +129,14 @@ test.describe("Organization - Privacy", () => {
 
     await secondPage.goto(`/settings/teams/${teamId}/members`);
     await secondPage.waitForLoadState("domcontentloaded");
-    await secondPage.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+    await secondPage.waitForLoadState("networkidle");
 
     // As a user we can not see the member list when a team is private
     const hiddenTableLocator = secondPage.getByTestId("team-member-list-container");
     await expect(hiddenTableLocator).toBeHidden();
     await secondContext.close();
   });
-  test(`Private Org - Public Team\n 
+  test(`Private Org - Public Team\n
         1) All team members can see members in team \n
         2) Privacy settings are hidden to non-admin members \n
         3) Admin/Owner can see members in team \n
@@ -189,7 +189,7 @@ test.describe("Organization - Privacy", () => {
     // 1) All team members can see members in team
     await page.goto(`/settings/teams/${teamId}/members`);
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("networkidle");
     const memberTableLocator = page.getByTestId("team-member-list-container");
     await expect(memberTableLocator).toBeVisible();
 
@@ -203,7 +203,7 @@ test.describe("Organization - Privacy", () => {
     // 3) Admin/Owner can see members in team
     await secondPage.goto(`/settings/teams/${teamId}/members`);
     await secondPage.waitForLoadState("domcontentloaded");
-    await secondPage.waitForTimeout(500);
+    await secondPage.waitForLoadState("networkidle");
     const adminTableLocator = secondPage.getByTestId("team-member-list-container");
     await expect(adminTableLocator).toBeVisible();
 

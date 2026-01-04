@@ -272,7 +272,7 @@ expect.extend({
           clearInterval(iframeReadyCheckInterval);
           resolve(iframeReadyEventDetail);
         }
-      }, 500);
+      }, 100);
     });
 
     if (!(await frameElement.isVisible())) {

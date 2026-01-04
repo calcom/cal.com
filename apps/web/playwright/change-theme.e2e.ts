@@ -42,9 +42,9 @@ test.describe("Change App Theme Test", () => {
   test("change app theme to system", async ({ page, users }) => {
     const pro = await users.create();
     await pro.apiLogin();
-
     await page.goto("/settings/my-account/appearance");
     await expect(page.getByTestId("dashboard-shell").getByText("Dashboard theme")).toBeVisible();
+
     await page.click('[data-testid="appTheme-light"]');
     await page.click('[data-testid="update-app-theme-btn"]');
     const toast1 = await page.waitForSelector('[data-testid="toast-success"]');
@@ -55,38 +55,42 @@ test.describe("Change App Theme Test", () => {
     const toast2 = await page.waitForSelector('[data-testid="toast-success"]');
     expect(toast2).toBeTruthy();
 
-    await page.waitForTimeout(3000);
-    const themeValue = await page.evaluate(() => localStorage.getItem("app-theme"));
-    expect(themeValue).toBe("light");
-
     const systemTheme = await page.evaluate(() => {
       return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     });
+    await expect(page.locator("html")).toHaveClass(new RegExp(systemTheme), { timeout: 5000 });
+
+    const themeValue = await page.evaluate(() => localStorage.getItem("app-theme"));
+    expect(themeValue).toBe("light"); // ou null / "system" dependendo da sua implementação
     expect(await page.getAttribute("html", "class")).toContain(systemTheme);
   });
 });
 
 test.describe("Change Booking Page Theme Test", () => {
-  test("change booking page theme to dark", async ({ page, users }) => {
-    const pro = await users.create();
-    await pro.apiLogin();
+  test.describe("Change Booking Page Theme Test", () => {
+    test("change booking page theme to dark", async ({ page, users }) => {
+      const pro = await users.create();
+      await pro.apiLogin();
+      await page.goto("/settings/my-account/appearance");
+      await expect(page.getByTestId("dashboard-shell").getByText("Dashboard theme")).toBeVisible();
+      // Click the "Dark" theme label
+      await page.getByTestId("theme-dark").click();
+      // Click the update button
+      await page.getByTestId("update-theme-btn").click();
 
-    await page.goto("/settings/my-account/appearance");
-    await expect(page.getByTestId("dashboard-shell").getByText("Dashboard theme")).toBeVisible();
+      // Wait for the toast to appear
+      await expect(page.getByTestId("toast-success")).toBeVisible();
 
-    //Click the "Dark" theme label
-    await page.click('[data-testid="theme-dark"]');
-    //Click the update button
-    await page.click('[data-testid="update-theme-btn"]');
-    //Wait for the toast to appear
-    const toast = await page.waitForSelector('[data-testid="toast-success"]');
-    expect(toast).toBeTruthy();
-    //Go to the profile page and check if the theme is dark
-    await page.goto(`/${pro.username}`);
-    await page.reload();
-    await page.waitForLoadState("domcontentloaded"); // Fix the race condition
-    const htmlClass = await page.getAttribute("html", "class");
-    expect(htmlClass).toContain("dark");
+      // Go to the profile page and check if the theme is dark
+      await page.goto(`/${pro.username}`);
+
+      // Espera a página carregar e o tema ser aplicado (sem wait fixo)
+      await expect(page.locator("html")).toHaveClass(/dark/, { timeout: 10000 });
+
+      // Verificação final
+      const htmlClass = await page.getAttribute("html", "class");
+      expect(htmlClass).toContain("dark");
+    });
   });
 
   test("change booking page theme to light", async ({ page, users }) => {

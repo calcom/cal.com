@@ -141,12 +141,16 @@
       }
     },
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.e2e.ts", "**/*.e2e.tsx", "**/fixtures/*.ts"],
       "linter": {
         "rules": {
           "complexity": {
             "useArrowFunction": "off",
             "noExcessiveLinesPerFunction": "off"
+          },
+          "nursery": {
+            "noTernary": "off",
+            "useExplicitType": "off"
           }
         }
       }
