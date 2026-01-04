@@ -8,10 +8,10 @@ import { Button } from "@calcom/ui/components/button";
 import { TextField, Label } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { useAddVerifiedEmail } from "../../../platform/atoms/event-types/hooks/useAddVerifiedEmail";
-import { useGetVerifiedEmails } from "../../../platform/atoms/event-types/hooks/useGetVerifiedEmails";
-import { useVerifyCode } from "../../../platform/atoms/hooks/useVerifyCode";
-import { useVerifyEmail } from "../../../platform/atoms/hooks/useVerifyEmail";
+import { useAddVerifiedEmail } from "../../../../platform/atoms/event-types/hooks/useAddVerifiedEmail";
+import { useGetVerifiedEmails } from "../../../../platform/atoms/event-types/hooks/useGetVerifiedEmails";
+import { useVerifyCode } from "../../../../platform/atoms/hooks/useVerifyCode";
+import { useVerifyEmail } from "../../../../platform/atoms/hooks/useVerifyEmail";
 
 type AddVerifiedEmailProps = {
   username?: string;
