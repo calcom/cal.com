@@ -5,7 +5,7 @@ import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/ge
 import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
-import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
+import { sha256Hash, isApiKey, stripApiKey, extractBearerToken } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
 import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
 import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
@@ -409,30 +409,18 @@ export class BookingsController_2024_04_15 {
 
   private async getOwner(req: Request): Promise<{ id: number; uuid: string } | null> {
     try {
-      const bearerToken = req.get("Authorization")?.replace("Bearer ", "");
-      if (!bearerToken) {
-        return null;
-      }
-
-      let ownerId: number | null = null;
-
-      if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
-        const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
-        const apiKeyHash = sha256Hash(strippedApiKey);
-        const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
-        ownerId = keyData?.userId ?? null;
-      } else {
-        // Access Token
-        ownerId = await this.oAuthFlowService.getOwnerId(bearerToken);
-      }
-
-      if (!ownerId) {
-        return null;
-      }
-
-      const user = await this.usersRepository.findById(ownerId);
-      if (!user) {
-        return null;
+      const bearerToken = extractBearerToken(req.get("Authorization"));
+      if (bearerToken) {
+        if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
+          const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
+          const apiKeyHash = sha256Hash(strippedApiKey);
+          const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
+          return keyData?.userId;
+        } else {
+          // Access Token
+          const ownerId = await this.oAuthFlowService.getOwnerId(bearerToken);
+          return ownerId;
+        }
       }
 
       return { id: user.id, uuid: user.uuid };
