@@ -1401,7 +1401,7 @@ async function handler(
     location: bookingLocation,
     eventDuration: dayjs(reqBody.end).diff(reqBody.start, "minutes"),
     bookingFields: { ...responses },
-    t: tOrganizer,
+    t: tAttendees,
   };
 
   const iCalUID = getICalUID({
