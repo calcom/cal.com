@@ -1,6 +1,6 @@
 import { AtomsWrapper } from "@/components/atoms-wrapper";
 
-import CreateEventTypeForm from "@calcom/features/eventtypes/components/CreateEventTypeForm";
+import CreateEventTypeForm from "@calcom/web/modules/event-types/components/CreateEventTypeForm";
 import { useCreateEventTypeForm } from "@calcom/features/eventtypes/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventType } from "@calcom/prisma/client";

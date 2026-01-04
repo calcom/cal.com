@@ -6,8 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
+import type { ChildrenEventType } from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
+import { EventType as EventTypeComponent } from "@calcom/web/modules/event-types/components/EventType";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { EventPermissionProvider } from "@calcom/features/pbac/client/context/EventPermissionContext";
 import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";
@@ -45,11 +45,11 @@ type EventPermissions = {
 };
 
 const ManagedEventTypeDialog = dynamic(
-  () => import("@calcom/features/eventtypes/components/dialogs/ManagedEventDialog")
+  () => import("@calcom/web/modules/event-types/components/dialogs/ManagedEventDialog")
 );
 
 const AssignmentWarningDialog = dynamic(
-  () => import("@calcom/features/eventtypes/components/dialogs/AssignmentWarningDialog")
+  () => import("@calcom/web/modules/event-types/components/dialogs/AssignmentWarningDialog")
 );
 
 const EventSetupTab = dynamic(

@@ -7,7 +7,7 @@ import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/check
 import { locationsResolver } from "@calcom/app-store/locations";
 import { DEFAULT_PROMPT_VALUE, DEFAULT_BEGIN_MESSAGE } from "@calcom/features/calAIPhone/promptTemplates";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
-import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
+import { sortHosts } from "@calcom/web/modules/event-types/components/HostEditDialogs";
 import { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type {
   FormValues,

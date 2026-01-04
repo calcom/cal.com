@@ -47,7 +47,7 @@ vi.mock("@calcom/ee/organizations/lib/orgDomains", () => ({
   getOrgFullOrigin: vi.fn(),
 }));
 
-vi.mock("@calcom/features/eventtypes/components", () => ({
+vi.mock("@calcom/web/modules/event-types/components", () => ({
   EventTypeDescriptionLazy: vi.fn(),
 }));
 
@@ -60,7 +60,7 @@ vi.mock("@calcom/embed-core/embed-iframe", () => {
   };
 });
 
-vi.mock("@calcom/features/bookings/components/event-meta/Price", () => {
+vi.mock("@calcom/web/modules/bookings/components/event-meta/Price", () => {
   return {};
 });
 
