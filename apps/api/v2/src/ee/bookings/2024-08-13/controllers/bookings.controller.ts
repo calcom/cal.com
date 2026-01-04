@@ -214,9 +214,9 @@ export class BookingsController_2024_08_13 {
   @Get("/:bookingUid/recordings")
   // @Pbac(["booking.readRecordings"])
   @Permissions([BOOKING_READ])
-  @UseGuards(BookingUidGuard)
+  @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
   // @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get all the recordings for the booking",
     description: `Fetches all the recordings for the booking \`:bookingUid\`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.
@@ -224,8 +224,11 @@ export class BookingsController_2024_08_13 {
     <Note>cal-api-version: \`2024-08-13\` is required in the request header.</Note>
     `,
   })
-  async getBookingRecordings(@Param("bookingUid") bookingUid: string): Promise<GetBookingRecordingsOutput> {
-    const recordings = await this.calVideoService.getRecordings(bookingUid);
+  async getBookingRecordings(
+    @Param("bookingUid") bookingUid: string,
+    @GetOptionalUser() user: AuthOptionalUser
+  ): Promise<GetBookingRecordingsOutput> {
+    const recordings = await this.calVideoService.getRecordings(bookingUid, !!user);
 
     return {
       status: SUCCESS_STATUS,
@@ -397,18 +400,18 @@ export class BookingsController_2024_08_13 {
     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
-    async markNoShow(
-      @Param("bookingUid") bookingUid: string,
-      @Body() body: MarkAbsentBookingInput_2024_08_13,
-      @GetUser() user: ApiAuthGuardUser
-    ): Promise<MarkAbsentBookingOutput_2024_08_13> {
-      const booking = await this.bookingsService.markAbsent(bookingUid, user.id, body, user.uuid);
+  async markNoShow(
+    @Param("bookingUid") bookingUid: string,
+    @Body() body: MarkAbsentBookingInput_2024_08_13,
+    @GetUser() user: ApiAuthGuardUser
+  ): Promise<MarkAbsentBookingOutput_2024_08_13> {
+    const booking = await this.bookingsService.markAbsent(bookingUid, user.id, body, user.uuid);
 
-      return {
-        status: SUCCESS_STATUS,
-        data: booking,
-      };
-    }
+    return {
+      status: SUCCESS_STATUS,
+      data: booking,
+    };
+  }
 
   @Post("/:bookingUid/reassign")
   @HttpCode(HttpStatus.OK)
