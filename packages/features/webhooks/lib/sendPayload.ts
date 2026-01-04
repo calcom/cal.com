@@ -96,6 +96,7 @@ export type EventPayloadType = CalendarEvent &
     rescheduledBy?: string;
     cancelledBy?: string;
     paymentData?: PaymentData;
+    oneTimePassword?: string | null;
   };
 
 export type WebhookPayloadType =

@@ -69,6 +69,7 @@ export interface BookingRequestedParams {
     id: number;
     eventTypeId: number | null;
     userId: number | null;
+    oneTimePassword?: string | null;
   };
   eventType: {
     id: number;

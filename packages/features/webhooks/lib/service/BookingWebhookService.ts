@@ -137,7 +137,10 @@ export class BookingWebhookService implements IBookingWebhookService {
       platformClientId: params.platformClientId,
       evt: params.evt,
       eventType: params.eventType,
-      booking: params.booking,
+      booking: {
+        ...params.booking,
+        oneTimePassword: params.booking.oneTimePassword,
+      },
     };
     await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
   }
