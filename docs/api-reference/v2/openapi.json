@@ -2810,6 +2810,7 @@
                   "booking.readOrgBookings",
                   "booking.readRecordings",
                   "booking.update",
+                  "booking.readOrgAuditLogs",
                   "insights.read",
                   "workflow.create",
                   "workflow.read",
@@ -6342,6 +6343,7 @@
                   "booking.readTeamBookings",
                   "booking.readRecordings",
                   "booking.update",
+                  "booking.readTeamAuditLogs",
                   "insights.read",
                   "workflow.create",
                   "workflow.read",
@@ -10630,6 +10632,145 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetBookingVideoSessionsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/location": {
+      "patch": {
+        "operationId": "BookingLocationController_2024_08_13_updateBookingLocation",
+        "summary": "Update booking location for an existing booking",
+        "description": "Update the location of an existing booking. This endpoint supports 6 location types:\n\n- `address` - Organizer-defined physical address\n- `link` - Organizer-defined link (e.g., video call URL)\n- `phone` - Organizer-defined phone number\n- `attendeeAddress` - Attendee-provided physical address\n- `attendeePhone` - Attendee-provided phone number\n- `attendeeDefined` - Free-form location text from attendee\n\n**Authorization:** Requires BOOKING_WRITE permission. User must be the event type owner, host, team admin/owner, or organization admin/owner.\n\n**Current Limitation:** Updating a booking location will update the location in Cal.com, but the corresponding Calendar event will not be updated automatically. The old location will persist in the Calendar event. This is a known limitation that will be addressed in a future update.\n\n<Note>The `cal-api-version: 2024-08-13` header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. This header is required as this endpoint does not exist in older API versions.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "The location object to update the booking with. Supported location types are: address, link, phone, attendeeAddress, attendeePhone, and attendeeDefined.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/UpdateInputAddressLocation_2024_08_13"
+                      },
+                      {
+                        "$ref": "#/components/schemas/UpdateBookingInputLinkLocation_2024_08_13"
+                      },
+                      {
+                        "$ref": "#/components/schemas/UpdateBookingInputPhoneLocation_2024_08_13"
+                      },
+                      {
+                        "$ref": "#/components/schemas/UpdateBookingInputAttendeeAddressLocation_2024_08_13"
+                      },
+                      {
+                        "$ref": "#/components/schemas/UpdateBookingInputAttendeePhoneLocation_2024_08_13"
+                      },
+                      {
+                        "$ref": "#/components/schemas/UpdateBookingInputAttendeeDefinedLocation_2024_08_13"
+                      }
+                    ]
+                  }
+                }
+              },
+              "examples": {
+                "address": {
+                  "summary": "Update to physical address",
+                  "value": {
+                    "location": {
+                      "type": "address",
+                      "address": "123 Main St, San Francisco, CA 94102"
+                    }
+                  }
+                },
+                "link": {
+                  "summary": "Update to video call link",
+                  "value": {
+                    "location": {
+                      "type": "link",
+                      "link": "https://meet.google.com/abc-defg-hij"
+                    }
+                  }
+                },
+                "phone": {
+                  "summary": "Update to phone number",
+                  "value": {
+                    "location": {
+                      "type": "phone",
+                      "phone": "+14155551234"
+                    }
+                  }
+                },
+                "attendeeAddress": {
+                  "summary": "Update to attendee-provided address",
+                  "value": {
+                    "location": {
+                      "type": "attendeeAddress",
+                      "address": "456 Oak Ave, New York, NY 10001"
+                    }
+                  }
+                },
+                "attendeePhone": {
+                  "summary": "Update to attendee-provided phone",
+                  "value": {
+                    "location": {
+                      "type": "attendeePhone",
+                      "phone": "+12125551234"
+                    }
+                  }
+                },
+                "attendeeDefined": {
+                  "summary": "Update to attendee-defined location",
+                  "value": {
+                    "location": {
+                      "type": "attendeeDefined",
+                      "location": "Coffee shop on 5th Avenue"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateBookingLocationOutput_2024_08_13"
                 }
               }
             }
@@ -22825,6 +22966,12 @@
           },
           "secret": {
             "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "description": "The version of the webhook",
+            "example": "2021-10-20",
+            "enum": ["2021-10-20"]
           }
         },
         "required": ["active", "subscriberUrl", "triggers"]
@@ -22893,6 +23040,12 @@
           },
           "secret": {
             "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "description": "The version of the webhook",
+            "example": "2021-10-20",
+            "enum": ["2021-10-20"]
           }
         }
       },
@@ -26359,6 +26512,7 @@
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26463,6 +26617,7 @@
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26595,6 +26750,7 @@
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26698,6 +26854,7 @@
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26781,6 +26938,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26864,6 +27022,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26975,6 +27134,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -27057,6 +27217,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -30033,6 +30194,136 @@
         "required": ["guests"]
       },
       "AddGuestsOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+                }
+              }
+            ],
+            "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateInputAddressLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "address",
+            "description": "only allowed value for type is `address` - it refers to address defined by the organizer."
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Example St, City, Country"
+          }
+        },
+        "required": ["type", "address"]
+      },
+      "UpdateBookingInputAttendeeAddressLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeAddress",
+            "description": "only allowed value for type is `attendeeAddress`"
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Example St, City, Country"
+          }
+        },
+        "required": ["type", "address"]
+      },
+      "UpdateBookingInputAttendeeDefinedLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeDefined",
+            "description": "only allowed value for type is `attendeeDefined`"
+          },
+          "location": {
+            "type": "string",
+            "example": "321 Example St, City, Country"
+          }
+        },
+        "required": ["type", "location"]
+      },
+      "UpdateBookingInputAttendeePhoneLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeePhone",
+            "description": "only allowed value for type is `attendeePhone`"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+37120993151"
+          }
+        },
+        "required": ["type", "phone"]
+      },
+      "UpdateBookingInputLinkLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "link",
+            "description": "only allowed value for type is `link` - it refers to link defined by the organizer."
+          },
+          "link": {
+            "type": "string",
+            "example": "https://meet.google.com/txi-fein-xyz"
+          }
+        },
+        "required": ["type", "link"]
+      },
+      "UpdateBookingInputPhoneLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "phone",
+            "description": "only allowed value for type is `phone` - it refers to phone defined by the organizer."
+          },
+          "phone": {
+            "type": "string",
+            "example": "+37120993151"
+          }
+        },
+        "required": ["type", "phone"]
+      },
+      "UpdateBookingLocationOutput_2024_08_13": {
         "type": "object",
         "properties": {
           "status": {
