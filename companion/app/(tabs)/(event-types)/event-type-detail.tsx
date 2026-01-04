@@ -1,8 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { Activity, useCallback, useEffect, useState } from "react";
 import {
   Alert,
   Animated,
@@ -39,6 +38,7 @@ import {
   validateLocationItem,
 } from "@/utils/locationHelpers";
 import { safeLogError } from "@/utils/safeLogger";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 
 // Type definitions for extended EventType fields not in the base type
 interface EventTypeExtended {
@@ -1141,20 +1141,44 @@ export default function EventTypeDetail() {
           headerRight:
             Platform.OS === "android" || Platform.OS === "web" ? renderHeaderRight : undefined,
           headerShown: Platform.OS !== "ios",
+          headerTransparent: Platform.select({
+            ios: true,
+          }),
         }}
       />
 
       {Platform.OS === "ios" && (
-        <Stack.Header>
-          <Stack.Header.Left>
-            <Stack.Header.Button onPress={() => router.back()}>
-              <Stack.Header.Icon sf="xmark" />
-            </Stack.Header.Button>
-          </Stack.Header.Left>
-
-          <Stack.Header.Title>{headerTitle}</Stack.Header.Title>
-
+        <Stack.Header blurEffect={isLiquidGlassAvailable() ? undefined : "light"}>
           <Stack.Header.Right>
+            <Stack.Header.Menu>
+              <Stack.Header.Label>
+                {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+              </Stack.Header.Label>
+              {tabs.map((tab) => (
+                <Stack.Header.MenuAction
+                  key={tab.id}
+                  isOn={activeTab === tab.id}
+                  icon={
+                    activeTab === tab.id
+                      ? "checkmark"
+                      : tab.icon === "link"
+                        ? "link"
+                        : tab.icon === "calendar"
+                          ? "calendar"
+                          : tab.icon === "time"
+                            ? "clock"
+                            : tab.icon === "settings"
+                              ? "gearshape"
+                              : tab.icon === "refresh"
+                                ? "arrow.clockwise"
+                                : "ellipsis"
+                  }
+                  onPress={() => setActiveTab(tab.id)}
+                >
+                  {tab.label}
+                </Stack.Header.MenuAction>
+              ))}
+            </Stack.Header.Menu>
             <Stack.Header.Button
               onPress={handleSave}
               disabled={saving}
@@ -1168,96 +1192,52 @@ export default function EventTypeDetail() {
       )}
 
       <View className="flex-1 bg-[#f8f9fa]">
-        {/* Tabs */}
-        {isLiquidGlassAvailable() ? (
-          <GlassView
-            glassEffectStyle="regular"
-            style={{
-              paddingTop: 12,
-              paddingBottom: 12,
-            }}
-          >
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 12, gap: 4 }}
-            >
-              {tabs.map((tab) => (
-                <TouchableOpacity
-                  key={tab.id}
-                  className={`min-w-[90px] items-center rounded-[24px] px-3 py-3 md:px-5 ${
-                    activeTab === tab.id ? "bg-[rgba(0,0,0,0.08)]" : ""
-                  }`}
-                  onPress={() => setActiveTab(tab.id)}
-                >
-                  <View className="flex-row items-center gap-2">
-                    <Ionicons
-                      name={tab.icon}
-                      size={18}
-                      color={activeTab === tab.id ? "#007AFF" : "#666"}
-                    />
-                    <Text
-                      className={`text-base font-medium ${
-                        activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"
-                      }`}
-                    >
-                      {tab.label}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </GlassView>
-        ) : (
-          <View
-            style={{
-              paddingTop: Platform.OS === "ios" ? 12 : insets.top + 70,
-              paddingBottom: 12,
-              backgroundColor: "rgba(255, 255, 255, 0.9)",
-              borderBottomWidth: 0.5,
-              borderBottomColor: "#C6C6C8",
-            }}
-          >
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 12, gap: 4 }}
-            >
-              {tabs.map((tab) => (
-                <TouchableOpacity
-                  key={tab.id}
-                  className={`min-w-[90px] items-center rounded-[24px] px-3 py-3 md:px-5 ${
-                    activeTab === tab.id ? "bg-[#EEEFF2]" : ""
-                  }`}
-                  onPress={() => setActiveTab(tab.id)}
-                >
-                  <View className="flex-row items-center gap-2">
-                    <Ionicons
-                      name={tab.icon}
-                      size={18}
-                      color={activeTab === tab.id ? "#007AFF" : "#666"}
-                    />
-                    <Text
-                      className={`text-base font-medium ${
-                        activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"
-                      }`}
-                    >
-                      {tab.label}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* Content */}
         <ScrollView
           style={{
             flex: 1,
           }}
-          contentContainerStyle={{ padding: 20, paddingBottom: 200 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: 200 }}
+          contentInsetAdjustmentBehavior="automatic"
         >
+          <Activity mode={Platform.OS !== "ios" ? "visible" : "hidden"}>
+            <View
+              style={{
+                paddingBottom: 12,
+              }}
+            >
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 12, gap: 4 }}
+              >
+                {tabs.map((tab) => (
+                  <TouchableOpacity
+                    key={tab.id}
+                    className={`min-w-[90px] items-center rounded-[24px] px-3 py-3 md:px-5 ${
+                      activeTab === tab.id ? "bg-[#EEEFF2]" : ""
+                    }`}
+                    onPress={() => setActiveTab(tab.id)}
+                  >
+                    <View className="flex-row items-center gap-2">
+                      <Ionicons
+                        name={tab.icon}
+                        size={18}
+                        color={activeTab === tab.id ? "#007AFF" : "#666"}
+                      />
+                      <Text
+                        className={`text-base font-medium ${
+                          activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"
+                        }`}
+                      >
+                        {tab.label}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </Activity>
+
           {activeTab === "basics" ? (
             <BasicsTab
               eventTitle={eventTitle}
@@ -2007,27 +1987,10 @@ export default function EventTypeDetail() {
               </View>
             </View>
           ) : null}
-        </ScrollView>
 
-        {/* Bottom Action Bar */}
-        <GlassView
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            paddingTop: 16,
-            paddingHorizontal: 20,
-            backgroundColor: "#f8f9fa",
-            borderTopWidth: 0.5,
-            borderTopColor: "#E5E5EA",
-            paddingBottom: insets.bottom + 12,
-          }}
-          glassEffectStyle="clear"
-        >
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-2">
-              <Text className="text-base font-medium text-[#333]">Hidden</Text>
+          <View className="rounded-2xl bg-white p-5 mt-3 gap-3">
+            <View className="h-12 flex-row items-center justify-between">
+              <Text>Hidden</Text>
               <Switch
                 value={isHidden}
                 onValueChange={setIsHidden}
@@ -2036,45 +1999,31 @@ export default function EventTypeDetail() {
               />
             </View>
 
-            <View className="flex-row items-center gap-3">
-              <GlassView
-                className="overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]"
-                glassEffectStyle="clear"
-              >
-                <TouchableOpacity
-                  className="h-11 w-11 items-center justify-center"
-                  onPress={handlePreview}
-                >
-                  <Ionicons name="open-outline" size={20} color="#000" />
-                </TouchableOpacity>
-              </GlassView>
+            <TouchableOpacity
+              className="h-12 flex-row items-center justify-between"
+              onPress={handlePreview}
+            >
+              <Text>Preview</Text>
+              <Ionicons name="open-outline" size={20} color="#000" />
+            </TouchableOpacity>
 
-              <GlassView
-                className="overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]"
-                glassEffectStyle="clear"
-              >
-                <TouchableOpacity
-                  className="h-11 w-11 items-center justify-center"
-                  onPress={handleCopyLink}
-                >
-                  <Ionicons name="link-outline" size={20} color="#000" />
-                </TouchableOpacity>
-              </GlassView>
+            <TouchableOpacity
+              className="h-12 flex-row items-center justify-between"
+              onPress={handleCopyLink}
+            >
+              <Text>Copy Link</Text>
+              <Ionicons name="link-outline" size={20} color="#000" />
+            </TouchableOpacity>
 
-              <GlassView
-                className="overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]"
-                glassEffectStyle="clear"
-              >
-                <TouchableOpacity
-                  className="h-11 w-11 items-center justify-center"
-                  onPress={handleDelete}
-                >
-                  <Ionicons name="trash-outline" size={20} color="#800020" />
-                </TouchableOpacity>
-              </GlassView>
-            </View>
+            <TouchableOpacity
+              className="h-12 flex-row items-center justify-between"
+              onPress={handleDelete}
+            >
+              <Text className="text-red-500">Delete</Text>
+              <Ionicons name="trash-outline" size={20} color="#ef4444" />
+            </TouchableOpacity>
           </View>
-        </GlassView>
+        </ScrollView>
       </View>
     </>
   );
