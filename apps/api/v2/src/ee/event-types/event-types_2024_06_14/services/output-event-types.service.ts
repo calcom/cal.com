@@ -40,7 +40,7 @@ type EventTypeRelations = {
   destinationCalendar?: DestinationCalendar | null;
   calVideoSettings?: CalVideoSettings | null;
 };
-export type DatabaseEventType = Omit<EventType, "allowReschedulingCancelledBookings"> & EventTypeRelations;
+export type DatabaseEventType = EventType & EventTypeRelations;
 
 type Input = Pick<
   DatabaseEventType,
@@ -94,6 +94,14 @@ type Input = Pick<
   | "bookingRequiresAuthentication"
   | "maxActiveBookingsPerBooker"
   | "maxActiveBookingPerBookerOfferReschedule"
+  | "disableCancelling"
+  | "disableRescheduling"
+  | "minimumRescheduleNotice"
+  | "canSendCalVideoTranscriptionEmails"
+  | "interfaceLanguage"
+  | "allowReschedulingPastBookings"
+  | "allowReschedulingCancelledBookings"
+  | "showOptimizedSlots"
 >;
 
 @Injectable()
@@ -134,6 +142,14 @@ export class OutputEventTypesService_2024_06_14 {
       calVideoSettings,
       hidden,
       bookingRequiresAuthentication,
+      disableCancelling,
+      disableRescheduling,
+      minimumRescheduleNotice,
+      canSendCalVideoTranscriptionEmails,
+      interfaceLanguage,
+      allowReschedulingPastBookings,
+      allowReschedulingCancelledBookings,
+      showOptimizedSlots,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -168,6 +184,15 @@ export class OutputEventTypesService_2024_06_14 {
     } as TransformFutureBookingsLimitSchema_2024_06_14);
     const destinationCalendar = this.transformDestinationCalendar(databaseEventType.destinationCalendar);
     const bookerActiveBookingsLimit = this.transformBookerActiveBookingsLimit(databaseEventType);
+    const disableReschedulingOutput = this.transformDisableRescheduling(
+      disableRescheduling,
+      minimumRescheduleNotice
+    );
+    const disableCancellingOutput = this.transformDisableCancelling(disableCancelling);
+    const calVideoSettingsOutput = this.transformCalVideoSettings(
+      calVideoSettings,
+      canSendCalVideoTranscriptionEmails
+    );
 
     return {
       id,
@@ -210,10 +235,16 @@ export class OutputEventTypesService_2024_06_14 {
       useDestinationCalendarEmail: useEventTypeDestinationCalendarEmail,
       hideCalendarEventDetails,
       hideOrganizerEmail,
-      calVideoSettings,
+      calVideoSettings: calVideoSettingsOutput,
       hidden,
       bookingRequiresAuthentication,
       bookerActiveBookingsLimit,
+      disableCancelling: disableCancellingOutput,
+      disableRescheduling: disableReschedulingOutput,
+      interfaceLanguage,
+      allowReschedulingPastBookings,
+      allowReschedulingCancelledBookings,
+      showOptimizedSlots,
     };
   }
 
@@ -393,6 +424,42 @@ export class OutputEventTypesService_2024_06_14 {
     return {
       ...eventType,
       bookingFields: visibleBookingFields,
+    };
+  }
+
+  transformDisableRescheduling(
+    disableRescheduling: boolean | null | undefined,
+    minimumRescheduleNotice: number | null | undefined
+  ) {
+    // If disableRescheduling is true, rescheduling is always disabled
+    if (disableRescheduling === true) {
+      return { disabled: true };
+    }
+
+    // If minimumRescheduleNotice is set, rescheduling is conditionally disabled
+    if (minimumRescheduleNotice && minimumRescheduleNotice > 0) {
+      return { disabled: false, minutesBefore: minimumRescheduleNotice };
+    }
+
+    // Otherwise rescheduling is not disabled
+    return { disabled: false };
+  }
+
+  transformDisableCancelling(disableCancelling: boolean | null | undefined) {
+    return { disabled: disableCancelling === true };
+  }
+
+  transformCalVideoSettings(
+    calVideoSettings: CalVideoSettings | null | undefined,
+    canSendCalVideoTranscriptionEmails: boolean | null | undefined
+  ) {
+    if (!calVideoSettings && canSendCalVideoTranscriptionEmails === undefined) {
+      return undefined;
+    }
+
+    return {
+      ...calVideoSettings,
+      sendTranscriptionEmails: canSendCalVideoTranscriptionEmails ?? true,
     };
   }
 }

@@ -432,6 +432,29 @@ describe("Event types Endpoints", () => {
         .expect(400);
     });
 
+    it("should return an error when creating an event type with invalid interfaceLanguage", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class invalid locale",
+        slug: "coding-class-invalid-locale",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        interfaceLanguage: "invalid-locale-xyz",
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(body)
+        .expect(400);
+    });
+
     it("should create an event type", async () => {
       const nameBookingField: NameDefaultFieldInput_2024_06_14 = {
         type: "name",
@@ -532,6 +555,13 @@ describe("Event types Endpoints", () => {
         },
         customName: `{Event type title} between {Organiser} and {Scheduler}`,
         bookingRequiresAuthentication: true,
+        disableCancelling: { disabled: true },
+        disableRescheduling: { disabled: true },
+        calVideoSettings: { sendTranscriptionEmails: true },
+        interfaceLanguage: "en",
+        allowReschedulingPastBookings: true,
+        allowReschedulingCancelledBookings: true,
+        showOptimizedSlots: true,
       };
 
       return request(app.getHttpServer())
@@ -606,6 +636,15 @@ describe("Event types Endpoints", () => {
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
           expect(createdEventType.bookingRequiresAuthentication).toEqual(true);
+          expect(createdEventType.disableCancelling).toEqual({ disabled: true });
+          expect(createdEventType.disableRescheduling).toEqual({ disabled: true });
+          expect(createdEventType.calVideoSettings?.sendTranscriptionEmails).toEqual(true);
+          expect(createdEventType.interfaceLanguage).toEqual(body.interfaceLanguage);
+          expect(createdEventType.allowReschedulingPastBookings).toEqual(body.allowReschedulingPastBookings);
+          expect(createdEventType.allowReschedulingCancelledBookings).toEqual(
+            body.allowReschedulingCancelledBookings
+          );
+          expect(createdEventType.showOptimizedSlots).toEqual(body.showOptimizedSlots);
           eventType = responseBody.data;
         });
     });
@@ -693,6 +732,19 @@ describe("Event types Endpoints", () => {
       );
       expect(fetchedEventType?.color).toEqual(eventType.color);
       expect(fetchedEventType?.hidden).toEqual(false);
+      expect(fetchedEventType?.disableCancelling).toEqual(eventType.disableCancelling);
+      expect(fetchedEventType?.disableRescheduling).toEqual(eventType.disableRescheduling);
+      expect(fetchedEventType?.calVideoSettings?.sendTranscriptionEmails).toEqual(
+        eventType.calVideoSettings?.sendTranscriptionEmails
+      );
+      expect(fetchedEventType?.interfaceLanguage).toEqual(eventType.interfaceLanguage);
+      expect(fetchedEventType?.allowReschedulingPastBookings).toEqual(
+        eventType.allowReschedulingPastBookings
+      );
+      expect(fetchedEventType?.allowReschedulingCancelledBookings).toEqual(
+        eventType.allowReschedulingCancelledBookings
+      );
+      expect(fetchedEventType?.showOptimizedSlots).toEqual(eventType.showOptimizedSlots);
 
       expect(fetchedHiddenEventType?.id).toEqual(hiddenEventType.id);
       expect(fetchedHiddenEventType?.hidden).toEqual(true);
@@ -822,6 +874,19 @@ describe("Event types Endpoints", () => {
       );
       expect(fetchedEventType?.color).toEqual(eventType.color);
       expect(fetchedEventType?.hidden).toEqual(false);
+      expect(fetchedEventType?.disableCancelling).toEqual(eventType.disableCancelling);
+      expect(fetchedEventType?.disableRescheduling).toEqual(eventType.disableRescheduling);
+      expect(fetchedEventType?.calVideoSettings?.sendTranscriptionEmails).toEqual(
+        eventType.calVideoSettings?.sendTranscriptionEmails
+      );
+      expect(fetchedEventType?.interfaceLanguage).toEqual(eventType.interfaceLanguage);
+      expect(fetchedEventType?.allowReschedulingPastBookings).toEqual(
+        eventType.allowReschedulingPastBookings
+      );
+      expect(fetchedEventType?.allowReschedulingCancelledBookings).toEqual(
+        eventType.allowReschedulingCancelledBookings
+      );
+      expect(fetchedEventType?.showOptimizedSlots).toEqual(eventType.showOptimizedSlots);
     });
 
     it(`/GET/event-types by username and eventSlug should not return hidden event type if auth of non event type owner provided`, async () => {
@@ -1209,6 +1274,7 @@ describe("Event types Endpoints", () => {
           enableAutomaticTranscription: true,
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
+          sendTranscriptionEmails: false,
         },
         bookingFields: [
           nameBookingField,
@@ -1268,6 +1334,12 @@ describe("Event types Endpoints", () => {
         },
         customName: `{Event type title} betweennnnnnnnnnn {Organiser} and {Scheduler}`,
         bookingRequiresAuthentication: false,
+        disableCancelling: { disabled: false },
+        disableRescheduling: { disabled: false, minutesBefore: 60 },
+        interfaceLanguage: "es",
+        allowReschedulingPastBookings: false,
+        allowReschedulingCancelledBookings: false,
+        showOptimizedSlots: false,
       };
 
       return request(app.getHttpServer())
@@ -1374,6 +1446,23 @@ describe("Event types Endpoints", () => {
           eventType.calVideoSettings = updatedEventType.calVideoSettings;
 
           expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
+          expect(updatedEventType.disableCancelling).toEqual({ disabled: false });
+          expect(updatedEventType.disableRescheduling).toEqual({ disabled: false, minutesBefore: 60 });
+          expect(updatedEventType.calVideoSettings?.sendTranscriptionEmails).toEqual(false);
+          expect(updatedEventType.interfaceLanguage).toEqual(body.interfaceLanguage);
+          expect(updatedEventType.allowReschedulingPastBookings).toEqual(body.allowReschedulingPastBookings);
+          expect(updatedEventType.allowReschedulingCancelledBookings).toEqual(
+            body.allowReschedulingCancelledBookings
+          );
+          expect(updatedEventType.showOptimizedSlots).toEqual(body.showOptimizedSlots);
+
+          eventType.disableCancelling = updatedEventType.disableCancelling;
+          eventType.disableRescheduling = updatedEventType.disableRescheduling;
+          eventType.calVideoSettings = updatedEventType.calVideoSettings;
+          eventType.interfaceLanguage = updatedEventType.interfaceLanguage;
+          eventType.allowReschedulingPastBookings = updatedEventType.allowReschedulingPastBookings;
+          eventType.allowReschedulingCancelledBookings = updatedEventType.allowReschedulingCancelledBookings;
+          eventType.showOptimizedSlots = updatedEventType.showOptimizedSlots;
         });
     });
 
@@ -1398,6 +1487,19 @@ describe("Event types Endpoints", () => {
             integration: "office365-video",
           },
         ],
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
+    });
+
+    it("should return an error when updating an event type with invalid interfaceLanguage", async () => {
+      const body: UpdateEventTypeInput_2024_06_14 = {
+        interfaceLanguage: "invalid-locale-xyz",
       };
 
       return request(app.getHttpServer())
