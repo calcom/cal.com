@@ -52,6 +52,7 @@ import { dub } from "./dub";
 import { validateSamlAccountConversion } from "./samlAccountLinking";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
+import { UserProfile } from "@calcom/types/UserProfile";
 
 type UserWithProfiles = NonNullable<
   Awaited<ReturnType<UserRepository["findByEmailAndIncludeProfilesAndPassword"]>>
@@ -274,6 +275,16 @@ export const CalComCredentialsProvider = CredentialsProvider({
 });
 
 const providers: Provider[] = [CalComCredentialsProvider, ImpersonationProvider];
+type SamlIdpUser = {
+  id: number;
+  userId: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  name: string;
+  email_verified: boolean;
+  profile: UserProfile;
+};
 
 if (IS_GOOGLE_LOGIN_ENABLED) {
   providers.push(
@@ -356,7 +367,7 @@ if (isSAMLLoginEnabled) {
       credentials: {
         code: {},
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<SamlIdpUser | null> {
         log.debug("CredentialsProvider:saml-idp:authorize", safeStringify({ credentials }));
         if (!credentials) {
           return null;
@@ -418,7 +429,11 @@ if (isSAMLLoginEnabled) {
         }
         const [userProfile] = user?.allProfiles ?? [];
         return {
+          // This `id` is actually email as sent by the saml configuration of NameId=email
+          // Instead of changing it, we introduce a new userId field to the object
+          // Also, another reason to not touch it is that setting to to user.id starts breaking the saml-idp flow with an uncaught error something related to that it is expected to be a string
           id: id as unknown as number,
+          userId: user.id,
           firstName,
           lastName,
           email,
@@ -622,7 +637,14 @@ export const getOptions = ({
         log.debug("callbacks:jwt:accountType:credentials", safeStringify({ account }));
         // return token if credentials,saml-idp
         if (account.provider === "saml-idp") {
-          return { ...token, upId: user.profile?.upId ?? token.upId ?? null } as JWT;
+          const samlIdpUser = user as SamlIdpUser;
+          const updatedToken = {
+            ...token,
+            // Server Session explicitly requires sub to be userId. So, override what is set by BoxyHQ
+            sub: samlIdpUser.userId.toString(),
+            upId: samlIdpUser.profile?.upId ?? token.upId ?? null,
+          } as JWT;
+          return updatedToken;
         }
         // any other credentials, add user info
         return {
