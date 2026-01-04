@@ -7,6 +7,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
 } from "@calcom/ee/workflows/lib/allowDisablingStandardEmails";
 import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
+import { withHideBranding } from "@calcom/emails/email-manager";
 import type { BookingType } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
@@ -126,12 +127,15 @@ export class BookingEmailSmsHandler {
 
     const { sendRescheduledEmailsAndSMS } = await import("@calcom/emails/email-manager");
     await sendRescheduledEmailsAndSMS(
-      {
-        ...evt,
-        additionalInformation,
-        additionalNotes,
-        cancellationReason: `$RCH$${rescheduleReason || ""}`,
-      },
+      withHideBranding(
+        {
+          ...evt,
+          additionalInformation,
+          additionalNotes,
+          cancellationReason: `$RCH$${rescheduleReason || ""}`,
+        },
+        evt.hideBranding ?? false
+      ),
       metadata
     );
   }
@@ -233,17 +237,17 @@ export class BookingEmailSmsHandler {
     try {
       await Promise.all([
         sendRoundRobinRescheduledEmailsAndSMS(
-          { ...copyEventAdditionalInfo, iCalUID },
+          withHideBranding({ ...copyEventAdditionalInfo, iCalUID }, evt.hideBranding ?? false),
           rescheduledMembers,
           metadata
         ),
         sendReassignedScheduledEmailsAndSMS({
-          calEvent: copyEventAdditionalInfo,
+          calEvent: withHideBranding(copyEventAdditionalInfo, evt.hideBranding ?? false),
           members: newBookedMembers,
           eventTypeMetadata: metadata,
         }),
         sendRoundRobinCancelledEmailsAndSMS(
-          cancelledRRHostEvt,
+          withHideBranding(cancelledRRHostEvt, evt.hideBranding ?? false),
           cancelledMembers,
           metadata,
           reassignedTo
@@ -289,7 +293,10 @@ export class BookingEmailSmsHandler {
 
     try {
       await sendScheduledEmailsAndSMS(
-        { ...evt, additionalInformation, additionalNotes, customInputs },
+        withHideBranding(
+          { ...evt, additionalInformation, additionalNotes, customInputs },
+          evt.hideBranding ?? false
+        ),
         eventNameObject,
         isHostConfirmationEmailsDisabled,
         isAttendeeConfirmationEmailDisabled,
@@ -319,7 +326,7 @@ export class BookingEmailSmsHandler {
       safeStringify({ calEvent: getPiiFreeCalendarEvent(evt) })
     );
 
-    const eventWithNotes = { ...evt, additionalNotes };
+    const eventWithNotes = withHideBranding({ ...evt, additionalNotes }, evt.hideBranding ?? false);
 
     const { sendOrganizerRequestEmail, sendAttendeeRequestEmailAndSMS } = await import(
       "@calcom/emails/email-manager"

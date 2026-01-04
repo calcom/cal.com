@@ -4,9 +4,10 @@ import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@ca
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
-  sendReassignedEmailsAndSMS,
+  sendRoundRobinReassignedEmailsAndSMS,
   sendReassignedScheduledEmailsAndSMS,
   sendReassignedUpdatedEmailsAndSMS,
+  withHideBranding,
 } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -25,6 +26,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
@@ -316,6 +318,14 @@ export const roundRobinManualReassignment = async ({
     organizationId: orgId,
   };
 
+  const hideBranding = await shouldHideBrandingForEvent({
+    eventTypeId: eventType.id,
+    team: eventType.team ?? null,
+    owner: organizer,
+    organizationId: orgId ?? null,
+  });
+  evt.hideBranding = hideBranding;
+
   if (hasOrganizerChanged) {
     // location might changed and will be new created in eventManager.create (organizer default location)
     evt.videoCallData = undefined;
@@ -394,7 +404,7 @@ export const roundRobinManualReassignment = async ({
   // Send emails
   if (emailsEnabled) {
     await sendReassignedScheduledEmailsAndSMS({
-      calEvent: evtWithoutCancellationReason,
+      calEvent: withHideBranding(evtWithoutCancellationReason),
       members: [
         {
           ...newUser,
@@ -423,8 +433,8 @@ export const roundRobinManualReassignment = async ({
   };
 
   if (previousRRHost && emailsEnabled) {
-    await sendReassignedEmailsAndSMS({
-      calEvent: cancelledEvt,
+    await sendRoundRobinReassignedEmailsAndSMS({
+      calEvent: withHideBranding(cancelledEvt),
       members: [
         {
           ...previousRRHost,
@@ -443,7 +453,7 @@ export const roundRobinManualReassignment = async ({
     if (emailsEnabled && dayjs(evt.startTime).isAfter(dayjs())) {
       // send email with event updates to attendees
       await sendReassignedUpdatedEmailsAndSMS({
-        calEvent: evtWithoutCancellationReason,
+        calEvent: withHideBranding(evtWithoutCancellationReason),
         eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
       });
     }
@@ -549,7 +559,7 @@ export async function handleWorkflowsUpdate({
         emailSubject: workflowStep.emailSubject || undefined,
         emailBody: workflowStep.reminderBody || undefined,
         sender: workflowStep.sender || SENDER_NAME,
-        hideBranding: true,
+        hideBranding: evt.hideBranding ?? false,
         includeCalendarEvent: workflowStep.includeCalendarEvent,
         workflowStepId: workflowStep.id,
         verifiedAt: workflowStep.verifiedAt,
@@ -616,7 +626,7 @@ export async function handleWorkflowsUpdate({
       eventType: { slug: eventType.slug },
       bookerUrl,
     },
-    hideBranding: !!eventType?.owner?.hideBranding,
+    hideBranding: evt.hideBranding ?? false,
     creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
   });
 }

@@ -11,6 +11,7 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deletePayment } from "@calcom/features/bookings/lib/payment/deletePayment";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -232,6 +233,7 @@ const handleDeleteCredential = async ({
               ...bookingMinimalSelect,
               recurringEventId: true,
               userId: true,
+              eventTypeId: true,
               responses: true,
               user: {
                 select: {
@@ -242,6 +244,8 @@ const handleDeleteCredential = async ({
                   name: true,
                   destinationCalendar: true,
                   locale: true,
+                  hideBranding: true,
+                  organizationId: true,
                   profiles: {
                     select: {
                       organizationId: true,
@@ -272,13 +276,19 @@ const handleDeleteCredential = async ({
                     select: {
                       id: true,
                       name: true,
+                      hideBranding: true,
+                      parentId: true,
+                      parent: {
+                        select: {
+                          hideBranding: true,
+                        },
+                      },
                     },
                   },
                   metadata: true,
                 },
               },
               uid: true,
-              eventTypeId: true,
               destinationCalendar: true,
             },
           });
@@ -338,6 +348,16 @@ const handleDeleteCredential = async ({
 
             const attendeesList = await Promise.all(attendeesListPromises);
             const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
+
+            const organizationId = booking.eventType?.team?.parentId ?? booking.user?.organizationId ?? null;
+
+            const hideBranding = await shouldHideBrandingForEvent({
+              eventTypeId: booking.eventTypeId ?? 0,
+              team: booking.eventType?.team ?? null,
+              owner: booking.eventType?.team ? null : booking.user ?? null,
+              organizationId: organizationId,
+            });
+
             await sendCancelledEmailsAndSMS(
               {
                 type: booking?.eventType?.title as string,
@@ -376,6 +396,7 @@ const handleDeleteCredential = async ({
                       members: [],
                     }
                   : undefined,
+                hideBranding,
                 organizationId: booking.user?.profiles?.[0]?.organizationId ?? null,
               },
               {

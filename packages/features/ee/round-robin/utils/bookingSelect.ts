@@ -22,6 +22,7 @@ export const bookingSelect = {
       locale: true,
       timeZone: true,
       timeFormat: true,
+      hideBranding: true,
       destinationCalendar: true,
       credentials: {
         select: credentialForCalendarServiceSelect,

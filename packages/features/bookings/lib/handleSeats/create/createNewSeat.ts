@@ -142,7 +142,7 @@ const createNewSeat = async (
       isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
     }
     await sendScheduledSeatsEmailsAndSMS(
-      copyEvent,
+      { ...copyEvent, hideBranding: copyEvent.hideBranding ?? false },
       inviteeToAdd,
       newSeat,
       !!eventType.seatsShowAttendees,
