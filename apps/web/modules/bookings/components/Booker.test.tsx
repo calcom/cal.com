@@ -161,6 +161,10 @@ const defaultProps = {
   rescheduleUid: null,
   hasSession: false,
   isInstantMeeting: false,
+  rescheduledBy: null,
+  bookingUid: null,
+  isRedirect: false,
+  fromUserNameRedirected: null,
 };
 
 describe("Booker", () => {

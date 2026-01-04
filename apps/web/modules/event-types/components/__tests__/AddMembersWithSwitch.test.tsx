@@ -93,6 +93,8 @@ describe("AddMembersWithSwitch", () => {
     onActive: vi.fn(),
     isFixed: false,
     teamId: 1,
+    setAssignAllTeamMembers: vi.fn(),
+    groupId: null,
   };
 
   it("should render in TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_NOT_APPLICABLE state", () => {

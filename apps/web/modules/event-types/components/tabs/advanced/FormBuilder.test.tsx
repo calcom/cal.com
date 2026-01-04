@@ -9,7 +9,7 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { FormBuilder } from "./FormBuilder";
 import {
-  mockProps,
+  mockProps as mockPropsBase,
   verifier,
   setMockIntersectionObserver,
   setMockMatchMedia,
@@ -17,6 +17,9 @@ import {
   expectScenario,
   getLocationBookingField,
 } from "@calcom/features/form-builder/testUtils";
+
+// Re-type mockProps to ensure LockedIcon is typed as `false` instead of `boolean`
+const mockProps = { ...mockPropsBase, LockedIcon: false as const };
 
 vi.mock("@formkit/auto-animate/react", () => ({
   useAutoAnimate: () => [null],
@@ -43,7 +46,7 @@ const renderComponent = ({
   formDefaultValues: formDefaultValues,
 }: {
   formBuilderProps: Parameters<typeof FormBuilder>[0];
-  formDefaultValues;
+  formDefaultValues: Record<string, unknown>;
 }) => {
   const Wrapper = ({ children }: { children: ReactNode }) => {
     const form = useForm({
