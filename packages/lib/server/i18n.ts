@@ -10,16 +10,30 @@ const log = logger.getSubLogger({ prefix: ["[i18n]"] });
 
 // Import only English translations directly to avoid HTTP requests
 // Other languages will be loaded dynamically to minimize bundle size
-const englishTranslations: Record<
+const englishCommonTranslations: Record<
   string,
   string
 > = require("../../../apps/web/public/static/locales/en/common.json");
 
+const englishBookingTranslations: Record<
+  string,
+  string
+> = require("../../../apps/web/public/static/locales/en/booking.json");
+
+const englishTranslationsByNamespace: Record<string, Record<string, string>> = {
+  common: englishCommonTranslations,
+  booking: englishBookingTranslations,
+};
+
 const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
-const SUPPORTED_NAMESPACES = ["common"];
+const SUPPORTED_NAMESPACES = ["common", "booking"];
 
-export function mergeWithEnglishFallback(localeTranslations: Record<string, string>): Record<string, string> {
+export function mergeWithEnglishFallback(
+  localeTranslations: Record<string, string>,
+  ns: string = "common"
+): Record<string, string> {
+  const englishTranslations = englishTranslationsByNamespace[ns] || englishCommonTranslations;
   return {
     // IMPORTANT: Spread English translations first to provide fallback for missing keys
     ...englishTranslations,
@@ -47,6 +61,8 @@ export async function loadTranslations(_locale: string, _ns: string) {
     return cached;
   }
 
+  const englishTranslations = englishTranslationsByNamespace[ns] || englishCommonTranslations;
+
   if (locale === "en") {
     translationCache.set(cacheKey, englishTranslations);
     return englishTranslations;
@@ -57,7 +73,7 @@ export async function loadTranslations(_locale: string, _ns: string) {
       `../../../apps/web/public/static/locales/${locale}/${ns}.json`
     );
 
-    const mergedTranslations = mergeWithEnglishFallback(localeTranslations);
+    const mergedTranslations = mergeWithEnglishFallback(localeTranslations, ns);
     translationCache.set(cacheKey, mergedTranslations);
     return mergedTranslations;
   } catch (dynamicImportErr) {
@@ -74,7 +90,7 @@ export async function loadTranslations(_locale: string, _ns: string) {
       );
       if (response.ok) {
         const httpTranslations = await response.json();
-        const mergedTranslations = mergeWithEnglishFallback(httpTranslations);
+        const mergedTranslations = mergeWithEnglishFallback(httpTranslations, ns);
         translationCache.set(cacheKey, mergedTranslations);
         return mergedTranslations;
       }
