@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { DisableAutofillOnBookingPageSwitch } from "~/ee/organizations/components/DisableAutofillOnBookingPageSwitch";
 import { DisablePhoneOnlySMSNotificationsSwitch } from "~/ee/organizations/components/DisablePhoneOnlySMSNotificationsSwitch";
 import { LockEventTypeSwitch } from "~/ee/organizations/components/LockEventTypeSwitch";

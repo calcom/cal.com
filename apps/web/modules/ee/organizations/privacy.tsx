@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 
 import { DataTableProvider } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import OrgAutoJoinSetting from "~/ee/organizations/components/OrgAutoJoinSetting";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
