@@ -14,6 +14,7 @@ export interface VideoCallData {
   id: string;
   password: string;
   url: string;
+  internalProviderUrl?: string; // Internal provider URL (e.g., Daily.co URL) for BookingReference storage
 }
 
 // VideoApiAdapter is defined by the Video App. The App currently can choose to not define it. So, consider in type that VideoApiAdapter can be undefined.
@@ -31,7 +32,7 @@ export type VideoApiAdapter =
 
       getRecordingDownloadLink?(recordingId: string): Promise<GetAccessLinkResponseSchema>;
 
-      createInstantCalVideoRoom?(endTime: string): Promise<VideoCallData>;
+      createInstantCalVideoRoom?(endTime: string, bookingUid: string): Promise<VideoCallData>;
 
       getAllTranscriptsAccessLinkFromRoomName?(roomName: string): Promise<Array<string>>;
 

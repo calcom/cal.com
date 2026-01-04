@@ -118,6 +118,32 @@ function getCredentialPayload(result: EventResult<Exclude<Event, AdditionalInfor
   };
 }
 
+/**
+ * Extracts video call data for CalendarEvent, excluding internal fields like internalProviderUrl
+ */
+function getVideoCallData(data: {
+  internalProviderUrl?: string;
+  type: string;
+  id: string;
+  password: string;
+  url: string;
+}) {
+  const { internalProviderUrl: _internalProviderUrl, ...videoCallData } = data;
+  return videoCallData;
+}
+
+/**
+ * Returns the internal provider URL for BookingReference storage.
+ * For most providers this is also the external-facing URL, but for Daily Video
+ * it returns the raw Daily URL (not the Cal.com video URL).
+ */
+function getInternalMeetingProviderUrl(
+  event: { internalProviderUrl?: string; url?: string } | undefined
+): string | undefined {
+  if (!event) return undefined;
+  return event.internalProviderUrl ?? event.url;
+}
+
 export type EventManagerUser = {
   credentials: CredentialForCalendarService[];
   destinationCalendar: DestinationCalendar | null;
@@ -336,7 +362,7 @@ export default class EventManager {
       const result = await this.createVideoEvent(evt);
 
       if (result?.createdEvent) {
-        evt.videoCallData = result.createdEvent;
+        evt.videoCallData = getVideoCallData(result.createdEvent);
         evt.location = result.originalEvent.location;
         result.type = result.createdEvent.type;
         //responses data is later sent to webhook
@@ -394,7 +420,9 @@ export default class EventManager {
         thirdPartyRecurringEventId: isCalendarType ? thirdPartyRecurringEventId : undefined,
         meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
-        meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
+        meetingUrl: createdEventObj
+          ? createdEventObj.onlineMeetingUrl
+          : getInternalMeetingProviderUrl(result.createdEvent),
         externalCalendarId: isCalendarType ? result.externalId : undefined,
         ...getCredentialPayload(result),
       };
@@ -415,7 +443,7 @@ export default class EventManager {
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
       if (result.createdEvent) {
-        evt.videoCallData = result.createdEvent;
+        evt.videoCallData = getVideoCallData(result.createdEvent);
         evt.location = result.originalEvent.location;
         result.type = result.createdEvent.type;
         //responses data is later sent to webhook
@@ -447,13 +475,12 @@ export default class EventManager {
       // For update operations, check updatedEvent first, then fall back to createdEvent
       const updatedEvent = Array.isArray(result.updatedEvent) ? result.updatedEvent[0] : result.updatedEvent;
       const createdEvent = result.createdEvent;
-      let event = updatedEvent;
-      if (!event) {
+      const event = updatedEvent ?? createdEvent;
+      if (!updatedEvent) {
         log.warn(
           "updateLocation: No updatedEvent when doing updateLocation. Falling back to createdEvent but this is probably not what we want",
           safeStringify({ bookingId: booking.id })
         );
-        event = createdEvent;
       }
 
       const uid = event?.id?.toString() ?? "";
@@ -471,7 +498,7 @@ export default class EventManager {
         uid,
         meetingId,
         meetingPassword: event?.password,
-        meetingUrl: event?.url,
+        meetingUrl: getInternalMeetingProviderUrl(event),
         externalCalendarId: result.externalId,
         ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
       };
@@ -714,7 +741,7 @@ export default class EventManager {
               : [result.updatedEvent];
 
             if (updatedEvent) {
-              evt.videoCallData = updatedEvent;
+              evt.videoCallData = getVideoCallData(updatedEvent);
               evt.location = updatedEvent.url;
             }
             results.push(result);

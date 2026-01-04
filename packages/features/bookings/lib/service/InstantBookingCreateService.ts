@@ -237,7 +237,7 @@ export async function handler(
   }, [] as typeof invitee);
 
   const attendeesList = [...invitee, ...guests];
-  const calVideoMeeting = await createInstantMeetingWithCalVideo(dayjs.utc(reqBody.end).toISOString());
+  const calVideoMeeting = await createInstantMeetingWithCalVideo(dayjs.utc(reqBody.end).toISOString(), uid);
 
   if (!calVideoMeeting) {
     throw new Error("Cal Video Meeting Creation Failed");
@@ -249,7 +249,7 @@ export async function handler(
       uid: calVideoMeeting.id,
       meetingId: calVideoMeeting.id,
       meetingPassword: calVideoMeeting.password,
-      meetingUrl: calVideoMeeting.url,
+      meetingUrl: calVideoMeeting.internalProviderUrl ?? calVideoMeeting.url,
     },
   ];
 
