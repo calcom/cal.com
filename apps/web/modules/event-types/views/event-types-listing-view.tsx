@@ -1019,7 +1019,7 @@ export const InfiniteEventTypeList = ({
                         <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between rounded-b-lg px-4 py-2 transition">
                           <Skeleton
                             as={Label}
-                            for="hiddenSwitch"
+                            htmlFor="hiddenSwitch"
                             className="mt-2 inline cursor-pointer self-center pr-2 "
                           >
                             {type.hidden
