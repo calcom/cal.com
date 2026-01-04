@@ -37,6 +37,7 @@ import {
   useDuplicateEventType,
   useEventTypes,
 } from "@/hooks";
+import { useEventTypeFilter } from "@/hooks/useEventTypeFilter";
 import { CalComAPIService, type EventType } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
@@ -113,18 +114,34 @@ export default function EventTypes() {
   // Handle pull-to-refresh (offline-aware)
   const onRefresh = () => offlineAwareRefresh(refetch);
 
-  // Filter event types based on search query
+  // Event type filter and sort hook
+  const {
+    sortBy,
+    filters,
+    setSortBy,
+    toggleFilter,
+    resetFilters,
+    filteredAndSortedEventTypes,
+    activeFilterCount,
+  } = useEventTypeFilter();
+
+  // Filter event types based on search query and filter/sort options
   const filteredEventTypes = useMemo(() => {
-    if (searchQuery.trim() === "") {
-      return eventTypes;
+    // First apply filter/sort from the hook
+    let filtered = filteredAndSortedEventTypes(eventTypes);
+
+    // Then apply search query filter
+    if (searchQuery.trim() !== "") {
+      const searchLower = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (eventType) =>
+          eventType.title.toLowerCase().includes(searchLower) ||
+          eventType.description?.toLowerCase().includes(searchLower)
+      );
     }
-    const searchLower = searchQuery.toLowerCase();
-    return eventTypes.filter(
-      (eventType) =>
-        eventType.title.toLowerCase().includes(searchLower) ||
-        eventType.description?.toLowerCase().includes(searchLower)
-    );
-  }, [eventTypes, searchQuery]);
+
+    return filtered;
+  }, [eventTypes, searchQuery, filteredAndSortedEventTypes]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -549,7 +566,16 @@ export default function EventTypes() {
       </Stack.Header>
       {(Platform.OS === "web" || Platform.OS === "android") && (
         <>
-          <Header />
+          <Header
+            eventTypeFilterConfig={{
+              sortBy,
+              filters,
+              onSortChange: setSortBy,
+              onToggleFilter: toggleFilter,
+              onResetFilters: resetFilters,
+              activeFilterCount,
+            }}
+          />
           <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
             <TextInput
               className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
@@ -579,26 +605,47 @@ export default function EventTypes() {
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >
-        <View className="px-2 pt-4 md:px-4">
-          <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
-            {filteredEventTypes.map((item, index) => (
-              <EventTypeListItem
-                key={item.id.toString()}
-                item={item}
-                index={index}
-                filteredEventTypes={filteredEventTypes}
-                copiedEventTypeId={copiedEventTypeId}
-                handleEventTypePress={handleEventTypePress}
-                handleEventTypeLongPress={handleEventTypeLongPress}
-                handleCopyLink={handleCopyLink}
-                handlePreview={handlePreview}
-                onEdit={handleEdit}
-                onDuplicate={handleDuplicate}
-                onDelete={handleDelete}
-              />
-            ))}
+        {filteredEventTypes.length === 0 && searchQuery.trim() !== "" ? (
+          <View className="flex-1 items-center justify-center bg-white p-5 pt-20">
+            <EmptyScreen
+              icon="search-outline"
+              headline={`No results found for "${searchQuery}"`}
+              description="Try searching with different keywords"
+            />
           </View>
-        </View>
+        ) : filteredEventTypes.length === 0 && activeFilterCount > 0 ? (
+          <View className="flex-1 items-center justify-center bg-white p-5 pt-20">
+            <EmptyScreen
+              icon="filter-outline"
+              headline="No event types match your filters"
+              description="Try adjusting your filter criteria or clear all filters to see all event types"
+              buttonText="Clear Filters"
+              onButtonPress={resetFilters}
+              className="border-0"
+            />
+          </View>
+        ) : (
+          <View className="px-2 pt-4 md:px-4">
+            <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+              {filteredEventTypes.map((item, index) => (
+                <EventTypeListItem
+                  key={item.id.toString()}
+                  item={item}
+                  index={index}
+                  filteredEventTypes={filteredEventTypes}
+                  copiedEventTypeId={copiedEventTypeId}
+                  handleEventTypePress={handleEventTypePress}
+                  handleEventTypeLongPress={handleEventTypeLongPress}
+                  handleCopyLink={handleCopyLink}
+                  handlePreview={handlePreview}
+                  onEdit={handleEdit}
+                  onDuplicate={handleDuplicate}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       {/* Create Event Type Modal - Android uses AlertDialog */}

@@ -27,6 +27,7 @@ import {
   useEventTypes,
   useUserProfile,
 } from "@/hooks";
+import { useEventTypeFilter } from "@/hooks/useEventTypeFilter";
 import { CalComAPIService, type EventType } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
@@ -73,18 +74,34 @@ export default function EventTypesIOS() {
   // Handle pull-to-refresh (offline-aware)
   const onRefresh = () => offlineAwareRefresh(refetch);
 
-  // Filter event types based on search query
+  // Event type filter and sort hook
+  const {
+    sortBy,
+    filters,
+    setSortBy,
+    toggleFilter,
+    resetFilters,
+    filteredAndSortedEventTypes,
+    activeFilterCount,
+  } = useEventTypeFilter();
+
+  // Filter event types based on search query and filter/sort options
   const filteredEventTypes = useMemo(() => {
-    if (searchQuery.trim() === "") {
-      return eventTypes;
+    // First apply filter/sort from the hook
+    let filtered = filteredAndSortedEventTypes(eventTypes);
+
+    // Then apply search query filter
+    if (searchQuery.trim() !== "") {
+      const searchLower = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (eventType) =>
+          eventType.title.toLowerCase().includes(searchLower) ||
+          eventType.description?.toLowerCase().includes(searchLower)
+      );
     }
-    const searchLower = searchQuery.toLowerCase();
-    return eventTypes.filter(
-      (eventType) =>
-        eventType.title.toLowerCase().includes(searchLower) ||
-        eventType.description?.toLowerCase().includes(searchLower)
-    );
-  }, [eventTypes, searchQuery]);
+
+    return filtered;
+  }, [eventTypes, searchQuery, filteredAndSortedEventTypes]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -315,16 +332,21 @@ export default function EventTypesIOS() {
     );
   };
 
-  // Sort by menu handler (dummy for now)
-  const handleSortByOption = (option: string) => {
-    console.log("Sort by:", option);
-    // TODO: Implement actual sorting logic
+  // Sort by menu handler
+  const handleSortByOption = (option: "alphabetical" | "newest" | "duration") => {
+    setSortBy(option);
   };
 
-  // Filter menu handler (dummy for now)
-  const handleFilterOption = (option: string) => {
-    console.log("Filter by:", option);
-    // TODO: Implement actual filtering logic
+  // Filter menu handler - toggle filters
+  const handleFilterToggle = (
+    filterKey:
+      | "hiddenOnly"
+      | "paidOnly"
+      | "seatedOnly"
+      | "requiresConfirmationOnly"
+      | "recurringOnly"
+  ) => {
+    toggleFilter(filterKey);
   };
 
   if (loading) {
@@ -391,39 +413,66 @@ export default function EventTypesIOS() {
             {/* Sort by Submenu - opens as separate submenu */}
             <Stack.Header.Menu title="Sort by">
               <Stack.Header.MenuAction
-                icon="textformat.abc"
+                icon={sortBy === "alphabetical" ? "checkmark.circle.fill" : "textformat.abc"}
                 onPress={() => handleSortByOption("alphabetical")}
               >
                 Alphabetical
               </Stack.Header.MenuAction>
               <Stack.Header.MenuAction
-                icon="calendar.badge.clock"
+                icon={sortBy === "newest" ? "checkmark.circle.fill" : "calendar.badge.clock"}
                 onPress={() => handleSortByOption("newest")}
               >
                 Newest First
               </Stack.Header.MenuAction>
-              <Stack.Header.MenuAction icon="clock" onPress={() => handleSortByOption("duration")}>
+              <Stack.Header.MenuAction
+                icon={sortBy === "duration" ? "checkmark.circle.fill" : "clock"}
+                onPress={() => handleSortByOption("duration")}
+              >
                 By Duration
               </Stack.Header.MenuAction>
             </Stack.Header.Menu>
 
-            {/* Filter Submenu - opens as separate submenu */}
-            <Stack.Header.Menu title="Filter">
+            {/* Filter Submenu - multi-select toggles */}
+            <Stack.Header.Menu
+              title={`Filter${activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}`}
+            >
               <Stack.Header.MenuAction
-                icon="checkmark.circle"
-                onPress={() => handleFilterOption("all")}
+                icon={filters.hiddenOnly ? "checkmark.circle.fill" : "eye.slash"}
+                onPress={() => handleFilterToggle("hiddenOnly")}
               >
-                All Event Types
-              </Stack.Header.MenuAction>
-              <Stack.Header.MenuAction icon="eye" onPress={() => handleFilterOption("active")}>
-                Active Only
+                Hidden Only
               </Stack.Header.MenuAction>
               <Stack.Header.MenuAction
-                icon="dollarsign.circle"
-                onPress={() => handleFilterOption("paid")}
+                icon={filters.paidOnly ? "checkmark.circle.fill" : "dollarsign.circle"}
+                onPress={() => handleFilterToggle("paidOnly")}
               >
                 Paid Events
               </Stack.Header.MenuAction>
+              <Stack.Header.MenuAction
+                icon={filters.seatedOnly ? "checkmark.circle.fill" : "person.2"}
+                onPress={() => handleFilterToggle("seatedOnly")}
+              >
+                Seated Events
+              </Stack.Header.MenuAction>
+              <Stack.Header.MenuAction
+                icon={
+                  filters.requiresConfirmationOnly ? "checkmark.circle.fill" : "checkmark.shield"
+                }
+                onPress={() => handleFilterToggle("requiresConfirmationOnly")}
+              >
+                Requires Confirmation
+              </Stack.Header.MenuAction>
+              <Stack.Header.MenuAction
+                icon={filters.recurringOnly ? "checkmark.circle.fill" : "repeat"}
+                onPress={() => handleFilterToggle("recurringOnly")}
+              >
+                Recurring
+              </Stack.Header.MenuAction>
+              {activeFilterCount > 0 && (
+                <Stack.Header.MenuAction icon="xmark.circle" onPress={resetFilters}>
+                  Clear All Filters
+                </Stack.Header.MenuAction>
+              )}
             </Stack.Header.Menu>
           </Stack.Header.Menu>
 
@@ -467,6 +516,17 @@ export default function EventTypesIOS() {
               icon="search-outline"
               headline={`No results found for "${searchQuery}"`}
               description="Try searching with different keywords"
+            />
+          </View>
+        ) : filteredEventTypes.length === 0 && activeFilterCount > 0 ? (
+          <View className="flex-1 items-center justify-center bg-white p-5 pt-20">
+            <EmptyScreen
+              icon="filter-outline"
+              headline="No event types match your filters"
+              description="Try adjusting your filter criteria or clear all filters to see all event types"
+              buttonText="Clear Filters"
+              onButtonPress={resetFilters}
+              className="border-0"
             />
           </View>
         ) : (
