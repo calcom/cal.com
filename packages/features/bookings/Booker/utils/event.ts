@@ -71,6 +71,7 @@ export const useScheduleForEvent = ({
   isTeamEvent,
   useApiV2 = true,
   bookerLayout,
+  useBookerTimezone,
 }: {
   username?: string | null;
   eventSlug?: string | null;
@@ -84,6 +85,7 @@ export const useScheduleForEvent = ({
   fromRedirectOfNonOrgLink?: boolean;
   isTeamEvent?: boolean;
   useApiV2?: boolean;
+  useBookerTimezone?: boolean;
   /**
    * Required when prefetching is needed
    */
@@ -106,7 +108,7 @@ export const useScheduleForEvent = ({
     username: usernameFromStore ?? username,
     eventSlug: eventSlugFromStore ?? eventSlug,
     eventId,
-    timezone,
+    timezone: useBookerTimezone ? timezone : undefined,
     selectedDate,
     dayCount,
     rescheduleUid,
