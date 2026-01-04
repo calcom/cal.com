@@ -13,7 +13,7 @@ import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { SystemField } from "@calcom/lib/bookings/SystemField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 type TouchedFields = {
@@ -100,7 +100,7 @@ export const BookingFields = ({
       ...field,
       label,
       ...(fieldsThatSupportLabelAsSafeHtml.includes(field.type) && field.labelAsSafeHtml
-        ? { labelAsSafeHtml: markdownToSafeHTML(label) }
+        ? { labelAsSafeHtml: markdownToSafeHTMLClient(label) }
         : { labelAsSafeHtml: undefined }),
     };
   };

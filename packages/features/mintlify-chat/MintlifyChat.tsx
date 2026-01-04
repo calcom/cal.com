@@ -1,9 +1,8 @@
-/* eslint-disable react/no-danger */
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
@@ -76,7 +75,7 @@ export const MintlifyChat = ({ searchText, aiResponse, setAiResponse }: Mintlify
           </SkeletonContainer>
         ) : (
           <>
-            <div dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(answer) }} />
+            <div dangerouslySetInnerHTML={{ __html: markdownToSafeHTMLClient(answer) }} />
             <div className="my-1 flex flex-wrap gap-2">
               {baseUrl &&
                 citations.map((citation) => {
