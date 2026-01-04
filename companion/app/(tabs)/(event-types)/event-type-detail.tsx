@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import { AdvancedTab } from "@/components/event-type-detail/tabs/AdvancedTab";
 import { AvailabilityTab } from "@/components/event-type-detail/tabs/AvailabilityTab";
@@ -127,7 +126,6 @@ export default function EventTypeDetail() {
     slug?: string;
   }>();
 
-  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState("basics");
 
   // Form state
