@@ -281,6 +281,25 @@ describe("intentToCreateOrgHandler", () => {
       );
     });
 
+    it("should reject non-admin creating org for another user even with isPlatform flag", async () => {
+      const nonAdminUser = await createTestUser({
+        email: "nonadmin@example.com",
+        role: UserPermissionRole.USER,
+      });
+
+      await expect(
+        intentToCreateOrgHandler({
+          input: { ...mockInput, isPlatform: true },
+          ctx: {
+            user: nonAdminUser,
+          },
+        })
+      ).rejects.toMatchObject({
+        code: "FORBIDDEN",
+        message: "You can only create organization where you are the owner",
+      });
+    });
+
     it("should throw error when target user is not found", async () => {
       // Create admin user
       const adminUser = await createTestUser({

@@ -92,7 +92,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can create organizations" });
   }
 
-  if (!IS_USER_ADMIN && loggedInUser.email !== orgOwnerEmail && !isPlatform) {
+  if (!IS_USER_ADMIN && loggedInUser.email !== orgOwnerEmail) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You can only create organization where you are the owner",
