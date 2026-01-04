@@ -9,7 +9,8 @@
   "scripts": {
     "lint": "biome lint .",
     "dev:trigger": "npx trigger.dev@latest dev --analyze",
-    "deploy:trigger": "npx trigger.dev@latest deploy"
+    "deploy:trigger:prod": "npx trigger.dev@latest deploy --skip-promotion",
+    "deploy:trigger:staging": "npx trigger.dev@latest deploy --env staging --skip-promotion"
   },
   "dependencies": {
     "@calcom/atoms": "workspace:*",
