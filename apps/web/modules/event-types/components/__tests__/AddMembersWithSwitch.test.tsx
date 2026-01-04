@@ -95,6 +95,8 @@ describe("AddMembersWithSwitch", () => {
     teamId: 1,
     setAssignAllTeamMembers: vi.fn(),
     groupId: null,
+    assignAllTeamMembers: false,
+    automaticAddAllEnabled: false,
   };
 
   it("should render in TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_NOT_APPLICABLE state", () => {
@@ -131,6 +133,7 @@ describe("AddMembersWithSwitch", () => {
         ...defaultProps,
         assignAllTeamMembers: true,
         isSegmentApplicable: false,
+        automaticAddAllEnabled: true,
       },
       formDefaultValues: {
         assignRRMembersUsingSegment: true,
@@ -149,6 +152,7 @@ describe("AddMembersWithSwitch", () => {
         ...defaultProps,
         assignAllTeamMembers: false,
         isSegmentApplicable: true,
+        automaticAddAllEnabled: true,
       },
       formDefaultValues: {
         assignRRMembersUsingSegment: true,

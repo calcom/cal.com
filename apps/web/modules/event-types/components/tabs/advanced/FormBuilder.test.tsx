@@ -46,7 +46,7 @@ const renderComponent = ({
   formDefaultValues: formDefaultValues,
 }: {
   formBuilderProps: Parameters<typeof FormBuilder>[0];
-  formDefaultValues: Record<string, unknown>;
+  formDefaultValues: { [x: string]: {} | undefined };
 }) => {
   const Wrapper = ({ children }: { children: ReactNode }) => {
     const form = useForm({

@@ -164,7 +164,7 @@ const defaultProps = {
   rescheduledBy: null,
   bookingUid: null,
   isRedirect: false,
-  fromUserNameRedirected: null,
+  fromUserNameRedirected: "",
 };
 
 describe("Booker", () => {
