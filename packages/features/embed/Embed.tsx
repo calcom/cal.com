@@ -10,7 +10,8 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings";
+import { AvailableTimes } from "@calcom/web/modules/bookings/components/AvailableTimes";
+import { AvailableTimesHeader } from "@calcom/web/modules/bookings/components/AvailableTimesHeader";
 import {
   BookerStoreProvider,
   useInitializeBookerStoreContext,

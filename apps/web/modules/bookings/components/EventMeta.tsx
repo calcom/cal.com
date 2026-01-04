@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
 import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/timezone";
-import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
+import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "./event-meta";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
 import { SeatsAvailabilityText } from "@calcom/web/modules/bookings/components/SeatsAvailabilityText";

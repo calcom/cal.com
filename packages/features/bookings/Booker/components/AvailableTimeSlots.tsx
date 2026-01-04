@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
+import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/web/modules/bookings/components/AvailableTimes";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -13,7 +13,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
-import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
+import { AvailableTimesHeader } from "@calcom/web/modules/bookings/components/AvailableTimesHeader";
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 
