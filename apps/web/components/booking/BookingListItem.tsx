@@ -451,6 +451,7 @@ function BookingListItem(booking: BookingItemProps) {
                 isRecurring={isRecurring}
                 isTabRecurring={isTabRecurring}
                 isTabUnconfirmed={isTabUnconfirmed}
+                teamId={parsedBooking.eventType?.team?.id ?? parsedBooking.eventType?.parent?.teamId ?? null}
               />
               <AcceptBookingButton
                 bookingId={booking.id}

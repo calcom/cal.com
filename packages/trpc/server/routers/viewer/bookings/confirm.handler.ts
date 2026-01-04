@@ -5,6 +5,7 @@ import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
+import { handleInternalNote } from "@calcom/features/bookings/lib/handleInternalNote";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
@@ -14,7 +15,10 @@ import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflow
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
-import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import type {
+  EventPayloadType,
+  EventTypeInfo,
+} from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -24,7 +28,12 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import {
+  BookingStatus,
+  InternalNotePresetType,
+  WebhookTriggerEvents,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -49,6 +58,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     bookingId,
     recurringEventId,
     reason: rejectionReason,
+    internalNote,
     confirmed,
     emailsEnabled,
     platformClientParams,
@@ -111,6 +121,20 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
               teamId: true,
             },
           },
+          hosts: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+          owner: {
+            select: {
+              id: true,
+            },
+          },
         },
       },
       location: true,
@@ -140,14 +164,18 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
   const user = booking.user;
   if (!user) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Booking must have an organizer" });
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Booking must have an organizer",
+    });
   }
 
   const bookingAccessService = new BookingAccessService(prisma);
-  const isUserAuthorizedToConfirmBooking = await bookingAccessService.doesUserIdHaveAccessToBooking({
-    userId: ctx.user.id,
-    bookingId: bookingId,
-  });
+  const isUserAuthorizedToConfirmBooking =
+    await bookingAccessService.doesUserIdHaveAccessToBooking({
+      userId: ctx.user.id,
+      bookingId: bookingId,
+    });
 
   if (!isUserAuthorizedToConfirmBooking) {
     throw new TRPCError({
@@ -159,7 +187,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   // Do not move this before authorization check.
   // This is done to avoid exposing extra information to the requester.
   if (booking.status === BookingStatus.ACCEPTED) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Booking already confirmed",
+    });
   }
 
   // If booking requires payment and is not paid, we don't allow confirmation
@@ -210,7 +241,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   );
 
   const attendeesList = await Promise.all(attendeesListPromises);
-  const tOrganizer = await getTranslation(booking.user?.locale ?? "en", "common");
+  const tOrganizer = await getTranslation(
+    booking.user?.locale ?? "en",
+    "common"
+  );
 
   const evt: CalendarEvent = {
     type: booking?.eventType?.slug as string,
@@ -232,7 +266,9 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       username: booking.user?.username || undefined,
       usernameInOrg: organizerOrganizationProfile?.username || undefined,
       timeZone: booking.user?.timeZone || "Europe/London",
-      timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user?.timeFormat),
+      timeFormat: getTimeFormatStringFromUserTimeFormat(
+        booking.user?.timeFormat
+      ),
       language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },
     },
     attendees: attendeesList,
@@ -257,7 +293,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         }
       : undefined,
     ...(platformClientParams ? platformClientParams : {}),
-    organizationId: organizerOrganizationId ?? booking.eventType?.team?.parentId ?? null,
+    organizationId:
+      organizerOrganizationId ?? booking.eventType?.team?.parentId ?? null,
     additionalNotes: booking.description,
   };
 
@@ -311,10 +348,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       ...user,
       credentials,
     };
-    const allCredentials = await getAllCredentialsIncludeServiceAccountKey(userWithCredentials, {
-      ...booking.eventType,
-      metadata: booking.eventType?.metadata as EventTypeMetadata,
-    });
+    const allCredentials = await getAllCredentialsIncludeServiceAccountKey(
+      userWithCredentials,
+      {
+        ...booking.eventType,
+        metadata: booking.eventType?.metadata as EventTypeMetadata,
+      }
+    );
     const conferenceCredentialId = getLocationValueForDB(
       booking.location ?? "",
       (booking.eventType?.locations as LocationObject[]) || []
@@ -369,7 +409,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     }
 
     if (emailsEnabled) {
-      await sendDeclinedEmailsAndSMS(evt, booking.eventType?.metadata as EventTypeMetadata);
+      await sendDeclinedEmailsAndSMS(
+        evt,
+        booking.eventType?.metadata as EventTypeMetadata
+      );
     }
 
     const teamId = await getTeamIdFromEventType({
@@ -379,7 +422,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       },
     });
 
-    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+    const orgId = await getOrgIdFromMemberOrTeamId({
+      memberId: booking.userId,
+      teamId,
+    });
 
     // send BOOKING_REJECTED webhooks
     const subscriberOptions: GetSubscriberOptions = {
@@ -390,7 +436,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       orgId,
       oAuthClientId: platformClientParams?.platformClientId,
     };
-    const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REJECTED;
+    const eventTrigger: WebhookTriggerEvents =
+      WebhookTriggerEvents.BOOKING_REJECTED;
     const eventTypeInfo: EventTypeInfo = {
       eventTitle: booking.eventType?.title,
       eventDescription: booking.eventType?.description,
@@ -407,9 +454,17 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       status: BookingStatus.REJECTED,
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, traceContext });
+    await handleWebhookTrigger({
+      subscriberOptions,
+      eventTrigger,
+      webhookData,
+      traceContext,
+    });
 
-    const workflows = await getAllWorkflowsFromEventType(booking.eventType, user.id);
+    const workflows = await getAllWorkflowsFromEventType(
+      booking.eventType,
+      user.id
+    );
     try {
       const creditService = new CreditService();
 
@@ -434,6 +489,63 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         "Error while scheduling workflow reminders for BOOKING_REJECTED:",
         error instanceof Error ? error.message : String(error)
       );
+    }
+
+    // Handle internal note for rejection
+    if (internalNote && teamId) {
+      try {
+        // Fetch booking with structure needed for handleInternalNote
+        const bookingForInternalNote = await prisma.booking.findUniqueOrThrow({
+          where: {
+            id: bookingId,
+          },
+          select: {
+            id: true,
+            eventType: {
+              select: {
+                id: true,
+                teamId: true,
+                owner: {
+                  select: {
+                    id: true,
+                  },
+                },
+                hosts: {
+                  select: {
+                    user: {
+                      select: {
+                        id: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        await handleInternalNote({
+          internalNote: {
+            id: internalNote.id,
+            name: internalNote.name,
+            value: internalNote.cancellationReason || undefined,
+          },
+          booking: bookingForInternalNote as unknown as Awaited<
+            ReturnType<
+              typeof import("@calcom/features/bookings/lib/getBookingToDelete").getBookingToDelete
+            >
+          >,
+          userId: ctx.user.id,
+          teamId: teamId,
+          presetType: InternalNotePresetType.REJECTION,
+        });
+      } catch (error) {
+        // Log error but don't fail the rejection
+        console.error(
+          "Error handling internal note for rejection:",
+          error instanceof Error ? error.message : String(error)
+        );
+      }
     }
   }
 

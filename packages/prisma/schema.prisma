@@ -2540,6 +2540,11 @@ enum IncompleteBookingActionType {
   SALESFORCE
 }
 
+enum InternalNotePresetType {
+  CANCELLATION
+  REJECTION
+}
+
 model App_RoutingForms_IncompleteBookingActions {
   id           Int                         @id @default(autoincrement())
   form         App_RoutingForms_Form       @relation(fields: [formId], references: [id], onDelete: Cascade)
@@ -2551,16 +2556,17 @@ model App_RoutingForms_IncompleteBookingActions {
 }
 
 model InternalNotePreset {
-  id                 Int     @id @default(autoincrement())
+  id                 Int                    @id @default(autoincrement())
   name               String
   cancellationReason String?
-  team               Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  type               InternalNotePresetType @default(CANCELLATION)
+  team               Team                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId             Int
 
   createdAt           DateTime              @default(now())
   BookingInternalNote BookingInternalNote[]
 
-  @@unique([teamId, name])
+  @@unique([teamId, name, type])
   @@index([teamId])
 }
 

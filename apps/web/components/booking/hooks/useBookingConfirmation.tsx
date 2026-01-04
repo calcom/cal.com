@@ -16,6 +16,7 @@ interface BookingConfirmParams {
   confirmed: boolean;
   recurringEventId?: string | null;
   reason?: string;
+  internalNote?: { id: number; name: string; cancellationReason?: string | null };
 }
 
 export function useBookingConfirmation(options: UseBookingConfirmationOptions = {}) {
@@ -42,11 +43,12 @@ export function useBookingConfirmation(options: UseBookingConfirmationOptions = 
     },
   });
 
-  const bookingConfirm = ({ bookingId, confirmed, recurringEventId, reason }: BookingConfirmParams) => {
+  const bookingConfirm = ({ bookingId, confirmed, recurringEventId, reason, internalNote }: BookingConfirmParams) => {
     let body = {
       bookingId,
       confirmed,
       reason: reason || "",
+      ...(internalNote ? { internalNote } : {}),
     };
 
     /**
