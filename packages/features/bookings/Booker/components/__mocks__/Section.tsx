@@ -1,3 +1,6 @@
+import type React from "react";
+import { vi } from "vitest";
+
 vi.mock("../Section", () => {
   const BookerSection = ({
     children,
@@ -7,13 +10,15 @@ vi.mock("../Section", () => {
     children: React.ReactNode;
     className?: string;
     area?: string | { default: string; month_view: string };
-  }) => {
-    console.log("BookerSection", { type: children.type, children, className, area });
+  }): React.ReactElement => {
+    let areaValue: string | undefined;
+    if (typeof area === "string") {
+      areaValue = area;
+    } else {
+      areaValue = area?.default;
+    }
     return (
-      <div
-        data-testid="booker-section"
-        className={className}
-        data-area={typeof area === "string" ? area : area?.default}>
+      <div data-testid="booker-section" class={className} data-area={areaValue}>
         {children}
       </div>
     );
