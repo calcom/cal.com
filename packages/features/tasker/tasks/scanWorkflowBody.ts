@@ -4,10 +4,13 @@ import { getTemplateBodyForAction } from "@calcom/features/ee/workflows/lib/acti
 import compareReminderBodyToTemplate from "@calcom/features/ee/workflows/lib/compareReminderBodyToTemplate";
 import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";
 import { Task } from "@calcom/features/tasker/repository";
+import { URL_SCANNING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+
+import { submitWorkflowStepForUrlScanning } from "./scanWorkflowUrls";
 
 export const scanWorkflowBodySchema = z.object({
   userId: z.number(),
@@ -118,29 +121,61 @@ export async function scanWorkflowBody(payload: string) {
         log.warn(`For whitelisted user, workflow step ${workflowStep.id} marked as spam`);
       }
 
-      await prisma.workflowStep.update({
+      // If URL scanning is enabled, submit for URL scanning (don't mark as verified yet)
+      // The scanWorkflowUrls task will mark as verified after URL scan completes
+      if (URL_SCANNING_ENABLED && workflowStep.reminderBody) {
+        await submitWorkflowStepForUrlScanning(
+          workflowStep.id,
+          workflowStep.reminderBody,
+          userId,
+          workflowStep.workflow.user?.whitelistWorkflows ?? false
+        );
+      } else {
+        await prisma.workflowStep.update({
+          where: {
+            id: workflowStep.id,
+          },
+          data: {
+            verifiedAt: new Date(),
+          },
+        });
+      }
+    }
+  }
+
+  if (!process.env.IFFY_API_KEY) {
+    log.info("IFFY_API_KEY not set, skipping Iffy spam scan");
+
+    // Even if Iffy is not configured, we should still do URL scanning if enabled
+    if (URL_SCANNING_ENABLED) {
+      for (const workflowStep of workflowSteps) {
+        if (workflowStep.reminderBody) {
+          await submitWorkflowStepForUrlScanning(
+            workflowStep.id,
+            workflowStep.reminderBody,
+            userId,
+            workflowStep.workflow.user?.whitelistWorkflows ?? false
+          );
+        } else {
+          await prisma.workflowStep.update({
+            where: { id: workflowStep.id },
+            data: { verifiedAt: new Date() },
+          });
+        }
+      }
+    } else {
+      // Neither Iffy nor URL scanning is enabled, mark all as verified
+      await prisma.workflowStep.updateMany({
         where: {
-          id: workflowStep.id,
+          id: {
+            in: stepIdsToScan,
+          },
         },
         data: {
           verifiedAt: new Date(),
         },
       });
     }
-  }
-
-  if (!process.env.IFFY_API_KEY) {
-    log.info("IFFY_API_KEY not set, skipping scan");
-    await prisma.workflowStep.updateMany({
-      where: {
-        id: {
-          in: stepIdsToScan,
-        },
-      },
-      data: {
-        verifiedAt: new Date(),
-      },
-    });
   }
 
   const workflow = await prisma.workflow.findFirst({
