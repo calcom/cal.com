@@ -6,6 +6,7 @@ import { ActivityIndicator, Alert, ScrollView, Switch, Text, TextInput, View } f
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import { FullScreenModal } from "@/components/FullScreenModal";
+import { TIMEZONES } from "@/constants/timezones";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 import type { ScheduleAvailability } from "@/services/types";
 import { showErrorAlert } from "@/utils/alerts";
@@ -92,6 +93,9 @@ export interface AvailabilityDetailScreenProps {
 
 export interface AvailabilityDetailScreenHandle {
   save: () => void;
+  setAsDefault: () => void;
+  delete: () => void;
+  refresh: () => void;
 }
 
 export const AvailabilityDetailScreen = forwardRef<
@@ -131,21 +135,8 @@ export const AvailabilityDetailScreen = forwardRef<
     type: "start" | "end";
   } | null>(null);
 
-  // Common timezones
-  const timezones = [
-    "America/New_York",
-    "America/Chicago",
-    "America/Denver",
-    "America/Los_Angeles",
-    "Europe/London",
-    "Europe/Paris",
-    "Europe/Berlin",
-    "Asia/Tokyo",
-    "Asia/Shanghai",
-    "Asia/Kolkata",
-    "Australia/Sydney",
-    "UTC",
-  ];
+  // Use all supported timezones from the shared constants
+  const timezones = TIMEZONES;
 
   const processScheduleData = useCallback(
     (scheduleData: NonNullable<Awaited<ReturnType<typeof CalComAPIService.getScheduleById>>>) => {
@@ -237,7 +228,7 @@ export const AvailabilityDetailScreen = forwardRef<
           message,
         });
       }
-      showErrorAlert("Error", "Failed to load schedule. Please try again.");
+      showErrorAlert("Error", "Failed to load availability. Please try again.");
       router.back();
       setLoading(false);
       return;
@@ -325,6 +316,12 @@ export const AvailabilityDetailScreen = forwardRef<
   };
 
   const handleSave = async () => {
+    // Validate availability name
+    if (!scheduleName.trim()) {
+      Alert.alert("Error", "Please enter an availability name");
+      return;
+    }
+
     setSaving(true);
     try {
       // Convert availability object back to array format with day names
@@ -364,27 +361,22 @@ export const AvailabilityDetailScreen = forwardRef<
       }));
 
       await CalComAPIService.updateSchedule(Number(id), {
-        name: scheduleName,
+        name: scheduleName.trim(),
         timeZone,
         availability: availabilityArray,
         isDefault: isDefault,
         overrides: formattedOverrides,
       });
 
-      Alert.alert("Success", "Schedule updated successfully", [
+      Alert.alert("Success", "Availability updated successfully", [
         { text: "OK", onPress: () => router.back() },
       ]);
       setSaving(false);
     } catch {
-      showErrorAlert("Error", "Failed to update schedule. Please try again.");
+      showErrorAlert("Error", "Failed to update availability. Please try again.");
       setSaving(false);
     }
   };
-
-  // Expose save method to parent via ref
-  useImperativeHandle(ref, () => ({
-    save: handleSave,
-  }));
 
   const handleSetAsDefault = async () => {
     try {
@@ -392,14 +384,14 @@ export const AvailabilityDetailScreen = forwardRef<
         isDefault: true,
       });
       setIsDefault(true);
-      Alert.alert("Success", "Schedule set as default successfully");
+      Alert.alert("Success", "Availability set as default successfully");
     } catch {
-      showErrorAlert("Error", "Failed to set schedule as default. Please try again.");
+      showErrorAlert("Error", "Failed to set availability as default. Please try again.");
     }
   };
 
   const handleDelete = () => {
-    Alert.alert("Delete Schedule", `Are you sure you want to delete "${scheduleName}"?`, [
+    Alert.alert("Delete Availability", `Are you sure you want to delete "${scheduleName}"?`, [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
@@ -407,16 +399,24 @@ export const AvailabilityDetailScreen = forwardRef<
         onPress: async () => {
           try {
             await CalComAPIService.deleteSchedule(Number(id));
-            Alert.alert("Success", "Schedule deleted successfully", [
+            Alert.alert("Success", "Availability deleted successfully", [
               { text: "OK", onPress: () => router.back() },
             ]);
           } catch {
-            showErrorAlert("Error", "Failed to delete schedule. Please try again.");
+            showErrorAlert("Error", "Failed to delete availability. Please try again.");
           }
         },
       },
     ]);
   };
+
+  // Expose methods to parent via ref
+  useImperativeHandle(ref, () => ({
+    save: handleSave,
+    setAsDefault: handleSetAsDefault,
+    delete: handleDelete,
+    refresh: fetchSchedule,
+  }));
 
   const handleAddOverride = () => {
     setEditingOverride(null);
@@ -489,7 +489,7 @@ export const AvailabilityDetailScreen = forwardRef<
     return (
       <View className="flex-1 items-center justify-center bg-[#f8f9fa]">
         <ActivityIndicator size="large" color="#000000" />
-        <Text className="mt-4 text-base text-[#666]">Loading schedule...</Text>
+        <Text className="mt-4 text-base text-[#666]">Loading availability...</Text>
       </View>
     );
   }
@@ -547,9 +547,21 @@ export const AvailabilityDetailScreen = forwardRef<
         contentContainerStyle={{ padding: 16, paddingBottom: 200 }}
       >
         <View className="gap-4">
-          {/* Schedule Name and Working Hours Display */}
+          {/* Availability Name */}
           <View className="rounded-2xl bg-white p-6">
-            <Text className="mb-3 text-xl font-bold text-[#333]">{scheduleName}</Text>
+            <Text className="mb-3 text-base font-semibold text-[#333]">Availability Name</Text>
+            <TextInput
+              value={scheduleName}
+              onChangeText={setScheduleName}
+              placeholder="Enter availability name"
+              placeholderTextColor="#999"
+              className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-[#333]"
+            />
+          </View>
+
+          {/* Working Hours Display */}
+          <View className="rounded-2xl bg-white p-6">
+            <Text className="mb-3 text-xl font-bold text-[#333]">Working Hours</Text>
             {Object.keys(availability).length > 0 ? (
               <View>
                 {formatAvailabilityDisplay(availability).map((line) => (

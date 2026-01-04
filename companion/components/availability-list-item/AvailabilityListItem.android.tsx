@@ -89,8 +89,9 @@ export const AvailabilityListItem = ({
           onPress={() => handleSchedulePress(schedule)}
           className="mr-4 flex-1"
           android_ripple={{ color: "rgba(0, 0, 0, 0.1)" }}
+          style={{ minWidth: 0 }}
         >
-          <View>
+          <View style={{ flex: 1 }}>
             <ScheduleName name={schedule.name} isDefault={schedule.isDefault} />
             <AvailabilitySlots availability={schedule.availability} scheduleId={schedule.id} />
             <TimeZoneRow timeZone={schedule.timeZone} />
@@ -102,7 +103,7 @@ export const AvailabilityListItem = ({
           <DropdownMenuTrigger asChild>
             <Pressable
               className="items-center justify-center rounded-lg border border-cal-border"
-              style={{ width: 32, height: 32 }}
+              style={{ width: 32, height: 32, flexShrink: 0 }}
             >
               <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
             </Pressable>

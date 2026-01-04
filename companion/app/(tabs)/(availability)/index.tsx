@@ -60,7 +60,7 @@ export default function Availability() {
                 onSuccess: (newSchedule) => {
                   // Navigate to edit the newly created schedule
                   router.push({
-                    pathname: "/availability-detail",
+                    pathname: "/(tabs)/(availability)/availability-detail",
                     params: {
                       id: newSchedule.id.toString(),
                     },

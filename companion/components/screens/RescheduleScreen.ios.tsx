@@ -53,7 +53,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
     }, [isSaving, onSavingChange]);
 
     const handleSubmit = useCallback(async () => {
-      if (!booking) return;
+      if (!booking || isSaving) return;
 
       if (selectedDateTime <= new Date()) {
         Alert.alert("Error", "Please select a future date and time");
@@ -75,7 +75,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
         Alert.alert("Error", "Failed to reschedule booking. Please try again.");
         setIsSaving(false);
       }
-    }, [booking, selectedDateTime, reason, onSuccess]);
+    }, [booking, selectedDateTime, reason, onSuccess, isSaving]);
 
     const handleDateSelected = useCallback(
       (date: Date) => {

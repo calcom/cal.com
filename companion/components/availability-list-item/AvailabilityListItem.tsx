@@ -34,16 +34,18 @@ export const AvailabilityListItem = ({
       style={{ paddingHorizontal: 16, paddingVertical: 16 }}
     >
       <View className="flex-row items-center justify-between">
-        <View className="mr-4 flex-1">
+        <View className="mr-4 flex-1" style={{ minWidth: 0 }}>
           <ScheduleName name={schedule.name} isDefault={schedule.isDefault} />
           <AvailabilitySlots availability={schedule.availability} scheduleId={schedule.id} />
           <TimeZoneRow timeZone={schedule.timeZone} />
         </View>
-        <ScheduleActionsButton
-          schedule={schedule}
-          setSelectedSchedule={setSelectedSchedule}
-          setShowActionsModal={setShowActionsModal}
-        />
+        <View style={{ flexShrink: 0 }}>
+          <ScheduleActionsButton
+            schedule={schedule}
+            setSelectedSchedule={setSelectedSchedule}
+            setShowActionsModal={setShowActionsModal}
+          />
+        </View>
       </View>
     </TouchableOpacity>
   );

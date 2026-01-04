@@ -1,8 +1,7 @@
-/**
- * IMPORTANT: If you update this timezone array, please also update the TIMEZONES array
- * in companion/constants/timezones.ts to keep the companion apps in sync.
- */
-export const IntlSupportedTimeZones = [
+// Timezone constants for the companion app
+// Source: cal.com/packages/lib/timeZones.ts
+
+export const TIMEZONES = [
   "Africa/Abidjan",
   "Africa/Accra",
   "Africa/Addis_Ababa",
@@ -421,3 +420,5 @@ export const IntlSupportedTimeZones = [
   "Pacific/Wake",
   "Pacific/Wallis",
 ] as const;
+
+export type Timezone = (typeof TIMEZONES)[number];

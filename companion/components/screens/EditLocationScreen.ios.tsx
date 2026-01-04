@@ -125,7 +125,7 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
     );
 
     const handleSubmit = useCallback(async () => {
-      if (!booking) return;
+      if (!booking || isSaving) return;
 
       const trimmedValue = inputValue.trim();
 
@@ -171,7 +171,7 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
         Alert.alert("Error", "Failed to update location. Please try again.");
         setIsSaving(false);
       }
-    }, [booking, selectedType, inputValue, onSuccess]);
+    }, [booking, selectedType, inputValue, onSuccess, isSaving]);
 
     // Expose submit function to parent via ref
     useImperativeHandle(
