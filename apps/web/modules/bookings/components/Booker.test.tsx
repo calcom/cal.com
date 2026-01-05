@@ -18,6 +18,7 @@ import "@calcom/features/auth/Turnstile";
 
 import { Booker } from "./Booker";
 import { render, screen } from "@calcom/features/bookings/Booker/__tests__/test-utils";
+import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
 
 vi.mock("framer-motion", async (importOriginal) => {
   const actual = (await importOriginal()) as any;
@@ -174,7 +175,7 @@ describe("Booker", () => {
   });
 
   it("should render null when in loading state", () => {
-    const { container } = render(<Booker {...defaultProps} />, {
+    const { container } = render(<Booker {...defaultProps as unknown as BookerProps & WrappedBookerProps} />, {
       mockStore: { state: "loading" },
     });
     expect(container).toBeEmptyDOMElement();
@@ -193,7 +194,7 @@ describe("Booker", () => {
       },
     };
 
-    render(<Booker {...propsWithDryRun} />, {
+    render(<Booker {...propsWithDryRun as unknown as BookerProps & WrappedBookerProps} />, {
       mockStore: {
         state: "selecting_time",
         selectedDate: "2024-01-01",
@@ -217,7 +218,7 @@ describe("Booker", () => {
       },
     };
 
-    render(<Booker {...propsWithInvalidate} />, {
+    render(<Booker {...propsWithInvalidate as unknown as BookerProps & WrappedBookerProps} />, {
       mockStore: { state: "booking" },
     });
     screen.logTestingPlaygroundURL();
@@ -239,7 +240,7 @@ describe("Booker", () => {
         },
       };
 
-      render(<Booker {...propsWithQuickChecks} />, {
+      render(<Booker {...propsWithQuickChecks as unknown as BookerProps & WrappedBookerProps} />, {
         mockStore: { state: "booking" },
       });
       const bookEventForm = screen.getByTestId("book-event-form");
