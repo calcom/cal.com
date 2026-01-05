@@ -7,7 +7,7 @@ import {
   SCHEDULE_WRITE,
 } from "@calcom/platform-constants";
 
-import { hasPermission, hasPermissions, listPermissions } from "../permissions";
+import { hasPermission, hasPermissions, listPermissions } from "../src/permissions";
 
 describe("Permissions Function: hasPermission", () => {
   let userPermissions: number;
