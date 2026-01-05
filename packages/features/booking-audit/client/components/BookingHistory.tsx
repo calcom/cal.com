@@ -360,7 +360,7 @@ export function BookingHistory({ bookingUid }: BookingHistoryProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [actorFilter, setActorFilter] = useState<string | null>(null);
     const { t } = useLocale();
-    const { data, isLoading, error } = trpc.viewer.bookings.getAuditLogs.useQuery({
+    const { data, isLoading, error } = trpc.viewer.bookings.getBookingHistory.useQuery({
         bookingUid,
     });
 
