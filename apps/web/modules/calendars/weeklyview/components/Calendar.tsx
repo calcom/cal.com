@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 import classNames from "@calcom/ui/classNames";
 
 import { CalendarStoreContext, createCalendarStore, useCalendarStore } from "@calcom/features/calendars/weeklyview/state/store";
-import "../styles/styles.css";
+import "@calcom/features/calendars/weeklyview/styles/styles.css";
 import type { CalendarComponentProps } from "@calcom/features/calendars/weeklyview/types/state";
 import { getDaysBetweenDates, getHoursToDisplay } from "@calcom/features/calendars/weeklyview/utils";
 import { DateValues } from "./DateValues";
