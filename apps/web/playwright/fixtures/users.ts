@@ -1169,15 +1169,18 @@ export async function apiLogin(
   expect(response.status()).toBe(200);
 
   /**
-   * Warm up the session by navigating to the E2E-only session warmup page.
-   * This triggers the jwt and session callbacks that populate the session
-   * with profile, org, and other important data, using a minimal SSR page.
+   * Critical: Navigate to a protected page to trigger NextAuth session loading
+   * This forces NextAuth to run the jwt and session callbacks that populate
+   * the session with profile, org, and other important data
    */
-  await page.goto("/e2e/session-warmup");
+  await page.goto(navigateToUrl || "/e2e/session-warmup");
 
-  // If a specific URL was requested, navigate to it
-  if (navigateToUrl) {
-    await page.goto(navigateToUrl);
+  // Wait for the session API call to complete to ensure session is fully established
+  // Only wait if we're on a protected page that would trigger the session API call
+  try {
+    await page.waitForResponse("/api/auth/session", { timeout: 2000 });
+  } catch {
+    // Session API call not made (likely on a public page), continue anyway
   }
 
   return response;
