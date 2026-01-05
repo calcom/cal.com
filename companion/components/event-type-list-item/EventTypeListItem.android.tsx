@@ -9,12 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Text } from "@/components/ui/text";
-import {
-  DurationBadge,
-  EventTypeDescription,
-  EventTypeTitle,
-  PriceAndConfirmationBadges,
-} from "./EventTypeListItemParts";
+import { EventTypeBadges, EventTypeDescription, EventTypeTitle } from "./EventTypeListItemParts";
 import type { EventTypeListItemProps } from "./types";
 import { useEventTypeListItemData } from "./useEventTypeListItemData";
 
@@ -51,16 +46,23 @@ export const EventTypeListItem = ({
       >
         <Pressable
           onPress={() => handleEventTypePress(item)}
-          className="mr-4 flex-1"
+          style={{ flex: 1, marginRight: 12 }}
           android_ripple={{ color: "rgba(0, 0, 0, 0.1)" }}
         >
-          <EventTypeTitle title={item.title} />
+          <EventTypeTitle
+            title={item.title}
+            username={item.users?.[0]?.username}
+            slug={item.slug}
+          />
           <EventTypeDescription normalizedDescription={normalizedDescription} />
-          <DurationBadge formattedDuration={formattedDuration} />
-          <PriceAndConfirmationBadges
+          <EventTypeBadges
+            formattedDuration={formattedDuration}
+            hidden={item.hidden}
+            seats={item.seats}
             hasPrice={hasPrice}
             formattedPrice={formattedPrice}
-            requiresConfirmation={item.requiresConfirmation}
+            confirmationPolicy={item.confirmationPolicy}
+            recurrence={item.recurrence}
           />
         </Pressable>
 
@@ -69,7 +71,7 @@ export const EventTypeListItem = ({
           <DropdownMenuTrigger asChild>
             <Pressable
               className="items-center justify-center rounded-lg border border-cal-border"
-              style={{ width: 36, height: 36 }}
+              style={{ width: 36, height: 36, flexShrink: 0 }}
             >
               <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
             </Pressable>

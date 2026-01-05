@@ -167,7 +167,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
             className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg"
             style={{
               paddingHorizontal: 12,
-              paddingVertical: 8,
+              height: 32,
               opacity: isProcessing ? 0.5 : 1,
             }}
             disabled={isProcessing}
@@ -183,10 +183,10 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
 
         {group.hasUnconfirmed && onConfirmAll && (
           <TouchableOpacity
-            className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg"
+            className="flex-row items-center justify-center rounded-lg bg-black"
             style={{
               paddingHorizontal: 12,
-              paddingVertical: 8,
+              height: 32,
               opacity: isProcessing ? 0.5 : 1,
             }}
             disabled={isProcessing}
@@ -195,8 +195,8 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
               onConfirmAll(group);
             }}
           >
-            <Ionicons name="checkmark" size={16} color="#3C3F44" />
-            <Text className="ml-1 text-sm font-medium text-cal-text-emphasis">Confirm all</Text>
+            <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+            <Text className="ml-1 text-sm font-medium text-white">Confirm all</Text>
           </TouchableOpacity>
         )}
 
@@ -206,7 +206,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
             className="flex-row items-center justify-center rounded-lg border bg-cal-bg"
             style={{
               paddingHorizontal: 12,
-              paddingVertical: 8,
+              height: 32,
               opacity: isProcessing ? 0.5 : 1,
               borderColor: "#800020",
             }}

@@ -8,7 +8,6 @@ import { getAvatarUrl } from "@/utils/getAvatarUrl";
 import { CalComLogo } from "./CalComLogo";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -118,15 +117,45 @@ export function Header({
               className="w-44"
               align="end"
             >
-              {filterOptions.map((option) => (
-                <DropdownMenuCheckboxItem
-                  key={option.key}
-                  checked={activeFilter === option.key}
-                  onCheckedChange={() => onFilterChange(option.key)}
-                >
-                  <Text className="text-base">{option.label}</Text>
-                </DropdownMenuCheckboxItem>
-              ))}
+              {filterOptions.map((option) => {
+                const isSelected = activeFilter === option.key;
+                // Map filter keys to appropriate icons
+                const getFilterIcon = (key: string) => {
+                  switch (key) {
+                    case "upcoming":
+                      return "calendar-outline";
+                    case "unconfirmed":
+                      return "help-circle-outline";
+                    case "recurring":
+                      return "repeat-outline";
+                    case "past":
+                      return "checkmark-circle-outline";
+                    case "cancelled":
+                      return "close-circle-outline";
+                    default:
+                      return "calendar-outline";
+                  }
+                };
+
+                return (
+                  <DropdownMenuItem key={option.key} onPress={() => onFilterChange(option.key)}>
+                    <View className="flex-row items-center gap-2">
+                      <Ionicons
+                        name={isSelected ? "checkmark-circle" : getFilterIcon(option.key)}
+                        size={16}
+                        color={isSelected ? "#007AFF" : "#666"}
+                      />
+                      <Text
+                        className={
+                          isSelected ? "text-base font-semibold text-[#007AFF]" : "text-base"
+                        }
+                      >
+                        {option.label}
+                      </Text>
+                    </View>
+                  </DropdownMenuItem>
+                );
+              })}
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -166,33 +195,74 @@ export function Header({
                   </View>
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
-                  <DropdownMenuCheckboxItem
-                    checked={eventTypeFilterConfig.sortBy === "alphabetical"}
-                    onCheckedChange={() => eventTypeFilterConfig.onSortChange("alphabetical")}
+                  <DropdownMenuItem
+                    onPress={() => eventTypeFilterConfig.onSortChange("alphabetical")}
                   >
                     <View className="flex-row items-center gap-2">
-                      <Ionicons name="text-outline" size={16} color="#666" />
-                      <Text className="text-base">Alphabetical</Text>
+                      <Ionicons
+                        name={
+                          eventTypeFilterConfig.sortBy === "alphabetical"
+                            ? "checkmark-circle"
+                            : "text-outline"
+                        }
+                        size={16}
+                        color={eventTypeFilterConfig.sortBy === "alphabetical" ? "#007AFF" : "#666"}
+                      />
+                      <Text
+                        className={
+                          eventTypeFilterConfig.sortBy === "alphabetical"
+                            ? "text-base font-semibold text-[#007AFF]"
+                            : "text-base"
+                        }
+                      >
+                        Alphabetical
+                      </Text>
                     </View>
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={eventTypeFilterConfig.sortBy === "newest"}
-                    onCheckedChange={() => eventTypeFilterConfig.onSortChange("newest")}
-                  >
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onPress={() => eventTypeFilterConfig.onSortChange("newest")}>
                     <View className="flex-row items-center gap-2">
-                      <Ionicons name="calendar-outline" size={16} color="#666" />
-                      <Text className="text-base">Newest First</Text>
+                      <Ionicons
+                        name={
+                          eventTypeFilterConfig.sortBy === "newest"
+                            ? "checkmark-circle"
+                            : "calendar-outline"
+                        }
+                        size={16}
+                        color={eventTypeFilterConfig.sortBy === "newest" ? "#007AFF" : "#666"}
+                      />
+                      <Text
+                        className={
+                          eventTypeFilterConfig.sortBy === "newest"
+                            ? "text-base font-semibold text-[#007AFF]"
+                            : "text-base"
+                        }
+                      >
+                        Newest First
+                      </Text>
                     </View>
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={eventTypeFilterConfig.sortBy === "duration"}
-                    onCheckedChange={() => eventTypeFilterConfig.onSortChange("duration")}
-                  >
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onPress={() => eventTypeFilterConfig.onSortChange("duration")}>
                     <View className="flex-row items-center gap-2">
-                      <Ionicons name="time-outline" size={16} color="#666" />
-                      <Text className="text-base">By Duration</Text>
+                      <Ionicons
+                        name={
+                          eventTypeFilterConfig.sortBy === "duration"
+                            ? "checkmark-circle"
+                            : "time-outline"
+                        }
+                        size={16}
+                        color={eventTypeFilterConfig.sortBy === "duration" ? "#007AFF" : "#666"}
+                      />
+                      <Text
+                        className={
+                          eventTypeFilterConfig.sortBy === "duration"
+                            ? "text-base font-semibold text-[#007AFF]"
+                            : "text-base"
+                        }
+                      >
+                        By Duration
+                      </Text>
                     </View>
-                  </DropdownMenuCheckboxItem>
+                  </DropdownMenuItem>
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
 
@@ -207,57 +277,124 @@ export function Header({
               </DropdownMenuLabel>
 
               {/* Filter Toggles (multi-select) */}
-              <DropdownMenuCheckboxItem
-                checked={eventTypeFilterConfig.filters.hiddenOnly}
-                onCheckedChange={() => eventTypeFilterConfig.onToggleFilter("hiddenOnly")}
-              >
+              <DropdownMenuItem onPress={() => eventTypeFilterConfig.onToggleFilter("hiddenOnly")}>
                 <View className="flex-row items-center gap-2">
-                  <Ionicons name="eye-off-outline" size={16} color="#666" />
-                  <Text className="text-base">Hidden Only</Text>
+                  <Ionicons
+                    name={
+                      eventTypeFilterConfig.filters.hiddenOnly
+                        ? "checkmark-circle"
+                        : "eye-off-outline"
+                    }
+                    size={16}
+                    color={eventTypeFilterConfig.filters.hiddenOnly ? "#007AFF" : "#666"}
+                  />
+                  <Text
+                    className={
+                      eventTypeFilterConfig.filters.hiddenOnly
+                        ? "text-base font-semibold text-[#007AFF]"
+                        : "text-base"
+                    }
+                  >
+                    Hidden Only
+                  </Text>
                 </View>
-              </DropdownMenuCheckboxItem>
+              </DropdownMenuItem>
 
-              <DropdownMenuCheckboxItem
-                checked={eventTypeFilterConfig.filters.paidOnly}
-                onCheckedChange={() => eventTypeFilterConfig.onToggleFilter("paidOnly")}
-              >
+              <DropdownMenuItem onPress={() => eventTypeFilterConfig.onToggleFilter("paidOnly")}>
                 <View className="flex-row items-center gap-2">
-                  <Ionicons name="cash-outline" size={16} color="#666" />
-                  <Text className="text-base">Paid Events</Text>
+                  <Ionicons
+                    name={
+                      eventTypeFilterConfig.filters.paidOnly ? "checkmark-circle" : "cash-outline"
+                    }
+                    size={16}
+                    color={eventTypeFilterConfig.filters.paidOnly ? "#007AFF" : "#666"}
+                  />
+                  <Text
+                    className={
+                      eventTypeFilterConfig.filters.paidOnly
+                        ? "text-base font-semibold text-[#007AFF]"
+                        : "text-base"
+                    }
+                  >
+                    Paid Events
+                  </Text>
                 </View>
-              </DropdownMenuCheckboxItem>
+              </DropdownMenuItem>
 
-              <DropdownMenuCheckboxItem
-                checked={eventTypeFilterConfig.filters.seatedOnly}
-                onCheckedChange={() => eventTypeFilterConfig.onToggleFilter("seatedOnly")}
-              >
+              <DropdownMenuItem onPress={() => eventTypeFilterConfig.onToggleFilter("seatedOnly")}>
                 <View className="flex-row items-center gap-2">
-                  <Ionicons name="people-outline" size={16} color="#666" />
-                  <Text className="text-base">Seated Events</Text>
+                  <Ionicons
+                    name={
+                      eventTypeFilterConfig.filters.seatedOnly
+                        ? "checkmark-circle"
+                        : "people-outline"
+                    }
+                    size={16}
+                    color={eventTypeFilterConfig.filters.seatedOnly ? "#007AFF" : "#666"}
+                  />
+                  <Text
+                    className={
+                      eventTypeFilterConfig.filters.seatedOnly
+                        ? "text-base font-semibold text-[#007AFF]"
+                        : "text-base"
+                    }
+                  >
+                    Seated Events
+                  </Text>
                 </View>
-              </DropdownMenuCheckboxItem>
+              </DropdownMenuItem>
 
-              <DropdownMenuCheckboxItem
-                checked={eventTypeFilterConfig.filters.requiresConfirmationOnly}
-                onCheckedChange={() =>
-                  eventTypeFilterConfig.onToggleFilter("requiresConfirmationOnly")
-                }
+              <DropdownMenuItem
+                onPress={() => eventTypeFilterConfig.onToggleFilter("requiresConfirmationOnly")}
               >
                 <View className="flex-row items-center gap-2">
-                  <Ionicons name="checkmark-circle-outline" size={16} color="#666" />
-                  <Text className="text-base">Requires Confirmation</Text>
+                  <Ionicons
+                    name={
+                      eventTypeFilterConfig.filters.requiresConfirmationOnly
+                        ? "checkmark-circle"
+                        : "checkmark-circle-outline"
+                    }
+                    size={16}
+                    color={
+                      eventTypeFilterConfig.filters.requiresConfirmationOnly ? "#007AFF" : "#666"
+                    }
+                  />
+                  <Text
+                    className={
+                      eventTypeFilterConfig.filters.requiresConfirmationOnly
+                        ? "text-base font-semibold text-[#007AFF]"
+                        : "text-base"
+                    }
+                  >
+                    Requires Confirmation
+                  </Text>
                 </View>
-              </DropdownMenuCheckboxItem>
+              </DropdownMenuItem>
 
-              <DropdownMenuCheckboxItem
-                checked={eventTypeFilterConfig.filters.recurringOnly}
-                onCheckedChange={() => eventTypeFilterConfig.onToggleFilter("recurringOnly")}
+              <DropdownMenuItem
+                onPress={() => eventTypeFilterConfig.onToggleFilter("recurringOnly")}
               >
                 <View className="flex-row items-center gap-2">
-                  <Ionicons name="repeat-outline" size={16} color="#666" />
-                  <Text className="text-base">Recurring</Text>
+                  <Ionicons
+                    name={
+                      eventTypeFilterConfig.filters.recurringOnly
+                        ? "checkmark-circle"
+                        : "repeat-outline"
+                    }
+                    size={16}
+                    color={eventTypeFilterConfig.filters.recurringOnly ? "#007AFF" : "#666"}
+                  />
+                  <Text
+                    className={
+                      eventTypeFilterConfig.filters.recurringOnly
+                        ? "text-base font-semibold text-[#007AFF]"
+                        : "text-base"
+                    }
+                  >
+                    Recurring
+                  </Text>
                 </View>
-              </DropdownMenuCheckboxItem>
+              </DropdownMenuItem>
 
               {/* Clear All - only show when filters are active */}
               {eventTypeFilterConfig.activeFilterCount > 0 && (

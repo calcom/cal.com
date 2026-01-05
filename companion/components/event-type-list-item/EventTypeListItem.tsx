@@ -1,10 +1,9 @@
 import { TouchableOpacity, View } from "react-native";
 import {
-  DurationBadge,
   EventTypeActions,
+  EventTypeBadges,
   EventTypeDescription,
   EventTypeTitle,
-  PriceAndConfirmationBadges,
 } from "./EventTypeListItemParts";
 import type { EventTypeListItemProps } from "./types";
 import { useEventTypeListItemData } from "./useEventTypeListItemData";
@@ -31,14 +30,21 @@ export const EventTypeListItem = ({
       style={{ paddingHorizontal: 16, paddingVertical: 16 }}
     >
       <View className="flex-row items-center justify-between">
-        <View className="mr-4 flex-1">
-          <EventTypeTitle title={item.title} />
+        <View style={{ flex: 1, marginRight: 12 }}>
+          <EventTypeTitle
+            title={item.title}
+            username={item.users?.[0]?.username}
+            slug={item.slug}
+          />
           <EventTypeDescription normalizedDescription={normalizedDescription} />
-          <DurationBadge formattedDuration={formattedDuration} />
-          <PriceAndConfirmationBadges
+          <EventTypeBadges
+            formattedDuration={formattedDuration}
+            hidden={item.hidden}
+            seats={item.seats}
             hasPrice={hasPrice}
             formattedPrice={formattedPrice}
-            requiresConfirmation={item.requiresConfirmation}
+            confirmationPolicy={item.confirmationPolicy}
+            recurrence={item.recurrence}
           />
         </View>
         <EventTypeActions

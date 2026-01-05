@@ -21,8 +21,8 @@ import { LimitsTab } from "@/components/event-type-detail/tabs/LimitsTab";
 import { RecurringTab } from "@/components/event-type-detail/tabs/RecurringTab";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { truncateTitle } from "@/components/event-type-detail/utils";
@@ -1143,18 +1143,25 @@ export default function EventTypeDetail() {
           className="w-44"
           align="end"
         >
-          {tabs.map((tab) => (
-            <DropdownMenuCheckboxItem
-              key={tab.id}
-              checked={activeTab === tab.id}
-              onCheckedChange={() => setActiveTab(tab.id)}
-            >
-              <View className="flex-row items-center gap-2">
-                <Ionicons name={tab.icon} size={16} color="#666" />
-                <Text className="text-base">{tab.label}</Text>
-              </View>
-            </DropdownMenuCheckboxItem>
-          ))}
+          {tabs.map((tab) => {
+            const isSelected = activeTab === tab.id;
+            return (
+              <DropdownMenuItem key={tab.id} onPress={() => setActiveTab(tab.id)}>
+                <View className="flex-row items-center gap-2">
+                  <Ionicons
+                    name={isSelected ? "checkmark-circle" : tab.icon}
+                    size={16}
+                    color={isSelected ? "#007AFF" : "#666"}
+                  />
+                  <Text
+                    className={isSelected ? "text-base font-semibold text-[#007AFF]" : "text-base"}
+                  >
+                    {tab.label}
+                  </Text>
+                </View>
+              </DropdownMenuItem>
+            );
+          })}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -1196,10 +1203,9 @@ export default function EventTypeDetail() {
               {tabs.map((tab) => (
                 <Stack.Header.MenuAction
                   key={tab.id}
-                  isOn={activeTab === tab.id}
                   icon={
                     activeTab === tab.id
-                      ? "checkmark"
+                      ? "checkmark.circle.fill"
                       : tab.icon === "link"
                         ? "link"
                         : tab.icon === "calendar"
