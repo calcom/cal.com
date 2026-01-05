@@ -128,7 +128,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     handleSubmitCancel,
     handleCloseCancelModal,
     selectedBooking,
-    setSelectedBooking,
+    setSelectedBooking: _setSelectedBooking,
     handleBookingPress,
     handleCancelBooking,
     handleInlineConfirm,
