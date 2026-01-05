@@ -1,7 +1,7 @@
-import type { IBlockingService, BlockingResult } from "../interface/IBlockingService";
+import type { BatchBlockingResult, BlockingResult, IBlockingService } from "../interface/IBlockingService";
 import type { IGlobalWatchlistRepository } from "../interface/IWatchlistRepositories";
 import { WatchlistType } from "../types";
-import { normalizeEmail, extractDomainFromEmail, normalizeDomain } from "../utils/normalization";
+import { extractDomainFromEmail, normalizeDomain, normalizeEmail } from "../utils/normalization";
 
 type Deps = {
   globalRepo: IGlobalWatchlistRepository;
@@ -40,6 +40,67 @@ export class GlobalBlockingService implements IBlockingService {
     }
 
     return { isBlocked: false };
+  }
+
+  /**
+   * Batch check multiple emails in a single query.
+   * Returns Map<email (lowercase), BlockingResult> for efficient lookup.
+   */
+  async areBlocked(emails: string[]): Promise<BatchBlockingResult> {
+    const result: BatchBlockingResult = new Map();
+
+    if (emails.length === 0) {
+      return result;
+    }
+
+    // Normalize and extract domains
+    const normalizedEmails = emails.map((e) => normalizeEmail(e));
+    const uniqueDomains = [...new Set(normalizedEmails.map((e) => extractDomainFromEmail(e)))];
+
+    // Single DB query for all emails and domains
+    const blockingEntries = await this.deps.globalRepo.findBlockingEntriesForEmailsAndDomains({
+      emails: normalizedEmails,
+      domains: uniqueDomains,
+    });
+
+    // Build lookup sets for O(1) checks
+    const blockedEmails = new Set<string>();
+    const blockedDomains = new Set<string>();
+    const emailEntries = new Map<string, (typeof blockingEntries)[0]>();
+    const domainEntries = new Map<string, (typeof blockingEntries)[0]>();
+
+    for (const entry of blockingEntries) {
+      if (entry.type === WatchlistType.EMAIL) {
+        blockedEmails.add(entry.value.toLowerCase());
+        emailEntries.set(entry.value.toLowerCase(), entry);
+      } else if (entry.type === WatchlistType.DOMAIN) {
+        blockedDomains.add(entry.value.toLowerCase());
+        domainEntries.set(entry.value.toLowerCase(), entry);
+      }
+    }
+
+    // Map results for each email
+    for (const email of normalizedEmails) {
+      const domain = extractDomainFromEmail(email);
+
+      if (blockedEmails.has(email)) {
+        result.set(email, {
+          isBlocked: true,
+          reason: WatchlistType.EMAIL,
+          watchlistEntry: emailEntries.get(email),
+        });
+      } else if (blockedDomains.has(domain)) {
+        result.set(email, {
+          isBlocked: true,
+          reason: WatchlistType.DOMAIN,
+          watchlistEntry: domainEntries.get(domain),
+        });
+      } else {
+        result.set(email, { isBlocked: false });
+      }
+    }
+
+    return result;
   }
 
   async isFreeEmailDomain(domain: string): Promise<boolean> {
