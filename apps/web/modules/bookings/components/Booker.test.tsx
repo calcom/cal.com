@@ -110,7 +110,10 @@ const defaultProps = {
     formEmail: "",
     formName: "",
     beforeVerifyEmail: vi.fn(),
-    formErrors: {},
+    formErrors: {
+      hasFormErrors: false,
+      formErrors: undefined,
+    },
     bookingForm: {
       watch: vi.fn(),
       setValue: vi.fn(),
