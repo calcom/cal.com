@@ -83,6 +83,10 @@ const mockSchedule = {
     },
   },
   isPending: false,
+  isError: false,
+  isSuccess: true,
+  isLoading: false,
+  dataUpdatedAt: Date.now(),
   invalidate: vi.fn(),
 };
 
