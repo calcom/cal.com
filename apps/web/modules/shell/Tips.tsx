@@ -1,10 +1,12 @@
 import shuffle from "lodash/shuffle";
 import posthog from "posthog-js";
-import { useState, memo } from "react";
+import { useState, memo, useCallback } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Card } from "@calcom/ui/components/card";
+import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { GatedFeatures } from "./stores/gatedFeaturesStore";
 import { useGatedFeaturesStore } from "./stores/gatedFeaturesStore";
@@ -208,6 +210,59 @@ function Tips() {
     });
   };
 
+  // Video modal state
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
+  const [currentVideoTitle, setCurrentVideoTitle] = useState<string>("");
+
+  // Extract YouTube video ID from various URL formats
+  const getYouTubeVideoId = useCallback((url: string): string | null => {
+    // Handle youtu.be short links
+    const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+    if (shortMatch) return shortMatch[1];
+
+    // Handle youtube.com watch URLs
+    const watchMatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
+    if (watchMatch) return watchMatch[1];
+
+    // Handle youtube.com embed URLs
+    const embedMatch = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]+)/);
+    if (embedMatch) return embedMatch[1];
+
+    // For go.cal.com redirects, extract video ID from thumbnail URL
+    return null;
+  }, []);
+
+  const getVideoIdFromTip = useCallback((tip: Tip): string | null => {
+    if (tip.mediaLink) {
+      const videoId = getYouTubeVideoId(tip.mediaLink);
+      if (videoId) return videoId;
+    }
+
+    if (tip.thumbnailUrl) {
+      const thumbnailMatch = tip.thumbnailUrl.match(/img\.youtube\.com\/vi\/([a-zA-Z0-9_-]+)\//);
+      if (thumbnailMatch) return thumbnailMatch[1];
+    }
+
+    return null;
+  }, [getYouTubeVideoId]);
+
+  // Handle video thumbnail click
+  const handleVideoClick = useCallback((tip: Tip) => {
+    const videoId = getVideoIdFromTip(tip);
+    if (videoId) {
+      // Use YouTube's privacy-enhanced mode and restrict related videos to Cal.com channel
+      setCurrentVideoUrl(`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`);
+      setCurrentVideoTitle(tip.title);
+      setVideoModalOpen(true);
+      posthog.capture("tip_video_modal_opened", tip);
+    } else {
+      // Fallback: open external link if no video ID found
+      window.open(tip.mediaLink || tip.href, "_blank", "noopener,noreferrer");
+    }
+    if (tip.onClick) tip.onClick();
+  }, [getVideoIdFromTip]);
+
   const baseOriginalList = list.slice(0).reverse();
   return (
     <>
@@ -242,8 +297,7 @@ function Tips() {
                   mediaLinkOnClick={
                     isTopTip
                       ? () => {
-                          posthog.capture("tip_video_clicked", tip);
-                          if (tip.onClick) tip.onClick();
+                          handleVideoClick(tip);
                         }
                       : undefined
                   }
@@ -282,6 +336,45 @@ function Tips() {
           );
         })}
       </div>
+
+      {/* Video Modal */}
+      <Dialog
+        open={videoModalOpen}
+        onOpenChange={(open) => {
+          setVideoModalOpen(open);
+          if (!open) {
+            setCurrentVideoUrl(null);
+          }
+        }}>
+        <DialogContent
+          size="xl"
+          className="!max-w-4xl !p-0 !rounded-xl !bg-black !overflow-visible"
+          enableOverflow>
+          {/* Close button - positioned above the modal */}
+          <button
+            type="button"
+            onClick={() => setVideoModalOpen(false)}
+            className="absolute -top-12 right-0 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white hover:bg-black/90 transition-all duration-200 backdrop-blur-sm shadow-lg cursor-pointer"
+            aria-label="Close video">
+            <Icon name="x" className="h-5 w-5" />
+          </button>
+
+          {/* Video container */}
+          <div className="relative w-full overflow-hidden rounded-xl" style={{ paddingBottom: "56.25%" }}>
+            {/* YouTube embed */}
+            {currentVideoUrl && (
+              <iframe
+                src={currentVideoUrl}
+                title={currentVideoTitle}
+                className="absolute inset-0 h-full w-full"
+                style={{ border: "none" }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -203,7 +203,12 @@ export function Card({
       </div>
       {variant === "SidebarCard" && mediaLink && (
         <a
-          onClick={mediaLinkOnClick}
+          onClick={(e) => {
+            if (mediaLinkOnClick) {
+              e.preventDefault();
+              mediaLinkOnClick(e);
+            }
+          }}
           target="_blank"
           rel="noreferrer noopener"
           href={mediaLink}
