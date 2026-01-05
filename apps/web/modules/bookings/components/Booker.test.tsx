@@ -146,7 +146,10 @@ const defaultProps = {
       register: vi.fn(),
       handleSubmit: vi.fn(),
     },
-    errors: {},
+    errors: {
+      hasFormErrors: false,
+      formErrors: undefined,
+    },
   },
   bookings: {
     handleBookEvent: vi.fn(),
