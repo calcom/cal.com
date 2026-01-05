@@ -1,24 +1,24 @@
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 
 import type { FeatureId, FeatureState } from "./config";
-import { type CacheEntry, FeaturesCacheEntries as KEYS } from "./features-cache-keys";
 import type { IFeaturesRepository } from "./features.repository.interface";
+import { type CacheEntry, FeaturesCacheEntries as KEYS } from "./features-cache-keys";
 
 const DEFAULT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
- * Caching proxy for FeaturesRepository using per-entity canonical caches.
+ * Caching proxy for FeaturesRepository using composite keys.
  *
  * Strategy:
- * - Per-entity caches: Store canonical state per user/team, invalidate via exact DEL
- * - Batch composition: Batch methods fetch per-entity caches and compose results
- * - TTL-only for global data: No explicit invalidation, relies on TTL expiration
+ * - Composite keys for batch methods: userId/teamId + featureIds (e.g., features:userFeatureStates:123:featureA,featureB)
+ * - Full cache hit or miss: No partial cache merging, simpler logic
+ * - TTL-only invalidation for feature states: Mutations don't invalidate composite key caches
+ * - Per-entity caches for autoOptIn: Simple keys with exact invalidation on mutation
  * - Type-safe caching: Each cache key is paired with its Zod schema for validation
  *
  * Benefits:
- * - No cache buster needed (no extra Redis read per call)
- * - Simple invalidation via exact key deletion
- * - Batch methods benefit from per-entity cache hits
+ * - Simpler caching logic without partial cache merging
+ * - Predictable cache behavior (full hit or full miss)
  * - Schema validation prevents returning corrupted cache data
  */
 export class CachedFeaturesRepository implements IFeaturesRepository {
@@ -104,48 +104,23 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   }
 
   async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean> {
-    const userStates = await this.getValue(KEYS.userFeatureStates(userId));
-    if (userStates) {
-      const state = userStates[slug];
-      if (state === "enabled") {
-        return true;
-      }
-      if (state === "disabled") {
-        return false;
-      }
-    }
+    // Delegate to repository - single feature checks are not cached
+    // since composite keys (userId + featureIds) don't support single-feature lookups efficiently
     return this.featuresRepository.checkIfUserHasFeatureNonHierarchical(userId, slug);
+  }
+
+  async getUserFeaturesStatus(userId: number, slugs: string[]): Promise<Record<string, boolean>> {
+    // Delegate to repository - this method returns boolean status, not FeatureState
+    return this.featuresRepository.getUserFeaturesStatus(userId, slugs);
   }
 
   async getUserFeatureStates(input: {
     userId: number;
     featureIds: FeatureId[];
   }): Promise<Record<string, FeatureState>> {
-    const userStates = (await this.getValue(KEYS.userFeatureStates(input.userId))) ?? {};
-
-    const result: Record<string, FeatureState> = {};
-    const missingFeatureIds: FeatureId[] = [];
-
-    for (const featureId of input.featureIds) {
-      if (userStates[featureId] !== undefined) {
-        result[featureId] = userStates[featureId];
-      } else {
-        missingFeatureIds.push(featureId);
-      }
-    }
-
-    if (missingFeatureIds.length > 0) {
-      const freshStates = await this.featuresRepository.getUserFeatureStates({
-        userId: input.userId,
-        featureIds: missingFeatureIds,
-      });
-      Object.assign(result, freshStates);
-
-      const updatedCache = { ...userStates, ...freshStates };
-      await this.setValue(KEYS.userFeatureStates(input.userId), updatedCache);
-    }
-
-    return result;
+    return this.withCache(KEYS.userFeatureStates(input.userId, input.featureIds), () =>
+      this.featuresRepository.getUserFeatureStates(input)
+    );
   }
 
   async getUserAutoOptIn(userId: number): Promise<boolean> {
@@ -155,10 +130,8 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   // === Per-team caches ===
 
   async checkIfTeamHasFeature(teamId: number, slug: FeatureId): Promise<boolean> {
-    const teamStates = await this.getValue(KEYS.teamFeatureStates(teamId));
-    if (teamStates?.[slug] === "enabled") {
-      return true;
-    }
+    // Delegate to repository - single feature checks are not cached
+    // since composite keys (teamId + featureIds) don't support single-feature lookups efficiently
     return this.featuresRepository.checkIfTeamHasFeature(teamId, slug);
   }
 
@@ -166,64 +139,65 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
     teamIds: number[];
     featureIds: FeatureId[];
   }): Promise<Record<string, Record<number, FeatureState>>> {
+    // Fetch cached states for each team in parallel
     const teamStatesMap = await Promise.all(
       input.teamIds.map(async (teamId) => ({
         teamId,
-        states: (await this.getValue(KEYS.teamFeatureStates(teamId))) ?? {},
+        states: await this.getValue(KEYS.teamFeatureStates(teamId, input.featureIds)),
       }))
     );
 
-    const result: Record<string, Record<number, FeatureState>> = {};
+    // Separate cache hits from misses
+    const cachedTeams: { teamId: number; states: Record<string, FeatureState> }[] = [];
     const teamsNeedingFetch: number[] = [];
 
-    for (const featureId of input.featureIds) {
-      result[featureId] = {};
-    }
-
     for (const { teamId, states } of teamStatesMap) {
-      let hasMissingFeature = false;
-      for (const featureId of input.featureIds) {
-        if (states[featureId] !== undefined) {
-          result[featureId][teamId] = states[featureId];
-        } else {
-          hasMissingFeature = true;
-        }
-      }
-      if (hasMissingFeature) {
+      if (states !== null) {
+        cachedTeams.push({ teamId, states });
+      } else {
         teamsNeedingFetch.push(teamId);
       }
     }
 
+    // Fetch missing teams from repository
+    let freshStates: Record<string, Record<number, FeatureState>> = {};
     if (teamsNeedingFetch.length > 0) {
-      const freshStates = await this.featuresRepository.getTeamsFeatureStates({
+      freshStates = await this.featuresRepository.getTeamsFeatureStates({
         teamIds: teamsNeedingFetch,
         featureIds: input.featureIds,
       });
 
-      const perTeamFreshStates: Record<number, Record<string, FeatureState>> = {};
-      for (const featureId of input.featureIds) {
-        if (freshStates[featureId]) {
-          Object.assign(result[featureId], freshStates[featureId]);
-          for (const [teamIdStr, state] of Object.entries(freshStates[featureId])) {
-            const teamId = Number(teamIdStr);
-            if (!perTeamFreshStates[teamId]) {
-              perTeamFreshStates[teamId] = {};
-            }
-            perTeamFreshStates[teamId][featureId] = state;
+      // Cache the fresh results per team
+      for (const teamId of teamsNeedingFetch) {
+        const teamStates: Record<string, FeatureState> = {};
+        for (const featureId of input.featureIds) {
+          if (freshStates[featureId]?.[teamId] !== undefined) {
+            teamStates[featureId] = freshStates[featureId][teamId];
           }
         }
+        await this.setValue(KEYS.teamFeatureStates(teamId, input.featureIds), teamStates);
       }
+    }
 
-      const existingTeamStates = teamStatesMap.reduce((acc, { teamId, states }) => {
-        acc[teamId] = states;
-        return acc;
-      }, {} as Record<number, Record<string, FeatureState>>);
+    // Compose the final result from cached and fresh data
+    const result: Record<string, Record<number, FeatureState>> = {};
+    for (const featureId of input.featureIds) {
+      result[featureId] = {};
+    }
 
-      for (const teamId of teamsNeedingFetch) {
-        const existingStates = existingTeamStates[teamId] || {};
-        const freshTeamStates = perTeamFreshStates[teamId] || {};
-        const updatedCache = { ...existingStates, ...freshTeamStates };
-        await this.setValue(KEYS.teamFeatureStates(teamId), updatedCache);
+    // Add cached team states
+    for (const { teamId, states } of cachedTeams) {
+      for (const featureId of input.featureIds) {
+        if (states[featureId] !== undefined) {
+          result[featureId][teamId] = states[featureId];
+        }
+      }
+    }
+
+    // Add fresh team states
+    for (const featureId of input.featureIds) {
+      if (freshStates[featureId]) {
+        Object.assign(result[featureId], freshStates[featureId]);
       }
     }
 
@@ -261,7 +235,10 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
     return result;
   }
 
-  // === Mutations (invalidate per-entity caches) ===
+  // === Mutations ===
+  // Note: Feature state caches use composite keys (userId/teamId + featureIds),
+  // so we cannot easily invalidate all cached combinations on mutation.
+  // These caches rely on TTL for eventual consistency.
 
   async setUserFeatureState(
     input:
@@ -269,7 +246,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
       | { userId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
     await this.featuresRepository.setUserFeatureState(input);
-    await this.del(KEYS.userFeatureStates(input.userId));
+    // No cache invalidation - composite keys rely on TTL
   }
 
   async setTeamFeatureState(
@@ -278,7 +255,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
       | { teamId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
     await this.featuresRepository.setTeamFeatureState(input);
-    await this.del(KEYS.teamFeatureStates(input.teamId));
+    // No cache invalidation - composite keys rely on TTL
   }
 
   async setUserAutoOptIn(userId: number, enabled: boolean): Promise<void> {

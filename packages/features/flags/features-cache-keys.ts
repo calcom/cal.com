@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { FeatureType } from "@calcom/prisma/client";
+import { z } from "zod";
 
 import type { FeatureId } from "./config";
 
@@ -52,13 +51,21 @@ export type CacheEntry<T> = {
 const PREFIX = "features";
 
 /**
+ * Normalize featureIds for use in cache keys.
+ * Deduplicates and sorts to ensure consistent key generation regardless of input order.
+ */
+function normalizeFeatureIds(featureIds: FeatureId[]): string {
+  return Array.from(new Set(featureIds)).sort().join(",");
+}
+
+/**
  * Cache entries for features caching.
  * Each entry is a function that returns a bound cache entry with a pre-computed key.
  *
- * Strategy: Per-entity canonical caches with exact key invalidation.
- * - No cache buster needed - invalidation is done via exact DEL
- * - Batch methods compose from per-entity caches
- * - Global/cross-entity data uses TTL-only (no explicit invalidation)
+ * Strategy:
+ * - Composite keys for batch methods (userId/teamId + featureIds)
+ * - TTL-only invalidation for composite keys (no explicit invalidation on mutations)
+ * - Per-entity caches for single-value lookups with exact key invalidation
  */
 export const FeaturesCacheEntries = {
   /** Cache entry for all features (TTL-only) */
@@ -67,15 +74,15 @@ export const FeaturesCacheEntries = {
     schema: FeatureListSchema,
   }),
 
-  /** Cache entry for a user's feature states (all features for this user) */
-  userFeatureStates: (userId: number) => ({
-    key: `${PREFIX}:userFeatureStates:${userId}`,
+  /** Cache entry for a user's feature states for specific featureIds */
+  userFeatureStates: (userId: number, featureIds: FeatureId[]) => ({
+    key: `${PREFIX}:userFeatureStates:${userId}:${normalizeFeatureIds(featureIds)}`,
     schema: FeatureStatesMapSchema,
   }),
 
-  /** Cache entry for a team's feature states (all features for this team) */
-  teamFeatureStates: (teamId: number) => ({
-    key: `${PREFIX}:teamFeatureStates:${teamId}`,
+  /** Cache entry for a team's feature states for specific featureIds */
+  teamFeatureStates: (teamId: number, featureIds: FeatureId[]) => ({
+    key: `${PREFIX}:teamFeatureStates:${teamId}:${normalizeFeatureIds(featureIds)}`,
     schema: FeatureStatesMapSchema,
   }),
 

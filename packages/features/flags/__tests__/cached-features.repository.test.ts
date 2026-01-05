@@ -1,11 +1,8 @@
-import { beforeEach, describe, expect, it } from "vitest";
-
 import type { Feature } from "@calcom/prisma/client";
-
+import { beforeEach, describe, expect, it } from "vitest";
+import { CachedFeaturesRepository } from "../cached-features.repository";
 import type { FeatureId } from "../config";
 import { FeaturesCacheEntries } from "../features-cache-keys";
-
-import { CachedFeaturesRepository } from "../cached-features.repository";
 import { MockRedisService } from "./mock-redis.service";
 import { SpyFeaturesRepository } from "./spy-features.repository";
 
@@ -159,47 +156,17 @@ describe("CachedFeaturesRepository", () => {
     const userId = 456;
     const slug = "non-hier-feature";
 
-    it("should return true from cache when user state is enabled", async () => {
-      mockRedis.setStoreValue(FeaturesCacheEntries.userFeatureStates(userId).key, {
-        [slug]: "enabled",
-      });
-
-      const result = await cachedRepository.checkIfUserHasFeatureNonHierarchical(userId, slug);
-
-      expect(result).toBe(true);
-      expect(spyRepository.checkIfUserHasFeatureNonHierarchicalCalls).toHaveLength(0);
-    });
-
-    it("should return false from cache when user state is disabled", async () => {
-      mockRedis.setStoreValue(FeaturesCacheEntries.userFeatureStates(userId).key, {
-        [slug]: "disabled",
-      });
-
-      const result = await cachedRepository.checkIfUserHasFeatureNonHierarchical(userId, slug);
-
-      expect(result).toBe(false);
-      expect(spyRepository.checkIfUserHasFeatureNonHierarchicalCalls).toHaveLength(0);
-    });
-
-    it("should delegate to repository when user state is inherit", async () => {
-      mockRedis.setStoreValue(FeaturesCacheEntries.userFeatureStates(userId).key, {
-        [slug]: "inherit",
-      });
+    it("should always delegate to repository (no caching for single feature checks)", async () => {
       spyRepository.mockUserHasFeatureNonHierarchical[`${userId}:${slug}`] = true;
 
-      const result = await cachedRepository.checkIfUserHasFeatureNonHierarchical(userId, slug);
+      const result1 = await cachedRepository.checkIfUserHasFeatureNonHierarchical(userId, slug);
+      const result2 = await cachedRepository.checkIfUserHasFeatureNonHierarchical(userId, slug);
 
-      expect(result).toBe(true);
-      expect(spyRepository.checkIfUserHasFeatureNonHierarchicalCalls).toHaveLength(1);
-    });
-
-    it("should delegate to repository on cache miss", async () => {
-      spyRepository.mockUserHasFeatureNonHierarchical[`${userId}:${slug}`] = false;
-
-      const result = await cachedRepository.checkIfUserHasFeatureNonHierarchical(userId, slug);
-
-      expect(result).toBe(false);
-      expect(spyRepository.checkIfUserHasFeatureNonHierarchicalCalls).toHaveLength(1);
+      expect(result1).toBe(true);
+      expect(result2).toBe(true);
+      expect(spyRepository.checkIfUserHasFeatureNonHierarchicalCalls).toHaveLength(2);
+      expect(mockRedis.getCalls).toHaveLength(0);
+      expect(mockRedis.setCalls).toHaveLength(0);
     });
   });
 
@@ -208,7 +175,8 @@ describe("CachedFeaturesRepository", () => {
     const featureIds = ["feature-a", "feature-b", "feature-c"] as FeatureId[];
 
     it("should return all from cache on full cache hit", async () => {
-      mockRedis.setStoreValue(FeaturesCacheEntries.userFeatureStates(userId).key, {
+      // Cache key now includes featureIds
+      mockRedis.setStoreValue(FeaturesCacheEntries.userFeatureStates(userId, featureIds).key, {
         "feature-a": "enabled",
         "feature-b": "disabled",
         "feature-c": "inherit",
@@ -224,27 +192,7 @@ describe("CachedFeaturesRepository", () => {
       expect(spyRepository.getUserFeatureStatesCalls).toHaveLength(0);
     });
 
-    it("should fetch missing features from repository on partial cache hit", async () => {
-      mockRedis.setStoreValue(FeaturesCacheEntries.userFeatureStates(userId).key, {
-        "feature-a": "enabled",
-      });
-      spyRepository.mockUserFeatureStates[userId] = {
-        "feature-b": "disabled",
-        "feature-c": "inherit",
-      };
-
-      const result = await cachedRepository.getUserFeatureStates({ userId, featureIds });
-
-      expect(result).toEqual({
-        "feature-a": "enabled",
-        "feature-b": "disabled",
-        "feature-c": "inherit",
-      });
-      expect(spyRepository.getUserFeatureStatesCalls).toHaveLength(1);
-      expect(spyRepository.getUserFeatureStatesCalls[0].featureIds).toEqual(["feature-b", "feature-c"]);
-    });
-
-    it("should fetch all features from repository on cache miss", async () => {
+    it("should fetch all features from repository on cache miss (no partial cache)", async () => {
       spyRepository.mockUserFeatureStates[userId] = {
         "feature-a": "enabled",
         "feature-b": "disabled",
@@ -262,21 +210,33 @@ describe("CachedFeaturesRepository", () => {
       expect(spyRepository.getUserFeatureStatesCalls[0].featureIds).toEqual(featureIds);
     });
 
-    it("should update cache with fetched data", async () => {
-      mockRedis.setStoreValue(FeaturesCacheEntries.userFeatureStates(userId).key, {
-        "feature-a": "enabled",
-      });
+    it("should cache the result with composite key (userId + featureIds)", async () => {
       spyRepository.mockUserFeatureStates[userId] = {
+        "feature-a": "enabled",
         "feature-b": "disabled",
       };
+      const twoFeatureIds = ["feature-a", "feature-b"] as FeatureId[];
 
-      await cachedRepository.getUserFeatureStates({ userId, featureIds: ["feature-a", "feature-b"] as FeatureId[] });
+      await cachedRepository.getUserFeatureStates({ userId, featureIds: twoFeatureIds });
 
       expect(mockRedis.setCalls).toHaveLength(1);
+      expect(mockRedis.setCalls[0].key).toBe(
+        FeaturesCacheEntries.userFeatureStates(userId, twoFeatureIds).key
+      );
       expect(mockRedis.setCalls[0].value).toEqual({
         "feature-a": "enabled",
         "feature-b": "disabled",
       });
+    });
+
+    it("should generate same cache key regardless of featureIds order", async () => {
+      const featureIdsA = ["feature-b", "feature-a"] as FeatureId[];
+      const featureIdsB = ["feature-a", "feature-b"] as FeatureId[];
+
+      // Both should generate the same cache key due to normalization (sort)
+      expect(FeaturesCacheEntries.userFeatureStates(userId, featureIdsA).key).toBe(
+        FeaturesCacheEntries.userFeatureStates(userId, featureIdsB).key
+      );
     });
   });
 
@@ -307,36 +267,17 @@ describe("CachedFeaturesRepository", () => {
     const teamId = 222;
     const slug = "team-feature" as FeatureId;
 
-    it("should return true from cache when team state is enabled", async () => {
-      mockRedis.setStoreValue(FeaturesCacheEntries.teamFeatureStates(teamId).key, {
-        [slug]: "enabled",
-      });
-
-      const result = await cachedRepository.checkIfTeamHasFeature(teamId, slug);
-
-      expect(result).toBe(true);
-      expect(spyRepository.checkIfTeamHasFeatureCalls).toHaveLength(0);
-    });
-
-    it("should delegate to repository when team state is not enabled", async () => {
-      mockRedis.setStoreValue(FeaturesCacheEntries.teamFeatureStates(teamId).key, {
-        [slug]: "disabled",
-      });
-      spyRepository.mockTeamHasFeature[`${teamId}:${slug}`] = false;
-
-      const result = await cachedRepository.checkIfTeamHasFeature(teamId, slug);
-
-      expect(result).toBe(false);
-      expect(spyRepository.checkIfTeamHasFeatureCalls).toHaveLength(1);
-    });
-
-    it("should delegate to repository on cache miss", async () => {
+    it("should always delegate to repository (no caching for single feature checks)", async () => {
       spyRepository.mockTeamHasFeature[`${teamId}:${slug}`] = true;
 
-      const result = await cachedRepository.checkIfTeamHasFeature(teamId, slug);
+      const result1 = await cachedRepository.checkIfTeamHasFeature(teamId, slug);
+      const result2 = await cachedRepository.checkIfTeamHasFeature(teamId, slug);
 
-      expect(result).toBe(true);
-      expect(spyRepository.checkIfTeamHasFeatureCalls).toHaveLength(1);
+      expect(result1).toBe(true);
+      expect(result2).toBe(true);
+      expect(spyRepository.checkIfTeamHasFeatureCalls).toHaveLength(2);
+      expect(mockRedis.getCalls).toHaveLength(0);
+      expect(mockRedis.setCalls).toHaveLength(0);
     });
   });
 
@@ -345,15 +286,16 @@ describe("CachedFeaturesRepository", () => {
     const featureIds = ["feat-x", "feat-y"] as FeatureId[];
 
     it("should return all from cache on full cache hit", async () => {
-      mockRedis.setStoreValue(FeaturesCacheEntries.teamFeatureStates(1).key, {
+      // Cache key now includes featureIds - each team has its own cache entry
+      mockRedis.setStoreValue(FeaturesCacheEntries.teamFeatureStates(1, featureIds).key, {
         "feat-x": "enabled",
         "feat-y": "disabled",
       });
-      mockRedis.setStoreValue(FeaturesCacheEntries.teamFeatureStates(2).key, {
+      mockRedis.setStoreValue(FeaturesCacheEntries.teamFeatureStates(2, featureIds).key, {
         "feat-x": "disabled",
         "feat-y": "enabled",
       });
-      mockRedis.setStoreValue(FeaturesCacheEntries.teamFeatureStates(3).key, {
+      mockRedis.setStoreValue(FeaturesCacheEntries.teamFeatureStates(3, featureIds).key, {
         "feat-x": "inherit",
         "feat-y": "inherit",
       });
@@ -368,7 +310,8 @@ describe("CachedFeaturesRepository", () => {
     });
 
     it("should fetch missing teams from repository on partial cache hit", async () => {
-      mockRedis.setStoreValue(FeaturesCacheEntries.teamFeatureStates(1).key, {
+      // Only team 1 is cached
+      mockRedis.setStoreValue(FeaturesCacheEntries.teamFeatureStates(1, featureIds).key, {
         "feat-x": "enabled",
         "feat-y": "disabled",
       });
@@ -387,20 +330,39 @@ describe("CachedFeaturesRepository", () => {
       expect(spyRepository.getTeamsFeatureStatesCalls[0].teamIds).toEqual([2, 3]);
     });
 
-    it("should fetch teams with partial feature coverage from repository", async () => {
-      mockRedis.setStoreValue(FeaturesCacheEntries.teamFeatureStates(1).key, {
-        "feat-x": "enabled",
-      });
+    it("should fetch all teams from repository on cache miss", async () => {
       spyRepository.mockTeamsFeatureStates = {
-        "feat-x": { 2: "disabled", 3: "inherit" },
+        "feat-x": { 1: "enabled", 2: "disabled", 3: "inherit" },
         "feat-y": { 1: "disabled", 2: "enabled", 3: "inherit" },
       };
 
       const result = await cachedRepository.getTeamsFeatureStates({ teamIds, featureIds });
 
-      expect(result["feat-x"][1]).toBe("enabled");
+      expect(result).toEqual({
+        "feat-x": { 1: "enabled", 2: "disabled", 3: "inherit" },
+        "feat-y": { 1: "disabled", 2: "enabled", 3: "inherit" },
+      });
       expect(spyRepository.getTeamsFeatureStatesCalls).toHaveLength(1);
-      expect(spyRepository.getTeamsFeatureStatesCalls[0].teamIds).toContain(1);
+      expect(spyRepository.getTeamsFeatureStatesCalls[0].teamIds).toEqual(teamIds);
+    });
+
+    it("should cache each team's result with composite key (teamId + featureIds)", async () => {
+      spyRepository.mockTeamsFeatureStates = {
+        "feat-x": { 1: "enabled", 2: "disabled" },
+        "feat-y": { 1: "disabled", 2: "enabled" },
+      };
+      const twoTeamIds = [1, 2];
+
+      await cachedRepository.getTeamsFeatureStates({ teamIds: twoTeamIds, featureIds });
+
+      // Should cache each team separately
+      expect(mockRedis.setCalls).toHaveLength(2);
+      expect(mockRedis.setCalls.map((c) => c.key)).toContain(
+        FeaturesCacheEntries.teamFeatureStates(1, featureIds).key
+      );
+      expect(mockRedis.setCalls.map((c) => c.key)).toContain(
+        FeaturesCacheEntries.teamFeatureStates(2, featureIds).key
+      );
     });
   });
 
@@ -444,11 +406,7 @@ describe("CachedFeaturesRepository", () => {
     const userId = 333;
     const featureId = "mut-feature" as FeatureId;
 
-    it("should call repository and invalidate user cache", async () => {
-      mockRedis.setStoreValue(FeaturesCacheEntries.userFeatureStates(userId).key, {
-        [featureId]: "disabled",
-      });
-
+    it("should call repository (no cache invalidation with composite keys)", async () => {
       await cachedRepository.setUserFeatureState({
         userId,
         featureId,
@@ -463,7 +421,8 @@ describe("CachedFeaturesRepository", () => {
         state: "enabled",
         assignedBy: "test",
       });
-      expect(mockRedis.delCalls).toContain(FeaturesCacheEntries.userFeatureStates(userId).key);
+      // No cache invalidation - composite keys rely on TTL
+      expect(mockRedis.delCalls).toHaveLength(0);
     });
 
     it("should handle inherit state", async () => {
@@ -475,7 +434,8 @@ describe("CachedFeaturesRepository", () => {
 
       expect(spyRepository.setUserFeatureStateCalls).toHaveLength(1);
       expect(spyRepository.setUserFeatureStateCalls[0].state).toBe("inherit");
-      expect(mockRedis.delCalls).toContain(FeaturesCacheEntries.userFeatureStates(userId).key);
+      // No cache invalidation - composite keys rely on TTL
+      expect(mockRedis.delCalls).toHaveLength(0);
     });
   });
 
@@ -483,11 +443,7 @@ describe("CachedFeaturesRepository", () => {
     const teamId = 444;
     const featureId = "team-mut-feature" as FeatureId;
 
-    it("should call repository and invalidate team cache", async () => {
-      mockRedis.setStoreValue(FeaturesCacheEntries.teamFeatureStates(teamId).key, {
-        [featureId]: "disabled",
-      });
-
+    it("should call repository (no cache invalidation with composite keys)", async () => {
       await cachedRepository.setTeamFeatureState({
         teamId,
         featureId,
@@ -502,7 +458,8 @@ describe("CachedFeaturesRepository", () => {
         state: "enabled",
         assignedBy: "test",
       });
-      expect(mockRedis.delCalls).toContain(FeaturesCacheEntries.teamFeatureStates(teamId).key);
+      // No cache invalidation - composite keys rely on TTL
+      expect(mockRedis.delCalls).toHaveLength(0);
     });
   });
 
@@ -537,7 +494,9 @@ describe("CachedFeaturesRepository", () => {
   describe("cache TTL", () => {
     it("should use custom TTL when provided", async () => {
       const customTtl = 30000;
-      const customCachedRepo = new CachedFeaturesRepository(spyRepository, mockRedis, { cacheTtlMs: customTtl });
+      const customCachedRepo = new CachedFeaturesRepository(spyRepository, mockRedis, {
+        cacheTtlMs: customTtl,
+      });
       spyRepository.mockGlobalFeatureEnabled["ttl-test" as FeatureId] = true;
 
       await customCachedRepo.checkIfFeatureIsEnabledGlobally("ttl-test" as FeatureId);
