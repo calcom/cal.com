@@ -1,4 +1,4 @@
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/apps/routing-forms/lib/formSubmissionUtils";
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";

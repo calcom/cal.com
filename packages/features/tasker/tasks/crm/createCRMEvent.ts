@@ -1,4 +1,4 @@
-import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import { appDataSchemas } from "@calcom/app-store/generated/apps.schemas.generated";
 import { RetryableError } from "@calcom/lib/crmManager/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";

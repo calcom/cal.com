@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getAppFromSlug } from "@calcom/app-store/src/utils";
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { getTeam, getOrg } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";

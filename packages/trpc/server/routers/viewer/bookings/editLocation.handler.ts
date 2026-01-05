@@ -1,8 +1,8 @@
 import type { z } from "zod";
 
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
-import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/src/delegationCredential";
+import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/src/locations";
+import { getAppFromSlug } from "@calcom/app-store/src/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";

@@ -3,7 +3,7 @@ import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
 import { useMemo } from "react";
 
-import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/app-store/src/_utils/payments/getPaymentAppData";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import type { IOutOfOfficeData } from "@calcom/features/availability/lib/getUserAvailability";

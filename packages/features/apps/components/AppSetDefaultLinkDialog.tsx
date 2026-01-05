@@ -3,8 +3,8 @@ import type { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/src/locations";
+import { getEventLocationType } from "@calcom/app-store/src/locations";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";

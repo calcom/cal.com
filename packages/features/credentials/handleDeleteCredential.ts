@@ -1,13 +1,13 @@
 import z from "zod";
 
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { getCalendar } from "@calcom/app-store/src/_utils/getCalendar";
+import { appStoreMetadata } from "@calcom/app-store/src/appStoreMetaData";
+import { DailyLocationType } from "@calcom/app-store/src/locations";
 import {
   type EventTypeAppMetadataSchema,
   eventTypeAppMetadataOptionalSchema,
-} from "@calcom/app-store/zod-utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+} from "@calcom/app-store/src/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/src/zod-utils";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deletePayment } from "@calcom/features/bookings/lib/payment/deletePayment";

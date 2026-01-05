@@ -5,8 +5,8 @@ import dynamic from "next/dynamic";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 
-import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
-import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
+import { getPaymentAppData } from "@calcom/app-store/src/_utils/payments/getPaymentAppData";
+import { getSuccessPageLocationMessage } from "@calcom/app-store/src/locations";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";

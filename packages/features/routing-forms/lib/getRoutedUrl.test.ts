@@ -4,11 +4,11 @@ import { createHash } from "node:crypto";
 import type { GetServerSidePropsContext } from "next";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
-import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
-import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
-import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
+import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/apps/routing-forms/getEventTypeRedirectUrl";
+import { getResponseToStore } from "@calcom/app-store/apps/routing-forms/lib/getResponseToStore";
+import { getSerializableForm } from "@calcom/app-store/apps/routing-forms/lib/getSerializableForm";
+import { findMatchingRoute } from "@calcom/app-store/apps/routing-forms/lib/processRoute";
+import { substituteVariables } from "@calcom/app-store/apps/routing-forms/lib/substituteVariables";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import { PrismaRoutingFormRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository";

@@ -1,5 +1,5 @@
-import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
-import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
+import { enrichFormWithMigrationData } from "@calcom/app-store/apps/routing-forms/enrichFormWithMigrationData";
+import { getSerializableForm } from "@calcom/app-store/apps/routing-forms/lib/getSerializableForm";
 import { getRoutingFormPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 

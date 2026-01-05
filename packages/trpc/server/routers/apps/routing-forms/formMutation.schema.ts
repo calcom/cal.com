@@ -1,6 +1,6 @@
 import z from "zod";
 
-import { zodFields, zodRoutes } from "@calcom/app-store/routing-forms/zod";
+import { zodFields, zodRoutes } from "@calcom/app-store/apps/routing-forms/zod";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 export const ZFormMutationInputSchema = z.object({

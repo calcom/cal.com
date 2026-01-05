@@ -3,13 +3,13 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 import { v4 } from "uuid";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
-import bookingFormHandlers from "@calcom/app-store/routing-forms/appBookingFormHandler";
+import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/src/_utils/CRMRoundRobinSkip";
+import bookingFormHandlers from "@calcom/app-store/apps/routing-forms/appBookingFormHandler";
 import {
   ROUTING_FORM_RESPONSE_ID_QUERY_STRING,
   ROUTING_FORM_QUEUED_RESPONSE_ID_QUERY_STRING,
-} from "@calcom/app-store/routing-forms/lib/constants";
-import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
+} from "@calcom/app-store/apps/routing-forms/lib/constants";
+import { RouteActionType } from "@calcom/app-store/apps/routing-forms/zod";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm";
 import { SchedulingType } from "@calcom/prisma/enums";
 

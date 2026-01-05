@@ -1,4 +1,4 @@
-import { enrichUserWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
+import { enrichUserWithDelegationCredentials } from "@calcom/app-store/src/delegationCredential";
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";

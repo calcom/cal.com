@@ -1,5 +1,5 @@
-import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import { getPaymentAppData } from "@calcom/app-store/src/_utils/payments/getPaymentAppData";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/src/zod-utils";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 
 import InstantEventController from "./InstantEventController";

@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
-import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import type { zodFields, zodRoutes } from "@calcom/app-store/routing-forms/zod";
+import { getSerializableForm } from "@calcom/app-store/apps/routing-forms/lib/getSerializableForm";
+import type { zodFields, zodRoutes } from "@calcom/app-store/apps/routing-forms/zod";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import {
   entityPrismaWhereClause,

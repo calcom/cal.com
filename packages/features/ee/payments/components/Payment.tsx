@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
-import getStripe from "@calcom/app-store/stripepayment/lib/client";
+import getStripe from "@calcom/app-store/apps/stripepayment/lib/client";
 import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";

@@ -6,11 +6,11 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 import type { z } from "zod";
 
-import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
-import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import type { LocationObject } from "@calcom/app-store/locations";
+import checkForMultiplePaymentApps from "@calcom/app-store/src/_utils/payments/checkForMultiplePaymentApps";
+import useAddAppMutation from "@calcom/app-store/src/_utils/useAddAppMutation";
+import type { LocationObject } from "@calcom/app-store/src/locations";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/src/zod-utils";
 import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";

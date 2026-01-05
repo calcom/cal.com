@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { RefCallback } from "react";
 import { useEffect, useState } from "react";
 
-import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
+import { getPremiumPlanPriceValue } from "@calcom/app-store/apps/stripepayment/lib/utils";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";

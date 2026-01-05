@@ -1,4 +1,4 @@
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getAppFromSlug } from "@calcom/app-store/src/utils";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { AppCategories } from "@calcom/prisma/enums";

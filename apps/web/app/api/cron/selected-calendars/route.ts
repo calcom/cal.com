@@ -6,8 +6,8 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { findUniqueDelegationCalendarCredential } from "@calcom/app-store/delegationCredential";
-import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
+import { findUniqueDelegationCalendarCredential } from "@calcom/app-store/src/delegationCredential";
+import GoogleCalendarService from "@calcom/app-store/apps/googlecalendar/lib/CalendarService";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { CalendarAppDelegationCredentialInvalidGrantError } from "@calcom/lib/CalendarAppError";
 import { HttpError } from "@calcom/lib/http-error";

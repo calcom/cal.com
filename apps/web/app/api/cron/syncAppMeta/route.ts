@@ -2,7 +2,7 @@ import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
+import { getAppWithMetadata } from "@calcom/app-store/src/_appRegistry";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { AppCategories, Prisma } from "@calcom/prisma/client";

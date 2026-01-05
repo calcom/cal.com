@@ -1,4 +1,4 @@
-import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
+import type { TGetTranscriptAccessLink } from "@calcom/app-store/apps/dailyvideo/zod";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";

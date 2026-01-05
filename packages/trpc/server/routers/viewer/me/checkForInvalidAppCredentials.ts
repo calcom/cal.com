@@ -1,4 +1,4 @@
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getAppFromSlug } from "@calcom/app-store/src/utils";
 import { type InvalidAppCredentialBannerProps } from "@calcom/features/users/types/invalidAppCredentials";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";

@@ -1,4 +1,4 @@
-import getConnectedForms from "@calcom/app-store/routing-forms/lib/getConnectedForms";
+import getConnectedForms from "@calcom/app-store/apps/routing-forms/lib/getConnectedForms";
 import { entityPrismaWhereClause } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";

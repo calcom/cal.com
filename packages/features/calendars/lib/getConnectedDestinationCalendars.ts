@@ -1,4 +1,4 @@
-import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/src/delegationCredential";
 import {
   getCalendarCredentials,
   getConnectedCalendars,

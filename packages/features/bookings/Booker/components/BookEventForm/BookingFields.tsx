@@ -2,9 +2,9 @@ import { useMemo, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 
-import type { LocationObject } from "@calcom/app-store/locations";
-import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
-import { DefaultEventLocationTypeEnum } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store/src/locations";
+import { getOrganizerInputLocationTypes } from "@calcom/app-store/src/locations";
+import { DefaultEventLocationTypeEnum } from "@calcom/app-store/src/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";

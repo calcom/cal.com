@@ -1,7 +1,7 @@
 import type { BaseWidget } from "react-awesome-query-builder";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
+import { RouteActionType } from "@calcom/app-store/apps/routing-forms/zod";
 import * as getAttributesModule from "@calcom/features/attributes/lib/getAttributes";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import type { AttributeType } from "@calcom/prisma/enums";

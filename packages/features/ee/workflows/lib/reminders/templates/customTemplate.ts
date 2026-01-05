@@ -1,5 +1,5 @@
-import { guessEventLocationType } from "@calcom/app-store/locations";
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
+import { guessEventLocationType } from "@calcom/app-store/src/locations";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/apps/routing-forms/lib/formSubmissionUtils";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { APP_NAME } from "@calcom/lib/constants";

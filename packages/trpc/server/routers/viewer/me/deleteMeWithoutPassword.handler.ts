@@ -1,4 +1,4 @@
-import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
+import { deleteStripeCustomer } from "@calcom/app-store/apps/stripepayment/lib/customer";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";

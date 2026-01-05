@@ -3,7 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useReducer, useState } from "react";
 
-import AccountDialog from "@calcom/app-store/office365video/components/AccountDialog";
+import AccountDialog from "@calcom/app-store/apps/office365video/components/AccountDialog";
 import { AppList } from "@calcom/features/apps/components/AppList";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";

@@ -1,4 +1,4 @@
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/src/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import type { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";

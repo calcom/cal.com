@@ -3,9 +3,9 @@ import { cloneDeep } from "lodash";
 import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
-} from "@calcom/app-store/delegationCredential";
-import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
+} from "@calcom/app-store/src/delegationCredential";
+import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/src/locations";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/src/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
   sendReassignedEmailsAndSMS,

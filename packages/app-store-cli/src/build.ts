@@ -7,7 +7,7 @@ import path from "node:path"
 import type { AppMeta } from "@calcom/types/App";
 import { AppMetaSchema } from "@calcom/types/AppMetaSchema";
 
-import { APP_STORE_PATH } from "./constants";
+import { APP_STORE_PATH, APPS_PATH, GENERATED_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";
 
 const isInWatchMode = process.argv[2] === "--watch";
@@ -51,10 +51,10 @@ function generateFiles() {
   const crmOutput = [];
   const appDirs: { name: string; path: string }[] = [];
 
-  fs.readdirSync(`${APP_STORE_PATH}`).forEach((dir) => {
+  fs.readdirSync(`${APPS_PATH}`).forEach((dir) => {
     if (dir === "ee" || dir === "templates") {
-      fs.readdirSync(path.join(APP_STORE_PATH, dir)).forEach((subDir) => {
-        if (fs.statSync(path.join(APP_STORE_PATH, dir, subDir)).isDirectory()) {
+      fs.readdirSync(path.join(APPS_PATH, dir)).forEach((subDir) => {
+        if (fs.statSync(path.join(APPS_PATH, dir, subDir)).isDirectory()) {
           if (getAppName(subDir)) {
             appDirs.push({
               name: subDir,
@@ -64,7 +64,7 @@ function generateFiles() {
         }
       });
     } else {
-      if (fs.statSync(path.join(APP_STORE_PATH, dir)).isDirectory()) {
+      if (fs.statSync(path.join(APPS_PATH, dir)).isDirectory()) {
         if (!getAppName(dir)) {
           return;
         }
@@ -82,12 +82,12 @@ function generateFiles() {
   ) {
     for (let i = 0; i < appDirs.length; i++) {
       const configPath = path.join(
-        APP_STORE_PATH,
+        APPS_PATH,
         appDirs[i].path,
         "config.json"
       );
       const metadataPath = path.join(
-        APP_STORE_PATH,
+        APPS_PATH,
         appDirs[i].path,
         "_metadata.ts"
       );
@@ -100,7 +100,7 @@ function generateFiles() {
           app = AppMetaSchema.parse(parsedConfig);
         } catch (error) {
           const prefix = `Config error in ${path.join(
-            APP_STORE_PATH,
+            APPS_PATH,
             appDirs[i].path,
             "config.json"
           )}`;
@@ -133,9 +133,11 @@ function generateFiles() {
    * Windows has paths with backslashes, so we need to replace them with forward slashes
    * .ts and .tsx files are imported without extensions
    * If a file has index.ts or index.tsx, it can be imported after removing the index.ts* part
+   * Apps are now in the apps/ subfolder, and generated files are in generated/
+   * So we need to use ../apps/ to go up from generated/ to app-store/ then into apps/
    */
-  function getModulePath(path: string, moduleName: string) {
-    return `./${path.replace(/\\/g, "/")}/${moduleName
+  function getModulePath(appPath: string, moduleName: string) {
+    return `../apps/${appPath.replace(/\\/g, "/")}/${moduleName
       .replace(/\/index\.ts|\/index\.tsx/, "")
       .replace(/\.tsx$|\.ts$/, "")}`;
   }
@@ -187,7 +189,7 @@ function generateFiles() {
       chosenConfig: ReturnType<typeof getChosenImportConfig>
     ) =>
       fs.existsSync(
-        path.join(APP_STORE_PATH, app.path, chosenConfig.fileToBeImported)
+        path.join(APPS_PATH, app.path, chosenConfig.fileToBeImported)
       );
 
     addImportStatements();
@@ -278,7 +280,7 @@ function generateFiles() {
         if (
           fs.existsSync(
             path.join(
-              APP_STORE_PATH,
+              APPS_PATH,
               app.path,
               importConfig[0].fileToBeImported
             )
@@ -458,7 +460,7 @@ function generateFiles() {
     },
     (app: App) => {
       const hasAnalyticsService = fs.existsSync(
-        path.join(APP_STORE_PATH, app.path, "lib/AnalyticsService.ts")
+        path.join(APPS_PATH, app.path, "lib/AnalyticsService.ts")
       );
       return hasAnalyticsService;
     }
@@ -498,7 +500,7 @@ function generateFiles() {
     },
     (app: App) => {
       const hasPaymentService = fs.existsSync(
-        path.join(APP_STORE_PATH, app.path, "lib/PaymentService.ts")
+        path.join(APPS_PATH, app.path, "lib/PaymentService.ts")
       );
       return hasPaymentService;
     }
@@ -518,7 +520,7 @@ function generateFiles() {
     },
     (app: App) => {
       return fs.existsSync(
-        path.join(APP_STORE_PATH, app.path, "lib/VideoApiAdapter.ts")
+        path.join(APPS_PATH, app.path, "lib/VideoApiAdapter.ts")
       );
     }
   );
@@ -561,7 +563,7 @@ function generateFiles() {
     ["video.adapters.generated.ts", videoOutput],
   ];
   filesToGenerate.forEach(([fileName, output]) => {
-    const filePath = `${APP_STORE_PATH}/${fileName}`;
+    const filePath = `${GENERATED_PATH}/${fileName}`;
     fs.writeFileSync(filePath, formatOutput(`${banner}${output.join("\n")}`));
     formatFileWithBiome(filePath);
   });
@@ -574,7 +576,7 @@ const debouncedGenerateFiles = debounce(generateFiles);
 
 if (isInWatchMode) {
   chokidar
-    .watch(APP_STORE_PATH)
+    .watch(APPS_PATH)
     .on("addDir", (dirPath) => {
       const appName = getAppName(dirPath);
       if (appName) {

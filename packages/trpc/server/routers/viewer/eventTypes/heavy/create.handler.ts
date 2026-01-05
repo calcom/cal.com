@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
-import { getDefaultLocations } from "@calcom/app-store/_utils/getDefaultLocations";
-import { DailyLocationType } from "@calcom/app-store/constants";
+import { getDefaultLocations } from "@calcom/app-store/src/_utils/getDefaultLocations";
+import { DailyLocationType } from "@calcom/app-store/src/constants";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";

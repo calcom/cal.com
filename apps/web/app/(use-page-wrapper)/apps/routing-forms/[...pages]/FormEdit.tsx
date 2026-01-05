@@ -6,8 +6,8 @@ import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
-import { FieldTypes } from "@calcom/app-store/routing-forms/lib/FieldTypes";
-import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import { FieldTypes } from "@calcom/app-store/apps/routing-forms/lib/FieldTypes";
+import type { RoutingFormWithResponseCount } from "@calcom/app-store/apps/routing-forms/types/types";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";

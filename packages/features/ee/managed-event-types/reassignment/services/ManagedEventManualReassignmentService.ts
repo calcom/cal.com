@@ -1,4 +1,4 @@
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/src/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
   sendReassignedEmailsAndSMS,

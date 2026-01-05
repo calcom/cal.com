@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import type { EventLocationType } from "@calcom/app-store/locations";
-import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import type { EventLocationType } from "@calcom/app-store/src/locations";
+import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/src/zod-utils";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";

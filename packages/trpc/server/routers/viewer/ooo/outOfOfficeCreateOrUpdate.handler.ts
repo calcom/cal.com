@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
-import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
+import { selectOOOEntries } from "@calcom/app-store/apps/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails/workflow-email-service";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";

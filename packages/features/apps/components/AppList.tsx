@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
 
-import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
-import { AppSettings } from "@calcom/app-store/_components/AppSettings";
-import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
+import { InstallAppButton } from "@calcom/app-store/src/InstallAppButton";
+import { AppSettings } from "@calcom/app-store/src/_components/AppSettings";
+import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/src/locations";
 import type { AppCardApp } from "@calcom/app-store/types";
 import AppListCard from "@calcom/features/apps/components/AppListCard";
 import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";

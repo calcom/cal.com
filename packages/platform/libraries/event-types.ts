@@ -2,7 +2,7 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 
 export { getPublicEvent, type PublicEventType } from "@calcom/features/eventtypes/lib/getPublicEvent";
 
-export { getBulkUserEventTypes, getBulkTeamEventTypes } from "@calcom/app-store/_utils/getBulkEventTypes";
+export { getBulkUserEventTypes, getBulkTeamEventTypes } from "@calcom/app-store/src/_utils/getBulkEventTypes";
 
 export { createHandler as createEventType } from "@calcom/trpc/server/routers/viewer/eventTypes/heavy/create.handler";
 export { updateHandler as updateEventType } from "@calcom/trpc/server/routers/viewer/eventTypes/heavy/update.handler";
@@ -29,5 +29,5 @@ export type { EventTypesByViewer } from "@calcom/features/eventtypes/lib/getEven
 export type { UpdateEventTypeReturn } from "@calcom/trpc/server/routers/viewer/eventTypes/heavy/update.handler";
 export { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 
-export { bulkUpdateEventsToDefaultLocation } from "@calcom/app-store/_utils/bulkUpdateEventsToDefaultLocation";
-export { bulkUpdateTeamEventsToDefaultLocation } from "@calcom/app-store/_utils/bulkUpdateTeamEventsToDefaultLocation";
+export { bulkUpdateEventsToDefaultLocation } from "@calcom/app-store/src/_utils/bulkUpdateEventsToDefaultLocation";
+export { bulkUpdateTeamEventsToDefaultLocation } from "@calcom/app-store/src/_utils/bulkUpdateTeamEventsToDefaultLocation";

@@ -1,4 +1,4 @@
-import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
+import { getSerializableForm } from "@calcom/app-store/apps/routing-forms/lib/getSerializableForm";
 import { entityPrismaWhereClause } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";

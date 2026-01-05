@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 import React from "react";
 
-import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
+import AppCategoryNavigation from "@calcom/app-store/src/_components/AppCategoryNavigation";
 
 import Shell from "~/shell/Shell";
 

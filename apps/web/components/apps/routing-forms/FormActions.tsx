@@ -3,7 +3,7 @@ import { createContext, forwardRef, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
-import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
+import getFieldIdentifier from "@calcom/app-store/apps/routing-forms/lib/getFieldIdentifier";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { dataTableQueryParamsSerializer } from "@calcom/features/data-table/lib/serializers";
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";

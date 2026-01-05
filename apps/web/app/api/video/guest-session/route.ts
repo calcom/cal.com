@@ -6,7 +6,7 @@ import { z } from "zod";
 import {
   generateGuestMeetingTokenFromOwnerMeetingToken,
   updateMeetingTokenIfExpired,
-} from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+} from "@calcom/app-store/apps/dailyvideo/lib/VideoApiAdapter";
 import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";

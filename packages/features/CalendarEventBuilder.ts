@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 
-import { ALL_APPS } from "@calcom/app-store/utils";
+import { ALL_APPS } from "@calcom/app-store/src/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";

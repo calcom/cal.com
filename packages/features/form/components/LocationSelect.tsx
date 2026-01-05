@@ -1,7 +1,7 @@
 import type { GroupBase, Props, SingleValue } from "react-select";
 import { components } from "react-select";
 
-import type { EventLocationType } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/src/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { Select } from "@calcom/ui/components/form";

@@ -13,8 +13,8 @@ import { NextRequest } from "next/server";
 import { createMocks } from "node-mocks-http";
 import { describe, afterEach, test, vi, beforeEach, beforeAll, expect } from "vitest";
 
-import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
-import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
+import { appStoreMetadata } from "@calcom/app-store/generated/apps.metadata.generated";
+import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/apps/dailyvideo/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";

@@ -1,8 +1,8 @@
 import { sortBy } from "lodash";
 
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { MeetLocationType } from "@calcom/app-store/locations";
-import getApps from "@calcom/app-store/utils";
+import { getCalendar } from "@calcom/app-store/src/_utils/getCalendar";
+import { MeetLocationType } from "@calcom/app-store/src/locations";
+import getApps from "@calcom/app-store/src/utils";
 import dayjs from "@calcom/dayjs";
 import getCalendarsEvents, {
   getCalendarsEventsWithTimezones,

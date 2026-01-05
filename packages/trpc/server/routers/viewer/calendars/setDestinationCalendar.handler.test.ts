@@ -1,6 +1,6 @@
 import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/src/delegationCredential";
 import { getConnectedCalendars } from "@calcom/features/calendars/lib/CalendarManager";
 import { DestinationCalendarRepository } from "@calcom/features/calendars/repositories/DestinationCalendarRepository";
 

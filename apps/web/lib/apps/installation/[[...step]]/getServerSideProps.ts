@@ -1,10 +1,10 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import { filterEventTypesWhereLocationUpdateIsAllowed } from "@calcom/app-store/_utils/getBulkEventTypes";
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import type { LocationObject } from "@calcom/app-store/locations";
-import { isConferencing as isConferencingApp } from "@calcom/app-store/utils";
+import { filterEventTypesWhereLocationUpdateIsAllowed } from "@calcom/app-store/src/_utils/getBulkEventTypes";
+import { appStoreMetadata } from "@calcom/app-store/src/appStoreMetaData";
+import type { LocationObject } from "@calcom/app-store/src/locations";
+import { isConferencing as isConferencingApp } from "@calcom/app-store/src/utils";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";

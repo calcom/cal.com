@@ -1,4 +1,4 @@
-import { getAppRegistry } from "@calcom/app-store/_appRegistry";
+import { getAppRegistry } from "@calcom/app-store/src/_appRegistry";
 import prisma from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/enums";
 

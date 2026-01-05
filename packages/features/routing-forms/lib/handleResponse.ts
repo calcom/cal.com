@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-import routerGetCrmContactOwnerEmail from "@calcom/app-store/routing-forms/lib/crmRouting/routerGetCrmContactOwnerEmail";
+import routerGetCrmContactOwnerEmail from "@calcom/app-store/apps/routing-forms/lib/crmRouting/routerGetCrmContactOwnerEmail";
 import {
   onSubmissionOfFormResponse,
   type TargetRoutingFormForResponse,
-} from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
-import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
+} from "@calcom/app-store/apps/routing-forms/lib/formSubmissionUtils";
+import isRouter from "@calcom/app-store/apps/routing-forms/lib/isRouter";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";

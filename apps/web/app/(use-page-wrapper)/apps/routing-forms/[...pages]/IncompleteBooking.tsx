@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import type z from "zod";
 
-import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import { WhenToWriteToRecord, SalesforceFieldType } from "@calcom/app-store/salesforce/lib/enums";
-import type { writeToRecordDataSchema as salesforceWriteToRecordDataSchema } from "@calcom/app-store/salesforce/zod";
-import { routingFormIncompleteBookingDataSchema as salesforceRoutingFormIncompleteBookingDataSchema } from "@calcom/app-store/salesforce/zod";
+import type { RoutingFormWithResponseCount } from "@calcom/app-store/apps/routing-forms/types/types";
+import { WhenToWriteToRecord, SalesforceFieldType } from "@calcom/app-store/apps/salesforce/lib/enums";
+import type { writeToRecordDataSchema as salesforceWriteToRecordDataSchema } from "@calcom/app-store/apps/salesforce/zod";
+import { routingFormIncompleteBookingDataSchema as salesforceRoutingFormIncompleteBookingDataSchema } from "@calcom/app-store/apps/salesforce/zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IncompleteBookingActionType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";

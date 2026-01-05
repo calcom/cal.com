@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
-import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
+import { createPaymentLink } from "@calcom/app-store/apps/stripepayment/lib/client";
 import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";

@@ -1,4 +1,4 @@
-import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/app-store/src/_utils/payments/getPaymentAppData";
 import dayjs from "@calcom/dayjs";
 import { handlePaymentRefund } from "@calcom/features/bookings/lib/payment/handlePaymentRefund";
 import { RefundPolicy } from "@calcom/lib/payment/types";

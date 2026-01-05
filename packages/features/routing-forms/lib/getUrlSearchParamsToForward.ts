@@ -1,6 +1,6 @@
-import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "@calcom/app-store/routing-forms/lib/constants";
-import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
-import type { FormResponse, LocalRoute } from "@calcom/app-store/routing-forms/types/types";
+import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "@calcom/app-store/apps/routing-forms/lib/constants";
+import getFieldIdentifier from "@calcom/app-store/apps/routing-forms/lib/getFieldIdentifier";
+import type { FormResponse, LocalRoute } from "@calcom/app-store/apps/routing-forms/types/types";
 
 type FormResponseValueOnly = { [key: string]: { value: FormResponse[keyof FormResponse]["value"] } };
 

@@ -4,9 +4,9 @@ import { useRouter } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 import { Toaster } from "sonner";
 
-import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
-import { albyCredentialKeysSchema } from "@calcom/app-store/alby/lib/albyCredentialKeysSchema";
-import type { IAlbySetupProps } from "@calcom/app-store/alby/pages/setup/_getServerSideProps";
+import AppNotInstalledMessage from "@calcom/app-store/src/_components/AppNotInstalledMessage";
+import { albyCredentialKeysSchema } from "@calcom/app-store/apps/alby/lib/albyCredentialKeysSchema";
+import type { IAlbySetupProps } from "@calcom/app-store/apps/alby/pages/setup/_getServerSideProps";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";

@@ -1,5 +1,5 @@
-import { DailyLocationType } from "@calcom/app-store/constants";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import { DailyLocationType } from "@calcom/app-store/src/constants";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/src/zod-utils";
 import slugify from "@calcom/lib/slugify";
 import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";

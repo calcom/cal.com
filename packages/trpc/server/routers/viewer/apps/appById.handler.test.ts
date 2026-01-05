@@ -20,10 +20,10 @@ vi.mock("@calcom/app-store/utils", () => ({
   }),
 }));
 
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
-import getApps, { sanitizeAppForViewer } from "@calcom/app-store/utils";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/src/delegationCredential";
+import getApps, { sanitizeAppForViewer } from "@calcom/app-store/src/utils";
 
-import type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
+import type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/src/utils";
 import type { App } from "@calcom/types/App";
 
 describe("appByIdHandler", () => {

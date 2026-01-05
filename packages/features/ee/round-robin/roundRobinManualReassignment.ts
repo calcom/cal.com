@@ -1,7 +1,7 @@
 import { cloneDeep } from "lodash";
 
-import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/src/delegationCredential";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/src/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
   sendReassignedEmailsAndSMS,

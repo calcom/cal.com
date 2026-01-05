@@ -33,8 +33,8 @@ import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect, beforeEach } from "vitest";
 
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
+import { appStoreMetadata } from "@calcom/app-store/src/appStoreMetaData";
+import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/src/locations";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { contructEmailFromPhoneNumber } from "@calcom/lib/contructEmailFromPhoneNumber";
 import { ErrorCode } from "@calcom/lib/errorCodes";

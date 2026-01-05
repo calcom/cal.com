@@ -8,12 +8,12 @@ import type { z } from "zod";
 
 import FormInputFields, {
   FormInputFieldsSkeleton,
-} from "@calcom/app-store/routing-forms/components/FormInputFields";
-import { getAbsoluteEventTypeRedirectUrl } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
-import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
-import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import type { FormResponse, LocalRoute } from "@calcom/app-store/routing-forms/types/types";
-import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
+} from "@calcom/app-store/apps/routing-forms/components/FormInputFields";
+import { getAbsoluteEventTypeRedirectUrl } from "@calcom/app-store/apps/routing-forms/getEventTypeRedirectUrl";
+import { findMatchingRoute } from "@calcom/app-store/apps/routing-forms/lib/processRoute";
+import { substituteVariables } from "@calcom/app-store/apps/routing-forms/lib/substituteVariables";
+import type { FormResponse, LocalRoute } from "@calcom/app-store/apps/routing-forms/types/types";
+import { RouteActionType } from "@calcom/app-store/apps/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { useBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
 import { createBooking } from "@calcom/features/bookings/lib/create-booking";

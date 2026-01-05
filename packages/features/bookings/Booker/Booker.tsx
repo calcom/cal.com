@@ -4,7 +4,7 @@ import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
 
-import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
+import BookingPageTagManager from "@calcom/app-store/src/BookingPageTagManager";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import dayjs from "@calcom/dayjs";
 import PoweredBy from "@calcom/ee/components/PoweredBy";

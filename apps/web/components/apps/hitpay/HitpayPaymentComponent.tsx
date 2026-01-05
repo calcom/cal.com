@@ -5,7 +5,7 @@ import qs from "qs";
 import { useEffect, useRef } from "react";
 import { z } from "zod";
 
-import { useHitPayDropIn } from "@calcom/app-store/hitpay/components/HitPayDropIn";
+import { useHitPayDropIn } from "@calcom/app-store/apps/hitpay/components/HitPayDropIn";
 
 const PaymentHitpayDataSchema = z.object({
   id: z.string(),

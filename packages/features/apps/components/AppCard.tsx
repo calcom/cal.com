@@ -4,10 +4,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import posthog from "posthog-js";
 
-import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
-import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
-import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
+import { InstallAppButton } from "@calcom/app-store/src/InstallAppButton";
+import { isRedirectApp } from "@calcom/app-store/src/_utils/redirectApps";
+import useAddAppMutation from "@calcom/app-store/src/_utils/useAddAppMutation";
+import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/src/utils";
 import type { UserAdminTeams } from "@calcom/features/users/repositories/UserRepository";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";

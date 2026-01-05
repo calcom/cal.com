@@ -1,4 +1,4 @@
-import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
+import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/src/delegationCredential";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";

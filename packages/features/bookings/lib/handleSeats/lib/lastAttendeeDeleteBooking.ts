@@ -1,7 +1,7 @@
  
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
-import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-store/delegationCredential";
+import { getCalendar } from "@calcom/app-store/src/_utils/getCalendar";
+import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/app-store/src/delegationCredential";
+import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-store/src/delegationCredential";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import prisma from "@calcom/prisma";
 import type { Attendee } from "@calcom/prisma/client";

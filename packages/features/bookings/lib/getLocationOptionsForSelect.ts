@@ -1,7 +1,7 @@
-import type { LocationObject } from "@calcom/app-store/locations";
-import { locationKeyToString } from "@calcom/app-store/locations";
-import { getEventLocationType } from "@calcom/app-store/locations";
-import { getTranslatedLocation } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store/src/locations";
+import { locationKeyToString } from "@calcom/app-store/src/locations";
+import { getEventLocationType } from "@calcom/app-store/src/locations";
+import { getTranslatedLocation } from "@calcom/app-store/src/locations";
 import type { useLocale } from "@calcom/lib/hooks/useLocale";
 import notEmpty from "@calcom/lib/notEmpty";
 

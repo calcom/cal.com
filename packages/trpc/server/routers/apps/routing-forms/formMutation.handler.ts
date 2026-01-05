@@ -1,10 +1,10 @@
-import { createFallbackRoute } from "@calcom/app-store/routing-forms/lib/createFallbackRoute";
-import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
-import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
-import isRouterLinkedField from "@calcom/app-store/routing-forms/lib/isRouterLinkedField";
-import type { SerializableForm } from "@calcom/app-store/routing-forms/types/types";
-import { zodFields, zodRouterRoute, zodRoutes } from "@calcom/app-store/routing-forms/zod";
+import { createFallbackRoute } from "@calcom/app-store/apps/routing-forms/lib/createFallbackRoute";
+import { getSerializableForm } from "@calcom/app-store/apps/routing-forms/lib/getSerializableForm";
+import { isFallbackRoute } from "@calcom/app-store/apps/routing-forms/lib/isFallbackRoute";
+import isRouter from "@calcom/app-store/apps/routing-forms/lib/isRouter";
+import isRouterLinkedField from "@calcom/app-store/apps/routing-forms/lib/isRouterLinkedField";
+import type { SerializableForm } from "@calcom/app-store/apps/routing-forms/types/types";
+import { zodFields, zodRouterRoute, zodRoutes } from "@calcom/app-store/apps/routing-forms/zod";
 import {
   entityPrismaWhereClause,
   canEditEntity,

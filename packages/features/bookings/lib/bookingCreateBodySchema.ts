@@ -1,7 +1,7 @@
 // `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
 import z from "zod";
 
-import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
+import { routingFormResponseInDbSchema } from "@calcom/app-store/apps/routing-forms/zod";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { CreationSource } from "@calcom/prisma/enums";
 

@@ -5,7 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 import z from "zod";
 
-import { ExchangeAuthentication, ExchangeVersion } from "@calcom/app-store/exchangecalendar/enums";
+import { ExchangeAuthentication, ExchangeVersion } from "@calcom/app-store/apps/exchangecalendar/enums";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";

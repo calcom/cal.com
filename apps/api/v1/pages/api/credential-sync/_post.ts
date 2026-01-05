@@ -1,8 +1,8 @@
 import type { NextApiRequest } from "next";
 
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { OAuth2UniversalSchema } from "@calcom/app-store/_utils/oauth/universalSchema";
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { getCalendar } from "@calcom/app-store/src/_utils/getCalendar";
+import { OAuth2UniversalSchema } from "@calcom/app-store/src/_utils/oauth/universalSchema";
+import { appStoreMetadata } from "@calcom/app-store/src/appStoreMetaData";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";

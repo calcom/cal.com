@@ -1,4 +1,4 @@
-import { getCredentialForSelectedCalendar } from "@calcom/app-store/delegationCredential";
+import { getCredentialForSelectedCalendar } from "@calcom/app-store/src/delegationCredential";
 import type {
   AdapterFactory,
   CalendarSubscriptionProvider,

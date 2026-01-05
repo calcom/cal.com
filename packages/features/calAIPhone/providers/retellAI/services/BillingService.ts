@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
-import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/stripepayment/lib/utils";
+import { getStripeCustomerIdFromUserId } from "@calcom/app-store/apps/stripepayment/lib/customer";
+import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/apps/stripepayment/lib/utils";
 import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
