@@ -1,10 +1,10 @@
 import ImpersonatingBanner, {
   type ImpersonatingBannerProps,
-} from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
+} from "~/ee/impersonation/components/ImpersonatingBanner";
 import {
   OrgUpgradeBanner,
   type OrgUpgradeBannerProps,
-} from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
+} from "~/ee/organizations/components/OrgUpgradeBanner";
 import {
   TeamsUpgradeBanner,
   type TeamsUpgradeBannerProps,
