@@ -2,10 +2,14 @@ name: "Next.js Bundle Analysis"
 
 on:
   workflow_call:
+    outputs:
+      shared-bundle-increase-percent:
+        description: "Percentage increase in First Load JS shared by all"
+        value: ${{ jobs.analyze.outputs.shared-bundle-increase-percent }}
+      shared-bundle-check-passed:
+        description: "Whether the shared bundle size check passed (increase < 10%)"
+        value: ${{ jobs.analyze.outputs.shared-bundle-check-passed }}
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 permissions:
   actions: write
@@ -51,6 +55,9 @@ jobs:
     if: always()
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
+    outputs:
+      shared-bundle-increase-percent: ${{ steps.compare.outputs.increase-percent }}
+      shared-bundle-check-passed: ${{ steps.compare.outputs.check-passed }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
@@ -67,3 +74,116 @@ jobs:
         with:
           name: bundle
           path: apps/web/.next/analyze/__bundle_analysis.json
+
+      - name: Download base branch bundle stats
+        uses: dawidd6/action-download-artifact@v6
+        if: success() && github.event.pull_request
+        id: download-base
+        continue-on-error: true
+        with:
+          workflow: nextjs-bundle-analysis.yml
+          # Try to get artifact from the exact base commit first, fall back to branch
+          commit: ${{ github.event.pull_request.base.sha }}
+          name: bundle
+          path: apps/web/.next/analyze/base
+          if_no_artifact_found: warn
+
+      - name: Download base branch bundle stats (fallback to branch)
+        uses: dawidd6/action-download-artifact@v6
+        if: success() && github.event.pull_request && steps.download-base.outcome == 'failure'
+        id: download-base-fallback
+        continue-on-error: true
+        with:
+          workflow: nextjs-bundle-analysis.yml
+          branch: ${{ github.event.pull_request.base.ref }}
+          name: bundle
+          path: apps/web/.next/analyze/base
+          if_no_artifact_found: warn
+
+      - name: Compare bundle sizes
+        id: compare
+        if: always()
+        run: |
+          cd apps/web/.next/analyze
+
+          # Read current bundle stats
+          if [ ! -f "__bundle_analysis.json" ]; then
+            echo "::error::Current bundle analysis not found"
+            echo "check-passed=false" >> $GITHUB_OUTPUT
+            echo "increase-percent=0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          CURRENT_SHARED=$(cat __bundle_analysis.json | jq -r '.__global.gzip // 0')
+          echo "Current shared bundle (gzip): $CURRENT_SHARED bytes"
+
+          # Check if base bundle exists
+          if [ ! -f "base/__bundle_analysis.json" ]; then
+            echo "::notice::No base bundle found for comparison. Skipping size check."
+            echo "check-passed=true" >> $GITHUB_OUTPUT
+            echo "increase-percent=0" >> $GITHUB_OUTPUT
+
+            # Write summary
+            echo "## Bundle Analysis" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**First Load JS shared by all:** $(echo "scale=2; $CURRENT_SHARED / 1024" | bc) KB (gzip)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "> No base branch bundle found for comparison." >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
+          BASE_SHARED=$(cat base/__bundle_analysis.json | jq -r '.__global.gzip // 0')
+          echo "Base shared bundle (gzip): $BASE_SHARED bytes"
+
+          # Calculate percentage change
+          if [ "$BASE_SHARED" -eq 0 ]; then
+            echo "::warning::Base shared bundle is 0, cannot calculate percentage"
+            PERCENT_CHANGE=0
+          else
+            PERCENT_CHANGE=$(echo "scale=4; (($CURRENT_SHARED - $BASE_SHARED) / $BASE_SHARED) * 100" | bc)
+          fi
+
+          echo "Percentage change: $PERCENT_CHANGE%"
+          echo "increase-percent=$PERCENT_CHANGE" >> $GITHUB_OUTPUT
+
+          # Check if increase is >= 10%
+          THRESHOLD=10
+          CHECK_FAILED=$(echo "$PERCENT_CHANGE >= $THRESHOLD" | bc -l)
+
+          if [ "$CHECK_FAILED" -eq 1 ]; then
+            echo "check-passed=false" >> $GITHUB_OUTPUT
+            STATUS_EMOJI="🔴"
+            STATUS_TEXT="FAILED"
+          else
+            echo "check-passed=true" >> $GITHUB_OUTPUT
+            STATUS_EMOJI="✅"
+            STATUS_TEXT="PASSED"
+          fi
+
+          # Calculate sizes in KB
+          CURRENT_KB=$(echo "scale=2; $CURRENT_SHARED / 1024" | bc)
+          BASE_KB=$(echo "scale=2; $BASE_SHARED / 1024" | bc)
+          DIFF_BYTES=$((CURRENT_SHARED - BASE_SHARED))
+          DIFF_KB=$(echo "scale=2; $DIFF_BYTES / 1024" | bc)
+
+          # Determine change indicator
+          if [ "$DIFF_BYTES" -gt 0 ]; then
+            CHANGE_INDICATOR="📈 +${DIFF_KB} KB (+${PERCENT_CHANGE}%)"
+          elif [ "$DIFF_BYTES" -lt 0 ]; then
+            CHANGE_INDICATOR="📉 ${DIFF_KB} KB (${PERCENT_CHANGE}%)"
+          else
+            CHANGE_INDICATOR="No change"
+          fi
+
+          # Write summary
+          echo "## Bundle Analysis $STATUS_EMOJI" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Base | Current | Change |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|------|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| First Load JS shared by all (gzip) | ${BASE_KB} KB | ${CURRENT_KB} KB | ${CHANGE_INDICATOR} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "$CHECK_FAILED" -eq 1 ]; then
+            echo "**Status:** $STATUS_TEXT - Shared bundle increased by ${PERCENT_CHANGE}% (threshold: ${THRESHOLD}%)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status:** $STATUS_TEXT" >> $GITHUB_STEP_SUMMARY
+          fi

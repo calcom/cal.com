@@ -433,6 +433,7 @@ jobs:
         e2e-embed,
         e2e-embed-react,
         e2e-app-store,
+        analyze,
       ]
     if: always()
     runs-on: blacksmith-2vcpu-ubuntu-2404
@@ -448,6 +449,12 @@ jobs:
           echo "A maintainer must review the code and add the 'run-ci' label to trigger CI checks."
           exit 1
         if: needs.trust-check.outputs.is-trusted != 'true' && needs.trust-check.result == 'success'
+      - name: Fail if bundle size increased too much
+        run: |
+          echo "::error::Bundle analysis failed - First Load JS shared by all increased by 10% or more."
+          echo "Please review your changes and reduce the bundle size impact."
+          exit 1
+        if: needs.analyze.outputs.shared-bundle-check-passed == 'false'
       - name: Fail if conditional jobs failed
         run: exit 1
         if: |
