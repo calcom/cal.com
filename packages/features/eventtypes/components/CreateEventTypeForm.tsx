@@ -71,7 +71,7 @@ export default function CreateEventTypeForm({
               }
               containerClassName="[&>div]:gap-0"
               className="pl-0"
-              {...register("slug")}
+              value={form.watch("slug") || ""}
               onChange={(e) => {
                 form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
               }}
@@ -98,7 +98,7 @@ export default function CreateEventTypeForm({
               }
               containerClassName="[&>div]:gap-0"
               className="pl-0"
-              {...register("slug")}
+              value={form.watch("slug") || ""}
               onChange={(e) => {
                 form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
               }}
