@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "deploymentTarget": "18.0",
-      "bundleIdentifier": "com.calcom.companion",
+      "bundleIdentifier": "com.cal.companion",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
