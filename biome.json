@@ -48,9 +48,6 @@
     ]
   },
   "javascript": {
-    "parser": {
-      "unsafeParameterDecoratorsEnabled": true
-    },
     "formatter": {
       "arrowParentheses": "always",
       "bracketSpacing": true,
@@ -73,6 +70,26 @@
     }
   },
   "overrides": [
+    {
+      "includes": ["docs/api-reference/v2/openapi.json"],
+      "linter": { "enabled": false },
+      "formatter": { "enabled": false }
+    },
+    {
+      "includes": ["apps/api/v2/**/*.ts"],
+      "javascript": {
+        "parser": {
+          "unsafeParameterDecoratorsEnabled": true
+        }
+      },
+      "linter": {
+        "rules": {
+          "style": {
+            "useImportType": "off"
+          }
+        }
+      }
+    },
     {
       "includes": ["**/*.tsx"],
       "javascript": {

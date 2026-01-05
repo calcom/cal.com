@@ -11,71 +11,111 @@ import type { Request } from "express";
 import type { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
+import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
+
+type WebhookRequest = Request & { webhook: Webhook; eventType: EventType };
 
 @Injectable()
 export class IsTeamEventTypeWebhookGuard implements CanActivate {
   constructor(
-    private readonly webhooksService: WebhooksService,
+    private readonly webhooksRepository: WebhooksRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
     private readonly membershipsRepository: MembershipsRepository
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context
-      .switchToHttp()
-      .getRequest<Request & { webhook: Webhook } & { eventType: EventType }>();
+    const request = context.switchToHttp().getRequest<WebhookRequest>();
     const user = request.user as ApiAuthGuardUser;
-    const webhookId = request.params.webhookId;
-    const eventTypeId = request.params.eventTypeId;
-    const teamId = request.params.teamId;
+    const { webhookId, eventTypeId, teamId } = request.params;
 
-    if (!user) {
-      throw new ForbiddenException("IsTeamEventTypeWebhookGuard - No user associated with the request.");
-    }
+    this.validateInitialRequest(user, teamId);
 
-    if (!teamId) {
-      throw new BadRequestException("IsTeamEventTypeWebhookGuard - Team ID is required.");
-    }
-
-    const adminOrOwnerMembership = await this.membershipsRepository.getUserAdminOrOwnerTeamMembership(
-      user.id,
-      Number(teamId)
-    );
-    if (!adminOrOwnerMembership) {
-      throw new ForbiddenException(
-        `IsTeamEventTypeWebhookGuard - User (${user.id}) is not an admin or owner of team (${teamId})`
-      );
-    }
+    await this.validateTeamMembership(user.id, Number(teamId));
 
     if (eventTypeId) {
-      const eventType = await this.teamsEventTypesRepository.getTeamEventType(
+      request.eventType = await this.validateAndGetEventType(
         Number(teamId),
         Number(eventTypeId)
       );
-      if (!eventType) {
-        throw new NotFoundException(
-          `IsTeamEventTypeWebhookGuard - Event type (${eventTypeId}) not found for team (${teamId})`
-        );
-      }
-      request.eventType = eventType;
     }
 
     if (webhookId) {
-      const webhook = await this.webhooksService.getWebhookById(webhookId);
-      if (!webhook.eventTypeId) {
-        throw new BadRequestException(
-          `IsTeamEventTypeWebhookGuard - Webhook (${webhookId}) is not associated with an event type`
-        );
-      }
-      if (webhook.eventTypeId !== Number(eventTypeId)) {
-        throw new ForbiddenException(
-          `IsTeamEventTypeWebhookGuard - Webhook (${webhookId}) is not associated with event type (${eventTypeId})`
-        );
-      }
-      request.webhook = webhook;
+      request.webhook = await this.validateAndGetWebhook(
+        webhookId,
+        Number(eventTypeId)
+      );
     }
 
     return true;
+  }
+
+  private validateInitialRequest(user: ApiAuthGuardUser, teamId: string): void {
+    if (!user) {
+      throw new ForbiddenException(
+        "IsTeamEventTypeWebhookGuard - No user associated with the request."
+      );
+    }
+    if (!teamId) {
+      throw new BadRequestException(
+        "IsTeamEventTypeWebhookGuard - Team ID is required."
+      );
+    }
+  }
+
+  private async validateTeamMembership(
+    userId: number,
+    teamId: number
+  ): Promise<void> {
+    const membership =
+      await this.membershipsRepository.getUserAdminOrOwnerTeamMembership(
+        userId,
+        teamId
+      );
+    if (!membership) {
+      throw new ForbiddenException(
+        `IsTeamEventTypeWebhookGuard - User (${userId}) is not an admin/owner of team (${teamId})`
+      );
+    }
+  }
+
+  private async validateAndGetEventType(
+    teamId: number,
+    eventTypeId: number
+  ): Promise<EventType> {
+    const eventType = await this.teamsEventTypesRepository.getTeamEventType(
+      teamId,
+      eventTypeId
+    );
+    if (!eventType) {
+      throw new NotFoundException(
+        `IsTeamEventTypeWebhookGuard - Event type (${eventTypeId}) not found for team (${teamId})`
+      );
+    }
+    return eventType;
+  }
+
+  private async validateAndGetWebhook(
+    webhookId: string,
+    eventTypeId: number
+  ): Promise<Webhook> {
+    const webhook = await this.webhooksRepository.getWebhookById(webhookId);
+
+    if (!webhook) {
+      throw new NotFoundException(
+        `IsTeamEventTypeWebhookGuard - Webhook (${webhookId}) not found`
+      );
+    }
+    if (!webhook.eventTypeId) {
+      throw new BadRequestException(
+        `IsTeamEventTypeWebhookGuard - Webhook (${webhookId}) no event type`
+      );
+    }
+    if (webhook.eventTypeId !== eventTypeId) {
+      throw new ForbiddenException(
+        `IsTeamEventTypeWebhookGuard - Webhook mismatch with event type`
+      );
+    }
+
+    return webhook;
   }
 }

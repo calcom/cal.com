@@ -10,17 +10,19 @@ import { OrganizationsModule } from "../organizations/organizations.module";
 import { PrismaModule } from "../prisma/prisma.module";
 import { UsersModule } from "../users/users.module";
 import { WebhooksController } from "./controllers/webhooks.controller";
-import { IsTeamEventTypeWebhookGuard } from "./guards/is-team-event-type-webhook-guard";
 import { EventTypeWebhooksService } from "./services/event-type-webhooks.service";
 import { OAuthClientWebhooksService } from "./services/oauth-clients-webhooks.service";
 import { TeamEventTypeWebhooksService } from "./services/team-event-type-webhooks.service";
 import { UserWebhooksService } from "./services/user-webhooks.service";
 import { WebhooksService } from "./services/webhooks.service";
 import { WebhooksRepository } from "./webhooks.repository";
+import { TeamsEventTypesWebhooksController } from "@/modules/teams/event-types/controllers/teams-event-types-webhooks.controller";
+import { RedisModule } from "@/modules/redis/redis.module";
 
 @Module({
   imports: [
     PrismaModule,
+    RedisModule,
     UsersModule,
     EventTypesModule_2024_06_14,
     OAuthClientModule,
@@ -28,16 +30,20 @@ import { WebhooksRepository } from "./webhooks.repository";
     MembershipsModule,
     OAuthClientModule,
   ],
-  controllers: [WebhooksController, EventTypeWebhooksController, OAuthClientWebhooksController],
+  controllers: [
+    WebhooksController,
+    EventTypeWebhooksController,
+    OAuthClientWebhooksController,
+    TeamsEventTypesWebhooksController,
+  ],
   providers: [
+    TeamsEventTypesRepository,
     WebhooksService,
     WebhooksRepository,
     UserWebhooksService,
     EventTypeWebhooksService,
     OAuthClientWebhooksService,
     TeamEventTypeWebhooksService,
-    IsTeamEventTypeWebhookGuard,
-    TeamsEventTypesRepository,
   ],
   exports: [
     WebhooksService,
@@ -46,7 +52,6 @@ import { WebhooksRepository } from "./webhooks.repository";
     EventTypeWebhooksService,
     OAuthClientWebhooksService,
     TeamEventTypeWebhooksService,
-    IsTeamEventTypeWebhookGuard,
   ],
 })
 export class WebhooksModule {}

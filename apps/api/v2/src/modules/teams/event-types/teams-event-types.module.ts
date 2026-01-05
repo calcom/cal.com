@@ -10,12 +10,10 @@ import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/inde
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { TeamsEventTypesController } from "@/modules/teams/event-types/controllers/teams-event-types.controller";
-import { TeamsEventTypesWebhooksController } from "@/modules/teams/event-types/controllers/teams-event-types-webhooks.controller";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { WebhooksModule } from "@/modules/webhooks/webhooks.module";
 
 @Module({
   imports: [
@@ -26,7 +24,6 @@ import { WebhooksModule } from "@/modules/webhooks/webhooks.module";
     UsersModule,
     TeamsModule,
     OrganizationsConferencingModule,
-    WebhooksModule,
   ],
   providers: [
     TeamsEventTypesRepository,
@@ -38,6 +35,6 @@ import { WebhooksModule } from "@/modules/webhooks/webhooks.module";
     ConferencingRepository,
   ],
   exports: [TeamsEventTypesRepository, TeamsEventTypesService],
-  controllers: [TeamsEventTypesController, TeamsEventTypesWebhooksController],
+  controllers: [TeamsEventTypesController],
 })
 export class TeamsEventTypesModule {}
