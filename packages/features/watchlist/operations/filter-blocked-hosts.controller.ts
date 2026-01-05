@@ -30,7 +30,6 @@ export async function filterBlockedHosts<T extends HostWithEmail>(
   const watchlist = await getWatchlistFeature();
   const emails = hosts.map((h) => h.user.email);
 
-  // Batch check - single DB query for all hosts
   const globalBlockedMap = await watchlist.globalBlocking.areBlocked(emails);
 
   let orgBlockedMap: Map<string, { isBlocked: boolean }> | null = null;

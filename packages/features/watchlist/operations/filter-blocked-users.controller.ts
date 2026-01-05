@@ -46,7 +46,6 @@ export async function filterBlockedUsers<T extends UserWithEmail>(
     const watchlist = await getWatchlistFeature();
     const emails = nonLockedUsers.map((u) => u.email);
 
-    // Batch check - single DB query for all users
     const globalBlockedMap = await watchlist.globalBlocking.areBlocked(emails);
 
     let orgBlockedMap: Map<string, { isBlocked: boolean }> | null = null;
