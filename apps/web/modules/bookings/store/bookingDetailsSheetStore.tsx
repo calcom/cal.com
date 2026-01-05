@@ -178,7 +178,7 @@ const BookingDetailsSheetStoreContext = React.createContext<BookingDetailsSheetS
 
 // TODO: To Avoid this useEffect based double sync, we should return a wrapper store over Zustand and Nuqs.
 // Certain states that are stored in query params would be fully powered by Nuqs and other states would be fully powered by Zustand and the wrapper store provides a generic interface to work with both
-function useBiDirectionalSyncBetweenZustandAndNuqs({ store }: { store: BookingDetailsSheetStoreType }) {
+function useBiDirectionalSyncBetweenStoreAndUrl({ store }: { store: BookingDetailsSheetStoreType }) {
   const [selectedBookingUidFromUrl, setSelectedBookingUidToUrl] = useSelectedBookingUid();
   const [activeSegmentFromUrl, setActiveSegmentToUrl] = useActiveSegmentFromUrl();
   const isSyncedFromUrlToStoreRef = useRef(false);
@@ -243,7 +243,7 @@ export function BookingDetailsSheetStoreProvider({
     store.getState().setCapabilities(capabilities ?? null);
   }, [capabilities, store]);
 
-  useBiDirectionalSyncBetweenZustandAndNuqs({ store });
+  useBiDirectionalSyncBetweenStoreAndUrl({ store });
 
   return (
     <BookingDetailsSheetStoreContext.Provider value={store}>
