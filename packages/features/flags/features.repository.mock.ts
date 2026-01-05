@@ -6,6 +6,10 @@ export class MockFeaturesRepository implements IFeaturesRepository {
     return slug === "mock-feature";
   }
 
+  async getUserFeaturesStatus(userId: number, slugs: string[]): Promise<Record<string, boolean>> {
+    return Object.fromEntries(slugs.map((slug) => [slug, slug === "mock-feature"]));
+  }
+
   async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string) {
     return slug === "mock-feature";
   }

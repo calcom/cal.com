@@ -93,7 +93,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
     );
 
     const handleSubmit = useCallback(async () => {
-      if (!booking) return;
+      if (!booking || isSaving) return;
 
       if (guests.length === 0) {
         Alert.alert("Error", "Please add at least one guest");
@@ -110,7 +110,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
         Alert.alert("Error", "Failed to add guests. Please try again.");
         setIsSaving(false);
       }
-    }, [booking, guests, onSuccess]);
+    }, [booking, guests, onSuccess, isSaving]);
 
     // Expose submit function to parent via ref (same pattern as senior's actionHandlersRef)
     useImperativeHandle(

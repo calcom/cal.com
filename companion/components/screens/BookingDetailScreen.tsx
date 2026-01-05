@@ -52,8 +52,8 @@ const formatTime12Hour = (dateString: string): string => {
   return `${hour12}:${minStr}${period}`;
 };
 
-// Get timezone from date string
-const getTimezone = (_dateString: string): string => {
+// Get user's local timezone for display
+const getTimezone = (): string => {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return timeZone || "";
 };
@@ -434,7 +434,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const endTime = booking.end || booking.endTime || "";
   const dateFormatted = formatDateFull(startTime);
   const timeFormatted = `${formatTime12Hour(startTime)} - ${formatTime12Hour(endTime)}`;
-  const timezone = getTimezone(startTime);
+  const timezone = getTimezone();
   const locationProvider = getLocationProvider(booking.location, booking.responses);
 
   return (
@@ -607,8 +607,9 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
           {booking.recurringEventId ||
           (booking as { recurringBookingUid?: string }).recurringBookingUid ? (
             <View className="mb-2 rounded-2xl bg-white p-6">
-              <Text className="mb-2 text-base font-medium text-[#666]">Recurring Event</Text>
-              <Text className="text-base text-[#666]">Every 2 weeks for 6 occurrences</Text>
+              <Text className="text-base font-medium text-[#666]">
+                This is part of a recurring event
+              </Text>
             </View>
           ) : null}
 

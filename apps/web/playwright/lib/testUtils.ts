@@ -1,9 +1,9 @@
 import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { createHash } from "crypto";
-import EventEmitter from "events";
-import type { IncomingMessage, ServerResponse } from "http";
-import { createServer } from "http";
+import { createHash } from "node:crypto";
+import EventEmitter from "node:events";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import { createServer } from "node:http";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 import { v4 as uuid } from "uuid";
