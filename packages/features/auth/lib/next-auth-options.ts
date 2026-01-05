@@ -335,6 +335,13 @@ if (isSAMLLoginEnabled) {
       };
     }) => {
       log.debug("BoxyHQ:profile", safeStringify({ profile }));
+      if (!profile.email) {
+        log.warn("saml:profile - email missing from IdP response", {
+          hasFirstName: !!profile.firstName,
+          hasLastName: !!profile.lastName,
+          tenant: profile.requested?.tenant,
+        });
+      }
       const userRepo = new UserRepository(prisma);
       const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
@@ -780,8 +787,8 @@ export const getOptions = ({
         return await autoMergeIdentities();
       }
 
-      log.info(
-        "callbacks:jwt:accountType:unknown",
+      log.warn(
+        "callbacks:jwt - unknown account type",
         safeStringify({ accountType: account.type, accountProvider: account.provider })
       );
       return token;
@@ -839,7 +846,7 @@ export const getOptions = ({
         }
 
         if (account?.type !== "oauth") {
-          log.warn("signIn callback - unsupported account type for non-saml-idp provider", {
+          log.warn("callbacks:signIn - unsupported account type for non-saml-idp provider", {
             accountType: account?.type,
             provider: account?.provider,
           });
@@ -847,12 +854,12 @@ export const getOptions = ({
         }
       }
       if (!user.email) {
-        log.warn("signIn callback - user email is missing", { provider: account?.provider });
+        log.warn("callbacks:signIn - user email is missing", { provider: account?.provider });
         return false;
       }
 
       if (!user.name) {
-        log.warn("signIn callback - user name is missing", { emailDomain: user.email.split("@")[1], provider: account?.provider });
+        log.warn("callbacks:signIn - user name is missing", { emailDomain: user.email.split("@")[1], provider: account?.provider });
         return false;
       }
       if (account?.provider) {
@@ -1202,6 +1209,10 @@ export const getOptions = ({
         }
       }
 
+      log.warn("callbacks:signIn - no matching provider or condition, denying access", {
+        provider: account?.provider,
+        accountType: account?.type,
+      });
       return false;
     },
     /**
