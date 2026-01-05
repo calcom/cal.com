@@ -253,7 +253,7 @@ describe("Teams EventTypes WebhooksController (e2e)", () => {
       .expect(403);
   });
 
-  it.only("/teams/:teamId/event-types/:eventTypeId/webhooks/:webhookId (GET) should fail to get a webhook that does not belong to the eventType", () => {
+  it("/teams/:teamId/event-types/:eventTypeId/webhooks/:webhookId (GET) should fail to get a webhook that does not belong to the eventType", () => {
     return request(app.getHttpServer())
       .get(`/v2/teams/${team.id}/event-types/${teamEventType.id}/webhooks/${otherWebhook.id}`)
       .expect(403);

@@ -11,6 +11,5 @@
   "tailwindCSS.classFunctions": ["cva"],
   "[typescript]": {
     "editor.defaultFormatter": "biomejs.biome"
-  },
-  "notebook.defaultFormatter": "biomejs.biome"
+  }
 }
