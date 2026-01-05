@@ -119,9 +119,9 @@ async function handleBookingAction(
     const createCaller = createCallerFactory(bookingsRouter);
 
     // Use buildLegacyRequest to create a request object compatible with Pages Router
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Request/Response are mocked as they're not used in this context
+
     const legacyReq = request ? buildLegacyRequest(await headers(), await cookies()) : ({} as any);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Response is mocked as it's not used in this context
+
     const res = {} as any;
 
     const ctx = await createContext({ req: legacyReq, res }, sessionGetter);
