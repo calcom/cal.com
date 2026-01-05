@@ -63,6 +63,8 @@ export {
   useSetScheduleAsDefault,
   useUpdateSchedule,
 } from "./useSchedules";
+// Toast hook
+export { type ToastState, type ToastType, useToast } from "./useToast";
 // User Profile hooks
 export {
   type UpdateUserProfileInput,
