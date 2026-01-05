@@ -5,7 +5,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { calculateDeltaType, valueFormatter } from "../lib";
+import { calculateDeltaType, valueFormatter } from "@calcom/features/insights/lib";
 
 export const KPICard = ({
   title,

@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useContext } from "react";
 
-import { InsightsOrgTeamsContext } from "../context/InsightsOrgTeamsProvider";
+import { InsightsOrgTeamsContext } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 
 export function useInsightsOrgTeams() {
   const context = useContext(InsightsOrgTeamsContext);

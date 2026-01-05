@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
-import { bookingStatusToText } from "../lib/bookingStatusToText";
+import { bookingStatusToText } from "@calcom/features/insights/lib/bookingStatusToText";
 
 const statusOrder: Record<BookingStatus, number> = {
   [BookingStatus.ACCEPTED]: 1,

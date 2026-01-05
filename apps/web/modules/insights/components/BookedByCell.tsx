@@ -4,7 +4,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import type { RoutingFormTableRow } from "../lib/types";
+import type { RoutingFormTableRow } from "@calcom/features/insights/lib/types";
 import { CellWithOverflowX } from "./CellWithOverflowX";
 
 export function BookedByCell({

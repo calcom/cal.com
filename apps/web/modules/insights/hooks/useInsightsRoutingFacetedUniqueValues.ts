@@ -5,8 +5,8 @@ import { convertFacetedValuesToMap, type FacetedValue } from "@calcom/features/d
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
-import { bookingStatusToText } from "../lib/bookingStatusToText";
-import type { HeaderRow } from "../lib/types";
+import { bookingStatusToText } from "@calcom/features/insights/lib/bookingStatusToText";
+import type { HeaderRow } from "@calcom/features/insights/lib/types";
 
 const statusOrder: Record<BookingStatus, number> = {
   [BookingStatus.ACCEPTED]: 1,
