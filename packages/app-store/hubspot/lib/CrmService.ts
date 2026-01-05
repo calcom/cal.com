@@ -137,10 +137,13 @@ export default class HubspotCalendarService implements CRM {
     return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
   };
 
-  private hubspotMarkMeetingNoShow = async (uid: string) => {
+  private hubspotUpdateMeetingOutcome = async (
+    uid: string,
+    outcome: "SCHEDULED" | "COMPLETED" | "CANCELED" | "RESCHEDULED" | "NO_SHOW"
+  ) => {
     const simplePublicObjectInput: SimplePublicObjectInput = {
       properties: {
-        hs_meeting_outcome: "NO_SHOW",
+        hs_meeting_outcome: outcome,
       },
     };
 
@@ -371,11 +374,13 @@ export default class HubspotCalendarService implements CRM {
     const auth = await this.auth;
     await auth.getToken();
 
-    const hasNoShow = attendees.some((attendee) => attendee.noShow);
-    if (!hasNoShow) {
-      this.log.debug("No attendees marked as no-show, skipping HubSpot update");
+    if (attendees.length === 0) {
+      this.log.warn(`No attendees provided for bookingUid ${bookingUid}`);
       return;
     }
+
+    const allNoShow = attendees.every((attendee) => attendee.noShow === true);
+    const meetingOutcome = allNoShow ? "NO_SHOW" : "COMPLETED";
 
     const hubspotMeetings = await prisma.bookingReference.findMany({
       where: {
@@ -397,10 +402,13 @@ export default class HubspotCalendarService implements CRM {
 
     for (const meeting of hubspotMeetings) {
       try {
-        await this.hubspotMarkMeetingNoShow(meeting.uid);
-        this.log.debug(`Updated HubSpot meeting ${meeting.uid} outcome to NO_SHOW`);
+        await this.hubspotUpdateMeetingOutcome(meeting.uid, meetingOutcome);
+        this.log.debug(`Updated HubSpot meeting ${meeting.uid} outcome to ${meetingOutcome}`);
       } catch (error) {
-        this.log.error(`Failed to update HubSpot meeting ${meeting.uid} outcome to NO_SHOW`, error);
+        this.log.error(
+          `Failed to update HubSpot meeting ${meeting.uid} outcome to ${meetingOutcome}`,
+          error
+        );
       }
     }
   }
