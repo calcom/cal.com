@@ -4,7 +4,7 @@ import * as path from "node:path";
 import { Worker } from "node:worker_threads";
 
 // Import WorkerOptions type
-import type { GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";
+import type { GetScheduleOptions } from "@calcom/features/slots/services/types";
 
 import { TimeSlots } from "./slots-output.service";
 

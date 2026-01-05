@@ -3,7 +3,7 @@ import { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filter
 import { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
 import { validateRoundRobinSlotAvailability } from "@calcom/features/ee/round-robin/utils/validateRoundRobinSlotAvailability";
 import { NoSlotsNotificationService } from "@calcom/features/slots/handleNotificationWhenNoSlots";
-import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
+import { AvailableSlotsService } from "@calcom/features/slots/services/AvailabilityService";
 
 export { AvailableSlotsService };
 

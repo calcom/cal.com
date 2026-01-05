@@ -8,7 +8,7 @@ import { isSupportedTimeZone } from "@calcom/lib/dayjs";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { createContext } from "@calcom/trpc/server/createContext";
-import { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
+import { getScheduleSchema } from "@calcom/features/slots/services/types";
 
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
@@ -48,7 +48,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       : availableSlots.slots;
 
     return { slots: slotsInProvidedTimeZone };
-     
   } catch (cause) {
     if (cause instanceof TRPCError) {
       const statusCode = getHTTPStatusCodeFromError(cause);

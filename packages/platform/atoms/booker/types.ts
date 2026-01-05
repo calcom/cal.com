@@ -11,7 +11,7 @@ import type {
   ApiSuccessResponseWithoutData,
   RoutingFormSearchParams,
 } from "@calcom/platform-types";
-import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
+import type { Slot } from "@calcom/features/slots/services/types";
 
 import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
 

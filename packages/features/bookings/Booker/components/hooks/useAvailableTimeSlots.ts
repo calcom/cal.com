@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
-import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
+import type { IGetAvailableSlots } from "@calcom/features/slots/services/AvailabilityService";
 
 interface UseAvailableTimeSlotsProps {
   eventDuration: number;

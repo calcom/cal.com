@@ -6,7 +6,7 @@ import type {
   ApiResponse,
   ApiSuccessResponse,
 } from "@calcom/platform-types";
-import type { GetAvailableSlotsResponse } from "@calcom/trpc/server/routers/viewer/slots/util";
+import type { GetAvailableSlotsResponse } from "@calcom/features/slots/services/AvailabilityService";
 
 import http from "../lib/http";
 

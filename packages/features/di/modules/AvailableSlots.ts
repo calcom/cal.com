@@ -1,5 +1,5 @@
-import type { IAvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
-import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
+import type { IAvailableSlotsService } from "@calcom/features/slots/services/AvailabilityService";
+import { AvailableSlotsService } from "@calcom/features/slots/services/AvailabilityService";
 
 import { createModule } from "../di";
 import { DI_TOKENS } from "../tokens";
