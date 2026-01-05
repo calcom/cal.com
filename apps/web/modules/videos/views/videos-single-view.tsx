@@ -13,7 +13,7 @@ import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/dayjs";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -121,7 +121,7 @@ export default function JoinCall(props: PageProps) {
         }
 
         return callFrame;
-      } catch (err) {
+      } catch (_err) {
         return DailyIframe.getCallInstance();
       }
     },
@@ -182,6 +182,7 @@ export default function JoinCall(props: PageProps) {
       )}
       <div style={{ zIndex: 2, position: "relative" }}>
         {calVideoLogo ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             className="min-w-16 min-h-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
             src={calVideoLogo}
@@ -192,6 +193,7 @@ export default function JoinCall(props: PageProps) {
             }}
           />
         ) : (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             className="fixed z-10 hidden h-5 sm:inline-block"
             src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
@@ -610,7 +612,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 
               <div
                 className="prose-sm prose prose-invert"
-                dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(booking.description) }}
+                dangerouslySetInnerHTML={{ __html: markdownToSafeHTMLClient(booking.description) }}
               />
             </>
           )}

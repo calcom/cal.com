@@ -18,7 +18,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { md } from "@calcom/lib/markdownIt";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import objectKeys from "@calcom/lib/objectKeys";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
@@ -97,7 +97,7 @@ const ProfileView = () => {
         router.replace("/teams");
       }
     },
-    [error]
+    [error, router]
   );
   const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
@@ -171,7 +171,7 @@ const ProfileView = () => {
                 <Label className="text-emphasis mt-5">{t("about")}</Label>
                 <div
                   className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio ?? null) }}
+                  dangerouslySetInnerHTML={{ __html: markdownToSafeHTMLClient(team.bio ?? null) }}
                 />
               </>
             )}
