@@ -6,28 +6,46 @@ import { HttpError } from "@calcom/lib/http-error";
 
 import appConfig from "../config.json";
 
+/**
+ * Lever App Installation Handler
+ *
+ * Initiates the Merge.dev Link OAuth flow for connecting Lever.
+ * Creates a placeholder credential and returns the Merge Link URL.
+ *
+ * Flow:
+ * 1. Validate user is authenticated
+ * 2. Request link token from Merge.dev API
+ * 3. Create default installation record
+ * 4. Return Merge Link URL for OAuth completion
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
+  // Authenticate user
   req.session = await getServerSession({ req });
-  const { teamId } = req.query;
   const user = req.session?.user;
-
   if (!user) {
     throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
   }
 
+  // Validate API key is configured
   const mergeApiKey = process.env.MERGE_API_KEY;
   if (!mergeApiKey) {
     return res.status(500).json({ message: "Merge API key not configured" });
   }
 
+  const { teamId } = req.query;
+
   try {
+    // Request link token from Merge.dev
     const linkTokenResponse = await fetch("https://api.merge.dev/api/integrations/create-link-token", {
       method: "POST",
-      headers: { Authorization: `Bearer ${mergeApiKey}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${mergeApiKey}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         end_user_origin_id: String(teamId || user.id),
         end_user_organization_name: user.name || user.email || "Cal.com User",
@@ -44,6 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { link_token } = await linkTokenResponse.json();
 
+    // Create placeholder credential (will be updated in callback)
     await createDefaultInstallation({
       appType: `${appConfig.slug}_other_calendar`,
       user,
@@ -52,7 +71,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       teamId: teamId ? Number(teamId) : undefined,
     });
 
-    res.status(200).json({ url: `https://link.merge.dev/?linkToken=${link_token}`, newTab: true });
+    // Return Merge Link URL (opens in new tab)
+    res.status(200).json({
+      url: `https://link.merge.dev/?linkToken=${link_token}`,
+      newTab: true,
+    });
   } catch (error) {
     console.error("Error in Lever add handler");
     return res.status(500).json({ message: "Failed to initiate Lever connection" });
