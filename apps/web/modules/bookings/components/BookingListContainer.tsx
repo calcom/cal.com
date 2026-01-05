@@ -71,6 +71,7 @@ interface BookingListContainerProps {
     canReadOthersBookings: boolean;
   };
   bookingsV3Enabled: boolean;
+  bookingAuditEnabled: boolean;
 }
 
 interface BookingListInnerProps extends BookingListContainerProps {
@@ -87,6 +88,7 @@ function BookingListInner({
   permissions,
   bookings,
   bookingsV3Enabled,
+  bookingAuditEnabled,
   data,
   isPending,
   hasError,
@@ -221,6 +223,7 @@ function BookingListInner({
           userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
           userId={user?.id}
           userEmail={user?.email}
+          bookingAuditEnabled={bookingAuditEnabled}
         />
       )}
     </>

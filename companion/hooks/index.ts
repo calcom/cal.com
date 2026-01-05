@@ -10,72 +10,68 @@
  * ```
  */
 
-// Bookings hooks
-export {
-  useBookings,
-  useBookingByUid,
-  useCancelBooking,
-  useRescheduleBooking,
-  useConfirmBooking,
-  useDeclineBooking,
-  usePrefetchBookings,
-  useInvalidateBookings,
-  type BookingFilters,
-  type Booking,
-} from "./useBookings";
-
-// Event Types hooks
-export {
-  useEventTypes,
-  useEventTypeById,
-  useCreateEventType,
-  useUpdateEventType,
-  useDeleteEventType,
-  useDuplicateEventType,
-  usePrefetchEventTypes,
-  useInvalidateEventTypes,
-  type EventType,
-  type CreateEventTypeInput,
-} from "./useEventTypes";
-
-// Schedules (Availability) hooks
-export {
-  useSchedules,
-  useScheduleById,
-  useCreateSchedule,
-  useUpdateSchedule,
-  useSetScheduleAsDefault,
-  useDeleteSchedule,
-  useDuplicateSchedule,
-  usePrefetchSchedules,
-  useInvalidateSchedules,
-  type Schedule,
-  type CreateScheduleInput,
-  type UpdateScheduleInput,
-} from "./useSchedules";
-
-// User Profile hooks
-export {
-  useUserProfile,
-  useUsername,
-  useUpdateUserProfile,
-  usePrefetchUserProfile,
-  useInvalidateUserProfile,
-  type UserProfile,
-  type UpdateUserProfileInput,
-} from "./useUserProfile";
-
+// Re-export query keys for advanced use cases
+export { queryKeys } from "@/config/cache.config";
+// Re-export query context utilities
+export { useQueryContext } from "@/contexts/QueryContext";
 // UI State Management hooks
 export {
-  useActiveBookingFilter,
   type BookingFilter,
   type BookingFilterOption,
+  useActiveBookingFilter,
 } from "./useActiveBookingFilter";
-
+export { useBookingActionModals } from "./useBookingActionModals";
 export { useBookingActions } from "./useBookingActions";
-
-// Re-export query keys for advanced use cases
-export { queryKeys } from "../config/cache.config";
-
-// Re-export query context utilities
-export { useQueryContext } from "../contexts/QueryContext";
+// Bookings hooks
+export {
+  type Booking,
+  type BookingFilters,
+  useBookingByUid,
+  useBookings,
+  useCancelBooking,
+  useConfirmBooking,
+  useDeclineBooking,
+  useInvalidateBookings,
+  usePrefetchBookings,
+  useRescheduleBooking,
+} from "./useBookings";
+// Event Types hooks
+export {
+  type CreateEventTypeInput,
+  type EventType,
+  useCreateEventType,
+  useDeleteEventType,
+  useDuplicateEventType,
+  useEventTypeById,
+  useEventTypes,
+  useInvalidateEventTypes,
+  usePrefetchEventTypes,
+  useUpdateEventType,
+} from "./useEventTypes";
+// Schedules (Availability) hooks
+export {
+  type CreateScheduleInput,
+  type Schedule,
+  type UpdateScheduleInput,
+  useCreateSchedule,
+  useDeleteSchedule,
+  useDuplicateSchedule,
+  useInvalidateSchedules,
+  usePrefetchSchedules,
+  useScheduleById,
+  useSchedules,
+  useSetScheduleAsDefault,
+  useUpdateSchedule,
+} from "./useSchedules";
+// Toast hook
+export { type ToastState, type ToastType, useToast } from "./useToast";
+// User Profile hooks
+export {
+  type UpdateUserProfileInput,
+  type UserProfile,
+  useInvalidateUserProfile,
+  usePrefetchUserProfile,
+  useUpdateUserProfile,
+  useUsername,
+  useUserProfile,
+} from "./useUserProfile";

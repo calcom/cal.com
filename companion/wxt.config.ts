@@ -33,7 +33,6 @@ function getOAuthConfig() {
         clientId: process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID_EDGE || defaultClientId,
         redirectUri: process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI_EDGE || defaultRedirectUri,
       };
-    case "chrome":
     default:
       return {
         clientId: defaultClientId,
@@ -92,7 +91,7 @@ export default defineConfig({
   vite: () => {
     // Determine companion URL based on build type
     const devUrl = isBuildForStore ? "" : process.env.EXPO_PUBLIC_COMPANION_DEV_URL || "";
-    const isLocalDev = Boolean(devUrl && devUrl.includes("localhost"));
+    const isLocalDev = Boolean(devUrl?.includes("localhost"));
 
     // Get OAuth config for the target browser
     const oauthConfig = getOAuthConfig();

@@ -4,6 +4,7 @@
   "globalEnv": [
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
+    "AWAITING_PAYMENT_EMAIL_DELAY_MINUTES",
     "API_KEY_PREFIX",
     "ATOMS_E2E_API_URL",
     "ATOMS_E2E_OAUTH_CLIENT_ID",
@@ -327,7 +328,7 @@
       "outputs": ["./types"]
     },
     "@calcom/web#build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "copy-app-store-static"],
       "outputs": [".next/**"],
       "env": [
         "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL",
