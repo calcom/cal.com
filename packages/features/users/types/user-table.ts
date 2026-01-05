@@ -1,6 +1,37 @@
-import type { RouterOutputs } from "@calcom/trpc/react";
+import type { MembershipRole } from "@calcom/prisma/enums";
 
-export type UserTableUser = RouterOutputs["viewer"]["organizations"]["listMembers"]["rows"][number];
+export type UserTableUser = {
+  id: number;
+  username: string | null;
+  email: string;
+  timeZone: string;
+  role: MembershipRole;
+  customRole: {
+    id: string;
+    name: string;
+    teamId: number;
+  } | null;
+  accepted: boolean;
+  disableImpersonation: boolean;
+  completedOnboarding: boolean;
+  lastActiveAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  avatarUrl: string | null;
+  twoFactorEnabled?: boolean;
+  teams: {
+    id: number;
+    name: string;
+    slug: string | null;
+  }[];
+  attributes?: {
+    id: string;
+    value: string;
+    slug: string;
+    attributeId: string;
+    weight: number;
+  }[];
+};
 
 export type PlatformManagedUserTableUser = Omit<
   UserTableUser,

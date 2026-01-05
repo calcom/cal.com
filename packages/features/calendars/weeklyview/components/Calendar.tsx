@@ -53,7 +53,7 @@ function CalendarInner(props: CalendarComponentProps) {
   return (
     <MobileNotSupported>
       <div
-        class={classNames("scheduler-wrapper flex h-full w-full flex-col")}
+        className={classNames("scheduler-wrapper flex h-full w-full flex-col")}
         style={
           {
             "--one-minute-height": `calc(${hourSize}px/60)`,
@@ -64,20 +64,20 @@ function CalendarInner(props: CalendarComponentProps) {
         {props.isPending && <Spinner />}
         <div
           ref={container}
-          class="bg-default dark:bg-cal-muted relative isolate flex h-full flex-auto flex-col">
+          className="bg-default dark:bg-cal-muted relative isolate flex h-full flex-auto flex-col">
           <div
             style={{ width: "165%" }}
-            class="flex max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
+            className="flex max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
             <DateValues
               containerNavRef={containerNav}
               days={days}
               showBorder={showBorder}
               borderColor={borderColor}
             />
-            <div class="relative flex flex-auto">
+            <div className="relative flex flex-auto">
               <CurrentTime timezone={timezone} scrollToCurrentTime={scrollToCurrentTime} />
               <div
-                class={classNames(
+                className={classNames(
                   "bg-default dark:bg-cal-muted ring-muted sticky left-0 z-10 w-16 flex-none ring-1",
                   showBorder &&
                     (borderColor === "subtle"
@@ -86,7 +86,7 @@ function CalendarInner(props: CalendarComponentProps) {
                 )}
               />
               <div
-                class="grid flex-auto grid-cols-1 grid-rows-1 [--disabled-gradient-background:#F8F9FB] [--disabled-gradient-foreground:#E6E7EB] dark:[--disabled-gradient-background:#262626] dark:[--disabled-gradient-foreground:#393939]"
+                className="grid flex-auto grid-cols-1 grid-rows-1 [--disabled-gradient-background:#F8F9FB] [--disabled-gradient-foreground:#E6E7EB] dark:[--disabled-gradient-background:#262626] dark:[--disabled-gradient-foreground:#393939]"
                 style={
                   showBackgroundPattern === false
                     ? undefined
@@ -110,7 +110,7 @@ function CalendarInner(props: CalendarComponentProps) {
                   {/*Loop over events per day  */}
                   {days.map((day, i) => {
                     return (
-                      <li key={day.toISOString()} class="relative" style={{ gridColumnStart: i + 1 }}>
+                      <li key={day.toISOString()} className="relative" style={{ gridColumnStart: i + 1 }}>
                         <EventList day={day} />
                         {/* <BlockedList day={day} containerRef={container} /> */}
                       </li>
@@ -126,7 +126,7 @@ function CalendarInner(props: CalendarComponentProps) {
                   <>
                     {[...Array(days.length)].map((_, i) => (
                       <li
-                        class="relative"
+                        className="relative"
                         key={i}
                         style={{
                           gridColumnStart: i + 1,
@@ -197,11 +197,11 @@ export function Calendar(props: CalendarComponentProps) {
 const MobileNotSupported = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
-      <div class="flex h-full flex-col items-center justify-center sm:hidden">
-        <h1 class="text-2xl font-bold">Mobile not supported yet </h1>
-        <p class="text-subtle">Please use a desktop browser to view this page</p>
+      <div className="flex h-full flex-col items-center justify-center sm:hidden">
+        <h1 className="text-2xl font-bold">Mobile not supported yet </h1>
+        <p className="text-subtle">Please use a desktop browser to view this page</p>
       </div>
-      <div class="hidden h-full sm:block">{children}</div>
+      <div className="hidden h-full sm:block">{children}</div>
     </>
   );
 };

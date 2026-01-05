@@ -1,1 +1,0 @@
-export { SchedulerHeading } from "./SchedulerHeading";
