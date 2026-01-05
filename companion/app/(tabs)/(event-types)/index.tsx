@@ -4,7 +4,6 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
-  ActionSheetIOS,
   Alert,
   Platform,
   RefreshControl,
@@ -95,18 +94,12 @@ export default function EventTypes() {
   // Toast state for web platform
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const [copiedEventTypeId, setCopiedEventTypeId] = useState<number | null>(null);
-
   // Function to show toast
-  const showToastMessage = (message: string, eventTypeId?: number) => {
+  const showToastMessage = (message: string) => {
     setToastMessage(message);
     setShowToast(true);
-    if (eventTypeId) {
-      setCopiedEventTypeId(eventTypeId);
-    }
     setTimeout(() => {
       setShowToast(false);
-      setCopiedEventTypeId(null);
     }, 2000);
   };
 
@@ -151,53 +144,13 @@ export default function EventTypes() {
     handleEdit(eventType);
   };
 
-  const handleEventTypeLongPress = (eventType: EventType) => {
-    if (Platform.OS === "web") {
-      // Show custom modal for web platform
-      setSelectedEventType(eventType);
-      setShowActionModal(true);
-      return;
-    }
-
-    // Android handles long-press via DropdownMenu in EventTypeListItem.android.tsx
-    if (Platform.OS === "android") {
-      return;
-    }
-
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: ["Cancel", "Edit", "Duplicate", "Delete"],
-        destructiveButtonIndex: 3, // Delete button
-        cancelButtonIndex: 0,
-        title: eventType.title,
-        message: eventType.description ? normalizeMarkdown(eventType.description) : undefined,
-      },
-      (buttonIndex) => {
-        switch (buttonIndex) {
-          case 1: // Edit
-            handleEdit(eventType);
-            break;
-          case 2: // Duplicate
-            handleDuplicate(eventType);
-            break;
-          case 3: // Delete
-            handleDelete(eventType);
-            break;
-          default:
-            // Cancel - do nothing
-            break;
-        }
-      }
-    );
-  };
-
   const handleCopyLink = async (eventType: EventType) => {
     try {
       const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
       await Clipboard.setStringAsync(link);
 
       if (Platform.OS === "web") {
-        showToastMessage("Link copied!", eventType.id);
+        showToastMessage("Link copied!");
       } else {
         Alert.alert("Link Copied", "Event type link copied!");
       }
@@ -549,7 +502,7 @@ export default function EventTypes() {
       <Stack.Header
         style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
         blurEffect={isLiquidGlassAvailable() ? undefined : "light"} // Only looks cool on iOS 18 and below
-        hidden={Platform.OS === "android"}
+        hidden={Platform.OS === "android" || Platform.OS === "web"}
       >
         <Stack.Header.Title large>Event Types</Stack.Header.Title>
         <Stack.Header.Right>
@@ -625,9 +578,7 @@ export default function EventTypes() {
                   item={item}
                   index={index}
                   filteredEventTypes={filteredEventTypes}
-                  copiedEventTypeId={copiedEventTypeId}
                   handleEventTypePress={handleEventTypePress}
-                  handleEventTypeLongPress={handleEventTypeLongPress}
                   handleCopyLink={handleCopyLink}
                   handlePreview={handlePreview}
                   onEdit={handleEdit}

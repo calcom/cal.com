@@ -7,7 +7,6 @@ import { Image } from "expo-image";
 import { Stack, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
-  ActionSheetIOS,
   Alert,
   Pressable,
   RefreshControl,
@@ -34,7 +33,6 @@ import { openInAppBrowser } from "@/utils/browser";
 import { getAvatarUrl } from "@/utils/getAvatarUrl";
 import { getEventDuration } from "@/utils/getEventDuration";
 import { offlineAwareRefresh } from "@/utils/network";
-import { normalizeMarkdown } from "@/utils/normalizeMarkdown";
 import { slugify } from "@/utils/slugify";
 
 export default function EventTypesIOS() {
@@ -109,34 +107,6 @@ export default function EventTypesIOS() {
 
   const handleEventTypePress = (eventType: EventType) => {
     handleEdit(eventType);
-  };
-
-  const handleEventTypeLongPress = (eventType: EventType) => {
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: ["Cancel", "Edit", "Duplicate", "Delete"],
-        destructiveButtonIndex: 3, // Delete button
-        cancelButtonIndex: 0,
-        title: eventType.title,
-        message: eventType.description ? normalizeMarkdown(eventType.description) : undefined,
-      },
-      (buttonIndex) => {
-        switch (buttonIndex) {
-          case 1: // Edit
-            handleEdit(eventType);
-            break;
-          case 2: // Duplicate
-            handleDuplicate(eventType);
-            break;
-          case 3: // Delete
-            handleDelete(eventType);
-            break;
-          default:
-            // Cancel - do nothing
-            break;
-        }
-      }
-    );
   };
 
   const handleCopyLink = async (eventType: EventType) => {
@@ -538,9 +508,7 @@ export default function EventTypesIOS() {
                   item={item}
                   index={index}
                   filteredEventTypes={filteredEventTypes}
-                  copiedEventTypeId={null}
                   handleEventTypePress={handleEventTypePress}
-                  handleEventTypeLongPress={handleEventTypeLongPress}
                   handleCopyLink={handleCopyLink}
                   handlePreview={handlePreview}
                   onEdit={handleEdit}

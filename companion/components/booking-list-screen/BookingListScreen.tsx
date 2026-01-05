@@ -128,7 +128,6 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     handleSubmitCancel,
     handleCloseCancelModal,
     selectedBooking,
-    setSelectedBooking,
     handleBookingPress,
     handleCancelBooking,
     handleInlineConfirm,
@@ -561,8 +560,6 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     [declineBookingMutation]
   );
 
-  const [showBookingActionsModal, setShowBookingActionsModal] = React.useState(false);
-
   const renderBookingItem = ({ item }: { item: Booking }) => {
     return (
       <BookingListItem
@@ -571,17 +568,8 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         isConfirming={isConfirming}
         isDeclining={isDeclining}
         onPress={handleBookingPress}
-        onLongPress={(booking) => {
-          setSelectedBooking(booking);
-          setShowBookingActionsModal(true);
-        }}
         onConfirm={handleInlineConfirm}
         onReject={handleOpenRejectModal}
-        onActionsPress={(booking) => {
-          setSelectedBooking(booking);
-          setShowBookingActionsModal(true);
-        }}
-        // iOS context menu action handlers - now use screen navigation
         onReschedule={handleNavigateToReschedule}
         onEditLocation={handleNavigateToEditLocation}
         onAddGuests={handleNavigateToAddGuests}
@@ -771,44 +759,16 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         selectedEventTypeId={selectedEventTypeId}
         onFilterClose={() => setShowFilterModal?.(false)}
         onEventTypeSelect={onEventTypeChange}
-        showBookingActionsModal={showBookingActionsModal}
+        showBookingActionsModal={false}
         selectedBooking={selectedBooking}
-        onActionsClose={() => setShowBookingActionsModal(false)}
-        onReschedule={() => {
-          // Navigate to reschedule screen instead of opening modal
-          if (selectedBooking) {
-            setShowBookingActionsModal(false);
-            handleNavigateToReschedule(selectedBooking);
-          }
-        }}
-        onCancel={() => {
-          if (selectedBooking) handleCancelBooking(selectedBooking);
-        }}
-        onEditLocation={(booking) => {
-          // Navigate to edit location screen instead of opening modal
-          setShowBookingActionsModal(false);
-          handleNavigateToEditLocation(booking);
-        }}
-        onAddGuests={(booking) => {
-          // Navigate to add guests screen instead of opening modal
-          setShowBookingActionsModal(false);
-          handleNavigateToAddGuests(booking);
-        }}
-        onViewRecordings={(booking) => {
-          // Navigate to view recordings screen instead of opening modal
-          setShowBookingActionsModal(false);
-          handleNavigateToViewRecordings(booking);
-        }}
-        onMeetingSessionDetails={(booking) => {
-          // Navigate to meeting session details screen instead of opening modal
-          setShowBookingActionsModal(false);
-          handleNavigateToMeetingSessionDetails(booking);
-        }}
-        onMarkNoShow={(booking) => {
-          // Navigate to mark no show screen instead of opening modal
-          setShowBookingActionsModal(false);
-          handleNavigateToMarkNoShow(booking);
-        }}
+        onActionsClose={() => {}}
+        onReschedule={() => {}}
+        onCancel={() => {}}
+        onEditLocation={() => {}}
+        onAddGuests={() => {}}
+        onViewRecordings={() => {}}
+        onMeetingSessionDetails={() => {}}
+        onMarkNoShow={() => {}}
       />
 
       {/* Cancel Event AlertDialog for Android */}

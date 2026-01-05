@@ -1,9 +1,38 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Platform, ScrollView, Text, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Text as UIText } from "@/components/ui/text";
 import { AppPressable } from "@/components/AppPressable";
 import { BookingActionsModal } from "@/components/BookingActionsModal";
+import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import { SvgImage } from "@/components/SvgImage";
 import { useAuth } from "@/contexts/AuthContext";
 import { type Booking, CalComAPIService } from "@/services/calcom";
@@ -178,12 +207,22 @@ export interface BookingDetailScreenProps {
 export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreenProps) {
   const router = useRouter();
   const { userInfo } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState<Booking | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showActionsModal, setShowActionsModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState("");
+
+  const contentInsets = {
+    top: insets.top,
+    bottom: insets.bottom,
+    left: 12,
+    right: 12,
+  };
 
   // Compute actions using centralized gating
   const actions = useMemo(() => {
@@ -203,7 +242,6 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
       if (!booking) return;
 
       setIsCancelling(true);
-      setShowActionsModal(false);
 
       try {
         await CalComAPIService.cancelBooking(booking.uid, reason);
@@ -214,10 +252,10 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
           },
         ]);
         setIsCancelling(false);
-      } catch (error) {
+      } catch (err) {
         console.error("Failed to cancel booking");
         if (__DEV__) {
-          const message = error instanceof Error ? error.message : String(error);
+          const message = err instanceof Error ? err.message : String(err);
           console.debug("[BookingDetailScreen] cancelBooking failed", { message });
         }
         showErrorAlert("Error", "Failed to cancel booking. Please try again.");
@@ -230,39 +268,58 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const handleCancelBooking = useCallback(() => {
     if (!booking) return;
 
-    Alert.alert("Cancel Booking", `Are you sure you want to cancel "${booking.title}"?`, [
-      { text: "No", style: "cancel" },
-      {
-        text: "Yes, Cancel",
-        style: "destructive",
-        onPress: () => {
-          // Prompt for cancellation reason (iOS only supports Alert.prompt)
-          if (Platform.OS === "ios") {
-            Alert.prompt(
-              "Cancellation Reason",
-              "Please provide a reason for cancelling this booking:",
-              [
-                { text: "Cancel", style: "cancel" },
-                {
-                  text: "Cancel Booking",
-                  style: "destructive",
-                  onPress: (reason?: string) => {
-                    performCancelBooking(reason?.trim() || "Cancelled by host");
+    if (Platform.OS === "android") {
+      setCancellationReason("");
+      setShowCancelDialog(true);
+    } else {
+      Alert.alert("Cancel Booking", `Are you sure you want to cancel "${booking.title}"?`, [
+        { text: "No", style: "cancel" },
+        {
+          text: "Yes, Cancel",
+          style: "destructive",
+          onPress: () => {
+            if (Platform.OS === "ios") {
+              Alert.prompt(
+                "Cancellation Reason",
+                "Please provide a reason for cancelling this booking:",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Cancel Booking",
+                    style: "destructive",
+                    onPress: (reason?: string) => {
+                      performCancelBooking(reason?.trim() || "Cancelled by host");
+                    },
                   },
-                },
-              ],
-              "plain-text",
-              "",
-              "default"
-            );
-          } else {
-            // For Android, just cancel with default reason
-            performCancelBooking("Cancelled by host");
-          }
+                ],
+                "plain-text",
+                "",
+                "default"
+              );
+            } else {
+              performCancelBooking("Cancelled by host");
+            }
+          },
         },
-      },
-    ]);
+      ]);
+    }
   }, [booking, performCancelBooking]);
+
+  const handleConfirmCancel = useCallback(() => {
+    const reason = cancellationReason.trim() || "Cancelled by host";
+    setShowCancelDialog(false);
+    setCancellationReason("");
+    performCancelBooking(reason);
+  }, [cancellationReason, performCancelBooking]);
+
+  const handleCloseCancelDialog = useCallback(() => {
+    setShowCancelDialog(false);
+    setCancellationReason("");
+  }, []);
+
+  const handleReportBooking = useCallback(() => {
+    Alert.alert("Report Booking", "Report booking functionality is not yet available");
+  }, []);
 
   // Navigate to reschedule screen (same pattern as senior's - navigate to screen in same folder)
   const openRescheduleModal = useCallback(() => {
@@ -407,6 +464,88 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
     }
   };
 
+  const dropdownActions = useMemo(() => {
+    if (!booking) return [];
+
+    type DropdownAction = {
+      label: string;
+      icon: keyof typeof Ionicons.glyphMap;
+      onPress: () => void;
+      visible: boolean;
+      variant?: "default" | "destructive";
+    };
+
+    const allActions: DropdownAction[] = [
+      {
+        label: "Reschedule Booking",
+        icon: "calendar-outline",
+        onPress: openRescheduleModal,
+        visible: actions.reschedule.visible && actions.reschedule.enabled,
+      },
+      {
+        label: "Edit Location",
+        icon: "location-outline",
+        onPress: openEditLocationModal,
+        visible: actions.changeLocation.visible && actions.changeLocation.enabled,
+      },
+      {
+        label: "Add Guests",
+        icon: "people-outline",
+        onPress: openAddGuestsModal,
+        visible: actions.addGuests.visible && actions.addGuests.enabled,
+      },
+      {
+        label: "View Recordings",
+        icon: "videocam-outline",
+        onPress: openViewRecordingsModal,
+        visible: actions.viewRecordings.visible && actions.viewRecordings.enabled,
+      },
+      {
+        label: "Meeting Session Details",
+        icon: "information-circle-outline",
+        onPress: openMeetingSessionDetailsModal,
+        visible: actions.meetingSessionDetails.visible && actions.meetingSessionDetails.enabled,
+      },
+      {
+        label: "Mark as No-Show",
+        icon: "eye-off-outline",
+        onPress: openMarkNoShowModal,
+        visible: actions.markNoShow.visible && actions.markNoShow.enabled,
+      },
+      {
+        label: "Report Booking",
+        icon: "flag-outline",
+        onPress: handleReportBooking,
+        visible: true,
+        variant: "destructive",
+      },
+      {
+        label: "Cancel Event",
+        icon: "close-circle-outline",
+        onPress: handleCancelBooking,
+        visible: actions.cancel.visible && actions.cancel.enabled,
+        variant: "destructive",
+      },
+    ];
+
+    return allActions.filter((action) => action.visible);
+  }, [
+    booking,
+    actions,
+    openRescheduleModal,
+    openEditLocationModal,
+    openAddGuestsModal,
+    openViewRecordingsModal,
+    openMeetingSessionDetailsModal,
+    openMarkNoShowModal,
+    handleReportBooking,
+    handleCancelBooking,
+  ]);
+
+  const destructiveStartIndex = dropdownActions.findIndex(
+    (action) => action.variant === "destructive"
+  );
+
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-[#f8f9fa]">
@@ -444,12 +583,43 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
         <Stack.Screen
           options={{
             headerRight: () => (
-              <AppPressable
-                className="h-10 w-10 items-center justify-center rounded-full"
-                onPress={() => setShowActionsModal(true)}
-              >
-                <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
-              </AppPressable>
+              <HeaderButtonWrapper side="right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Pressable className="h-10 w-10 items-center justify-center rounded-full">
+                      <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
+                    </Pressable>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent
+                    insets={contentInsets}
+                    sideOffset={8}
+                    className="w-52"
+                    align="end"
+                  >
+                    {dropdownActions.map((action, index) => (
+                      <React.Fragment key={action.label}>
+                        {index === destructiveStartIndex && destructiveStartIndex > 0 && (
+                          <DropdownMenuSeparator />
+                        )}
+                        <DropdownMenuItem variant={action.variant} onPress={action.onPress}>
+                          <Ionicons
+                            name={action.icon}
+                            size={18}
+                            color={action.variant === "destructive" ? "#800020" : "#374151"}
+                            style={{ marginRight: 8 }}
+                          />
+                          <UIText
+                            className={action.variant === "destructive" ? "text-destructive" : ""}
+                          >
+                            {action.label}
+                          </UIText>
+                        </DropdownMenuItem>
+                      </React.Fragment>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </HeaderButtonWrapper>
             ),
           }}
         />
@@ -672,6 +842,47 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
           </View>
         )}
       </View>
+
+      {/* Cancel Event AlertDialog (Android only) */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader className="items-start">
+            <AlertDialogTitle>
+              <UIText className="text-left text-lg font-semibold">Cancel event</UIText>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <UIText className="text-left text-sm text-muted-foreground">
+                Cancellation reason will be shared with guests
+              </UIText>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <View>
+            <UIText className="mb-2 text-sm font-medium">Reason for cancellation</UIText>
+            <TextInput
+              className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827]"
+              placeholder="Why are you cancelling?"
+              placeholderTextColor="#9CA3AF"
+              value={cancellationReason}
+              onChangeText={setCancellationReason}
+              autoFocus
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+              style={{ minHeight: 80 }}
+            />
+          </View>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onPress={handleCloseCancelDialog}>
+              <UIText>Nevermind</UIText>
+            </AlertDialogCancel>
+            <AlertDialogAction onPress={handleConfirmCancel}>
+              <UIText className="text-white">Cancel event</UIText>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

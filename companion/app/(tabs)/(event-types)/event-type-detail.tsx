@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
+import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import { AdvancedTab } from "@/components/event-type-detail/tabs/AdvancedTab";
 import { AvailabilityTab } from "@/components/event-type-detail/tabs/AvailabilityTab";
 import { BasicsTab } from "@/components/event-type-detail/tabs/BasicsTab";
@@ -1119,61 +1120,72 @@ export default function EventTypeDetail() {
   const saveButtonText = id === "new" ? "Create" : "Save";
 
   const renderHeaderLeft = () => (
-    <AppPressable onPress={() => router.back()} className="px-2 py-2">
-      <Ionicons name="close" size={24} color="#007AFF" />
-    </AppPressable>
+    <HeaderButtonWrapper side="left">
+      <AppPressable onPress={() => router.back()} className="px-2 py-2">
+        <Ionicons name="close" size={24} color="#007AFF" />
+      </AppPressable>
+    </HeaderButtonWrapper>
   );
 
   const renderHeaderRight = () => (
-    <View className="flex-row items-center gap-2">
-      {/* Tab Navigation Dropdown Menu */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <AppPressable className="flex-row items-center gap-1 px-2 py-2">
-            <Text className="text-[16px] font-semibold text-[#007AFF]">
-              {tabs.find((tab) => tab.id === activeTab)?.label ?? "Basics"}
-            </Text>
-            <Ionicons name="chevron-down" size={16} color="#007AFF" />
-          </AppPressable>
-        </DropdownMenuTrigger>
+    <HeaderButtonWrapper side="right">
+      <View className="flex-row items-center" style={{ gap: Platform.OS === "web" ? 24 : 8 }}>
+        {/* Tab Navigation Dropdown Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <AppPressable className="flex-row items-center gap-1 px-2 py-2">
+              <Text className="text-[16px] font-semibold text-[#007AFF]" numberOfLines={1}>
+                {tabs.find((tab) => tab.id === activeTab)?.label ?? "Basics"}
+              </Text>
+              <Ionicons
+                name="chevron-down"
+                size={16}
+                color="#007AFF"
+                style={{ marginLeft: 2, flexShrink: 0 }}
+              />
+            </AppPressable>
+          </DropdownMenuTrigger>
 
-        <DropdownMenuContent
-          insets={{ top: 60, bottom: 20, left: 12, right: 12 }}
-          sideOffset={8}
-          className="w-44"
-          align="end"
+          <DropdownMenuContent
+            insets={{ top: 60, bottom: 20, left: 12, right: 12 }}
+            sideOffset={8}
+            className="w-44"
+            align="end"
+          >
+            {tabs.map((tab) => {
+              const isSelected = activeTab === tab.id;
+              return (
+                <DropdownMenuItem key={tab.id} onPress={() => setActiveTab(tab.id)}>
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons
+                      name={isSelected ? "checkmark-circle" : tab.icon}
+                      size={16}
+                      color={isSelected ? "#007AFF" : "#666"}
+                    />
+                    <Text
+                      className={
+                        isSelected ? "text-base font-semibold text-[#007AFF]" : "text-base"
+                      }
+                    >
+                      {tab.label}
+                    </Text>
+                  </View>
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Save Button */}
+        <AppPressable
+          onPress={handleSave}
+          disabled={saving}
+          className={`px-2 py-2 ${saving ? "opacity-50" : ""}`}
         >
-          {tabs.map((tab) => {
-            const isSelected = activeTab === tab.id;
-            return (
-              <DropdownMenuItem key={tab.id} onPress={() => setActiveTab(tab.id)}>
-                <View className="flex-row items-center gap-2">
-                  <Ionicons
-                    name={isSelected ? "checkmark-circle" : tab.icon}
-                    size={16}
-                    color={isSelected ? "#007AFF" : "#666"}
-                  />
-                  <Text
-                    className={isSelected ? "text-base font-semibold text-[#007AFF]" : "text-base"}
-                  >
-                    {tab.label}
-                  </Text>
-                </View>
-              </DropdownMenuItem>
-            );
-          })}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Save Button */}
-      <AppPressable
-        onPress={handleSave}
-        disabled={saving}
-        className={`px-2 py-2 ${saving ? "opacity-50" : ""}`}
-      >
-        <Text className="text-[16px] font-semibold text-[#007AFF]">{saveButtonText}</Text>
-      </AppPressable>
-    </View>
+          <Text className="text-[16px] font-semibold text-[#007AFF]">{saveButtonText}</Text>
+        </AppPressable>
+      </View>
+    </HeaderButtonWrapper>
   );
 
   return (
