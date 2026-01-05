@@ -94,4 +94,48 @@ export class ExperimentsRepository {
     const identifier = options.userId ? `user-${options.userId}` : `team-${options.teamId!}`;
     return assignVariantDeterministic(identifier, experimentSlug, variants);
   }
+
+  async checkIfAssignedToFeature(experimentSlug: string, options: GetVariantOptions): Promise<boolean> {
+    const { userId, teamId } = options;
+
+    if (teamId) {
+      const teamFeature = await this.prisma.teamFeatures.findUnique({
+        where: {
+          teamId_featureId: {
+            teamId,
+            featureId: experimentSlug,
+          },
+        },
+      });
+      if (teamFeature?.enabled) return true;
+    }
+
+    if (userId) {
+      const userFeature = await this.prisma.userFeatures.findFirst({
+        where: {
+          userId,
+          featureId: experimentSlug,
+        },
+      });
+      if (userFeature?.enabled) return true;
+
+      const userTeamsWithFeature = await this.prisma.teamFeatures.findFirst({
+        where: {
+          featureId: experimentSlug,
+          enabled: true,
+          team: {
+            members: {
+              some: {
+                userId,
+                accepted: true,
+              },
+            },
+          },
+        },
+      });
+      if (userTeamsWithFeature) return true;
+    }
+
+    return false;
+  }
 }
