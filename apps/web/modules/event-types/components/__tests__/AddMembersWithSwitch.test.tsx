@@ -1,3 +1,4 @@
+import type { RenderResult } from "@testing-library/react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -53,7 +54,13 @@ vi.mock("@calcom/trpc/react", () => ({
   },
 }));
 
-const defaultFormValues = {
+interface DefaultFormValues {
+  assignRRMembersUsingSegment: boolean;
+  rrSegmentQueryValue: null;
+  hosts: Host[];
+}
+
+const defaultFormValues: DefaultFormValues = {
   assignRRMembersUsingSegment: false,
   rrSegmentQueryValue: null,
   hosts: [],
@@ -64,13 +71,16 @@ const renderComponent = ({
   formDefaultValues = defaultFormValues,
 }: {
   componentProps: AddMembersWithSwitchProps;
-  formDefaultValues?: typeof defaultFormValues;
-}) => {
-  const Wrapper = ({ children }: { children: React.ReactNode }) => {
+  formDefaultValues?: DefaultFormValues;
+}): RenderResult => {
+  const Wrapper = ({ children }: { children: React.ReactNode }): React.JSX.Element => {
     const methods = useForm({
       defaultValues: formDefaultValues,
     });
-    const [assignAllTeamMembers, setAssignAllTeamMembers] = React.useState(false);
+    // Use the initial value from componentProps to properly test different states
+    const [assignAllTeamMembers, setAssignAllTeamMembers] = React.useState(
+      componentProps.assignAllTeamMembers
+    );
     console.log(methods.getValues());
     return (
       <FormProvider {...methods}>
@@ -142,8 +152,11 @@ describe("AddMembersWithSwitch", () => {
       },
     });
 
-    expect(screen.queryByTestId("assign-all-team-members-toggle")).not.toBeInTheDocument();
-    expect(screen.queryByText("filter_by_attributes")).not.toBeInTheDocument();
+    // In this state, the toggle should be present (to allow turning it off) and checked
+    expect(screen.getByTestId("assign-all-team-members-toggle")).toBeInTheDocument();
+    expect(screen.getByTestId("assign-all-team-members-toggle").getAttribute("aria-checked")).toBe("true");
+    // Segment toggle should NOT be present since isSegmentApplicable is false
+    expect(screen.queryByTestId("segment-toggle")).not.toBeInTheDocument();
   });
 
   it("should render segment toggle in enabled state when isSegmentApplicable is true and assignRRMembersUsingSegment is also true(even if assignAllTeamMembers is false)", () => {
@@ -177,10 +190,11 @@ describe("AddMembersWithSwitch", () => {
   });
 
   it("should show Segment when 'Automatically add all team members' is toggled on and then segment toggle is switched on", () => {
+    // Start with assignAllTeamMembers: false to test the flow of enabling it
     renderComponent({
       componentProps: {
         ...defaultProps,
-        assignAllTeamMembers: true,
+        assignAllTeamMembers: false,
         isSegmentApplicable: true,
         automaticAddAllEnabled: true,
       },
@@ -191,22 +205,27 @@ describe("AddMembersWithSwitch", () => {
       },
     });
 
+    // Initially, segment toggle should not be visible (assignAllTeamMembers is false)
     expect(screen.queryByTestId("segment-toggle")).not.toBeInTheDocument();
 
+    // Click to enable "assign all team members"
     act(() => {
       screen.getByTestId("assign-all-team-members-toggle").click();
     });
 
+    // Now segment toggle should be visible, but segment content should not be visible yet
     expect(screen.queryByTestId("mock-segment")).not.toBeInTheDocument();
 
+    // Click segment toggle to enable it
     act(() => {
       screen.getByTestId("segment-toggle").click();
     });
 
+    // Now segment content should be visible
     expect(screen.getByTestId("mock-segment")).toBeInTheDocument();
   });
 });
 
-function expectManualHostListToBeThere() {
+function expectManualHostListToBeThere(): void {
   expect(screen.getByRole("combobox")).toBeInTheDocument();
 }
