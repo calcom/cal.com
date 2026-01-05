@@ -68,7 +68,7 @@ jobs:
         run: |
           cd apps/web
           export NODE_OPTIONS="--max_old_space_size=8192"
-          npx -p nextjs-bundle-analysis@0.5.0 report
+          node scripts/analyze-bundle.js
 
       - name: Upload bundle
         uses: actions/upload-artifact@v4
@@ -107,7 +107,7 @@ jobs:
         run: |
           cd apps/web/.next/analyze
 
-          # Read current bundle stats
+          # Read current bundle stats (new App Router format)
           if [ ! -f "__bundle_analysis.json" ]; then
             echo "::error::Current bundle analysis not found"
             echo "check-passed=false" >> $GITHUB_OUTPUT
@@ -115,8 +115,11 @@ jobs:
             exit 0
           fi
 
-          CURRENT_SHARED=$(cat __bundle_analysis.json | jq -r '.__global.gzip // 0')
+          # New format uses .shared.gzip for App Router shared bundle
+          CURRENT_SHARED=$(cat __bundle_analysis.json | jq -r '.shared.gzip // .__global.gzip // 0')
+          CURRENT_ROUTES=$(cat __bundle_analysis.json | jq -r '.summary.totalRoutes // 0')
           echo "Current shared bundle (gzip): $CURRENT_SHARED bytes"
+          echo "Current App Router routes: $CURRENT_ROUTES"
 
           # Check if base bundle exists
           if [ ! -f "base/__bundle_analysis.json" ]; then
@@ -124,16 +127,28 @@ jobs:
             echo "check-passed=true" >> $GITHUB_OUTPUT
             echo "increase-percent=0" >> $GITHUB_OUTPUT
 
-            # Write summary
-            echo "## Bundle Analysis" >> $GITHUB_STEP_SUMMARY
+            # Write summary with route breakdown
+            CURRENT_KB=$(echo "scale=2; $CURRENT_SHARED / 1024" | bc)
+            echo "## Bundle Analysis (App Router)" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**First Load JS shared by all:** $(echo "scale=2; $CURRENT_SHARED / 1024" | bc) KB (gzip)" >> $GITHUB_STEP_SUMMARY
+            echo "**First Load JS shared by all:** ${CURRENT_KB} KB (gzip)" >> $GITHUB_STEP_SUMMARY
+            echo "**App Router routes:** $CURRENT_ROUTES" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Show top 5 largest routes
+            echo "### Top 5 Largest Routes" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Route | First Load (gzip) |" >> $GITHUB_STEP_SUMMARY
+            echo "|-------|-------------------|" >> $GITHUB_STEP_SUMMARY
+            cat __bundle_analysis.json | jq -r '.summary.largestRoutes[:5][] | "| \(.route) | \((.firstLoadGzip / 1024 * 100 | floor) / 100) KB |"' >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "> No base branch bundle found for comparison." >> $GITHUB_STEP_SUMMARY
             exit 0
           fi
 
-          BASE_SHARED=$(cat base/__bundle_analysis.json | jq -r '.__global.gzip // 0')
+          # Read base bundle stats (support both old and new format)
+          BASE_SHARED=$(cat base/__bundle_analysis.json | jq -r '.shared.gzip // .__global.gzip // 0')
+          BASE_ROUTES=$(cat base/__bundle_analysis.json | jq -r '.summary.totalRoutes // 0')
           echo "Base shared bundle (gzip): $BASE_SHARED bytes"
 
           # Calculate percentage change
@@ -177,12 +192,22 @@ jobs:
           fi
 
           # Write summary
-          echo "## Bundle Analysis $STATUS_EMOJI" >> $GITHUB_STEP_SUMMARY
+          echo "## Bundle Analysis (App Router) $STATUS_EMOJI" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Metric | Base | Current | Change |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|------|---------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| First Load JS shared by all (gzip) | ${BASE_KB} KB | ${CURRENT_KB} KB | ${CHANGE_INDICATOR} |" >> $GITHUB_STEP_SUMMARY
+          echo "| App Router routes | ${BASE_ROUTES} | ${CURRENT_ROUTES} | - |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Show top 5 largest routes
+          echo "### Top 5 Largest Routes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Route | First Load (gzip) |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------------------|" >> $GITHUB_STEP_SUMMARY
+          cat __bundle_analysis.json | jq -r '.summary.largestRoutes[:5][] | "| \(.route) | \((.firstLoadGzip / 1024 * 100 | floor) / 100) KB |"' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
           if [ "$CHECK_FAILED" -eq 1 ]; then
             echo "**Status:** $STATUS_TEXT - Shared bundle increased by ${PERCENT_CHANGE}% (threshold: ${THRESHOLD}%)" >> $GITHUB_STEP_SUMMARY
           else
