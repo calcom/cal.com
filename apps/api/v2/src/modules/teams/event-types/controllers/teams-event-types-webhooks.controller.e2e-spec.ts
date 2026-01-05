@@ -133,6 +133,8 @@ describe("Teams EventTypes WebhooksController (e2e)", () => {
     await userRepositoryFixture.deleteByEmail(userAdmin.email);
     await userRepositoryFixture.deleteByEmail(otherUser.email);
     await webhookRepositoryFixture.delete(otherWebhook.id);
+    await teamsRepositoryFixture.delete(team.id);
+    await teamsRepositoryFixture.delete(otherTeam.id);
     await app.close();
   });
 

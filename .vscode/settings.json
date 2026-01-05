@@ -8,5 +8,8 @@
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "spellright.language": ["en"],
   "spellright.documentTypes": ["markdown", "typescript", "typescriptreact"],
-  "tailwindCSS.classFunctions": ["cva"]
+  "tailwindCSS.classFunctions": ["cva"],
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  }
 }

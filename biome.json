@@ -76,7 +76,7 @@
       "formatter": { "enabled": false }
     },
     {
-      "includes": ["apps/api/v2/**/*.ts"],
+      "includes": ["apps/api/v2/**/*.ts", "apps/api/v2/**/*.controller.ts"],
       "javascript": {
         "parser": {
           "unsafeParameterDecoratorsEnabled": true
@@ -161,7 +161,7 @@
       }
     },
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.e2e-spec.ts"],
       "linter": {
         "rules": {
           "complexity": {
