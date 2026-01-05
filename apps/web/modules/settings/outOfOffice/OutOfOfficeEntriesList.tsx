@@ -366,9 +366,6 @@ function OutOfOfficeEntriesListContent({
         rowClassName={selectedTab === OutOfOfficeTab.MINE ? "hidden" : ""}
         table={table}
         isPending={isPending}
-        hasNextPage={hasNextPage}
-        fetchNextPage={fetchNextPage}
-        isFetching={isFetching}
         totalRowCount={totalRowCount}
         tableContainerRef={tableContainerRef}
         paginationMode="standard"
