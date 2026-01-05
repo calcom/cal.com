@@ -38,10 +38,13 @@ export class IsTeamEventTypeWebhookGuard implements CanActivate {
       throw new BadRequestException("IsTeamEventTypeWebhookGuard - Team ID is required.");
     }
 
-    const membership = await this.membershipsRepository.findMembershipByTeamId(Number(teamId), user.id);
-    if (!membership) {
+    const adminOrOwnerMembership = await this.membershipsRepository.getUserAdminOrOwnerTeamMembership(
+      user.id,
+      Number(teamId)
+    );
+    if (!adminOrOwnerMembership) {
       throw new ForbiddenException(
-        `IsTeamEventTypeWebhookGuard - User (${user.id}) is not a member of team (${teamId})`
+        `IsTeamEventTypeWebhookGuard - User (${user.id}) is not an admin or owner of team (${teamId})`
       );
     }
 
