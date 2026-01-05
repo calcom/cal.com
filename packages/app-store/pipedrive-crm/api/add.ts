@@ -6,6 +6,8 @@ import { HttpError } from "@calcom/lib/http-error";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import appConfig from "../config.json";
+import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
+import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" });
@@ -30,8 +32,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const tenantId = teamId ? teamId : userId;
-  res.status(200).json({
-    url: `https://oauth.pipedrive.com/oauth/authorize?client_id=${appKeys.client_id}&redirect_uri=https://app.revert.dev/oauth-callback/pipedrive&state={%22tenantId%22:%22${tenantId}%22,%22revertPublicToken%22:%22${process.env.REVERT_PUBLIC_TOKEN}%22}`,
-    newTab: true,
+  const redirectUri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/pipedrive/callback`;
+  const state = encodeOAuthState(req);
+  const params = new URLSearchParams({
+    client_id: String(appKeys.client_id),
+    redirect_uri: redirectUri,
   });
+  if (state) params.append("state", state);
+
+  res.status(200).json({ url: `https://oauth.pipedrive.com/oauth/authorize?${params.toString()}`, newTab: true });
 }
