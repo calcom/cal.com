@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/roam",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  },
+  "description": "Roam is Your Whole Company in one HQ"
+}

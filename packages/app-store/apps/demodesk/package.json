@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/demodesk",
+  "version": "0.0.1",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  },
+  "description": "Run Professional Video Meetings, Coach Sales Teams in Real-Time with AI, And Schedule Meetings on Auto-Pilot. 100% GDPR Compliant, Enterprise Ready."
+}

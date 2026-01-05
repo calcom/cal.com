@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/applecalendar",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Apple calendar runs both the macOS and iOS mobile operating systems. Offering online cloud backup of calendars using Apple’s iCloud service, it can sync with Google Calendar and Microsoft Exchange Server. Users can schedule events in their day that include time, location, duration, and extra notes.",
+  "dependencies": {
+    "@calcom/prisma": "workspace:*",
+    "react-hook-form": "7.43.3"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  }
+}

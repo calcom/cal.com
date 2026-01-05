@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/posthog",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  },
+  "description": "PostHog is the all-in-one platform for building better products - with product analytics, feature flags, session recordings, a/b testing, heatmaps, and more."
+}

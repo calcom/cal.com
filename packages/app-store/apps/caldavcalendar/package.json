@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/caldavcalendar",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Caldav is a protocol that allows different clients/servers to access scheduling information on remote servers as well as schedule meetings with other users on the same server or other servers. It extends WebDAV specification and uses iCalendar format for the data.",
+  "dependencies": {
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*",
+    "@calcom/ui": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "react-hook-form": "^7.0.0"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  }
+}

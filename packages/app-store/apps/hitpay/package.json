@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "license": "AGPLv3 (see LICENSE file)",
+  "name": "@calcom/hitpay",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "HitPay helps over 15,000 businesses across Southeast Asia and around the globe process payments efficiently and securely. We unify online, point of sale, and B2B payments into a single, integrated payment processing system.",
+  "dependencies": {
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  }
+}

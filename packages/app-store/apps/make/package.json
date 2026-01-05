@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/make",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Workflow automation for everyone. Use the Cal.com Make app to trigger your workflows when a booking is created, rescheduled, or cancelled, or after a meeting ends.",
+  "dependencies": {
+    "@calcom/lib": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*",
+    "@types/node-schedule": "2.1.0"
+  }
+}

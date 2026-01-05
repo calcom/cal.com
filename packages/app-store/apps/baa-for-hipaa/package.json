@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/baa-for-hipaa",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  },
+  "description": "Request a signed Business Associate Agreement for your HIPAA compliance records"
+}

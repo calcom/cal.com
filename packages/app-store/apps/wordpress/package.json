@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/wordpress",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Embedded booking pages right into your wordpress page",
+  "dependencies": {
+    "@calcom/lib": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  }
+}

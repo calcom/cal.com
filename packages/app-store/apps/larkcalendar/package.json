@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/larkcalendar",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Lark Calendar is a time management and scheduling service developed by Lark. Allows users to create and edit events, with options available for type and time. Available to anyone that has a Lark account on both mobile and web versions.",
+  "dependencies": {
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  }
+}

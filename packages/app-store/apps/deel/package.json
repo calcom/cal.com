@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/deel",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  },
+  "description": "Integrate Deel with your Calendar and get automatic updates on key employee dates like PTO, start days, public holidays, and birthdays. No manual entry. No errors. Just a calendar that's always in sync with your team."
+}

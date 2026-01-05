@@ -1,0 +1,29 @@
+{
+  "name": "Matomo",
+  "slug": "matomo",
+  "type": "matomo_analytics",
+  "logo": "icon.svg",
+  "url": "https://cal.com/",
+  "variant": "analytics",
+  "categories": ["analytics"],
+  "publisher": "Cal.com, Inc.",
+  "email": "help@cal.com",
+  "description": "Google Analytics alternative that protects your data and your customers' privacy",
+  "extendsFeature": "EventType",
+  "appData": {
+    "tag": {
+      "scripts": [
+        {
+          "src": "{MATOMO_URL}/matomo.js",
+          "attrs": {}
+        },
+        {
+          "content": "var _paq = window._paq || [];\n      _paq.push(['trackPageView']);\n      _paq.push(['enableLinkTracking']);\n      (function() {\n        var u='{MATOMO_URL}/';  \n        _paq.push(['setTrackerUrl', u+'matomo.php']);\n        _paq.push(['setSiteId', '{SITE_ID}']);  \n        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];\n        g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);\n      })();"
+        }
+      ]
+    }
+  },
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "booking-pages-tag"
+}

@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "name": "@calcom/hubspot",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "HubSpot is a cloud-based CRM designed to help align sales and marketing teams, foster sales enablement, boost ROI and optimize your inbound marketing strategy to generate more, qualified leads.",
+  "dependencies": {
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*",
+    "@hubspot/api-client": "6.0.1"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  }
+}

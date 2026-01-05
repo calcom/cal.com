@@ -1,0 +1,23 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Jelly",
+  "slug": "jelly",
+  "type": "jelly_conferencing",
+  "logo": "icon.svg",
+  "url": "https://jellyjelly.com",
+  "variant": "conferencing",
+  "categories": ["conferencing"],
+  "publisher": "Jelly",
+  "email": "support@jellyjelly.com",
+  "appData": {
+    "location": {
+      "type": "integrations:{SLUG}_conferencing",
+      "label": "{TITLE}",
+      "linkType": "dynamic"
+    }
+  },
+  "description": "JellyPhone is a video calling tool with a stacked rolodex. You can cut short podcasts for Tik Tok and Instagram and publish in seconds. Connect with amazing people.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-location-video-static"
+}

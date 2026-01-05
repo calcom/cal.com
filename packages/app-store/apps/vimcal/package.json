@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/vimcal",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "The world's fastest calendar, beautifully designed for a remote world\r",
+  "dependencies": {
+    "@calcom/lib": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  }
+}

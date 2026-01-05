@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/vital",
+  "version": "0.1.0",
+  "main": "./index.ts",
+  "description": "Connect your health data or wearables to trigger actions on your calendar.",
+  "dependencies": {
+    "@calcom/prisma": "workspace:*",
+    "@tryvital/vital-node": "1.4.6",
+    "queue": "6.0.2"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  }
+}

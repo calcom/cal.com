@@ -1,0 +1,19 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Alby",
+  "slug": "alby",
+  "type": "alby_payment",
+  "logo": "icon.svg",
+  "url": "https://getalby.com",
+  "variant": "payment",
+  "categories": ["payment"],
+  "publisher": "Alby",
+  "email": "support@getalby.com",
+  "description": "Your Bitcoin & Nostr companion for the web. Use Alby to charge Satoshi for your [Cal.com](https://cal.com) meetings.\r",
+  "extendsFeature": "EventType",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-app-card",
+  "dirName": "alby",
+  "isOAuth": false
+}

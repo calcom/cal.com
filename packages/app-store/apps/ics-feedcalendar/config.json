@@ -1,0 +1,15 @@
+{
+  "name": "ICS Feed",
+  "title": "ICS Feed",
+  "slug": "ics-feed",
+  "dirName": "ics-feedcalendar",
+  "type": "ics-feed_calendar",
+  "logo": "icon.svg",
+  "variant": "calendar",
+  "categories": ["calendar"],
+  "publisher": "Cal.com, Inc.",
+  "email": "help@cal.com",
+  "description": "Import events from an ICS Feed into [Cal.com](https://cal.com).",
+  "isTemplate": false,
+  "__createdUsingCli": true
+}

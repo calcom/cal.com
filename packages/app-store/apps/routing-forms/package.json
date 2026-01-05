@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/routing-forms",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "It would allow a booker to connect with the right person or choose the right event, faster. It would work by taking inputs from the booker and using that data to route to the correct booker/event as configured by Cal user  ",
+  "dependencies": {
+    "@calcom/lib": "workspace:*",
+    "dotenv": "16.6.1",
+    "json-logic-js": "2.0.2",
+    "react-awesome-query-builder": "5.1.2"
+  },
+  "scripts": {
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write ."
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*",
+    "@types/json-logic-js": "1.2.1"
+  }
+}
