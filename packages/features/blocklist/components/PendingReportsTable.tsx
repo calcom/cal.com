@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 
 import { DataTableSelectionBar, DataTableWrapper } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { WatchlistType } from "@calcom/prisma/enums";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import type { BookingReport, BlocklistScope } from "../types";
@@ -19,7 +20,7 @@ export interface PendingReportsTableProps<T extends BookingReport> {
   totalRowCount: number;
   isPending: boolean;
   limit: number;
-  onAddToBlocklist: (reportIds: string[], type: "EMAIL" | "DOMAIN", onSuccess: () => void) => void;
+  onAddToBlocklist: (reportIds: string[], type: WatchlistType, onSuccess: () => void) => void;
   onDismiss: (reportId: string, onSuccess: () => void) => void;
   isAddingToBlocklist?: boolean;
   isDismissing?: boolean;
