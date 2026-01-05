@@ -1,11 +1,12 @@
+import process from "node:process";
 import type { Config } from "jest";
 
 // Detect if sharding is being used by checking for --shard flag
-const isSharding = process.argv.some((arg) => arg.includes("--shard"));
+const isSharding: boolean = process.argv.some((arg) => arg.includes("--shard"));
 
 // For Jest e2e, we reduce parallelism when sharding in CI to improve test isolation
 // since tests share database state and can interfere with each other
-const getMaxWorkers = () => {
+const getMaxWorkers = (): number => {
   if (process.env.CI && isSharding) {
     // In CI with sharding: reduce workers to improve test isolation
     // Sharding already provides parallelism across shards (4 parallel jobs)
@@ -15,7 +16,7 @@ const getMaxWorkers = () => {
   return 8;
 };
 
-const maxWorkers = getMaxWorkers();
+const maxWorkers: number = getMaxWorkers();
 
 const config: Config = {
   moduleFileExtensions: ["js", "json", "ts"],
@@ -27,15 +28,7 @@ const config: Config = {
   testEnvironment: "node",
   testRegex: ".e2e-spec.ts$",
   transform: {
-    "^.+\\.ts$": [
-      "ts-jest",
-      process.env.CI
-        ? {
-            isolatedModules: true,
-            diagnostics: false,
-          }
-        : {},
-    ],
+    "^.+\\.ts$": "@swc/jest",
   },
   setupFiles: ["<rootDir>/test/setEnvVars.ts", "jest-date-mock"],
   setupFilesAfterEnv: ["<rootDir>/test/jest.setup-e2e.ts"],

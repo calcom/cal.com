@@ -1,7 +1,6 @@
 import type { Config } from "jest";
 
 const config: Config = {
-  preset: "ts-jest",
   moduleFileExtensions: ["ts", "js", "json"],
   rootDir: ".",
   moduleNameMapper: {
@@ -11,7 +10,7 @@ const config: Config = {
   testEnvironment: "node",
   testRegex: ".*\\.spec\\.ts$",
   transform: {
-    "^.+\\.ts$": "ts-jest",
+    "^.+\\.ts$": "@swc/jest",
   },
   setupFiles: ["<rootDir>/test/setEnvVars.ts"],
   testPathIgnorePatterns: ["/dist/", "/node_modules/"],

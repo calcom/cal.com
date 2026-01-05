@@ -4,6 +4,8 @@
   "sourceRoot": "src",
   "entryFile": "./apps/api/v2/src/main.js",
   "compilerOptions": {
+    "builder": "swc",
+    "typeCheck": true,
     "deleteOutDir": true,
     "plugins": [
       {
