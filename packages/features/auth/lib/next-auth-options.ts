@@ -370,12 +370,14 @@ if (isSAMLLoginEnabled) {
       async authorize(credentials): Promise<SamlIdpUser | null> {
         log.debug("CredentialsProvider:saml-idp:authorize", safeStringify({ credentials }));
         if (!credentials) {
+          log.error("saml-idp:authorize - missing credentials object");
           return null;
         }
 
         const { code } = credentials;
 
         if (!code) {
+          log.error("saml-idp:authorize - missing code in credentials");
           return null;
         }
 
@@ -391,12 +393,14 @@ if (isSAMLLoginEnabled) {
         });
 
         if (!access_token) {
+          log.error("saml-idp:authorize - failed to obtain access_token from oauthController.token");
           return null;
         }
         // Fetch user info
         const userInfo = await oauthController.userInfo(access_token);
 
         if (!userInfo) {
+          log.error("saml-idp:authorize - failed to obtain userInfo from oauthController.userInfo");
           return null;
         }
 
@@ -425,7 +429,13 @@ if (isSAMLLoginEnabled) {
               });
             }
           }
-          if (!user) throw new Error(ErrorCode.UserNotFound);
+          if (!user) {
+            log.error("saml-idp:authorize - user not found and could not be auto-provisioned", {
+              emailDomain: email.split("@")[1],
+              hostedCal: Boolean(HOSTED_CAL_FEATURES),
+            });
+            throw new Error(ErrorCode.UserNotFound);
+          }
         }
         const [userProfile] = user?.allProfiles ?? [];
         return {
@@ -829,14 +839,20 @@ export const getOptions = ({
         }
 
         if (account?.type !== "oauth") {
+          log.error("signIn callback - unsupported account type for non-saml-idp provider", {
+            accountType: account?.type,
+            provider: account?.provider,
+          });
           return false;
         }
       }
       if (!user.email) {
+        log.error("signIn callback - user email is missing", { provider: account?.provider });
         return false;
       }
 
       if (!user.name) {
+        log.error("signIn callback - user name is missing", { emailDomain: user.email.split("@")[1], provider: account?.provider });
         return false;
       }
       if (account?.provider) {
