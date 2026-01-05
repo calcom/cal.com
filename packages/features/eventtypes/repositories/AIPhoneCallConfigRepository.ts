@@ -21,21 +21,37 @@ export class AIPhoneCallConfigRepository {
       schedulerName?: string | null;
     };
   }) {
+    const update = {
+      enabled: data.enabled,
+      ...(data.generalPrompt !== undefined ? { generalPrompt: data.generalPrompt } : {}),
+      ...(data.beginMessage !== undefined ? { beginMessage: data.beginMessage } : {}),
+      ...(data.llmId !== undefined ? { llmId: data.llmId } : {}),
+      ...(data.schedulerName !== undefined ? { schedulerName: data.schedulerName } : {}),
+      ...(data.guestEmail !== undefined ? { guestEmail: data.guestEmail } : {}),
+      ...(data.guestCompany !== undefined ? { guestCompany: data.guestCompany } : {}),
+      ...(data.templateType != null ? { templateType: data.templateType } : {}),
+      ...(data.yourPhoneNumber != null ? { yourPhoneNumber: data.yourPhoneNumber } : {}),
+      ...(data.numberToCall != null ? { numberToCall: data.numberToCall } : {}),
+    };
+
+    const create = {
+      eventTypeId,
+      enabled: data.enabled,
+      yourPhoneNumber: data.yourPhoneNumber ?? "",
+      numberToCall: data.numberToCall ?? "",
+      ...(data.generalPrompt !== undefined ? { generalPrompt: data.generalPrompt } : {}),
+      ...(data.beginMessage !== undefined ? { beginMessage: data.beginMessage } : {}),
+      ...(data.llmId !== undefined ? { llmId: data.llmId } : {}),
+      ...(data.schedulerName !== undefined ? { schedulerName: data.schedulerName } : {}),
+      ...(data.guestEmail !== undefined ? { guestEmail: data.guestEmail } : {}),
+      ...(data.guestCompany !== undefined ? { guestCompany: data.guestCompany } : {}),
+      ...(data.templateType != null ? { templateType: data.templateType } : {}),
+    };
+
     return await this.prismaClient.aIPhoneCallConfiguration.upsert({
-      where: {
-        eventTypeId,
-      },
-      update: {
-        ...data,
-        guestEmail: data.guestEmail ?? null,
-        guestCompany: data.guestCompany ?? null,
-      },
-      create: {
-        ...data,
-        guestEmail: data.guestEmail ?? null,
-        guestCompany: data.guestCompany ?? null,
-        eventTypeId,
-      },
+      where: { eventTypeId },
+      update,
+      create,
     });
   }
 
