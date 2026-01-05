@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -202,7 +204,7 @@ describe("HubspotCalendarService", () => {
         name: "Organizer",
         timeZone: "America/New_York",
         language: {
-          translate: (key: string) => key,
+          translate: ((key: string) => key) as TFunction,
           locale: "en",
         },
       },
@@ -212,7 +214,7 @@ describe("HubspotCalendarService", () => {
           name: "Attendee",
           timeZone: "America/New_York",
           language: {
-            translate: (key: string) => key,
+            translate: ((key: string) => key) as TFunction,
             locale: "en",
           },
         },
