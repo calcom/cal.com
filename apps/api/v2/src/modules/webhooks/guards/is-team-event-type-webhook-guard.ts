@@ -28,7 +28,7 @@ export class IsTeamEventTypeWebhookGuard implements CanActivate {
     const user = request.user as ApiAuthGuardUser;
     const { webhookId, eventTypeId, teamId } = request.params;
 
-    this.validateInitialRequest(user, teamId);
+    this.validateInitialRequest(user, teamId, webhookId, eventTypeId);
 
     await this.validateTeamMembership(user.id, Number(teamId));
 
@@ -39,12 +39,23 @@ export class IsTeamEventTypeWebhookGuard implements CanActivate {
     return true;
   }
 
-  private validateInitialRequest(user: ApiAuthGuardUser, teamId: string): void {
+  private validateInitialRequest(
+    user: ApiAuthGuardUser,
+    teamId: string,
+    webhookId: string,
+    eventTypeId: string
+  ): void {
     if (!user) {
       throw new ForbiddenException("IsTeamEventTypeWebhookGuard - No user associated with the request.");
     }
     if (!teamId) {
       throw new BadRequestException("IsTeamEventTypeWebhookGuard - Team ID is required.");
+    }
+    if (!eventTypeId) {
+      throw new BadRequestException("IsTeamEventTypeWebhookGuard - Event Type ID is required.");
+    }
+    if (!webhookId) {
+      throw new BadRequestException("IsTeamEventTypeWebhookGuard - Webhook ID is required.");
     }
   }
 
