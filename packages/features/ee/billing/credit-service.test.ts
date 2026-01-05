@@ -130,7 +130,7 @@ describe("CreditService", () => {
   let creditService: CreditService;
 
   beforeEach(async () => {
-    vi.restoreAllMocks();
+    vi.resetAllMocks();
 
     mockStripe.prices.retrieve.mockResolvedValue({ id: "price_123", unit_amount: 1000 });
     mockStripe.customers.create.mockResolvedValue({ id: "cus_123" });
@@ -469,7 +469,7 @@ describe("CreditService", () => {
             members: [{ accepted: true }],
           }),
         };
-        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as unknown as TeamRepository);
+        vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepo as unknown as TeamRepository; });
 
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue(SubscriptionStatus.TRIALING),
@@ -493,7 +493,7 @@ describe("CreditService", () => {
             members: [{ accepted: true }, { accepted: true }, { accepted: true }],
           }),
         };
-        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as unknown as TeamRepository);
+        vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepo as unknown as TeamRepository; });
 
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue(SubscriptionStatus.ACTIVE),
@@ -524,7 +524,7 @@ describe("CreditService", () => {
             members: [{ accepted: true }, { accepted: true }],
           }),
         };
-        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as unknown as TeamRepository);
+        vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepo as unknown as TeamRepository; });
 
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue(SubscriptionStatus.ACTIVE),
@@ -549,7 +549,7 @@ describe("CreditService", () => {
             members: [{ accepted: true }, { accepted: true }, { accepted: true }],
           }),
         };
-        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as unknown as TeamRepository);
+        vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepo as unknown as TeamRepository; });
 
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue(SubscriptionStatus.ACTIVE),
@@ -841,9 +841,14 @@ describe("CreditService", () => {
         { teamId: 2 },
       ]);
 
-      vi.spyOn(TeamRepository.prototype, "findTeamsForCreditCheck").mockResolvedValue([
-        { id: 2, isOrganization: false, parentId: null, parent: null },
-      ]);
+      const mockTeamRepoInstance = {
+        findTeamsForCreditCheck: vi.fn().mockResolvedValue([
+          { id: 2, isOrganization: false, parentId: null, parent: null },
+        ]),
+      };
+      vi.mocked(TeamRepository).mockImplementation(function () {
+        return mockTeamRepoInstance as unknown as TeamRepository;
+      });
 
       vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
         id: "2",
@@ -876,10 +881,15 @@ describe("CreditService", () => {
           { teamId: 2 },
         ]);
 
-        vi.spyOn(TeamRepository.prototype, "findTeamsForCreditCheck").mockResolvedValue([
-          { id: 1, isOrganization: true, parentId: null, parent: null },
-          { id: 2, isOrganization: false, parentId: null, parent: null },
-        ]);
+        const mockTeamRepoInstance = {
+          findTeamsForCreditCheck: vi.fn().mockResolvedValue([
+            { id: 1, isOrganization: true, parentId: null, parent: null },
+            { id: 2, isOrganization: false, parentId: null, parent: null },
+          ]),
+        };
+        vi.mocked(TeamRepository).mockImplementation(function () {
+          return mockTeamRepoInstance as unknown as TeamRepository;
+        });
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
           id: "1",
@@ -910,10 +920,15 @@ describe("CreditService", () => {
           { teamId: 2 },
         ]);
 
-        vi.spyOn(TeamRepository.prototype, "findTeamsForCreditCheck").mockResolvedValue([
-          { id: 1, isOrganization: true, parentId: null, parent: null },
-          { id: 2, isOrganization: false, parentId: null, parent: null },
-        ]);
+        const mockTeamRepoInstance = {
+          findTeamsForCreditCheck: vi.fn().mockResolvedValue([
+            { id: 1, isOrganization: true, parentId: null, parent: null },
+            { id: 2, isOrganization: false, parentId: null, parent: null },
+          ]),
+        };
+        vi.mocked(TeamRepository).mockImplementation(function () {
+          return mockTeamRepoInstance as unknown as TeamRepository;
+        });
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
           id: "1",
@@ -944,9 +959,14 @@ describe("CreditService", () => {
           { teamId: 2 },
         ]);
 
-        vi.spyOn(TeamRepository.prototype, "findTeamsForCreditCheck").mockResolvedValue([
-          { id: 2, isOrganization: false, parentId: null, parent: null },
-        ]);
+        const mockTeamRepoInstance = {
+          findTeamsForCreditCheck: vi.fn().mockResolvedValue([
+            { id: 2, isOrganization: false, parentId: null, parent: null },
+          ]),
+        };
+        vi.mocked(TeamRepository).mockImplementation(function () {
+          return mockTeamRepoInstance as unknown as TeamRepository;
+        });
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
           id: "2",

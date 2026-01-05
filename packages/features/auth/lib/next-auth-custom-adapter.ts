@@ -62,7 +62,7 @@ const getAccountWhere = (provider: string, providerAccountId: string) => ({
 
 export default function CalComAdapter(prismaClient: PrismaClient): Adapter {
   return {
-    createUser: async (data) => {
+    createUser: async (data: Omit<AdapterUser, "id">) => {
       const user = await prismaClient.user.create({ data: createUserData(data) });
       return toAdapterUser(user);
     },
@@ -144,12 +144,12 @@ export default function CalComAdapter(prismaClient: PrismaClient): Adapter {
       }
     },
 
-    linkAccount: async (account) => {
+    linkAccount: async (account: AdapterAccount) => {
       const createdAccount = await prismaClient.account.create({ data: createAccountData(account) });
       return toAdapterAccount(createdAccount);
     },
 
-    unlinkAccount: async (providerAccountId) => {
+    unlinkAccount: async (providerAccountId: Pick<AdapterAccount, "provider" | "providerAccountId">) => {
       const deletedAccount = await prismaClient.account.delete({
         where: getAccountWhere(providerAccountId.provider, providerAccountId.providerAccountId),
       });

@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
@@ -36,7 +35,7 @@ export function EmptyScreen({
           {description}
         </Text>
 
-        {buttonText && onButtonPress && (
+        {buttonText && onButtonPress ? (
           <TouchableOpacity
             className="flex-row items-center justify-center gap-1 rounded-lg bg-gray-900 px-4 py-2.5"
             onPress={onButtonPress}
@@ -44,7 +43,7 @@ export function EmptyScreen({
             <Ionicons name="add" size={18} color="#fff" />
             <Text className="text-base font-medium text-white">{buttonText}</Text>
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
     </View>
   );

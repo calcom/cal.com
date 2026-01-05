@@ -1,7 +1,6 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity, Switch } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { openInAppBrowser } from "../../../utils/browser";
+import { Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { openInAppBrowser } from "@/utils/browser";
 
 interface RecurringTabProps {
   recurringEnabled: boolean;
@@ -28,7 +27,7 @@ export function RecurringTab({
   recurringInterval,
   setRecurringInterval,
   recurringFrequency,
-  setRecurringFrequency,
+  setRecurringFrequency: _setRecurringFrequency,
   recurringOccurrences,
   setRecurringOccurrences,
   setShowFrequencyDropdown,
@@ -64,7 +63,7 @@ export function RecurringTab({
         </View>
 
         {/* Recurring Configuration - shown when enabled */}
-        {recurringEnabled && (
+        {recurringEnabled ? (
           <View className="mt-4 gap-4 border-t border-[#E5E5EA] pt-4">
             {/* Repeats Every */}
             <View>
@@ -79,7 +78,7 @@ export function RecurringTab({
                       setRecurringInterval("1");
                       return;
                     }
-                    const num = parseInt(numericValue);
+                    const num = parseInt(numericValue, 10);
                     if (num >= 1 && num <= 20) {
                       setRecurringInterval(numericValue);
                     }
@@ -113,7 +112,7 @@ export function RecurringTab({
                       setRecurringOccurrences("1");
                       return;
                     }
-                    const num = parseInt(numericValue);
+                    const num = parseInt(numericValue, 10);
                     if (num >= 1) {
                       setRecurringOccurrences(numericValue);
                     }
@@ -126,7 +125,7 @@ export function RecurringTab({
               </View>
             </View>
           </View>
-        )}
+        ) : null}
       </View>
     </View>
   );
