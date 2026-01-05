@@ -454,7 +454,7 @@ jobs:
           echo "::error::Bundle analysis failed - First Load JS shared by all increased by 10% or more."
           echo "Please review your changes and reduce the bundle size impact."
           exit 1
-        if: needs.analyze.outputs.shared-bundle-check-passed == 'false'
+        if: needs.analyze.result == 'success' && needs.analyze.outputs.shared-bundle-check-passed == 'false'
       - name: Fail if conditional jobs failed
         run: exit 1
         if: |
