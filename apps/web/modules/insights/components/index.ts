@@ -4,6 +4,5 @@ export { BookingStatusBadge } from "./BookingStatusBadge";
 export { CellWithOverflowX } from "./CellWithOverflowX";
 export { ChartCard } from "./ChartCard";
 export { KPICard } from "./KPICard";
-export { LineChart } from "./LineChart";
 export { ResponseValueCell } from "./ResponseValueCell";
 export { UserStatsTable } from "./UserStatsTable";
