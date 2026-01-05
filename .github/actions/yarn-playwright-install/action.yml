@@ -1,5 +1,10 @@
 name: Install playwright binaries
 description: "Install playwright, cache and restore if necessary"
+inputs:
+  skip-install-if-cache-hit:
+    description: "Skip playwright install if cache is hit. Use this for jobs that only need to check that cache exists."
+    required: false
+    default: "false"
 runs:
   using: "composite"
   steps:
@@ -7,15 +12,35 @@ runs:
       shell: bash
       id: playwright-version
       run: echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])")" >> $GITHUB_ENV
-    - name: Cache playwright binaries
-      id: playwright-cache
-      uses: buildjet/cache@v4
+
+    # When skip-install-if-cache-hit is true, first check if cache exists without downloading (lookup-only mode)
+    - name: Check playwright cache (lookup-only)
+      if: ${{ inputs.skip-install-if-cache-hit == 'true' }}
+      id: playwright-cache-check
+      uses: actions/cache/restore@v4
       with:
         path: |
           ~/Library/Caches/ms-playwright
           ~/.cache/ms-playwright
           ${{ github.workspace }}/node_modules/playwright
         key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+        lookup-only: true
+
+    # Only restore cache if not in skip mode, or if skip mode but cache check missed
+    - name: Cache playwright binaries
+      if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.playwright-cache-check.outputs.cache-hit != 'true' }}
+      id: playwright-cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/Library/Caches/ms-playwright
+          ~/.cache/ms-playwright
+          ${{ github.workspace }}/node_modules/playwright
+        key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+
+    # In default mode: run if playwright-cache missed
+    # In skip mode: run if playwright-cache-check missed (but cache restore step was also skipped)
     - name: Yarn playwright install
+      if: ${{ (inputs.skip-install-if-cache-hit != 'true' && steps.playwright-cache.outputs.cache-hit != 'true') || (inputs.skip-install-if-cache-hit == 'true' && steps.playwright-cache-check.outputs.cache-hit != 'true') }}
       shell: bash
       run: yarn playwright install --with-deps
