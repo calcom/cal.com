@@ -11,7 +11,7 @@ import {
   useRegisterActions,
 } from "kbar";
 import { useRouter } from "next/navigation";
-import type { JSX } from "react";
+import type { ReactNode } from "react";
 import { useMemo } from "react";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
@@ -124,7 +124,7 @@ function useEventTypesAction(): void {
   useRegisterActions(actions);
 }
 
-const KBarRoot = ({ children }: { children: React.ReactNode }): JSX.Element => {
+const KBarRoot = ({ children }: { children: ReactNode }): JSX.Element => {
   const router = useRouter();
   const actions = useMemo(() => buildKbarActions(router.push), [router.push]);
 
