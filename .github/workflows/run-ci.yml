@@ -21,26 +21,19 @@ jobs:
             const adder = context.payload.sender.login;
             const pr = context.payload.pull_request;
 
-            // Trusted bots that can add labels to trigger CI
-            const trustedBots = ['graphite-app[bot]'];
+            // Verify label adder has write access
+            const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: adder,
+            });
 
-            // Verify label adder has write access (skip for trusted bots)
-            if (!trustedBots.includes(adder)) {
-              const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                username: adder,
-              });
-
-              if (!['admin', 'maintain', 'write'].includes(perm.permission)) {
-                core.setFailed(`${adder} does not have write access`);
-                return;
-              }
-
-              console.log(`Label added by ${adder} (${perm.permission})`);
-            } else {
-              console.log(`Label added by trusted bot: ${adder}`);
+            if (!['admin', 'maintain', 'write'].includes(perm.permission)) {
+              core.setFailed(`${adder} does not have write access`);
+              return;
             }
+
+            console.log(`Label added by ${adder} (${perm.permission})`);
 
             // Find the latest pr.yml run for this PR's head SHA
             const { data: runs } = await github.rest.actions.listWorkflowRuns({
