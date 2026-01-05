@@ -114,7 +114,10 @@ const defaultProps = {
   },
   bookings: {
     handleBookEvent: vi.fn(),
-    errors: {},
+    errors: {
+      hasDataErrors: false,
+      dataErrors: null,
+    },
     loadingStates: {},
     expiryTime: undefined,
     instantVideoMeetingUrl: "",
