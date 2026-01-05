@@ -36,8 +36,8 @@ import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/Insi
 import { DateTargetSelector, type DateTarget } from "@calcom/features/insights/filters/DateTargetSelector";
 import { Download } from "@calcom/features/insights/filters/Download";
 import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
-import { useInsightsBookings } from "@calcom/features/insights/hooks/useInsightsBookings";
-import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
+import { useInsightsBookings } from "@calcom/web/modules/insights/hooks/useInsightsBookings";
+import { useInsightsOrgTeams } from "@calcom/web/modules/insights/hooks/useInsightsOrgTeams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 

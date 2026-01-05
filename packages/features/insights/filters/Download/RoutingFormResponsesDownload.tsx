@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import type { SortingState } from "@calcom/features/data-table";
-import { useInsightsRoutingParameters } from "@calcom/features/insights/hooks/useInsightsRoutingParameters";
+import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
