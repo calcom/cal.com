@@ -1,3 +1,4 @@
+import { Module } from "@nestjs/common";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
@@ -9,11 +10,12 @@ import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/inde
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { TeamsEventTypesController } from "@/modules/teams/event-types/controllers/teams-event-types.controller";
+import { TeamsEventTypesWebhooksController } from "@/modules/teams/event-types/controllers/teams-event-types-webhooks.controller";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { Module } from "@nestjs/common";
+import { WebhooksModule } from "@/modules/webhooks/webhooks.module";
 
 @Module({
   imports: [
@@ -24,6 +26,7 @@ import { Module } from "@nestjs/common";
     UsersModule,
     TeamsModule,
     OrganizationsConferencingModule,
+    WebhooksModule,
   ],
   providers: [
     TeamsEventTypesRepository,
@@ -35,6 +38,6 @@ import { Module } from "@nestjs/common";
     ConferencingRepository,
   ],
   exports: [TeamsEventTypesRepository, TeamsEventTypesService],
-  controllers: [TeamsEventTypesController],
+  controllers: [TeamsEventTypesController, TeamsEventTypesWebhooksController],
 })
 export class TeamsEventTypesModule {}
