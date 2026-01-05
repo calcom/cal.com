@@ -1169,12 +1169,11 @@ export async function apiLogin(
   expect(response.status()).toBe(200);
 
   /**
-   * Warm up the session by calling the E2E-only session warmup endpoint.
+   * Warm up the session by navigating to the E2E-only session warmup page.
    * This triggers the jwt and session callbacks that populate the session
-   * with profile, org, and other important data, without loading a heavy UI page.
+   * with profile, org, and other important data, using a minimal SSR page.
    */
-  const warmupResponse = await page.context().request.get("/api/e2e/session-warmup");
-  expect(warmupResponse.status()).toBe(200);
+  await page.goto("/e2e/session-warmup");
 
   // If a specific URL was requested, navigate to it
   if (navigateToUrl) {

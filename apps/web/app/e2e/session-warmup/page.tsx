@@ -1,24 +1,22 @@
 import { cookies, headers } from "next/headers";
-import { NextResponse } from "next/server";
+import { notFound } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 /**
- * E2E-only endpoint for warming up the NextAuth session.
+ * E2E-only page for warming up the NextAuth session.
  * This triggers the jwt and session callbacks that populate the session
  * with profile, org, and other important data.
  *
- * Only available when NEXT_PUBLIC_IS_E2E=1 is set (automatically set by playwright.config.ts).
+ * Only available when NEXT_PUBLIC_IS_E2E=1 is set (automatically set by playwright.config.ts)
+ * or in development mode.
  */
-async function getHandler() {
-  // // Gate this endpoint to E2E test mode or dev only
-  if (
-    process.env.NEXT_PUBLIC_IS_E2E !== "1" &&
-    process.env.NODE_ENV !== "development"
-  ) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+const Page = async () => {
+  // Gate this page to E2E test mode or dev only
+  if (process.env.NEXT_PUBLIC_IS_E2E !== "1" && process.env.NODE_ENV !== "development") {
+    notFound();
   }
 
   // Create a legacy request object for compatibility with getServerSession
@@ -28,10 +26,10 @@ async function getHandler() {
   const session = await getServerSession({ req: legacyReq });
 
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return <div>Unauthorized</div>;
   }
 
-  return NextResponse.json({ ok: true });
-}
+  return <div>Session warmed up</div>;
+};
 
-export const GET = getHandler;
+export default Page;
