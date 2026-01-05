@@ -19,21 +19,52 @@ jobs:
         with:
           script: |
             const adder = context.payload.sender.login;
+            const senderType = context.payload.sender.type;
             const pr = context.payload.pull_request;
+            const installation = context.payload.installation;
 
-            // Verify label adder has write access
-            const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              username: adder,
-            });
+            // Trusted GitHub App IDs that can add labels to trigger CI
+            // Graphite App: https://github.com/apps/graphite-app
+            const GRAPHITE_APP_ID = 15497;
+            const trustedAppIds = [GRAPHITE_APP_ID];
 
-            if (!['admin', 'maintain', 'write'].includes(perm.permission)) {
-              core.setFailed(`${adder} does not have write access`);
-              return;
+            let isAuthorized = false;
+
+            // Check if this is a GitHub App (Bot) with an installation context
+            if (senderType === 'Bot' && installation?.id) {
+              try {
+                // Get the installation details to verify the app_id
+                const { data: installationData } = await github.rest.apps.getInstallation({
+                  installation_id: installation.id,
+                });
+
+                if (trustedAppIds.includes(installationData.app_id)) {
+                  console.log(`Label added by trusted GitHub App: ${adder} (app_id: ${installationData.app_id})`);
+                  isAuthorized = true;
+                } else {
+                  console.log(`GitHub App ${adder} (app_id: ${installationData.app_id}) is not in the trusted list`);
+                }
+              } catch (error) {
+                console.log(`Could not verify GitHub App installation: ${error.message}`);
+                // Fall through to human permission check
+              }
             }
 
-            console.log(`Label added by ${adder} (${perm.permission})`);
+            // If not authorized by app check, verify human has write access
+            if (!isAuthorized) {
+              const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: adder,
+              });
+
+              if (!['admin', 'maintain', 'write'].includes(perm.permission)) {
+                core.setFailed(`${adder} does not have write access`);
+                return;
+              }
+
+              console.log(`Label added by ${adder} (${perm.permission})`);
+            }
 
             // Find the latest pr.yml run for this PR's head SHA
             const { data: runs } = await github.rest.actions.listWorkflowRuns({
