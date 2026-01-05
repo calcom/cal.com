@@ -1,24 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Checkbox, TextField } from "@calcom/ui/components/form";
 import {
   Sheet,
+  SheetBody,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetBody,
-  SheetFooter,
 } from "@calcom/ui/components/sheet";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { useEffect, useState } from "react";
 
 type Flag = RouterOutputs["viewer"]["features"]["list"][number];
 
@@ -97,12 +96,12 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent className="bg-cal-muted">
+      <SheetContent class="bg-cal-muted">
         <SheetHeader>
           <SheetTitle>Assign: {flag.slug}</SheetTitle>
         </SheetHeader>
         <SheetBody>
-          <div className="mb-4">
+          <div class="mb-4">
             <TextField
               type="text"
               placeholder={t("search")}
@@ -112,34 +111,34 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
           </div>
           {isPending ? (
             <SkeletonContainer>
-              <div className="stack-y-3">
+              <div class="stack-y-3">
                 {[...Array(5)].map((_, i) => (
-                  <SkeletonText key={i} className="h-16 w-full" />
+                  <SkeletonText key={i} class="h-16 w-full" />
                 ))}
               </div>
             </SkeletonContainer>
           ) : teams && teams.length > 0 ? (
             <>
-              <div className="stack-y-2">
+              <div class="stack-y-2">
                 {teams.map((team) => (
                   <button
                     key={team.id}
                     type="button"
                     onClick={() => handleToggleTeam(team.id, team.hasFeature)}
                     disabled={isLoading}
-                    className="bg-default border-subtle hover:bg-cal-muted flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
+                    class="bg-default border-subtle hover:bg-cal-muted flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50">
+                    <div class="flex items-center gap-3">
+                      <div class="relative">
                         {team.isOrganization ? (
-                          <div className="h-8 w-8 overflow-hidden rounded">
+                          <div class="h-8 w-8 overflow-hidden rounded">
                             {team.logoUrl ? (
                               <img
                                 src={team.logoUrl}
                                 alt={team.name || ""}
-                                className="h-full w-full object-cover"
+                                class="h-full w-full object-cover"
                               />
                             ) : (
-                              <div className="bg-emphasis text-default flex h-full w-full items-center justify-center text-xs font-semibold">
+                              <div class="bg-emphasis text-default flex h-full w-full items-center justify-center text-xs font-semibold">
                                 {team.name?.charAt(0).toUpperCase()}
                               </div>
                             )}
@@ -148,15 +147,15 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
                           <Avatar size="sm" alt={team.name || ""} imageSrc={team.logoUrl} />
                         )}
                         {team.parent && team.parentId && (
-                          <div className="border-emphasis absolute -bottom-1 -right-1 h-4 w-4 overflow-hidden rounded border">
+                          <div class="border-emphasis absolute -bottom-1 -right-1 h-4 w-4 overflow-hidden rounded border">
                             {team.parent.logoUrl ? (
                               <img
                                 src={team.parent.logoUrl}
                                 alt={team.parent.name || ""}
-                                className="h-full w-full object-cover"
+                                class="h-full w-full object-cover"
                               />
                             ) : (
-                              <div className="bg-emphasis text-default flex h-full w-full items-center justify-center text-[8px] font-semibold">
+                              <div class="bg-emphasis text-default flex h-full w-full items-center justify-center text-[8px] font-semibold">
                                 {team.parent.name?.charAt(0).toUpperCase()}
                               </div>
                             )}
@@ -164,25 +163,21 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
                         )}
                       </div>
                       <div>
-                        <p className="text-emphasis text-sm font-medium">{team.name}</p>
-                        {team.slug && <p className="text-subtle text-xs">{team.slug}</p>}
+                        <p class="text-emphasis text-sm font-medium">{team.name}</p>
+                        {team.slug && <p class="text-subtle text-xs">{team.slug}</p>}
                         {team.parent && (
-                          <p className="text-subtle text-xs">
+                          <p class="text-subtle text-xs">
                             {t("organization")}: {team.parent.name}
                           </p>
                         )}
                       </div>
                     </div>
-                    <Checkbox
-                      checked={team.hasFeature}
-                      disabled={isLoading}
-                      onCheckedChange={() => {}}
-                    />
+                    <Checkbox checked={team.hasFeature} disabled={isLoading} onCheckedChange={() => {}} />
                   </button>
                 ))}
               </div>
               {hasNextPage && (
-                <div className="mt-4 flex justify-center">
+                <div class="mt-4 flex justify-center">
                   <Button
                     color="secondary"
                     onClick={() => fetchNextPage()}
@@ -194,7 +189,7 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
               )}
             </>
           ) : (
-            <p className="text-subtle text-center text-sm">{t("no_teams_found")}</p>
+            <p class="text-subtle text-center text-sm">{t("no_teams_found")}</p>
           )}
         </SheetBody>
         <SheetFooter>
