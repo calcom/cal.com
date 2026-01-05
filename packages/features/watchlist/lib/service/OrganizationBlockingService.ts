@@ -1,4 +1,4 @@
-import type { BatchBlockingResult, BlockingResult, IBlockingService } from "../interface/IBlockingService";
+import type { BulkBlockingResult, BlockingResult, IBlockingService } from "../interface/IBlockingService";
 import type { IOrganizationWatchlistRepository } from "../interface/IWatchlistRepositories";
 import { WatchlistType } from "../types";
 import { extractDomainFromEmail, normalizeDomain, normalizeEmail } from "../utils/normalization";
@@ -43,11 +43,11 @@ export class OrganizationBlockingService implements IBlockingService {
   }
 
   /**
-   * Batch check multiple emails in a single query for an organization.
+   * Bulk check multiple emails in a single query for an organization.
    * Returns Map<email (lowercase), BlockingResult> for efficient lookup.
    */
-  async areBlocked(emails: string[], organizationId: number): Promise<BatchBlockingResult> {
-    const result: BatchBlockingResult = new Map();
+  async areBlocked(emails: string[], organizationId: number): Promise<BulkBlockingResult> {
+    const result: BulkBlockingResult = new Map();
 
     if (emails.length === 0 || !organizationId) {
       return result;

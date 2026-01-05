@@ -131,7 +131,7 @@ const _loadAndValidateUsers = async ({
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
-  // Filter out blocked users (batched - single DB query)
+
   const organizationId = eventType.team?.parentId ?? eventType.team?.id ?? null;
   const { eligibleUsers, blockedCount } = await filterBlockedUsers(users, organizationId, sentrySpan);
 
@@ -145,7 +145,6 @@ const _loadAndValidateUsers = async ({
     throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
   }
 
-  // Use eligible users for the rest of the flow
   users = eligibleUsers;
 
   // map fixed users

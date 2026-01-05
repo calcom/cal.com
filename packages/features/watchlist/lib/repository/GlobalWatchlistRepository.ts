@@ -86,8 +86,8 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
   }
 
   /**
-   * Batch find blocking entries for multiple emails and domains.
-   * Single query for N users - eliminates N+1.
+   * Bulk find blocking entries for multiple emails and domains.
+   * Single query for N emails and domains - eliminates N+1.
    */
   async findBlockingEntriesForEmailsAndDomains(params: {
     emails: string[];

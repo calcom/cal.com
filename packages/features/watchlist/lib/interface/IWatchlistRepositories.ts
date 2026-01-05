@@ -14,8 +14,8 @@ export interface IGlobalWatchlistRepository {
   listBlockedEntries(): Promise<Watchlist[]>;
 
   /**
-   * Batch find blocking entries for multiple emails and domains.
-   * Single query for N users - eliminates N+1.
+   * Bulk find blocking entries for multiple emails and domains.
+   * Single query for N emails and domains - eliminates N+1.
    */
   findBlockingEntriesForEmailsAndDomains(params: {
     emails: string[];
@@ -62,8 +62,8 @@ export interface IOrganizationWatchlistRepository {
   listAllOrganizationEntries(): Promise<Watchlist[]>;
 
   /**
-   * Batch find blocking entries for multiple emails and domains within an organization.
-   * Single query for N users - eliminates N+1.
+   * Bulk find blocking entries for multiple emails and domains within an organization.
+   * Single query for N emails and domains - eliminates N+1.
    */
   findBlockingEntriesForEmailsAndDomains(params: {
     emails: string[];

@@ -7,10 +7,10 @@ export interface BlockingResult {
 }
 
 /**
- * Result of batch blocking check.
+ * Result of bulk blocking check.
  * Maps email (lowercase) -> BlockingResult
  */
-export type BatchBlockingResult = Map<string, BlockingResult>;
+export type BulkBlockingResult = Map<string, BlockingResult>;
 
 export interface IBlockingService {
   /**
@@ -19,8 +19,8 @@ export interface IBlockingService {
   isBlocked(email: string, organizationId?: number | null): Promise<BlockingResult>;
 
   /**
-   * Batch check multiple emails in a single query.
+   * Bulk check multiple emails in a single query.
    * Returns Map<email, BlockingResult> for efficient lookup.
    */
-  areBlocked(emails: string[], organizationId?: number | null): Promise<BatchBlockingResult>;
+  areBlocked(emails: string[], organizationId?: number | null): Promise<BulkBlockingResult>;
 }

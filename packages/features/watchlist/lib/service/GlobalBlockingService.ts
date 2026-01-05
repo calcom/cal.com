@@ -1,4 +1,4 @@
-import type { BatchBlockingResult, BlockingResult, IBlockingService } from "../interface/IBlockingService";
+import type { BulkBlockingResult, BlockingResult, IBlockingService } from "../interface/IBlockingService";
 import type { IGlobalWatchlistRepository } from "../interface/IWatchlistRepositories";
 import { WatchlistType } from "../types";
 import { extractDomainFromEmail, normalizeDomain, normalizeEmail } from "../utils/normalization";
@@ -43,11 +43,11 @@ export class GlobalBlockingService implements IBlockingService {
   }
 
   /**
-   * Batch check multiple emails in a single query.
+   * Bulk check multiple emails in a single query.
    * Returns Map<email (lowercase), BlockingResult> for efficient lookup.
    */
-  async areBlocked(emails: string[]): Promise<BatchBlockingResult> {
-    const result: BatchBlockingResult = new Map();
+  async areBlocked(emails: string[]): Promise<BulkBlockingResult> {
+    const result: BulkBlockingResult = new Map();
 
     if (emails.length === 0) {
       return result;
