@@ -1,30 +1,94 @@
 ---
-title: "How to Set Up the API in a Local Instance"
+title: "How to set up API v2 in a local instance"
 ---
 
-To test the API in your local instance, you have the following pre-requisites:
+This guide walks you through setting up the Cal.com API v2 locally for development and testing. API v2 is built with NestJS and provides a modern, type-safe API for Cal.com.
+
+<Note>
+API v1 is deprecated. New development should use API v2. See the [API v2 introduction](/api-reference/v2/introduction) for more information.
+</Note>
+
+## Prerequisites
+
+- Node.js and Yarn installed
+- PostgreSQL database running
+- Redis running (or use Docker)
+- Cal.com repository cloned and set up
 
 <Steps>
-    <Step title="Clone the cal.com repository">
-        Please clone the cal.com repository. You can do it by following the instructions provided in [Installation](/developing/local-development)
+    <Step title="Clone and set up the cal.com repository">
+        Clone the cal.com repository and complete the initial setup by following the instructions in [Local development](/developing/local-development).
     </Step>
-    <Step title="Add license key in .env">
-        Add a staging license key that goes in as value for `CALCOM_LICENSE_KEY` in your root `.env` file.
+    <Step title="Generate Prisma client">
+        Generate the Prisma client to ensure database types are available:
 
-        You can use the following as staging license key
+        ```bash
+        yarn prisma generate
         ```
-        cal_live_QiMeiCoFjEczVQmY6EJTeiJV
+    </Step>
+    <Step title="Configure environment variables">
+        Copy the example environment file and configure it:
+
+        ```bash
+        cp apps/api/v2/.env.example apps/api/v2/.env
+        ```
+
+        Update the `.env` file with your configuration values. Make sure to set your database connection string and other required variables.
+    </Step>
+    <Step title="Add license key to database">
+        Add a license key entry to the `Deployment` table in your database. You can use a test license key for local development:
+
+        ```sql
+        INSERT INTO "Deployment" (id, logo, theme, "licenseKey", "agreedLicenseAt")
+        VALUES (1, null, null, '00000000-0000-0000-0000-000000000000', '2023-05-15 21:39:47.611');
+        ```
+
+        Then add the same license key to your root `.env` file:
+
+        ```bash
+        CALCOM_LICENSE_KEY=00000000-0000-0000-0000-000000000000
         ```
     </Step>
-    <Step title="Start development server and create API key">
-        Start the cal.com server using `yarn dev` on localhost and create the test API keys by visiting `/settings/developer/api-keys`
+    <Step title="Start the API v2 server">
+        Start the API v2 development server. You have two options:
+
+        **With Docker (recommended):**
+        ```bash
+        yarn workspace @calcom/api-v2 dev
+        ```
+
+        **Without Docker:**
+        ```bash
+        yarn workspace @calcom/api-v2 dev:no-docker
+        ```
     </Step>
-    <Step title="Copy .env.example file">
-       Copy the `.env.example` file to `.env` file by running `cp apps/api/v1/.env.example apps/api/v1/.env`from root folder
-    </Step>
-    <Step title="Start API server and test API">
-        Start the API server by running `yarn workspace @calcom/api dev` and start testing your API locally
+    <Step title="Watch for dependency changes (optional)">
+        If you're making changes to platform packages, run this in a separate terminal to rebuild dependencies automatically:
+
+        ```bash
+        yarn workspace @calcom/api-v2 dev:build:watch
+        ```
+
+        This watches and rebuilds: `platform-libraries`, `platform-constants`, `platform-enums`, `platform-utils`, and `platform-types`.
     </Step>
 </Steps>
 
-<Info>By default, the app server runs on port 3000 and the API server runs on port 3003</Info>
+## Running tests
+
+API v2 includes both unit tests and end-to-end tests:
+
+```bash
+# Unit tests
+yarn workspace @calcom/api-v2 test
+
+# E2E tests
+yarn workspace @calcom/api-v2 test:e2e
+
+# E2E tests in watch mode
+yarn workspace @calcom/api-v2 test:e2e:watch
+```
+
+## Additional resources
+
+- [API v2 introduction](/api-reference/v2/introduction)
+- [API v1 to v2 differences](/api-reference/v2/v1-v2-differences)
