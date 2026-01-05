@@ -48,6 +48,9 @@
     ]
   },
   "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
     "formatter": {
       "arrowParentheses": "always",
       "bracketSpacing": true,
@@ -77,11 +80,6 @@
     },
     {
       "includes": ["apps/api/v2/**/*.ts", "apps/api/v2/**/*.controller.ts"],
-      "javascript": {
-        "parser": {
-          "unsafeParameterDecoratorsEnabled": true
-        }
-      },
       "linter": {
         "rules": {
           "style": {

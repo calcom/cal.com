@@ -39,7 +39,6 @@ import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, RolesGuard, IsTeamEventTypeWebhookGuard)
-@Roles("TEAM_ADMIN")
 @DocsTags("Teams / Event Types / Webhooks")
 @ApiHeader(API_KEY_HEADER)
 export class TeamsEventTypesWebhooksController {
@@ -50,6 +49,7 @@ export class TeamsEventTypesWebhooksController {
 
   @Post("/")
   @ApiOperation({ summary: "Create a webhook for a team event type" })
+  @Roles("TEAM_ADMIN")
   async createTeamEventTypeWebhook(
     @Body() body: CreateWebhookInputDto,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
@@ -68,6 +68,7 @@ export class TeamsEventTypesWebhooksController {
 
   @Patch("/:webhookId")
   @ApiOperation({ summary: "Update a webhook for a team event type" })
+  @Roles("TEAM_ADMIN")
   async updateTeamEventTypeWebhook(
     @Body() body: UpdateWebhookInputDto,
     @Param("webhookId") webhookId: string
@@ -86,6 +87,7 @@ export class TeamsEventTypesWebhooksController {
 
   @Get("/:webhookId")
   @ApiOperation({ summary: "Get a webhook for a team event type" })
+  @Roles("TEAM_MEMBER")
   async getTeamEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
     return {
       status: SUCCESS_STATUS,
@@ -96,6 +98,7 @@ export class TeamsEventTypesWebhooksController {
   }
 
   @Get("/")
+  @Roles("TEAM_MEMBER")
   @ApiOperation({ summary: "Get all webhooks for a team event type" })
   async getTeamEventTypeWebhooks(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
@@ -117,6 +120,7 @@ export class TeamsEventTypesWebhooksController {
   }
 
   @Delete("/:webhookId")
+  @Roles("TEAM_ADMIN")
   @ApiOperation({ summary: "Delete a webhook for a team event type" })
   async deleteTeamEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
     await this.webhooksService.deleteWebhook(webhook.id);
@@ -129,6 +133,7 @@ export class TeamsEventTypesWebhooksController {
   }
 
   @Delete("/")
+  @Roles("TEAM_ADMIN")
   @ApiOperation({ summary: "Delete all webhooks for a team event type" })
   async deleteAllTeamEventTypeWebhooks(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
