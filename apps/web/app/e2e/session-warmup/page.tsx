@@ -1,3 +1,5 @@
+import process from "node:process";
+
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 
@@ -13,9 +15,12 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
  * Only available when NEXT_PUBLIC_IS_E2E=1 is set (automatically set by playwright.config.ts)
  * or in development mode.
  */
-const Page = async () => {
+const Page = async (): Promise<JSX.Element | null> => {
   // Gate this page to E2E test mode or dev only
-  if (process.env.NEXT_PUBLIC_IS_E2E !== "1" && process.env.NODE_ENV !== "development") {
+  if (
+    process.env.NEXT_PUBLIC_IS_E2E !== "1" &&
+    process.env.NODE_ENV !== "development"
+  ) {
     notFound();
   }
 
@@ -29,7 +34,7 @@ const Page = async () => {
     return <div>Unauthorized</div>;
   }
 
-  return <div>Session warmed up</div>;
+  return null;
 };
 
 export default Page;
