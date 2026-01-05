@@ -1,25 +1,21 @@
 import * as meta from "@calid/features/modules/workflows/providers/meta";
 import { MetaError } from "@calid/features/modules/workflows/providers/meta";
+import type { VariablesType } from "@calid/features/modules/workflows/templates/customTemplate";
 import { NonRetriableError } from "inngest";
 
 import logger from "@calcom/lib/logger";
-import { TimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
-import type { WorkflowTemplates } from "@calcom/prisma/enums";
-import { inngestClient } from "@calcom/web/pages/api/inngest";
-
-import type { VariablesType } from "@calid/features/modules/workflows/templates/customTemplate";
+import type { WorkflowActions } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[inngest-whatsapp-scheduled]"] });
 
 interface WhatsAppReminderData {
   eventTypeId: number;
   workflowId: number | null;
+  workflowStepId: number;
   recipientNumber: string;
   reminderId: number;
   bookingUid: string;
-  workflowStepId: number;
   variableData: VariablesType;
   scheduledDate: string;
   userId?: number | null;
@@ -27,6 +23,7 @@ interface WhatsAppReminderData {
   template: string | null;
   metaTemplateName: string | null;
   metaPhoneNumberId: string | null;
+  seatReferenceUid?: string | null;
   action: WorkflowActions;
 }
 
@@ -90,6 +87,7 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
         action: data.action,
         eventTypeId: data.eventTypeId,
         workflowId: data.workflowId,
+        workflowStepId: data.workflowStepId,
         phoneNumber: recipientPhone,
         userId: data.userId,
         teamId: data.teamId,
@@ -97,6 +95,8 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
         variableData: data.variableData,
         metaTemplateName: data.metaTemplateName,
         metaPhoneNumberId: data.metaPhoneNumberId,
+        bookingUid: data.bookingUid,
+        seatReferenceUid: data.seatReferenceUid,
       });
 
       if (!response.messageId) {

@@ -5,7 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { INNGEST_ID } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
 import { inngestClient } from "@calcom/web/pages/api/inngest";
 
 import { constructVariablesForTemplate } from "../../managers/constructTemplateVariable";
@@ -36,6 +36,7 @@ const fetchPendingMessages = async () => {
 /**
  * Process messages that need to be scheduled through Inngest
  * This handles reminders that were stored for future scheduling
+ * NOTE: Workflow insights are NOT created here - they will be created when Inngest sends via meta.ts
  */
 const processMessageQueue = async (): Promise<number> => {
   const pendingMessages = (await fetchPendingMessages()) as PartialCalIdWorkflowReminder[];
@@ -131,16 +132,17 @@ const processMessageQueue = async (): Promise<number> => {
       });
 
       // Send to Inngest for scheduling
+      // NOTE: Workflow insight will be created when Inngest handler calls meta.sendSMS
       const { ids } = await inngestClient.send({
         name: `whatsapp/reminder.scheduled-${key}`,
         data: {
           action: message.workflowStep.action,
           eventTypeId: message.booking.eventTypeId,
           workflowId: message.workflowStep.workflowId,
+          workflowStepId: message.workflowStepId,
           recipientNumber,
           reminderId: message.id,
           bookingUid: message.bookingUid,
-          workflowStepId: message.workflowStepId,
           scheduledDate: scheduledDate.toISOString(),
           variableData: templateVariables,
           userId: workflowUserId,
@@ -148,6 +150,7 @@ const processMessageQueue = async (): Promise<number> => {
           template: message.workflowStep.template,
           metaTemplateName,
           metaPhoneNumberId,
+          seatReferenceUid: message.seatReferenceId,
         },
         ts: delay > 0 ? now.getTime() + delay : undefined,
       });
@@ -160,6 +163,9 @@ const processMessageQueue = async (): Promise<number> => {
           referenceId: ids[0],
         },
       });
+
+      // NOTE: Do NOT create workflow insight here
+      // It will be created when Inngest calls meta.sendSMS
 
       log.info(`Successfully scheduled WhatsApp reminder ${message.id} via Inngest`);
     } catch (error) {
@@ -212,6 +218,16 @@ const executeCancellationProcess = async (): Promise<void> => {
         data: {
           referenceId: "CANCELLED",
           scheduled: false,
+        },
+      });
+
+      //mark the calIdWorkflowInsights as cancelled as well
+      await prisma.calIdWorkflowInsights.update({
+        where: {
+          msgId: messageToCancel.referenceId,
+        },
+        data: {
+          status: WorkflowStatus.CANCELLED,
         },
       });
 

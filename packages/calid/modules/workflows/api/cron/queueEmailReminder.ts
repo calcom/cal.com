@@ -10,7 +10,13 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import { SchedulingType, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import {
+  SchedulingType,
+  WorkflowActions,
+  WorkflowMethods,
+  WorkflowStatus,
+  WorkflowTemplates,
+} from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { PartialCalIdWorkflowReminder } from "../../config/types";
@@ -107,46 +113,20 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
             recipientAddress = notification.workflowStep.sendTo;
         }
 
-        // const recipientName =
-        //   notification.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
-        //     ? notification.attendee
-        //       ? notification.attendee.name
-        //       : notification.booking.attendees[0].name
-        //     : notification.booking.user?.name;
         const recipientName =
           notification.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
             ? notification.booking.attendees[0].name
             : notification.booking.user?.name;
 
-        // const participantName =
-        //   notification.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
-        //     ? notification.booking.user?.name
-        //     : notification.attendee
-        //     ? notification.attendee.name
-        //     : notification.booking.attendees[0].name;
         const participantName =
           notification.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
             ? notification.booking.user?.name
             : notification.booking.attendees[0].name;
 
-        // const userTimeZone =
-        //   notification.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
-        //     ? notification.attendee
-        //       ? notification.attendee.timeZone
-        //       : notification.booking.attendees[0].timeZone
-        //     : notification.booking.user?.timeZone;
         const userTimeZone =
           notification.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
             ? notification.booking.attendees[0].timeZone
             : notification.booking.user?.timeZone;
-
-        // const userLocale =
-        //   notification.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE ||
-        //   notification.workflowStep.action === WorkflowActions.SMS_ATTENDEE
-        //     ? notification.attendee
-        //       ? notification.attendee.locale
-        //       : notification.booking.attendees[0].locale
-        //     : notification.booking.user?.locale;
 
         const userLocale =
           notification.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE ||
@@ -184,13 +164,7 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
           const templateVariables: VariablesType = {
             eventName: notification.booking.eventType?.title || "",
             organizerName: notification.booking.user?.name || "",
-            // attendeeName: notification.attendee
-            //   ? notification.attendee.name
-            //   : notification.booking.attendees[0].name,
             attendeeName: notification.booking.attendees[0].name,
-            // attendeeEmail: notification.attendee
-            //   ? notification.attendee.email
-            //   : notification.booking.attendees[0].email,
             attendeeEmail: notification.booking.attendees[0].email,
             eventDate: dayjs(notification.booking.startTime).tz(userTimeZone),
             eventEndTime: dayjs(notification.booking?.endTime).tz(userTimeZone),
@@ -324,46 +298,69 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
             : bookingData.user?.email;
 
           mailDeliveryTasks.push(
-            sendSendgridMail(
-              {
-                to: recipientAddress,
-                subject: messageContent.emailSubject,
-                html: messageContent.emailBody,
-                batchId: batchIdentifier,
-                sendAt: dayjs(notification.scheduledDate).unix(),
-                replyTo: responseAddress,
-                attachments: notification.workflowStep.includeCalendarEvent
-                  ? [
-                      {
-                        content: Buffer.from(
-                          generateIcsString({ event: eventData, status: "CONFIRMED", isOrganizer: false }) ||
-                            ""
-                        ).toString("base64"),
-                        filename: "event.ics",
-                        type: "text/calendar; method=REQUEST",
-                        disposition: "attachment",
-                        contentId: generateUuid(),
-                      },
-                    ]
-                  : undefined,
-              },
-              { sender: notification.workflowStep.sender },
-              {
-                ...(notification.booking.eventTypeId && {
-                  eventTypeId: notification.booking.eventTypeId,
-                }),
-              }
-            ).then(() =>
-              prisma.calIdWorkflowReminder.update({
-                where: {
-                  id: notification.id,
+            (async () => {
+              // 1. Send email
+              await sendSendgridMail(
+                {
+                  to: recipientAddress,
+                  subject: messageContent.emailSubject,
+                  html: messageContent.emailBody,
+                  batchId: batchIdentifier,
+                  sendAt: dayjs(notification.scheduledDate).unix(),
+                  replyTo: responseAddress,
+                  attachments: notification.workflowStep?.includeCalendarEvent
+                    ? [
+                        {
+                          content: Buffer.from(
+                            generateIcsString({
+                              event: eventData,
+                              status: "CONFIRMED",
+                              isOrganizer: false,
+                            }) || ""
+                          ).toString("base64"),
+                          filename: "event.ics",
+                          type: "text/calendar; method=REQUEST",
+                          disposition: "attachment",
+                          contentId: generateUuid(),
+                        },
+                      ]
+                    : undefined,
                 },
+                { sender: notification.workflowStep?.sender },
+                {
+                  msgId: batchIdentifier,
+                }
+              );
+
+              // 2. Update reminder
+              await prisma.calIdWorkflowReminder.update({
+                where: { id: notification.id },
                 data: {
                   scheduled: true,
                   referenceId: batchIdentifier,
                 },
-              })
-            )
+              });
+
+              // 3. Create workflow insight
+              if (notification.booking?.eventTypeId) {
+                await prisma.calIdWorkflowInsights.create({
+                  data: {
+                    msgId: batchIdentifier,
+                    eventTypeId: notification.booking.eventTypeId,
+                    type: WorkflowMethods.EMAIL,
+                    status: WorkflowStatus.QUEUED,
+                    bookingUid: notification.booking.uid,
+                    ...(notification.seatReferenceId && {
+                      bookingSeatReferenceUid: notification.seatReferenceId,
+                    }),
+                    ...(notification.workflowStep?.id && { workflowStepId: notification.workflowStep.id }),
+                    ...(notification.workflowStep?.workflowId && {
+                      workflowId: notification.workflowStep.workflowId,
+                    }),
+                  },
+                });
+              }
+            })()
           );
         }
       } catch (error) {
@@ -402,23 +399,25 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
           const batchIdentifier = await getBatchId();
 
           mailDeliveryTasks.push(
-            sendSendgridMail(
-              {
-                to: recipientAddress,
-                subject: messageContent.emailSubject,
-                html: messageContent.emailBody,
-                batchId: batchIdentifier,
-                sendAt: dayjs(notification.scheduledDate).unix(),
-                replyTo: notification.booking?.userPrimaryEmail ?? notification.booking.user?.email,
-              },
-              { sender: notification.workflowStep?.sender },
-              {
-                ...(notification.booking.eventTypeId && {
-                  eventTypeId: notification.booking.eventTypeId,
-                }),
-              }
-            ).then(() =>
-              prisma.calIdWorkflowReminder.update({
+            (async () => {
+              // 1. Send email
+              await sendSendgridMail(
+                {
+                  to: recipientAddress,
+                  subject: messageContent.emailSubject,
+                  html: messageContent.emailBody,
+                  batchId: batchIdentifier,
+                  sendAt: dayjs(notification.scheduledDate).unix(),
+                  replyTo: notification.booking?.userPrimaryEmail ?? notification.booking?.user?.email,
+                },
+                { sender: notification.workflowStep?.sender },
+                {
+                  msgId: batchIdentifier,
+                }
+              );
+
+              // 2. Mark reminder as scheduled
+              await prisma.calIdWorkflowReminder.update({
                 where: {
                   id: notification.id,
                 },
@@ -426,8 +425,25 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
                   scheduled: true,
                   referenceId: batchIdentifier,
                 },
-              })
-            )
+              });
+
+              // 3. Create workflow insight
+              if (notification.booking?.eventTypeId) {
+                await prisma.calIdWorkflowInsights.create({
+                  data: {
+                    msgId: batchIdentifier,
+                    eventTypeId: notification.booking.eventTypeId,
+                    type: WorkflowMethods.EMAIL,
+                    status: WorkflowStatus.QUEUED,
+                    bookingUid: notification.booking.uid,
+                    bookingSeatReferenceUid: notification.seatReferenceId,
+                    metadata: {
+                      isMandatoryReminder: true,
+                    },
+                  },
+                });
+              }
+            })()
           );
         }
       } catch (error) {
@@ -436,12 +452,12 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
     }
   });
 
-  Promise.allSettled(mailDeliveryTasks).then((outcomes) => {
-    outcomes.forEach((outcome) => {
-      if (outcome.status === "rejected") {
-        logger.error("Email delivery failed", outcome.reason);
-      }
-    });
+  const outcomes = await Promise.allSettled(mailDeliveryTasks);
+
+  outcomes.forEach((outcome) => {
+    if (outcome.status === "rejected") {
+      logger.error("Email delivery failed", outcome.reason);
+    }
   });
   return pendingNotifications;
 };

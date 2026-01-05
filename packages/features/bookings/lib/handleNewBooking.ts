@@ -1415,6 +1415,7 @@ async function handler(
         paymentRequired: bookingResponse.paymentRequired,
         paymentUid: newBooking.paymentUid,
         paymentLink: newBooking?.paymentLink,
+        seatReferenceUid: newBooking.seatReferenceUid,
       };
     } else {
       // Rescheduling logic for the original seated event was handled in handleSeats
@@ -2375,7 +2376,12 @@ async function handler(
     ...evt,
     rescheduleReason,
     metadata,
-    eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType, hosts: eventType.hosts },
+    eventType: {
+      id: eventType.id,
+      slug: eventType.slug,
+      schedulingType: eventType.schedulingType,
+      hosts: eventType.hosts,
+    },
     bookerUrl,
   };
 

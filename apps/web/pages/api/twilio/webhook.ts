@@ -4,7 +4,7 @@ import getRawBody from "raw-body";
 
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import { WorkflowMethods, WorkflowStatus } from "@calcom/prisma/client";
+import { WorkflowStatus } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["api/webhook/twilio"] });
 
@@ -24,48 +24,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const rawBody = await getRawBody(req);
     const parsedBody = parse(rawBody.toString());
-    const { SmsStatus: event } = parsedBody;
-    const { msgId, eventTypeId, channel } = req.query as {
-      msgId: string;
-      eventTypeId: string;
+    const { SmsStatus: event, SmsSid: msgId } = parsedBody;
+    const { channel } = req.query as {
       channel: "SMS" | "WHATSAPP";
     };
 
-    if (!msgId || !event || !eventTypeId) {
-      log.warn(`Webhook fields not found: ${msgId}, ${event}, ${eventTypeId}`);
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    const eventType = await prisma.eventType.findUnique({
-      where: { id: Number(eventTypeId) },
-    });
-
-    if (!eventType) {
-      log.warn(`Event not found with ID ${eventTypeId} skipping operation`);
-      console.warn(`Event not found with ID ${eventTypeId} skipping operation`);
-      return res.status(200).json({ error: `EventType not found skipping operation` });
+    if (!msgId || !event) {
+      log.warn(`Webhook fields not found: msgId=${msgId}, event=${event}`);
+      return res.status(400).json({ error: "Missing required fields (msgId or event)" });
     }
 
     const status = statusMap[event as keyof typeof statusMap];
     if (!status) {
+      log.warn(`Unhandled status: ${event}`);
       return res.status(200).json({ error: "Status not handled" });
     }
 
-    await prisma.calIdWorkflowInsights.upsert({
-      where: { msgId },
-      update: { status },
-      create: {
-        msgId,
-        eventTypeId: Number(eventTypeId),
-        type: channel === "SMS" ? WorkflowMethods.SMS : WorkflowMethods.WHATSAPP,
-        status,
-      },
+    // ONLY update existing workflow insights - never create new ones
+    log.info("Updating workflow insights for SMS/WhatsApp event", { msgId, event, status, channel });
+
+    const existingInsight = await prisma.calIdWorkflowInsights.findUnique({
+      where: { msgId: msgId },
     });
+
+    if (!existingInsight) {
+      log.warn(`No existing workflow insight found for msgId ${msgId}, skipping update`);
+      console.warn(`No existing workflow insight found for msgId ${msgId}, skipping update`);
+      return res.status(200).json({ warning: "No existing insight found, skipped update" });
+    }
+
+    await prisma.calIdWorkflowInsights.update({
+      where: { msgId: msgId },
+      data: { status: status },
+    });
+
+    log.info("Successfully updated workflow insights for SMS/WhatsApp event", { msgId, event, status });
 
     res.status(200).json({ success: true });
   } catch (err) {
     console.error("Error in /api/webhook/twilio", err);
-    log.error("Error in / /api/webhook/twilio", err);
+    log.error("Error in /api/webhook/twilio", err);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }

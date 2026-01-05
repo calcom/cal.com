@@ -129,7 +129,7 @@ export type PartialBooking =
   | (Pick<
       Booking,
       | "startTime"
-      | ""
+      | "endTime"
       | "location"
       | "description"
       | "metadata"
@@ -159,7 +159,7 @@ export type PartialCalIdWorkflowStep =
 
 export type PartialCalIdWorkflowReminder = Pick<
   CalIdWorkflowReminder,
-  "id" | "isMandatoryReminder" | "scheduledDate"
+  "id" | "isMandatoryReminder" | "scheduledDate" | "seatReferenceId" | "referenceId"
 > & {
   booking: PartialBooking | null;
   workflowStep: PartialCalIdWorkflowStep;
@@ -175,6 +175,7 @@ export interface CalIdScheduleReminderArgs {
   workflowStepId?: number;
   seatReferenceUid?: string;
   attendeeId?: number;
+  workflowId?: number;
 }
 
 export type CalIdScheduleEmailReminderAction = Extract<
@@ -186,7 +187,6 @@ export type CalIdScheduleWhatsAppReminderAction = Extract<
   WorkflowActions,
   "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER"
 >;
-
 
 export type CalIdScheduleTextReminderAction = Extract<
   WorkflowActions,
@@ -206,7 +206,7 @@ export interface CalIdScheduleTextReminderArgs extends CalIdScheduleReminderArgs
 }
 
 export interface CalIdScheduleWhatsAppReminderArgs extends CalIdScheduleReminderArgs {
-  workflow: CalIdWorkflow,
+  workflow: CalIdWorkflow;
   reminderPhone: string;
   message: string;
   action: CalIdScheduleWhatsAppReminderAction;
