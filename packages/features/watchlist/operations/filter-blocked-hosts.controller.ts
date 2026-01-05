@@ -1,4 +1,5 @@
 import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
+import { normalizeEmail } from "@calcom/features/watchlist/lib/utils/normalization";
 
 /**
  * Host type expected from slots service.
@@ -37,10 +38,9 @@ export async function filterBlockedHosts<T extends HostWithEmail>(
   if (organizationId) {
     orgBlockedMap = await watchlist.orgBlocking.areBlocked(emails, organizationId);
   }
-  console.log("globalBlockedMap", globalBlockedMap);
-  console.log("orgBlockedMap", orgBlockedMap);
+
   return hosts.filter((host) => {
-    const email = host.user.email.toLowerCase();
+    const email = normalizeEmail(host.user.email);
     const globalResult = globalBlockedMap.get(email);
     if (globalResult?.isBlocked) {
       return false;
