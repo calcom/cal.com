@@ -625,9 +625,7 @@ export default function EventTypes() {
                   item={item}
                   index={index}
                   filteredEventTypes={filteredEventTypes}
-                  copiedEventTypeId={copiedEventTypeId}
                   handleEventTypePress={handleEventTypePress}
-                  handleEventTypeLongPress={handleEventTypeLongPress}
                   handleCopyLink={handleCopyLink}
                   handlePreview={handlePreview}
                   onEdit={handleEdit}

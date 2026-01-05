@@ -538,9 +538,7 @@ export default function EventTypesIOS() {
                   item={item}
                   index={index}
                   filteredEventTypes={filteredEventTypes}
-                  copiedEventTypeId={null}
                   handleEventTypePress={handleEventTypePress}
-                  handleEventTypeLongPress={handleEventTypeLongPress}
                   handleCopyLink={handleCopyLink}
                   handlePreview={handlePreview}
                   onEdit={handleEdit}

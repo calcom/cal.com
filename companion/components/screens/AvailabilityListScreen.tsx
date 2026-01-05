@@ -433,9 +433,6 @@ export function AvailabilityListScreen({
                 item={item}
                 index={index}
                 handleSchedulePress={handleSchedulePress}
-                handleScheduleLongPress={handleScheduleLongPress}
-                setSelectedSchedule={setSelectedSchedule}
-                setShowActionsModal={setShowActionsModal}
                 onDuplicate={handleDuplicate}
                 onDelete={handleDelete}
                 onSetAsDefault={handleSetAsDefault}

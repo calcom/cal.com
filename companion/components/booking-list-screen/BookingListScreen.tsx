@@ -571,17 +571,8 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         isConfirming={isConfirming}
         isDeclining={isDeclining}
         onPress={handleBookingPress}
-        onLongPress={(booking) => {
-          setSelectedBooking(booking);
-          setShowBookingActionsModal(true);
-        }}
         onConfirm={handleInlineConfirm}
         onReject={handleOpenRejectModal}
-        onActionsPress={(booking) => {
-          setSelectedBooking(booking);
-          setShowBookingActionsModal(true);
-        }}
-        // iOS context menu action handlers - now use screen navigation
         onReschedule={handleNavigateToReschedule}
         onEditLocation={handleNavigateToEditLocation}
         onAddGuests={handleNavigateToAddGuests}
