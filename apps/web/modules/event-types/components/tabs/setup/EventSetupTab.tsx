@@ -3,7 +3,6 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 import type { MultiValue } from "react-select";
 
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
 import type {
@@ -65,10 +64,11 @@ export const EventSetupTab = (
     hasOrgBranding: boolean;
     orgId?: number;
     localeOptions?: { value: string; label: string }[];
+    isPlatform?: boolean;
   }
 ) => {
   const { t } = useLocale();
-  const isPlatform = useIsPlatform();
+  const isPlatform = props.isPlatform ?? false;
   const formMethods = useFormContext<FormValues>();
   const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
 

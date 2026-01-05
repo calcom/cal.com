@@ -7,7 +7,6 @@ import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "reac
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
 import type { LocationFormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
@@ -45,6 +44,7 @@ type LocationsProps = {
   locationOptions: TLocationOptions;
   prefillLocation?: SingleValueLocationOption;
   customClassNames?: LocationCustomClassNames;
+  isPlatform?: boolean;
 };
 
 const getLocationFromType = (type: EventLocationType["type"], locationOptions: TLocationOptions) => {
@@ -94,6 +94,7 @@ const Locations: React.FC<LocationsProps> = ({
   eventType,
   prefillLocation,
   customClassNames,
+  isPlatform = false,
   ...props
 }) => {
   const { t } = useLocale();
@@ -162,8 +163,6 @@ const Locations: React.FC<LocationsProps> = ({
       }
     }
   }, [prefillLocation, seatsEnabled, validLocations, append]);
-
-  const isPlatform = useIsPlatform();
 
   return (
     <div className={classNames("w-full", customClassNames?.container)}>

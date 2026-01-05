@@ -6,7 +6,8 @@ import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { EventAvailabilityTab } from "@calcom/web/modules/event-types/components/tabs/availability/EventAvailabilityTab";
+
+import { EventAvailabilityTab } from "../components/tabs/availability/EventAvailabilityTab";
 
 export type EventAvailabilityTabWebWrapperProps = {
   eventType: EventTypeSetup;

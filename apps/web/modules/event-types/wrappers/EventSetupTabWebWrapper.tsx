@@ -3,8 +3,9 @@ import { useSession } from "next-auth/react";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { localeOptions } from "@calcom/lib/i18n";
-import type { EventSetupTabProps } from "@calcom/web/modules/event-types/components/tabs/setup/EventSetupTab";
-import { EventSetupTab } from "@calcom/web/modules/event-types/components/tabs/setup/EventSetupTab";
+
+import type { EventSetupTabProps } from "../components/tabs/setup/EventSetupTab";
+import { EventSetupTab } from "../components/tabs/setup/EventSetupTab";
 
 const EventSetupTabWebWrapper = (props: EventSetupTabProps) => {
   const orgBranding = useOrgBranding();
@@ -18,6 +19,7 @@ const EventSetupTabWebWrapper = (props: EventSetupTabProps) => {
       hasOrgBranding={!!orgBranding}
       orgId={session.data?.user.org?.id}
       localeOptions={localeOptions}
+      isPlatform={false}
       {...props}
     />
   );

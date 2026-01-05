@@ -20,14 +20,15 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui/components/toast";
+
 import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 import { TRPCClientError } from "@trpc/react-query";
 
-import { useEventTypeForm } from "../hooks/useEventTypeForm";
-import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
-import { useTabsNavigations } from "../hooks/useTabsNavigations";
+import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
+import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
+import { useTabsNavigations } from "@calcom/atoms/event-types/hooks/useTabsNavigations";
 
 type EventPermissions = {
   eventTypes: {
@@ -54,55 +55,50 @@ const AssignmentWarningDialog = dynamic(
 
 const EventSetupTab = dynamic(
   () =>
-    // import web wrapper when it's ready
     import("./EventSetupTabWebWrapper").then((mod) => mod),
   { loading: () => null }
 );
 
 const EventAvailabilityTab = dynamic(() =>
-  // import web wrapper when it's ready
   import("./EventAvailabilityTabWebWrapper").then((mod) => mod)
 );
 
 const EventTeamAssignmentTab = dynamic(() => import("./EventTeamAssignmentTabWebWrapper").then((mod) => mod));
 
 const EventLimitsTab = dynamic(() =>
-  // import web wrapper when it's ready
   import("./EventLimitsTabWebWrapper").then((mod) => mod)
 );
 
 const EventAdvancedTab = dynamic(() =>
-  // import web wrapper when it's ready
   import("./EventAdvancedWebWrapper").then((mod) => mod)
 );
 
 const EventInstantTab = dynamic(() =>
-  import("@calcom/web/modules/event-types/components/tabs/instant/EventInstantTab").then(
+  import("../components/tabs/instant/EventInstantTab").then(
     (mod) => mod.EventInstantTab
   )
 );
 
 const EventRecurringTab = dynamic(() =>
-  // import web wrapper when it's ready
   import("./EventRecurringWebWrapper").then((mod) => mod)
 );
 
 const EventAppsTab = dynamic(() =>
-  import("@calcom/web/modules/event-types/components/tabs/apps/EventAppsTab").then((mod) => mod.EventAppsTab)
+  import("../components/tabs/apps/EventAppsTab").then((mod) => mod.EventAppsTab)
 );
 
 const EventWorkflowsTab = dynamic(
-  () => import("@calcom/web/modules/event-types/components/tabs/workflows/EventWorkflowsTab")
+  () => import("../components/tabs/workflows/EventWorkflowsTab")
 );
 
 const EventWebhooksTab = dynamic(() =>
-  import("@calcom/web/modules/event-types/components/tabs/webhooks/EventWebhooksTab").then(
+  import("../components/tabs/webhooks/EventWebhooksTab").then(
     (mod) => mod.EventWebhooksTab
   )
 );
 
 const EventAITab = dynamic(() =>
-  import("@calcom/web/modules/event-types/components/tabs/ai/EventAITab").then((mod) => mod.EventAITab)
+  import("../components/tabs/ai/EventAITab").then((mod) => mod.EventAITab)
 );
 
 export type EventTypeWebWrapperProps = {

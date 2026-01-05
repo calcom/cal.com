@@ -62,7 +62,6 @@
     "./destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper": "./destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper.tsx",
     "./dist/index.ts": "./index.ts",
     "./dist/index.d.ts": "./dist/index.d.ts",
-    "./event-types/wrappers/EventTypeWebWrapper": "./event-types/wrappers/EventTypeWebWrapper.tsx",
     "./globals.min.css": "./globals.min.css",
     "./hooks/bookings/useHandleBookEvent": "./hooks/bookings/useHandleBookEvent.ts",
     "./hooks/useAtomsContext": "./hooks/useAtomsContext.ts",
