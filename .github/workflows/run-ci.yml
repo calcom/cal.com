@@ -23,31 +23,19 @@ jobs:
             const pr = context.payload.pull_request;
             const installation = context.payload.installation;
 
-            // Trusted GitHub App IDs that can add labels to trigger CI
-            // Graphite App: https://github.com/apps/graphite-app
-            const GRAPHITE_APP_ID = 15497;
-            const trustedAppIds = [GRAPHITE_APP_ID];
+            // Trusted GitHub App bot logins that can add labels to trigger CI
+            // These are verified by checking sender.type === 'Bot' AND presence of installation context
+            // The installation object is GitHub-generated and cannot be forged by contributors
+            const trustedBotLogins = ['graphite-app[bot]'];
 
             let isAuthorized = false;
 
-            // Check if this is a GitHub App (Bot) with an installation context
-            if (senderType === 'Bot' && installation?.id) {
-              try {
-                // Get the installation details to verify the app_id
-                const { data: installationData } = await github.rest.apps.getInstallation({
-                  installation_id: installation.id,
-                });
-
-                if (trustedAppIds.includes(installationData.app_id)) {
-                  console.log(`Label added by trusted GitHub App: ${adder} (app_id: ${installationData.app_id})`);
-                  isAuthorized = true;
-                } else {
-                  console.log(`GitHub App ${adder} (app_id: ${installationData.app_id}) is not in the trusted list`);
-                }
-              } catch (error) {
-                console.log(`Could not verify GitHub App installation: ${error.message}`);
-                // Fall through to human permission check
-              }
+            // Check if this is a trusted GitHub App (Bot) with an installation context
+            // The combination of sender.type === 'Bot' + installation context + known bot login
+            // provides sufficient verification since the payload comes from GitHub
+            if (senderType === 'Bot' && installation && trustedBotLogins.includes(adder)) {
+              console.log(`Label added by trusted GitHub App: ${adder}`);
+              isAuthorized = true;
             }
 
             // If not authorized by app check, verify human has write access
