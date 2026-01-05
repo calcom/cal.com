@@ -22,12 +22,7 @@ import {
   Response,
   UseGuards,
 } from "@nestjs/common";
-import {
-  ApiTags as DocsTags,
-  ApiExcludeEndpoint as DocsExcludeEndpoint,
-  ApiHeader as DocsHeader,
-  ApiOperation,
-} from "@nestjs/swagger";
+import { ApiTags as DocsTags, ApiHeader as DocsHeader, ApiOperation } from "@nestjs/swagger";
 import { Response as ExpressResponse } from "express";
 
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
@@ -49,7 +44,12 @@ export class OAuthFlowController {
   @Post("/authorize")
   @HttpCode(HttpStatus.OK)
   @UseGuards(NextAuthGuard)
-  @DocsExcludeEndpoint()
+  @DocsTags("Platform / OAuth")
+  @ApiOperation({
+    summary: "Authorize a user",
+    description:
+      "Initiate the OAuth authorization flow. The user must have an active Cal.com session. On success, redirects to the provided redirectUri with an authorization code.",
+  })
   async authorize(
     @Param("clientId") clientId: string,
     @Body() body: OAuthAuthorizeInput,
@@ -83,7 +83,16 @@ export class OAuthFlowController {
 
   @Post("/exchange")
   @HttpCode(HttpStatus.OK)
-  @DocsExcludeEndpoint()
+  @DocsTags("Platform / OAuth")
+  @DocsHeader({
+    name: "Authorization",
+    description: "Bearer <authorization_code> from the authorize redirect.",
+    required: true,
+  })
+  @ApiOperation({
+    summary: "Exchange authorization code for tokens",
+    description: `Exchange the authorization code received from the authorize endpoint for access and refresh tokens. ${TOKENS_DOCS}`,
+  })
   async exchange(
     @Headers("Authorization") authorization: string,
     @Param("clientId") clientId: string,
