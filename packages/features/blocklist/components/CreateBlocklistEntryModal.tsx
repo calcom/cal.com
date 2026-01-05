@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { domainRegex, emailRegex } from "@calcom/lib/emailSchema";
@@ -47,6 +48,12 @@ export function CreateBlocklistEntryModal({
   });
 
   const watchType = watch("type");
+
+  useEffect(() => {
+    if (isOpen) {
+      reset();
+    }
+  }, [isOpen, reset]);
 
   const onSubmit = (data: CreateBlocklistEntryFormData) => {
     onCreateEntry(data);

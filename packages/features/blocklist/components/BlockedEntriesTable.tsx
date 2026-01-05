@@ -9,7 +9,7 @@ import { DataTableSelectionBar, DataTableWrapper } from "@calcom/features/data-t
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { ConfirmationDialogContent, Dialog, DialogClose } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import type { BlocklistEntry, BlocklistPermissions, BlocklistScope } from "../types";
@@ -204,11 +204,9 @@ export function BlockedEntriesTable<T extends BlocklistEntry>({
           title={t(isSystem ? "remove_value_from_system_blocklist" : "remove_value_from_blocklist", {
             value: entryToDelete?.value,
           })}
-          confirmBtn={
-            <DialogClose loading={isDeleting} color="destructive" onClick={confirmDelete}>
-              {t("remove")}
-            </DialogClose>
-          }>
+          confirmBtnText={t("remove")}
+          isPending={isDeleting}
+          onConfirm={confirmDelete}>
           {t(
             isSystem ? "remove_value_from_system_blocklist_description" : "remove_value_from_blocklist_description"
           )}
