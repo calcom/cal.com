@@ -20,13 +20,16 @@ jobs:
           script: |
             const adder = context.payload.sender.login;
             const senderType = context.payload.sender.type;
+            const senderId = context.payload.sender.id;
             const pr = context.payload.pull_request;
+
+            console.log(`Sender: ${adder} (type: ${senderType}, id: ${senderId})`);
 
             const trustedBotLogins = ['graphite-app[bot]'];
             let isAuthorized = false;
 
             if (senderType === 'Bot' && trustedBotLogins.includes(adder)) {
-              console.log(`Label added by trusted GitHub App: ${adder}`);
+              console.log(`Authorized: trusted GitHub App`);
               isAuthorized = true;
             }
 
