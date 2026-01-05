@@ -1,3 +1,7 @@
+import { Form, FormField } from "@calid/features/ui/components/form";
+import { TextField } from "@calid/features/ui/components/input/input";
+import { TextAreaField } from "@calid/features/ui/components/input/text-area";
+import { Label } from "@calid/features/ui/components/label";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -10,9 +14,6 @@ import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { Editor } from "@calcom/ui/components/editor";
-import { Form } from "@calcom/ui/components/form";
-import { TextAreaField } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export default function CreateEventTypeForm({
@@ -36,71 +37,75 @@ export default function CreateEventTypeForm({
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
 
-  const { register } = form;
   return (
     <Form
       form={form}
-      handleSubmit={(values) => {
+      {...form}
+      onSubmit={(values) => {
         handleSubmit(values);
       }}>
       <div className="mt-3 space-y-6 pb-11">
-        <TextField
-          label={t("title")}
-          placeholder={t("quick_chat")}
-          data-testid="event-type-quick-chat"
-          {...register("title")}
-          onChange={(e) => {
-            form.setValue("title", e?.target.value);
-            if (form.formState.touchedFields["slug"] === undefined) {
-              form.setValue("slug", slugify(e?.target.value));
-            }
-          }}
+        <FormField
+          name="title"
+          control={form.control}
+          render={({ field: { value, onChange }, fieldState: { error } }) => (
+            <TextField
+              name="title"
+              label={t("title")}
+              required
+              showAsteriskIndicator
+              placeholder={t("quick_chat")}
+              data-testid="event-type-quick-chat"
+              value={value || ""}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const next = e?.target.value;
+                onChange(next);
+                if (form.formState.touchedFields["slug"] === undefined) {
+                  form.setValue("slug", slugify(next));
+                }
+              }}
+              error={error ? error.message : undefined}
+            />
+          )}
         />
 
-        {urlPrefix && urlPrefix.length >= 21 ? (
+        {urlPrefix && (
           <div>
-            <TextField
-              label={isPlatform ? "Slug" : `${t("url")}: ${urlPrefix}`}
-              required
-              addOnLeading={
-                !isPlatform ? (
-                  <Tooltip content={!isManagedEventType ? pageSlug : t("username_placeholder")}>
-                    <span className="max-w-24 md:max-w-56">
-                      /{!isManagedEventType ? pageSlug : t("username_placeholder")}/
-                    </span>
-                  </Tooltip>
-                ) : undefined
-              }
-              {...register("slug")}
-              onChange={(e) => {
-                form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+            <FormField
+              name="slug"
+              control={form.control}
+              render={({ field: { value, onChange }, fieldState: { error } }) => {
+                const displayValue = value ? slugify(value, true) : "";
+                return (
+                  <TextField
+                    name="slug"
+                    label={isPlatform ? "Slug" : t("url")}
+                    required
+                    showAsteriskIndicator
+                    addOnLeading={
+                      !isPlatform ? (
+                        <Tooltip
+                          content={`${urlPrefix}/${
+                            !isManagedEventType ? pageSlug : t("username_placeholder")
+                          }/`}>
+                          <span className="inline-block min-w-0 max-w-24 overflow-hidden whitespace-nowrap md:max-w-56">
+                            {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                          </span>
+                        </Tooltip>
+                      ) : undefined
+                    }
+                    value={displayValue}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const slugifiedValue = slugify(e?.target.value, true);
+                      onChange(slugifiedValue);
+                      form.setValue("slug", slugifiedValue, { shouldTouch: true });
+                    }}
+                    error={error ? error.message : undefined}
+                  />
+                );
               }}
             />
 
-            {isManagedEventType && !isPlatform && (
-              <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
-            )}
-          </div>
-        ) : (
-          <div>
-            <TextField
-              label={isPlatform ? "Slug" : t("url")}
-              required
-              addOnLeading={
-                !isPlatform ? (
-                  <Tooltip
-                    content={`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}>
-                    <span className="text-default max-w-24 md:max-w-56">
-                      {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
-                    </span>
-                  </Tooltip>
-                ) : undefined
-              }
-              {...register("slug")}
-              onChange={(e) => {
-                form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
-              }}
-            />
             {isManagedEventType && !isPlatform && (
               <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
             )}
@@ -108,30 +113,45 @@ export default function CreateEventTypeForm({
         )}
         <>
           {isPlatform ? (
-            <TextAreaField {...register("description")} placeholder={t("quick_video_meeting")} />
-          ) : (
-            <Editor
-              getText={() => md.render(form.getValues("description") || "")}
-              setText={(value: string) => form.setValue("description", turndown(value))}
-              excludedToolbarItems={["blockType", "link"]}
-              placeholder={t("quick_video_meeting")}
-              firstRender={firstRender}
-              setFirstRender={setFirstRender}
-              maxHeight="200px"
+            <FormField
+              name="description"
+              control={form.control}
+              render={({ field: { value, onChange } }) => (
+                <TextAreaField
+                  name="description"
+                  label={t("description")}
+                  placeholder={t("quick_video_meeting")}
+                  value={value || ""}
+                  onChange={(e) => onChange(e?.target.value)}
+                />
+              )}
             />
+          ) : (
+            <div>
+              <Label htmlFor="editor">{t("description")}</Label>
+              <FormField
+                name="description"
+                control={form.control}
+                render={() => (
+                  <Editor
+                    getText={() => md.render(form.getValues("description") || "")}
+                    setText={(value: string) => form.setValue("description", turndown(value))}
+                    excludedToolbarItems={["blockType", "link"]}
+                    placeholder={t("quick_video_meeting")}
+                    firstRender={firstRender}
+                    setFirstRender={setFirstRender}
+                    maxHeight="200px"
+                  />
+                )}
+              />
+            </div>
           )}
 
           <div className="relative">
-            <TextField
-              type="number"
-              required
-              min={MIN_EVENT_DURATION_MINUTES}
-              max={MAX_EVENT_DURATION_MINUTES}
-              placeholder="15"
-              label={t("duration")}
-              className="pr-4"
-              {...register("length", {
-                valueAsNumber: true,
+            <FormField
+              name="length"
+              control={form.control}
+              rules={{
                 min: {
                   value: MIN_EVENT_DURATION_MINUTES,
                   message: t("duration_min_error", { min: MIN_EVENT_DURATION_MINUTES }),
@@ -140,8 +160,24 @@ export default function CreateEventTypeForm({
                   value: MAX_EVENT_DURATION_MINUTES,
                   message: t("duration_max_error", { max: MAX_EVENT_DURATION_MINUTES }),
                 },
-              })}
-              addOnSuffix={t("minutes")}
+              }}
+              render={({ field: { value, onChange }, fieldState: { error } }) => (
+                <TextField
+                  name="length"
+                  type="number"
+                  required
+                  showAsteriskIndicator
+                  min={MIN_EVENT_DURATION_MINUTES}
+                  max={MAX_EVENT_DURATION_MINUTES}
+                  placeholder="15"
+                  label={t("duration")}
+                  className="pr-4"
+                  value={value || ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(Number(e?.target.value))}
+                  addOnSuffix={t("minutes")}
+                  error={error ? error.message : undefined}
+                />
+              )}
             />
           </div>
         </>
