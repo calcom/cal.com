@@ -102,20 +102,20 @@ export function ExperimentConfigSheet({ experiment, open, onOpenChange }: Experi
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent class="bg-cal-muted">
+      <SheetContent className="bg-cal-muted">
         <SheetHeader>
           <SheetTitle>Configure Experiment: {experiment.slug}</SheetTitle>
         </SheetHeader>
-        <SheetBody class="space-y-4">
+        <SheetBody className="space-y-4">
           <div>
-            <label class="text-emphasis mb-2 block text-sm font-medium">Assignment Type</label>
+            <label className="text-emphasis mb-2 block text-sm font-medium">Assignment Type</label>
             <Select
               value={assignmentType}
               onValueChange={(value: "DETERMINISTIC" | "RANDOM") => setAssignmentType(value)}>
               <option value="DETERMINISTIC">Deterministic (hash-based)</option>
               <option value="RANDOM">Random</option>
             </Select>
-            <p class="text-subtle mt-1 text-xs">
+            <p className="text-subtle mt-1 text-xs">
               {assignmentType === "DETERMINISTIC"
                 ? "Users get the same variant every time (recommended)"
                 : "Users get a random variant on each assignment"}
@@ -123,42 +123,42 @@ export function ExperimentConfigSheet({ experiment, open, onOpenChange }: Experi
           </div>
 
           <div>
-            <div class="mb-2 flex items-center justify-between">
-              <label class="text-emphasis text-sm font-medium">
+            <div className="mb-2 flex items-center justify-between">
+              <label className="text-emphasis text-sm font-medium">
                 Variants
                 {!isValid && (
-                  <span class="text-destructive ml-2 text-xs">
+                  <span className="text-destructive ml-2 text-xs">
                     (Total: {totalPercentage.toFixed(1)}% - must be 100%)
                   </span>
                 )}
-                {isValid && <span class="text-success ml-2 text-xs">(Total: 100% ✓)</span>}
+                {isValid && <span className="text-success ml-2 text-xs">(Total: 100% ✓)</span>}
               </label>
               <Button size="sm" color="secondary" onClick={addVariant}>
                 Add Variant
               </Button>
             </div>
 
-            <div class="space-y-2">
+            <div className="space-y-2">
               {variants.map((variant, index) => (
-                <div key={index} class="bg-default flex items-center gap-2 rounded-md border p-3">
+                <div key={index} className="bg-default flex items-center gap-2 rounded-md border p-3">
                   <TextField
                     value={variant.name}
                     onChange={(e) => updateVariant(index, "name", e.target.value)}
                     placeholder="Variant name"
-                    class="flex-1"
+                    className="flex-1"
                   />
-                  <div class="flex items-center gap-1">
+                  <div className="flex items-center gap-1">
                     <TextField
                       type="number"
                       value={variant.percentage}
                       onChange={(e) => updateVariant(index, "percentage", e.target.value)}
                       placeholder="%"
-                      class="w-20"
+                      className="w-20"
                       min={0}
                       max={100}
                       step={0.1}
                     />
-                    <span class="text-subtle text-sm">%</span>
+                    <span className="text-subtle text-sm">%</span>
                   </div>
                   {variants.length > 2 && (
                     <Button
