@@ -296,6 +296,12 @@ const EmailEmbed = ({
     isTeamEvent,
     duration: selectedDuration,
     useApiV2: false,
+    // Only include booker timezone in the query key when the event type uses
+    // the booker's timezone for its restriction schedule. This avoids extra
+    // refetches for regular booking pages.
+    includeBookerTimezoneInQueryKey: Boolean(
+      event?.data?.restrictionScheduleId && event?.data?.useBookerTimezone
+    ),
   });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
