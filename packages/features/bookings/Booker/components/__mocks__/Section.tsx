@@ -18,7 +18,8 @@ vi.mock("../Section", () => {
       areaValue = area?.default;
     }
     return (
-      <div data-testid="booker-section" class={className} data-area={areaValue}>
+      // biome-ignore lint/suspicious/noReactSpecificProps: This is a React component that requires className
+      <div data-testid="booker-section" className={className} data-area={areaValue}>
         {children}
       </div>
     );
