@@ -477,8 +477,8 @@ export default function Success(props: PageProps) {
               <div
                 className={classNames(
                   "inline-block transform overflow-hidden rounded-lg sm:my-8 sm:max-w-xl",
-                  !isBackgroundTransparent && " bg-default dark:bg-muted",
-                  "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
+                  !isBackgroundTransparent && " bg-default",
+                  "py-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
                 aria-modal="true"
@@ -509,7 +509,7 @@ export default function Success(props: PageProps) {
                           isCancelled ? "bg-error" : ""
                         )}>
                         {!giphyImage && !needsConfirmation && isReschedulable && (
-                          <Icon name="check" className="h-6 w-6 text-white dark:text-green-400" />
+                          <Icon name="check" className="h-6 w-6 text-white" />
                         )}
                         {needsConfirmation && isReschedulable && (
                           <Icon name="calendar" className="text-emphasis h-5 w-5" />
@@ -572,7 +572,7 @@ export default function Success(props: PageProps) {
                           </h4>
                         )}
 
-                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 rounded-lg border px-4 py-8 text-left shadow-lg sm:gap-x-0 rtl:text-right">
+                      <div className="border-default text-default mt-8 grid grid-cols-3 gap-x-4 rounded-lg border px-4 py-8 text-left shadow-lg sm:gap-x-0 rtl:text-right">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
@@ -1014,7 +1014,7 @@ export default function Success(props: PageProps) {
                     {!needsConfirmation && !isCancellationMode && isReschedulable && !!calculatedDuration && (
                       <>
                         <div className="text-default align-center flex flex-row justify-center pt-4">
-                          <span className="text-default flex self-center font-medium ltr:mr-2 rtl:ml-2 ">
+                          <span className="text-emphasis flex self-center font-medium ltr:mr-2 rtl:ml-2 ">
                             {t("add_to_calendar")}
                           </span>
                           <div className="justify-left mt-1 flex text-left sm:mt-0">
@@ -1022,28 +1022,28 @@ export default function Success(props: PageProps) {
                               <Tooltip content={t("google_calendar")}>
                                 <Link
                                   href={googleCalendarLink}
-                                  className="text-default hover:bg-subtle h-10 w-10 rounded-md px-3 py-2 ltr:mr-2 rtl:ml-2"
+                                  className="text-default hover:bg-subtle h-10 w-10 rounded-md p-2"
                                   target="_blank">
                                   <svg
-                                    className="-mt-1.5 inline-block h-4 w-4"
                                     xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 48 48">
-                                    <title>Google</title>
+                                    viewBox="0 0 48 48"
+                                    width="24"
+                                    height="24">
                                     <path
-                                      fill="#4285F4"
-                                      d="M24 9.5c3.54 0 6.73 1.22 9.23 3.6l6.85-6.85C35.9 2.7 30.47 0 24 0 14.64 0 6.4 5.48 2.54 13.45l7.98 6.2C12.35 13.6 17.74 9.5 24 9.5z"
+                                      fill="#FFC107"
+                                      d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
                                     />
                                     <path
-                                      fill="#34A853"
-                                      d="M46.1 24.5c0-1.57-.14-3.08-.39-4.5H24v9.01h12.45c-.54 2.89-2.18 5.34-4.65 7.01l7.47 5.8C43.59 37.17 46.1 31.34 46.1 24.5z"
+                                      fill="#FF3D00"
+                                      d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
                                     />
                                     <path
-                                      fill="#FBBC05"
-                                      d="M10.52 28.65c-.48-1.4-.75-2.9-.75-4.45s.27-3.05.75-4.45l-7.98-6.2C.9 16.85 0 20.3 0 24.2s.9 7.35 2.54 10.65l7.98-6.2z"
+                                      fill="#4CAF50"
+                                      d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
                                     />
                                     <path
-                                      fill="#EA4335"
-                                      d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.47-5.8c-2.13 1.43-4.87 2.25-8.44 2.25-6.26 0-11.65-4.1-13.48-9.95l-7.98 6.2C6.4 42.52 14.64 48 24 48z"
+                                      fill="#1976D2"
+                                      d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
                                     />
                                   </svg>
                                 </Link>
@@ -1053,24 +1053,35 @@ export default function Success(props: PageProps) {
                               <Tooltip content={t("microsoft_outlook")}>
                                 <Link
                                   href={microsoftOutlookLink}
-                                  className="text-default hover:bg-subtle h-10 w-10 rounded-md px-3 py-2 ltr:mr-2 rtl:ml-2"
+                                  className="text-default hover:bg-subtle h-10 w-10 rounded-md p-2"
                                   target="_blank">
                                   <svg
-                                    className="-mt-1.5 mr-1 inline-block h-4 w-4"
                                     xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 48 48">
-                                    <title>Microsoft Outlook</title>
-                                    <path
-                                      fill="#0078D4"
-                                      d="M41.5 6H14a2 2 0 0 0-2 2v5H8.5A2.5 2.5 0 0 0 6 15.5v17A2.5 2.5 0 0 0 8.5 35H12v5a2 2 0 0 0 2 2h27.5a2.5 2.5 0 0 0 2.5-2.5v-31A2.5 2.5 0 0 0 41.5 6z"
+                                    viewBox="0 0 48 48"
+                                    width="24"
+                                    height="24">
+                                    <defs>
+                                      <linearGradient id="outlook-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#0078d4" />
+                                        <stop offset="100%" stop-color="#28a8ea" />
+                                      </linearGradient>
+                                    </defs>
+                                    <rect
+                                      fill="url(#outlook-blue)"
+                                      x="4"
+                                      y="8"
+                                      width="40"
+                                      height="32"
+                                      rx="3"
                                     />
-                                    <path
-                                      fill="#fff"
-                                      d="M20 28c-2.2 0-4-2.2-4-4.9s1.8-4.9 4-4.9 4 2.2 4 4.9S22.2 28 20 28z"
-                                    />
-                                    <path
-                                      fill="#fff"
-                                      d="M20 16c-3.3 0-6 3.1-6 7s2.7 7 6 7 6-3.1 6-7-2.7-7-6-7z"
+                                    <ellipse
+                                      fill="none"
+                                      stroke="#ffffff"
+                                      stroke-width="3"
+                                      cx="24"
+                                      cy="24"
+                                      rx="8"
+                                      ry="9"
                                     />
                                   </svg>
                                 </Link>
@@ -1080,16 +1091,17 @@ export default function Success(props: PageProps) {
                               <Tooltip content={t("microsoft_office")}>
                                 <Link
                                   href={microsoftOfficeLink}
-                                  className="text-default hover:bg-subtle h-10 w-10 rounded-md px-3 py-2 ltr:mr-2 rtl:ml-2"
+                                  className="text-default hover:bg-subtle h-10 w-10 rounded-md p-2"
                                   target="_blank">
                                   <svg
-                                    className="-mt-1.5 mr-1 inline-block h-4 w-4"
                                     xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 48 48">
-                                    <title>Microsoft Office</title>
-                                    <path fill="#EA3E23" d="M8 8l14-4 18 6v28l-18 6-14-4z" />
-                                    <path fill="#FF6A00" d="M22 10v28l14-4V14z" />
-                                    <path fill="#F35426" d="M22 10L8 8v32l14-2z" />
+                                    viewBox="0 0 48 48"
+                                    width="24"
+                                    height="24">
+                                    <path fill="#FF5722" d="M6 6H22V22H6z" />
+                                    <path fill="#4CAF50" d="M26 6H42V22H26z" />
+                                    <path fill="#FFC107" d="M26 26H42V42H26z" />
+                                    <path fill="#03A9F4" d="M6 26H22V42H6z" />
                                   </svg>
                                 </Link>
                               </Tooltip>
@@ -1098,20 +1110,35 @@ export default function Success(props: PageProps) {
                               <Tooltip content={t("ics")}>
                                 <Link
                                   href={icsLink}
-                                  className="text-default hover:bg-subtle h-10 w-10 rounded-md px-3 py-2 ltr:mr-2 rtl:ml-2"
+                                  className="text-default hover:bg-subtle h-10 w-10 rounded-md p-2"
                                   download={`${eventType.title}.ics`}>
                                   <svg
-                                    version="1.1"
                                     xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 1000 1000"
-                                    className="-mt-1.5 mr-1 inline-block h-4 w-4">
-                                    <title>ICS</title>
-                                    <path
-                                      fill="#2563EB"
-                                      d="M200 100h600c55 0 100 45 100 100v600c0 55-45 100-100 100H200c-55 0-100-45-100-100V200c0-55 45-100 100-100z"
+                                    viewBox="0 0 24 24"
+                                    width="24"
+                                    height="24"
+                                    fill="none"
+                                    stroke="#1976D2"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect
+                                      x="3"
+                                      y="4"
+                                      width="18"
+                                      height="18"
+                                      rx="2"
+                                      ry="2"
+                                      fill="#E3F2FD"
+                                      stroke="#1976D2"
                                     />
-                                    <rect fill="#fff" x="250" y="300" width="500" height="400" rx="30" />
-                                    <rect fill="#1E40AF" x="250" y="250" width="500" height="80" />
+                                    <line x1="16" y1="2" x2="16" y2="6" />
+                                    <line x1="8" y1="2" x2="8" y2="6" />
+                                    <line x1="3" y1="10" x2="21" y2="10" />
+                                    <path
+                                      d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"
+                                      stroke-width="2"
+                                    />
                                   </svg>
                                 </Link>
                               </Tooltip>
