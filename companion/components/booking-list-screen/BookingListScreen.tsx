@@ -1,11 +1,31 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { Activity, useMemo, useState } from "react";
-import { Alert, FlatList, RefreshControl, ScrollView, Text, View } from "react-native";
+import {
+  Alert,
+  FlatList,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { BookingListItem } from "@/components/booking-list-item/BookingListItem";
 import { BookingModals } from "@/components/booking-modals/BookingModals";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Text as UIText } from "@/components/ui/text";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   type BookingFilter,
@@ -100,6 +120,11 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     showRejectModal,
     rejectReason,
     setRejectReason,
+    showCancelModal,
+    cancelReason,
+    setCancelReason,
+    handleSubmitCancel,
+    handleCloseCancelModal,
     selectedBooking,
     setSelectedBooking,
     handleBookingPress,
@@ -463,7 +488,49 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         }}
       />
 
-      {/* Action Modals */}
+      {/* Cancel Event AlertDialog for Android */}
+      {Platform.OS === "android" && (
+        <AlertDialog open={showCancelModal} onOpenChange={handleCloseCancelModal}>
+          <AlertDialogContent>
+            <AlertDialogHeader className="items-start">
+              <AlertDialogTitle>
+                <UIText className="text-left text-lg font-semibold">Cancel event</UIText>
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                <UIText className="text-left text-sm text-muted-foreground">
+                  Cancellation reason will be shared with guests
+                </UIText>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            {/* Reason Input */}
+            <View>
+              <UIText className="mb-2 text-sm font-medium">Reason for cancellation</UIText>
+              <TextInput
+                className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827]"
+                placeholder="Why are you cancelling?"
+                placeholderTextColor="#9CA3AF"
+                value={cancelReason}
+                onChangeText={setCancelReason}
+                autoFocus
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                style={{ minHeight: 80 }}
+              />
+            </View>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel onPress={handleCloseCancelModal}>
+                <UIText>Nevermind</UIText>
+              </AlertDialogCancel>
+              <AlertDialogAction onPress={handleSubmitCancel}>
+                <UIText className="text-white">Cancel event</UIText>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 };
