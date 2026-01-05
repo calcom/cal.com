@@ -21,7 +21,7 @@ import { prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
-import { buildLegacyRequest } from "@calcom/web/lib/buildLegacyCtx";
+import { buildLegacyRequest } from "@calcom/lib/buildLegacyCtx";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import {

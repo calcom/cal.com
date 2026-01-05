@@ -1,11 +1,11 @@
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
-import { expectWebhookToHaveBeenCalledWith } from "@calcom/web/test/utils/bookingScenario/expects";
+import { expectWebhookToHaveBeenCalledWith } from "@calcom/features/test/utils/bookingScenario/expects";
 
 import { describe, expect, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/features/test/fixtures/fixtures";
 
 import { handleWebhookScheduledTriggers } from "../handleWebhookScheduledTriggers";
 

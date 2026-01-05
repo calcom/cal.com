@@ -9,10 +9,10 @@ import {
   mockCalendarToHaveNoBusySlots,
   getDate,
   BookingLocations,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/features/test/utils/bookingScenario/bookingScenario";
+import { expectBookingToBeInDatabase } from "@calcom/features/test/utils/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/features/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/features/test/utils/bookingScenario/setupAndTeardown";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -22,7 +22,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/features/test/fixtures/fixtures";
 
 import { getNewBookingHandler } from "../getNewBookingHandler";
 

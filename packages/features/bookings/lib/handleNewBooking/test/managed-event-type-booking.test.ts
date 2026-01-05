@@ -1,8 +1,8 @@
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import { setupAndTeardown } from "@calcom/features/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe } from "vitest";
 
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/features/test/fixtures/fixtures";
 
 describe("handleNewBooking", () => {
   setupAndTeardown();

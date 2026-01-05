@@ -1,5 +1,5 @@
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
+import type { MemberPermissions } from "@calcom/features/users/types/user-table";
 
 import { Resource, CustomAction } from "../domain/types/permission-registry";
 import { getSpecificPermissions } from "./resource-permissions";

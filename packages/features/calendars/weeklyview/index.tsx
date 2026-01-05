@@ -1,1 +1,1 @@
-export { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
+export { Calendar } from "./components/Calendar";

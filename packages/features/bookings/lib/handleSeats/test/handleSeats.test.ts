@@ -12,11 +12,11 @@ import {
   BookingLocations,
   getDate,
   getMockBookingAttendee,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { getMockRequestDataForCancelBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForCancelBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/features/test/utils/bookingScenario/bookingScenario";
+import { createMockNextJsRequest } from "@calcom/features/test/utils/bookingScenario/createMockNextJsRequest";
+import { getMockRequestDataForBooking } from "@calcom/features/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { getMockRequestDataForCancelBooking } from "@calcom/features/test/utils/bookingScenario/getMockRequestDataForCancelBooking";
+import { setupAndTeardown } from "@calcom/features/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, test, vi, expect } from "vitest";
 
