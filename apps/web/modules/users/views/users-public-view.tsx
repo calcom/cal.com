@@ -11,8 +11,8 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
-import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
+import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/web/modules/event-types/components";
+import EmptyPage from "@calcom/web/modules/event-types/components/EmptyPage";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { UserAvatar } from "@calcom/ui/components/avatar";
