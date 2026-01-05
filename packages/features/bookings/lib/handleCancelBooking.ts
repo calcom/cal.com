@@ -1,10 +1,10 @@
-import type { z } from "zod";
-
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
@@ -18,8 +18,8 @@ import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repos
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
-  deleteWebhookScheduledTriggers,
   cancelNoShowTasksForBooking,
+  deleteWebhookScheduledTriggers,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
@@ -37,13 +37,14 @@ import prisma from "@calcom/prisma";
 import type { Prisma, PrismaClient, WorkflowReminder } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { bookingMetadataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { bookingCancelInput, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
+import { v4 as uuidv4 } from "uuid";
+import type { z } from "zod";
 import type {
-  CancelRegularBookingData,
   CancelBookingMeta,
+  CancelRegularBookingData,
   HandleCancelBookingResponse,
 } from "./dto/BookingCancel";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -51,6 +52,7 @@ import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
+import { type Actor, buildActorEmail, makeGuestActor, makeUserActor } from "./types/actor";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -65,10 +67,43 @@ type PlatformParams = {
 export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 
 export type CancelBookingInput = {
+  /**
+   * @deprecated Use userUuid instead
+   */
   userId?: number;
   userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
+  actionSource?: ActionSource;
 } & PlatformParams;
+
+function getAuditActor({
+  userUuid,
+  cancelledBy,
+  bookingUid,
+}: {
+  userUuid: string | null;
+  cancelledBy: string | null;
+  bookingUid: string;
+}): Actor {
+  // Prefer user actor when userUuid is available (authenticated action)
+  if (userUuid) {
+    return makeUserActor(userUuid);
+  }
+
+  // Fall back to guest actor for unauthenticated actions (e.g., cancel link)
+  if (!cancelledBy) {
+    log.warn(
+      "No cancelledBy email available, creating fallback guest actor for audit",
+      safeStringify({
+        bookingUid,
+      })
+    );
+  }
+  const cancelledByEmail =
+    cancelledBy ||
+    buildActorEmail({ identifier: `fallback-${bookingUid}-${Date.now()}`, actorType: "guest" });
+  return makeGuestActor({ email: cancelledByEmail, name: null });
+}
 
 async function handler(input: CancelBookingInput) {
   const body = input.bookingData;
@@ -92,6 +127,25 @@ async function handler(input: CancelBookingInput) {
     platformRescheduleUrl,
     arePlatformEmailsEnabled,
   } = input;
+
+  // Extract userUuid from input for audit actor identification
+  const userUuid = input.userUuid ?? null;
+
+  // Extract action source once for reuse
+  const actionSource = input.actionSource ?? "UNKNOWN";
+  if (actionSource === "UNKNOWN") {
+    log.warn("Booking cancellation with unknown actionSource", {
+      bookingUid: bookingToDelete.uid,
+      userUuid,
+    });
+  }
+
+  // Extract actor once for reuse
+  const actorToUse = getAuditActor({
+    userUuid,
+    cancelledBy: cancelledBy ?? null,
+    bookingUid: bookingToDelete.uid,
+  });
 
   /**
    * Important: We prevent cancelling an already cancelled booking.
@@ -293,8 +347,8 @@ async function handler(input: CancelBookingInput) {
     destinationCalendar: bookingToDelete?.destinationCalendar
       ? [bookingToDelete?.destinationCalendar]
       : bookingToDelete?.user.destinationCalendar
-      ? [bookingToDelete?.user.destinationCalendar]
-      : [],
+        ? [bookingToDelete?.user.destinationCalendar]
+        : [],
     cancellationReason: cancellationReason,
     ...(teamMembers &&
       teamId && {
@@ -440,6 +494,33 @@ async function handler(input: CancelBookingInput) {
       },
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
+
+    // Audit logging for bulk recurring booking cancellation
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const operationId = uuidv4();
+    await bookingEventHandlerService.onBulkBookingsCancelled({
+      bookings: allUpdatedBookings.map((updatedRecurringBooking) => ({
+        bookingUid: updatedRecurringBooking.uid,
+        auditData: {
+          cancellationReason: {
+            old: bookingToDelete.cancellationReason,
+            new: cancellationReason ?? null,
+          },
+          cancelledBy: {
+            old: bookingToDelete.cancelledBy,
+            new: cancelledBy ?? null,
+          },
+          status: {
+            old: bookingToDelete.status,
+            new: "CANCELLED",
+          },
+        },
+      })),
+      actor: actorToUse,
+      organizationId: orgId ?? null,
+      operationId,
+      source: actionSource,
+    });
   } else {
     if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
       await prisma.attendee.deleteMany({
@@ -477,6 +558,29 @@ async function handler(input: CancelBookingInput) {
       },
     });
     updatedBookings.push(updatedBooking);
+
+    // Audit logging for single booking cancellation
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    await bookingEventHandlerService.onBookingCancelled({
+      bookingUid: updatedBooking.uid,
+      actor: actorToUse,
+      organizationId: orgId ?? null,
+      source: actionSource,
+      auditData: {
+        cancellationReason: {
+          old: bookingToDelete.cancellationReason,
+          new: cancellationReason ?? null,
+        },
+        cancelledBy: {
+          old: bookingToDelete.cancelledBy,
+          new: cancelledBy ?? null,
+        },
+        status: {
+          old: bookingToDelete.status,
+          new: "CANCELLED",
+        },
+      },
+    });
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
       try {

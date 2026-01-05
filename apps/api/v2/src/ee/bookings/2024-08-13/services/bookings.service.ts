@@ -1,30 +1,5 @@
-import { CalendarLink } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
-import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
-import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
-import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
-import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { getPagination } from "@/lib/pagination/pagination";
-import { InstantBookingCreateService } from "@/lib/services/instant-booking-create.service";
-import { RecurringBookingService } from "@/lib/services/recurring-booking.service";
-import { RegularBookingService } from "@/lib/services/regular-booking.service";
-import { AuthOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
-import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { BillingService } from "@/modules/billing/services/billing.service";
-import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
-import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
-import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UsersRepository } from "@/modules/users/users.repository";
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -33,42 +8,67 @@ import {
   UnauthorizedException,
   UnprocessableEntityException,
 } from "@nestjs/common";
-import { BadRequestException } from "@nestjs/common";
-import { Request } from "express";
+import type { Request } from "express";
 import { DateTime } from "luxon";
 import { z } from "zod";
+import type { CalendarLink } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
+import type { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
+import type { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
+import type { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
+import type { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
+import type { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
+import type { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { getPagination } from "@/lib/pagination/pagination";
+import type { InstantBookingCreateService } from "@/lib/services/instant-booking-create.service";
+import type { RecurringBookingService } from "@/lib/services/recurring-booking.service";
+import type { RegularBookingService } from "@/lib/services/regular-booking.service";
+import type { AuthOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
+import type { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import type { BillingService } from "@/modules/billing/services/billing.service";
+import type { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import type { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
+import type { KyselyReadService } from "@/modules/kysely/kysely-read.service";
+import type { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
+import type { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import type { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
+import type { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import type { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import type { TeamsRepository } from "@/modules/teams/teams/teams.repository";
+import type { UsersService } from "@/modules/users/services/users.service";
+import type { UsersRepository } from "@/modules/users/users.repository";
 
 export const BOOKING_REASSIGN_PERMISSION_ERROR = "You do not have permission to reassign this booking";
 
 import {
-  getTranslation,
-  getAllUserBookings,
-  handleCancelBooking,
-  roundRobinReassignment,
-  roundRobinManualReassignment,
-  handleMarkNoShow,
   confirmBookingHandler,
+  getAllUserBookings,
   getCalendarLinks,
+  getTranslation,
+  handleCancelBooking,
+  handleMarkNoShow,
+  roundRobinManualReassignment,
+  roundRobinReassignment,
 } from "@calcom/platform-libraries";
 import { PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
-import {
-  CreateBookingInput_2024_08_13,
+import type {
+  BookingOutput_2024_08_13,
+  CancelBookingInput,
   CreateBookingInput,
+  CreateBookingInput_2024_08_13,
+  CreateInstantBookingInput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
   GetBookingsInput_2024_08_13,
-  CreateInstantBookingInput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
   ReassignToUserBookingInput_2024_08_13,
-  BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-  GetRecurringSeatedBookingOutput_2024_08_13,
   RescheduleBookingInput,
-  CancelBookingInput,
+  RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
-import type { EventType, User, Team } from "@calcom/prisma/client";
+import type { EventType, Team, User } from "@calcom/prisma/client";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -889,6 +889,8 @@ export class BookingsService_2024_08_13 {
     const res = await handleCancelBooking({
       bookingData: bookingRequest.body,
       userId: bookingRequest.userId,
+      userUuid: authUser?.uuid,
+      actionSource: "API_V2",
       arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
       platformClientId: bookingRequest.platformClientId,
       platformCancelUrl: bookingRequest.platformCancelUrl,
@@ -919,40 +921,40 @@ export class BookingsService_2024_08_13 {
     return await this.getBooking(recurringBookingUid, authUser);
   }
 
-    async markAbsent(
-      bookingUid: string,
-      bookingOwnerId: number,
-      body: MarkAbsentBookingInput_2024_08_13,
-      userUuid?: string
-    ) {
-      const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
-      const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
+  async markAbsent(
+    bookingUid: string,
+    bookingOwnerId: number,
+    body: MarkAbsentBookingInput_2024_08_13,
+    userUuid?: string
+  ) {
+    const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
+    const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
 
-      if (!bookingBefore) {
-        throw new NotFoundException(`Booking with uid=${bookingUid} not found.`);
-      }
+    if (!bookingBefore) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} not found.`);
+    }
 
-      const nowUtc = DateTime.utc();
-      const bookingStartTimeUtc = DateTime.fromJSDate(bookingBefore.startTime, { zone: "utc" });
+    const nowUtc = DateTime.utc();
+    const bookingStartTimeUtc = DateTime.fromJSDate(bookingBefore.startTime, { zone: "utc" });
 
-      if (nowUtc < bookingStartTimeUtc) {
-        throw new BadRequestException(
-          `Bookings can only be marked as absent after their scheduled start time. Current time in UTC+0: ${nowUtc.toISO()}, Booking start time in UTC+0: ${bookingStartTimeUtc.toISO()}`
-        );
-      }
+    if (nowUtc < bookingStartTimeUtc) {
+      throw new BadRequestException(
+        `Bookings can only be marked as absent after their scheduled start time. Current time in UTC+0: ${nowUtc.toISO()}, Booking start time in UTC+0: ${bookingStartTimeUtc.toISO()}`
+      );
+    }
 
-      const platformClientParams = bookingBefore?.eventTypeId
-        ? await this.platformBookingsService.getOAuthClientParams(bookingBefore.eventTypeId)
-        : undefined;
+    const platformClientParams = bookingBefore?.eventTypeId
+      ? await this.platformBookingsService.getOAuthClientParams(bookingBefore.eventTypeId)
+      : undefined;
 
-      await handleMarkNoShow({
-        bookingUid,
-        attendees: bodyTransformed.attendees,
-        noShowHost: bodyTransformed.noShowHost,
-        userId: bookingOwnerId,
-        userUuid,
-        platformClientParams,
-      });
+    await handleMarkNoShow({
+      bookingUid,
+      attendees: bodyTransformed.attendees,
+      noShowHost: bodyTransformed.noShowHost,
+      userId: bookingOwnerId,
+      userUuid,
+      platformClientParams,
+    });
 
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
 
