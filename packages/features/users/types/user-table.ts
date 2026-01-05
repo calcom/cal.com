@@ -30,6 +30,8 @@ export type UserTableUser = {
     slug: string;
     attributeId: string;
     weight: number;
+    isGroup: boolean;
+    contains: string[];
   }[];
 };
 
