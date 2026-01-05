@@ -20,23 +20,28 @@ export const useVerifyEmail = ({
   requiresBookerEmailVerification,
   onVerifyEmail,
 }: IUseVerifyEmailProps) => {
-  const [isEmailVerificationModalVisible, setEmailVerificationModalVisible] = useState(false);
+  const [isEmailVerificationModalVisible, setEmailVerificationModalVisible] =
+    useState(false);
   const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
   const setVerifiedEmail = useBookerStore((state) => state.setVerifiedEmail);
-  const isRescheduling = useBookerStore((state) => Boolean(state.rescheduleUid && state.bookingData));
+  const isRescheduling = useBookerStore((state) =>
+    Boolean(state.rescheduleUid && state.bookingData)
+  );
+  const eventTypeId = useBookerStore((state) => state.eventId);
   const debouncedEmail = useDebounce(email, 600);
   const { data: session } = useSession();
 
   const { t, i18n } = useLocale();
-  const sendEmailVerificationByCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
-    onSuccess: () => {
-      setEmailVerificationModalVisible(true);
-      showToast(t("email_sent"), "success");
-    },
-    onError: () => {
-      showToast(t("email_not_sent"), "error");
-    },
-  });
+  const sendEmailVerificationByCodeMutation =
+    trpc.viewer.auth.sendVerifyEmailCode.useMutation({
+      onSuccess: () => {
+        setEmailVerificationModalVisible(true);
+        showToast(t("email_sent"), "success");
+      },
+      onError: () => {
+        showToast(t("email_not_sent"), "error");
+      },
+    });
 
   const { data: isEmailVerificationRequired } =
     trpc.viewer.public.checkIfUserEmailVerificationRequired.useQuery(
@@ -56,10 +61,12 @@ export const useVerifyEmail = ({
       email,
       username: typeof name === "string" ? name : name?.firstName,
       language: i18n.language || "en",
+      eventTypeId: eventTypeId ?? undefined,
     });
   };
 
-  const isVerificationCodeSending = sendEmailVerificationByCodeMutation.isPending;
+  const isVerificationCodeSending =
+    sendEmailVerificationByCodeMutation.isPending;
 
   const renderConfirmNotVerifyEmailButtonCond =
     isRescheduling ||
@@ -71,7 +78,9 @@ export const useVerifyEmail = ({
     isEmailVerificationModalVisible,
     setEmailVerificationModalVisible,
     setVerifiedEmail,
-    renderConfirmNotVerifyEmailButtonCond: Boolean(renderConfirmNotVerifyEmailButtonCond),
+    renderConfirmNotVerifyEmailButtonCond: Boolean(
+      renderConfirmNotVerifyEmailButtonCond
+    ),
     isVerificationCodeSending,
   };
 };

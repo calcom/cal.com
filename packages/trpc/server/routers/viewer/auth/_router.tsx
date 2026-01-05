@@ -19,52 +19,72 @@ type AuthRouterHandlerCache = {
 };
 
 export const authRouter = router({
-  changePassword: authedProcedure.input(ZChangePasswordInputSchema).mutation(async ({ input, ctx }) => {
-    const { changePasswordHandler } = await import("./changePassword.handler");
+  changePassword: authedProcedure
+    .input(ZChangePasswordInputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { changePasswordHandler } = await import(
+        "./changePassword.handler"
+      );
 
-    return changePasswordHandler({
-      ctx,
-      input,
-    });
-  }),
+      return changePasswordHandler({
+        ctx,
+        input,
+      });
+    }),
 
-  verifyPassword: authedProcedure.input(ZVerifyPasswordInputSchema).mutation(async ({ input, ctx }) => {
-    const { verifyPasswordHandler } = await import("./verifyPassword.handler");
+  verifyPassword: authedProcedure
+    .input(ZVerifyPasswordInputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { verifyPasswordHandler } = await import(
+        "./verifyPassword.handler"
+      );
 
-    return verifyPasswordHandler({
-      ctx,
-      input,
-    });
-  }),
+      return verifyPasswordHandler({
+        ctx,
+        input,
+      });
+    }),
 
-  verifyCodeUnAuthenticated: publicProcedure.input(ZVerifyCodeInputSchema).mutation(async ({ input }) => {
-    const { verifyCodeUnAuthenticatedHandler } = await import("./verifyCodeUnAuthenticated.handler");
+  verifyCodeUnAuthenticated: publicProcedure
+    .input(ZVerifyCodeInputSchema)
+    .mutation(async ({ input }) => {
+      const { verifyCodeUnAuthenticatedHandler } = await import(
+        "./verifyCodeUnAuthenticated.handler"
+      );
 
-    return verifyCodeUnAuthenticatedHandler({
-      input,
-    });
-  }),
+      return verifyCodeUnAuthenticatedHandler({
+        input,
+      });
+    }),
 
-  sendVerifyEmailCode: publicProcedure.input(ZSendVerifyEmailCodeSchema).mutation(async ({ input, ctx }) => {
-    const { sendVerifyEmailCodeHandler } = await import("./sendVerifyEmailCode.handler");
+  sendVerifyEmailCode: publicProcedure
+    .input(ZSendVerifyEmailCodeSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { sendVerifyEmailCodeHandler } = await import(
+        "./sendVerifyEmailCode.handler"
+      );
 
-    return sendVerifyEmailCodeHandler({
-      input,
-      req: ctx.req,
-    });
-  }),
+      return sendVerifyEmailCodeHandler({
+        input,
+        req: ctx.req,
+      });
+    }),
 
-  resendVerifyEmail: authedProcedure.input(ZResendVerifyEmailSchema).mutation(async ({ input, ctx }) => {
-    const { resendVerifyEmail } = await import("./resendVerifyEmail.handler");
+  resendVerifyEmail: authedProcedure
+    .input(ZResendVerifyEmailSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { resendVerifyEmail } = await import("./resendVerifyEmail.handler");
 
-    return resendVerifyEmail({
-      input,
-      ctx,
-    });
-  }),
+      return resendVerifyEmail({
+        input,
+        ctx,
+      });
+    }),
 
   createAccountPassword: authedProcedure.mutation(async ({ ctx }) => {
-    const { createAccountPasswordHandler } = await import("./createAccountPassword.handler");
+    const { createAccountPasswordHandler } = await import(
+      "./createAccountPassword.handler"
+    );
 
     return createAccountPasswordHandler({
       ctx,

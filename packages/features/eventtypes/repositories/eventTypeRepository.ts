@@ -1,5 +1,8 @@
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import {
+  LookupTarget,
+  ProfileRepository,
+} from "@calcom/features/profile/repositories/ProfileRepository";
 import type { UserWithLegacySelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -8,12 +11,18 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
 import type { PrismaClient } from "@calcom/prisma";
-import { availabilityUserSelect, userSelect as userSelectWithSelectedCalendars } from "@calcom/prisma";
+import {
+  availabilityUserSelect,
+  userSelect as userSelectWithSelectedCalendars,
+} from "@calcom/prisma";
 import type { EventType as PrismaEventType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
+import {
+  EventTypeMetaDataSchema,
+  rrSegmentQueryValueSchema,
+} from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
@@ -42,7 +51,9 @@ type IEventType = Ensure<
   "title" | "slug" | "length"
 >;
 
-type UserWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number | null }> = {
+type UserWithSelectedCalendars<
+  TSelectedCalendar extends { eventTypeId: number | null }
+> = {
   allSelectedCalendars: TSelectedCalendar[];
 };
 
@@ -62,9 +73,11 @@ const userSelect = {
   timeZone: true,
 } satisfies Prisma.UserSelect;
 
-function hostsWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number | null }, THost, TUser>(
-  hosts: HostWithLegacySelectedCalendars<TSelectedCalendar, THost, TUser>[]
-) {
+function hostsWithSelectedCalendars<
+  TSelectedCalendar extends { eventTypeId: number | null },
+  THost,
+  TUser
+>(hosts: HostWithLegacySelectedCalendars<TSelectedCalendar, THost, TUser>[]) {
   return hosts.map((host) => ({
     ...host,
     user: withSelectedCalendars(host.user),
@@ -484,7 +497,11 @@ export class EventTypeRepository {
       },
     });
 
-    if (!teamMembership) throw new ErrorWithCode(ErrorCode.Unauthorized, "User is not a member of this team");
+    if (!teamMembership)
+      throw new ErrorWithCode(
+        ErrorCode.Unauthorized,
+        "User is not a member of this team"
+      );
 
     return await this.prismaClient.eventType.findMany({
       where: {
@@ -521,7 +538,11 @@ export class EventTypeRepository {
     return await this.prismaClient.eventType.findUnique({
       where: {
         id,
-        OR: [{ userId }, { hosts: { some: { userId } } }, { users: { some: { id: userId } } }],
+        OR: [
+          { userId },
+          { hosts: { some: { userId } } },
+          { users: { some: { id: userId } } },
+        ],
       },
     });
   }
@@ -810,7 +831,10 @@ export class EventTypeRepository {
                 },
               },
               {
-                AND: [{ teamId: { not: null } }, { teamId: { in: userTeamIds } }],
+                AND: [
+                  { teamId: { not: null } },
+                  { teamId: { in: userTeamIds } },
+                ],
               },
               {
                 userId: userId,
@@ -826,7 +850,13 @@ export class EventTypeRepository {
     });
   }
 
-  async findByIdForOrgAdmin({ id, organizationId }: { id: number; organizationId: number }) {
+  async findByIdForOrgAdmin({
+    id,
+    organizationId,
+  }: {
+    id: number;
+    organizationId: number;
+  }) {
     const userSelect = {
       name: true,
       avatarUrl: true,
@@ -1095,7 +1125,10 @@ export class EventTypeRepository {
     } satisfies Prisma.EventTypeSelect;
 
     const orgUserEventTypeQuery = {
-      AND: [{ userId: { not: null } }, { owner: { profiles: { some: { organizationId } } } }],
+      AND: [
+        { userId: { not: null } },
+        { owner: { profiles: { some: { organizationId } } } },
+      ],
     };
     const orgTeamEventTypeQuery = {
       AND: [{ teamId: { not: null } }, { team: { parentId: organizationId } }],
@@ -1122,7 +1155,15 @@ export class EventTypeRepository {
     });
   }
 
-  async findFirstEventTypeId({ slug, teamId, userId }: { slug: string; teamId?: number; userId?: number }) {
+  async findFirstEventTypeId({
+    slug,
+    teamId,
+    userId,
+  }: {
+    slug: string;
+    teamId?: number;
+    userId?: number;
+  }) {
     // Use compound unique keys when available for optimal performance
     // Note: teamId and userId are mutually exclusive - never both provided
     if (teamId) {
@@ -1247,7 +1288,11 @@ export class EventTypeRepository {
     });
   }
 
-  async findAllByTeamIdIncludeManagedEventTypes({ teamId }: { teamId?: number }) {
+  async findAllByTeamIdIncludeManagedEventTypes({
+    teamId,
+  }: {
+    teamId?: number;
+  }) {
     return await this.prismaClient.eventType.findMany({
       where: {
         OR: [
@@ -1400,18 +1445,24 @@ export class EventTypeRepository {
       hosts: hostsWithSelectedCalendars(eventType.hosts),
       users: usersWithSelectedCalendars(eventType.users),
       metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-      rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
+      rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(
+        eventType.rrSegmentQueryValue
+      ),
     };
   }
 
-  static getSelectedCalendarsFromUser<TSelectedCalendar extends { eventTypeId: number | null }>({
+  static getSelectedCalendarsFromUser<
+    TSelectedCalendar extends { eventTypeId: number | null }
+  >({
     user,
     eventTypeId,
   }: {
     user: UserWithSelectedCalendars<TSelectedCalendar>;
     eventTypeId: number;
   }) {
-    return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
+    return user.allSelectedCalendars.filter(
+      (calendar) => calendar.eventTypeId === eventTypeId
+    );
   }
 
   async findByIdForUserAvailability({ id }: { id: number }) {
@@ -1515,7 +1566,10 @@ export class EventTypeRepository {
     });
   }
 
-  async findEventTypesWithoutChildren(eventTypeIds: number[], teamId?: number | null) {
+  async findEventTypesWithoutChildren(
+    eventTypeIds: number[],
+    teamId?: number | null
+  ) {
     return await this.prismaClient.eventType.findMany({
       where: {
         id: {
@@ -1534,7 +1588,11 @@ export class EventTypeRepository {
     });
   }
 
-  async findAllIncludingChildrenByUserId({ userId }: { userId: number | null }) {
+  async findAllIncludingChildrenByUserId({
+    userId,
+  }: {
+    userId: number | null;
+  }) {
     if (userId === null) {
       return [];
     }
@@ -1600,15 +1658,21 @@ export class EventTypeRepository {
         id: true,
         parentId: true,
         userId: true,
+        teamId: true,
       },
     });
   }
 
-  async findManyChildEventTypes(parentId: number, excludeUserId?: number | null) {
+  async findManyChildEventTypes(
+    parentId: number,
+    excludeUserId?: number | null
+  ) {
     return this.prismaClient.eventType.findMany({
       where: {
         parentId,
-        ...(excludeUserId !== undefined ? { userId: { not: excludeUserId } } : {}),
+        ...(excludeUserId !== undefined
+          ? { userId: { not: excludeUserId } }
+          : {}),
       },
       select: {
         id: true,
@@ -1661,8 +1725,12 @@ export class EventTypeRepository {
         ? {
             owner: {
               OR: [
-                { name: { contains: searchTerm, mode: "insensitive" as const } },
-                { email: { contains: searchTerm, mode: "insensitive" as const } },
+                {
+                  name: { contains: searchTerm, mode: "insensitive" as const },
+                },
+                {
+                  email: { contains: searchTerm, mode: "insensitive" as const },
+                },
               ],
             },
           }
@@ -1850,7 +1918,10 @@ export class EventTypeRepository {
     }
 
     if (isMember) {
-      eventTypeWhereConditional["OR"] = [{ userId: user.id }, { users: { some: { id: user.id } } }];
+      eventTypeWhereConditional["OR"] = [
+        { userId: user.id },
+        { users: { some: { id: user.id } } },
+      ];
       // @TODO this is not working as expected
       // hosts: { some: { id: user.id } },
     }

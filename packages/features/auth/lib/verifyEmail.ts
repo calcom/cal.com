@@ -6,6 +6,7 @@ import {
   sendEmailVerificationLink,
   sendChangeOfEmailVerificationLink,
 } from "@calcom/emails/auth-email-service";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
@@ -18,6 +19,7 @@ import { prisma } from "@calcom/prisma";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
 
 const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
@@ -28,6 +30,7 @@ interface VerifyEmailType {
   secondaryEmailId?: number;
   isVerifyingEmail?: boolean;
   isPlatform?: boolean;
+  eventTypeId?: number;
 }
 
 export const sendEmailVerification = async ({
@@ -102,6 +105,7 @@ export const sendEmailVerificationByCode = async ({
   language,
   username,
   isVerifyingEmail,
+  eventTypeId,
 }: VerifyEmailType) => {
   if (
     await checkIfEmailIsBlockedInWatchlistController({
@@ -122,15 +126,26 @@ export const sendEmailVerificationByCode = async ({
   totp.options = { step: 900 };
   const code = totp.generate(secret);
 
-  const userRepository = new UserRepository(prisma);
-  const user = await userRepository.findByEmail({ email });
-
   let hideBranding = false;
-  if (user) {
+  if (eventTypeId) {
+    const userRepository = new UserRepository(prisma);
     const teamRepository = new TeamRepository(prisma);
+    const eventTypeRepository = new EventTypeRepository(prisma);
+
+    let teamId: number | undefined;
+    let userId: number | undefined;
+
+    const eventType =
+      await eventTypeRepository.findByIdIncludeHostsAndTeamMembers({
+        id: eventTypeId,
+      });
+
+    teamId = eventType?.teamId ?? undefined;
+    userId = eventType?.userId ?? undefined;
 
     hideBranding = await getHideBranding({
-      userId: user.id,
+      userId,
+      teamId,
       userRepository,
       teamRepository,
     });
