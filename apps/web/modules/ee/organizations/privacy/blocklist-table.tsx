@@ -53,7 +53,11 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         </div>
         <div className="flex items-center gap-2">
           {permissions?.canCreate && (
-            <Button color="primary" StartIcon="plus" onClick={() => setShowCreateModal(true)}>
+            <Button
+              color="primary"
+              StartIcon="plus"
+              onClick={() => setShowCreateModal(true)}
+            >
               {t("add")}
             </Button>
           )}
@@ -61,12 +65,18 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
       </div>
 
       {activeView === "blocked" ? (
-        <BlockedEntriesTable permissions={permissions} onAddClick={() => setShowCreateModal(true)} />
+        <BlockedEntriesTable
+          permissions={permissions}
+          onAddClick={() => setShowCreateModal(true)}
+        />
       ) : (
         <PendingReportsTable />
       )}
 
-      <CreateBlocklistEntryModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
+      <CreateBlocklistEntryModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+      />
     </>
   );
 }
