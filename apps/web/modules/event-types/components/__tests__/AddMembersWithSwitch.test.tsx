@@ -73,7 +73,7 @@ const renderComponent = ({
   componentProps: AddMembersWithSwitchProps;
   formDefaultValues?: DefaultFormValues;
 }): RenderResult => {
-  const Wrapper = ({ children }: { children: React.ReactNode }): React.JSX.Element => {
+  const Wrapper = ({ children }: { children: React.ReactNode }): JSX.Element => {
     const methods = useForm({
       defaultValues: formDefaultValues,
     });
