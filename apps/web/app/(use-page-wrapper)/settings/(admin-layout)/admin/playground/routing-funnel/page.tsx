@@ -2,8 +2,8 @@
 
 import { ChartCard } from "@calcom/features/insights/components/ChartCard";
 import {
-  RoutingFunnelContent,
   legend,
+  RoutingFunnelContent,
 } from "@calcom/features/insights/components/routing/RoutingFunnelContent";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -56,15 +56,15 @@ const sampleRoutingFunnelData = [
 export default function RoutingFunnelPlayground() {
   const { t } = useLocale();
   return (
-    <div className="stack-y-6 p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Routing Funnel Playground</h1>
-        <p className="mt-2 text-gray-600">
+    <div class="stack-y-6 p-6">
+      <div class="mb-6">
+        <h1 class="text-3xl font-bold">Routing Funnel Playground</h1>
+        <p class="mt-2 text-gray-600">
           This page demonstrates the RoutingFunnelContent component with sample data.
         </p>
       </div>
 
-      <div className="max-w-4xl">
+      <div class="max-w-4xl">
         <ChartCard
           title={t("routing_funnel")}
           subtitle="Hello world!"
@@ -80,9 +80,9 @@ export default function RoutingFunnelPlayground() {
         </ChartCard>
       </div>
 
-      <div className="mt-8 rounded-lg bg-gray-50 p-4">
-        <h2 className="mb-2 text-lg font-semibold">Sample Data Used:</h2>
-        <pre className="overflow-auto text-sm text-gray-700">
+      <div class="mt-8 rounded-lg bg-gray-50 p-4">
+        <h2 class="mb-2 text-lg font-semibold">Sample Data Used:</h2>
+        <pre class="overflow-auto text-sm text-gray-700">
           {JSON.stringify(sampleRoutingFunnelData, null, 2)}
         </pre>
       </div>

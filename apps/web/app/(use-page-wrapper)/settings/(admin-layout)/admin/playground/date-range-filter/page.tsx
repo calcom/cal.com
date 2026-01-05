@@ -1,10 +1,9 @@
 "use client";
 
-import { useReactTable, getCoreRowModel, createColumnHelper } from "@tanstack/react-table";
-import { useMemo } from "react";
-
-import { ColumnFilterType, DateRangeFilter, DataTableProvider } from "@calcom/features/data-table";
+import { ColumnFilterType, DataTableProvider, DateRangeFilter } from "@calcom/features/data-table";
 import type { DateRangeFilterOptions } from "@calcom/features/data-table/lib/types";
+import { createColumnHelper, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { useMemo } from "react";
 
 type DemoRow = {
   id: number;
@@ -101,14 +100,14 @@ function ScenarioCard({ scenario }: { scenario: ScenarioProps }) {
   const dateRangeOptions = columnMeta?.filter?.dateRangeOptions;
 
   return (
-    <div className="border-subtle mb-8 rounded-lg border p-6" data-testid={`drf-scenario-${scenario.id}`}>
-      <h3 className="text-emphasis mb-2 text-lg font-semibold">{scenario.title}</h3>
-      <p className="text-default mb-2 text-sm">{scenario.description}</p>
-      <p className="text-subtle mb-4 text-xs">
+    <div class="border-subtle mb-8 rounded-lg border p-6" data-testid={`drf-scenario-${scenario.id}`}>
+      <h3 class="text-emphasis mb-2 text-lg font-semibold">{scenario.title}</h3>
+      <p class="text-default mb-2 text-sm">{scenario.description}</p>
+      <p class="text-subtle mb-4 text-xs">
         <strong>Expected:</strong> {scenario.expected}
       </p>
 
-      <div className="mt-4">
+      <div class="mt-4">
         <DataTableProvider tableIdentifier={`playground-date-range-${scenario.id}`}>
           {dateRangeColumn && (
             <DateRangeFilter
@@ -130,13 +129,13 @@ function ScenarioCard({ scenario }: { scenario: ScenarioProps }) {
 
 export default function DateRangeFilterPlayground() {
   return (
-    <div className="space-y-6">
+    <div class="space-y-6">
       <div>
-        <h1 className="text-emphasis text-2xl font-bold">DateRangeFilter Playground</h1>
-        <p className="text-default mt-2">
+        <h1 class="text-emphasis text-2xl font-bold">DateRangeFilter Playground</h1>
+        <p class="text-default mt-2">
           This page demonstrates the different <code>range</code> options for the DateRangeFilter component.
         </p>
-        <p className="text-subtle mt-1 text-sm">
+        <p class="text-subtle mt-1 text-sm">
           The <code>range</code> option controls both date restrictions and presets visibility. Presets
           visibility is derived automatically based on compatible presets.
         </p>
