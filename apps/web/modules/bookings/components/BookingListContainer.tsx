@@ -7,10 +7,9 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import dayjs from "@calcom/dayjs";
 import {
   useDataTable,
-  DataTableFilters,
-  DataTableSegment,
   useDisplayedFilterCount,
 } from "@calcom/features/data-table";
+import { DataTableSegment, DataTableFilters } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";

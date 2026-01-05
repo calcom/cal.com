@@ -198,6 +198,110 @@ function RootLayoutContent() {
           headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
         }}
       />
+      <Stack.Screen
+        name="edit-availability-name"
+        options={{
+          headerShown: true,
+          headerTransparent: Platform.OS === "ios",
+          headerLargeTitle: false,
+          title: "Edit Name & Timezone",
+          presentation:
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
+          sheetGrabberVisible: Platform.OS === "ios",
+          sheetAllowedDetents: Platform.OS === "ios" ? [0.5, 0.7] : undefined,
+          sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
+          contentStyle: {
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+          },
+          headerStyle: {
+            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+          },
+          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+        }}
+      />
+      <Stack.Screen
+        name="edit-availability-hours"
+        options={{
+          headerShown: true,
+          headerTransparent: Platform.OS === "ios",
+          headerLargeTitle: false,
+          title: "Working Hours",
+          presentation:
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
+          sheetGrabberVisible: Platform.OS === "ios",
+          sheetAllowedDetents: Platform.OS === "ios" ? [0.7, 1] : undefined,
+          sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
+          contentStyle: {
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+          },
+          headerStyle: {
+            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+          },
+          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+        }}
+      />
+      <Stack.Screen
+        name="edit-availability-day"
+        options={{
+          headerShown: true,
+          headerTransparent: Platform.OS === "ios",
+          headerLargeTitle: false,
+          title: "Edit Day",
+          presentation:
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
+          sheetGrabberVisible: Platform.OS === "ios",
+          sheetAllowedDetents: Platform.OS === "ios" ? [0.6, 0.9] : undefined,
+          sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
+          contentStyle: {
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+          },
+          headerStyle: {
+            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+          },
+          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+        }}
+      />
+      <Stack.Screen
+        name="edit-availability-override"
+        options={{
+          headerShown: true,
+          headerTransparent: Platform.OS === "ios",
+          headerLargeTitle: false,
+          title: "Date Override",
+          presentation:
+            Platform.OS === "ios"
+              ? isLiquidGlassAvailable()
+                ? "formSheet"
+                : "modal"
+              : "containedModal",
+          sheetGrabberVisible: Platform.OS === "ios",
+          sheetAllowedDetents: Platform.OS === "ios" ? [0.7, 0.9] : undefined,
+          sheetInitialDetentIndex: Platform.OS === "ios" ? 0 : undefined,
+          contentStyle: {
+            backgroundColor:
+              Platform.OS === "ios" && isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+          },
+          headerStyle: {
+            backgroundColor: Platform.OS === "ios" ? "transparent" : "#F2F2F7",
+          },
+          headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
+        }}
+      />
     </Stack>
   ) : (
     <LoginScreenComponent />

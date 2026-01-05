@@ -1,6 +1,7 @@
 import type { BookerEvent } from "@calcom/features/bookings/types";
 
-export const mockEvent: BookerEvent = {
+// biome-ignore lint/nursery/useExplicitType: test mock object with complex branded types
+export const mockEvent = {
   id: 1,
   title: "Quick check-in",
   slug: "quick-check-in",
@@ -15,7 +16,15 @@ export const mockEvent: BookerEvent = {
   lockTimeZoneToggleOnBookingPage: false,
   lockedTimeZone: null,
   recurringEvent: null,
-  entity: null,
+  entity: {
+    considerUnpublished: false,
+    fromRedirectOfNonOrgLink: false,
+    orgSlug: null,
+    name: null,
+    teamSlug: null,
+    logoUrl: null,
+    hideProfileLink: false,
+  },
   metadata: null,
   isDynamic: false,
   requiresConfirmation: false,
@@ -25,11 +34,11 @@ export const mockEvent: BookerEvent = {
   seatsPerTimeSlot: null,
   forwardParamsSuccessRedirect: false,
   successRedirectUrl: null,
-  subsetOfHosts: null,
+  subsetOfHosts: [],
   seatsShowAvailabilityCount: false,
   isInstantEvent: false,
-  instantMeetingParameters: null,
-  fieldTranslations: null,
+  instantMeetingParameters: [],
+  fieldTranslations: [],
   autoTranslateDescriptionEnabled: false,
   disableCancelling: false,
   disableRescheduling: false,
@@ -39,7 +48,7 @@ export const mockEvent: BookerEvent = {
   showInstantEventConnectNowModal: false,
   profile: {
     name: null,
-    image: null,
+    image: undefined,
     bookerLayouts: null,
   },
-};
+} satisfies Omit<BookerEvent, "bookingFields"> & { bookingFields: unknown[] };

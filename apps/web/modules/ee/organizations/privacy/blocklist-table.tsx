@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { DataTableToolbar } from "@calcom/features/data-table";
+import { DataTableToolbar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { ToggleGroup } from "@calcom/ui/components/form";
