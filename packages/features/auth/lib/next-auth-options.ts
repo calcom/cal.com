@@ -370,14 +370,14 @@ if (isSAMLLoginEnabled) {
       async authorize(credentials): Promise<SamlIdpUser | null> {
         log.debug("CredentialsProvider:saml-idp:authorize", safeStringify({ credentials }));
         if (!credentials) {
-          log.error("saml-idp:authorize - missing credentials object");
+          log.warn("saml-idp:authorize - missing credentials object");
           return null;
         }
 
         const { code } = credentials;
 
         if (!code) {
-          log.error("saml-idp:authorize - missing code in credentials");
+          log.warn("saml-idp:authorize - missing code in credentials");
           return null;
         }
 
@@ -393,14 +393,14 @@ if (isSAMLLoginEnabled) {
         });
 
         if (!access_token) {
-          log.error("saml-idp:authorize - failed to obtain access_token from oauthController.token");
+          log.warn("saml-idp:authorize - failed to obtain access_token from oauthController.token");
           return null;
         }
         // Fetch user info
         const userInfo = await oauthController.userInfo(access_token);
 
         if (!userInfo) {
-          log.error("saml-idp:authorize - failed to obtain userInfo from oauthController.userInfo");
+          log.warn("saml-idp:authorize - failed to obtain userInfo from oauthController.userInfo");
           return null;
         }
 
@@ -430,7 +430,7 @@ if (isSAMLLoginEnabled) {
             }
           }
           if (!user) {
-            log.error("saml-idp:authorize - user not found and could not be auto-provisioned", {
+            log.warn("saml-idp:authorize - user not found and could not be auto-provisioned", {
               emailDomain: email.split("@")[1],
               hostedCal: Boolean(HOSTED_CAL_FEATURES),
             });
@@ -839,7 +839,7 @@ export const getOptions = ({
         }
 
         if (account?.type !== "oauth") {
-          log.error("signIn callback - unsupported account type for non-saml-idp provider", {
+          log.warn("signIn callback - unsupported account type for non-saml-idp provider", {
             accountType: account?.type,
             provider: account?.provider,
           });
@@ -847,12 +847,12 @@ export const getOptions = ({
         }
       }
       if (!user.email) {
-        log.error("signIn callback - user email is missing", { provider: account?.provider });
+        log.warn("signIn callback - user email is missing", { provider: account?.provider });
         return false;
       }
 
       if (!user.name) {
-        log.error("signIn callback - user name is missing", { emailDomain: user.email.split("@")[1], provider: account?.provider });
+        log.warn("signIn callback - user name is missing", { emailDomain: user.email.split("@")[1], provider: account?.provider });
         return false;
       }
       if (account?.provider) {
