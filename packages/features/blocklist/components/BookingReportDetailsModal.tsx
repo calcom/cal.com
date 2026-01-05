@@ -21,7 +21,7 @@ export interface BookingReportDetailsModalProps<T extends BookingReport> {
   entry: T | null;
   isOpen: boolean;
   onClose: () => void;
-  onAddToBlocklist: (reportIds: string[], type: "EMAIL" | "DOMAIN") => void;
+  onAddToBlocklist: (reportIds: string[], type: WatchlistType) => void;
   onDismiss: (reportId: string) => void;
   isAddingToBlocklist?: boolean;
   isDismissing?: boolean;

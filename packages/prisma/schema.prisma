@@ -2405,7 +2405,7 @@ model Watchlist {
   lastUpdatedAt  DateTime        @default(now())
 
   bookingReports       BookingReport[]
-  globalBookingReports BookingReport[] @relation("GlobalBlocklist")
+  globalBookingReports BookingReport[]  @relation("GlobalBlocklist")
   audits               WatchlistAudit[]
 
   @@unique([type, value, organizationId])

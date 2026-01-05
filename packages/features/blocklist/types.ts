@@ -34,7 +34,7 @@ export interface BlocklistEntryDetails {
     bookingReports?: Array<{
       booking: {
         uid: string;
-        title: string;
+        title: string | null;
       };
     }>;
   };
@@ -54,7 +54,7 @@ export interface BookingReport {
   reporter?: { email: string } | null;
   booking: {
     uid: string;
-    title: string;
+    title: string | null;
   };
   organization?: { name: string } | null;
 }

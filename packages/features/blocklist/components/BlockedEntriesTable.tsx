@@ -32,7 +32,7 @@ export interface BlockedEntriesTableProps<T extends BlocklistEntry> {
       entry: {
         id: string;
         value: string;
-        type: string;
+        type: import("@calcom/prisma/enums").WatchlistType;
         description: string | null;
         source?: string;
         bookingReports?: Array<{ booking: { uid: string; title: string | null } }>;
