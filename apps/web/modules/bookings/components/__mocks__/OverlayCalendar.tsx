@@ -14,7 +14,7 @@ const mockOverlayCalendar = vi.fn(() => {
   };
 });
 
-vi.mock("../OverlayCalendar", () => ({
+vi.mock("../OverlayCalendar/OverlayCalendar", () => ({
   OverlayCalendar: mockOverlayCalendar,
 }));
 
