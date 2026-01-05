@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Изтриването на график ще го премахне от всички типове събития. Това действие не може да бъде отменено.",
   "schedule_created_successfully": "График {{scheduleName}} е създаден успешно",
   "availability_updated_successfully": "График {{scheduleName}} е актуализиран успешно",
+  "bulk_updated_schedule_successfully": "Масово актуализирани избрани типове събития с график по подразбиране",
   "schedule_deleted_successfully": "Графикът е изтрит успешно",
   "default_schedule_name": "Работно време",
   "new_schedule_heading": "Създай график за достъпност",

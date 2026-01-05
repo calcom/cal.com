@@ -26,6 +26,7 @@
     "test:cov": "yarn dev:build && jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "yarn dev:build && NODE_OPTIONS='--max_old_space_size=8192 --experimental-vm-modules' jest --ci --forceExit --config ./jest-e2e.ts",
+    "test:e2e:ci": "NODE_OPTIONS='--max_old_space_size=8192 --experimental-vm-modules' jest --ci --forceExit --config ./jest-e2e.ts",
     "test:e2e:local": "yarn test:e2e --maxWorkers=4",
     "test:e2e:watch": "yarn dev:build && jest --runInBand --detectOpenHandles --forceExit --config ./jest-e2e.ts --watch",
     "prisma": "yarn workspace @calcom/prisma prisma",
@@ -53,14 +54,14 @@
     "@nestjs/jwt": "10.2.0",
     "@nestjs/passport": "10.0.3",
     "@nestjs/platform-express": "10.4.20",
-    "@nestjs/swagger": "7.3.0",
+    "@nestjs/swagger": "7.4.2",
     "@nestjs/throttler": "6.2.1",
     "@sentry/nestjs": "9.46.0",
     "@sentry/node": "9.46.0",
     "@sentry/profiling-node": "9.46.0",
     "@snyk/protect": "latest",
     "axios": "1.13.2",
-    "body-parser": "1.20.2",
+    "body-parser": "1.20.3",
     "bull": "4.15.1",
     "class-transformer": "0.5.1",
     "class-validator": "0.14.3",
@@ -109,7 +110,7 @@
     "ts-loader": "9.5.1",
     "ts-node": "10.9.2",
     "tsconfig-paths": "4.2.0",
-    "typescript": "5.9.2"
+    "typescript": "5.9.3"
   },
   "prisma": {
     "schema": "../../../packages/prisma/schema.prisma"

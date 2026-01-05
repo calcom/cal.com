@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "La suppression d'un planning l'enlèvera de tous les types d'événements. Cette action ne peut pas être annulée.",
   "schedule_created_successfully": "Planning {{scheduleName}} créé avec succès",
   "availability_updated_successfully": "Planning {{scheduleName}} mis à jour avec succès",
+  "bulk_updated_schedule_successfully": "Mise à jour groupée des types d'événements sélectionnés avec le planning par défaut effectuée",
   "schedule_deleted_successfully": "Planning supprimé avec succès",
   "default_schedule_name": "Heures de travail",
   "new_schedule_heading": "Créer un planning de disponibilité",

@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Ajakava kustutamine eemaldab selle kõikidest sündmuste tüüpidest. Seda toimingut ei saa tagasi võtta.",
   "schedule_created_successfully": "{{scheduleName}} ajakava on edukalt loodud",
   "availability_updated_successfully": "{{scheduleName}} ajakava värskendamine õnnestus",
+  "bulk_updated_schedule_successfully": "Valitud sündmuste tüübid uuendati vaikimisi ajakavaga hulgi",
   "schedule_deleted_successfully": "Ajakava kustutati edukalt",
   "default_schedule_name": "Töötunnid",
   "new_schedule_heading": "Loo saadavuse ajakava",

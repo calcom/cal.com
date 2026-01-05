@@ -1,4 +1,4 @@
-const http = require("http");
+const http = require("node:http");
 const connect = require("connect");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 

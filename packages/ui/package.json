@@ -57,7 +57,8 @@
     "./components/unpublished-entity": "./components/unpublished-entity/index.ts",
     "./components/table/TableNew": "./components/table/TableNew.tsx",
     "./components/app-list-card/AppListCard": "./components/app-list-card/AppListCard.tsx",
-    "./components/section": "./components/section/index.ts"
+    "./components/section": "./components/section/index.ts",
+    "./components/segmented-control": "./components/segmented-control/index.ts"
   },
   "license": "MIT",
   "scripts": {
@@ -131,6 +132,6 @@
     "fs-extra": "11.3.2",
     "lucide-static": "0.424.0",
     "node-html-parser": "6.1.13",
-    "typescript": "5.9.2"
+    "typescript": "5.9.3"
   }
 }

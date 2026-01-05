@@ -1294,6 +1294,7 @@
   "delete_schedule_description": "Brisanje rasporeda će ga ukloniti iz svih tipova događaja. Ova radnja ne može da se opozove.",
   "schedule_created_successfully": "Raspored {{scheduleName}} je uspešno izbrisan",
   "availability_updated_successfully": "Распоред {{scheduleName}} је успешно ажуриран",
+  "bulk_updated_schedule_successfully": "Масовно ажурирани изабрани типови догађаја са подразумеваним распоредом",
   "schedule_deleted_successfully": "Raspored uspešno izbrisan",
   "default_schedule_name": "Radno vreme",
   "new_schedule_heading": "Napravi raspored dostupnosti",
