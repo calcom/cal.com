@@ -44,7 +44,7 @@ jobs:
                 return;
               }
 
-              console.log(`Label added by ${adder} (${perm.permission})`);
+              console.log(`Label added by ${adder}`);
             }
 
             // Find the latest pr.yml run for this PR's head SHA
