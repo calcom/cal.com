@@ -4023,7 +4023,7 @@
   "system_blocked": "System blocked",
   "system_wide_all_organizations": "System-wide",
   "system_wide_blocklist_warning": "System-wide blocklist entry",
-  "system_wide_blocklist_warning_description": "This entry will block bookings for ALL users and teams on the platform.",
+  "system_wide_blocklist_warning_description": "This entry will block bookings for All users and teams on the platform.",
   "source": "Source",
   "manual": "Manual",
   "free_domain_policy": "Free Domain Policy",
