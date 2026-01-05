@@ -15,8 +15,8 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { showToast, showProgressToast, hideProgressToast } from "@calcom/ui/components/toast";
 
-import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
-import { extractDateRangeFromColumnFilters } from "../../lib/bookingUtils";
+import { useInsightsBookingParameters } from "../../../hooks/useInsightsBookingParameters";
+import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib/bookingUtils";
 
 type RawData = RouterOutputs["viewer"]["insights"]["rawData"]["data"][number];
 

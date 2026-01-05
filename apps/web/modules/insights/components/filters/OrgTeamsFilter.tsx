@@ -14,7 +14,7 @@ import { FilterSearchField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
 
-import { useInsightsOrgTeams } from "../hooks/useInsightsOrgTeams";
+import { useInsightsOrgTeams } from "../../hooks/useInsightsOrgTeams";
 
 export type OrgTeamsType = "org" | "team" | "yours";
 
