@@ -98,6 +98,9 @@ const defaultProps = {
   slots: {
     selectedTimeslot: "2024-01-01T10:00:00Z",
     setSelectedTimeslot: vi.fn(),
+    setTentativeSelectedTimeslots: vi.fn(),
+    tentativeSelectedTimeslots: ["2024-01-01T10:00:00Z"],
+    slotReservationId: null,
     allSelectedTimeslots: ["2024-01-01T10:00:00Z"],
     quickAvailabilityChecks: [],
   },
