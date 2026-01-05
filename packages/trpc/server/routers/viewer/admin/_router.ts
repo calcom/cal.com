@@ -1,5 +1,6 @@
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZMigrateToWinnerSchema } from "../experiments/migrateToWinner.schema";
 import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
 import { ZAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
@@ -12,14 +13,14 @@ import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
 import { ZAdminUnassignFeatureFromTeamSchema } from "./unassignFeatureFromTeam.schema";
 import { ZUpdateExperimentConfigSchema } from "./updateExperimentConfig.schema";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
+import { watchlistRouter } from "./watchlist/_router";
 import { ZWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
 import {
   workspacePlatformCreateSchema,
+  workspacePlatformToggleEnabledSchema,
   workspacePlatformUpdateSchema,
   workspacePlatformUpdateServiceAccountSchema,
-  workspacePlatformToggleEnabledSchema,
 } from "./workspacePlatform/schema";
-import { watchlistRouter } from "./watchlist/_router";
 
 const NAMESPACE = "admin";
 
@@ -82,6 +83,10 @@ export const adminRouter = router({
   updateExperimentConfig: authedAdminProcedure.input(ZUpdateExperimentConfigSchema).mutation(async (opts) => {
     const { default: handler } = await import("./updateExperimentConfig.handler");
     return handler(opts);
+  }),
+  migrateExperimentToWinner: authedAdminProcedure.input(ZMigrateToWinnerSchema).mutation(async (opts) => {
+    const { migrateToWinnerHandler } = await import("../experiments/migrateToWinner.handler");
+    return migrateToWinnerHandler(opts);
   }),
   workspacePlatform: router({
     list: authedAdminProcedure.query(async () => {

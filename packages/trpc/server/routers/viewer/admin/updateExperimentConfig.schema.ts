@@ -10,6 +10,8 @@ export const ZUpdateExperimentConfigSchema = z.object({
       })
     ),
     assignmentType: z.enum(["DETERMINISTIC", "RANDOM"]),
+    status: z.enum(["draft", "running", "paused", "concluded"]).optional(),
+    winnerVariant: z.string().optional(),
   }),
 });
 

@@ -17,13 +17,21 @@ export default async function updateExperimentConfigHandler({ ctx, input }: Upda
     select: { type: true },
   });
 
-  if (!feature || feature.type !== "EXPERIMENT") {
+  if (feature && feature.type !== "EXPERIMENT") {
     throw new Error("Feature is not an experiment");
   }
 
-  await prisma.feature.update({
+  // create or update the experiment
+  await prisma.feature.upsert({
     where: { slug: input.slug },
-    data: {
+    create: {
+      slug: input.slug,
+      type: "EXPERIMENT",
+      enabled: true,
+      metadata: input.metadata,
+      description: `A/B experiment: ${input.slug}`,
+    },
+    update: {
       metadata: input.metadata,
       updatedAt: new Date(),
     },

@@ -17,6 +17,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { useEffect, useState } from "react";
 
 import type { ExperimentMetadata, ExperimentVariantConfig } from "../types";
+import { ExperimentStats } from "./ExperimentStats";
 
 type Experiment = RouterOutputs["viewer"]["features"]["list"][number];
 
@@ -40,11 +41,17 @@ export function ExperimentConfigSheet({ experiment, open, onOpenChange }: Experi
   const [assignmentType, setAssignmentType] = useState<"DETERMINISTIC" | "RANDOM">(
     metadata?.assignmentType || "DETERMINISTIC"
   );
+  const [status, setStatus] = useState<"draft" | "running" | "paused" | "concluded">(
+    metadata?.status || "draft"
+  );
+  const [winnerVariant, setWinnerVariant] = useState<string>(metadata?.winnerVariant || "");
 
   useEffect(() => {
     if (open && metadata) {
       setVariants(metadata.variants || []);
       setAssignmentType(metadata.assignmentType || "DETERMINISTIC");
+      setStatus(metadata.status || "draft");
+      setWinnerVariant(metadata.winnerVariant || "");
     }
   }, [open, metadata]);
 
@@ -53,6 +60,16 @@ export function ExperimentConfigSheet({ experiment, open, onOpenChange }: Experi
       showToast("Experiment updated successfully", "success");
       utils.viewer.features.list.invalidate();
       onOpenChange(false);
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
+
+  const migrateMutation = trpc.viewer.admin.migrateExperimentToWinner.useMutation({
+    onSuccess: (data) => {
+      showToast(data.message, "success");
+      utils.viewer.features.list.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -71,6 +88,8 @@ export function ExperimentConfigSheet({ experiment, open, onOpenChange }: Experi
       metadata: {
         variants,
         assignmentType,
+        status,
+        ...(status === "concluded" && winnerVariant && { winnerVariant }),
       },
     });
   };
@@ -107,14 +126,51 @@ export function ExperimentConfigSheet({ experiment, open, onOpenChange }: Experi
           <SheetTitle>Configure Experiment: {experiment.slug}</SheetTitle>
         </SheetHeader>
         <SheetBody className="space-y-4">
+          <ExperimentStats experimentSlug={experiment.slug} />
+
+          <div>
+            <label className="text-emphasis mb-2 block text-sm font-medium">Status</label>
+            <Select<{ label: string; value: "draft" | "running" | "paused" | "concluded" }>
+              value={
+                status === "draft"
+                  ? { label: "Draft", value: "draft" }
+                  : status === "running"
+                    ? { label: "Running", value: "running" }
+                    : status === "paused"
+                      ? { label: "Paused", value: "paused" }
+                      : { label: "Concluded", value: "concluded" }
+              }
+              options={[
+                { label: "Draft", value: "draft" },
+                { label: "Running", value: "running" },
+                { label: "Paused", value: "paused" },
+                { label: "Concluded", value: "concluded" },
+              ]}
+              onChange={(option) => option && setStatus(option.value)}
+            />
+            <p className="text-subtle mt-1 text-xs">
+              {status === "draft" && "Experiment is being configured"}
+              {status === "running" && "Experiment is active and assigning variants"}
+              {status === "paused" && "Experiment is temporarily paused - no new assignments"}
+              {status === "concluded" &&
+                "Experiment has ended - all users will receive the winner variant if set"}
+            </p>
+          </div>
+
           <div>
             <label className="text-emphasis mb-2 block text-sm font-medium">Assignment Type</label>
-            <Select
-              value={assignmentType}
-              onValueChange={(value: "DETERMINISTIC" | "RANDOM") => setAssignmentType(value)}>
-              <option value="DETERMINISTIC">Deterministic (hash-based)</option>
-              <option value="RANDOM">Random</option>
-            </Select>
+            <Select<{ label: string; value: "DETERMINISTIC" | "RANDOM" }>
+              value={
+                assignmentType === "DETERMINISTIC"
+                  ? { label: "Deterministic (hash-based)", value: "DETERMINISTIC" }
+                  : { label: "Random", value: "RANDOM" }
+              }
+              options={[
+                { label: "Deterministic (hash-based)", value: "DETERMINISTIC" },
+                { label: "Random", value: "RANDOM" },
+              ]}
+              onChange={(option) => option && setAssignmentType(option.value)}
+            />
             <p className="text-subtle mt-1 text-xs">
               {assignmentType === "DETERMINISTIC"
                 ? "Users get the same variant every time (recommended)"
@@ -173,6 +229,44 @@ export function ExperimentConfigSheet({ experiment, open, onOpenChange }: Experi
               ))}
             </div>
           </div>
+
+          {status === "concluded" && (
+            <div className="space-y-3">
+              <div>
+                <label className="text-emphasis mb-2 block text-sm font-medium">Winner Variant</label>
+                <Select<{ label: string; value: string }>
+                  value={winnerVariant ? { label: winnerVariant, value: winnerVariant } : undefined}
+                  options={variants.map((v) => ({ label: v.name, value: v.name }))}
+                  onChange={(option) => option && setWinnerVariant(option.value)}
+                  placeholder="Select winning variant (optional)"
+                  isClearable
+                />
+                <p className="text-subtle mt-1 text-xs">Mark which variant won the experiment</p>
+              </div>
+
+              {metadata?.winnerVariant && (
+                <div className="bg-muted rounded-md border p-3">
+                  <p className="text-emphasis mb-2 text-sm font-medium">Migrate all users to winner variant</p>
+                  <p className="text-subtle mb-3 text-xs">
+                    This will update all existing assignments to use the &quot;{metadata.winnerVariant}&quot;
+                    variant. New users will automatically get this variant.
+                  </p>
+                  <Button
+                    color="primary"
+                    size="sm"
+                    onClick={() =>
+                      migrateMutation.mutate({
+                        experimentSlug: experiment.slug,
+                        winnerVariant: metadata.winnerVariant!,
+                      })
+                    }
+                    loading={migrateMutation.isPending}>
+                    Migrate All Users to {metadata.winnerVariant}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </SheetBody>
         <SheetFooter>
           <Button color="secondary" onClick={() => onOpenChange(false)}>

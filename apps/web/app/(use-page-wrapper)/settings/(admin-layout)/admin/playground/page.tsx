@@ -6,9 +6,9 @@ import Link from "next/link";
 const LINKS = [
   {
     title: "Experiments",
-    description: "Test A/B experiment variants and PostHog tracking",
+    description: "Test A/B experiments, variant assignments and conversion tracking",
     href: "/settings/admin/playground/experiments",
-    icon: "flask-conical" as const,
+    icon: "flask" as const,
   },
   {
     title: "Routing Funnel",

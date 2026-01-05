@@ -1,10 +1,11 @@
-import { ExperimentPlayground } from "@calcom/features/experiments/playground/ExperimentPlayground";
 import { _generateMetadata } from "app/_utils";
+
+import { ExperimentPlayground } from "@calcom/features/experiments/components/ExperimentPlayground";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    () => "Experiments Playground",
-    () => "Test A/B experiment variants",
+    () => "experiments playground",
+    () => "test experiment variant assignments and track conversions",
     undefined,
     undefined,
     "/settings/admin/playground/experiments"

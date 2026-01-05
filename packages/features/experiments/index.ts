@@ -7,3 +7,4 @@ export {
   assignVariantRandom,
   validateVariantPercentages,
 } from "./utils/variant-assignment";
+export { useExperiment } from "./hooks/useExperiment";

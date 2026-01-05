@@ -44,6 +44,50 @@ export class ExperimentsRepository {
       return null;
     }
 
+    // if experiment is concluded with a winner, everyone gets the winner variant
+    if (config.status === "concluded" && config.winnerVariant) {
+      const existing = await this.prisma.experimentVariant.findFirst({
+        where: {
+          experimentSlug,
+          ...(userId && { userId }),
+          ...(teamId && { teamId }),
+        },
+      });
+
+      // update existing assignment to winner if different
+      if (existing && existing.variant !== config.winnerVariant) {
+        await this.prisma.experimentVariant.update({
+          where: { id: existing.id },
+          data: { variant: config.winnerVariant },
+        });
+      }
+
+      // create new assignment with winner variant
+      if (!existing) {
+        await this.prisma.experimentVariant.create({
+          data: {
+            experimentSlug,
+            variant: config.winnerVariant,
+            userId,
+            teamId,
+            assignmentType: config.assignmentType,
+          },
+        });
+      }
+
+      return {
+        variant: config.winnerVariant,
+        experimentSlug,
+        assignmentType: config.assignmentType,
+        isNewAssignment: !existing,
+      };
+    }
+
+    // only assign variants if experiment is running
+    if (config.status && config.status !== "running") {
+      return null;
+    }
+
     const existing = await this.prisma.experimentVariant.findFirst({
       where: {
         experimentSlug,
@@ -137,5 +181,25 @@ export class ExperimentsRepository {
     }
 
     return false;
+  }
+
+  /**
+   * Migrate all existing assignments to the winner variant
+   * Useful when concluding an experiment with a winner
+   */
+  async migrateToWinnerVariant(experimentSlug: string, winnerVariant: string): Promise<number> {
+    const result = await this.prisma.experimentVariant.updateMany({
+      where: {
+        experimentSlug,
+        variant: {
+          not: winnerVariant,
+        },
+      },
+      data: {
+        variant: winnerVariant,
+      },
+    });
+
+    return result.count;
   }
 }

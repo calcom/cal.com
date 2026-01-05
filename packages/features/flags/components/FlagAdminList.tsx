@@ -1,5 +1,5 @@
+import { ExperimentConfigSheet } from "@calcom/features/experiments/components/ExperimentConfigSheet";
 import type { RouterOutputs } from "@calcom/trpc/react";
-
 import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -8,8 +8,6 @@ import { Switch } from "@calcom/ui/components/form";
 import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
 import { useState } from "react";
-
-import { ExperimentConfigSheet } from "@calcom/features/experiments/components/ExperimentConfigSheet";
 
 import { AssignFeatureSheet } from "./AssignFeatureSheet";
 
@@ -46,24 +44,24 @@ export const FlagAdminList = () => {
 
   return (
     <>
-      <div class="stack-y-4">
+      <div className="stack-y-4">
         {sortedTypes.map((type) => (
           <PanelCard key={type} title={type.replace(/_/g, " ")} collapsible defaultCollapsed={false}>
             <List roundContainer noBorderTreatment>
               {groupedFlags[type].map((flag: Flag, index: number) => (
                 <ListItem key={flag.slug} rounded={index === 0 || index === groupedFlags[type].length - 1}>
-                  <div class="flex flex-1 flex-col">
+                  <div className="flex flex-1 flex-col">
                     <ListItemTitle component="h3">{flag.slug}</ListItemTitle>
                     <ListItemText component="p">{flag.description}</ListItemText>
                     {flag.type === "EXPERIMENT" && flag.metadata && (
-                      <div class="text-subtle text-xs mt-1">
+                      <div className="text-subtle text-xs mt-1">
                         <ExperimentMetadata metadata={flag.metadata} />
                       </div>
                     )}
                   </div>
-                  <div class="flex items-center gap-2 py-2">
+                  <div className="flex items-center gap-2 py-2">
                     <FlagToggle flag={flag} />
-                    {flag.type === "EXPERIMENT" && (
+                    {flag.type === "EXPERIMENT" ? (
                       <Button
                         color="secondary"
                         size="sm"
@@ -71,13 +69,14 @@ export const FlagAdminList = () => {
                         onClick={() => handleConfigureExperiment(flag)}
                         StartIcon="settings"
                       />
+                    ) : (
+                      <Button
+                        color="secondary"
+                        size="sm"
+                        variant="icon"
+                        onClick={() => handleAssignClick(flag)}
+                        StartIcon="users"></Button>
                     )}
-                    <Button
-                      color="secondary"
-                      size="sm"
-                      variant="icon"
-                      onClick={() => handleAssignClick(flag)}
-                      StartIcon="users"></Button>
                   </div>
                 </ListItem>
               ))}
@@ -125,9 +124,32 @@ const FlagToggle = (props: { flag: Flag }) => {
 
 const ExperimentMetadata = ({ metadata }: { metadata: unknown }) => {
   try {
-    const parsed = metadata as { variants?: Array<{ name: string; percentage: number }> };
+    const parsed = metadata as {
+      variants?: Array<{ name: string; percentage: number }>;
+      status?: "draft" | "running" | "paused" | "concluded";
+      winnerVariant?: string;
+    };
     if (parsed.variants) {
-      return <span>Variants: {parsed.variants.map((v) => `${v.name} (${v.percentage}%)`).join(", ")}</span>;
+      return (
+        <div className="flex items-center gap-2">
+          {parsed.status && (
+            <Badge
+              variant={
+                parsed.status === "running"
+                  ? "green"
+                  : parsed.status === "concluded"
+                    ? "gray"
+                    : parsed.status === "paused"
+                      ? "orange"
+                      : "blue"
+              }>
+              {parsed.status}
+            </Badge>
+          )}
+          <span>Variants: {parsed.variants.map((v) => `${v.name} (${v.percentage}%)`).join(", ")}</span>
+          {parsed.winnerVariant && <span className="text-success">Winner: {parsed.winnerVariant}</span>}
+        </div>
+      );
     }
   } catch {
     return null;
