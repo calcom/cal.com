@@ -13,8 +13,11 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
  * Only available when NEXT_PUBLIC_IS_E2E=1 is set (automatically set by playwright.config.ts).
  */
 async function getHandler() {
-  // Gate this endpoint to E2E test mode only
-  if (process.env.NEXT_PUBLIC_IS_E2E !== "1") {
+  // // Gate this endpoint to E2E test mode or dev only
+  if (
+    process.env.NEXT_PUBLIC_IS_E2E !== "1" &&
+    process.env.NODE_ENV !== "development"
+  ) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

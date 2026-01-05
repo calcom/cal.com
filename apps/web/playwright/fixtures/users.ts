@@ -1173,7 +1173,7 @@ export async function apiLogin(
    * This triggers the jwt and session callbacks that populate the session
    * with profile, org, and other important data, without loading a heavy UI page.
    */
-  const warmupResponse = await page.context().request.get("/api/__e2e__/session-warmup");
+  const warmupResponse = await page.context().request.get("/api/e2e/session-warmup");
   expect(warmupResponse.status()).toBe(200);
 
   // If a specific URL was requested, navigate to it
