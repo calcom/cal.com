@@ -3,6 +3,7 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Platform, View } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
+import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import type { RescheduleScreenHandle } from "@/components/screens/RescheduleScreen";
 import RescheduleScreenComponent from "@/components/screens/RescheduleScreen";
 import { type Booking, CalComAPIService } from "@/services/calcom";
@@ -43,22 +44,26 @@ export default function Reschedule() {
 
   const renderHeaderLeft = useCallback(
     () => (
-      <AppPressable onPress={() => router.back()} className="px-2 py-2">
-        <Ionicons name="close" size={24} color="#007AFF" />
-      </AppPressable>
+      <HeaderButtonWrapper side="left">
+        <AppPressable onPress={() => router.back()} className="px-2 py-2">
+          <Ionicons name="close" size={24} color="#007AFF" />
+        </AppPressable>
+      </HeaderButtonWrapper>
     ),
     [router]
   );
 
   const renderHeaderRight = useCallback(
     () => (
-      <AppPressable
-        onPress={handleSave}
-        disabled={isSaving}
-        className={`px-2 py-2 ${isSaving ? "opacity-50" : ""}`}
-      >
-        <Ionicons name="checkmark" size={24} color="#007AFF" />
-      </AppPressable>
+      <HeaderButtonWrapper side="right">
+        <AppPressable
+          onPress={handleSave}
+          disabled={isSaving}
+          className={`px-2 py-2 ${isSaving ? "opacity-50" : ""}`}
+        >
+          <Ionicons name="checkmark" size={24} color="#007AFF" />
+        </AppPressable>
+      </HeaderButtonWrapper>
     ),
     [handleSave, isSaving]
   );

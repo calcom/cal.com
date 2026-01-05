@@ -32,6 +32,7 @@ import {
 import { Text as UIText } from "@/components/ui/text";
 import { AppPressable } from "@/components/AppPressable";
 import { BookingActionsModal } from "@/components/BookingActionsModal";
+import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import { SvgImage } from "@/components/SvgImage";
 import { useAuth } from "@/contexts/AuthContext";
 import { type Booking, CalComAPIService } from "@/services/calcom";
@@ -582,41 +583,43 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
         <Stack.Screen
           options={{
             headerRight: () => (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Pressable className="h-10 w-10 items-center justify-center rounded-full">
-                    <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
-                  </Pressable>
-                </DropdownMenuTrigger>
+              <HeaderButtonWrapper side="right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Pressable className="h-10 w-10 items-center justify-center rounded-full">
+                      <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
+                    </Pressable>
+                  </DropdownMenuTrigger>
 
-                <DropdownMenuContent
-                  insets={contentInsets}
-                  sideOffset={8}
-                  className="w-52"
-                  align="end"
-                >
-                  {dropdownActions.map((action, index) => (
-                    <React.Fragment key={action.label}>
-                      {index === destructiveStartIndex && destructiveStartIndex > 0 && (
-                        <DropdownMenuSeparator />
-                      )}
-                      <DropdownMenuItem variant={action.variant} onPress={action.onPress}>
-                        <Ionicons
-                          name={action.icon}
-                          size={18}
-                          color={action.variant === "destructive" ? "#800020" : "#374151"}
-                          style={{ marginRight: 8 }}
-                        />
-                        <UIText
-                          className={action.variant === "destructive" ? "text-destructive" : ""}
-                        >
-                          {action.label}
-                        </UIText>
-                      </DropdownMenuItem>
-                    </React.Fragment>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <DropdownMenuContent
+                    insets={contentInsets}
+                    sideOffset={8}
+                    className="w-52"
+                    align="end"
+                  >
+                    {dropdownActions.map((action, index) => (
+                      <React.Fragment key={action.label}>
+                        {index === destructiveStartIndex && destructiveStartIndex > 0 && (
+                          <DropdownMenuSeparator />
+                        )}
+                        <DropdownMenuItem variant={action.variant} onPress={action.onPress}>
+                          <Ionicons
+                            name={action.icon}
+                            size={18}
+                            color={action.variant === "destructive" ? "#800020" : "#374151"}
+                            style={{ marginRight: 8 }}
+                          />
+                          <UIText
+                            className={action.variant === "destructive" ? "text-destructive" : ""}
+                          >
+                            {action.label}
+                          </UIText>
+                        </DropdownMenuItem>
+                      </React.Fragment>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </HeaderButtonWrapper>
             ),
           }}
         />

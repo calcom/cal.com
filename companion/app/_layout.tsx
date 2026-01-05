@@ -12,16 +12,7 @@ function RootLayoutContent() {
   const { isAuthenticated } = useAuth();
 
   const content = isAuthenticated ? (
-    <Stack
-      screenOptions={
-        Platform.OS === "web"
-          ? {
-              headerLeftContainerStyle: { paddingLeft: 12 },
-              headerRightContainerStyle: { paddingRight: 12 },
-            }
-          : undefined
-      }
-    >
+    <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
         name="profile-sheet"

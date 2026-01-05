@@ -3,16 +3,7 @@ import { Platform } from "react-native";
 
 export default function MoreLayout() {
   return (
-    <Stack
-      screenOptions={
-        Platform.OS === "web"
-          ? {
-              headerLeftContainerStyle: { paddingLeft: 12 },
-              headerRightContainerStyle: { paddingRight: 12 },
-            }
-          : undefined
-      }
-    >
+    <Stack>
       <Stack.Screen
         name="index"
         options={{
