@@ -10,7 +10,6 @@ import {
   ColumnFilterType,
   type FilterableColumn,
 } from "@calcom/features/data-table";
-import type { FilterType } from "@calcom/types/data-table";
 import { useDataTable } from "@calcom/features/data-table/hooks/useDataTable";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import {
@@ -33,6 +32,7 @@ import {
   RecentFeedbackTable,
   TimezoneBadge,
 } from "@calcom/features/insights/components/booking";
+import type { FilterType } from "@calcom/types/data-table";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { DateTargetSelector, type DateTarget } from "@calcom/features/insights/filters/DateTargetSelector";
 import { Download } from "@calcom/features/insights/filters/Download";

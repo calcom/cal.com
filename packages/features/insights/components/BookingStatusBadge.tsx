@@ -4,12 +4,18 @@ import { type BadgeProps } from "@calcom/ui/components/badge";
 
 import { bookingStatusToText } from "../lib/bookingStatusToText";
 
-export function BookingStatusBadge({ bookingStatus }: { bookingStatus: BookingStatus | null }) {
+export function BookingStatusBadge({
+  bookingStatus,
+}: {
+  bookingStatus: BookingStatus | "RESCHEDULED" | null;
+}) {
   let badgeVariant: BadgeProps["variant"] = "success";
 
   if (!bookingStatus) return null;
 
   switch (bookingStatus) {
+    case "RESCHEDULED":
+      return <Badge variant="orange">{bookingStatusToText(bookingStatus)}</Badge>;
     case BookingStatus.REJECTED:
     case BookingStatus.AWAITING_HOST:
     case BookingStatus.PENDING:
