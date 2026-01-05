@@ -11,7 +11,20 @@ import type { appDataSchema } from "../zod";
 type AppOptions = z.infer<typeof appDataSchema>;
 
 // Create hoisted mocks that will be available before module imports
-const { mockHubspotClient, mockGetAppKeysFromSlug } = vi.hoisted(() => {
+const { mockHubspotClient, mockGetAppKeysFromSlug }: {
+  mockHubspotClient: {
+    crm: {
+      properties: { coreApi: { getAll: ReturnType<typeof vi.fn> } };
+      contacts: { searchApi: { doSearch: ReturnType<typeof vi.fn> }; basicApi: { create: ReturnType<typeof vi.fn> } };
+      objects: { meetings: { basicApi: { create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; archive: ReturnType<typeof vi.fn> } } };
+      associations: { batchApi: { create: ReturnType<typeof vi.fn> } };
+      owners: { ownersApi: { getPage: ReturnType<typeof vi.fn> } };
+    };
+    oauth: { tokensApi: { createToken: ReturnType<typeof vi.fn> } };
+    setAccessToken: ReturnType<typeof vi.fn>;
+  };
+  mockGetAppKeysFromSlug: ReturnType<typeof vi.fn>;
+} = vi.hoisted(() => {
   const mockHubspotClient = {
     crm: {
       properties: {
@@ -102,6 +115,12 @@ describe("HubspotCalendarService", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2024-01-15T10:00:00.000Z"));
 
+    // Re-apply mock implementation for getAppKeysFromSlug (needed after clearAllMocks)
+    mockGetAppKeysFromSlug.mockResolvedValue({
+      client_id: "mock_client_id",
+      client_secret: "mock_client_secret",
+    });
+
     mockTrackingRepository = {
       findByBookingUid: vi.fn(),
     };
@@ -137,19 +156,17 @@ describe("HubspotCalendarService", () => {
     service.bookingRepository = mockBookingRepository;
     // @ts-expect-error - Injecting mock hubspot client for testing
     service.hubspotClient = mockHubspotClient;
-    // @ts-expect-error - Mocking auth promise to prevent unhandled rejections
-    service.auth = Promise.resolve({ getToken: vi.fn() });
   });
 
   afterEach(() => {
     vi.useRealTimers();
-    vi.resetAllMocks();
+    vi.clearAllMocks();
   });
 
-  const mockAppOptions = (appOptions: AppOptions) => {
+  function mockAppOptions(appOptions: AppOptions): void {
     const appOptionsSpy = vi.spyOn(service, "getAppOptions");
     appOptionsSpy.mockReturnValue(appOptions);
-  };
+  }
 
   describe("ensureFieldsExistOnMeeting", () => {
     it("should return intersection of requested fields with HubSpot properties", async () => {
