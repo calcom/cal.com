@@ -171,7 +171,7 @@ export function MarkNoShowScreen({
         >
           <Text
             className={`text-[16px] font-semibold ${
-              transparentBackground ? "text-white" : isNoShow ? "text-[#DC2626]" : "text-gray-600"
+              transparentBackground ? "text-white" : isNoShow ? "text-[#800020]" : "text-gray-600"
             }`}
           >
             {getInitials(item.name)}
@@ -182,8 +182,8 @@ export function MarkNoShowScreen({
           <Text className="mt-0.5 text-[15px] text-gray-500">{item.email}</Text>
           {isNoShow && (
             <View className="mt-1.5 flex-row items-center">
-              <Ionicons name="eye-off" size={12} color="#DC2626" />
-              <Text className="ml-1 text-[13px] font-medium text-[#DC2626]">Marked as no-show</Text>
+              <Ionicons name="eye-off" size={12} color="#800020" />
+              <Text className="ml-1 text-[13px] font-medium text-[#800020]">Marked as no-show</Text>
             </View>
           )}
         </View>
@@ -201,11 +201,11 @@ export function MarkNoShowScreen({
               <Ionicons
                 name={isNoShow ? "eye" : "eye-off"}
                 size={15}
-                color={isNoShow ? "#16A34A" : "#DC2626"}
+                color={isNoShow ? "#16A34A" : "#800020"}
                 style={{ marginRight: 5 }}
               />
               <Text
-                className={`text-[14px] font-semibold ${isNoShow ? "text-[#16A34A]" : "text-[#DC2626]"}`}
+                className={`text-[14px] font-semibold ${isNoShow ? "text-[#16A34A]" : "text-[#800020]"}`}
               >
                 {isNoShow ? "Unmark" : "Mark"}
               </Text>

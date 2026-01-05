@@ -583,7 +583,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
                       <Ionicons
                         name={action.icon}
                         size={18}
-                        color={action.variant === "destructive" ? "#DC2626" : "#374151"}
+                        color={action.variant === "destructive" ? "#800020" : "#374151"}
                         style={{ marginRight: 8 }}
                       />
                       <UIText
@@ -674,7 +674,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
                     >
                       <View
                         className={`mr-3 h-12 w-12 items-center justify-center rounded-full ${
-                          isNoShow ? "bg-[#DC2626]" : "bg-black"
+                          isNoShow ? "bg-[#800020]" : "bg-black"
                         }`}
                       >
                         <Text className="text-base font-semibold text-white">
@@ -685,21 +685,21 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
                         <View className="mb-1 flex-row items-center">
                           <Text
                             className={`text-base font-medium ${
-                              isNoShow ? "text-[#DC2626]" : "text-[#333]"
+                              isNoShow ? "text-[#800020]" : "text-[#333]"
                             }`}
                           >
                             {attendee.name}
                           </Text>
                           {isNoShow && (
                             <View className="ml-2 flex-row items-center rounded-full bg-[#FEE2E2] px-2 py-0.5">
-                              <Ionicons name="eye-off" size={12} color="#DC2626" />
-                              <Text className="ml-1 text-xs font-medium text-[#DC2626]">
+                              <Ionicons name="eye-off" size={12} color="#800020" />
+                              <Text className="ml-1 text-xs font-medium text-[#800020]">
                                 No-show
                               </Text>
                             </View>
                           )}
                         </View>
-                        <Text className={`text-sm ${isNoShow ? "text-[#DC2626]" : "text-[#666]"}`}>
+                        <Text className={`text-sm ${isNoShow ? "text-[#800020]" : "text-[#666]"}`}>
                           {attendee.email}
                         </Text>
                       </View>

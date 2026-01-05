@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Platform, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
 import { Header } from "@/components/Header";
@@ -44,7 +44,7 @@ export default function Bookings() {
     setSearchQuery(query);
   };
 
-  const fetchEventTypes = async () => {
+  const fetchEventTypes = useCallback(async () => {
     setEventTypesLoading(true);
     try {
       const types = await CalComAPIService.getEventTypes();
@@ -55,14 +55,14 @@ export default function Bookings() {
       // Error is logged but not displayed to user for event type filter
       setEventTypesLoading(false);
     }
-  };
+  }, []);
 
   // Fetch event types on mount for Android dropdown
   useEffect(() => {
     if (Platform.OS === "android" && eventTypes.length === 0) {
       fetchEventTypes();
     }
-  }, []);
+  }, [eventTypes.length, fetchEventTypes]);
 
   const handleFilterButtonPress = () => {
     setShowFilterModal(true);

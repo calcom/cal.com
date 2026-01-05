@@ -109,7 +109,7 @@ export const EventTypeListItem = ({
 
             {/* Delete Action - Destructive */}
             <DropdownMenuItem variant="destructive" onPress={() => onDelete?.(item)}>
-              <Ionicons name="trash-outline" size={18} color="#DC2626" style={{ marginRight: 8 }} />
+              <Ionicons name="trash-outline" size={18} color="#800020" style={{ marginRight: 8 }} />
               <Text className="text-destructive">Delete</Text>
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -99,10 +99,11 @@ export function useEventTypeFilter(): UseEventTypeFilterResult {
               return a.title.localeCompare(b.title);
             case "newest":
               return b.id - a.id;
-            case "duration":
+            case "duration": {
               const durationA = a.lengthInMinutes || a.length || 0;
               const durationB = b.lengthInMinutes || b.length || 0;
               return durationA - durationB;
+            }
             default:
               return 0;
           }
@@ -174,10 +175,11 @@ export function useEventTypeFilter(): UseEventTypeFilterResult {
           case "newest":
             // Sort by ID descending (higher ID = newer)
             return b.id - a.id;
-          case "duration":
+          case "duration": {
             const durationA = a.lengthInMinutes || a.length || 0;
             const durationB = b.lengthInMinutes || b.length || 0;
             return durationA - durationB;
+          }
           default:
             return 0;
         }

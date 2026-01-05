@@ -209,7 +209,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
                     <Ionicons
                       name={action.icon}
                       size={18}
-                      color={action.variant === "destructive" ? "#DC2626" : "#374151"}
+                      color={action.variant === "destructive" ? "#800020" : "#374151"}
                       style={{ marginRight: 8 }}
                     />
                     <Text className={action.variant === "destructive" ? "text-destructive" : ""}>

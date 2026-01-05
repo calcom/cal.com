@@ -43,9 +43,11 @@ export default function Bookings() {
               ? "calendar.badge.clock"
               : option.key === "unconfirmed"
                 ? "calendar.badge.exclamationmark"
-                : option.key === "past"
-                  ? "calendar.badge.checkmark"
-                  : "calendar.badge.minus",
+                : option.key === "recurring"
+                  ? "repeat.circle"
+                  : option.key === "past"
+                    ? "calendar.badge.checkmark"
+                    : "calendar.badge.minus",
           type: "sfSymbol",
         },
         state: isSelected ? "on" : "off",
