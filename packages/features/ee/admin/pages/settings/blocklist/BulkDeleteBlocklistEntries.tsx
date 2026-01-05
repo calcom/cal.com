@@ -1,12 +1,16 @@
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { DataTableSelectionBar } from "@calcom/features/data-table";
+import { DataTableSelectionBar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import {
+  DialogTrigger,
+  ConfirmationDialogContent,
+} from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
-type BlocklistEntry = RouterOutputs["viewer"]["admin"]["watchlist"]["list"]["rows"][number];
+type BlocklistEntry =
+  RouterOutputs["viewer"]["admin"]["watchlist"]["list"]["rows"][number];
 
 interface Props {
   entries: BlocklistEntry[];
@@ -17,21 +21,26 @@ export function BulkDeleteBlocklistEntries({ entries, onRemove }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const bulkDeleteMutation = trpc.viewer.admin.watchlist.bulkDelete.useMutation({
-    onSuccess: async (data) => {
-      await utils.viewer.admin.watchlist.list.invalidate();
-      showToast(
-        data.failed === 0
-          ? t("entries_deleted_successfully", { count: data.success })
-          : t("entries_deleted_with_errors", { success: data.success, failed: data.failed }),
-        data.failed === 0 ? "success" : "warning"
-      );
-      onRemove();
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+  const bulkDeleteMutation = trpc.viewer.admin.watchlist.bulkDelete.useMutation(
+    {
+      onSuccess: async (data) => {
+        await utils.viewer.admin.watchlist.list.invalidate();
+        showToast(
+          data.failed === 0
+            ? t("entries_deleted_successfully", { count: data.success })
+            : t("entries_deleted_with_errors", {
+                success: data.success,
+                failed: data.failed,
+              }),
+          data.failed === 0 ? "success" : "warning"
+        );
+        onRemove();
+      },
+      onError: (error) => {
+        showToast(error.message, "error");
+      },
+    }
+  );
 
   return (
     <Dialog>
@@ -49,8 +58,11 @@ export function BulkDeleteBlocklistEntries({ entries, onRemove }: Props) {
           bulkDeleteMutation.mutate({
             ids: entries.map((entry) => entry.id),
           });
-        }}>
-        <p className="mt-5">{t("remove_entries_confirm", { count: entries.length })}</p>
+        }}
+      >
+        <p className="mt-5">
+          {t("remove_entries_confirm", { count: entries.length })}
+        </p>
       </ConfirmationDialogContent>
     </Dialog>
   );

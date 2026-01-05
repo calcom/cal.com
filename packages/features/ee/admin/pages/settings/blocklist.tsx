@@ -10,7 +10,8 @@ import {
   PendingReportsBadge,
   PendingReportsTable,
 } from "@calcom/features/blocklist";
-import { DataTableProvider, DataTableToolbar, useDataTable } from "@calcom/features/data-table";
+import { DataTableProvider, useDataTable } from "@calcom/features/data-table";
+import { DataTableToolbar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -31,17 +32,25 @@ function SystemBlocklistContent() {
 
   const utils = trpc.useUtils();
 
-  const { data: blockedData, isPending: isBlockedPending } = trpc.viewer.admin.watchlist.list.useQuery(
-    { limit, offset, searchTerm },
-    { placeholderData: keepPreviousData, enabled: activeView === "blocked" }
-  );
+  const { data: blockedData, isPending: isBlockedPending } =
+    trpc.viewer.admin.watchlist.list.useQuery(
+      { limit, offset, searchTerm },
+      { placeholderData: keepPreviousData, enabled: activeView === "blocked" }
+    );
 
-  const { data: reportsData, isPending: isReportsPending } = trpc.viewer.admin.watchlist.listReports.useQuery(
-    { limit, offset, searchTerm, systemFilters: { systemStatus: ["PENDING"] } },
-    { placeholderData: keepPreviousData, enabled: activeView === "pending" }
-  );
+  const { data: reportsData, isPending: isReportsPending } =
+    trpc.viewer.admin.watchlist.listReports.useQuery(
+      {
+        limit,
+        offset,
+        searchTerm,
+        systemFilters: { systemStatus: ["PENDING"] },
+      },
+      { placeholderData: keepPreviousData, enabled: activeView === "pending" }
+    );
 
-  const { data: pendingReportsCount } = trpc.viewer.admin.watchlist.pendingReportsCount.useQuery();
+  const { data: pendingReportsCount } =
+    trpc.viewer.admin.watchlist.pendingReportsCount.useQuery();
 
   const { data: entryDetails, isLoading: isDetailsLoading } =
     trpc.viewer.admin.watchlist.getDetails.useQuery(
@@ -71,17 +80,19 @@ function SystemBlocklistContent() {
     },
   });
 
-  const addToWatchlist = trpc.viewer.admin.watchlist.addToWatchlist.useMutation({
-    onSuccess: async () => {
-      await utils.viewer.admin.watchlist.listReports.invalidate();
-      await utils.viewer.admin.watchlist.list.invalidate();
-      await utils.viewer.admin.watchlist.pendingReportsCount.invalidate();
-      showToast(t("system_blocklist_entry_created"), "success");
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+  const addToWatchlist = trpc.viewer.admin.watchlist.addToWatchlist.useMutation(
+    {
+      onSuccess: async () => {
+        await utils.viewer.admin.watchlist.listReports.invalidate();
+        await utils.viewer.admin.watchlist.list.invalidate();
+        await utils.viewer.admin.watchlist.pendingReportsCount.invalidate();
+        showToast(t("system_blocklist_entry_created"), "success");
+      },
+      onError: (error) => {
+        showToast(error.message, "error");
+      },
+    }
+  );
 
   const dismissReport = trpc.viewer.admin.watchlist.dismissReport.useMutation({
     onSuccess: async () => {
@@ -120,7 +131,11 @@ function SystemBlocklistContent() {
         </div>
         <div className="flex items-center gap-2">
           {activeView === "blocked" && (
-            <Button color="primary" StartIcon="plus" onClick={() => setShowCreateModal(true)}>
+            <Button
+              color="primary"
+              StartIcon="plus"
+              onClick={() => setShowCreateModal(true)}
+            >
               {t("add")}
             </Button>
           )}
@@ -143,7 +158,10 @@ function SystemBlocklistContent() {
           onSelectEntry={setSelectedEntryId}
           enableRowSelection
           renderBulkActions={(selectedEntries, clearSelection) => (
-            <BulkDeleteBlocklistEntries entries={selectedEntries} onRemove={clearSelection} />
+            <BulkDeleteBlocklistEntries
+              entries={selectedEntries}
+              onRemove={clearSelection}
+            />
           )}
         />
       ) : (
@@ -156,12 +174,17 @@ function SystemBlocklistContent() {
           onAddToBlocklist={(reportIds, type, onSuccess) =>
             addToWatchlist.mutate({ reportIds, type }, { onSuccess })
           }
-          onDismiss={(reportId, onSuccess) => dismissReport.mutate({ reportId }, { onSuccess })}
+          onDismiss={(reportId, onSuccess) =>
+            dismissReport.mutate({ reportId }, { onSuccess })
+          }
           isAddingToBlocklist={addToWatchlist.isPending}
           isDismissing={dismissReport.isPending}
           enableRowSelection
           renderBulkActions={(selectedReports, clearSelection) => (
-            <BulkDismissReports reports={selectedReports} onRemove={clearSelection} />
+            <BulkDismissReports
+              reports={selectedReports}
+              onRemove={clearSelection}
+            />
           )}
         />
       )}

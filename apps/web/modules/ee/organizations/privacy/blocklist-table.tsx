@@ -9,7 +9,8 @@ import {
   PendingReportsBadge,
   PendingReportsTable,
 } from "@calcom/features/blocklist";
-import { DataTableToolbar, useDataTable } from "@calcom/features/data-table";
+import { useDataTable } from "@calcom/features/data-table";
+import { DataTableToolbar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -43,11 +44,17 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
 
   const { data: reportsData, isPending: isReportsPending } =
     trpc.viewer.organizations.listBookingReports.useQuery(
-      { limit, offset, searchTerm, filters: { hasWatchlist: false, status: ["PENDING"] } },
+      {
+        limit,
+        offset,
+        searchTerm,
+        filters: { hasWatchlist: false, status: ["PENDING"] },
+      },
       { placeholderData: keepPreviousData, enabled: activeView === "pending" }
     );
 
-  const { data: pendingReportsCount } = trpc.viewer.organizations.pendingReportsCount.useQuery();
+  const { data: pendingReportsCount } =
+    trpc.viewer.organizations.pendingReportsCount.useQuery();
 
   const { data: entryDetails, isLoading: isDetailsLoading } =
     trpc.viewer.organizations.getWatchlistEntryDetails.useQuery(
@@ -55,27 +62,29 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
       { enabled: !!selectedEntryId }
     );
 
-  const createEntry = trpc.viewer.organizations.createWatchlistEntry.useMutation({
-    onSuccess: async () => {
-      await utils.viewer.organizations.listWatchlistEntries.invalidate();
-      showToast(t("blocklist_entry_created"), "success");
-      setShowCreateModal(false);
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+  const createEntry =
+    trpc.viewer.organizations.createWatchlistEntry.useMutation({
+      onSuccess: async () => {
+        await utils.viewer.organizations.listWatchlistEntries.invalidate();
+        showToast(t("blocklist_entry_created"), "success");
+        setShowCreateModal(false);
+      },
+      onError: (error) => {
+        showToast(error.message, "error");
+      },
+    });
 
-  const deleteEntry = trpc.viewer.organizations.deleteWatchlistEntry.useMutation({
-    onSuccess: async () => {
-      await utils.viewer.organizations.listWatchlistEntries.invalidate();
-      setSelectedEntryId(null);
-      showToast(t("blocklist_entry_deleted"), "success");
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+  const deleteEntry =
+    trpc.viewer.organizations.deleteWatchlistEntry.useMutation({
+      onSuccess: async () => {
+        await utils.viewer.organizations.listWatchlistEntries.invalidate();
+        setSelectedEntryId(null);
+        showToast(t("blocklist_entry_deleted"), "success");
+      },
+      onError: (error) => {
+        showToast(error.message, "error");
+      },
+    });
 
   const addToWatchlist = trpc.viewer.organizations.addToWatchlist.useMutation({
     onSuccess: async () => {
@@ -89,16 +98,17 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
     },
   });
 
-  const dismissReport = trpc.viewer.organizations.dismissBookingReport.useMutation({
-    onSuccess: async () => {
-      await utils.viewer.organizations.listBookingReports.invalidate();
-      await utils.viewer.organizations.pendingReportsCount.invalidate();
-      showToast(t("booking_report_dismissed"), "success");
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+  const dismissReport =
+    trpc.viewer.organizations.dismissBookingReport.useMutation({
+      onSuccess: async () => {
+        await utils.viewer.organizations.listBookingReports.invalidate();
+        await utils.viewer.organizations.pendingReportsCount.invalidate();
+        showToast(t("booking_report_dismissed"), "success");
+      },
+      onError: (error) => {
+        showToast(error.message, "error");
+      },
+    });
 
   return (
     <>
@@ -126,7 +136,11 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         </div>
         <div className="flex items-center gap-2">
           {permissions?.canCreate && (
-            <Button color="primary" StartIcon="plus" onClick={() => setShowCreateModal(true)}>
+            <Button
+              color="primary"
+              StartIcon="plus"
+              onClick={() => setShowCreateModal(true)}
+            >
               {t("add")}
             </Button>
           )}
@@ -159,7 +173,9 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
           onAddToBlocklist={(reportIds, type, onSuccess) =>
             addToWatchlist.mutate({ reportIds, type }, { onSuccess })
           }
-          onDismiss={(reportId, onSuccess) => dismissReport.mutate({ reportId }, { onSuccess })}
+          onDismiss={(reportId, onSuccess) =>
+            dismissReport.mutate({ reportId }, { onSuccess })
+          }
           isAddingToBlocklist={addToWatchlist.isPending}
           isDismissing={dismissReport.isPending}
         />
