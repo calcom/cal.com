@@ -55,7 +55,7 @@ export class OrganizationBlockingService implements IBlockingService {
 
     // Normalize and extract domains
     const normalizedEmails = emails.map((e) => normalizeEmail(e));
-    const uniqueDomains = [...new Set(normalizedEmails.map((e) => extractDomainFromEmail(e)))];
+    const uniqueDomains = Array.from(new Set(normalizedEmails.map((e) => extractDomainFromEmail(e))));
 
     // Single DB query for all emails and domains
     const blockingEntries = await this.deps.orgRepo.findBlockingEntriesForEmailsAndDomains({
