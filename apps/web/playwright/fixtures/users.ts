@@ -1172,10 +1172,8 @@ export async function apiLogin(
    * Critical: Navigate to a protected page to trigger NextAuth session loading
    * This forces NextAuth to run the jwt and session callbacks that populate
    * the session with profile, org, and other important data
-   * We picked /settings/my-account/profile due to it being one of
-   * our lighest protected pages and doesnt do anything other than load the user profile
    */
-  await page.goto(navigateToUrl || "/settings/my-account/profile");
+  await page.goto(navigateToUrl || "/e2e/session-warmup");
 
   // Wait for the session API call to complete to ensure session is fully established
   // Only wait if we're on a protected page that would trigger the session API call
