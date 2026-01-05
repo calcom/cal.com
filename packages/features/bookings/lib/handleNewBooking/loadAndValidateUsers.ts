@@ -1,6 +1,6 @@
 import type { Logger } from "tslog";
 
-import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
+import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/src/delegationCredential";
 import type { RoutingFormResponse } from "@calcom/features/bookings/lib/getLuckyUser";
 import { getQualifiedHostsService } from "@calcom/features/di/containers/QualifiedHosts";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";

@@ -2,9 +2,9 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
-import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
-import type { getEventLocationValue } from "@calcom/app-store/locations";
-import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
+import { getPaymentAppData } from "@calcom/app-store/src/_utils/payments/getPaymentAppData";
+import type { getEventLocationValue } from "@calcom/app-store/src/locations";
+import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/src/locations";
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";

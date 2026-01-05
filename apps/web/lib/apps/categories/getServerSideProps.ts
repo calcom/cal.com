@@ -1,6 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 
-import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
+import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/src/_appRegistry";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {

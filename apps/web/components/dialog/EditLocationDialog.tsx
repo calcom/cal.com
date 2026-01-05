@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Controller, useForm, useWatch, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
-import type { EventLocationType, LocationObject } from "@calcom/app-store/locations";
+import type { EventLocationType, LocationObject } from "@calcom/app-store/src/locations";
 import {
   getEventLocationType,
   getHumanReadableLocationValue,
@@ -13,7 +13,7 @@ import {
   isAttendeeInputRequired,
   LocationType,
   OrganizerDefaultConferencingAppType,
-} from "@calcom/app-store/locations";
+} from "@calcom/app-store/src/locations";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";

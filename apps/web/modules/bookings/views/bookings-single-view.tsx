@@ -9,11 +9,11 @@ import { Fragment, useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { z } from "zod";
 
-import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import type { getEventLocationValue } from "@calcom/app-store/locations";
-import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
-import { getEventTypeAppData } from "@calcom/app-store/utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import BookingPageTagManager from "@calcom/app-store/src/BookingPageTagManager";
+import type { getEventLocationValue } from "@calcom/app-store/src/locations";
+import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/src/locations";
+import { getEventTypeAppData } from "@calcom/app-store/src/utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/src/zod-utils";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {

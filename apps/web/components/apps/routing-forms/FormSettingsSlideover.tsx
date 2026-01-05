@@ -5,8 +5,8 @@ import { useRef } from "react";
 import { Controller } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 
-import { TeamMemberSelect } from "@calcom/app-store/routing-forms/components/_components/TeamMemberSelect";
-import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import { TeamMemberSelect } from "@calcom/app-store/apps/routing-forms/components/_components/TeamMemberSelect";
+import type { RoutingFormWithResponseCount } from "@calcom/app-store/apps/routing-forms/types/types";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";

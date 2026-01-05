@@ -1,4 +1,4 @@
-import { fetcher } from "@calcom/app-store/dailyvideo/lib/dailyApiFetcher";
+import { fetcher } from "@calcom/app-store/apps/dailyvideo/lib/dailyApiFetcher";
 
 import { triggerNoShowPayloadSchema } from "./schema";
 

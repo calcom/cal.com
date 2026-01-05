@@ -1,23 +1,23 @@
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
-import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
+import processExternalId from "@calcom/app-store/src/_utils/calendars/processExternalId";
+import { getPaymentAppData } from "@calcom/app-store/src/_utils/payments/getPaymentAppData";
 import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
-} from "@calcom/app-store/delegationCredential";
-import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
+} from "@calcom/app-store/src/delegationCredential";
+import { metadata as GoogleMeetMetadata } from "@calcom/app-store/apps/googlevideo/_metadata";
 import {
   getLocationValueForDB,
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
-} from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
+} from "@calcom/app-store/src/locations";
+import { getAppFromSlug } from "@calcom/app-store/src/utils";
 import {
   eventTypeMetaDataSchemaWithTypedApps,
   eventTypeAppMetadataOptionalSchema,
-} from "@calcom/app-store/zod-utils";
+} from "@calcom/app-store/src/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import getICalUID from "@calcom/emails/lib/getICalUID";

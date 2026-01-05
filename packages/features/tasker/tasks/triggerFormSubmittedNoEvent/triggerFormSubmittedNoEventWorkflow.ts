@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/apps/routing-forms/lib/formSubmissionUtils";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";

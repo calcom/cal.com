@@ -1,4 +1,4 @@
-export { default } from "@calcom/app-store/paypal/api/webhook";
+export { default } from "@calcom/app-store/apps/paypal/api/webhook";
 
 export const config = {
   api: {

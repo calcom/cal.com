@@ -1,4 +1,4 @@
-import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
+import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/src/delegationCredential";
 import dayjs from "@calcom/dayjs";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";

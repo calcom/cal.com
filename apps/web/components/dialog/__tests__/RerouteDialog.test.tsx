@@ -4,7 +4,7 @@ import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { vi } from "vitest";
 
-import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
+import { RouteActionType } from "@calcom/app-store/apps/routing-forms/zod";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
 import { RerouteDialog } from "../RerouteDialog";

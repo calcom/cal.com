@@ -1,6 +1,6 @@
 import type { Retell } from "retell-sdk";
 
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/apps/routing-forms/lib/formSubmissionUtils";
 import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type {

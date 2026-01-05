@@ -1,7 +1,7 @@
 import type { calendar_v3 } from "@googleapis/calendar";
 import { v4 as uuid } from "uuid";
 
-import { CalendarAuth } from "@calcom/app-store/googlecalendar/lib/CalendarAuth";
+import { CalendarAuth } from "@calcom/app-store/apps/googlecalendar/lib/CalendarAuth";
 import dayjs from "@calcom/dayjs";
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import logger from "@calcom/lib/logger";

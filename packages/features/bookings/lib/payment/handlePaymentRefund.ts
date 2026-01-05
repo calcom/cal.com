@@ -1,4 +1,4 @@
-import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
+import { PaymentServiceMap } from "@calcom/app-store/generated/payment.services.generated";
 import type { Payment, Prisma, AppCategories } from "@calcom/prisma/client";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 

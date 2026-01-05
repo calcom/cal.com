@@ -3,7 +3,7 @@ import type {
   AttributeName,
   BulkAttributeAssigner,
   AttributeOptionAssignment,
-} from "@calcom/app-store/routing-forms/types/types";
+} from "@calcom/app-store/apps/routing-forms/types/types";
 import { findAssignmentsForMember } from "@calcom/features/attributes/lib/utils";
 import { PrismaAttributeOptionRepository } from "@calcom/features/attributes/repositories/PrismaAttributeOptionRepository";
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";

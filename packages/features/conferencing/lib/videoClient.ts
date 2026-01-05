@@ -1,9 +1,9 @@
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import { DailyLocationType } from "@calcom/app-store/constants";
-import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
-import { getVideoAdapters } from "@calcom/app-store/getVideoAdapters";
+import { DailyLocationType } from "@calcom/app-store/src/constants";
+import { getDailyAppKeys } from "@calcom/app-store/apps/dailyvideo/lib/getDailyAppKeys";
+import { getVideoAdapters } from "@calcom/app-store/src/getVideoAdapters";
 import { sendBrokenIntegrationEmail } from "@calcom/emails/integration-email-service";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { CAL_VIDEO, CAL_VIDEO_TYPE } from "@calcom/lib/constants";

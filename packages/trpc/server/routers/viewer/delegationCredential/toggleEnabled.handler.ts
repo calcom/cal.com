@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/app-store/delegationCredential";
+import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/app-store/src/delegationCredential";
 import { sendDelegationCredentialDisabledEmail } from "@calcom/emails/integration-email-service";
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";

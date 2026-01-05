@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import z from "zod";
 
-import { guessEventLocationType } from "@calcom/app-store/locations";
+import { guessEventLocationType } from "@calcom/app-store/src/locations";
 import type { Prisma } from "@calcom/prisma/client";
 
 export const nameObjectSchema = z.object({

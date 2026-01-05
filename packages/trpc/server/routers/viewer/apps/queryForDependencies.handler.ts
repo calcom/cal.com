@@ -1,5 +1,5 @@
-import { getAllDelegationCredentialsForUserByAppSlug } from "@calcom/app-store/delegationCredential";
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getAllDelegationCredentialsForUserByAppSlug } from "@calcom/app-store/src/delegationCredential";
+import { getAppFromSlug } from "@calcom/app-store/src/utils";
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";

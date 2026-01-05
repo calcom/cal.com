@@ -1,4 +1,4 @@
-import { getAnalyticsService } from "@calcom/app-store/_utils/getAnalytics";
+import { getAnalyticsService } from "@calcom/app-store/src/_utils/getAnalytics";
 import logger from "@calcom/lib/logger";
 import type { AnalyticsService, SendEventProps } from "@calcom/types/AnalyticsService";
 import type { CredentialPayload } from "@calcom/types/Credential";

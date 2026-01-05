@@ -2,8 +2,8 @@ import "../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
-import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
-import OfficeCalendarService from "@calcom/app-store/office365calendar/lib/CalendarService";
+import GoogleCalendarService from "@calcom/app-store/apps/googlecalendar/lib/CalendarService";
+import OfficeCalendarService from "@calcom/app-store/apps/office365calendar/lib/CalendarService";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";

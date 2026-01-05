@@ -1,5 +1,5 @@
-import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
-import { getLocalAppMetadata } from "@calcom/app-store/utils";
+import { appKeysSchemas } from "@calcom/app-store/generated/apps.keys-schemas.generated";
+import { getLocalAppMetadata } from "@calcom/app-store/src/utils";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { AppCategories } from "@calcom/prisma/enums";

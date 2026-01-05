@@ -1,6 +1,6 @@
-import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
-import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import { PaymentServiceMap } from "@calcom/app-store/generated/payment.services.generated";
+import type { EventTypeAppsList } from "@calcom/app-store/src/utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/src/zod-utils";
 import type { Fields } from "@calcom/features/bookings/lib/getBookingFields";
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { convertToSmallestCurrencyUnit } from "@calcom/lib/currencyConversions";

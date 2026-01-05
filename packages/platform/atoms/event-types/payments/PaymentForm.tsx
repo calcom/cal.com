@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
 
-import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
-import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
+import { getPaymentAppData } from "@calcom/app-store/src/_utils/payments/getPaymentAppData";
+import { getSuccessPageLocationMessage } from "@calcom/app-store/src/locations";
 import dayjs from "@calcom/dayjs";
 import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";

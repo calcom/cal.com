@@ -1,8 +1,8 @@
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
-import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
-import { DailyLocationType } from "@calcom/app-store/constants";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
+import type { appDataSchemas } from "@calcom/app-store/generated/apps.schemas.generated";
+import { DailyLocationType } from "@calcom/app-store/src/constants";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/src/zod-utils";
 import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {

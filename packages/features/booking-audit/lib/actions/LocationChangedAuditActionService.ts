@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import { getHumanReadableLocationValue } from "@calcom/app-store/src/locations";
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams } from "./IAuditActionService";

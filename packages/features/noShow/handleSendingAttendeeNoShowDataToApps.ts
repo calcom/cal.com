@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
-import type { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
+import type { eventTypeAppCardZod } from "@calcom/app-store/src/eventTypeAppCardZod";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/src/zod-utils";
 import CrmManager from "@calcom/features/crmManager/crmManager";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";

@@ -8,8 +8,8 @@ import { useReducer, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
-import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
+import AppCategoryNavigation from "@calcom/app-store/src/_components/AppCategoryNavigation";
+import { appKeysSchemas } from "@calcom/app-store/generated/apps.keys-schemas.generated";
 import AppListCard from "@calcom/features/apps/components/AppListCard";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";

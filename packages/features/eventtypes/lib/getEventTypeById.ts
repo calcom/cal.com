@@ -1,8 +1,8 @@
 //import "server-only";
-import type { LocationObject } from "@calcom/app-store/locations";
-import { getLocationGroupedOptions } from "@calcom/app-store/server";
-import { getEventTypeAppData } from "@calcom/app-store/utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import type { LocationObject } from "@calcom/app-store/src/locations";
+import { getLocationGroupedOptions } from "@calcom/app-store/src/server";
+import { getEventTypeAppData } from "@calcom/app-store/src/utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/src/zod-utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";

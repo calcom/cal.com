@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
+import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/apps/dailyvideo/lib";
 import {
   sendDailyVideoRecordingEmails,
   sendDailyVideoTranscriptEmails,

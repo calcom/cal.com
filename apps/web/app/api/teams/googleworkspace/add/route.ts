@@ -3,7 +3,7 @@ import { OAuth2Client } from "googleapis-common";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import getAppKeysFromSlug from "@calcom/app-store/src/_utils/getAppKeysFromSlug";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 const scopes = [

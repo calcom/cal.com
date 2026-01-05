@@ -7,10 +7,10 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 import { z } from "zod";
 
-import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
-import KeyField from "@calcom/app-store/btcpayserver/components/KeyInput";
-import { btcpayCredentialKeysSchema } from "@calcom/app-store/btcpayserver/lib/btcpayCredentialKeysSchema";
-import type { IBTCPaySetupProps } from "@calcom/app-store/btcpayserver/pages/setup/_getServerSideProps";
+import AppNotInstalledMessage from "@calcom/app-store/src/_components/AppNotInstalledMessage";
+import KeyField from "@calcom/app-store/apps/btcpayserver/components/KeyInput";
+import { btcpayCredentialKeysSchema } from "@calcom/app-store/apps/btcpayserver/lib/btcpayCredentialKeysSchema";
+import type { IBTCPaySetupProps } from "@calcom/app-store/apps/btcpayserver/pages/setup/_getServerSideProps";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

@@ -3,8 +3,8 @@ import type { ImmutableTree, JsonLogicResult, JsonTree } from "react-awesome-que
 import type { Config } from "react-awesome-query-builder/lib";
 import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 
-import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils";
-import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
+import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "@calcom/app-store/src/_utils/raqb/raqbUtils";
+import type { Attribute } from "@calcom/app-store/apps/routing-forms/types/types";
 import { getAttributesAssignmentData } from "@calcom/features/attributes/lib/getAttributes";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import jsonLogic from "@calcom/lib/raqb/jsonLogic";

@@ -1,4 +1,4 @@
-import { VideoApiAdapterMap } from "@calcom/app-store/video.adapters.generated";
+import { VideoApiAdapterMap } from "@calcom/app-store/generated/video.adapters.generated";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";

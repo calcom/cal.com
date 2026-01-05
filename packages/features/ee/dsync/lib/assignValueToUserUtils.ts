@@ -4,7 +4,7 @@
 import type {
   AttributeOptionAssignment,
   BulkAttributeAssigner,
-} from "@calcom/app-store/routing-forms/types/types";
+} from "@calcom/app-store/apps/routing-forms/types/types";
 import slugify from "@calcom/lib/slugify";
 import { AttributeType } from "@calcom/prisma/enums";
 

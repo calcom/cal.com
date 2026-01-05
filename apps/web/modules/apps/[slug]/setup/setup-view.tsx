@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-import type { getServerSideProps } from "@calcom/app-store/_pages/setup/_getServerSideProps";
+import type { getServerSideProps } from "@calcom/app-store/src/_pages/setup/_getServerSideProps";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { AppSetupPage } from "@calcom/web/components/apps/AppSetupPage";

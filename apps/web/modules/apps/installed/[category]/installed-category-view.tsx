@@ -2,7 +2,7 @@
 
 import { useReducer } from "react";
 
-import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
+import getAppCategoryTitle from "@calcom/app-store/src/_utils/getAppCategoryTitle";
 import { AppList, type HandleDisconnect } from "@calcom/features/apps/components/AppList";
 import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";

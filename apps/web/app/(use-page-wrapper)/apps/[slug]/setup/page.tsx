@@ -3,7 +3,7 @@ import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
-import { getServerSideProps } from "@calcom/app-store/_pages/setup/_getServerSideProps";
+import { getServerSideProps } from "@calcom/app-store/src/_pages/setup/_getServerSideProps";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 

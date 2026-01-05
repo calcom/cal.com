@@ -1,6 +1,6 @@
-import { getLocationValueForDB, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-import { CalVideoLocationType, type LocationObject } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getLocationValueForDB, OrganizerDefaultConferencingAppType } from "@calcom/app-store/src/locations";
+import { CalVideoLocationType, type LocationObject } from "@calcom/app-store/src/locations";
+import { getAppFromSlug } from "@calcom/app-store/src/utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 
 type GetOrganizerDefaultConferencingAppLocationParams = {

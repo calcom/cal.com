@@ -1,4 +1,4 @@
-import { getConnectedApps } from "@calcom/app-store/_utils/getConnectedApps";
+import { getConnectedApps } from "@calcom/app-store/src/_utils/getConnectedApps";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 

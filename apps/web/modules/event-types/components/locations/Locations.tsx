@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { useFieldArray } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
-import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/src/locations";
+import { getEventLocationType, MeetLocationType } from "@calcom/app-store/src/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
 import type { LocationFormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";

@@ -1,4 +1,4 @@
-import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
+import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/src/locations";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui/components/tooltip";

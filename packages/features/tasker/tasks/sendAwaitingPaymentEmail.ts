@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
+import { createPaymentLink } from "@calcom/app-store/apps/stripepayment/lib/client";
 import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";

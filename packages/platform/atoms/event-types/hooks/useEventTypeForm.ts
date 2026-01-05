@@ -3,8 +3,8 @@ import { useMemo, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
-import { locationsResolver } from "@calcom/app-store/locations";
+import checkForMultiplePaymentApps from "@calcom/app-store/src/_utils/payments/checkForMultiplePaymentApps";
+import { locationsResolver } from "@calcom/app-store/src/locations";
 import { DEFAULT_PROMPT_VALUE, DEFAULT_BEGIN_MESSAGE } from "@calcom/features/calAIPhone/promptTemplates";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";

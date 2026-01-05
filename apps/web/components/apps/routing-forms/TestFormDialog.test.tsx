@@ -2,7 +2,7 @@ import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import type { Mock } from "vitest";
 import { vi, beforeEach, afterEach, describe, expect, it } from "vitest";
 
-import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
+import { findMatchingRoute } from "@calcom/app-store/apps/routing-forms/lib/processRoute";
 
 import { TestFormRenderer } from "./TestForm";
 

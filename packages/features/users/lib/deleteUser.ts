@@ -1,4 +1,4 @@
-import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
+import { deleteStripeCustomer } from "@calcom/app-store/apps/stripepayment/lib/customer";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 
