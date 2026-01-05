@@ -1,10 +1,6 @@
-/**
- * TODO: Move it to features/booking-audit
- */
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import dayjs from "@calcom/dayjs";
@@ -17,7 +13,7 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import type { AuditActorType } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
 
-interface BookingLogsViewProps {
+interface BookingHistoryProps {
     bookingUid: string;
 }
 
@@ -75,7 +71,6 @@ const ACTION_ICON_MAP: Record<string, IconName> = {
     HOST_NO_SHOW_UPDATED: "ban",
     ATTENDEE_NO_SHOW_UPDATED: "ban",
 } as const;
-
 
 const ACTOR_ROLE_LABEL_MAP: Record<AuditActorType, string | null> = {
     GUEST: "guest",
@@ -361,8 +356,7 @@ function useBookingLogsFilters(
     return { filteredLogs, actorOptions };
 }
 
-export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
-    const router = useRouter();
+export function BookingHistory({ bookingUid }: BookingHistoryProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [actorFilter, setActorFilter] = useState<string | null>(null);
     const { t } = useLocale();
@@ -384,9 +378,6 @@ export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
                 <div className="text-center">
                     <p className="text-red-600 font-medium">{t("error_loading_booking_logs")}</p>
                     <p className="text-sm text-gray-500 mt-2">{error.message}</p>
-                    <Button className="mt-4" onClick={() => router.back()}>
-                        {t("go_back")}
-                    </Button>
                 </div>
             </div>
         );
