@@ -11,31 +11,31 @@
       "types": "./dist/index.d.ts"
     },
     "./permissions": {
-      "require": "./dist/src/permissions.js",
-      "import": "./dist/src/permissions.js",
-      "types": "./dist/src/permissions.d.ts"
+      "require": "./dist/permissions.js",
+      "import": "./dist/permissions.js",
+      "types": "./dist/permissions.d.ts"
     },
     "./apps": {
-      "require": "./dist/src/apps.js",
-      "import": "./dist/src/apps.js",
-      "types": "./dist/src/apps.d.ts"
+      "require": "./dist/apps.js",
+      "import": "./dist/apps.js",
+      "types": "./dist/apps.d.ts"
     },
     "./api": {
-      "require": "./dist/src/api.js",
-      "import": "./dist/src/api.js",
-      "types": "./dist/src/api.d.ts"
+      "require": "./dist/api.js",
+      "import": "./dist/api.js",
+      "types": "./dist/api.d.ts"
     }
   },
   "typesVersions": {
     "*": {
       "permissions": [
-        "./dist/src/permissions.d.ts"
+        "./dist/permissions.d.ts"
       ],
       "apps": [
-        "./dist/src/apps.d.ts"
+        "./dist/apps.d.ts"
       ],
       "api": [
-        "./dist/src/api.d.ts"
+        "./dist/api.d.ts"
       ]
     }
   },
