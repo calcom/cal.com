@@ -285,7 +285,7 @@ describe("Booker", () => {
         ...defaultProps,
         slots: {
           ...defaultProps.slots,
-          quickAvailabilityChecks: [{ utcStartIso: "2024-01-01T10:00:00Z", status: "unavailable" }],
+          quickAvailabilityChecks: [{ utcStartIso: "2024-01-01T10:00:00Z", utcEndIso: "2024-01-01T10:30:00Z", status: "reserved" as const }],
         },
       };
 
