@@ -154,6 +154,7 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     useApiV2: props.useApiV2,
     bookerLayout,
     ...(props.entity.orgSlug ? { orgSlug: props.entity.orgSlug } : {}),
+    useBookerTimezone: event.data?.useBookerTimezone,
   });
   const bookings = useBookings({
     event,
