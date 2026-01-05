@@ -4,6 +4,12 @@
   "sideEffects": false,
   "version": "0.0.0",
   "license": "MIT",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./*": "./*"
+  },
   "scripts": {
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
