@@ -1,12 +1,21 @@
 import type { NextApiRequest } from "next";
 
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { getOriginalRescheduledBooking } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
 import { PrismaSelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/PrismaSelectedSlotRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPastTimeAndMinimumBookingNoticeBoundsStatus } from "@calcom/lib/isOutOfBounds";
+import { getSession } from "@calcom/trpc/server/middlewares/sessionMiddleware";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { TIsAvailableInputSchema, TIsAvailableOutputSchema } from "./isAvailable.schema";
+const log = logger.getSubLogger({ prefix: ["[slots/isAvailable]"] });
+
+import type {
+  TIsAvailableInputSchema,
+  TIsAvailableOutputSchema,
+} from "./isAvailable.schema";
 
 interface IsAvailableOptions {
   ctx: {
@@ -39,44 +48,90 @@ export const isAvailableHandler = async ({
     throw new HttpError({ statusCode: 404, message: "Event type not found" });
   }
 
+  // Check if user is host/organizer when rescheduling to ignore minimum booking notice
+  let isHostOrOrganizer = false;
+  if (req) {
+    try {
+      // Check if we're in a reschedule context by looking at the URL or query params
+      const url = req.url || "";
+      const query = req.query || {};
+      const rescheduleMatch = url.match(/\/reschedule\/([^/?]+)/);
+      const rescheduleUid =
+        rescheduleMatch?.[1] || (query.rescheduleUid as string | undefined);
+
+      if (rescheduleUid) {
+        const session = await getSession({ req } as Parameters<
+          typeof getSession
+        >[0]);
+        const currentUserId = session?.user?.id;
+
+        if (currentUserId) {
+          const originalBooking = await getOriginalRescheduledBooking(
+            rescheduleUid,
+            !!eventType.seatsPerTimeSlot
+          );
+          // Check if user is the organizer
+          const isUserOrganizer =
+            originalBooking.userId && currentUserId === originalBooking.userId;
+          // Check if user is a host
+          const isUserHost =
+            originalBooking.eventType?.hosts?.some(
+              (host) => host.userId === currentUserId
+            ) ?? false;
+          isHostOrOrganizer = isUserOrganizer || isUserHost;
+        }
+      }
+    } catch (error) {
+      log.warn(
+        "Failed to check if user is host/organizer for reschedule in isAvailable",
+        safeStringify({ error })
+      );
+    }
+  }
+
   // Check each slot's availability
   // Without uid, we must not check for reserved slots because if uuid isn't set in cookie yet, but it is going to be through reserveSlot request soon, we could consider the slot as reserved accidentally.
   const slotsRepo = new PrismaSelectedSlotRepository(ctx.prisma);
-  const reservedSlots = uid ? await slotsRepo.findManyReservedByOthers(slots, eventTypeId, uid) : [];
+  const reservedSlots = uid
+    ? await slotsRepo.findManyReservedByOthers(slots, eventTypeId, uid)
+    : [];
 
   // Map all slots to their availability status
-  const slotsWithStatus: TIsAvailableOutputSchema["slots"] = slots.map((slot) => {
-    const isReserved = reservedSlots.some(
-      (reservedSlot) =>
-        reservedSlot.slotUtcStartDate.toISOString() === slot.utcStartIso &&
-        reservedSlot.slotUtcEndDate.toISOString() === slot.utcEndIso
-    );
+  const slotsWithStatus: TIsAvailableOutputSchema["slots"] = slots.map(
+    (slot) => {
+      const isReserved = reservedSlots.some(
+        (reservedSlot) =>
+          reservedSlot.slotUtcStartDate.toISOString() === slot.utcStartIso &&
+          reservedSlot.slotUtcEndDate.toISOString() === slot.utcEndIso
+      );
 
-    if (isReserved) {
+      if (isReserved) {
+        return {
+          ...slot,
+          // Consider reserved slots as available till we fix issues with reserved slots
+          // 1. Reservation must be attempted only if the cookie is set. reservation endpoint shouldn't create the cookie itself. It should skip reservation if there is no cookie in request
+          // 2. We could consider reducing the reservation time.
+          // 3. There could still be a problem that if multiple people on the same booking page try to book the same slot only one would be successful and other would be not and when they try to select some other slot, similarly only one would be successful and rest won't.
+          // This could cause frustration for users because they would see the slot as available but when they try to book it, it is not available(Note we fetch the status of the selected slot only). This would be most common for first available slot
+          // Maybe we want to reserve the slot when confirm button is clicked because in cases where it takes long time to book, it could disable the confirm button earlier.
+          status: "available" as const,
+          realStatus: "reserved" as const,
+        };
+      }
+
+      // Check time bounds
+      const timeStatus = getPastTimeAndMinimumBookingNoticeBoundsStatus({
+        time: slot.utcStartIso,
+        minimumBookingNotice: eventType.minimumBookingNotice,
+        isHost: isHostOrOrganizer,
+      });
+
       return {
         ...slot,
-        // Consider reserved slots as available till we fix issues with reserved slots
-        // 1. Reservation must be attempted only if the cookie is set. reservation endpoint shouldn't create the cookie itself. It should skip reservation if there is no cookie in request
-        // 2. We could consider reducing the reservation time.
-        // 3. There could still be a problem that if multiple people on the same booking page try to book the same slot only one would be successful and other would be not and when they try to select some other slot, similarly only one would be successful and rest won't.
-        // This could cause frustration for users because they would see the slot as available but when they try to book it, it is not available(Note we fetch the status of the selected slot only). This would be most common for first available slot
-        // Maybe we want to reserve the slot when confirm button is clicked because in cases where it takes long time to book, it could disable the confirm button earlier.
-        status: "available" as const,
-        realStatus: "reserved" as const,
+        status: timeStatus.reason ?? "available",
       };
     }
-
-    // Check time bounds
-    const timeStatus = getPastTimeAndMinimumBookingNoticeBoundsStatus({
-      time: slot.utcStartIso,
-      minimumBookingNotice: eventType.minimumBookingNotice,
-    });
-
-    return {
-      ...slot,
-      status: timeStatus.reason ?? "available",
-    };
-  });
+  );
 
   return {
     slots: slotsWithStatus,

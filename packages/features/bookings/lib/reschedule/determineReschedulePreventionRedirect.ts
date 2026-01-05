@@ -22,6 +22,7 @@ export type ReschedulePreventionRedirectInput = {
       allowBookingFromCancelledBookingReschedule: boolean;
       minimumRescheduleNotice: number | null;
       teamId: number | null;
+      hosts?: Array<{ userId: number }>;
     };
   };
   eventUrl: string;
@@ -44,7 +45,9 @@ export type ReschedulePreventionRedirectResult = string | null;
  *
  * The behaviour is that it does not allow allowing booking through the reschedule link of a past booking by default. If allowReschedulingPastBookings is true, then this behaviour isn't applicable
  */
-function isPastBookingRescheduleBehaviourToPreventBooking(teamId: number | null | undefined): boolean {
+function isPastBookingRescheduleBehaviourToPreventBooking(
+  teamId: number | null | undefined
+): boolean {
   if (!teamId) {
     return false;
   }
@@ -53,7 +56,9 @@ function isPastBookingRescheduleBehaviourToPreventBooking(teamId: number | null 
     return false;
   }
 
-  const configuredTeamIds = ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS.split(",")
+  const configuredTeamIds = ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS.split(
+    ","
+  )
     .map((id) => id.trim())
     .filter((id) => id !== "")
     .map((id) => parseInt(id, 10))
@@ -69,7 +74,8 @@ function isPastBookingRescheduleBehaviourToPreventBooking(teamId: number | null 
 export function determineReschedulePreventionRedirect(
   input: ReschedulePreventionRedirectInput
 ): ReschedulePreventionRedirectResult {
-  const { booking, eventUrl, forceRescheduleForCancelledBooking, bookingSeat } = input;
+  const { booking, eventUrl, forceRescheduleForCancelledBooking, bookingSeat } =
+    input;
 
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
   if (isDisabledRescheduling) {
@@ -77,44 +83,70 @@ export function determineReschedulePreventionRedirect(
   }
 
   const isNonRescheduleableBooking =
-    booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
-  const isForcedRescheduleForCancelledBooking = forceRescheduleForCancelledBooking;
+    booking.status === BookingStatus.CANCELLED ||
+    booking.status === BookingStatus.REJECTED;
+  const isForcedRescheduleForCancelledBooking =
+    forceRescheduleForCancelledBooking;
 
   if (isNonRescheduleableBooking && !isForcedRescheduleForCancelledBooking) {
     const canBookThroughCancelledBookingRescheduleLink =
       booking.eventType.allowBookingFromCancelledBookingReschedule;
     const allowedToBeBookedThroughCancelledBookingRescheduleLink =
-      booking.status === BookingStatus.CANCELLED && canBookThroughCancelledBookingRescheduleLink;
+      booking.status === BookingStatus.CANCELLED &&
+      canBookThroughCancelledBookingRescheduleLink;
 
-    return allowedToBeBookedThroughCancelledBookingRescheduleLink ? eventUrl : `/booking/${booking.uid}`;
+    return allowedToBeBookedThroughCancelledBookingRescheduleLink
+      ? eventUrl
+      : `/booking/${booking.uid}`;
   }
 
   // Check if rescheduling is prevented due to minimum reschedule notice
-  // Only apply this restriction if the user is NOT the booking organizer
-  const isUserOrganizer = input.currentUserId && booking.userId && input.currentUserId === booking.userId;
+  // Only apply this restriction if the user is NOT the booking organizer or a host
+  const isUserOrganizer =
+    input.currentUserId &&
+    booking.userId &&
+    input.currentUserId === booking.userId;
+  const isUserHost =
+    input.currentUserId !== null &&
+    input.currentUserId !== undefined &&
+    booking.eventType.hosts?.some(
+      (host) => host.userId === input.currentUserId
+    ) === true;
   const { minimumRescheduleNotice } = booking.eventType;
   if (
     !isUserOrganizer &&
-    isWithinMinimumRescheduleNotice(booking.startTime, minimumRescheduleNotice ?? null)
+    !isUserHost &&
+    isWithinMinimumRescheduleNotice(
+      booking.startTime,
+      minimumRescheduleNotice ?? null
+    )
   ) {
-    // Rescheduling is not allowed within the minimum notice period (only for non-organizers)
+    // Rescheduling is not allowed within the minimum notice period (only for non-organizers and non-hosts)
     return `/booking/${booking.uid}`;
   }
 
-  const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
+  const isBookingInPast =
+    booking.endTime && new Date(booking.endTime) < new Date();
   if (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) {
     // Check if this team should apply the redirect behavior for past bookings
-    const isNewPastBookingRescheduleBehaviour = isPastBookingRescheduleBehaviourToPreventBooking(
-      booking.eventType.teamId
-    );
+    const isNewPastBookingRescheduleBehaviour =
+      isPastBookingRescheduleBehaviourToPreventBooking(
+        booking.eventType.teamId
+      );
 
     if (isNewPastBookingRescheduleBehaviour) {
       return `/booking/${booking.uid}`;
     }
 
     const destinationUrlSearchParams = new URLSearchParams();
-    const responses = bookingSeat ? getSafe<string>(bookingSeat.data, ["responses"]) : booking.responses;
-    const name = getFullName(getSafe<string | { firstName: string; lastName?: string }>(responses, ["name"]));
+    const responses = bookingSeat
+      ? getSafe<string>(bookingSeat.data, ["responses"])
+      : booking.responses;
+    const name = getFullName(
+      getSafe<string | { firstName: string; lastName?: string }>(responses, [
+        "name",
+      ])
+    );
     const email = getSafe<string>(responses, ["email"]);
 
     if (name) destinationUrlSearchParams.set("name", name);

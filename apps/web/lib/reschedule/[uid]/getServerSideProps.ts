@@ -134,6 +134,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         allowBookingFromCancelledBookingReschedule: !!eventType.allowReschedulingCancelledBookings,
         minimumRescheduleNotice: eventType.minimumRescheduleNotice,
         teamId: eventType.team?.id ?? null,
+        hosts: eventType.hosts?.map((host) => ({ userId: host.user.id })) ?? undefined,
       },
     },
     eventUrl,

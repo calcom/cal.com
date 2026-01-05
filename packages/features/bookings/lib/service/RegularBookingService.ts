@@ -499,10 +499,17 @@ async function validateRescheduleRestrictions({
     const isUserOrganizer =
       userId && originalRescheduledBooking.userId && userId === originalRescheduledBooking.userId;
 
-    // Check minimum reschedule notice (only for non-organizers)
+    // Check if user is a host
+    const isUserHost =
+      userId !== null &&
+      userId !== undefined &&
+      originalRescheduledBooking.eventType?.hosts?.some((host) => host.userId === userId) === true;
+
+    // Check minimum reschedule notice (only for non-organizers and non-hosts)
     const { minimumRescheduleNotice } = originalRescheduledBooking.eventType || {};
     if (
       !isUserOrganizer &&
+      !isUserHost &&
       isWithinMinimumRescheduleNotice(originalRescheduledBooking.startTime, minimumRescheduleNotice ?? null)
     ) {
       throw new HttpError({
@@ -827,12 +834,25 @@ async function handler(
   const userSchedule = user?.schedules.find((schedule) => schedule.id === user?.defaultScheduleId);
   const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
 
+  // Check if user is host/organizer when rescheduling to ignore minimum booking notice
+  let isHostOrOrganizer = false;
+  if (rescheduleUid && userId && originalRescheduledBooking) {
+    // Check if user is the organizer
+    const isUserOrganizer =
+      originalRescheduledBooking.userId && userId === originalRescheduledBooking.userId;
+    // Check if user is a host
+    const isUserHost =
+      originalRescheduledBooking.eventType?.hosts?.some((host) => host.userId === userId) ?? false;
+    isHostOrOrganizer = isUserOrganizer || isUserHost;
+  }
+
   await validateBookingTimeIsNotOutOfBounds<typeof eventType>(
     reqBody.start,
     reqBody.timeZone,
     eventType,
     eventTimeZone,
-    tracingLogger
+    tracingLogger,
+    isHostOrOrganizer
   );
 
   validateEventLength({

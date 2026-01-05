@@ -32,6 +32,7 @@ const createTestBooking = (overrides?: {
     allowBookingFromCancelledBookingReschedule?: boolean | null;
     minimumRescheduleNotice?: number | null;
     teamId?: number | null;
+    hosts?: Array<{ userId: number }>;
   } | null;
   dynamicEventSlugRef?: string | null;
 }) => {
@@ -57,6 +58,7 @@ const createTestBooking = (overrides?: {
           allowBookingFromCancelledBookingReschedule: false,
             minimumRescheduleNotice: null,
           teamId: null,
+          hosts: undefined,
         },
   dynamicEventSlugRef: overrides?.dynamicEventSlugRef !== undefined ? overrides.dynamicEventSlugRef : null,
   };
@@ -653,6 +655,83 @@ describe("determineReschedulePreventionRedirect", () => {
 
       // Unauthenticated user should be prevented from rescheduling within minimum notice period
       expectRedirectToBookingDetailsPage(result, input.booking.uid);
+    });
+
+    it("should allow host to reschedule even within the minimum notice period", () => {
+      const organizerUserId = 1;
+      const hostUserId = 2;
+      const bookingStartTime = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours from now (within 24h notice)
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          userId: organizerUserId,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: 1440, // 24 hours (1440 minutes)
+            hosts: [{ userId: hostUserId }],
+          },
+        }),
+        currentUserId: hostUserId, // User is a host, not the organizer
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      // Host should be able to reschedule even within minimum notice period
+      expectToNotPreventReschedule(result);
+    });
+
+    it("should prevent non-host, non-organizer from rescheduling within the minimum notice period", () => {
+      const organizerUserId = 1;
+      const hostUserId = 2;
+      const attendeeUserId = 3;
+      const bookingStartTime = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours from now (within 24h notice)
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          userId: organizerUserId,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: 1440, // 24 hours (1440 minutes)
+            hosts: [{ userId: hostUserId }],
+          },
+        }),
+        currentUserId: attendeeUserId, // User is NOT the organizer or a host
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      // Non-host, non-organizer should be prevented from rescheduling within minimum notice period
+      expectRedirectToBookingDetailsPage(result, input.booking.uid);
+    });
+
+    it("should allow host to reschedule even when event type has multiple hosts", () => {
+      const organizerUserId = 1;
+      const hostUserId1 = 2;
+      const hostUserId2 = 3;
+      const bookingStartTime = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours from now (within 24h notice)
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          userId: organizerUserId,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: 1440, // 24 hours (1440 minutes)
+            hosts: [{ userId: hostUserId1 }, { userId: hostUserId2 }],
+          },
+        }),
+        currentUserId: hostUserId2, // User is one of the hosts
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      // Host should be able to reschedule even within minimum notice period
+      expectToNotPreventReschedule(result);
     });
   });
 });

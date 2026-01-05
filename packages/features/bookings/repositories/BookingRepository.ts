@@ -1153,6 +1153,11 @@ export class BookingRepository {
             minimumRescheduleNotice: true,
             disableRescheduling: true,
             userId: true,
+            hosts: {
+              select: {
+                userId: true,
+              },
+            },
           },
         },
         destinationCalendar: true,
