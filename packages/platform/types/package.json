@@ -11,31 +11,31 @@
       "types": "./dist/index.d.ts"
     },
     "./event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit": {
-      "require": "./dist/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit.js",
-      "import": "./dist/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit.js",
-      "types": "./dist/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit.d.ts"
+      "require": "./dist/src/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit.js",
+      "import": "./dist/src/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit.js",
+      "types": "./dist/src/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit.d.ts"
     },
     "./utils/RequiresOneOfPropertiesWhenNotDisabled": {
-      "require": "./dist/utils/RequiresOneOfPropertiesWhenNotDisabled.js",
-      "import": "./dist/utils/RequiresOneOfPropertiesWhenNotDisabled.js",
-      "types": "./dist/utils/RequiresOneOfPropertiesWhenNotDisabled.d.ts"
+      "require": "./dist/src/utils/RequiresOneOfPropertiesWhenNotDisabled.js",
+      "import": "./dist/src/utils/RequiresOneOfPropertiesWhenNotDisabled.js",
+      "types": "./dist/src/utils/RequiresOneOfPropertiesWhenNotDisabled.d.ts"
     },
     "./bookings/2024-08-13/inputs/location.input": {
-      "require": "./dist/bookings/2024-08-13/inputs/location.input.js",
-      "import": "./dist/bookings/2024-08-13/inputs/location.input.js",
-      "types": "./dist/bookings/2024-08-13/inputs/location.input.d.ts"
+      "require": "./dist/src/bookings/2024-08-13/inputs/location.input.js",
+      "import": "./dist/src/bookings/2024-08-13/inputs/location.input.js",
+      "types": "./dist/src/bookings/2024-08-13/inputs/location.input.d.ts"
     }
   },
   "typesVersions": {
     "*": {
       "event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit": [
-        "./dist/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit.d.ts"
+        "./dist/src/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit.d.ts"
       ],
       "utils/RequiresOneOfPropertiesWhenNotDisabled": [
-        "./dist/utils/RequiresOneOfPropertiesWhenNotDisabled.d.ts"
+        "./dist/src/utils/RequiresOneOfPropertiesWhenNotDisabled.d.ts"
       ],
       "bookings/2024-08-13/inputs/location.input": [
-        "./dist/bookings/2024-08-13/inputs/location.input.d.ts"
+        "./dist/src/bookings/2024-08-13/inputs/location.input.d.ts"
       ]
     }
   },
