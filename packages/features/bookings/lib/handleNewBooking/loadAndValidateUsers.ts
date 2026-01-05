@@ -136,10 +136,10 @@ const _loadAndValidateUsers = async ({
   // Get organizationId from eventType (handles org teams and managed events)
   let organizationId: number | null = eventType.parent?.team?.parentId ?? eventType.team?.parentId ?? null;
 
-  // Fallback: For personal events, check if the user belongs to an organization
+  // Fallback: For personal events, use the user's first org membership for org-specific blocking
+  // TODO: When we support multiple orgs, revisit the logic
   if (!organizationId && eventType.userId) {
-    const profile = await ProfileRepository.findFirstForUserId({ userId: eventType.userId });
-    organizationId = profile?.organizationId ?? null;
+    organizationId = await ProfileRepository.findFirstOrganizationIdForUser({ userId: eventType.userId });
   }
 
   const { eligibleUsers, blockedCount } = await filterBlockedUsers(users, organizationId, sentrySpan);
