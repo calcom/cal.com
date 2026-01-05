@@ -29,7 +29,7 @@ const IS_EMBED_REACT_TEST = process.argv.some((a) => a.startsWith("--project=@ca
 const webServer: PlaywrightTestConfig["webServer"] = [
   {
     command:
-      "NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first' yarn workspace @calcom/web start -p 3000",
+      "yarn workspace @calcom/web copy-app-store-static && NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first' yarn workspace @calcom/web start -p 3000",
     port: 3000,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
@@ -93,7 +93,7 @@ const config: PlaywrightTestConfig = {
   retries: process.env.CI ? 2 : 0,
   // While debugging it should be focussed mode
   // eslint-disable-next-line turbo/no-undeclared-env-vars
-  workers: process.env.CI ? 2 : process.env.PWDEBUG ? 1 : os.cpus().length,
+  workers: process.env.PWDEBUG ? 1 : os.cpus().length,
   timeout: DEFAULT_TEST_TIMEOUT,
   maxFailures: headless ? 10 : undefined,
   fullyParallel: true,
