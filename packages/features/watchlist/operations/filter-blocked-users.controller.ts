@@ -56,7 +56,7 @@ export async function filterBlockedUsers<T extends UserWithEmail>(
 
     // Filter out blocked users
     const eligibleUsers = nonLockedUsers.filter((user) => {
-      const email = user.email.toLowerCase();
+      const email = user.email.trim().toLowerCase();
 
       const globalResult = globalBlockedMap.get(email);
       if (globalResult?.isBlocked) {
