@@ -9,7 +9,12 @@ export type UserTableUser = {
   customRole: {
     id: string;
     name: string;
-    teamId: number;
+    teamId: number | null;
+    type: string;
+    description: string | null;
+    color: string | null;
+    createdAt: Date;
+    updatedAt: Date;
   } | null;
   accepted: boolean;
   disableImpersonation: boolean;
