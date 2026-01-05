@@ -595,7 +595,7 @@ export function BookingActionsDropdown({
           })
         }
         isPending={isConfirmPending}
-        internalNotePresets={booking.eventType?.team?.id ? (bookingInternalNotePresets ?? []) : []}
+        internalNotePresets={teamId ? bookingInternalNotePresets : []}
       />
       <Dropdown modal={false}>
         <DropdownMenuTrigger asChild data-testid="booking-actions-dropdown">

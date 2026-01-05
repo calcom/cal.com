@@ -31,6 +31,7 @@ const InternalNotePresetsSelect = ({
   const handleSelectChange = (option: { value: number | string; label: string } | null) => {
     if (option?.value === "other") {
       setShowOtherInput(true);
+      onPresetSelect?.({ value: "other", label: "" });
     } else {
       setShowOtherInput(false);
       onPresetSelect?.(option);
