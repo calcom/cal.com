@@ -18,10 +18,15 @@
   "scripts": {
     "test": "jest ./tests",
     "build": "rm -rf ./dist && tsc --build --force tsconfig.json",
+    "build:swc": "rm -rf ./dist && swc . -d ./dist --config-file .swcrc --ignore '**/*.d.ts,dist/**,node_modules/**,.turbo/**,tests/**' && npx tsc --build --force tsconfig.types.json",
     "build:watch": "tsc --build --force ./tsconfig.json --watch",
     "post-install": "yarn build"
   },
   "dependencies": {
     "@calcom/platform-constants": "workspace:*"
+  },
+  "devDependencies": {
+    "@swc/cli": "0.6.0",
+    "@swc/core": "1.11.24"
   }
 }

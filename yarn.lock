@@ -3005,6 +3005,9 @@ __metadata:
 "@calcom/platform-constants@workspace:*, @calcom/platform-constants@workspace:packages/platform/constants":
   version: 0.0.0-use.local
   resolution: "@calcom/platform-constants@workspace:packages/platform/constants"
+  dependencies:
+    "@swc/cli": "npm:0.6.0"
+    "@swc/core": "npm:1.11.24"
   languageName: unknown
   linkType: soft
 
@@ -3013,6 +3016,8 @@ __metadata:
   resolution: "@calcom/platform-enums@workspace:packages/platform/enums"
   dependencies:
     "@calcom/platform-constants": "workspace:*"
+    "@swc/cli": "npm:0.6.0"
+    "@swc/core": "npm:1.11.24"
   languageName: unknown
   linkType: soft
 
@@ -3044,6 +3049,8 @@ __metadata:
     "@calcom/platform-enums": "workspace:*"
     "@nestjs/common": "npm:10.4.20"
     "@nestjs/swagger": "npm:7.4.2"
+    "@swc/cli": "npm:0.6.0"
+    "@swc/core": "npm:1.11.24"
     "@types/express": "npm:4.17.21"
     class-transformer: "npm:0.5.1"
     class-validator: "npm:0.14.3"
@@ -3059,6 +3066,8 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "workspace:*"
     "@calcom/platform-types": "workspace:*"
+    "@swc/cli": "npm:0.6.0"
+    "@swc/core": "npm:1.11.24"
     "@types/jest": "npm:29.5.12"
     jest: "npm:29.7.0"
     ts-jest: "npm:29.1.4"
