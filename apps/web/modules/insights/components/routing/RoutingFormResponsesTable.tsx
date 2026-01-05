@@ -19,8 +19,8 @@ import type { FilterType } from "@calcom/types/data-table";
 import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
 import { trpc } from "@calcom/trpc/react";
 
-import { RoutingFormResponsesDownload } from "@calcom/features/insights/filters/Download";
-import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
+import { RoutingFormResponsesDownload } from "../filters/Download/RoutingFormResponsesDownload";
+import { OrgTeamsFilter } from "../filters/OrgTeamsFilter";
 import { useInsightsColumns } from "@calcom/web/modules/insights/hooks/useInsightsColumns";
 import { useInsightsOrgTeams } from "@calcom/web/modules/insights/hooks/useInsightsOrgTeams";
 import { useInsightsRoutingFacetedUniqueValues } from "@calcom/web/modules/insights/hooks/useInsightsRoutingFacetedUniqueValues";

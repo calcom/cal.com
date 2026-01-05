@@ -33,9 +33,9 @@ import {
   TimezoneBadge,
 } from "@calcom/web/modules/insights/components/booking";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
-import { DateTargetSelector, type DateTarget } from "@calcom/features/insights/filters/DateTargetSelector";
-import { Download } from "@calcom/features/insights/filters/Download";
-import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
+import { DateTargetSelector, type DateTarget } from "../components/filters/DateTargetSelector";
+import { Download } from "../components/filters/Download/Download";
+import { OrgTeamsFilter } from "../components/filters/OrgTeamsFilter";
 import { useInsightsBookings } from "@calcom/web/modules/insights/hooks/useInsightsBookings";
 import { useInsightsOrgTeams } from "@calcom/web/modules/insights/hooks/useInsightsOrgTeams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
