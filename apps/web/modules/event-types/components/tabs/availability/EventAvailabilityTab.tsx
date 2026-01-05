@@ -34,6 +34,7 @@ import { SettingsToggle } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Spinner } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 export type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
 
@@ -474,6 +475,20 @@ const EventTypeSchedule = ({
 
   if (isSchedulesPending || !schedulesQueryData) {
     return <SelectSkeletonLoader />;
+  }
+
+  if (schedulesQueryData.length === 0) {
+    return (
+        <EmptyScreen
+          Icon="clock"
+          headline={t("create_availability_schedule")}
+          description={t("no_schedules_created_yet")}
+          className="w-full"
+          buttonRaw={<Button href="/availability" StartIcon="plus">
+            {t("create")}
+          </Button>}
+        />
+    );
   }
 
   const options = schedulesQueryData.map((schedule) => ({
