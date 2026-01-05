@@ -1168,21 +1168,19 @@ export async function apiLogin(
 
   expect(response.status()).toBe(200);
 
-  if (navigateToUrl) {
-    /**
-    * Critical: Navigate to a protected page to trigger NextAuth session loading
-    * This forces NextAuth to run the jwt and session callbacks that populate
-    * the session with profile, org, and other important data
-    */
-    await page.goto(navigateToUrl);
-  
-    // Wait for the session API call to complete to ensure session is fully established
-    // Only wait if we're on a protected page that would trigger the session API call
-    try {
-      await page.waitForResponse("/api/auth/session", { timeout: 2000 });
-    } catch {
-      // Session API call not made (likely on a public page), continue anyway
-    }
+  /**
+   * Critical: Navigate to a protected page to trigger NextAuth session loading
+   * This forces NextAuth to run the jwt and session callbacks that populate
+   * the session with profile, org, and other important data
+   */
+  await page.goto(navigateToUrl || "/e2e/session-warmup");
+
+  // Wait for the session API call to complete to ensure session is fully established
+  // Only wait if we're on a protected page that would trigger the session API call
+  try {
+    await page.waitForResponse("/api/auth/session", { timeout: 2000 });
+  } catch {
+    // Session API call not made (likely on a public page), continue anyway
   }
 
   return response;
