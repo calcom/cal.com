@@ -60,6 +60,7 @@ const mockEvent = {
   },
   isSuccess: true,
   isPending: false,
+  isError: false,
 };
 
 vi.mock("@calcom/features/calendars/NoAvailabilityDialog", () => ({
