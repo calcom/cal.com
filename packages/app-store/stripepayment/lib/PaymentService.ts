@@ -384,7 +384,7 @@ export class PaymentService implements IAbstractPaymentService {
     paymentData: Payment,
     _eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
-    const delayMinutes = process.env.AWAITING_PAYMENT_EMAIL_DELAY_MINUTES ?? 15;
+    const delayMinutes = Number(process.env.AWAITING_PAYMENT_EMAIL_DELAY_MINUTES) || 15;
     const scheduledEmailAt = dayjs().add(delayMinutes, "minutes").toDate();
 
     // we give the user 15 minutes to complete the payment
