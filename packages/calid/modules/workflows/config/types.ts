@@ -159,7 +159,7 @@ export type PartialCalIdWorkflowStep =
 
 export type PartialCalIdWorkflowReminder = Pick<
   CalIdWorkflowReminder,
-  "id" | "isMandatoryReminder" | "scheduledDate" | "seatReferenceId"
+  "id" | "isMandatoryReminder" | "scheduledDate" | "seatReferenceId" | "referenceId"
 > & {
   booking: PartialBooking | null;
   workflowStep: PartialCalIdWorkflowStep;
@@ -175,6 +175,7 @@ export interface CalIdScheduleReminderArgs {
   workflowStepId?: number;
   seatReferenceUid?: string;
   attendeeId?: number;
+  workflowId?: number;
 }
 
 export type CalIdScheduleEmailReminderAction = Extract<

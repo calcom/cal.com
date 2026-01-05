@@ -36,6 +36,7 @@ const fetchPendingMessages = async () => {
 /**
  * Process messages that need to be scheduled through Inngest
  * This handles reminders that were stored for future scheduling
+ * NOTE: Workflow insights are NOT created here - they will be created when Inngest sends via meta.ts
  */
 const processMessageQueue = async (): Promise<number> => {
   const pendingMessages = (await fetchPendingMessages()) as PartialCalIdWorkflowReminder[];
@@ -125,15 +126,16 @@ const processMessageQueue = async (): Promise<number> => {
       });
 
       // Send to Inngest for scheduling
+      // NOTE: Workflow insight will be created when Inngest handler calls meta.sendSMS
       const { ids } = await inngestClient.send({
         name: `whatsapp/reminder.scheduled-${key}`,
         data: {
           eventTypeId: message.booking.eventTypeId,
           workflowId: message.workflowStep.workflowId,
+          workflowStepId: message.workflowStepId,
           recipientNumber,
           reminderId: message.id,
           bookingUid: message.bookingUid,
-          workflowStepId: message.workflowStepId,
           scheduledDate: scheduledDate.toISOString(),
           variableData: templateVariables,
           userId: workflowUserId,
@@ -154,6 +156,9 @@ const processMessageQueue = async (): Promise<number> => {
           referenceId: ids[0],
         },
       });
+
+      // NOTE: Do NOT create workflow insight here
+      // It will be created when Inngest calls meta.sendSMS
 
       log.info(`Successfully scheduled WhatsApp reminder ${message.id} via Inngest`);
     } catch (error) {

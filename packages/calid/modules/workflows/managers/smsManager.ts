@@ -2,7 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { SENDER_ID, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
+import { WorkflowTemplates, WorkflowActions, WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -151,6 +151,28 @@ const generateMessageContent = (
   return messageTemplate;
 };
 
+const createWorkflowInsight = async (
+  msgId: string,
+  eventTypeId: number,
+  bookingUid?: string | null,
+  seatReferenceUid?: string | null,
+  workflowId?: number | null,
+  workflowStepId?: number | null
+) => {
+  await prisma.calIdWorkflowInsights.create({
+    data: {
+      msgId: msgId,
+      eventTypeId: eventTypeId,
+      type: WorkflowMethods.SMS,
+      status: WorkflowStatus.QUEUED,
+      ...(bookingUid && { bookingUid: bookingUid }),
+      ...(seatReferenceUid && { bookingSeatReferenceUid: seatReferenceUid }),
+      workflowId: workflowId,
+      workflowStepId: workflowStepId,
+    },
+  });
+};
+
 const executeImmediateNotification = async (
   phoneDestination: string,
   textContent: string,
@@ -159,10 +181,12 @@ const executeImmediateNotification = async (
   teamRef?: number | null,
   eventTypeRef?: number | null,
   bookingRef?: string | null,
-  seatRef?: string | null
+  seatRef?: string | null,
+  workflowId?: number | null,
+  workflowStepId?: number | null
 ): Promise<void> => {
   try {
-    await twilio.sendSMS(
+    const msgRes = await twilio.sendSMS(
       phoneDestination,
       textContent,
       senderIdentifier,
@@ -170,11 +194,14 @@ const executeImmediateNotification = async (
       teamRef,
       false,
       undefined,
-      undefined,
-      { eventTypeId: eventTypeRef, bookingUid: bookingRef, ...(seatRef && { seatReferenceUid: seatRef }) }
+      undefined
     );
+    if (msgRes && eventTypeRef) {
+      await createWorkflowInsight(msgRes.sid, eventTypeRef, bookingRef, seatRef, workflowId, workflowStepId);
+    }
   } catch (exception) {
     moduleLogger.error(`Immediate SMS delivery failed: ${exception}`);
+    throw exception;
   }
 };
 
@@ -188,7 +215,8 @@ const scheduleDelayedNotification = async (
   seatReference?: string | null,
   userRef?: number | null,
   teamRef?: number | null,
-  eventTypeRef?: number | null
+  eventTypeRef?: number | null,
+  workflowId?: number | null
 ): Promise<void> => {
   try {
     const scheduledMessage = await twilio.scheduleSMS(
@@ -200,12 +228,7 @@ const scheduleDelayedNotification = async (
       teamRef,
       false,
       undefined,
-      undefined,
-      {
-        eventTypeId: eventTypeRef,
-        bookingUid: bookingReference,
-        ...(seatReference && { seatReferenceUid: seatReference }),
-      }
+      undefined
     );
 
     if (scheduledMessage) {
@@ -220,6 +243,16 @@ const scheduleDelayedNotification = async (
           seatReferenceId: seatReference,
         },
       });
+      if (eventTypeRef) {
+        await createWorkflowInsight(
+          scheduledMessage.sid,
+          eventTypeRef,
+          bookingReference,
+          seatReference ?? undefined,
+          workflowId ?? undefined,
+          stepReference
+        );
+      }
     }
   } catch (exception) {
     moduleLogger.error(`Scheduled SMS creation failed: ${exception}`);
@@ -254,7 +287,8 @@ const processScheduledReminder = async (
   seatReference?: string | null,
   userRef?: number | null,
   teamRef?: number | null,
-  eventTypeRef?: number | null
+  eventTypeRef?: number | null,
+  workflowId?: number | null
 ): Promise<void> => {
   const currentMoment = dayjs();
   const minimumAdvanceTime = currentMoment.add(1, "hour");
@@ -271,7 +305,8 @@ const processScheduledReminder = async (
       seatReference,
       userRef,
       teamRef,
-      eventTypeRef
+      eventTypeRef,
+      workflowId
     );
   } else if (dispatchTime.isAfter(maximumAdvanceTime)) {
     await storeFutureReminder(bookingReference, stepReference, dispatchTime, seatReference);
@@ -308,6 +343,7 @@ export const scheduleSMSReminder = async (parameters: CalIdScheduleTextReminderA
     calIdTeamId: teamReference,
     isVerificationPending: pendingVerification = false,
     seatReferenceUid: seatReference,
+    workflowId: workflowId,
   } = parameters;
 
   const { startTime: eventStart, endTime: eventEnd, uid: bookingId } = eventData;
@@ -337,7 +373,7 @@ export const scheduleSMSReminder = async (parameters: CalIdScheduleTextReminderA
 
   const messageContent = generateMessageContent(
     messageTemplate,
-    workflowTemplate,
+    workflowTemplate ?? undefined,
     eventData,
     actionType,
     targetAttendee,
@@ -365,7 +401,9 @@ export const scheduleSMSReminder = async (parameters: CalIdScheduleTextReminderA
       teamReference,
       eventData.eventType.id,
       bookingId,
-      seatReference
+      seatReference,
+      workflowId,
+      stepReference
     );
   } else {
     // Schedule for future delivery when valid timestamp exists
@@ -380,7 +418,8 @@ export const scheduleSMSReminder = async (parameters: CalIdScheduleTextReminderA
         seatReference,
         userReference,
         teamReference,
-        eventData.eventTypeId
+        eventData.eventTypeId,
+        workflowId
       );
     } else {
       moduleLogger.error("stepReference is undefined when scheduling SMS reminder.");

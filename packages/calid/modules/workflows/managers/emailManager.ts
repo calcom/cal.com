@@ -13,6 +13,7 @@ import type { TimeUnit } from "@calcom/prisma/enums";
 import {
   WorkflowActions,
   WorkflowMethods,
+  WorkflowStatus,
   WorkflowTemplates,
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
@@ -53,6 +54,7 @@ interface EmailNotificationParameters extends ScheduleReminderArgs {
   hideBranding?: boolean;
   includeCalendarEvent?: boolean;
   isMandatoryReminder?: boolean;
+  workflowId?: number;
 }
 
 interface EmailContentData {
@@ -270,9 +272,7 @@ const prepareEmailTransmission = async (
   emailContentData: EmailContentData,
   shouldIncludeCalendar?: boolean,
   customSender?: string | null,
-  batchId?: string,
-  bookingUid?: string | null,
-  seatReferenceUid?: string | null
+  batchId?: string
 ) => {
   return async (recipientData: Partial<MailData>, eventTrigger?: WorkflowTriggerEvents) => {
     const calendarStatus: EventStatus =
@@ -327,11 +327,7 @@ const prepareEmailTransmission = async (
       },
       { sender: customSender },
       {
-        ...(eventData.eventTypeId && {
-          eventTypeId: eventData.eventTypeId,
-          bookingUid: bookingUid,
-          ...(seatReferenceUid && { seatReferenceUid: seatReferenceUid }),
-        }),
+        msgId: batchId,
       }
     );
   };
@@ -346,11 +342,46 @@ const determineReplyToAddress = (recipientTarget: MailData["to"], eventData: Cal
   return isOrganizerRecipient ? eventData.attendees[0].email : eventData.organizer.email;
 };
 
+const createWorkflowInsight = async (
+  batchId: string,
+  eventTypeId: number,
+  bookingUid: string | null,
+  seatReferenceUid: string | undefined,
+  workflowId: number | undefined,
+  workflowStepId: number | undefined,
+  isMandatoryReminder: boolean
+) => {
+  await prisma.calIdWorkflowInsights.create({
+    data: {
+      msgId: batchId,
+      eventTypeId: eventTypeId,
+      type: WorkflowMethods.EMAIL,
+      status: WorkflowStatus.QUEUED,
+      ...(bookingUid && { bookingUid: bookingUid }),
+      ...(seatReferenceUid && { bookingSeatReferenceUid: seatReferenceUid }),
+      workflowId: workflowId,
+      workflowStepId: workflowStepId,
+      ...(isMandatoryReminder && {
+        metadata: {
+          isMandatoryReminder: true,
+        },
+      }),
+    },
+  });
+};
+
 const handleImmediateEmailDispatch = async (
   recipientTarget: MailData["to"],
   emailDispatcher: (data: Partial<MailData>, trigger?: WorkflowTriggerEvents) => Promise<any>,
   replyToAddress: string,
-  triggerType: WorkflowTriggerEvents
+  triggerType: WorkflowTriggerEvents,
+  eventTypeId: number | undefined,
+  bookingUid: string | null,
+  seatReferenceUid: string | undefined,
+  workflowId: number | undefined,
+  workflowStepId: number | undefined,
+  isMandatoryReminder: boolean,
+  batchId: string
 ) => {
   try {
     if (!recipientTarget) throw new Error("No email addresses provided");
@@ -361,8 +392,21 @@ const handleImmediateEmailDispatch = async (
     );
 
     await Promise.all(transmissionPromises);
+
+    if (eventTypeId) {
+      await createWorkflowInsight(
+        batchId,
+        eventTypeId,
+        bookingUid,
+        seatReferenceUid,
+        workflowId,
+        workflowStepId,
+        isMandatoryReminder
+      );
+    }
   } catch (error) {
-    messageLogger.error("Error sending Email");
+    messageLogger.error("Error sending Email", error);
+    throw error;
   }
 };
 
@@ -414,7 +458,9 @@ const handleScheduledEmailDispatch = async (
   seatReference: string | undefined,
   participantId: number | undefined,
   isMandatory: boolean,
-  batchId: string
+  batchId: string,
+  eventTypeId: number | undefined,
+  workflowId: number | undefined
 ) => {
   const currentMoment = dayjs();
 
@@ -443,11 +489,24 @@ const handleScheduledEmailDispatch = async (
         participantId,
         isMandatory
       );
+
+      if (eventTypeId) {
+        await createWorkflowInsight(
+          batchId,
+          eventTypeId,
+          bookingUid,
+          seatReference,
+          workflowId,
+          workflowStepId,
+          isMandatory
+        );
+      }
     } catch (error) {
       messageLogger.error(`Error scheduling email with error ${error}`);
     }
   } else if (scheduledTimestamp.isAfter(currentMoment.add(2, "hour"))) {
     // Schedule via CRON for times beyond 2 hours
+    // Do NOT create workflow insights here - only reminder record
     await createReminderRecord(
       bookingUid,
       workflowStepId,
@@ -478,6 +537,7 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
     isMandatoryReminder,
     action,
     attendeeId,
+    workflowId,
   } = params;
 
   const { startTime, endTime, uid: bookingUid } = evt;
@@ -502,14 +562,13 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
   messageLogger.debug(`Sending Email for trigger ${triggerEvent}`, JSON.stringify(emailContentData));
   const batchId = await getBatchId();
 
+  //here generated batchId will be used as unique identifier for the scheduled email workflow
   const emailDispatcher = await prepareEmailTransmission(
     evt,
     emailContentData,
     includeCalendarEvent,
     sender,
-    batchId,
-    bookingUid,
-    seatReferenceUid
+    batchId
   );
 
   const replyToAddress = determineReplyToAddress(sendTo, evt);
@@ -522,7 +581,19 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
 
   if (shouldSendImmediately) {
     // Send immediately for all trigger types when no valid future timestamp exists
-    await handleImmediateEmailDispatch(sendTo, emailDispatcher, replyToAddress, triggerEvent);
+    await handleImmediateEmailDispatch(
+      sendTo,
+      emailDispatcher,
+      replyToAddress,
+      triggerEvent,
+      evt.eventTypeId ?? undefined,
+      bookingUid ?? null,
+      seatReferenceUid,
+      workflowId,
+      workflowStepId,
+      isMandatoryReminder || false,
+      batchId
+    );
   } else {
     // Schedule for future delivery when valid timestamp exists
     await handleScheduledEmailDispatch(
@@ -536,7 +607,9 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
       seatReferenceUid,
       attendeeId,
       isMandatoryReminder || false,
-      batchId
+      batchId,
+      evt.eventTypeId ?? undefined,
+      workflowId
     );
   }
 };

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import getRawBody from "raw-body";
+
 import { META_WEBHOOK_VERIFICATION_CODE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -66,20 +67,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 continue;
               }
 
-              // Find existing insight and update status
+              // ONLY update existing workflow insights
+              log.info("Updating workflow insights for WhatsApp event", { msgId, status, mappedStatus });
+
               const existingInsight = await prisma.calIdWorkflowInsights.findUnique({
                 where: { msgId },
               });
 
-              if (existingInsight) {
-                await prisma.calIdWorkflowInsights.update({
-                  where: { msgId },
-                  data: { status: mappedStatus },
-                });
-                log.info(`Updated message ${msgId} to status ${mappedStatus}`);
-              } else {
-                log.warn(`Message ${msgId} not found in database, skipping update`);
+              if (!existingInsight) {
+                log.warn(`No existing workflow insight found for msgId ${msgId}, skipping update`);
+                console.warn(`No existing workflow insight found for msgId ${msgId}, skipping update`);
+                continue;
               }
+
+              await prisma.calIdWorkflowInsights.update({
+                where: { msgId },
+                data: { status: mappedStatus },
+              });
+
+              log.info(`Successfully updated message ${msgId} to status ${mappedStatus}`);
             }
           }
 
@@ -89,7 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               const msgId = message.id;
               const from = message.from;
               const messageType = message.type;
-              
+
               log.info(`Received incoming message: ${msgId} from ${from} type ${messageType}`);
               // Add any logic here if you need to handle incoming messages
             }

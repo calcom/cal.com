@@ -1,13 +1,12 @@
 // meta.ts
 import type { Prisma } from "@prisma/client";
-import { v4 as uuidv4 } from "uuid";
 
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { INNGEST_ID, META_API_VERSION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { WorkflowActions } from "@calcom/prisma/enums";
-import { SMSLockState, WorkflowTemplates, WorkflowStatus } from "@calcom/prisma/enums";
+import { SMSLockState, WorkflowTemplates, WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
 import { inngestClient } from "@calcom/web/pages/api/inngest";
 
 import { META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
@@ -28,11 +27,14 @@ export class MetaError extends Error {
 interface MetaMessageConfiguration {
   eventTypeId?: number | null;
   workflowId?: number;
+  workflowStepId?: number;
   recipientNumber: string;
   accountId?: number | null;
   organizationId?: number | null;
   templateType?: WorkflowTemplates | null;
   variableData: VariablesType;
+  bookingUid?: string | null;
+  seatReferenceUid?: string | null;
   // Meta-specific fields
   metaTemplateName?: string | null;
   metaPhoneNumberId?: string | null;
@@ -579,8 +581,31 @@ export const buildMetaTemplateComponentsFromTemplate = async (
   return components;
 };
 
+const createWorkflowInsight = async (
+  msgId: string,
+  eventTypeId: number,
+  workflowId: number | undefined,
+  workflowStepId: number | undefined,
+  bookingUid?: string | null,
+  seatReferenceUid?: string | null
+) => {
+  await prisma.calIdWorkflowInsights.create({
+    data: {
+      msgId: msgId,
+      eventTypeId: eventTypeId,
+      type: WorkflowMethods.WHATSAPP,
+      status: WorkflowStatus.QUEUED,
+      ...(workflowId && { workflowId: workflowId }),
+      ...(workflowStepId && { workflowStepId: workflowStepId }),
+      ...(bookingUid && { bookingUid: bookingUid }),
+      ...(seatReferenceUid && { bookingSeatReferenceUid: seatReferenceUid }),
+    },
+  });
+};
+
 const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
   let result: any;
+
   try {
     messageLogger.silly(
       "sendMetaWhatsApp",
@@ -670,9 +695,6 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
       to: formattedRecipient,
     };
 
-    // // Determine if using custom Meta template or predefined template
-    // if (config.metaTemplateName && template) {
-    // Custom Meta template - use the template structure to build components
     messagePayload.type = "template";
     messagePayload.template = {
       name: config.metaTemplateName ?? defaultTemplateNamesMap[config.templateType],
@@ -690,7 +712,6 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
     );
 
     messageLogger.debug("Built template components", {
-      // Create an API that serves zero functions
       templateName: config.metaTemplateName,
       components: JSON.stringify(components),
     });
@@ -698,21 +719,9 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
     if (components.length > 0) {
       messagePayload.template.components = components;
     }
-    // } else {
-    //   messagePayload.type = "template";
-    //   messagePayload.template = {
-    //     name: config.templateType,
-    //     language: {
-    //       code: "en",
-    //     },
-    //   };
-    // }
 
     // Send via Meta WhatsApp Cloud API
     const apiUrl = `${META_API_BASE_URL}/${phoneNumberId}/messages`;
-
-    console.log("Message payload recieved is: ");
-    console.log(JSON.stringify(messagePayload, null, 2));
 
     const response = await fetch(apiUrl, {
       method: "POST",
@@ -730,21 +739,35 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
         error: errorData,
         payload: messagePayload,
       });
+
       throw new Error(`Meta WhatsApp API error: ${response.status} - ${JSON.stringify(errorData)}`);
     }
 
     result = await response.json();
+
+    // Create workflow insights BEFORE sending WhatsApp message
+    if (config.eventTypeId) {
+      await createWorkflowInsight(
+        result.messages?.[0]?.id,
+        config.eventTypeId,
+        config.workflowId,
+        config.workflowStepId,
+        config.bookingUid,
+        config.seatReferenceUid
+      );
+    }
   } catch (error) {
     messageLogger.error("Failed to send Meta WhatsApp message", {
       error: error instanceof Error ? error.message : error,
     });
+
     throw new MetaError(error instanceof Error ? error.message : "Unknown", error);
   }
 
   messageLogger.debug("Meta WhatsApp message sent successfully", result);
 
   return {
-    sid: result.messages?.[0]?.id || uuidv4(),
+    sid: result.messages?.[0]?.id,
     messageId: result.messages?.[0]?.id,
   };
 };
@@ -753,6 +776,7 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
 export const sendSMS = async (args: {
   eventTypeId?: number | null;
   workflowId?: number;
+  workflowStepId?: number;
   phoneNumber: string;
   userId?: number | null;
   teamId?: number | null;
@@ -760,12 +784,13 @@ export const sendSMS = async (args: {
   variableData: VariablesType;
   metaTemplateName?: string | null;
   metaPhoneNumberId?: string | null;
+  bookingUid?: string | null;
+  seatReferenceUid?: string | null;
 }) => {
-  console.log("meta.sendSMS: ");
-  console.log(JSON.stringify(args));
   return sendMetaWhatsAppMessage({
     eventTypeId: args.eventTypeId,
     workflowId: args.workflowId,
+    workflowStepId: args.workflowStepId,
     recipientNumber: args.phoneNumber,
     accountId: args.userId,
     organizationId: args.teamId,
@@ -773,6 +798,8 @@ export const sendSMS = async (args: {
     variableData: args.variableData,
     metaTemplateName: args?.metaTemplateName,
     metaPhoneNumberId: args?.metaPhoneNumberId,
+    bookingUid: args?.bookingUid,
+    seatReferenceUid: args?.seatReferenceUid,
   });
 };
 
@@ -788,9 +815,9 @@ export const scheduleSMS = async (args: {
   metaPhoneNumberId: string | null;
   workflowStepId: number;
   bookingUid: string;
+  seatReferenceUid?: string | null;
+  eventTypeId?: number | null;
 }) => {
-  console.log("meta.scheduleSMS");
-  console.log(JSON.stringify(args));
   return scheduleMetaWhatsAppMessage({
     recipientNumber: args.phoneNumber,
     accountId: args.userId,
@@ -803,6 +830,8 @@ export const scheduleSMS = async (args: {
     workflowStepId: args?.workflowStepId,
     workflowId: args?.workflowId,
     bookingUid: args?.bookingUid,
+    seatReferenceUid: args?.seatReferenceUid,
+    eventTypeId: args?.eventTypeId,
   });
 };
 
@@ -815,7 +844,6 @@ export const cancelSMS = async (referenceId: string) => {
  * This replaces the previous pseudo-scheduling implementation
  */
 const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) => {
-  console.log("scheduleMetaWhatsappMessage");
   const isRestricted = await validateSendingPermissions(config.accountId, config.organizationId);
 
   if (isRestricted) {
@@ -849,6 +877,7 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
         method: "WHATSAPP",
         scheduledDate: config.deliveryTimestamp,
         scheduled: false, // Will be marked true after Inngest scheduling
+        ...(config.seatReferenceUid && { seatReferenceId: config.seatReferenceUid }),
       },
     });
     reminderId = newReminder.id;
@@ -897,10 +926,10 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
       data: {
         eventTypeId: config.eventTypeId,
         workflowId: config.workflowId,
+        workflowStepId: config.workflowStepId,
         recipientNumber: config.recipientNumber,
         reminderId,
         bookingUid: config.bookingUid,
-        workflowStepId: config.workflowStepId,
         scheduledDate: config.deliveryTimestamp.toISOString(),
         variableData: config.variableData,
         userId: config.accountId,
@@ -908,6 +937,7 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
         template: config.templateType,
         metaTemplateName: config.metaTemplateName,
         metaPhoneNumberId: config.metaPhoneNumberId,
+        seatReferenceUid: config.seatReferenceUid,
       },
       ts: delay > 0 ? now.getTime() + delay : undefined,
     });
@@ -993,8 +1023,6 @@ const cancelMetaScheduledMessage = async (scheduledId: string) => {
     throw error;
   }
 };
-
-// ... (Keep all other existing functions)
 
 export async function deleteMultipleScheduledSMS(referenceIds: string[]) {
   const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";

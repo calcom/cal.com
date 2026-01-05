@@ -5,17 +5,16 @@ import { NonRetriableError } from "inngest";
 
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import { WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[inngest-whatsapp-scheduled]"] });
 
 interface WhatsAppReminderData {
   eventTypeId: number;
   workflowId: number | null;
+  workflowStepId: number;
   recipientNumber: string;
   reminderId: number;
   bookingUid: string;
-  workflowStepId: number;
   variableData: VariablesType;
   scheduledDate: string;
   userId?: number | null;
@@ -23,7 +22,7 @@ interface WhatsAppReminderData {
   template: string | null;
   metaTemplateName: string | null;
   metaPhoneNumberId: string | null;
-  seatReferenceUid: string | null;
+  seatReferenceUid?: string | null;
 }
 
 export const whatsappReminderScheduled = async ({ event, step, logger }) => {
@@ -85,6 +84,7 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
       const response = await meta.sendSMS({
         eventTypeId: data.eventTypeId,
         workflowId: data.workflowId,
+        workflowStepId: data.workflowStepId,
         phoneNumber: recipientPhone,
         userId: data.userId,
         teamId: data.teamId,
@@ -92,6 +92,8 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
         variableData: data.variableData,
         metaTemplateName: data.metaTemplateName,
         metaPhoneNumberId: data.metaPhoneNumberId,
+        bookingUid: data.bookingUid,
+        seatReferenceUid: data.seatReferenceUid,
       });
 
       if (!response.messageId) {
@@ -103,18 +105,6 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
         data: {
           referenceId: response.messageId,
           scheduled: true,
-        },
-      });
-
-      await prisma.calIdWorkflowInsights.create({
-        data: {
-          workflowId: data.workflowId,
-          msgId: response?.messageId,
-          eventTypeId: data.eventTypeId,
-          type: WorkflowMethods.WHATSAPP,
-          status: WorkflowStatus.QUEUED,
-          bookingUid: data.bookingUid,
-          ...(data.seatReferenceUid && { seatReferenceUid: data.seatReferenceUid }),
         },
       });
 

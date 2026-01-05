@@ -2679,6 +2679,7 @@ model CalIdWorkflowStep {
   numberVerificationPending Boolean                 @default(true)
   includeCalendarEvent      Boolean                 @default(false)
   verifiedAt                DateTime?
+  CalIdWorkflowInsights     CalIdWorkflowInsights[]
 
   @@index([workflowId])
 }
@@ -2757,19 +2758,21 @@ model CalIdWorkflowReminder {
 }
 
 model CalIdWorkflowInsights {
-  msgId                   String          @unique
+  msgId                   String             @unique
   eventTypeId             Int
-  eventType               EventType?      @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventType               EventType?         @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   workflowId              Int?
-  workflow                CalIdWorkflow?  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflow                CalIdWorkflow?     @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   type                    WorkflowMethods
   status                  WorkflowStatus
   metadata                Json?
-  createdAt               DateTime        @default(now())
+  createdAt               DateTime           @default(now())
   bookingUid              String?
-  booking                 Booking?        @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  booking                 Booking?           @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
   bookingSeatReferenceUid String?
-  bookingSeat             BookingSeat?    @relation(fields: [bookingSeatReferenceUid], references: [referenceUid])
+  bookingSeat             BookingSeat?       @relation(fields: [bookingSeatReferenceUid], references: [referenceUid])
+  workflowStepId          Int?
+  workflowStep            CalIdWorkflowStep? @relation(fields: [workflowStepId], references: [id])
 }
 
 enum RoundRobinResetInterval {

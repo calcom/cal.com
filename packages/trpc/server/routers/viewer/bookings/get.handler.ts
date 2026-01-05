@@ -11,10 +11,12 @@ import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
+import type { TimeUnit, WorkflowActions, WorkflowStatus, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -116,6 +118,102 @@ type BookingsUnionQuery = SelectQueryBuilder<
   "Booking",
   Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">
 >;
+
+// Type definitions for the normalized structure
+type WorkflowStepInsight = {
+  workflowStepId: number | string;
+  stepName: string;
+  channel: "EMAIL" | "SMS" | "WHATSAPP";
+  status: WorkflowStatus;
+};
+
+type WorkflowInsight = {
+  workflowId: number | string;
+  workflowName: string;
+  trigger: string;
+  steps: WorkflowStepInsight[];
+};
+
+type AttendeeWorkflowInsight = {
+  attendeeId: number;
+  attendeeEmail: string;
+  workflows: WorkflowInsight[];
+};
+// Helper function to get human-readable workflow trigger
+function getReadableWorkflowTrigger(
+  trigger: WorkflowTriggerEvents,
+  time?: number | null,
+  timeUnit?: TimeUnit | null
+): string {
+  if (trigger === "NEW_EVENT") return "On booking creation";
+  if (trigger === "EVENT_CANCELLED") return "On booking cancellation";
+  if (trigger === "RESCHEDULE_EVENT") return "On booking reschedule";
+  if (trigger === "AFTER_EVENT") {
+    if (!time || !timeUnit) return "After event";
+    const unit = timeUnit.toLowerCase() + (time === 1 ? "" : "s");
+    return `${time} ${unit} after event`;
+  }
+  if (trigger === "BEFORE_EVENT") {
+    if (!time || !timeUnit) return "Before event";
+    const unit = timeUnit.toLowerCase() + (time === 1 ? "" : "s");
+    return `${time} ${unit} before event`;
+  }
+  if (trigger === "AFTER_HOSTS_CAL_VIDEO_NO_SHOW") return "After host no-show";
+  if (trigger === "AFTER_GUESTS_CAL_VIDEO_NO_SHOW") return "After guest no-show";
+  return "Unknown trigger";
+}
+
+// Helper function to get human-readable step name
+function getReadableStepName(action: WorkflowActions): string {
+  const actionMap: Record<WorkflowActions, string> = {
+    EMAIL_ATTENDEE: "Email to attendee",
+    EMAIL_HOST: "Email to host",
+    EMAIL_ADDRESS: "Email to specific email address",
+    SMS_ATTENDEE: "SMS to attendee",
+    SMS_NUMBER: "SMS to specific number",
+    WHATSAPP_ATTENDEE: "WhatsApp to attendee",
+    WHATSAPP_NUMBER: "WhatsApp to specific number",
+  };
+  return actionMap[action] || action;
+}
+
+// Helper function to get channel from action
+function getChannelFromAction(action: WorkflowActions): "EMAIL" | "SMS" | "WHATSAPP" {
+  if (action.startsWith("EMAIL_")) return "EMAIL";
+  if (action.startsWith("SMS_")) return "SMS";
+  if (action.startsWith("WHATSAPP_")) return "WHATSAPP";
+  return "EMAIL";
+}
+
+// Helper function to determine status with precedence rules
+function resolveWorkflowStepStatus(
+  workflowInsight: {
+    status: WorkflowStatus;
+  } | null,
+  workflowReminder: {
+    cancelled: boolean | null;
+    scheduled: boolean;
+    scheduledDate: Date;
+  } | null
+): WorkflowStatus {
+  // 1. If workflowInsight exists, use its status
+  if (workflowInsight) {
+    return workflowInsight.status;
+  }
+
+  // 2. Check workflowReminder
+  if (workflowReminder) {
+    if (workflowReminder.cancelled) {
+      return "CANCELLED";
+    }
+    if (workflowReminder.scheduled && workflowReminder.scheduledDate > new Date()) {
+      return "QUEUED";
+    }
+  }
+
+  // 3. Default to QUEUED
+  return "QUEUED";
+}
 
 export async function getBookings({
   user,
@@ -607,10 +705,11 @@ export async function getBookings({
               .selectFrom("BookingSeat")
               .select((eb) => [
                 "BookingSeat.referenceUid",
+                "BookingSeat.attendeeId",
                 jsonObjectFrom(
                   eb
                     .selectFrom("Attendee")
-                    .select(["Attendee.email", "Attendee.name", "Attendee.timeZone"])
+                    .select(["Attendee.id", "Attendee.email", "Attendee.name", "Attendee.timeZone"])
                     .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
                 ).as("attendee"),
                 jsonArrayFrom(
@@ -630,6 +729,80 @@ export async function getBookings({
               .orderBy("AssignmentReason.createdAt", "desc")
               .limit(1)
           ).as("assignmentReason"),
+          // NEW: Add workflow insights
+          jsonArrayFrom(
+            eb
+              .selectFrom("CalIdWorkflowInsights")
+              .select((eb) => [
+                "CalIdWorkflowInsights.msgId",
+                "CalIdWorkflowInsights.workflowId",
+                "CalIdWorkflowInsights.workflowStepId",
+                "CalIdWorkflowInsights.type",
+                "CalIdWorkflowInsights.status",
+                "CalIdWorkflowInsights.bookingSeatReferenceUid",
+                "CalIdWorkflowInsights.metadata",
+                jsonObjectFrom(
+                  eb
+                    .selectFrom("CalIdWorkflowStep")
+                    .select((eb) => [
+                      "CalIdWorkflowStep.id",
+                      "CalIdWorkflowStep.action",
+                      jsonObjectFrom(
+                        eb
+                          .selectFrom("CalIdWorkflow")
+                          .select([
+                            "CalIdWorkflow.id",
+                            "CalIdWorkflow.name",
+                            "CalIdWorkflow.trigger",
+                            "CalIdWorkflow.time",
+                            "CalIdWorkflow.timeUnit",
+                          ])
+                          .whereRef("CalIdWorkflow.id", "=", "CalIdWorkflowStep.workflowId")
+                      ).as("workflow"),
+                    ])
+                    .whereRef("CalIdWorkflowStep.id", "=", "CalIdWorkflowInsights.workflowStepId")
+                ).as("workflowStep"),
+              ])
+              .whereRef("CalIdWorkflowInsights.bookingUid", "=", "Booking.uid")
+          ).as("calIdWorkflowInsights"),
+          // NEW: Add workflow reminders
+          jsonArrayFrom(
+            eb
+              .selectFrom("CalIdWorkflowReminder")
+              .select((eb) => [
+                "CalIdWorkflowReminder.id",
+                "CalIdWorkflowReminder.workflowStepId",
+                "CalIdWorkflowReminder.method",
+                "CalIdWorkflowReminder.scheduledDate",
+                "CalIdWorkflowReminder.scheduled",
+                "CalIdWorkflowReminder.cancelled",
+                "CalIdWorkflowReminder.seatReferenceId",
+                "CalIdWorkflowReminder.isMandatoryReminder",
+                "CalIdWorkflowReminder.attendeeId",
+                jsonObjectFrom(
+                  eb
+                    .selectFrom("CalIdWorkflowStep")
+                    .select((eb) => [
+                      "CalIdWorkflowStep.id",
+                      "CalIdWorkflowStep.action",
+                      jsonObjectFrom(
+                        eb
+                          .selectFrom("CalIdWorkflow")
+                          .select([
+                            "CalIdWorkflow.id",
+                            "CalIdWorkflow.name",
+                            "CalIdWorkflow.trigger",
+                            "CalIdWorkflow.time",
+                            "CalIdWorkflow.timeUnit",
+                          ])
+                          .whereRef("CalIdWorkflow.id", "=", "CalIdWorkflowStep.workflowId")
+                      ).as("workflow"),
+                    ])
+                    .whereRef("CalIdWorkflowStep.id", "=", "CalIdWorkflowReminder.workflowStepId")
+                ).as("workflowStep"),
+              ])
+              .whereRef("CalIdWorkflowReminder.bookingUid", "=", "Booking.uid")
+          ).as("calIdWorkflowReminders"),
         ])
         .orderBy(orderBy.key, orderBy.order)
         .execute()
@@ -733,6 +906,16 @@ export async function getBookings({
         }
       }
 
+      console.log("in_here_booking.calIdWorkflowInsights", booking.calIdWorkflowInsights);
+      console.log("in_here_booking.calIdWorkflowReminders", booking.calIdWorkflowReminders);
+      console.log("in_here_booking.seatsReferences", booking.seatsReferences);
+
+      // NEW: Normalize workflow insights
+      const workflowInsights = normalizeWorkflowInsights(
+        booking.calIdWorkflowInsights || [],
+        booking.calIdWorkflowReminders || [],
+        booking.seatsReferences || []
+      );
       return {
         ...booking,
         customInputs: booking.customInputs as Record<string, any> | null,
@@ -748,6 +931,7 @@ export async function getBookings({
         startTime: booking.startTimeUtc.toISOString(),
         endTime: booking.endTimeUtc.toISOString(),
         metadata: (booking.metadata ?? null) as Record<string, any> | null,
+        workflowInsights,
       };
     })
   );
@@ -1086,4 +1270,214 @@ function getOrderBy(
   }
 
   return { key: "startTime", order: "asc" };
+}
+
+function normalizeWorkflowInsights(
+  workflowInsights: any[],
+  workflowReminders: any[],
+  seatsReferences: any[]
+): WorkflowInsight[] | AttendeeWorkflowInsight[] {
+  const isMultiSeat = seatsReferences.length > 1;
+
+  if (!isMultiSeat) {
+    // Single seat booking - return flat array
+    return normalizeWorkflowsForSingleSeat(workflowInsights, workflowReminders);
+  } else {
+    // Multi-seat booking - group by attendee
+    return normalizeWorkflowsForMultiSeat(workflowInsights, workflowReminders, seatsReferences);
+  }
+}
+
+function normalizeWorkflowsForSingleSeat(
+  workflowInsights: any[],
+  workflowReminders: any[]
+): WorkflowInsight[] {
+  const workflowMap = new Map<number | string, WorkflowInsight>();
+  const processedInsights = new Set<string>(); // Track processed insights by msgId
+  const processedReminders = new Set<number>(); // Track processed reminders by id
+
+  // Process workflow insights
+  for (const insight of workflowInsights) {
+    const insightMetadata = isPrismaObjOrUndefined(insight.metadata);
+    const isDefault = !insight.workflowId || insightMetadata?.isMandatoryReminder;
+    const workflowId = isDefault ? "default" : insight.workflowId;
+
+    // Initialize workflow in map if not exists
+    if (!workflowMap.has(workflowId)) {
+      if (isDefault) {
+        workflowMap.set(workflowId, {
+          workflowId: "default",
+          workflowName: "Default Reminder",
+          trigger: "System default",
+          steps: [],
+        });
+      } else {
+        const workflowStep = insight.workflowStep;
+        const workflow = workflowStep?.workflow;
+
+        workflowMap.set(workflowId, {
+          workflowId,
+          workflowName: workflow?.name || "Unknown Workflow",
+          trigger: getReadableWorkflowTrigger(workflow?.trigger, workflow?.time, workflow?.timeUnit),
+          steps: [],
+        });
+      }
+    }
+
+    const workflowData = workflowMap.get(workflowId)!;
+
+    // Find matching reminder for this insight
+    const matchingReminder = workflowReminders.find(
+      (r) =>
+        !r.seatReferenceId &&
+        ((insight.workflowStepId && r.workflowStepId === insight.workflowStepId) ||
+          (isDefault && r.isMandatoryReminder))
+    );
+
+    if (matchingReminder) {
+      processedReminders.add(matchingReminder.id);
+    }
+
+    // For default reminders without workflowStep
+    if (isDefault && !insight.workflowStep) {
+      workflowData.steps.push({
+        workflowStepId: null, // Use msgId as unique identifier
+        stepName: "Email to attendee",
+        channel: "EMAIL",
+        status: resolveWorkflowStepStatus(insight, matchingReminder),
+      });
+    } else if (insight.workflowStep) {
+      // Regular workflow with workflowStep
+      workflowData.steps.push({
+        workflowStepId: insight.workflowStep.id,
+        stepName: getReadableStepName(insight.workflowStep.action),
+        channel: getChannelFromAction(insight.workflowStep.action),
+        status: resolveWorkflowStepStatus(insight, matchingReminder),
+      });
+    }
+
+    processedInsights.add(insight.msgId);
+  }
+
+  // Process reminders that don't have corresponding insights
+  for (const reminder of workflowReminders) {
+    // Skip if already processed or if it's seat-specific
+    if (processedReminders.has(reminder.id) || reminder.seatReferenceId) {
+      continue;
+    }
+
+    // Check if this reminder was already covered by an insight
+    const hasCorrespondingInsight = workflowInsights.some(
+      (i) =>
+        !i.bookingSeatReferenceUid &&
+        ((i.workflowStepId && i.workflowStepId === reminder.workflowStepId) ||
+          (reminder.isMandatoryReminder &&
+            !i.workflowId &&
+            isPrismaObjOrUndefined(i.metadata)?.isMandatoryReminder))
+    );
+
+    if (hasCorrespondingInsight) {
+      continue;
+    }
+
+    // This reminder exists without an insight
+    const isDefault = reminder.isMandatoryReminder || !reminder.workflowStepId;
+    const workflowId = isDefault ? "default" : reminder.workflowStep?.workflow?.id || "default";
+
+    // Initialize workflow in map if not exists
+    if (!workflowMap.has(workflowId)) {
+      if (isDefault) {
+        workflowMap.set(workflowId, {
+          workflowId: "default",
+          workflowName: "Default Reminder",
+          trigger: "System default",
+          steps: [],
+        });
+      } else {
+        const workflow = reminder.workflowStep?.workflow;
+        workflowMap.set(workflowId, {
+          workflowId,
+          workflowName: workflow?.name || "Unknown Workflow",
+          trigger: getReadableWorkflowTrigger(workflow?.trigger, workflow?.time, workflow?.timeUnit),
+          steps: [],
+        });
+      }
+    }
+
+    const workflowData = workflowMap.get(workflowId)!;
+
+    // Add step from reminder
+    if (isDefault) {
+      workflowData.steps.push({
+        workflowStepId: `reminder-${reminder.id}`,
+        stepName: "Email to attendee",
+        channel: "EMAIL",
+        status: resolveWorkflowStepStatus(null, reminder),
+      });
+    } else if (reminder.workflowStep) {
+      workflowData.steps.push({
+        workflowStepId: reminder.workflowStep.id,
+        stepName: getReadableStepName(reminder.workflowStep.action),
+        channel: getChannelFromAction(reminder.workflowStep.action),
+        status: resolveWorkflowStepStatus(null, reminder),
+      });
+    }
+  }
+
+  // Convert map to array
+  const workflows = Array.from(workflowMap.values());
+
+  // Sort workflows: regular workflows first, then default at the end
+  workflows.sort((a, b) => {
+    if (a.workflowId === "default" && b.workflowId !== "default") return 1;
+    if (a.workflowId !== "default" && b.workflowId === "default") return -1;
+
+    // For regular workflows, sort by trigger timing (earlier triggers first)
+    // This is a simple heuristic - you may want to enhance this based on actual time values
+    if (a.trigger.includes("before") && b.trigger.includes("after")) return -1;
+    if (a.trigger.includes("after") && b.trigger.includes("before")) return 1;
+
+    return 0; // Maintain order for same category
+  });
+
+  // Remove workflows with no steps (shouldn't happen, but safety check)
+  return workflows.filter((w) => w.steps.length > 0);
+}
+
+function normalizeWorkflowsForMultiSeat(
+  workflowInsights: any[],
+  workflowReminders: any[],
+  seatsReferences: any[]
+): AttendeeWorkflowInsight[] {
+  const attendeeMap = new Map<number, AttendeeWorkflowInsight>();
+
+  // Initialize map with attendees from seats
+  for (const seat of seatsReferences) {
+    if (seat.attendee) {
+      attendeeMap.set(seat.attendeeId, {
+        attendeeId: seat.attendeeId,
+        attendeeEmail: seat.attendee.email,
+        workflows: [],
+      });
+    }
+  }
+
+  // Group insights and reminders by attendee
+  for (const [attendeeId, attendeeData] of attendeeMap.entries()) {
+    const seatRef = seatsReferences.find((s) => s.attendeeId === attendeeId);
+    const seatReferenceUid = seatRef?.referenceUid;
+
+    // Filter insights for this attendee
+    const attendeeInsights = workflowInsights.filter((i) => i.bookingSeatReferenceUid === seatReferenceUid);
+
+    // Filter reminders for this attendee
+    const attendeeReminders = workflowReminders.filter(
+      (r) => r.seatReferenceId === seatReferenceUid || r.attendeeId === attendeeId
+    );
+
+    // Normalize workflows for this attendee
+    attendeeData.workflows = normalizeWorkflowsForSingleSeat(attendeeInsights, attendeeReminders);
+  }
+
+  return Array.from(attendeeMap.values());
 }

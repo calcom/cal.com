@@ -2,9 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import { WorkflowMethods, WorkflowStatus } from "@calcom/prisma/client";
+import { WorkflowStatus } from "@calcom/prisma/client";
 
-// //event - the event type. Possible values are processed, dropped, delivered, deferred, bounce, open, click, spam report, unsubscribe, group unsubscribe, and group resubscribe.
+// event - the event type. Possible values are processed, dropped, delivered, deferred, bounce, open, click, spam report, unsubscribe, group unsubscribe, and group resubscribe.
 const statusMap = {
   delivered: WorkflowStatus.DELIVERED,
   open: WorkflowStatus.READ,
@@ -25,7 +25,7 @@ export const config = {
   },
 };
 
-const log = logger.getSubLogger({ prefix: ["api/webhook/sengdrid"] });
+const log = logger.getSubLogger({ prefix: ["api/webhook/sendgrid"] });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   log.info("Received request", req.method, req.body);
@@ -57,33 +57,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       for (const eventObj of events) {
-        const {
-          msgId,
-          event,
-          eventTypeId,
-          bookingUid,
-          seatReferenceUid,
-        }: {
-          msgId: string;
-          event: keyof typeof statusMap;
-          eventTypeId: number;
-          bookingUid?: string;
-          seatReferenceUid?: string;
-        } = eventObj;
+        const { msgId, event }: { msgId: string; event: keyof typeof statusMap } = eventObj;
 
-        if (!msgId || !event || !eventTypeId) {
-          log.warn("Skipping event due to missing fields", eventObj);
-          console.warn("Skipping event due to missing fields", eventObj);
-          continue;
-        }
-
-        const eventType = await prisma.eventType.findUnique({
-          where: { id: eventTypeId },
-        });
-
-        if (!eventType) {
-          log.warn(`Event not found with ID ${eventTypeId} skipping operation`);
-          console.warn(`Event not found with ID ${eventTypeId} skipping operation`);
+        if (!msgId || !event) {
+          log.warn("Skipping event due to missing msgId or event", eventObj);
+          console.warn("Skipping event due to missing msgId or event", eventObj);
           continue;
         }
 
@@ -94,27 +72,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           continue;
         }
 
-        log.info("Updating workflow insights for event", { msgId, event, eventTypeId, status });
-        await prisma.calIdWorkflowInsights.upsert({
+        // ONLY update existing workflow insights - never create new ones
+        log.info("Updating workflow insights for event", { msgId, event, status });
+
+        const existingInsight = await prisma.calIdWorkflowInsights.findUnique({
           where: { msgId: msgId },
-          update: { status: status },
-          create: {
-            msgId: msgId,
-            eventTypeId: eventTypeId,
-            type: WorkflowMethods.EMAIL,
-            status: status,
-            ...(bookingUid && { bookingUid: bookingUid }),
-            ...(seatReferenceUid && { bookingSeatReferenceUid: seatReferenceUid }),
-          },
         });
-        log.info("Updated workflow insights for event", { msgId, event, eventTypeId, status });
+
+        if (!existingInsight) {
+          log.warn(`No existing workflow insight found for msgId ${msgId}, skipping update`);
+          console.warn(`No existing workflow insight found for msgId ${msgId}, skipping update`);
+          continue;
+        }
+
+        await prisma.calIdWorkflowInsights.update({
+          where: { msgId: msgId },
+          data: { status: status },
+        });
+
+        log.info("Successfully updated workflow insights for event", { msgId, event, status });
       }
 
       log.info("Successfully processed events", events);
       return res.status(200).json({ success: true });
     } catch (err) {
-      log.error("Error in / /api/webhook/sendgrid", err);
-      console.error("Error in / /api/webhook/sendgrid", err);
+      log.error("Error in /api/webhook/sendgrid", err);
+      console.error("Error in /api/webhook/sendgrid", err);
       return res.status(500).json({ error: "Internal Server Error" });
     }
   } else {

@@ -46,7 +46,13 @@ type PartialBooking =
 
 export type PartialCalIdWorkflowReminder = Pick<
   CalIdWorkflowReminder,
-  "id" | "isMandatoryReminder" | "scheduledDate" | "seatReferenceId"
+  | "id"
+  | "isMandatoryReminder"
+  | "scheduledDate"
+  | "seatReferenceId"
+  | "referenceId"
+  | "bookingUid"
+  | "workflowStepId"
 > & {
   booking: PartialBooking | null;
   // attendee: Attendee | null;
@@ -129,6 +135,7 @@ export const select: Prisma.CalIdWorkflowReminderSelect = {
   id: true,
   scheduledDate: true,
   isMandatoryReminder: true,
+  referenceId: true,
   workflowStep: {
     select: {
       action: true,
@@ -142,6 +149,7 @@ export const select: Prisma.CalIdWorkflowReminderSelect = {
         select: {
           userId: true,
           calIdTeamId: true,
+          id: true,
         },
       },
     },

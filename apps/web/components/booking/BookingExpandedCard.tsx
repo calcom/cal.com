@@ -14,6 +14,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import { Badge } from "@calcom/ui/components/badge";
 
 import { MeetingNotesDialog } from "@components/dialog/MeetingNotesDialog";
 
@@ -23,7 +24,168 @@ export type BookingItemProps = BookingItem & {
   isHost: boolean;
   showExpandedActions: boolean;
 };
+// Helper function to get status badge variant
+const getStatusVariant = (status: string): "default" | "success" | "orange" | "red" | "gray" => {
+  switch (status) {
+    case "SENT":
+      return "success";
+    case "SCHEDULED":
+      return "orange";
+    case "QUEUED":
+      return "gray";
+    case "FAILED":
+      return "red";
+    case "CANCELLED":
+      return "red";
+    default:
+      return "default";
+  }
+};
 
+// Helper function to get channel icon
+const getChannelIcon = (channel: string): string => {
+  switch (channel) {
+    case "EMAIL":
+      return "mail";
+    case "SMS":
+      return "message-square";
+    case "WHATSAPP":
+      return "message-circle";
+    default:
+      return "bell";
+  }
+};
+
+// Component to display workflow insights for single-seat bookings
+const WorkflowInsightsDisplay = ({ workflowInsights }: { workflowInsights: any[] }) => {
+  const { t } = useLocale();
+
+  if (!workflowInsights || workflowInsights.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-default text-sm font-medium">{t("workflow_reminders")}</h3>
+      <div className="space-y-3">
+        {workflowInsights.map((workflow, workflowIndex) => (
+          <div key={workflow.workflowId} className="border-subtle rounded-md border p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon name="zap" className="h-4 w-4 text-purple-500" />
+                <span className="text-default text-sm font-medium">{workflow.workflowName}</span>
+              </div>
+              <Badge variant="gray" size="sm">
+                {workflow.trigger}
+              </Badge>
+            </div>
+
+            <div className="space-y-1.5">
+              {workflow.steps.map((step: any, stepIndex: number) => (
+                <div key={stepIndex} className="flex items-center justify-between rounded-md bg-gray-50 p-2">
+                  <div className="flex items-center gap-2">
+                    <Icon name={getChannelIcon(step.channel)} className="text-muted h-3.5 w-3.5" />
+                    <span className="text-default text-xs">{step.stepName}</span>
+                  </div>
+                  <Badge variant={getStatusVariant(step.status)} size="sm">
+                    {step.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Component to display workflow insights for multi-seat bookings
+const MultiSeatWorkflowInsightsDisplay = ({ workflowInsights }: { workflowInsights: any[] }) => {
+  const { t } = useLocale();
+  const [expandedAttendee, setExpandedAttendee] = useState<number | null>(null);
+
+  if (!workflowInsights || workflowInsights.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-default text-sm font-medium">{t("workflow_reminders")}</h3>
+      <div className="space-y-3">
+        {workflowInsights.map((attendeeInsight) => {
+          const hasWorkflows = attendeeInsight.workflows && attendeeInsight.workflows.length > 0;
+          const isExpanded = expandedAttendee === attendeeInsight.attendeeId;
+
+          return (
+            <div key={attendeeInsight.attendeeId} className="border-subtle rounded-md border">
+              <button
+                onClick={() => setExpandedAttendee(isExpanded ? null : attendeeInsight.attendeeId)}
+                className="flex w-full items-center justify-between p-3 hover:bg-gray-50"
+                disabled={!hasWorkflows}>
+                <div className="flex items-center gap-2">
+                  <div className="bg-default flex h-6 w-6 items-center justify-center rounded-full">
+                    <span className="text-default text-xs font-medium">
+                      {attendeeInsight.attendeeEmail.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="text-default text-sm font-medium">{attendeeInsight.attendeeEmail}</span>
+                  {!hasWorkflows && (
+                    <Badge variant="gray" size="sm">
+                      {t("no_reminders")}
+                    </Badge>
+                  )}
+                </div>
+                {hasWorkflows && (
+                  <Icon
+                    name="chevron-down"
+                    className={`text-muted h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                  />
+                )}
+              </button>
+
+              {isExpanded && hasWorkflows && (
+                <div className="border-subtle border-t p-3">
+                  <div className="space-y-3">
+                    {attendeeInsight.workflows.map((workflow: any) => (
+                      <div key={workflow.workflowId} className="border-subtle rounded-md border p-2">
+                        <div className="mb-2 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Icon name="zap" className="h-3.5 w-3.5 text-purple-500" />
+                            <span className="text-default text-xs font-medium">{workflow.workflowName}</span>
+                          </div>
+                          <Badge variant="gray" size="sm">
+                            {workflow.trigger}
+                          </Badge>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          {workflow.steps.map((step: any, stepIndex: number) => (
+                            <div
+                              key={stepIndex}
+                              className="flex items-center justify-between rounded-md bg-gray-50 p-2">
+                              <div className="flex items-center gap-2">
+                                <Icon name={getChannelIcon(step.channel)} className="text-muted h-3 w-3" />
+                                <span className="text-default text-xs">{step.stepName}</span>
+                              </div>
+                              <Badge variant={getStatusVariant(step.status)} size="sm">
+                                {step.status}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 export function BookingExpandedCard(props: BookingItemProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -177,6 +339,13 @@ export function BookingExpandedCard(props: BookingItemProps) {
     };
   }, []);
 
+  // Check if booking is multi-seat
+  const isMultiSeat = props.seatsReferences && props.seatsReferences.length > 1;
+
+  // Check if workflowInsights exists and has data
+  const hasWorkflowInsights =
+    props.workflowInsights && Array.isArray(props.workflowInsights) && props.workflowInsights.length > 0;
+
   return (
     <>
       {isNoShowDialogOpen && (
@@ -310,6 +479,16 @@ export function BookingExpandedCard(props: BookingItemProps) {
                   </div>
                 ))}
               </div>
+            )}
+            {/* NEW: Display workflow insights */}
+            {hasWorkflowInsights && (
+              <>
+                {isMultiSeat ? (
+                  <MultiSeatWorkflowInsightsDisplay workflowInsights={props.workflowInsights as any[]} />
+                ) : (
+                  <WorkflowInsightsDisplay workflowInsights={props.workflowInsights as any[]} />
+                )}
+              </>
             )}
           </div>
 

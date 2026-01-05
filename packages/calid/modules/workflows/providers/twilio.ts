@@ -29,7 +29,6 @@ interface MessageConfiguration {
   isWhatsApp?: boolean;
   templateType?: WorkflowTemplates;
   variableData?: string;
-  additionalParams?: Record<string, any>;
 }
 
 interface ScheduledMessageConfig extends MessageConfiguration {
@@ -109,22 +108,14 @@ const validateSendingPermissions = async (
   return false;
 };
 
-const buildWebhookCallback = (
-  parameters: Record<string, any> = {},
-  useWhatsApp = false
-): string | undefined => {
-  // if (!parameters) return undefined;
-
+const buildWebhookCallback = (useWhatsApp = false): string | undefined => {
   const baseUrl = `${IS_DEV ? NGROK_URL : WEBAPP_URL}/api/twilio/webhook`;
 
-  const enhancedParams = {
-    ...parameters,
-    msgId: uuidv4(),
+  const params = {
     channel: useWhatsApp ? "WHATSAPP" : "SMS",
   };
 
-  return `${baseUrl}?${Object.entries(enhancedParams)
-    .filter(([_, value]) => value !== undefined && value !== null)
+  return `${baseUrl}?${Object.entries(params)
     .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
     .join("&")}`;
 };
@@ -175,7 +166,7 @@ const executeMessageDelivery = async (config: MessageConfiguration) => {
     });
   }
 
-  const webhookCallback = buildWebhookCallback(config.additionalParams, config.isWhatsApp);
+  const webhookCallback = buildWebhookCallback(config.isWhatsApp);
 
   const messagePayload: {
     messagingServiceSid: string | undefined;
@@ -241,9 +232,7 @@ const executeScheduledDelivery = async (config: ScheduledMessageConfig) => {
       rateLimitingType: "smsMonth",
     });
   }
-
-  console.log("Twilio config: ", config);
-  const webhookCallback = buildWebhookCallback(config.additionalParams, config.isWhatsApp);
+  const webhookCallback = buildWebhookCallback(config.isWhatsApp);
 
   const scheduledPayload: {
     messagingServiceSid: string | undefined;
@@ -358,8 +347,7 @@ export const sendSMS = async (
   teamId?: number | null,
   whatsapp = false,
   template?: WorkflowTemplates,
-  contentVariables?: string,
-  customArgs?: Record<string, any>
+  contentVariables?: string
 ) => {
   return executeMessageDelivery({
     recipientNumber: phoneNumber,
@@ -370,7 +358,6 @@ export const sendSMS = async (
     isWhatsApp: whatsapp,
     templateType: template,
     variableData: contentVariables,
-    additionalParams: customArgs,
   });
 };
 
@@ -383,8 +370,7 @@ export const scheduleSMS = async (
   teamId?: number | null,
   whatsapp = false,
   template?: WorkflowTemplates,
-  contentVariables?: string,
-  customArgs?: Record<string, any>
+  contentVariables?: string
 ) => {
   return executeScheduledDelivery({
     recipientNumber: phoneNumber,
@@ -395,7 +381,6 @@ export const scheduleSMS = async (
     isWhatsApp: whatsapp,
     templateType: template,
     variableData: contentVariables,
-    additionalParams: customArgs,
     deliveryTimestamp: scheduledDate,
   });
 };
