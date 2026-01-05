@@ -26,7 +26,7 @@ import {
 } from "@calcom/ui/components/table";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { useInsightsRoutingParameters } from "@calcom/features/insights/hooks/useInsightsRoutingParameters";
+import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
 import { ChartCard } from "../ChartCard";
 
 interface DownloadButtonProps {

@@ -16,14 +16,14 @@ import {
 } from "@calcom/features/data-table";
 import { DataTableWrapper, DataTableFilters, DataTableSegment, DataTableSkeleton, DateRangeFilter } from "@calcom/web/modules/data-table/components";
 import type { FilterType } from "@calcom/types/data-table";
-import { useInsightsRoutingParameters } from "@calcom/features/insights/hooks/useInsightsRoutingParameters";
+import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
 import { trpc } from "@calcom/trpc/react";
 
 import { RoutingFormResponsesDownload } from "@calcom/features/insights/filters/Download";
 import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
-import { useInsightsColumns } from "@calcom/features/insights/hooks/useInsightsColumns";
-import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
-import { useInsightsRoutingFacetedUniqueValues } from "@calcom/features/insights/hooks/useInsightsRoutingFacetedUniqueValues";
+import { useInsightsColumns } from "@calcom/web/modules/insights/hooks/useInsightsColumns";
+import { useInsightsOrgTeams } from "@calcom/web/modules/insights/hooks/useInsightsOrgTeams";
+import { useInsightsRoutingFacetedUniqueValues } from "@calcom/web/modules/insights/hooks/useInsightsRoutingFacetedUniqueValues";
 import type { RoutingFormTableRow } from "@calcom/features/insights/lib/types";
 import { RoutingKPICards } from "./RoutingKPICards";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";

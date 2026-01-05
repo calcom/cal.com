@@ -15,7 +15,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
-import { useInsightsBookingParameters } from "@calcom/features/insights/hooks/useInsightsBookingParameters";
+import { useInsightsBookingParameters } from "@calcom/web/modules/insights/hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
 
 type BookingsByHourData = RouterOutputs["viewer"]["insights"]["bookingsByHourStats"][number];
