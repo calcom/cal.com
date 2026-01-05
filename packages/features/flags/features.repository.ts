@@ -19,7 +19,7 @@ export class FeaturesRepository implements IFeaturesRepository {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static featuresCache: { data: any[]; expiry: number } | null = null;
 
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(private prismaClient: PrismaClient) { }
 
   private clearCache() {
     FeaturesRepository.featuresCache = null;
@@ -145,6 +145,62 @@ export class FeaturesRepository implements IFeaturesRepository {
       // This also covers organizations, which are teams.
       const userBelongsToTeamWithFeature = await this.checkIfUserBelongsToTeamWithFeature(userId, slug);
       return userBelongsToTeamWithFeature;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Checks if a specific user has access to multiple features in a single operation.
+   *
+   * @param userId - The ID of the user to check
+   * @param slugs - Array of feature identifiers to check
+   * @returns Promise<Record<string, boolean>> - A record mapping each slug to its enabled status
+   * @throws Error if the feature access check fails
+   */
+  async getUserFeaturesStatus(userId: number, slugs: string[]): Promise<Record<string, boolean>> {
+    try {
+      if (slugs.length === 0) {
+        return {};
+      }
+
+      const featuresStatus: Record<string, boolean> = Object.fromEntries(slugs.map((slug) => [slug, false]));
+
+      const userFeatures = await this.prismaClient.userFeatures.findMany({
+        where: {
+          userId,
+          featureId: {
+            in: slugs,
+          },
+        },
+        select: {
+          featureId: true,
+          enabled: true,
+        },
+      });
+
+      const featuresConfiguredForUser = new Set<string>();
+      const slugsToCheckAtTeamLevel: string[] = [];
+
+      for (const userFeature of userFeatures) {
+        featuresStatus[userFeature.featureId] = userFeature.enabled;
+        featuresConfiguredForUser.add(userFeature.featureId);
+      }
+
+      for (const slug of slugs) {
+        // If the feature is not configured for the user, check team-level
+        if (!featuresConfiguredForUser.has(slug)) {
+          slugsToCheckAtTeamLevel.push(slug);
+        }
+      }
+
+      await Promise.all(slugsToCheckAtTeamLevel.map(async (slug) => {
+        const hasTeamFeature = await this.checkIfUserBelongsToTeamWithFeature(userId, slug);
+        featuresStatus[slug] = hasTeamFeature;
+      }))
+
+      return featuresStatus;
     } catch (err) {
       captureException(err);
       throw err;

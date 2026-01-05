@@ -7,6 +7,7 @@ import type { FeatureId, FeatureState } from "./config";
 export interface IFeaturesRepository {
   checkIfFeatureIsEnabledGlobally(slug: FeatureId): Promise<boolean>;
   checkIfUserHasFeature(userId: number, slug: string): Promise<boolean>;
+  getUserFeaturesStatus(userId: number, slugs: string[]): Promise<Record<string, boolean>>;
   checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
   checkIfTeamHasFeature(teamId: number, slug: FeatureId): Promise<boolean>;
   getTeamsWithFeatureEnabled(slug: FeatureId): Promise<number[]>;
