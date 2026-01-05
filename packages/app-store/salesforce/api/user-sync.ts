@@ -24,14 +24,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const credentialRepository = new CredentialRepository(prisma);
-  const credential = await credentialRepository.findByAppIdAndKeyValueIncludeAttributeSyncs({
+  const credential = await credentialRepository.findByAppIdAndKeyValue({
     appId: "salesforce",
     keyPath: ["instance_url"],
     value: instanceUrl,
     keyFields: ["id"],
   });
-
-  console.log(credential);
 
   if (!credential) {
     log.error(`New credential found for ${instanceUrl}`);

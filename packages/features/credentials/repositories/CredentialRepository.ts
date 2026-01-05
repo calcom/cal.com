@@ -330,7 +330,7 @@ export class CredentialRepository {
     });
   }
 
-  async findByAppIdAndKeyValueIncludeAttributeSyncs<T>({
+  async findByAppIdAndKeyValue<T>({
     appId,
     keyPath,
     value,
