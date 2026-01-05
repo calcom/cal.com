@@ -1,7 +1,7 @@
 import { _generateMetadata } from "app/_utils";
 
-import OrgAttributesEditPage from "@calcom/ee/organizations/pages/settings/attributes/attributes-edit-view";
 import { MembershipRole } from "@calcom/prisma/enums";
+import OrgAttributesEditPage from "@calcom/web/modules/ee/organizations/attributes/attributes-edit-view";
 
 import { validateUserHasOrgPerms } from "../../../../actions/validateUserHasOrgPerms";
 
