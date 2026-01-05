@@ -32,7 +32,7 @@ import {
   RecentFeedbackTable,
   TimezoneBadge,
 } from "@calcom/web/modules/insights/components/booking";
-import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
+import { InsightsOrgTeamsProvider } from "../components/context/InsightsOrgTeamsProvider";
 import { DateTargetSelector, type DateTarget } from "../components/filters/DateTargetSelector";
 import { Download } from "../components/filters/Download/Download";
 import { OrgTeamsFilter } from "../components/filters/OrgTeamsFilter";

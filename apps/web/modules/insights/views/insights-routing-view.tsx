@@ -10,7 +10,7 @@ import {
   RoutedToPerPeriod,
   RoutingFunnel,
 } from "@calcom/web/modules/insights/components/routing";
-import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
+import { InsightsOrgTeamsProvider } from "../components/context/InsightsOrgTeamsProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export default function InsightsRoutingFormResponsesPage({ timeZone }: { timeZone: string }) {
