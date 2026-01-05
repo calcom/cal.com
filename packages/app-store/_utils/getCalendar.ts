@@ -26,15 +26,15 @@ export const getCalendar = async (
     calendarType = calendarType.split("_crm")[0];
   }
 
-  const calendarAppImportFn =
+  const calendarAppGetter =
     CalendarServiceMap[calendarType.split("_").join("") as keyof typeof CalendarServiceMap];
 
-  if (!calendarAppImportFn) {
+  if (!calendarAppGetter) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
 
-  const calendarApp = await calendarAppImportFn;
+  const calendarApp = await calendarAppGetter();
 
   const CalendarService = calendarApp.default;
 
