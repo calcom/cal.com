@@ -1,68 +1,49 @@
-import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
+import type { BlockableUser } from "./check-user-blocking";
+import { getBlockedUsersMap, isUserBlocked } from "./check-user-blocking";
 
 /**
  * Host type expected from slots service.
  * Minimal shape needed for filtering.
  */
 export interface HostWithEmail {
-  user: {
+  user: BlockableUser & {
     id: number;
-    email: string;
   };
 }
 
+export interface FilterBlockedHostsResult<T extends HostWithEmail> {
+  eligibleHosts: T[];
+  blockedCount: number;
+}
+
 /**
- * Filter out blocked hosts from a list using batched watchlist check.
+ * Filter out blocked hosts from a list using batched blocking check.
+ * Checks both locked users and watchlist-blocked emails.
  * Single DB query for N hosts - eliminates N+1.
  *
  * @param hosts - List of hosts to filter
  * @param organizationId - Optional organization ID for org-specific blocking
- * @returns Non-blocked hosts
+ * @returns Object with eligibleHosts and blockedCount
  */
 export async function filterBlockedHosts<T extends HostWithEmail>(
   hosts: T[],
   organizationId?: number | null
-): Promise<T[]> {
+): Promise<FilterBlockedHostsResult<T>> {
   if (hosts.length === 0) {
-    return [];
+    return { eligibleHosts: [], blockedCount: 0 };
   }
 
-  const watchlist = await getWatchlistFeature();
-  const emails = hosts.map((h) => h.user.email);
+  // Map hosts to blockable users for the core utility
+  const usersToCheck = hosts.map((h) => h.user);
 
-  const globalBlockedMap = await watchlist.globalBlocking.areBlocked(emails);
+  // Get blocking map (handles locked users and watchlist in one call)
+  const { blockingMap, blockedCount } = await getBlockedUsersMap(usersToCheck, organizationId);
 
-  let orgBlockedMap: Map<string, { isBlocked: boolean }> | null = null;
-  if (organizationId) {
-    orgBlockedMap = await watchlist.orgBlocking.areBlocked(emails, organizationId);
-  }
+  // Filter out blocked hosts
+  const eligibleHosts = hosts.filter((host) => !isUserBlocked(host.user.email, blockingMap));
 
-  return hosts.filter((host) => {
-    const email = host.user.email.trim().toLowerCase();
-    const globalResult = globalBlockedMap.get(email);
-    if (globalResult?.isBlocked) {
-      return false;
-    }
-
-    if (orgBlockedMap) {
-      const orgResult = orgBlockedMap.get(email);
-      if (orgResult?.isBlocked) {
-        return false;
-      }
-    }
-
-    return true;
-  });
-}
-
-/**
- * Check if any hosts are blocked (for logging/metrics).
- * Uses batched check internally.
- */
-export async function getBlockedHostCount<T extends HostWithEmail>(
-  hosts: T[],
-  organizationId?: number | null
-): Promise<number> {
-  const eligibleHosts = await filterBlockedHosts(hosts, organizationId);
-  return hosts.length - eligibleHosts.length;
+  return {
+    eligibleHosts,
+    blockedCount,
+  };
 }

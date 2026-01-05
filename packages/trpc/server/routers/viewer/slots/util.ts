@@ -1097,12 +1097,16 @@ export class AvailableSlotsService {
       });
 
     // Filter out blocked hosts BEFORE calculating availability (batched - single DB query)
-    const organizationId = eventType.team?.parentId ?? eventType.team?.id ?? null;
-    const eligibleQualifiedRRHosts = await filterBlockedHosts(qualifiedRRHosts, organizationId);
-    const eligibleFixedHosts = await filterBlockedHosts(fixedHosts, organizationId);
-    const eligibleFallbackRRHosts = allFallbackRRHosts
+    const organizationId = eventType.parent?.team?.parentId ?? eventType.team?.parentId ?? null;
+
+    const { eligibleHosts: eligibleQualifiedRRHosts } = await filterBlockedHosts(
+      qualifiedRRHosts,
+      organizationId
+    );
+    const { eligibleHosts: eligibleFixedHosts } = await filterBlockedHosts(fixedHosts, organizationId);
+    const { eligibleHosts: eligibleFallbackRRHosts } = allFallbackRRHosts
       ? await filterBlockedHosts(allFallbackRRHosts, organizationId)
-      : [];
+      : { eligibleHosts: [] };
 
     const allHosts = [...eligibleQualifiedRRHosts, ...eligibleFixedHosts];
 

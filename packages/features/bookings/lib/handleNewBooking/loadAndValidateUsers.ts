@@ -1,6 +1,7 @@
 import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import type { RoutingFormResponse } from "@calcom/features/bookings/lib/getLuckyUser";
 import { getQualifiedHostsService } from "@calcom/features/di/containers/QualifiedHosts";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { filterBlockedUsers } from "@calcom/features/watchlist/operations/filter-blocked-users.controller";
@@ -44,6 +45,7 @@ type EventType = Pick<
   | "schedulingType"
   | "maxLeadThreshold"
   | "team"
+  | "parent"
   | "assignAllTeamMembers"
   | "assignRRMembersUsingSegment"
   | "rrSegmentQueryValue"
@@ -131,8 +133,15 @@ const _loadAndValidateUsers = async ({
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
+  // Get organizationId from eventType (handles org teams and managed events)
+  let organizationId: number | null = eventType.parent?.team?.parentId ?? eventType.team?.parentId ?? null;
 
-  const organizationId = eventType.team?.parentId ?? eventType.team?.id ?? null;
+  // Fallback: For personal events, check if the user belongs to an organization
+  if (!organizationId && eventType.userId) {
+    const profile = await ProfileRepository.findFirstForUserId({ userId: eventType.userId });
+    organizationId = profile?.organizationId ?? null;
+  }
+
   const { eligibleUsers, blockedCount } = await filterBlockedUsers(users, organizationId, sentrySpan);
 
   if (blockedCount > 0) {

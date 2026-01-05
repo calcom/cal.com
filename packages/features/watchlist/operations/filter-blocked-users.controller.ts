@@ -1,14 +1,14 @@
-import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
 import type { SpanFn } from "@calcom/features/watchlist/lib/telemetry";
+
+import type { BlockableUser } from "./check-user-blocking";
+import { getBlockedUsersMap, isUserBlocked } from "./check-user-blocking";
 
 /**
  * User type expected from loadAndValidateUsers.
  */
-export interface UserWithEmail {
+export interface UserWithEmail extends BlockableUser {
   id?: number;
-  email: string;
   username: string | null;
-  locked: boolean;
 }
 
 export interface FilterBlockedUsersResult<T extends UserWithEmail> {
@@ -17,7 +17,8 @@ export interface FilterBlockedUsersResult<T extends UserWithEmail> {
 }
 
 /**
- * Filter out blocked users from a list using batched watchlist check.
+ * Filter out blocked users from a list using batched blocking check.
+ * Checks both locked users and watchlist-blocked emails.
  * Single DB query for N users - eliminates N+1.
  *
  * @param users - List of users to filter
@@ -35,48 +36,15 @@ export async function filterBlockedUsers<T extends UserWithEmail>(
       return { eligibleUsers: [], blockedCount: 0 };
     }
 
-    // First, filter out locked users (immediate block)
-    const nonLockedUsers = users.filter((user) => !user.locked);
-    const lockedCount = users.length - nonLockedUsers.length;
-
-    if (nonLockedUsers.length === 0) {
-      return { eligibleUsers: [], blockedCount: users.length };
-    }
-
-    const watchlist = await getWatchlistFeature();
-    const emails = nonLockedUsers.map((u) => u.email);
-
-    const globalBlockedMap = await watchlist.globalBlocking.areBlocked(emails);
-
-    let orgBlockedMap: Map<string, { isBlocked: boolean }> | null = null;
-    if (organizationId) {
-      orgBlockedMap = await watchlist.orgBlocking.areBlocked(emails, organizationId);
-    }
+    // Get blocking map (handles locked users and watchlist in one call)
+    const { blockingMap, blockedCount } = await getBlockedUsersMap(users, organizationId);
 
     // Filter out blocked users
-    const eligibleUsers = nonLockedUsers.filter((user) => {
-      const email = user.email.trim().toLowerCase();
-
-      const globalResult = globalBlockedMap.get(email);
-      if (globalResult?.isBlocked) {
-        return false;
-      }
-
-      if (orgBlockedMap) {
-        const orgResult = orgBlockedMap.get(email);
-        if (orgResult?.isBlocked) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-
-    const watchlistBlockedCount = nonLockedUsers.length - eligibleUsers.length;
+    const eligibleUsers = users.filter((user) => !isUserBlocked(user.email, blockingMap));
 
     return {
       eligibleUsers,
-      blockedCount: lockedCount + watchlistBlockedCount,
+      blockedCount,
     };
   };
 

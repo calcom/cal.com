@@ -63,18 +63,14 @@ export class GlobalBlockingService implements IBlockingService {
       domains: uniqueDomains,
     });
 
-    // Build lookup sets for O(1) checks
-    const blockedEmails = new Set<string>();
-    const blockedDomains = new Set<string>();
+    // Build lookup maps for O(1) checks (Maps serve as both lookup and entry storage)
     const emailEntries = new Map<string, (typeof blockingEntries)[0]>();
     const domainEntries = new Map<string, (typeof blockingEntries)[0]>();
 
     for (const entry of blockingEntries) {
       if (entry.type === WatchlistType.EMAIL) {
-        blockedEmails.add(entry.value.toLowerCase());
         emailEntries.set(entry.value.toLowerCase(), entry);
       } else if (entry.type === WatchlistType.DOMAIN) {
-        blockedDomains.add(entry.value.toLowerCase());
         domainEntries.set(entry.value.toLowerCase(), entry);
       }
     }
@@ -82,18 +78,20 @@ export class GlobalBlockingService implements IBlockingService {
     // Map results for each email
     for (const email of normalizedEmails) {
       const domain = extractDomainFromEmail(email);
+      const emailEntry = emailEntries.get(email);
+      const domainEntry = domainEntries.get(domain);
 
-      if (blockedEmails.has(email)) {
+      if (emailEntry) {
         result.set(email, {
           isBlocked: true,
           reason: WatchlistType.EMAIL,
-          watchlistEntry: emailEntries.get(email),
+          watchlistEntry: emailEntry,
         });
-      } else if (blockedDomains.has(domain)) {
+      } else if (domainEntry) {
         result.set(email, {
           isBlocked: true,
           reason: WatchlistType.DOMAIN,
-          watchlistEntry: domainEntries.get(domain),
+          watchlistEntry: domainEntry,
         });
       } else {
         result.set(email, { isBlocked: false });
