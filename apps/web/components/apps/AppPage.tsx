@@ -182,7 +182,7 @@ export const AppPage = ({
 
       const appInstalledForAllTargets =
         availableForTeams && data?.userAdminTeams && data.userAdminTeams.length > 0
-          ? credentialsCount >= data.userAdminTeams.length
+          ? credentialsCount >= data.userAdminTeams.length + 1 /* for user cred */
           : credentialsCount > 0;
       setAppInstalledForAllTargets(appInstalledForAllTargets);
 
@@ -328,6 +328,7 @@ export const AppPage = ({
           <>
             {existingCredentials.length > 1 ? (
               <MultiDisconnectIntegration
+                slug={slug}
                 categories={categories}
                 credentials={existingCredentials}
                 onSuccess={() => appDbQuery.refetch()}
@@ -337,7 +338,7 @@ export const AppPage = ({
                 buttonProps={{ color: "secondary" }}
                 label={t("disconnect")}
                 credentialId={Number(existingCredentials[0].id)}
-                teamId={existingCredentials[0].teamId}
+                teamId={existingCredentials[0].calIdTeamId}
                 onSuccess={() => appDbQuery.refetch()}
               />
             )}

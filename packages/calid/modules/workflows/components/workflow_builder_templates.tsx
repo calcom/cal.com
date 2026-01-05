@@ -25,7 +25,6 @@ export const TemplatesContent = ({ templates, onCreateWorkflow }: TemplatesConte
         return "message-square";
       case WorkflowActions.WHATSAPP_ATTENDEE:
         return "message-square";
-      // return "message-circle";
       default:
         return "workflow";
     }
@@ -47,23 +46,8 @@ export const TemplatesContent = ({ templates, onCreateWorkflow }: TemplatesConte
 
   return (
     <div className="mx-auto justify-center text-center">
-      <div className="flex w-full flex-row">
-        <div className="flex-1" />
-        <div className="flex-1" />
-        <Button
-          onClick={() => onCreateWorkflow()}
-          className="my-6 flex-1 items-center justify-center md:hidden"
-          StartIcon="plus"
-          variant="button"
-          color="primary">
-          {t("add_custom")}
-        </Button>
-      </div>
-
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-3 ">
         {templates.map((template: WorkflowTemplate, idx: number) => (
-          // {console.log("Rendering template:", template.name)}
-
           <div
             key={idx}
             className="border-border bg-card flex flex-col items-center justify-center rounded-lg border p-4 hover:shadow-md">
@@ -90,7 +74,7 @@ export const TemplatesContent = ({ templates, onCreateWorkflow }: TemplatesConte
         <div className="flex-1" />
         <Button
           onClick={() => onCreateWorkflow()}
-          className="mx-auto mt-10 hidden items-center justify-center px-12 text-sm md:flex"
+          className="mx-auto mt-10 flex items-center justify-center px-12 text-sm"
           StartIcon="plus"
           variant="button"
           color="primary">

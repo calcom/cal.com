@@ -11,7 +11,6 @@ import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -19,9 +18,17 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 
-const StripePaymentComponent = dynamic(() => import("@calcom/features/ee/payments/components/Payment"), {
-  ssr: false,
-});
+import { type PaymentPageProps } from "./getServerSideProps";
+
+const StripePaymentComponent = dynamic(
+  () =>
+    import("@calcom/app-store/stripepayment/components/StripePaymentComponent").then(
+      (m) => m.StripePaymentComponent
+    ),
+  {
+    ssr: false,
+  }
+);
 
 const PaypalPaymentComponent = dynamic(
   () =>
@@ -59,7 +66,6 @@ const BtcpayPaymentComponent = dynamic(
     ssr: false,
   }
 );
-
 
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t, i18n } = useLocale();

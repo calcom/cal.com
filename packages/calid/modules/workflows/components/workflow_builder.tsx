@@ -38,13 +38,10 @@ import { Editor } from "@calcom/ui/components/editor";
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
 import { Select } from "@calcom/ui/components/form";
 
-import { TRPCError } from "@trpc/server";
-
 import { DYNAMIC_TEXT_VARIABLES, META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../config/utils";
 import {
   isSMSAction,
-  isWhatsappAction,
   isSMSOrWhatsappAction,
   translateVariablesToEnglish,
   translateTextVariables as getTranslatedText,
@@ -952,7 +949,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     let activeOnIds: number[] = [];
     let isEmpty = false;
     let isVerified = true;
-    let hasMappingErrors = false;
+    const hasMappingErrors = false;
     let hasInvalidVariables = false; // Add this
 
     // Get the latest form values - this now has the correct HTML
@@ -1626,17 +1623,37 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                         <div className="bg-default mt-4 rounded-md">
                                           <div className="flex items-center justify-between">
                                             <Label>Message template</Label>
-                                            {step.metaTemplatePhoneNumberId && (
-                                              <Button
-                                                color="minimal"
-                                                size="sm"
-                                                loading={syncingTemplates}
-                                                onClick={() => handleSyncTemplates()}
-                                                className="flex items-center gap-1 text-xs">
-                                                <Icon name="info" className="h-4 w-4" />
-                                                Sync templates
-                                              </Button>
-                                            )}
+
+                                            <div className="flex flex-row gap-2">
+                                              {step.metaTemplatePhoneNumberId && (
+                                                <Button
+                                                  color="minimal"
+                                                  size="sm"
+                                                  onClick={() =>
+                                                    window.open(
+                                                      `https://business.facebook.com/latest/whatsapp_manager/message_templates`,
+                                                      "_blank"
+                                                    )
+                                                  }
+                                                  className="flex items-center gap-1 text-xs border-none underline underline-offset-2">
+                                                  <Icon name="external-link" className="h-3 w-3" />
+
+                                                  {t("create_templates")}
+                                                </Button>
+                                              )}
+
+                                              {step.metaTemplatePhoneNumberId && (
+                                                <Button
+                                                  color="minimal"
+                                                  size="sm"
+                                                  loading={syncingTemplates}
+                                                  onClick={() => handleSyncTemplates()}
+                                                  className="flex items-center gap-1 text-xs">
+                                                  <Icon name="info" className="h-4 w-4" />
+                                                  {t("sync_templates")}
+                                                </Button>
+                                              )}
+                                            </div>
                                           </div>
                                           <Select
                                             value={
@@ -1928,7 +1945,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                           <Alert
                                             severity="error"
                                             className="mt-2"
-                                            message={`'${invalidVariables[stepId]}' is not in the allowed variables list.`}></Alert>
+                                            message={`'${invalidVariables[stepId]}' is not in the allowed variables list.`}
+                                          />
                                         )}
 
                                         {/* Include Calendar Event for Email Actions */}

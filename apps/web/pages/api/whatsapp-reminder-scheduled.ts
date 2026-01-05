@@ -5,6 +5,7 @@ import { NonRetriableError } from "inngest";
 
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
+import type { WorkflowActions } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[inngest-whatsapp-scheduled]"] });
 
@@ -23,6 +24,7 @@ interface WhatsAppReminderData {
   metaTemplateName: string | null;
   metaPhoneNumberId: string | null;
   seatReferenceUid?: string | null;
+  action: WorkflowActions;
 }
 
 export const whatsappReminderScheduled = async ({ event, step, logger }) => {
@@ -82,6 +84,7 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
       // Any logic above this call should be idempotent, as due to retries the above code may run several times.
       // Errors below are always non-retriable so no issues there.
       const response = await meta.sendSMS({
+        action: data.action,
         eventTypeId: data.eventTypeId,
         workflowId: data.workflowId,
         workflowStepId: data.workflowStepId,

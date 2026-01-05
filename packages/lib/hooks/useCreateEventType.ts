@@ -91,17 +91,14 @@ export const useCalIdCreateEventType = (
 
   const createMutation = trpc.viewer.eventTypes.calid_create.useMutation({
     onSuccess: async ({ eventType }) => {
-      onSuccessMutation(eventType);
-
-      await utils.viewer.eventTypes.invalidate();
-      
-      await utils.viewer.eventTypes.calid_getEventTypesFromGroup.fetchInfinite({
+      utils.viewer.eventTypes.invalidate();
+      utils.viewer.eventTypes.calid_getEventTypesFromGroup.fetchInfinite({
         group: { calIdTeamId: eventType.calIdTeamId, parentId: eventType.parentId },
         searchQuery: debouncedSearchTerm,
         limit: 10,
       });
 
-      form.reset();
+      onSuccessMutation(eventType);
     },
     onError: (err) => {
       let error = err.message;

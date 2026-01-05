@@ -122,6 +122,7 @@ const createNewSeat = async (
         ...metadata,
       },
       eventType: {
+        id: eventType.id,
         slug: eventType.slug,
         schedulingType: eventType.schedulingType,
         hosts: eventType.hosts,

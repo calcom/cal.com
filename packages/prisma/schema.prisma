@@ -451,6 +451,7 @@ model User {
   bannerUrl                      String?
   faviconUrl                     String?
   socialProfiles                 Json?
+  crispTokenId                   String?                       @unique
 
   whatsappBusinessPhone WhatsAppBusinessPhone[]
   calIdApiKeys          CalIdApiKey[]
@@ -1595,6 +1596,7 @@ model BookingSeat {
   data                  Json?
   metadata              Json?
   calIdWorkflowInsights CalIdWorkflowInsights[]
+  createdAt    DateTime? @default(now())
 
   @@index([bookingId])
   @@index([attendeeId])
@@ -2796,6 +2798,8 @@ model WhatsAppBusinessPhone {
   wabaId        String
   phoneNumberId String @unique
   phoneNumber   String @unique
+
+  verificationPin String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

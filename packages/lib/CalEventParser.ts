@@ -96,12 +96,31 @@ export const getUserFieldsResponses = (calEvent: Parameters<typeof getLabelValue
   const responsesString = Object.keys(labelValueMap)
     .map((key) => {
       if (!labelValueMap) return "";
-      if (labelValueMap[key] !== "") {
-        return `
-${key}:
-${labelValueMap[key]}
-  `;
+      const val = labelValueMap[key];
+      if (val === "") return "";
+
+      let displayValue = val;
+      if (val && typeof val === "object") {
+        if (Array.isArray(val)) {
+          if (val.length === 0) return "";
+          // Check if it's an array of attachments
+          if (typeof val[0] === "object" && val[0] !== null && ("url" in val[0] || "dataUrl" in val[0])) {
+            displayValue = val.map((file: { name?: string }) => file.name || "Attachment").join(", ");
+          } else {
+            displayValue = val.join(", ");
+          }
+        } else if ("url" in val || "dataUrl" in val) {
+          // Single attachment
+          displayValue = (val as { name?: string }).name || "Attachment";
+        } else if ("value" in val && "optionValue" in val) {
+          const optionVal = val as { value: string; optionValue?: string };
+          displayValue = `${optionVal.value}${optionVal.optionValue ? `: ${optionVal.optionValue}` : ""}`;
+        }
       }
+      return `
+${key}:
+${displayValue}
+  `;
     })
     .join("");
 

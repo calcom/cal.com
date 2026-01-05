@@ -119,6 +119,7 @@ const executeImmediateWhatsapp = async ({
   try {
     // meta.sendSMS creates workflow insight BEFORE sending
     const response = await meta.sendSMS({
+      action,
       eventTypeId,
       workflowId,
       workflowStepId,
@@ -191,8 +192,8 @@ const scheduleDelayedWhatsapp = async ({
 }): Promise<void> => {
   try {
     // meta.scheduleSMS will trigger Inngest which will eventually call meta.sendSMS
-    // meta.sendSMS creates workflow insight BEFORE sending
     const scheduledWHATSAPP = await meta.scheduleSMS({
+      action,
       eventTypeId,
       workflowId,
       scheduledDate: scheduledDate.toDate(),
@@ -401,6 +402,7 @@ export const scheduleWhatsappReminder = async (args: CalIdScheduleWhatsAppRemind
   );
 
   const name = action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.attendees[0].name : evt.organizer.name;
+
   const attendeeName =
     action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
   const timeZone =
@@ -438,7 +440,7 @@ export const scheduleWhatsappReminder = async (args: CalIdScheduleWhatsAppRemind
   } else {
     // Schedule for future delivery when valid timestamp exists
     await processScheduledWhatsapp({
-      eventTypeId: evt.eventType.id,
+      eventTypeId: evt.eventTypeId,
       workflowId: workflow.id,
       workflowStepId,
       reminderPhone,

@@ -351,10 +351,8 @@ export function BookingExpandedCard(props: BookingItemProps) {
       {isNoShowDialogOpen && (
         <NoShowAttendeesDialog
           bookingUid={props.uid}
-          setDialog={() => setIsNoShowDialogOpen(false)}
+          closeNoShowDialog={() => setIsNoShowDialogOpen(false)}
           attendees={attendeeList}
-          setIsOpen={setIsNoShowDialogOpen}
-          isOpen={isNoShowDialogOpen}
         />
       )}
 
@@ -468,13 +466,47 @@ export function BookingExpandedCard(props: BookingItemProps) {
                   <div className="flex flex-col justify-between" key={index}>
                     <h3 className="text-default text-sm font-medium">{label}</h3>
                     <div className="text-default text-sm">
-                      {Array.isArray(value)
-                        ? value.join(", ")
-                        : typeof value === "boolean"
-                        ? value
-                          ? "Yes"
-                          : "No"
-                        : value.toString()}
+                      {(() => {
+                        const renderValue = (val: any) => {
+                          if (Array.isArray(val)) {
+                            if (val.length === 0) return null;
+                            if (typeof val[0] === "object" && val[0] !== null && "url" in val[0]) {
+                              return (
+                                <ul className="list-inside list-disc">
+                                  {val.map((item: any, i: number) => (
+                                    <li key={i}>
+                                      <a
+                                        href={item.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline">
+                                        {item.name || "Attachment"}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              );
+                            }
+                            return val.join(", ");
+                          }
+                          if (typeof val === "object" && val !== null && "url" in val) {
+                            return (
+                              <a
+                                href={val.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline">
+                                {val.name || "Attachment"}
+                              </a>
+                            );
+                          }
+                          if (typeof val === "boolean") {
+                            return val ? t("yes") : t("no");
+                          }
+                          return val.toString();
+                        };
+                        return renderValue(value);
+                      })()}
                     </div>
                   </div>
                 ))}
@@ -510,7 +542,9 @@ export function BookingExpandedCard(props: BookingItemProps) {
                     e.stopPropagation();
                     handleMarkNoShow();
                   }}>
-                  {t("mark_as_no_show")}
+                  {attendeeList.length === 1 && attendeeList[0].noShow
+                    ? t("unmark_as_no_show")
+                    : t("mark_as_no_show")}
                 </Button>
               )}
               {attendeePhoneNo && (
@@ -583,19 +617,10 @@ export function BookingExpandedCard(props: BookingItemProps) {
   );
 }
 
-type NoShowAttendee = {
-  id: number | string;
-  email: string;
-  name?: string | null;
-  noShow?: boolean;
-};
-
 const NoShowAttendeesDialog = ({
   attendees,
   bookingUid,
-  setDialog,
-  setIsOpen,
-  isOpen,
+  closeNoShowDialog,
 }: {
   attendees: Array<{
     name: string;
@@ -606,9 +631,7 @@ const NoShowAttendeesDialog = ({
     timeZone?: string;
   }>;
   bookingUid: string;
-  setDialog: () => void;
-  setIsOpen: (open: boolean) => void;
-  isOpen: boolean;
+  closeNoShowDialog: () => void;
 }) => {
   const { t } = useLocale();
   const [noShowAttendees, setNoShowAttendees] = useState(
@@ -635,71 +658,79 @@ const NoShowAttendeesDialog = ({
       await utils.viewer.bookings.invalidate();
 
       setLoading(false);
-      setDialog();
+      closeNoShowDialog();
     },
     onError: (err) => {
       triggerToast(err.message, "error");
     },
   });
 
+  const toggleAttendee = (email: string) => {
+    setNoShowAttendees((prev) => prev.map((a) => (a.email === email ? { ...a, noShow: !a.noShow } : a)));
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={() => setDialog()}>
+      onClick={() => closeNoShowDialog()}>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        className="bg-default w-full max-w-md rounded-lg p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}>
-        <div className="bg-default w-full max-w-md rounded-lg p-6 shadow-xl">
-          <h2 className="mb-2 text-xl font-semibold">{t("mark_as_no_show_title")}</h2>
-          <p className="mb-6 text-sm text-gray-600">{t("no_show_description")}</p>
+        <h2 className="mb-2 text-xl font-semibold">{t("mark_as_no_show_title")}</h2>
+        <p className="mb-6 text-sm text-gray-600">{t("no_show_description")}</p>
 
-          <div className="mb-6 space-y-4">
-            {noShowAttendees.map((attendee, index) => (
-              <div key={index} className="flex items-center justify-between rounded-lg p-2 hover:bg-gray-50">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-default flex h-7 w-7 items-center justify-center rounded-full">
-                    <span className="text-default text-sm font-medium">
-                      {(attendee.name || attendee?.email).charAt(0)}
-                    </span>
-                  </div>
-                  <span className="text-sm font-medium">{attendee?.name || attendee?.email}</span>
+        <div className="mb-6 space-y-4">
+          {noShowAttendees.map((attendee, index) => (
+            <div
+              key={index}
+              className="flex cursor-pointer items-center justify-between rounded-lg p-2 hover:bg-gray-50"
+              onClick={() => toggleAttendee(attendee.email)}>
+              <div className="flex items-center space-x-3">
+                <div className="bg-default flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full">
+                  <span className="text-default text-sm font-medium">
+                    {(attendee.name || attendee.email).charAt(0).toUpperCase()}
+                  </span>
                 </div>
-
-                <Checkbox
-                  key={attendee.email}
-                  checked={attendee.noShow}
-                  onCheckedChange={(checked) => {
-                    setNoShowAttendees((prev) =>
-                      prev.map((a) => (a.email === attendee.email ? { ...a, noShow: checked === true } : a))
-                    );
-                  }}
-                />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{attendee.name || attendee.email}</span>
+                  {attendee.name && <span className="text-default text-xs">{attendee.email}</span>}
+                </div>
               </div>
-            ))}
-          </div>
 
-          <div className="flex justify-end space-x-3">
-            <Button color="secondary" onClick={() => setDialog(false)}>
-              Cancel
-            </Button>
-            <Button
-              loading={loading}
-              onClick={(e) => {
-                e.preventDefault();
-                setLoading(true);
-                noShowAttendees.forEach((attendee) => {
-                  const originalAttendee = attendees.find((e) => e.email === attendee.email);
-                  if (originalAttendee && originalAttendee.noShow !== attendee.noShow) {
-                    noShowMutation.mutate({
-                      bookingUid,
-                      attendees: [{ email: attendee.email, noShow: attendee.noShow }],
-                    });
-                  }
-                });
-              }}>
-              {t("mark_as_no_show")}
-            </Button>
-          </div>
+              <Checkbox
+                checked={attendee.noShow}
+                onCheckedChange={(checked) => {
+                  setNoShowAttendees((prev) =>
+                    prev.map((a) => (a.email === attendee.email ? { ...a, noShow: checked === true } : a))
+                  );
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end space-x-3">
+          <Button color="secondary" onClick={() => closeNoShowDialog()}>
+            Cancel
+          </Button>
+          <Button
+            loading={loading}
+            onClick={(e) => {
+              e.preventDefault();
+              setLoading(true);
+              noShowAttendees.forEach((attendee) => {
+                const originalAttendee = attendees.find((e) => e.email === attendee.email);
+                if (originalAttendee && originalAttendee.noShow !== attendee.noShow) {
+                  noShowMutation.mutate({
+                    bookingUid,
+                    attendees: [{ email: attendee.email, noShow: attendee.noShow }],
+                  });
+                }
+              });
+            }}>
+            {t("update_no_show_status")}
+          </Button>
         </div>
       </div>
     </div>

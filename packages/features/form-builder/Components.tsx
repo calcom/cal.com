@@ -1,4 +1,5 @@
 import { Icon } from "@calid/features/ui/components/icon";
+import { AttachmentUploader } from "@calid/features/ui/components/uploader";
 import { useEffect } from "react";
 import type { z } from "zod";
 
@@ -29,6 +30,13 @@ export const isValidValueProp: Record<Component["propsType"], (val: unknown) => 
   text: (val) => typeof val === "string",
   textList: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
   variants: (val) => (typeof val === "object" && val !== null) || typeof val === "string",
+  attachment: (val) =>
+    typeof val === "object" &&
+    val !== null &&
+    "name" in val &&
+    "url" in val &&
+    "size" in val &&
+    "type" in val,
 };
 
 type Component =
@@ -66,6 +74,32 @@ type Component =
           name?: string;
           required?: boolean;
           translatedDefaultLabel?: string;
+        }
+      >(
+        props: TProps
+      ) => JSX.Element;
+    }
+  | {
+      propsType: "attachment";
+      factory: <
+        TProps extends {
+          value: {
+            name: string;
+            url: string;
+            dataUrl?: string;
+            size: number;
+            type: string;
+          };
+          setValue: (value: {
+            name: string;
+            url: string;
+            dataUrl?: string;
+            size: number;
+            type: string;
+          }) => void;
+          readOnly?: boolean;
+          name?: string;
+          label?: string;
         }
       >(
         props: TProps
@@ -535,6 +569,42 @@ export const Components: Record<FieldType, Component> = {
             description=""
             // Form Builder ensures that it would be safe HTML in here if the field type supports it. So, we can safely use label value in `descriptionAsSafeHtml`
             descriptionAsSafeHtml={label ?? ""}
+          />
+        </div>
+      );
+    },
+  },
+  attachment: {
+    propsType: propsTypes.attachment,
+    factory: function Attachment({ value, setValue, readOnly, name, label }) {
+      return (
+        <div className="space-y-3">
+          <AttachmentUploader
+            id={`${name}-uploader`}
+            disabled={readOnly}
+            onFilesChange={(allFiles) => {
+              const latest = allFiles[allFiles.length - 1];
+              if (!latest) {
+                setValue({
+                  name: "",
+                  url: "",
+                  size: 0,
+                  type: "",
+                } as {
+                  name: string;
+                  url: string;
+                  size: number;
+                  type: string;
+                });
+                return;
+              }
+              setValue({
+                name: latest.file.name,
+                url: latest.url || "",
+                size: latest.file.size,
+                type: latest.file.type,
+              });
+            }}
           />
         </div>
       );

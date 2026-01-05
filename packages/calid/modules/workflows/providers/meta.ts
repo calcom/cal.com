@@ -5,12 +5,13 @@ import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { INNGEST_ID, META_API_VERSION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { WorkflowActions } from "@calcom/prisma/enums";
-import { SMSLockState, WorkflowTemplates, WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
+import type { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import { SMSLockState, WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
 import { inngestClient } from "@calcom/web/pages/api/inngest";
 
 import { META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import type { VariablesType } from "../templates/customTemplate";
+import { defaultTemplateNamesMap, defaultTemplateComponentsMap } from "./meta_default_templates";
 
 // Meta error is retriable, other errors shouldn't be retried by inngest else we risk spamming
 export class MetaError extends Error {
@@ -25,6 +26,7 @@ export class MetaError extends Error {
 }
 
 interface MetaMessageConfiguration {
+  action: WorkflowActions;
   eventTypeId?: number | null;
   workflowId?: number;
   workflowStepId?: number;
@@ -117,152 +119,6 @@ const formatPhoneNumber = (phoneNumber: string): string => {
   // Remove any non-digit characters except +
   cleaned = cleaned.replace(/[^\d+]/g, "");
   return cleaned;
-};
-
-const defaultTemplateNamesMap: Partial<Record<WorkflowTemplates, string>> = {
-  [WorkflowTemplates.REMINDER]: "reminder",
-  [WorkflowTemplates.CANCELLED]: "cancelled",
-  [WorkflowTemplates.RESCHEDULED]: "reschedule",
-  [WorkflowTemplates.COMPLETED]: "completed",
-};
-
-const defaultTemplateComponentsMap: Partial<Record<WorkflowTemplates, string>> = {
-  [WorkflowTemplates.REMINDER]: {
-    components: [
-      {
-        text: "Hi {{attendee_name}}, this is a reminder that your meeting ({{event_name}}) with {{organizer_name}} is on {{event_date}} at {{event_time}}. Thanks.",
-        type: "BODY",
-        example: {
-          body_text_named_params: [
-            {
-              example: "John",
-              param_name: "attendee_name",
-            },
-            {
-              example: "Chat",
-              param_name: "event_name",
-            },
-            {
-              example: "Jane",
-              param_name: "organizer_name",
-            },
-            {
-              example: "12 march, 2025",
-              param_name: "event_date",
-            },
-            {
-              example: "3 PM IST",
-              param_name: "event_time",
-            },
-          ],
-        },
-      },
-    ],
-    sub_category: "CUSTOM",
-    parameter_format: "NAMED",
-  },
-  [WorkflowTemplates.CANCELLED]: {
-    components: [
-      {
-        text: "Hi {{attendee_name}}, your scheduled meeting ({{event_name}}) with {{organizer_name}} on {{event_date}} at {{event_time}} has now been officially cancelled.",
-        type: "BODY",
-        example: {
-          body_text_named_params: [
-            {
-              example: "John",
-              param_name: "attendee_name",
-            },
-            {
-              example: "Chat",
-              param_name: "event_name",
-            },
-            {
-              example: "Jane",
-              param_name: "organizer_name",
-            },
-            {
-              example: "12 march, 2025",
-              param_name: "event_date",
-            },
-            {
-              example: "3 PM IST",
-              param_name: "event_time",
-            },
-          ],
-        },
-      },
-    ],
-    sub_category: "CUSTOM",
-    parameter_format: "NAMED",
-  },
-  [WorkflowTemplates.RESCHEDULED]: {
-    components: [
-      {
-        text: "Hi {{attendee_name}}, your meeting ({{event_name}}) with {{organizer_name}} has been rescheduled successfully to {{event_date}} at {{event_time}} as of now.",
-        type: "BODY",
-        example: {
-          body_text_named_params: [
-            {
-              example: "John",
-              param_name: "attendee_name",
-            },
-            {
-              example: "Chat",
-              param_name: "event_name",
-            },
-            {
-              example: "Jane",
-              param_name: "organizer_name",
-            },
-            {
-              example: "12 march, 2025",
-              param_name: "event_date",
-            },
-            {
-              example: "3 PM IST",
-              param_name: "event_time",
-            },
-          ],
-        },
-      },
-    ],
-    sub_category: "CUSTOM",
-    parameter_format: "NAMED",
-  },
-  [WorkflowTemplates.COMPLETED]: {
-    components: [
-      {
-        text: "Hi {{attendee_name}}, thank you for attending the event ({{event_name}}) on {{event_date}} at {{event_time}}.",
-        type: "BODY",
-        example: {
-          body_text_named_params: [
-            {
-              example: "John",
-              param_name: "attendee_name",
-            },
-            {
-              example: "Chat",
-              param_name: "event_name",
-            },
-            {
-              example: "Jane",
-              param_name: "organizer_name",
-            },
-            {
-              example: "12 march, 2025",
-              param_name: "event_date",
-            },
-            {
-              example: "3 PM IST",
-              param_name: "event_time",
-            },
-          ],
-        },
-      },
-    ],
-    sub_category: "CUSTOM",
-    parameter_format: "NAMED",
-  },
 };
 
 interface TemplateComponent {
@@ -672,7 +528,10 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
       ? ((whatsappPhone.templates as Prisma.JsonArray).find(
           (e: any) => e?.name === config.metaTemplateName
         ) as WhatsAppTemplate | undefined)
-      : defaultTemplateComponentsMap[config.templateType];
+      : defaultTemplateComponentsMap(
+          config.templateType,
+          config.action.includes("ATTENDEE") ? "attendee" : "organizer"
+        );
 
     if (!template) {
       throw new Error(`Template ${config.metaTemplateName} not found in WhatsApp phone configuration`);
@@ -697,7 +556,12 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
 
     messagePayload.type = "template";
     messagePayload.template = {
-      name: config.metaTemplateName ?? defaultTemplateNamesMap[config.templateType],
+      name:
+        config.metaTemplateName ??
+        defaultTemplateNamesMap(
+          config.templateType!,
+          config.action.includes("ATTENDEE") ? "attendee" : "organizer"
+        ),
       language: {
         code: template.language || "en",
       },
@@ -745,7 +609,6 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
 
     result = await response.json();
 
-    // Create workflow insights BEFORE sending WhatsApp message
     if (config.eventTypeId) {
       await createWorkflowInsight(
         result.messages?.[0]?.id,
@@ -774,6 +637,7 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
 
 // Export functions matching Twilio provider interface
 export const sendSMS = async (args: {
+  action: WorkflowActions;
   eventTypeId?: number | null;
   workflowId?: number;
   workflowStepId?: number;
@@ -788,6 +652,7 @@ export const sendSMS = async (args: {
   seatReferenceUid?: string | null;
 }) => {
   return sendMetaWhatsAppMessage({
+    action: args.action,
     eventTypeId: args.eventTypeId,
     workflowId: args.workflowId,
     workflowStepId: args.workflowStepId,
@@ -804,6 +669,7 @@ export const sendSMS = async (args: {
 };
 
 export const scheduleSMS = async (args: {
+  action: WorkflowActions;
   phoneNumber: string;
   scheduledDate: Date;
   userId?: number | null;
@@ -819,6 +685,7 @@ export const scheduleSMS = async (args: {
   eventTypeId?: number | null;
 }) => {
   return scheduleMetaWhatsAppMessage({
+    action: args.action,
     recipientNumber: args.phoneNumber,
     accountId: args.userId,
     organizationId: args.teamId,
@@ -840,8 +707,7 @@ export const cancelSMS = async (referenceId: string) => {
 };
 
 /**
- * Schedule a WhatsApp message using Inngest instead of in-memory storage
- * This replaces the previous pseudo-scheduling implementation
+ * Schedule a WhatsApp message using Inngest instead of in-memory storage for delayed notifications
  */
 const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) => {
   const isRestricted = await validateSendingPermissions(config.accountId, config.organizationId);
@@ -864,6 +730,7 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
       bookingUid: config.bookingUid,
       workflowStepId: config.workflowStepId,
       method: "WHATSAPP",
+      seatReferenceId: config.seatReferenceUid || null,
     },
   });
 
@@ -924,6 +791,7 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
     const { ids } = await inngestClient.send({
       name: `whatsapp/reminder.scheduled-${key}`,
       data: {
+        action: config.action,
         eventTypeId: config.eventTypeId,
         workflowId: config.workflowId,
         workflowStepId: config.workflowStepId,

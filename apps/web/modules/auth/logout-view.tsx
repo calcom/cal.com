@@ -1,9 +1,9 @@
 "use client";
 
+import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Logo } from "@calid/features/ui/components/logo";
-import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import type { ParsedUrlQuery } from "querystring";
 import { useEffect, useState } from "react";
@@ -24,6 +24,11 @@ export function Logout(props: PageProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.query?.survey]);
+
+  // Reset Crisp session on logout
+  useEffect(() => {
+    resetCrispSession();
+  }, []);
   const { t } = useLocale();
 
   const message = () => {
@@ -38,8 +43,8 @@ export function Logout(props: PageProps) {
   };
 
   return (
-      <div className="dark:bg-default flex  min-h-screen flex-col items-center justify-center bg-[#F0F5FF] p-4">
-        <div className="p-10 bg-default dark:border-gray-550 w-full max-w-7xl overflow-hidden rounded-3xl border shadow-xl md:max-w-[600px] dark:shadow-none">
+    <div className="dark:bg-default flex  min-h-screen flex-col items-center justify-center bg-[#F0F5FF] p-4">
+      <div className="bg-default dark:border-gray-550 w-full max-w-7xl overflow-hidden rounded-3xl border p-10 shadow-xl md:max-w-[600px] dark:shadow-none">
         <div className="text-center">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
             <Icon name="check" className="h-8 w-8 text-green-600" />

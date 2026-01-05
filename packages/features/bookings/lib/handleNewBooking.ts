@@ -23,13 +23,9 @@ import {
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import {
-  sendAttendeeRequestEmailAndSMS,
-  sendOrganizerRequestEmail,
-  sendRescheduledEmailsAndSMS,
   sendRoundRobinCancelledEmailsAndSMS,
   sendRoundRobinRescheduledEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
-  sendScheduledEmailsAndSMS,
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
@@ -108,6 +104,7 @@ import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPay
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
+import { getCalEventResponses } from "./getCalEventResponses";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
 import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
@@ -127,7 +124,9 @@ import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
 import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
 import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
+import { processAttachmentResponses } from "./handleNewBooking/processAttachmentResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
+import { triggerBookingEmailsInngest } from "./handleNewBooking/triggerBookingEmailsInngest";
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
@@ -491,6 +490,22 @@ async function handler(
     eventType,
     schema: bookingDataSchema,
   });
+
+  if (bookingData.responses) {
+    const processedResponses = await processAttachmentResponses({
+      responses: bookingData.responses,
+      bookingFields: eventType.bookingFields,
+    });
+
+    const calEventResponses = getCalEventResponses({
+      bookingFields: eventType.bookingFields,
+      responses: processedResponses,
+    });
+
+    bookingData.responses = processedResponses;
+    bookingData.calEventResponses = calEventResponses.responses;
+    bookingData.calEventUserFieldsResponses = calEventResponses.userFieldsResponses;
+  }
 
   const {
     recurringCount,
@@ -1912,16 +1927,19 @@ async function handler(
         }
       } else {
         if (!isDryRun) {
-          // send normal rescheduled emails (non round robin event, where organizers stay the same)
-          await sendRescheduledEmailsAndSMS(
-            {
+          // Send rescheduled emails asynchronously via Inngest to improve reschedule response time
+          await triggerBookingEmailsInngest({
+            calEvent: {
               ...copyEvent,
               additionalInformation: metadata,
               additionalNotes, // Resets back to the additionalNote input and not the override value
               cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
             },
-            eventType?.metadata
-          );
+            isHostConfirmationEmailsDisabled: false,
+            isAttendeeConfirmationEmailDisabled: false,
+            eventTypeMetadata: eventType?.metadata,
+            emailType: "rescheduled",
+          });
         }
       }
     }
@@ -2053,8 +2071,9 @@ async function handler(
         );
 
         if (!isDryRun) {
-          await sendScheduledEmailsAndSMS(
-            {
+          // Send emails asynchronously via Inngest to improve booking response time
+          await triggerBookingEmailsInngest({
+            calEvent: {
               ...evt,
               additionalInformation,
               additionalNotes,
@@ -2063,8 +2082,9 @@ async function handler(
             eventNameObject,
             isHostConfirmationEmailsDisabled,
             isAttendeeConfirmationEmailDisabled,
-            eventType.metadata
-          );
+            eventTypeMetadata: eventType.metadata,
+            emailType: "scheduled",
+          });
         }
       }
     }
@@ -2094,8 +2114,15 @@ async function handler(
       })
     );
     if (!isDryRun) {
-      await sendOrganizerRequestEmail({ ...evt, additionalNotes }, eventType.metadata);
-      await sendAttendeeRequestEmailAndSMS({ ...evt, additionalNotes }, attendeesList[0], eventType.metadata);
+      // Send request emails asynchronously via Inngest for pending bookings
+      await triggerBookingEmailsInngest({
+        calEvent: { ...evt, additionalNotes },
+        isHostConfirmationEmailsDisabled: false,
+        isAttendeeConfirmationEmailDisabled: false,
+        eventTypeMetadata: eventType.metadata,
+        emailType: "request",
+        firstAttendee: attendeesList[0],
+      });
     }
   }
 

@@ -14,6 +14,7 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
   forcedGet?: boolean
 ): EventTypeApps[T] => {
   const metadata = eventType.metadata;
+  console.log("Meta: ", JSON.stringify(metadata))
   const appMetadata = metadata?.apps && metadata.apps[appId];
   if (appMetadata) {
     const allowDataGet = forcedGet ? true : appMetadata.enabled;

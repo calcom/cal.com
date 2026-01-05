@@ -906,10 +906,6 @@ export async function getBookings({
         }
       }
 
-      console.log("in_here_booking.calIdWorkflowInsights", booking.calIdWorkflowInsights);
-      console.log("in_here_booking.calIdWorkflowReminders", booking.calIdWorkflowReminders);
-      console.log("in_here_booking.seatsReferences", booking.seatsReferences);
-
       // NEW: Normalize workflow insights
       const workflowInsights = normalizeWorkflowInsights(
         booking.calIdWorkflowInsights || [],
@@ -1281,7 +1277,7 @@ function normalizeWorkflowInsights(
 
   if (!isMultiSeat) {
     // Single seat booking - return flat array
-    return normalizeWorkflowsForSingleSeat(workflowInsights, workflowReminders);
+    return normalizeWorkflowsForSingleSeat(workflowInsights, workflowReminders, false);
   } else {
     // Multi-seat booking - group by attendee
     return normalizeWorkflowsForMultiSeat(workflowInsights, workflowReminders, seatsReferences);
@@ -1290,11 +1286,12 @@ function normalizeWorkflowInsights(
 
 function normalizeWorkflowsForSingleSeat(
   workflowInsights: any[],
-  workflowReminders: any[]
+  workflowReminders: any[],
+  isPreFilteredForSeat = false
 ): WorkflowInsight[] {
   const workflowMap = new Map<number | string, WorkflowInsight>();
-  const processedInsights = new Set<string>(); // Track processed insights by msgId
-  const processedReminders = new Set<number>(); // Track processed reminders by id
+  const processedInsights = new Set<string>();
+  const processedReminders = new Set<number>();
 
   // Process workflow insights
   for (const insight of workflowInsights) {
@@ -1302,7 +1299,6 @@ function normalizeWorkflowsForSingleSeat(
     const isDefault = !insight.workflowId || insightMetadata?.isMandatoryReminder;
     const workflowId = isDefault ? "default" : insight.workflowId;
 
-    // Initialize workflow in map if not exists
     if (!workflowMap.has(workflowId)) {
       if (isDefault) {
         workflowMap.set(workflowId, {
@@ -1329,7 +1325,7 @@ function normalizeWorkflowsForSingleSeat(
     // Find matching reminder for this insight
     const matchingReminder = workflowReminders.find(
       (r) =>
-        !r.seatReferenceId &&
+        (isPreFilteredForSeat || !r.seatReferenceId) &&
         ((insight.workflowStepId && r.workflowStepId === insight.workflowStepId) ||
           (isDefault && r.isMandatoryReminder))
     );
@@ -1338,16 +1334,14 @@ function normalizeWorkflowsForSingleSeat(
       processedReminders.add(matchingReminder.id);
     }
 
-    // For default reminders without workflowStep
     if (isDefault && !insight.workflowStep) {
       workflowData.steps.push({
-        workflowStepId: null, // Use msgId as unique identifier
+        workflowStepId: null,
         stepName: "Email to attendee",
         channel: "EMAIL",
         status: resolveWorkflowStepStatus(insight, matchingReminder),
       });
     } else if (insight.workflowStep) {
-      // Regular workflow with workflowStep
       workflowData.steps.push({
         workflowStepId: insight.workflowStep.id,
         stepName: getReadableStepName(insight.workflowStep.action),
@@ -1361,15 +1355,18 @@ function normalizeWorkflowsForSingleSeat(
 
   // Process reminders that don't have corresponding insights
   for (const reminder of workflowReminders) {
-    // Skip if already processed or if it's seat-specific
-    if (processedReminders.has(reminder.id) || reminder.seatReferenceId) {
+    if (processedReminders.has(reminder.id)) {
+      continue;
+    }
+
+    if (!isPreFilteredForSeat && reminder.seatReferenceId) {
       continue;
     }
 
     // Check if this reminder was already covered by an insight
     const hasCorrespondingInsight = workflowInsights.some(
       (i) =>
-        !i.bookingSeatReferenceUid &&
+        (isPreFilteredForSeat || !i.bookingSeatReferenceUid) &&
         ((i.workflowStepId && i.workflowStepId === reminder.workflowStepId) ||
           (reminder.isMandatoryReminder &&
             !i.workflowId &&
@@ -1380,11 +1377,9 @@ function normalizeWorkflowsForSingleSeat(
       continue;
     }
 
-    // This reminder exists without an insight
     const isDefault = reminder.isMandatoryReminder || !reminder.workflowStepId;
     const workflowId = isDefault ? "default" : reminder.workflowStep?.workflow?.id || "default";
 
-    // Initialize workflow in map if not exists
     if (!workflowMap.has(workflowId)) {
       if (isDefault) {
         workflowMap.set(workflowId, {
@@ -1406,7 +1401,6 @@ function normalizeWorkflowsForSingleSeat(
 
     const workflowData = workflowMap.get(workflowId)!;
 
-    // Add step from reminder
     if (isDefault) {
       workflowData.steps.push({
         workflowStepId: `reminder-${reminder.id}`,
@@ -1424,23 +1418,16 @@ function normalizeWorkflowsForSingleSeat(
     }
   }
 
-  // Convert map to array
   const workflows = Array.from(workflowMap.values());
 
-  // Sort workflows: regular workflows first, then default at the end
   workflows.sort((a, b) => {
     if (a.workflowId === "default" && b.workflowId !== "default") return 1;
     if (a.workflowId !== "default" && b.workflowId === "default") return -1;
-
-    // For regular workflows, sort by trigger timing (earlier triggers first)
-    // This is a simple heuristic - you may want to enhance this based on actual time values
     if (a.trigger.includes("before") && b.trigger.includes("after")) return -1;
     if (a.trigger.includes("after") && b.trigger.includes("before")) return 1;
-
-    return 0; // Maintain order for same category
+    return 0;
   });
 
-  // Remove workflows with no steps (shouldn't happen, but safety check)
   return workflows.filter((w) => w.steps.length > 0);
 }
 
@@ -1451,7 +1438,6 @@ function normalizeWorkflowsForMultiSeat(
 ): AttendeeWorkflowInsight[] {
   const attendeeMap = new Map<number, AttendeeWorkflowInsight>();
 
-  // Initialize map with attendees from seats
   for (const seat of seatsReferences) {
     if (seat.attendee) {
       attendeeMap.set(seat.attendeeId, {
@@ -1462,21 +1448,17 @@ function normalizeWorkflowsForMultiSeat(
     }
   }
 
-  // Group insights and reminders by attendee
-  for (const [attendeeId, attendeeData] of attendeeMap.entries()) {
+  for (const [attendeeId, attendeeData] of Array.from(attendeeMap.entries())) {
     const seatRef = seatsReferences.find((s) => s.attendeeId === attendeeId);
     const seatReferenceUid = seatRef?.referenceUid;
 
-    // Filter insights for this attendee
     const attendeeInsights = workflowInsights.filter((i) => i.bookingSeatReferenceUid === seatReferenceUid);
 
-    // Filter reminders for this attendee
     const attendeeReminders = workflowReminders.filter(
       (r) => r.seatReferenceId === seatReferenceUid || r.attendeeId === attendeeId
     );
 
-    // Normalize workflows for this attendee
-    attendeeData.workflows = normalizeWorkflowsForSingleSeat(attendeeInsights, attendeeReminders);
+    attendeeData.workflows = normalizeWorkflowsForSingleSeat(attendeeInsights, attendeeReminders, true);
   }
 
   return Array.from(attendeeMap.values());

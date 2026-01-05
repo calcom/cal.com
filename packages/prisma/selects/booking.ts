@@ -7,7 +7,7 @@ export const bookingMinimalSelect = {
   description: true,
   customInputs: true,
   startTime: true,
-  endTime: true,
   attendees: true,
+  endTime: true,
   metadata: true,
 } satisfies Prisma.BookingSelect;
