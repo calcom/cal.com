@@ -1,4 +1,4 @@
-import { ExperimentsRepository } from "@calcom/features/experiments";
+import { ExperimentsRepository } from "@calcom/features/experiments/experiments.repository";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TMigrateToWinnerSchema } from "./migrateToWinner.schema";

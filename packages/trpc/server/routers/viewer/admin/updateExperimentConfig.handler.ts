@@ -1,4 +1,5 @@
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import { prisma } from "@calcom/prisma";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TUpdateExperimentConfigSchema } from "./updateExperimentConfig.schema";
 
@@ -9,9 +10,7 @@ type UpdateExperimentConfigOptions = {
   input: TUpdateExperimentConfigSchema;
 };
 
-export default async function updateExperimentConfigHandler({ ctx, input }: UpdateExperimentConfigOptions) {
-  const { prisma } = ctx;
-
+export default async function updateExperimentConfigHandler({ input }: UpdateExperimentConfigOptions) {
   const feature = await prisma.feature.findUnique({
     where: { slug: input.slug },
     select: { type: true },

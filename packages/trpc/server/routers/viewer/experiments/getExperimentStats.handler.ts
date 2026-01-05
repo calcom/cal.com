@@ -9,13 +9,13 @@ interface GetExperimentStatsOptions {
   input: TGetExperimentStatsSchema;
 }
 
-interface VariantStats {
+export interface VariantStats {
   variant: string;
   count: number;
   percentage: number;
 }
 
-interface ExperimentStats {
+export interface ExperimentStats {
   experimentSlug: string;
   totalAssignments: number;
   variantStats: VariantStats[];

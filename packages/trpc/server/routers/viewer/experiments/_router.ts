@@ -1,4 +1,4 @@
-import { ExperimentsRepository } from "@calcom/features/experiments";
+import { ExperimentsRepository } from "@calcom/features/experiments/experiments.repository";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 import { z } from "zod";
