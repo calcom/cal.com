@@ -1,14 +1,12 @@
 {
   "name": "@calcom/platform-types",
   "version": "0.0.0",
-  "main": "./dist/index.js",
-  "types": "./dist/index.js",
+  "main": "./index.ts",
+  "types": "./index.ts",
   "private": true,
-  "scripts": {
-    "build": "yarn clean && tsc --build --force tsconfig.json",
-    "clean": "rm -rf ./dist",
-    "build:watch": "tsc --build --force ./tsconfig.json --watch",
-    "post-install": "yarn build"
+  "exports": {
+    ".": "./index.ts",
+    "./*": "./*.ts"
   },
   "dependencies": {
     "@calcom/platform-constants": "workspace:*",
