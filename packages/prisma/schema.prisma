@@ -1677,21 +1677,23 @@ model VerifiedEmail {
 
 model Feature {
   // The feature slug, ex: 'v2-workflows'
-  slug        String         @id @unique
+  slug        String              @id @unique
   // If the feature is currently enabled
-  enabled     Boolean        @default(false)
+  enabled     Boolean             @default(false)
   // A short description of the feature
   description String?
   // The type of feature flag
-  type        FeatureType?   @default(RELEASE)
+  type        FeatureType?        @default(RELEASE)
+  metadata    Json?
   // If the flag is considered stale
-  stale       Boolean?       @default(false)
+  stale       Boolean?            @default(false)
   lastUsedAt  DateTime?
-  createdAt   DateTime?      @default(now())
-  updatedAt   DateTime?      @default(now()) @updatedAt
+  createdAt   DateTime?           @default(now())
+  updatedAt   DateTime?           @default(now()) @updatedAt
   updatedBy   Int?
   users       UserFeatures[]
   teams       TeamFeatures[]
+  experiments ExperimentVariant[]
 
   @@index([enabled])
   @@index([stale])
@@ -1731,6 +1733,29 @@ enum FeatureType {
   OPERATIONAL
   KILL_SWITCH
   PERMISSION
+}
+
+enum ExperimentAssignmentType {
+  DETERMINISTIC
+  RANDOM
+}
+
+model ExperimentVariant {
+  id             String                   @id @default(uuid())
+  experimentSlug String
+  variant        String
+  userId         Int?
+  teamId         Int?
+  assignmentType ExperimentAssignmentType
+  assignedAt     DateTime                 @default(now())
+  metadata       Json?
+  feature        Feature                  @relation(fields: [experimentSlug], references: [slug], onDelete: Cascade)
+
+  @@unique([experimentSlug, userId])
+  @@unique([experimentSlug, teamId])
+  @@index([experimentSlug])
+  @@index([userId])
+  @@index([teamId])
 }
 
 enum RRResetInterval {
