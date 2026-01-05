@@ -118,7 +118,11 @@ const defaultProps = {
       hasDataErrors: false,
       dataErrors: null,
     },
-    loadingStates: {},
+    loadingStates: {
+      creatingBooking: false,
+      creatingRecurringBooking: false,
+      creatingInstantBooking: false,
+    },
     expiryTime: undefined,
     instantVideoMeetingUrl: "",
     bookingForm: {
