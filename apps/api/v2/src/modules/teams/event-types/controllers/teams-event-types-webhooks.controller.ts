@@ -22,7 +22,7 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator";
 import { IsTeamEventTypeWebhookGuard } from "@/modules/webhooks/guards/is-team-event-type-webhook-guard";
-import type { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import {
   EventTypeWebhookOutputDto,
   type EventTypeWebhookOutputResponseDto,
@@ -31,8 +31,8 @@ import {
 import type { DeleteManyWebhooksOutputResponseDto } from "@/modules/webhooks/outputs/webhook.output";
 import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
-import type { TeamEventTypeWebhooksService } from "@/modules/webhooks/services/team-event-type-webhooks.service";
-import type { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
+import { TeamEventTypeWebhooksService } from "@/modules/webhooks/services/team-event-type-webhooks.service";
+import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 
 @Controller({
   path: "/v2/teams/:teamId/event-types/:eventTypeId/webhooks",
