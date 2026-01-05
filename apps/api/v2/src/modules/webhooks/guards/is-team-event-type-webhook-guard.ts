@@ -9,9 +9,9 @@ import {
 } from "@nestjs/common";
 import type { Request } from "express";
 import type { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import type { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import type { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import type { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 
 @Injectable()
 export class IsTeamEventTypeWebhookGuard implements CanActivate {
