@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
-/// <reference path="../../../src/types/ical.d.ts"/>
+/// <reference path="../../../../types/ical.d.ts"/>
 import ICAL from "ical.js";
 
 import dayjs from "@calcom/dayjs";
