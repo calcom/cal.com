@@ -14,6 +14,7 @@ const statusMap = {
   read: WorkflowStatus.READ,
   undelivered: WorkflowStatus.FAILED,
   failed: WorkflowStatus.FAILED,
+  sent: WorkflowStatus.DELIVERED,
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -43,8 +44,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // ONLY update existing workflow insights - never create new ones
     log.info("Updating workflow insights for SMS/WhatsApp event", { msgId, event, status, channel });
 
-    const existingInsight = await prisma.calIdWorkflowInsights.findUnique({
-      where: { msgId: msgId },
+    const existingInsight = await prisma.calIdWorkflowInsights.findFirst({
+      where: {
+        msgId: msgId,
+        status: {
+          not: WorkflowStatus.DELIVERED,
+        },
+      },
     });
 
     if (!existingInsight) {
