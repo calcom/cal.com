@@ -42,6 +42,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
   isDecliningAll = false,
   isCancellingAll = false,
   onPress,
+  onLongPress: _onLongPress, // Not used on iOS - native ContextMenu handles long-press
   onConfirmAll,
   onRejectAll,
   onCancelAllRemaining,

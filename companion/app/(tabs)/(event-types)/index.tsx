@@ -605,15 +605,7 @@ export default function EventTypes() {
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >
-        {filteredEventTypes.length === 0 && searchQuery.trim() !== "" ? (
-          <View className="flex-1 items-center justify-center bg-white p-5 pt-20">
-            <EmptyScreen
-              icon="search-outline"
-              headline={`No results found for "${searchQuery}"`}
-              description="Try searching with different keywords"
-            />
-          </View>
-        ) : filteredEventTypes.length === 0 && activeFilterCount > 0 ? (
+        {filteredEventTypes.length === 0 && activeFilterCount > 0 ? (
           <View className="flex-1 items-center justify-center bg-white p-5 pt-20">
             <EmptyScreen
               icon="filter-outline"

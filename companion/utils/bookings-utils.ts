@@ -299,13 +299,8 @@ export const groupRecurringBookings = (bookings: Booking[]): RecurringBookingGro
 
     const firstUpcoming = upcomingBookings[0] || sortedBookings[0];
 
-    // Count remaining (non-cancelled, non-rejected) bookings
-    const remainingCount = sortedBookings.filter((b) => {
-      const startTime = new Date(b.start || b.startTime || "");
-      const isCancelled = b.status?.toLowerCase() === "cancelled";
-      const isRejected = b.status?.toLowerCase() === "rejected";
-      return startTime >= now && !isCancelled && !isRejected;
-    }).length;
+    // Count remaining (non-cancelled, non-rejected) bookings - reuse upcomingBookings
+    const remainingCount = upcomingBookings.length;
 
     // Check if any booking requires confirmation
     const hasUnconfirmed = sortedBookings.some(

@@ -39,6 +39,27 @@ interface UseEventTypeFilterResult {
 }
 
 /**
+ * Helper function to sort event types by the given sort option.
+ */
+function sortEventTypes(eventTypes: EventType[], sortBy: EventTypeSortOption): EventType[] {
+  return [...eventTypes].sort((a, b) => {
+    switch (sortBy) {
+      case "alphabetical":
+        return a.title.localeCompare(b.title);
+      case "newest":
+        return b.id - a.id;
+      case "duration": {
+        const durationA = a.lengthInMinutes || a.length || 0;
+        const durationB = b.lengthInMinutes || b.length || 0;
+        return durationA - durationB;
+      }
+      default:
+        return 0;
+    }
+  });
+}
+
+/**
  * Hook to manage event type filtering and sorting.
  *
  * Supports:
@@ -92,26 +113,11 @@ export function useEventTypeFilter(): UseEventTypeFilterResult {
 
       // If NO filters are enabled, show ALL event types (no filtering)
       if (!hasAnyFilter) {
-        // Just apply sorting, no filtering
-        return [...eventTypes].sort((a, b) => {
-          switch (sortBy) {
-            case "alphabetical":
-              return a.title.localeCompare(b.title);
-            case "newest":
-              return b.id - a.id;
-            case "duration": {
-              const durationA = a.lengthInMinutes || a.length || 0;
-              const durationB = b.lengthInMinutes || b.length || 0;
-              return durationA - durationB;
-            }
-            default:
-              return 0;
-          }
-        });
+        return sortEventTypes(eventTypes, sortBy);
       }
 
       // Apply filters - each filter narrows down results (AND logic)
-      let filtered = eventTypes.filter((eventType) => {
+      const filtered = eventTypes.filter((eventType) => {
         // Hidden filter: when ON, show ONLY hidden events
         if (filters.hiddenOnly && eventType.hidden !== true) {
           return false;
@@ -167,25 +173,8 @@ export function useEventTypeFilter(): UseEventTypeFilterResult {
         return true;
       });
 
-      // Apply sorting
-      filtered = [...filtered].sort((a, b) => {
-        switch (sortBy) {
-          case "alphabetical":
-            return a.title.localeCompare(b.title);
-          case "newest":
-            // Sort by ID descending (higher ID = newer)
-            return b.id - a.id;
-          case "duration": {
-            const durationA = a.lengthInMinutes || a.length || 0;
-            const durationB = b.lengthInMinutes || b.length || 0;
-            return durationA - durationB;
-          }
-          default:
-            return 0;
-        }
-      });
-
-      return filtered;
+      // Apply sorting using helper function
+      return sortEventTypes(filtered, sortBy);
     },
     [sortBy, filters]
   );

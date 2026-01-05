@@ -6,9 +6,7 @@ import type { Booking } from "@/services/calcom";
 import type { RecurringBookingGroup } from "@/utils/bookings-utils";
 import { formatDate, formatTime, getHostAndAttendeesDisplay } from "@/utils/bookings-utils";
 import { getMeetingInfo } from "@/utils/meetings-utils";
-import { SvgImage } from "@/components/SvgImage";
-import { showErrorAlert } from "@/utils/alerts";
-import { Linking } from "react-native";
+import { MeetingLink } from "./BookingListItemParts";
 
 export interface RecurringBookingListItemProps {
   group: RecurringBookingGroup;
@@ -125,35 +123,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
         ) : null}
 
         {/* Meeting Link */}
-        {meetingInfo ? (
-          <View className="mb-1 flex-row">
-            <TouchableOpacity
-              className="flex-row items-center"
-              style={{ alignSelf: "flex-start" }}
-              hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-              onPress={async (e) => {
-                e.stopPropagation();
-                try {
-                  await Linking.openURL(meetingInfo.cleanUrl);
-                } catch {
-                  showErrorAlert("Error", "Failed to open meeting link. Please try again.");
-                }
-              }}
-            >
-              {meetingInfo.iconUrl ? (
-                <SvgImage
-                  uri={meetingInfo.iconUrl}
-                  width={16}
-                  height={16}
-                  style={{ marginRight: 6 }}
-                />
-              ) : (
-                <Ionicons name="videocam" size={16} color="#007AFF" style={{ marginRight: 6 }} />
-              )}
-              <Text className="text-sm font-medium text-cal-accent">{meetingInfo.label}</Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
+        <MeetingLink meetingInfo={meetingInfo} />
       </TouchableOpacity>
 
       {/* Action Buttons */}
