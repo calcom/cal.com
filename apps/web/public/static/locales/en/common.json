@@ -1298,6 +1298,8 @@
   "schedule_deleted_successfully": "Schedule deleted successfully",
   "default_schedule_name": "Working Hours",
   "new_schedule_heading": "Create an availability schedule",
+  "no_schedules_created_yet": "You haven't created any availability schedules yet. Create one to get started.",
+  "create_availability_schedule": "Create availability schedule",
   "new_schedule_description": "Creating availability schedules allows you to manage availability across event types. They can be applied to one or more event types.",
   "requires_ownership_of_a_token": "Requires ownership of a token belonging to the following address:",
   "example_name": "John Doe",
