@@ -1,20 +1,9 @@
-import { calendar_v3 } from "@googleapis/calendar";
-import { waitUntil } from "@vercel/functions";
-import { OAuth2Client } from "googleapis-common";
-import type { AuthOptions, Account, Session, User } from "next-auth";
-import type { JWT } from "next-auth/jwt";
-import { encode } from "next-auth/jwt";
-import type { Provider } from "next-auth/providers";
-import CredentialsProvider from "next-auth/providers/credentials";
-import EmailProvider from "next-auth/providers/email";
-import GoogleProvider from "next-auth/providers/google";
-
+import process from "node:process";
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-import type { TrackingData } from "@calcom/lib/tracking";
+import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
@@ -26,12 +15,14 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import {
+  ENABLE_PROFILE_SWITCHER,
   GOOGLE_CALENDAR_SCOPES,
   GOOGLE_OAUTH_SCOPES,
   HOSTED_CAL_FEATURES,
   IS_CALCOM,
+  IS_TEAM_BILLING_ENABLED,
+  WEBAPP_URL,
 } from "@calcom/lib/constants";
-import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
@@ -40,17 +31,26 @@ import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import slugify from "@calcom/lib/slugify";
+import type { TrackingData } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
 import type { Membership, Team } from "@calcom/prisma/client";
-import { CreationSource } from "@calcom/prisma/enums";
-import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
+import { CreationSource, IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
-
+import { calendar_v3 } from "@googleapis/calendar";
+import { waitUntil } from "@vercel/functions";
+import { OAuth2Client } from "googleapis-common";
+import type { Account, AuthOptions, Session, User } from "next-auth";
+import type { JWT } from "next-auth/jwt";
+import { encode } from "next-auth/jwt";
+import type { Provider } from "next-auth/providers";
+import CredentialsProvider from "next-auth/providers/credentials";
+import EmailProvider from "next-auth/providers/email";
+import GoogleProvider from "next-auth/providers/google";
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
-import { ErrorCode } from "./ErrorCode";
 import { dub } from "./dub";
-import { validateSamlAccountConversion } from "./samlAccountLinking";
+import { ErrorCode } from "./ErrorCode";
 import CalComAdapter from "./next-auth-custom-adapter";
+import { validateSamlAccountConversion } from "./samlAccountLinking";
 import { verifyPassword } from "./verifyPassword";
 import { UserProfile } from "@calcom/types/UserProfile";
 
@@ -122,11 +122,21 @@ export const checkIfUserBelongsToActiveTeam = <T extends UserTeams>(user: T) =>
 
 const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string) => {
   const [orgUsername, apexDomain] = email.split("@");
-  if (!ORGANIZATIONS_AUTOLINK || idP !== "GOOGLE") return { orgUsername, orgId: undefined };
-  const existingOrg = await prisma.team.findFirst({
+
+  // Only proceed if autolink is enabled and this is an OAuth provider (not CAL credentials)
+  if (!ORGANIZATIONS_AUTOLINK || idP === IdentityProvider.CAL) {
+    return { orgUsername, orgId: undefined };
+  }
+
+  // Find all orgs matching the domain with full conditions (aligned with email verification flow)
+  const matchingOrgs = await prisma.team.findMany({
     where: {
+      isOrganization: true,
+      isPlatform: false,
       organizationSettings: {
         isOrganizationVerified: true,
+        isAdminReviewed: true,
+        orgAutoJoinOnSignup: true,
         orgAutoAcceptEmail: apexDomain,
       },
     },
@@ -134,7 +144,17 @@ const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string
       id: true,
     },
   });
-  return { orgUsername, orgId: existingOrg?.id };
+
+  // If multiple orgs match, we cannot reliably determine which one to use
+  if (matchingOrgs.length > 1) {
+    logger.error(
+      "Multiple organizations found with the same auto accept email domain during OAuth signup",
+      safeStringify({ orgIds: matchingOrgs.map((org) => org.id), apexDomain })
+    );
+    return { orgUsername, orgId: undefined };
+  }
+
+  return { orgUsername, orgId: matchingOrgs[0]?.id };
 };
 
 /**
@@ -481,7 +501,7 @@ export const getOptions = ({
   getTrackingData: () => TrackingData;
 }): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   adapter: calcomAdapter,
   session: {
     strategy: "jwt",
@@ -616,14 +636,14 @@ export const getOptions = ({
           org:
             profileOrg && !profileOrg.isPlatform
               ? {
-                id: profileOrg.id,
-                name: profileOrg.name,
-                slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
-                logoUrl: profileOrg.logoUrl,
-                fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
-                domainSuffix: subdomainSuffix(),
-                role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
-              }
+                  id: profileOrg.id,
+                  name: profileOrg.name,
+                  slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                  logoUrl: profileOrg.logoUrl,
+                  fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
+                  domainSuffix: subdomainSuffix(),
+                  role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
+                }
               : null,
         } as JWT;
       };
@@ -842,7 +862,7 @@ export const getOptions = ({
       if (account?.provider) {
         const idP: IdentityProvider = mapIdentityProvider(account.provider);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore-error TODO validate email_verified key on profile
+        // @ts-expect-error-error TODO validate email_verified key on profile
         user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
 
         if (!user.email_verified) {
@@ -979,7 +999,11 @@ export const getOptions = ({
             // Verify SAML IdP is authoritative before auto-merge
             if (idP === IdentityProvider.SAML) {
               const samlTenant = (user as { samlTenant?: string }).samlTenant;
-              const validation = await validateSamlAccountConversion(samlTenant, user.email, "SelfHosted→SAML");
+              const validation = await validateSamlAccountConversion(
+                samlTenant,
+                user.email,
+                "SelfHosted→SAML"
+              );
               if (!validation.allowed) {
                 return validation.errorUrl;
               }
