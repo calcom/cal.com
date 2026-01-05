@@ -108,6 +108,9 @@ const defaultProps = {
     key: "form-key",
     bookerFormErrorRef: { current: null },
     formEmail: "",
+    formName: "",
+    beforeVerifyEmail: vi.fn(),
+    formErrors: {},
     bookingForm: {
       watch: vi.fn(),
       setValue: vi.fn(),
