@@ -41,8 +41,8 @@ describe("isValidImageUrl", () => {
     expect(isValidImageUrl("data:text/html,<script>alert(1)</script>")).toBe(false);
   });
 
-  test("rejects invalid URLs", () => {
-    expect(isValidImageUrl("not a url at all")).toBe(true); // relative path
+  test("accepts strings without protocol as relative paths", () => {
+    expect(isValidImageUrl("not a url at all")).toBe(true);
   });
 });
 
