@@ -47,7 +47,7 @@ interface MergeActivity {
  */
 function parseContactName(name: string | undefined, email: string) {
   if (name?.trim()) {
-    const parts = name.trim().split(/s+/);
+    const parts = name.trim().split(/\s+/);
     return { firstName: parts[0], lastName: parts.slice(1).join(" ") || "-" };
   }
   return { firstName: email.split("@")[0], lastName: "-" };
