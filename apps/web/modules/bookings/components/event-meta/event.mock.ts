@@ -1,7 +1,12 @@
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
-// biome-ignore lint/nursery/useExplicitType: test mock object with complex branded types
-export const mockEvent = {
+// Create a properly branded empty bookingFields array using the Zod schema
+const brandedBookingFields: BookerEvent["bookingFields"] = eventTypeBookingFields
+  .brand<"HAS_SYSTEM_FIELDS">()
+  .parse([]);
+
+export const mockEvent: BookerEvent = {
   id: 1,
   title: "Quick check-in",
   slug: "quick-check-in",
@@ -12,7 +17,7 @@ export const mockEvent = {
   locations: [{ type: "integrations:google:meet" }, { type: "integrations:zoom" }],
   // Required properties from BookerEvent type
   interfaceLanguage: null,
-  bookingFields: [],
+  bookingFields: brandedBookingFields,
   lockTimeZoneToggleOnBookingPage: false,
   lockedTimeZone: null,
   recurringEvent: null,
@@ -51,4 +56,4 @@ export const mockEvent = {
     image: undefined,
     bookerLayouts: null,
   },
-} satisfies Omit<BookerEvent, "bookingFields"> & { bookingFields: unknown[] };
+};
