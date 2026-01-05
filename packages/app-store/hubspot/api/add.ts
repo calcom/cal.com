@@ -11,6 +11,7 @@ const scopes = [
   "crm.objects.contacts.write",
   "crm.objects.companies.read",
   "crm.objects.companies.write",
+  "crm.objects.owners.read"
 ];
 
 const hubspotClient = new hubspot.Client();
