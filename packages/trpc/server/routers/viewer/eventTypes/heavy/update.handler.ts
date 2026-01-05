@@ -9,11 +9,16 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { AIPhoneCallConfigRepository } from "@calcom/features/eventtypes/repositories/AIPhoneCallConfigRepository";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { HostGroupRepository } from "@calcom/features/eventtypes/repositories/HostGroupRepository";
 import { HashedLinkRepository } from "@calcom/features/hashedLink/lib/repository/HashedLinkRepository";
 import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import tasker from "@calcom/features/tasker";
+import { SecondaryEmailRepository } from "@calcom/features/users/repositories/SecondaryEmailRepository";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -103,99 +108,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     ...rest
   } = input;
 
-  const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
-    where: { id },
-    select: {
-      title: true,
-      locations: true,
-      description: true,
-      seatsPerTimeSlot: true,
-      recurringEvent: true,
-      maxActiveBookingsPerBooker: true,
-      fieldTranslations: {
-        select: {
-          field: true,
-        },
-      },
-      isRRWeightsEnabled: true,
-      hosts: {
-        select: {
-          userId: true,
-          priority: true,
-          weight: true,
-          isFixed: true,
-        },
-      },
-      aiPhoneCallConfig: {
-        select: {
-          generalPrompt: true,
-          beginMessage: true,
-          enabled: true,
-          llmId: true,
-        },
-      },
-      calVideoSettings: {
-        select: {
-          disableRecordingForOrganizer: true,
-          disableRecordingForGuests: true,
-          enableAutomaticTranscription: true,
-          enableAutomaticRecordingForOrganizer: true,
-          requireEmailForGuests: true,
-          disableTranscriptionForGuests: true,
-          disableTranscriptionForOrganizer: true,
-          redirectUrlOnExit: true,
-        },
-      },
-      children: {
-        select: {
-          userId: true,
-        },
-      },
-      workflows: {
-        select: {
-          workflowId: true,
-        },
-      },
-      hostGroups: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      team: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          parentId: true,
-          rrTimestampBasis: true,
-          parent: {
-            select: {
-              slug: true,
-            },
-          },
-          members: {
-            select: {
-              role: true,
-              accepted: true,
-              user: {
-                select: {
-                  name: true,
-                  id: true,
-                  email: true,
-                  eventTypes: {
-                    select: {
-                      slug: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
+  const eventTypeRepo = new EventTypeRepository(ctx.prisma);
+  const eventType = await eventTypeRepo.findByIdForUpdate({ id });
 
   if (input.teamId && eventType.team?.id && input.teamId !== eventType.team.id) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -340,11 +254,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (schedule) {
     // Check that the schedule belongs to the user
-    const userScheduleQuery = await ctx.prisma.schedule.findFirst({
-      where: {
-        userId: ctx.user.id,
-        id: schedule,
-      },
+    const scheduleRepo = new ScheduleRepository(ctx.prisma);
+    const userScheduleQuery = await scheduleRepo.findFirstByUserIdAndScheduleId({
+      userId: ctx.user.id,
+      scheduleId: schedule,
     });
     if (userScheduleQuery) {
       data.schedule = {
@@ -420,54 +333,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   // Handle hostGroups updates
+  const hostGroupRepo = new HostGroupRepository(ctx.prisma);
   if (hostGroups !== undefined) {
-    const existingHostGroups = await ctx.prisma.hostGroup.findMany({
-      where: {
-        eventTypeId: id,
-      },
-      select: {
-        id: true,
-        name: true,
-      },
-    });
-
-    const existingGroupsMap = new Map(existingHostGroups.map((group) => [group.id, group]));
-    const newGroupsMap = new Map(hostGroups.map((group) => [group.id, group]));
-
-    const groupsToCreate = hostGroups.filter((group) => !existingGroupsMap.has(group.id));
-    const groupsToUpdate = hostGroups.filter((group) => existingGroupsMap.has(group.id));
-    const groupsToDelete = existingHostGroups.filter((existingGroup) => !newGroupsMap.has(existingGroup.id));
-
-    await ctx.prisma.$transaction(async (tx) => {
-      // Create new groups
-      if (groupsToCreate.length > 0) {
-        await tx.hostGroup.createMany({
-          data: groupsToCreate.map((group) => ({
-            id: group.id,
-            name: group.name,
-            eventTypeId: id,
-          })),
-        });
-      }
-
-      // Update existing groups
-      for (const group of groupsToUpdate) {
-        await tx.hostGroup.update({
-          where: { id: group.id },
-          data: { name: group.name },
-        });
-      }
-
-      // Delete groups that are no longer in the new list
-      if (groupsToDelete.length > 0) {
-        await tx.hostGroup.deleteMany({
-          where: {
-            id: {
-              in: groupsToDelete.map((group) => group.id),
-            },
-          },
-        });
-      }
+    await hostGroupRepo.syncHostGroups({
+      eventTypeId: id,
+      hostGroups,
     });
   }
 
@@ -533,22 +403,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (input.metadata?.disableStandardEmails?.confirmation) {
     //check if user is allowed to disabled standard emails
-    const workflows = await ctx.prisma.workflow.findMany({
-      where: {
-        activeOn: {
-          some: {
-            eventTypeId: input.id,
-          },
-        },
-        trigger: WorkflowTriggerEvents.NEW_EVENT,
-      },
-      include: {
-        steps: {
-          select: {
-            action: true,
-          },
-        },
-      },
+    const workflows = await WorkflowRepository.findWorkflowsActiveOnEventTypeWithSteps({
+      eventTypeId: input.id,
+      trigger: WorkflowTriggerEvents.NEW_EVENT,
     });
 
     if (input.metadata?.disableStandardEmails.confirmation?.host) {
@@ -594,11 +451,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   // Validate the secondary email
   if (secondaryEmailId) {
-    const secondaryEmail = await ctx.prisma.secondaryEmail.findUnique({
-      where: {
-        id: secondaryEmailId,
-        userId: ctx.user.id,
-      },
+    const secondaryEmailRepo = new SecondaryEmailRepository(ctx.prisma);
+    const secondaryEmail = await secondaryEmailRepo.findByIdAndUserId({
+      id: secondaryEmailId,
+      userId: ctx.user.id,
     });
     // Make sure the secondary email id belongs to the current user and its a verified one
     if (secondaryEmail && secondaryEmail.emailVerified) {
@@ -616,29 +472,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (aiPhoneCallConfig) {
+    const aiPhoneCallConfigRepo = new AIPhoneCallConfigRepository(ctx.prisma);
     if (aiPhoneCallConfig.enabled) {
-      await ctx.prisma.aIPhoneCallConfiguration.upsert({
-        where: {
-          eventTypeId: id,
-        },
-        update: {
-          ...aiPhoneCallConfig,
-          guestEmail: aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
-          guestCompany: aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
-        },
-        create: {
-          ...aiPhoneCallConfig,
-          guestEmail: aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
-          guestCompany: aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
-          eventTypeId: id,
-        },
+      await aiPhoneCallConfigRepo.upsert({
+        eventTypeId: id,
+        data: aiPhoneCallConfig,
       });
     } else if (!aiPhoneCallConfig.enabled && eventType.aiPhoneCallConfig) {
-      await ctx.prisma.aIPhoneCallConfiguration.delete({
-        where: {
-          eventTypeId: id,
-        },
-      });
+      await aiPhoneCallConfigRepo.deleteByEventTypeId({ eventTypeId: id });
     }
   }
 
@@ -694,11 +535,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   let updatedEventType: UpdatedEventTypeResult;
   try {
-    updatedEventType = await ctx.prisma.eventType.update({
-      where: { id },
-      data,
-      select: updatedEventTypeSelect,
-    });
+    updatedEventType = await eventTypeRepo.update({ id, data });
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002") {
@@ -730,14 +567,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   // Clean up empty host groups
   if (hostGroups !== undefined || hosts) {
-    await ctx.prisma.hostGroup.deleteMany({
-      where: {
-        eventTypeId: id,
-        hosts: {
-          none: {},
-        },
-      },
-    });
+    await hostGroupRepo.deleteEmptyByEventTypeId({ eventTypeId: id });
   }
 
   const res = ctx.res as NextApiResponse;

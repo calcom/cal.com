@@ -1859,4 +1859,144 @@ export class EventTypeRepository {
 
     return eventTypeResult;
   }
+
+  async findByIdForUpdate({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findUniqueOrThrow({
+      where: { id },
+      select: {
+        title: true,
+        locations: true,
+        description: true,
+        seatsPerTimeSlot: true,
+        recurringEvent: true,
+        maxActiveBookingsPerBooker: true,
+        fieldTranslations: {
+          select: {
+            field: true,
+          },
+        },
+        isRRWeightsEnabled: true,
+        hosts: {
+          select: {
+            userId: true,
+            priority: true,
+            weight: true,
+            isFixed: true,
+          },
+        },
+        aiPhoneCallConfig: {
+          select: {
+            generalPrompt: true,
+            beginMessage: true,
+            enabled: true,
+            llmId: true,
+          },
+        },
+        calVideoSettings: {
+          select: {
+            disableRecordingForOrganizer: true,
+            disableRecordingForGuests: true,
+            enableAutomaticTranscription: true,
+            enableAutomaticRecordingForOrganizer: true,
+            requireEmailForGuests: true,
+            disableTranscriptionForGuests: true,
+            disableTranscriptionForOrganizer: true,
+            redirectUrlOnExit: true,
+          },
+        },
+        children: {
+          select: {
+            userId: true,
+          },
+        },
+        workflows: {
+          select: {
+            workflowId: true,
+          },
+        },
+        hostGroups: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            parentId: true,
+            rrTimestampBasis: true,
+            parent: {
+              select: {
+                slug: true,
+              },
+            },
+            members: {
+              select: {
+                role: true,
+                accepted: true,
+                user: {
+                  select: {
+                    name: true,
+                    id: true,
+                    email: true,
+                    eventTypes: {
+                      select: {
+                        slug: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async update({ id, data }: { id: number; data: Prisma.EventTypeUpdateInput }) {
+    return await this.prismaClient.eventType.update({
+      where: { id },
+      data,
+      select: {
+        slug: true,
+        schedulingType: true,
+      },
+    });
+  }
+
+  async findByIdForOwnerCheck({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        userId: true,
+        teamId: true,
+        team: {
+          select: {
+            id: true,
+            parentId: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findByIdIncludeSchedule({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        scheduleId: true,
+        schedule: {
+          select: {
+            id: true,
+            userId: true,
+          },
+        },
+      },
+    });
+  }
 }
