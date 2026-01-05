@@ -6,7 +6,8 @@ import Link from "next/link";
 const LINKS = [
   {
     title: "Experiments",
-    description: "Test A/B experiments, variant assignments and conversion tracking",
+    description:
+      "Test A/B experiments, variant assignments and conversion tracking",
     href: "/settings/admin/playground/experiments",
     icon: "flask" as const,
   },
@@ -48,24 +49,30 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const t = await getTranslate();
   return (
-    <SettingsHeader title={t("playground")} description={t("admin_playground_description")}>
-      <div class="mt-6">
-        <div class="bg-default border-subtle divide-subtle flex flex-col divide-y rounded-md border">
+    <SettingsHeader
+      title={t("playground")}
+      description={t("admin_playground_description")}
+    >
+      <div className="mt-6">
+        <div className="bg-default border-subtle divide-subtle flex flex-col divide-y rounded-md border">
           {LINKS.map((link) => (
             <Link
               key={link.title}
               href={link.href}
-              class="hover:bg-muted group flex items-center gap-4 p-5 transition-colors">
-              <div class="bg-emphasis/10 group-hover:bg-emphasis/20 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md transition-colors">
-                <Icon name={link.icon} class="text-emphasis h-5 w-5" />
+              className="hover:bg-muted group flex items-center gap-4 p-5 transition-colors"
+            >
+              <div className="bg-emphasis/10 group-hover:bg-emphasis/20 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md transition-colors">
+                <Icon name={link.icon} className="text-emphasis h-5 w-5" />
               </div>
-              <div class="min-w-0 flex-1">
-                <h3 class="text-emphasis text-sm font-semibold leading-none">{link.title}</h3>
-                <p class="text-subtle mt-2 text-sm">{link.description}</p>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-emphasis text-sm font-semibold leading-none">
+                  {link.title}
+                </h3>
+                <p className="text-subtle mt-2 text-sm">{link.description}</p>
               </div>
               <Icon
                 name="arrow-right"
-                class="text-subtle group-hover:text-emphasis h-4 w-4 flex-shrink-0 transition-colors"
+                className="text-subtle group-hover:text-emphasis h-4 w-4 flex-shrink-0 transition-colors"
               />
             </Link>
           ))}

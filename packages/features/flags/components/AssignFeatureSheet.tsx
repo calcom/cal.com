@@ -15,7 +15,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@calcom/ui/components/sheet";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import {
+  SkeletonContainer,
+  SkeletonText,
+} from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { useEffect, useState } from "react";
 
@@ -27,7 +30,11 @@ interface AssignFeatureSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSheetProps) {
+export function AssignFeatureSheet({
+  flag,
+  open,
+  onOpenChange,
+}: AssignFeatureSheetProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [searchTerm, setSearchTerm] = useState("");
@@ -56,7 +63,9 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
 
   const assignMutation = trpc.viewer.admin.assignFeatureToTeam.useMutation({
     onSuccess: () => {
-      utils.viewer.admin.getTeamsForFeature.invalidate({ featureId: flag.slug });
+      utils.viewer.admin.getTeamsForFeature.invalidate({
+        featureId: flag.slug,
+      });
       showToast(t("feature_assigned_successfully"), "success");
     },
     onError: (err) => {
@@ -64,15 +73,18 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
     },
   });
 
-  const unassignMutation = trpc.viewer.admin.unassignFeatureFromTeam.useMutation({
-    onSuccess: () => {
-      utils.viewer.admin.getTeamsForFeature.invalidate({ featureId: flag.slug });
-      showToast(t("feature_unassigned_successfully"), "success");
-    },
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
-  });
+  const unassignMutation =
+    trpc.viewer.admin.unassignFeatureFromTeam.useMutation({
+      onSuccess: () => {
+        utils.viewer.admin.getTeamsForFeature.invalidate({
+          featureId: flag.slug,
+        });
+        showToast(t("feature_unassigned_successfully"), "success");
+      },
+      onError: (err) => {
+        showToast(err.message, "error");
+      },
+    });
 
   const handleToggleTeam = (teamId: number, currentlyHasFeature: boolean) => {
     if (currentlyHasFeature) {
@@ -96,12 +108,12 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent class="bg-cal-muted">
+      <SheetContent className="bg-cal-muted">
         <SheetHeader>
           <SheetTitle>Assign: {flag.slug}</SheetTitle>
         </SheetHeader>
         <SheetBody>
-          <div class="mb-4">
+          <div className="mb-4">
             <TextField
               type="text"
               placeholder={t("search")}
@@ -111,51 +123,56 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
           </div>
           {isPending ? (
             <SkeletonContainer>
-              <div class="stack-y-3">
+              <div className="stack-y-3">
                 {[...Array(5)].map((_, i) => (
-                  <SkeletonText key={i} class="h-16 w-full" />
+                  <SkeletonText key={i} className="h-16 w-full" />
                 ))}
               </div>
             </SkeletonContainer>
           ) : teams && teams.length > 0 ? (
             <>
-              <div class="stack-y-2">
+              <div className="stack-y-2">
                 {teams.map((team) => (
                   <button
                     key={team.id}
                     type="button"
                     onClick={() => handleToggleTeam(team.id, team.hasFeature)}
                     disabled={isLoading}
-                    class="bg-default border-subtle hover:bg-cal-muted flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50">
-                    <div class="flex items-center gap-3">
-                      <div class="relative">
+                    className="bg-default border-subtle hover:bg-cal-muted flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
                         {team.isOrganization ? (
-                          <div class="h-8 w-8 overflow-hidden rounded">
+                          <div className="h-8 w-8 overflow-hidden rounded">
                             {team.logoUrl ? (
                               <img
                                 src={team.logoUrl}
                                 alt={team.name || ""}
-                                class="h-full w-full object-cover"
+                                className="h-full w-full object-cover"
                               />
                             ) : (
-                              <div class="bg-emphasis text-default flex h-full w-full items-center justify-center text-xs font-semibold">
+                              <div className="bg-emphasis text-default flex h-full w-full items-center justify-center text-xs font-semibold">
                                 {team.name?.charAt(0).toUpperCase()}
                               </div>
                             )}
                           </div>
                         ) : (
-                          <Avatar size="sm" alt={team.name || ""} imageSrc={team.logoUrl} />
+                          <Avatar
+                            size="sm"
+                            alt={team.name || ""}
+                            imageSrc={team.logoUrl}
+                          />
                         )}
                         {team.parent && team.parentId && (
-                          <div class="border-emphasis absolute -bottom-1 -right-1 h-4 w-4 overflow-hidden rounded border">
+                          <div className="border-emphasis absolute -bottom-1 -right-1 h-4 w-4 overflow-hidden rounded border">
                             {team.parent.logoUrl ? (
                               <img
                                 src={team.parent.logoUrl}
                                 alt={team.parent.name || ""}
-                                class="h-full w-full object-cover"
+                                className="h-full w-full object-cover"
                               />
                             ) : (
-                              <div class="bg-emphasis text-default flex h-full w-full items-center justify-center text-[8px] font-semibold">
+                              <div className="bg-emphasis text-default flex h-full w-full items-center justify-center text-[8px] font-semibold">
                                 {team.parent.name?.charAt(0).toUpperCase()}
                               </div>
                             )}
@@ -163,33 +180,44 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
                         )}
                       </div>
                       <div>
-                        <p class="text-emphasis text-sm font-medium">{team.name}</p>
-                        {team.slug && <p class="text-subtle text-xs">{team.slug}</p>}
+                        <p className="text-emphasis text-sm font-medium">
+                          {team.name}
+                        </p>
+                        {team.slug && (
+                          <p className="text-subtle text-xs">{team.slug}</p>
+                        )}
                         {team.parent && (
-                          <p class="text-subtle text-xs">
+                          <p className="text-subtle text-xs">
                             {t("organization")}: {team.parent.name}
                           </p>
                         )}
                       </div>
                     </div>
-                    <Checkbox checked={team.hasFeature} disabled={isLoading} onCheckedChange={() => {}} />
+                    <Checkbox
+                      checked={team.hasFeature}
+                      disabled={isLoading}
+                      onCheckedChange={() => {}}
+                    />
                   </button>
                 ))}
               </div>
               {hasNextPage && (
-                <div class="mt-4 flex justify-center">
+                <div className="mt-4 flex justify-center">
                   <Button
                     color="secondary"
                     onClick={() => fetchNextPage()}
                     loading={isFetchingNextPage}
-                    disabled={isFetchingNextPage}>
+                    disabled={isFetchingNextPage}
+                  >
                     {t("load_more")}
                   </Button>
                 </div>
               )}
             </>
           ) : (
-            <p class="text-subtle text-center text-sm">{t("no_teams_found")}</p>
+            <p className="text-subtle text-center text-sm">
+              {t("no_teams_found")}
+            </p>
           )}
         </SheetBody>
         <SheetFooter>

@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function PlaygroundLayout({ children }: { children: React.ReactNode }) {
+export default function PlaygroundLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
 
   const isPlaygroundRoot = pathname === "/settings/admin/playground";
@@ -12,10 +16,10 @@ export default function PlaygroundLayout({ children }: { children: React.ReactNo
     children
   ) : (
     <div>
-      <Link href="/settings/admin/playground" class="text-sm underline">
+      <Link href="/settings/admin/playground" className="text-sm underline">
         ← Playground
       </Link>
-      <div class="h-8" />
+      <div className="h-8" />
       <div>{children}</div>
     </div>
   );

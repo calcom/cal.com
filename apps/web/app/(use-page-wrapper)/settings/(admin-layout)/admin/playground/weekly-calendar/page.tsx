@@ -3,11 +3,19 @@
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
-import type { CalendarComponentProps, Hours } from "@calcom/features/calendars/weeklyview/types/state";
+import type {
+  CalendarComponentProps,
+  Hours,
+} from "@calcom/features/calendars/weeklyview/types/state";
 import { useState } from "react";
 
 const makeDate = (dayOffset: number, hour: number, minute: number = 0) => {
-  return dayjs("2025-01-06").add(dayOffset, "day").hour(hour).minute(minute).second(0).toDate();
+  return dayjs("2025-01-06")
+    .add(dayOffset, "day")
+    .hour(hour)
+    .minute(minute)
+    .second(0)
+    .toDate();
 };
 
 const getBaseProps = ({
@@ -100,7 +108,8 @@ const scenarios: Scenario[] = [
     id: "non-overlapping",
     title: "Non-Overlapping Events",
     description: "Events that don't overlap should not cascade",
-    expected: "Both events at 0% offset (separate groups), no cascade. Both should be 100% width.",
+    expected:
+      "Both events at 0% offset (separate groups), no cascade. Both should be 100% width.",
     startHour: 9,
     events: [
       {
@@ -122,7 +131,8 @@ const scenarios: Scenario[] = [
   {
     id: "same-start-time",
     title: "Same Start Time, Different Durations",
-    description: "Multiple events starting at the same time with varying lengths",
+    description:
+      "Multiple events starting at the same time with varying lengths",
     expected:
       "Longest event first (base of cascade), spread across full width with variable widths (55%, ~42%, 33%). Last event aligned to right edge. All start at 10:00.",
     startHour: 9,
@@ -403,7 +413,8 @@ const scenarios: Scenario[] = [
   {
     id: "event-durations",
     title: "Event Duration Layout Tests",
-    description: "Events with different durations to test layout logic (eventDuration > 30 changes flex-col)",
+    description:
+      "Events with different durations to test layout logic (eventDuration > 30 changes flex-col)",
     expected:
       "Events ≤30min show horizontal layout (title and time inline). Events >30min show vertical layout (title and time stacked).",
     startHour: 8,
@@ -481,27 +492,33 @@ function ScenarioCard({ scenario }: { scenario: Scenario }) {
   const [showData, setShowData] = useState(false);
 
   return (
-    <div class="border-subtle rounded-lg border p-4">
-      <div class="mb-4">
-        <h3 class="text-lg font-semibold">{scenario.title}</h3>
-        <p class="text-subtle mt-1 text-sm">{scenario.description}</p>
-        <div class="bg-subtle mt-2 rounded p-2 text-xs">
+    <div className="border-subtle rounded-lg border p-4">
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold">{scenario.title}</h3>
+        <p className="text-subtle mt-1 text-sm">{scenario.description}</p>
+        <div className="bg-subtle mt-2 rounded p-2 text-xs">
           <strong>Expected:</strong> {scenario.expected}
         </div>
       </div>
 
-      <div class="h-[600px] overflow-hidden rounded border">
-        <Calendar {...getBaseProps({ events: scenario.events, startHour: scenario.startHour })} />
+      <div className="h-[600px] overflow-hidden rounded border">
+        <Calendar
+          {...getBaseProps({
+            events: scenario.events,
+            startHour: scenario.startHour,
+          })}
+        />
       </div>
 
       <button
         onClick={() => setShowData(!showData)}
-        class="text-emphasis mt-2 text-sm underline hover:no-underline">
+        className="text-emphasis mt-2 text-sm underline hover:no-underline"
+      >
         {showData ? "Hide" : "Show"} Event Data
       </button>
 
       {showData && (
-        <pre class="bg-subtle mt-2 overflow-auto rounded p-2 text-xs">
+        <pre className="bg-subtle mt-2 overflow-auto rounded p-2 text-xs">
           {JSON.stringify(scenario.events, null, 2)}
         </pre>
       )}
@@ -511,34 +528,52 @@ function ScenarioCard({ scenario }: { scenario: Scenario }) {
 
 export default function WeeklyCalendarPlayground() {
   return (
-    <div class="stack-y-8 p-6">
+    <div className="stack-y-8 p-6">
       <div>
-        <h1 class="text-3xl font-bold">Weekly Calendar Playground</h1>
-        <p class="text-subtle mt-2">
-          Test the overlapping events cascading layout with various scenarios. Events should cascade with 80%
-          width and 8% left offset per overlap level. Hovering an event should bring it to the front.
+        <h1 className="text-3xl font-bold">Weekly Calendar Playground</h1>
+        <p className="text-subtle mt-2">
+          Test the overlapping events cascading layout with various scenarios.
+          Events should cascade with 80% width and 8% left offset per overlap
+          level. Hovering an event should bring it to the front.
         </p>
       </div>
 
       {/* Grid View of All Scenarios */}
-      <div class="stack-y-8">
-        <h2 class="mb-4 text-2xl font-bold">All Scenarios (Side-by-Side)</h2>
+      <div className="stack-y-8">
+        <h2 className="mb-4 text-2xl font-bold">
+          All Scenarios (Side-by-Side)
+        </h2>
         {scenarios.map((scenario, index) => (
           <ScenarioCard key={index} scenario={scenario} />
         ))}
       </div>
 
       {/* Testing Checklist */}
-      <div class="border-subtle rounded-lg border p-6">
-        <h2 class="mb-4 text-xl font-bold">Testing Checklist</h2>
-        <ul class="text-subtle stack-y-2 text-sm">
-          <li>✓ Visual appearance matches expectations (80% width with 8% cascading offsets)</li>
-          <li>✓ Hover behavior works smoothly - hovered event appears topmost</li>
+      <div className="border-subtle rounded-lg border p-6">
+        <h2 className="mb-4 text-xl font-bold">Testing Checklist</h2>
+        <ul className="text-subtle stack-y-2 text-sm">
+          <li>
+            ✓ Visual appearance matches expectations (80% width with 8%
+            cascading offsets)
+          </li>
+          <li>
+            ✓ Hover behavior works smoothly - hovered event appears topmost
+          </li>
           <li>✓ No visual glitches with 3+ overlapping events</li>
-          <li>✓ Performance is acceptable with dense event days (10+ events)</li>
-          <li>✓ Edge case: Events with identical start times render correctly</li>
-          <li>✓ Edge case: Events that touch exactly (end = next start) don&apos;t incorrectly overlap</li>
-          <li>✓ Different booking statuses (ACCEPTED, PENDING, CANCELLED) display correctly</li>
+          <li>
+            ✓ Performance is acceptable with dense event days (10+ events)
+          </li>
+          <li>
+            ✓ Edge case: Events with identical start times render correctly
+          </li>
+          <li>
+            ✓ Edge case: Events that touch exactly (end = next start) don&apos;t
+            incorrectly overlap
+          </li>
+          <li>
+            ✓ Different booking statuses (ACCEPTED, PENDING, CANCELLED) display
+            correctly
+          </li>
           <li>✓ Color bars on the left side of events display correctly</li>
         </ul>
       </div>
