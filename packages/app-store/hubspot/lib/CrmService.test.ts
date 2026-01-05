@@ -1,3 +1,4 @@
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -183,9 +184,7 @@ describe("HubspotCalendarService", () => {
   }
 
   // Helper to create a mock CalendarEvent
-  function createMockEvent(
-    overrides: Record<string, unknown> = {}
-  ): Parameters<typeof service.createEvent>[0] {
+  function createMockEvent(overrides: Partial<CalendarEvent> = {}): CalendarEvent {
     return {
       type: "test-event",
       title: "Test Meeting",
@@ -212,10 +211,14 @@ describe("HubspotCalendarService", () => {
           email: "attendee@example.com",
           name: "Attendee",
           timeZone: "America/New_York",
+          language: {
+            translate: (key: string) => key,
+            locale: "en",
+          },
         },
       ],
       ...overrides,
-    } as Parameters<typeof service.createEvent>[0];
+    };
   }
 
   // Helper to setup common mocks for createEvent tests
