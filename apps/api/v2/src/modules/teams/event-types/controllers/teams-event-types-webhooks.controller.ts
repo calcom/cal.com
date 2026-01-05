@@ -38,7 +38,7 @@ import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
   path: "/v2/teams/:teamId/event-types/:eventTypeId/webhooks",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, RolesGuard, IsTeamEventTypeWebhookGuard)
+@UseGuards(ApiAuthGuard, RolesGuard)
 @DocsTags("Teams / Event Types / Webhooks")
 @ApiHeader(API_KEY_HEADER)
 export class TeamsEventTypesWebhooksController {
@@ -69,6 +69,7 @@ export class TeamsEventTypesWebhooksController {
   @Patch("/:webhookId")
   @ApiOperation({ summary: "Update a webhook for a team event type" })
   @Roles("TEAM_ADMIN")
+  @UseGuards(IsTeamEventTypeWebhookGuard)
   async updateTeamEventTypeWebhook(
     @Body() body: UpdateWebhookInputDto,
     @Param("webhookId") webhookId: string
@@ -88,6 +89,7 @@ export class TeamsEventTypesWebhooksController {
   @Get("/:webhookId")
   @ApiOperation({ summary: "Get a webhook for a team event type" })
   @Roles("TEAM_MEMBER")
+  @UseGuards(IsTeamEventTypeWebhookGuard)
   async getTeamEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
     return {
       status: SUCCESS_STATUS,
@@ -121,8 +123,11 @@ export class TeamsEventTypesWebhooksController {
 
   @Delete("/:webhookId")
   @Roles("TEAM_ADMIN")
+  @UseGuards(IsTeamEventTypeWebhookGuard)
   @ApiOperation({ summary: "Delete a webhook for a team event type" })
-  async deleteTeamEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
+  async deleteTeamEventTypeWebhook(
+    @GetWebhook() webhook: Webhook
+  ): Promise<EventTypeWebhookOutputResponseDto> {
     await this.webhooksService.deleteWebhook(webhook.id);
     return {
       status: SUCCESS_STATUS,
