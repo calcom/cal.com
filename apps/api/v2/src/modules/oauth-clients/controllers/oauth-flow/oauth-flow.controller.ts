@@ -94,13 +94,16 @@ export class OAuthFlowController {
     description: `Exchange the authorization code received from the authorize endpoint for access and refresh tokens. ${TOKENS_DOCS}`,
   })
   async exchange(
-    @Headers("Authorization") authorization: string,
+    @Headers("Authorization") authorization: string | undefined,
     @Param("clientId") clientId: string,
     @Body() body: ExchangeAuthorizationCodeInput
   ): Promise<KeysResponseDto> {
-    const authorizeEndpointCode = authorization.replace("Bearer ", "").trim();
+    if (!authorization || !authorization.startsWith("Bearer ")) {
+      throw new BadRequestException("Missing or invalid 'Authorization: Bearer <code>' header.");
+    }
+    const authorizeEndpointCode = authorization.slice(7).trim();
     if (!authorizeEndpointCode) {
-      throw new BadRequestException("Missing 'Bearer' Authorization header.");
+      throw new BadRequestException("Authorization code is empty.");
     }
 
     const tokens = await this.oAuthFlowService.exchangeAuthorizationToken(
