@@ -1,5 +1,5 @@
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { SkipTakePagination } from "@calcom/platform-types";
+import { SkipTakePagination } from "@calcom/platform-types";
 import type { Webhook } from "@calcom/prisma/client";
 import {
   Body,
