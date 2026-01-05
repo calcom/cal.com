@@ -129,6 +129,7 @@ export interface IIntegrationAttributeSyncRepository {
   create(params: IIntegrationAttributeSyncCreateParams): Promise<IntegrationAttributeSync>;
   updateTransactionWithRuleAndMappings(params: IIntegrationAttributeSyncUpdateParams): Promise<void>;
   deleteById(id: string): Promise<void>;
+  getAllByCredentialId(credentialId: number): Promise<IntegrationAttributeSync[]>;
 }
 
 export interface IIntegrationAttributeSyncUpdateParams {

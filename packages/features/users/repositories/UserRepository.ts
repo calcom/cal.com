@@ -1309,4 +1309,19 @@ export class UserRepository {
     });
     return users.map(withSelectedCalendars);
   }
+
+  async findByEmailAndTeamId({ email, teamId }: { email: string; teamId: number }) {
+    return this.prismaClient.user.findFirst({
+      where: {
+        email: email.toLowerCase(),
+        teams: {
+          some: {
+            teamId,
+            accepted: true,
+          },
+        },
+      },
+      select: userSelect,
+    });
+  }
 }
