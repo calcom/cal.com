@@ -920,7 +920,7 @@ export class ProfileRepository {
    */
   static async findFirstOrganizationIdForUser({ userId }: { userId: number }): Promise<number | null> {
     const profile = await prisma.profile.findFirst({
-      where: { userId, organizationId: { not: null } },
+      where: { userId, NOT: { organizationId: null } },
       select: { organizationId: true },
     });
 
