@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -132,10 +133,8 @@ export async function patchHandler(req: NextApiRequest) {
     });
   }
 
-  const currentUser = await prisma.user.findUnique({
-    where: { id: query.userId },
-    select: { email: true, username: true, metadata: true, emailVerified: true },
-  });
+  const userRepository = new UserRepository(prisma);
+  const currentUser = await userRepository.findById({ id: query.userId });
 
   if (!currentUser) {
     throw new HttpError({ statusCode: 404, message: "User not found" });
@@ -150,17 +149,9 @@ export async function patchHandler(req: NextApiRequest) {
   const prismaData: Prisma.UserUpdateInput = { ...body };
 
   if (hasEmailBeenChanged && newEmail) {
-    const secondaryEmail = await prisma.secondaryEmail.findUnique({
-      where: {
-        userId_email: {
-          userId: query.userId,
-          email: newEmail,
-        },
-      },
-      select: {
-        id: true,
-        emailVerified: true,
-      },
+    const secondaryEmail = await userRepository.findSecondaryEmailByUserIdAndEmail({
+      userId: query.userId,
+      email: newEmail,
     });
 
     if (emailVerification) {
@@ -202,7 +193,10 @@ export async function patchHandler(req: NextApiRequest) {
     data: prismaData,
   });
 
-  if (hasEmailBeenChanged && emailVerification && newEmail && !prismaData.email) {
+  const shouldSendEmailVerification =
+    hasEmailBeenChanged && emailVerification && newEmail && !prismaData.email;
+
+  if (shouldSendEmailVerification) {
     await sendChangeOfEmailVerification({
       user: {
         username: data.username ?? "Nameless User",

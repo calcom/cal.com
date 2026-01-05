@@ -388,6 +388,27 @@ export class UserRepository {
     };
   }
 
+  async findSecondaryEmailByUserIdAndEmail({
+    userId,
+    email,
+  }: {
+    userId: number;
+    email: string;
+  }) {
+    return this.prismaClient.secondaryEmail.findUnique({
+      where: {
+        userId_email: {
+          userId,
+          email,
+        },
+      },
+      select: {
+        id: true,
+        emailVerified: true,
+      },
+    });
+  }
+
   async findByUuid({ uuid }: { uuid: string }) {
     return this.prismaClient.user.findUnique({
       where: {
