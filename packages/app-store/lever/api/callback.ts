@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!tokenResponse.ok) {
-      console.error("Failed to exchange Merge token:", await tokenResponse.text());
+      console.error("Failed to exchange Merge token");
       return res.status(500).json({ message: "Failed to complete Lever connection" });
     }
 
@@ -47,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug })
     );
   } catch (error) {
-    console.error("Error in Lever callback handler:", error);
+    console.error("Error in Lever callback handler");
     return res.status(500).json({ message: "Failed to complete Lever connection" });
   }
 }

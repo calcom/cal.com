@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!linkTokenResponse.ok) {
-      console.error("Failed to create Merge link token:", await linkTokenResponse.text());
+      console.error("Failed to create Merge link token");
       return res.status(500).json({ message: "Failed to initiate Lever connection" });
     }
 
@@ -54,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(200).json({ url: `https://link.merge.dev/?linkToken=${link_token}`, newTab: true });
   } catch (error) {
-    console.error("Error in Lever add handler:", error);
+    console.error("Error in Lever add handler");
     return res.status(500).json({ message: "Failed to initiate Lever connection" });
   }
 }

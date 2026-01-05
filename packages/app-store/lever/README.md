@@ -6,7 +6,6 @@ This integration connects Cal.com with Lever ATS through the Merge.dev unified A
 
 - Automatically create or find candidates in Lever based on booking attendee email
 - Log booking activities (interviews, meetings) to the candidate's profile
-- Sync booking updates and cancellations to Lever
 
 ## Installation
 
@@ -26,8 +25,8 @@ Add the following environment variables or configure through the Cal.com admin p
 Once installed and configured, the integration will automatically:
 
 1. When a booking is created: Create a candidate (if not exists) and log an activity
-2. When a booking is updated: Update the activity in Lever
-3. When a booking is cancelled: Log a cancellation activity
+
+Note: The Merge.dev ATS API does not currently support updating or deleting activities.
 
 ## API Documentation
 

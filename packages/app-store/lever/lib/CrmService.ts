@@ -65,8 +65,7 @@ export default class LeverAtsService implements CRM {
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          this.log.error("Failed to create candidate in Lever", { error: errorText });
+          this.log.error("Failed to create candidate in Lever", { status: response.status });
           throw new Error(`Failed to create candidate: ${response.status}`);
         }
 
@@ -88,7 +87,7 @@ export default class LeverAtsService implements CRM {
           );
 
           if (!response.ok) {
-            this.log.warn("Failed to search candidates in Lever", { status: response.status, email });
+            this.log.warn("Failed to search candidates in Lever", { status: response.status });
             return null;
           }
 
@@ -96,7 +95,7 @@ export default class LeverAtsService implements CRM {
           const candidate = result.results?.[0];
           return candidate ? { id: candidate.id, email: candidate.email_addresses?.[0]?.value || email } : null;
         } catch (error) {
-          this.log.error("Error searching candidates in Lever", { error, email });
+          this.log.error("Error searching candidates in Lever", { });
           return null;
         }
       })
@@ -126,8 +125,7 @@ export default class LeverAtsService implements CRM {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      this.log.error("Failed to create activity in Lever", { error: errorText });
+      this.log.error("Failed to create activity in Lever", { status: response.status });
       throw new Error(`Failed to create activity: ${response.status}`);
     }
 
@@ -141,7 +139,7 @@ export default class LeverAtsService implements CRM {
     }
 
     const activity = await this.createActivity(event, contacts[0].id);
-    this.log.debug("event:creation:ok", { activity });
+    this.log.debug("event:creation:ok", { activityId: activity.id });
 
     return {
       id: activity.id,
