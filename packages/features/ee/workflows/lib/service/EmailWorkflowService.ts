@@ -147,7 +147,9 @@ export class EmailWorkflowService {
   }: {
     evt?: CalendarEvent;
     workflowStep: WorkflowStep;
-    workflow: Pick<Workflow, "userId">;
+    workflow: Pick<Workflow, "userId"> & {
+      team?: { logoUrl?: string | null; brandColor?: string | null; name?: string | null } | null;
+    };
     emailAttendeeSendToOverride?: string | null;
     formData?: FormSubmissionData;
     commonScheduleFunctionParams: ReturnType<typeof WorkflowService.generateCommonScheduleFunctionParams>;
@@ -232,6 +234,9 @@ export class EmailWorkflowService {
       includeCalendarEvent: workflowStep.includeCalendarEvent,
       ...contextData,
       verifiedAt: workflowStep.verifiedAt,
+      orgLogoUrl: workflow.team?.logoUrl,
+      orgName: workflow.team?.name,
+      brandColor: workflow.team?.brandColor,
     } as const;
   }
 
@@ -247,6 +252,9 @@ export class EmailWorkflowService {
     template,
     includeCalendarEvent,
     triggerEvent,
+    orgLogoUrl,
+    orgName,
+    brandColor,
   }: {
     evt: BookingInfo;
     sendTo: string[];
@@ -259,6 +267,9 @@ export class EmailWorkflowService {
     template?: WorkflowTemplates;
     includeCalendarEvent?: boolean;
     triggerEvent: WorkflowTriggerEvents;
+    orgLogoUrl?: string | null;
+    orgName?: string | null;
+    brandColor?: string | null;
   }) {
     const log = logger.getSubLogger({
       prefix: [`[generateEmailPayloadForEvtWorkflow]: bookingUid: ${evt?.uid}`],
@@ -378,6 +389,9 @@ export class EmailWorkflowService {
         attendeeTimezone: attendeeToBeUsedInMail.timeZone,
         eventTimeInAttendeeTimezone: dayjs(startTime).tz(attendeeToBeUsedInMail.timeZone),
         eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(attendeeToBeUsedInMail.timeZone),
+        orgLogoUrl,
+        orgName,
+        brandColor,
       };
 
       const locale = isEmailAttendeeAction
