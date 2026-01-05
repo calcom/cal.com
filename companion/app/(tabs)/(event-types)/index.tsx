@@ -502,7 +502,7 @@ export default function EventTypes() {
       <Stack.Header
         style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
         blurEffect={isLiquidGlassAvailable() ? undefined : "light"} // Only looks cool on iOS 18 and below
-        hidden={Platform.OS === "android"}
+        hidden={Platform.OS === "android" || Platform.OS === "web"}
       >
         <Stack.Header.Title large>Event Types</Stack.Header.Title>
         <Stack.Header.Right>

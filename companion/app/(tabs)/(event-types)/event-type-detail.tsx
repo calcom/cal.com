@@ -1129,15 +1129,20 @@ export default function EventTypeDetail() {
 
   const renderHeaderRight = () => (
     <HeaderButtonWrapper side="right">
-      <View className="flex-row items-center gap-2">
+      <View className="flex-row items-center" style={{ gap: Platform.OS === "web" ? 24 : 8 }}>
         {/* Tab Navigation Dropdown Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <AppPressable className="flex-row items-center gap-1 px-2 py-2">
-              <Text className="text-[16px] font-semibold text-[#007AFF]">
+              <Text className="text-[16px] font-semibold text-[#007AFF]" numberOfLines={1}>
                 {tabs.find((tab) => tab.id === activeTab)?.label ?? "Basics"}
               </Text>
-              <Ionicons name="chevron-down" size={16} color="#007AFF" />
+              <Ionicons
+                name="chevron-down"
+                size={16}
+                color="#007AFF"
+                style={{ marginLeft: 2, flexShrink: 0 }}
+              />
             </AppPressable>
           </DropdownMenuTrigger>
 
