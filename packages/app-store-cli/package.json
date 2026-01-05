@@ -30,6 +30,6 @@
     "@types/react": "18.0.26",
     "chokidar": "3.6.0",
     "ts-node": "10.9.2",
-    "typescript": "5.9.2"
+    "typescript": "5.9.3"
   }
 }
