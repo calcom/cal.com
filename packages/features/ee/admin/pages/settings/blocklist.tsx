@@ -204,7 +204,7 @@ export default function SystemBlocklistView() {
   const pathname = usePathname();
 
   return (
-    <DataTableProvider tableIdentifier={pathname}>
+    <DataTableProvider tableIdentifier={pathname ?? "system-blocklist"}>
       <SystemBlocklistContent />
     </DataTableProvider>
   );
