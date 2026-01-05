@@ -185,7 +185,7 @@ function OutOfOfficeEntriesListContent({
                     return emailName.charAt(0).toUpperCase() + emailName.slice(1);
                   })();
                 return (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 p-2">
                     <Avatar
                       size="sm"
                       alt={username || email}
@@ -353,6 +353,7 @@ function OutOfOfficeEntriesListContent({
         dateRange: false,
       },
     },
+    enableHiding: false,
     enableRowSelection: false,
     manualPagination: true,
     getCoreRowModel: getCoreRowModel(),
@@ -368,8 +369,7 @@ function OutOfOfficeEntriesListContent({
         isPending={isPending}
         totalRowCount={totalRowCount}
         tableContainerRef={tableContainerRef}
-        paginationMode="standard"
-        headerClassName="hidden"
+        paginationMode="infinite"
         variant="compact"
         ToolbarLeft={
           <>
