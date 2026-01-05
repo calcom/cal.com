@@ -17,6 +17,7 @@ import "@calcom/features/auth/Turnstile";
 
 import { Booker } from "./Booker";
 import { render, screen } from "@calcom/features/bookings/Booker/__tests__/test-utils";
+import { mockEvent as mockBookerEvent } from "./event-meta/event.mock";
 
 vi.mock("framer-motion", async (importOriginal) => {
   // biome-ignore lint/suspicious/noExplicitAny: framer-motion types are complex
@@ -51,15 +52,21 @@ vi.mock("./BookEventForm/BookFormAsModal", () => ({
   },
 }));
 
+// Use the complete BookerEvent mock and override specific fields for tests
+// biome-ignore lint/nursery/useExplicitType: test mock object
+const mockEventData = {
+  ...mockBookerEvent,
+  title: "Test Event",
+  seatsPerTimeSlot: 1,
+  seatsShowAvailabilityCount: true,
+};
+
+// biome-ignore lint/nursery/useExplicitType: test mock object
 const mockEvent = {
-  data: {
-    id: 1,
-    title: "Test Event",
-    seatsPerTimeSlot: 1,
-    seatsShowAvailabilityCount: true,
-  },
+  data: mockEventData,
   isSuccess: true,
   isPending: false,
+  isError: false,
 };
 
 vi.mock("@calcom/features/calendars/NoAvailabilityDialog", () => ({
