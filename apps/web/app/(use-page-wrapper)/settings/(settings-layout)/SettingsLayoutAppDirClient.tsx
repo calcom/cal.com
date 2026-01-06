@@ -1,16 +1,8 @@
 "use client";
 
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
-import { useSession } from "next-auth/react";
-import Image from "next/image";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import type { ComponentProps } from "react";
-import React, { useEffect, useState, useMemo } from "react";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { TeamFeatures } from "@calcom/features/flags/config";
 import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
@@ -28,6 +20,13 @@ import { Icon } from "@calcom/ui/components/icon";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { VerticalTabItem } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import type { ComponentProps } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import Shell from "~/shell/Shell";
 
@@ -69,9 +68,9 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "my_account", page: "out_of_office" },
         },
         {
-          name: "push_notifications",
+          name: "notifications",
           href: "/settings/my-account/push-notifications",
-          trackingMetadata: { section: "my_account", page: "push_notifications" },
+          trackingMetadata: { section: "my_account", page: "notifications" },
         },
         // TODO
         // { name: "referrals", href: "/settings/my-account/referrals" },
@@ -604,7 +603,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                   <TeamRolesNavItem team={team} teamFeatures={teamFeatures} />
                   {(checkAdminOrOwner(team.role) ||
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore this exists wtf?
+                    // @ts-expect-error this exists wtf?
                     (team.isOrgAdmin && team.isOrgAdmin)) && (
                     <>
                       {/* TODO */}
@@ -663,12 +662,13 @@ const SettingsSidebarContainer = ({
   const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
   const { t } = useLocale();
-  const [otherTeamMenuState, setOtherTeamMenuState] = useState<
-    {
-      teamId: number | undefined;
-      teamMenuOpen: boolean;
-    }[]
-  >();
+  const [otherTeamMenuState, setOtherTeamMenuState] =
+    useState<
+      {
+        teamId: number | undefined;
+        teamMenuOpen: boolean;
+      }[]
+    >();
   const session = useSession();
 
   const organizationId = session.data?.user?.org?.id;
@@ -1036,8 +1036,7 @@ export default function SettingsLayoutAppDirClient({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="*:flex-1 flex flex-1">
-        <div
-          className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
+        <div className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>
