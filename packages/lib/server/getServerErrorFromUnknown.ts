@@ -18,11 +18,11 @@ function isZodError(cause: unknown): cause is ZodError {
   return cause instanceof ZodError || (hasName(cause) && cause.name === "ZodError");
 }
 
-// Fallback to name check when instanceof fails due to different Prisma client instances
+// Fallback to code check when instanceof fails due to different Prisma client instances
 function isPrismaError(cause: unknown): cause is Prisma.PrismaClientKnownRequestError {
   return (
     cause instanceof Prisma.PrismaClientKnownRequestError ||
-    (hasName(cause) && cause.name === "PrismaClientKnownRequestError")
+    (cause instanceof Error && "code" in cause && typeof cause.code === "string" && cause.code.startsWith("P"))
   );
 }
 

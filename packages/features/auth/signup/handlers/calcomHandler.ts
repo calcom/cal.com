@@ -86,12 +86,11 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       isSignup: true,
     });
 
-    // Check if user already exists before creating Stripe customer (e.g., invite link used by existing user)
     const existingUser = await prisma.user.findUnique({
       where: { email },
-      select: { id: true },
+      select: { id: true, invitedTo: true },
     });
-    if (existingUser) {
+    if (existingUser && existingUser.invitedTo !== foundToken.teamId) {
       return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
     }
   } else {
@@ -179,31 +178,43 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     if (team) {
       const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
 
-      let user: { id: number };
-      try {
-        user = await prisma.user.create({
-          data: {
-            username,
-            email,
-            emailVerified: new Date(Date.now()),
-            identityProvider: IdentityProvider.CAL,
-            password: { create: { hash: hashedPassword } },
-            organizationId,
-          },
-          select: { id: true },
-        });
-      } catch (error) {
-        if (isPrismaError(error) && error.code === "P2002") {
-          const target = error.meta?.target as string[] | undefined;
-          if (target?.includes("email")) {
-            return NextResponse.json(
-              { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
-              { status: 409 }
-            );
-          }
-        }
-        throw error;
+      const existingUserByUsername = await prisma.user.findFirst({
+        where: {
+          username,
+          organizationId,
+          NOT: { email }, // Exclude the invited user themselves
+        },
+      });
+      if (existingUserByUsername) {
+        return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
       }
+
+      // Use upsert to handle users created by invite
+      // Security: Already verified if user exists + invited to this team
+      const user = await prisma.user.upsert({
+        where: { email },
+        update: {
+          username,
+          emailVerified: new Date(Date.now()),
+          identityProvider: IdentityProvider.CAL,
+          password: {
+            upsert: {
+              create: { hash: hashedPassword },
+              update: { hash: hashedPassword },
+            },
+          },
+          organizationId,
+        },
+        create: {
+          username,
+          email,
+          emailVerified: new Date(Date.now()),
+          identityProvider: IdentityProvider.CAL,
+          password: { create: { hash: hashedPassword } },
+          organizationId,
+        },
+        select: { id: true },
+      });
 
       await createOrUpdateMemberships({
         user,
@@ -242,9 +253,10 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
         },
       });
     } catch (error) {
+      // Fallback for race conditions where user was created between our check and create
       if (isPrismaError(error) && error.code === "P2002") {
-        const target = error.meta?.target as string[] | undefined;
-        if (target?.includes("email")) {
+        const target = String(error.meta?.target ?? "");
+        if (target.includes("email") || target.includes("username")) {
           return NextResponse.json(
             { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
             { status: 409 }

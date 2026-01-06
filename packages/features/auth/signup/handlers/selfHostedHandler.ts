@@ -44,6 +44,14 @@ export default async function handler(body: Record<string, string>) {
       teamId: foundToken?.teamId,
       isSignup: true,
     });
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email: userEmail },
+      select: { id: true, invitedTo: true },
+    });
+    if (existingUser && existingUser.invitedTo !== foundToken.teamId) {
+      return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
+    }
   } else {
     const userValidation = await validateAndGetCorrectedUsernameAndEmail({
       username,
@@ -92,31 +100,43 @@ export default async function handler(body: Record<string, string>) {
 
       const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
 
-      let user: { id: number };
-      try {
-        user = await prisma.user.create({
-          data: {
-            username: correctedUsername,
-            email: userEmail,
-            password: { create: { hash: hashedPassword } },
-            emailVerified: new Date(Date.now()),
-            identityProvider: IdentityProvider.CAL,
-            organizationId,
-          },
-          select: { id: true },
-        });
-      } catch (error) {
-        if (isPrismaError(error) && error.code === "P2002") {
-          const target = error.meta?.target as string[] | undefined;
-          if (target?.includes("email")) {
-            return NextResponse.json(
-              { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
-              { status: 409 }
-            );
-          }
-        }
-        throw error;
+      const existingUserByUsername = await prisma.user.findFirst({
+        where: {
+          username: correctedUsername,
+          organizationId,
+          NOT: { email: userEmail }, // Exclude the invited user themselves
+        },
+      });
+      if (existingUserByUsername) {
+        return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
       }
+
+      // Use upsert to handle users created by invite
+      // Security: Already verified if user exists + invited to this team
+      const user = await prisma.user.upsert({
+        where: { email: userEmail },
+        update: {
+          username: correctedUsername,
+          emailVerified: new Date(Date.now()),
+          identityProvider: IdentityProvider.CAL,
+          password: {
+            upsert: {
+              create: { hash: hashedPassword },
+              update: { hash: hashedPassword },
+            },
+          },
+          organizationId,
+        },
+        create: {
+          username: correctedUsername,
+          email: userEmail,
+          emailVerified: new Date(Date.now()),
+          identityProvider: IdentityProvider.CAL,
+          password: { create: { hash: hashedPassword } },
+          organizationId,
+        },
+        select: { id: true },
+      });
 
       await createOrUpdateMemberships({
         user,
@@ -164,9 +184,10 @@ export default async function handler(body: Record<string, string>) {
         select: { id: true },
       });
     } catch (error) {
+      // Fallback for race conditions where user was created between our check and create
       if (isPrismaError(error) && error.code === "P2002") {
-        const target = error.meta?.target as string[] | undefined;
-        if (target?.includes("email")) {
+        const target = String(error.meta?.target ?? "");
+        if (target.includes("email") || target.includes("username")) {
           return NextResponse.json(
             { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
             { status: 409 }
