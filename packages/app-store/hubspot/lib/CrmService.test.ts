@@ -616,7 +616,7 @@ describe("HubspotCalendarService", () => {
       expect(createCall.properties.date_field).toBe("2024-02-15T10:00:00.000Z");
     });
 
-    it("should set null for unknown placeholder that cannot be resolved", async () => {
+    it("should skip fields with unknown placeholders that cannot be resolved", async () => {
       mockAppOptions({
         onBookingWriteToEventObject: true,
         onBookingWriteToEventObjectFields: {
@@ -640,8 +640,9 @@ describe("HubspotCalendarService", () => {
 
       await service.createEvent(event, contacts);
 
+      // Field with null value should be filtered out and not sent to HubSpot
       const createCall = mockHubspotClient.crm.objects.meetings.basicApi.create.mock.calls[0][0];
-      expect(createCall.properties.unknown_field).toBeNull();
+      expect(createCall.properties).not.toHaveProperty("unknown_field");
     });
 
     it("should associate meeting with contacts", async () => {

@@ -257,7 +257,7 @@ export default class HubspotCalendarService implements CRM {
     for (const field of customFieldInputs) {
       const fieldConfig = appOptions.onBookingWriteToEventObjectFields[field.name];
 
-      confirmedCustomFieldInputs[field.name] = await this.getFieldValue({
+      const fieldValue = await this.getFieldValue({
         fieldValue: fieldConfig.value,
         fieldType: fieldConfig.fieldType,
         calEventResponses: event.responses,
@@ -265,6 +265,10 @@ export default class HubspotCalendarService implements CRM {
         startTime: event.startTime,
         fieldName: field.name,
       });
+
+      if (!!fieldValue) {
+        confirmedCustomFieldInputs[field.name] = fieldValue;
+      }
     }
 
     this.log.info(`Writing to meeting fields: ${Object.keys(confirmedCustomFieldInputs)}`);
