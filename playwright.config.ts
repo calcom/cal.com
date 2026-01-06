@@ -90,7 +90,7 @@ const DEFAULT_CHROMIUM: NonNullable<PlaywrightTestConfig["projects"]>[number]["u
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 1 : 0,
   // While debugging it should be focussed mode
   // eslint-disable-next-line turbo/no-undeclared-env-vars
   workers: process.env.PWDEBUG ? 1 : os.cpus().length,
