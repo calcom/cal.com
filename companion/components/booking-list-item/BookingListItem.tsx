@@ -84,21 +84,21 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
       icon: "calendar-outline",
       onPress: () => onReschedule?.(booking),
       variant: "default" as const,
-      visible: isUpcoming && !isCancelled && !isPending && !!onReschedule,
+      visible: isUpcoming && !isCancelled && !isRejected && !isPending && !!onReschedule,
     },
     {
       label: "Edit Location",
       icon: "location-outline",
       onPress: () => onEditLocation?.(booking),
       variant: "default" as const,
-      visible: isUpcoming && !isCancelled && !isPending && !!onEditLocation,
+      visible: isUpcoming && !isCancelled && !isRejected && !isPending && !!onEditLocation,
     },
     {
       label: "Add Guests",
       icon: "person-add-outline",
       onPress: () => onAddGuests?.(booking),
       variant: "default" as const,
-      visible: isUpcoming && !isCancelled && !isPending && !!onAddGuests,
+      visible: isUpcoming && !isCancelled && !isRejected && !isPending && !!onAddGuests,
     },
     {
       label: "View Recordings",
@@ -137,7 +137,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
       icon: "close-circle-outline",
       onPress: () => onCancelBooking?.(booking),
       variant: "destructive" as const,
-      visible: isUpcoming && !isCancelled && !!onCancelBooking,
+      visible: isUpcoming && !isCancelled && !isRejected && !!onCancelBooking,
     },
   ];
 

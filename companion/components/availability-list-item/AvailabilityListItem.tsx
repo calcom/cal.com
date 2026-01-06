@@ -101,37 +101,39 @@ export const AvailabilityListItem = ({
           </View>
         </Pressable>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Pressable
-              className="items-center justify-center rounded-lg border border-cal-border"
-              style={{ width: 32, height: 32, flexShrink: 0 }}
-            >
-              <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
-            </Pressable>
-          </DropdownMenuTrigger>
+        {scheduleActions.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Pressable
+                className="items-center justify-center rounded-lg border border-cal-border"
+                style={{ width: 32, height: 32, flexShrink: 0 }}
+              >
+                <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
+              </Pressable>
+            </DropdownMenuTrigger>
 
-          <DropdownMenuContent insets={contentInsets} sideOffset={8} className="w-44" align="end">
-            {scheduleActions.map((action, index) => (
-              <React.Fragment key={action.label}>
-                {index === destructiveStartIndex && destructiveStartIndex > 0 && (
-                  <DropdownMenuSeparator />
-                )}
-                <DropdownMenuItem variant={action.variant} onPress={action.onPress}>
-                  <Ionicons
-                    name={action.icon}
-                    size={18}
-                    color={action.variant === "destructive" ? "#800020" : "#374151"}
-                    style={{ marginRight: 8 }}
-                  />
-                  <Text className={action.variant === "destructive" ? "text-destructive" : ""}>
-                    {action.label}
-                  </Text>
-                </DropdownMenuItem>
-              </React.Fragment>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <DropdownMenuContent insets={contentInsets} sideOffset={8} className="w-44" align="end">
+              {scheduleActions.map((action, index) => (
+                <React.Fragment key={action.label}>
+                  {index === destructiveStartIndex && destructiveStartIndex > 0 && (
+                    <DropdownMenuSeparator />
+                  )}
+                  <DropdownMenuItem variant={action.variant} onPress={action.onPress}>
+                    <Ionicons
+                      name={action.icon}
+                      size={18}
+                      color={action.variant === "destructive" ? "#800020" : "#374151"}
+                      style={{ marginRight: 8 }}
+                    />
+                    <Text className={action.variant === "destructive" ? "text-destructive" : ""}>
+                      {action.label}
+                    </Text>
+                  </DropdownMenuItem>
+                </React.Fragment>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </View>
     </View>
   );

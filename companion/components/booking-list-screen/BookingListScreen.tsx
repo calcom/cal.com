@@ -360,27 +360,25 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                   {
                     text: "Cancel All",
                     style: "destructive",
-                    onPress: async (reason?: string) => {
+                    onPress: (reason?: string) => {
                       const cancellationReason = reason?.trim() || "Cancelled all remaining";
                       setIsCancellingAll(true);
-                      try {
-                        await cancelBookingMutation(
-                          { uid: group.recurringBookingUid, reason: cancellationReason },
-                          {
-                            onSuccess: () => {
-                              Alert.alert("Success", "All remaining bookings have been cancelled.");
-                              setIsCancellingAll(false);
-                            },
-                            onError: () => {
-                              Alert.alert("Error", "Failed to cancel bookings. Please try again.");
-                              setIsCancellingAll(false);
-                            },
-                          }
-                        );
-                      } catch {
-                        Alert.alert("Error", "Failed to cancel bookings. Please try again.");
-                        setIsCancellingAll(false);
-                      }
+                      cancelBookingMutation(
+                        {
+                          uid: group.recurringBookingUid,
+                          reason: cancellationReason,
+                        },
+                        {
+                          onSuccess: () => {
+                            Alert.alert("Success", "All remaining bookings have been cancelled.");
+                            setIsCancellingAll(false);
+                          },
+                          onError: () => {
+                            Alert.alert("Error", "Failed to cancel bookings. Please try again.");
+                            setIsCancellingAll(false);
+                          },
+                        }
+                      );
                     },
                   },
                 ],
@@ -514,7 +512,10 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                         try {
                           const success = await new Promise<boolean>((resolve, _reject) => {
                             declineBookingMutation(
-                              { uid: booking.uid, reason: reason || undefined },
+                              {
+                                uid: booking.uid,
+                                reason: reason || undefined,
+                              },
                               {
                                 onSuccess: () => {
                                   resolve(true);
@@ -854,31 +855,26 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                 <UIText>Nevermind</UIText>
               </AlertDialogCancel>
               <AlertDialogAction
-                onPress={async () => {
+                onPress={() => {
                   const reason = cancelAllReason.trim() || "Cancelled all remaining";
                   setShowCancelAllDialog(false);
                   setIsCancellingAll(true);
 
-                  try {
-                    await cancelBookingMutation(
-                      { uid: cancelAllGroup.recurringBookingUid, reason },
-                      {
-                        onSuccess: () => {
-                          Alert.alert("Success", "All remaining bookings have been cancelled.");
-                          setIsCancellingAll(false);
-                          setCancelAllGroup(null);
-                          setCancelAllReason("");
-                        },
-                        onError: () => {
-                          Alert.alert("Error", "Failed to cancel bookings. Please try again.");
-                          setIsCancellingAll(false);
-                        },
-                      }
-                    );
-                  } catch {
-                    Alert.alert("Error", "Failed to cancel bookings. Please try again.");
-                    setIsCancellingAll(false);
-                  }
+                  cancelBookingMutation(
+                    { uid: cancelAllGroup.recurringBookingUid, reason },
+                    {
+                      onSuccess: () => {
+                        Alert.alert("Success", "All remaining bookings have been cancelled.");
+                        setIsCancellingAll(false);
+                        setCancelAllGroup(null);
+                        setCancelAllReason("");
+                      },
+                      onError: () => {
+                        Alert.alert("Error", "Failed to cancel bookings. Please try again.");
+                        setIsCancellingAll(false);
+                      },
+                    }
+                  );
                 }}
               >
                 <UIText className="text-white">Cancel All</UIText>
