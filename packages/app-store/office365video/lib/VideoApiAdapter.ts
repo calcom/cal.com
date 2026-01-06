@@ -251,7 +251,6 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       return Promise.resolve([]);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      logger.debug("Creating Teams meeting", { eventType: event.type });
       const url = `${await getUserEndpoint()}/onlineMeetings`;
       const resultString = await auth
         .requestRaw({

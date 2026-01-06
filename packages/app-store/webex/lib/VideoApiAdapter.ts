@@ -182,7 +182,6 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       /** @link https://developer.webex.com/docs/api/v1/meetings/create-a-meeting */
       try {
-        logger.debug("Creating Webex meeting", { eventType: event.type });
         const response = await fetchWebexApi("meetings", {
           method: "POST",
           headers: {

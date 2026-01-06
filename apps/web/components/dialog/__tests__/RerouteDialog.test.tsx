@@ -85,6 +85,10 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
   useLocale: vi.fn(() => ({ t: (key: string) => key })),
 }));
 
+vi.mock("@calcom/features/ee/organizations/context/provider", () => ({
+  useOrgBranding: vi.fn(() => null),
+}));
+
 vi.mock("@calcom/web/lib/hooks/useRouterQuery", () => ({
   default: vi.fn(() => {
     return {

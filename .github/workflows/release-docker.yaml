@@ -1,5 +1,9 @@
 name: "Release Docker"
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   POSTGRES_USER: "unicorn_user"
   POSTGRES_PASSWORD: "magical_password"
