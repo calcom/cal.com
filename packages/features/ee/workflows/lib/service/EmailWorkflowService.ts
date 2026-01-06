@@ -12,6 +12,7 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
@@ -20,7 +21,8 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
-import { isEmailAction } from "../actionHelperFunctions";
+import { isEmailAction, getTemplateBodyForAction } from "../actionHelperFunctions";
+import compareReminderBodyToTemplate from "../compareReminderBodyToTemplate";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import type { VariablesType } from "../reminders/templates/customTemplate";
 import customTemplate, {
@@ -331,21 +333,54 @@ export class EmailWorkflowService {
       ? attendeeToBeUsedInMail.language?.locale || "en"
       : evt.organizer.language.locale || "en";
 
-    console.log("[EmailWorkflowService] Locale debug:", {
-      isEmailAttendeeAction,
-      attendeeLanguage: attendeeToBeUsedInMail.language,
-      organizerLanguage: evt.organizer.language?.locale,
-      selectedLocale: locale,
-    });
-
-    console.log("locale", locale);
     let emailContent = {
       emailSubject,
       emailBody: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
     };
     const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
 
-    if (template === WorkflowTemplates.REMINDER) {
+    // Check if body matches REMINDER or RATING default template (regardless of template type field)
+    // If matches default, regenerate with recipient's locale for proper translation
+    // If customized, use saved body with customTemplate() to preserve user edits
+    let matchedTemplate: WorkflowTemplates | null = null;
+
+    if (emailBody) {
+      const tEn = await getTranslation("en", "common");
+
+      // Check against REMINDER default
+      const reminderDefault = getTemplateBodyForAction({
+        action,
+        template: WorkflowTemplates.REMINDER,
+        locale: "en",
+        t: tEn,
+        timeFormat: evt.organizer.timeFormat || TimeFormat.TWELVE_HOUR,
+      });
+      if (
+        reminderDefault &&
+        compareReminderBodyToTemplate({ reminderBody: emailBody, template: reminderDefault })
+      ) {
+        matchedTemplate = WorkflowTemplates.REMINDER;
+      }
+
+      // Check against RATING default if not already matched
+      if (!matchedTemplate) {
+        const ratingDefault = getTemplateBodyForAction({
+          action,
+          template: WorkflowTemplates.RATING,
+          locale: "en",
+          t: tEn,
+          timeFormat: evt.organizer.timeFormat || TimeFormat.TWELVE_HOUR,
+        });
+        if (
+          ratingDefault &&
+          compareReminderBodyToTemplate({ reminderBody: emailBody, template: ratingDefault })
+        ) {
+          matchedTemplate = WorkflowTemplates.RATING;
+        }
+      }
+    }
+
+    if (matchedTemplate === WorkflowTemplates.REMINDER) {
       const t = await getTranslation(locale, "common");
 
       emailContent = emailReminderTemplate({
@@ -364,7 +399,7 @@ export class EmailWorkflowService {
         otherPerson: attendeeName,
         name,
       });
-    } else if (template === WorkflowTemplates.RATING) {
+    } else if (matchedTemplate === WorkflowTemplates.RATING) {
       emailContent = emailRatingTemplate({
         isEditingMode: false,
         locale,
