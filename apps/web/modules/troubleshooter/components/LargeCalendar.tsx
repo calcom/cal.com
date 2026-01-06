@@ -7,9 +7,9 @@ import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Ca
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
-import { useTimePreferences } from "../../bookings/lib/timePreferences";
-import { useSchedule } from "../../schedules/lib/use-schedule/useSchedule";
-import { useTroubleshooterStore } from "../store";
+import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
+import { useSchedule } from "@calcom/features/schedules/lib/use-schedule/useSchedule";
+import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
 
 export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const { timezone } = useTimePreferences();

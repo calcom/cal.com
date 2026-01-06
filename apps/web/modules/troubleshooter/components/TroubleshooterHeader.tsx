@@ -5,7 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
-import { useTroubleshooterStore } from "../store";
+import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
 
 export function TroubleshooterHeader({ extraDays, isMobile }: { extraDays: number; isMobile: boolean }) {
   const { t, i18n } = useLocale();

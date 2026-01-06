@@ -3,10 +3,10 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import classNames from "@calcom/ui/classNames";
 
 import { LargeCalendar } from "@calcom/web/modules/calendar-view/components/LargeCalendar";
-import { TroubleshooterHeader } from "./components/TroubleshooterHeader";
-import { TroubleshooterSidebar } from "./components/TroubleshooterSidebar";
-import { useInitalizeTroubleshooterStore } from "./store";
-import type { TroubleshooterProps } from "./types";
+import { TroubleshooterHeader } from "./TroubleshooterHeader";
+import { TroubleshooterSidebar } from "./TroubleshooterSidebar";
+import { useInitalizeTroubleshooterStore } from  "@calcom/features/troubleshooter/store";
+import type { TroubleshooterProps } from "@calcom/features/troubleshooter/types";
 
 const extraDaysConfig = {
   desktop: 7,

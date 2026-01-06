@@ -4,8 +4,8 @@ import { shallow } from "zustand/shallow";
 import { trpc } from "@calcom/trpc/react";
 import { SelectField } from "@calcom/ui/components/form";
 
-import { getQueryParam } from "../../bookings/Booker/utils/query-param";
-import { useTroubleshooterStore } from "../store";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
 
 export function EventTypeSelect() {
   const { data: eventTypes, isPending } = trpc.viewer.eventTypes.listWithTeam.useQuery();

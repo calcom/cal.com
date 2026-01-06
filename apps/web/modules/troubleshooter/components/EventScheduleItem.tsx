@@ -5,7 +5,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { Label } from "@calcom/ui/components/form";
 
-import { useTroubleshooterStore } from "../store";
+import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
 import { TroubleshooterListItemHeader } from "./TroubleshooterListItemContainer";
 
 export function EventScheduleItem() {

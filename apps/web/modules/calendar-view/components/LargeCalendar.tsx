@@ -9,9 +9,9 @@ import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/week
 import { localStorage } from "@calcom/lib/webstorage";
 import type { BookingStatus } from "@calcom/prisma/enums";
 
-import { useBookings } from "../../../../packages/platform/atoms/hooks/bookings/useBookings";
-import { useCalendarsBusyTimes } from "../../../../packages/platform/atoms/hooks/useCalendarsBusyTimes";
-import { useConnectedCalendars } from "../../../../packages/platform/atoms/hooks/useConnectedCalendars";
+import { useBookings } from "@calcom/atoms/hooks/bookings/useBookings";
+import { useCalendarsBusyTimes } from "@calcom/atoms/hooks/useCalendarsBusyTimes";
+import { useConnectedCalendars } from "@calcom/atoms/hooks/useConnectedCalendars";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 
 export const LargeCalendar = ({
