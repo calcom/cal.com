@@ -17,7 +17,7 @@ type DestinationCalendar = {
   updatedAt: Date | null;
   delegationCredentialId: string | null;
   domainWideDelegationCredentialId: string | null;
-  customCalendarReminder: number;
+  customCalendarReminder: number | null;
 };
 
 type Response = {

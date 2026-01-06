@@ -51,7 +51,7 @@ export const DestinationCalendarSettings = (props: DestinationCalendarSettingsPr
               <Label className="text-default mb-0 font-medium">{t("default_reminder")}</Label>
               <p className="text-subtle mb-2 text-sm">{t("default_reminder_description")}</p>
               <DestinationReminderSelector
-                value={props.reminderValue ?? 10}
+                value={props.reminderValue}
                 onChange={props.onReminderChange!}
                 isPending={props.isReminderPending}
               />

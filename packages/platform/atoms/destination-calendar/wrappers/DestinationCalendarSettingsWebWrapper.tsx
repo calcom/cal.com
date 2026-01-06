@@ -1,7 +1,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
 import type { ReminderMinutes } from "@calcom/trpc/server/routers/viewer/calendars/setDestinationReminder.schema";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { DestinationCalendarSettings } from "../DestinationCalendar";
@@ -51,7 +51,7 @@ export const DestinationCalendarSettingsWebWrapper = () => {
         hidePlaceholder
         onChange={mutation.mutate}
         onReminderChange={handleReminderChange}
-        reminderValue={(calendars.data.destinationCalendar.customCalendarReminder ?? 10) as ReminderMinutes}
+        reminderValue={calendars.data.destinationCalendar.customCalendarReminder}
         isReminderPending={reminderMutation.isPending}
       />
     </AtomsWrapper>

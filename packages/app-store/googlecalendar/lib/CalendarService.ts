@@ -10,8 +10,8 @@ import { uniqueBy } from "@calcom/lib/array";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type {
   Calendar,
@@ -59,11 +59,7 @@ export default class GoogleCalendarService implements Calendar {
 
   private async getReminderDuration(credentialId: number): Promise<number | null> {
     try {
-      const destinationCalendar = await prisma.destinationCalendar.findFirst({
-        where: { credentialId },
-        select: { customCalendarReminder: true },
-      });
-      return destinationCalendar?.customCalendarReminder ?? null;
+      return await DestinationCalendarRepository.getCustomReminderByCredentialId(credentialId);
     } catch (error) {
       this.log.warn("Failed to fetch custom calendar reminder", safeStringify(error));
       return null;

@@ -334,7 +334,7 @@ model DestinationCalendar {
   delegationCredentialId           String?
   domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
-  customCalendarReminder           Int                   @default(10)
+  customCalendarReminder           Int?
 
   @@index([userId])
   @@index([eventTypeId])

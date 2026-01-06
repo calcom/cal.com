@@ -1,10 +1,11 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Select } from "@calcom/ui/components/form";
 import type { ReminderMinutes } from "@calcom/trpc/server/routers/viewer/calendars/setDestinationReminder.schema";
+import { Select } from "@calcom/ui/components/form";
 
 const REMINDER_OPTIONS: Array<{ value: ReminderMinutes; label: string }> = [
+  { value: null, label: "use_default_reminders" },
   { value: 0, label: "just_in_time" },
   { value: 10, label: "remind_minutes_before" },
   { value: 30, label: "remind_minutes_before" },
@@ -26,10 +27,10 @@ export const DestinationReminderSelector = ({
 
   const options = REMINDER_OPTIONS.map((opt) => ({
     value: opt.value,
-    label: t(opt.label, { count: opt.value }),
+    label: typeof opt.value === "number" ? t(opt.label, { count: opt.value }) : t(opt.label),
   }));
 
-  const selectedOption = options.find((opt) => opt.value === value) || options[0];
+  const selectedOption = options.find((opt) => opt.value === value) ?? options[0];
 
   return (
     <Select

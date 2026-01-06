@@ -713,10 +713,13 @@ describe("createEvent", () => {
           domainWideDelegationCredentialId: null,
           createdAt: new Date("2024-06-15T11:00:00Z"),
           updatedAt: new Date("2024-06-15T11:00:00Z"),
-          customCalendarReminder: 10,
+          customCalendarReminder: null,
         },
       ],
     };
+
+    // Mock the getReminderDuration method to return null (no custom reminder configured)
+    vi.spyOn(calendarService as any, "getReminderDuration").mockResolvedValue(null);
 
     await calendarService.createEvent(testCalEvent, mockCredential.id);
 
