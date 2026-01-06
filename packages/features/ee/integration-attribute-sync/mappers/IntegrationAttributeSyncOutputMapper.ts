@@ -40,9 +40,9 @@ export class IntegrationAttributeSyncOutputMapper {
       integration: prisma.integration as AttributeSyncIntegrations,
       credentialId: prisma.credentialId ?? undefined,
       enabled: prisma.enabled,
-      attributeSyncRules: prisma.attributeSyncRule
-        ? [IntegrationAttributeSyncOutputMapper.attributeSyncRuleToDomain(prisma.attributeSyncRule)]
-        : [],
+      attributeSyncRule: prisma.attributeSyncRule
+        ? IntegrationAttributeSyncOutputMapper.attributeSyncRuleToDomain(prisma.attributeSyncRule)
+        : null,
       syncFieldMappings: prisma.syncFieldMappings,
     };
   }
