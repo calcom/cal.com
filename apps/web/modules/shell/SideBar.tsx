@@ -1,6 +1,5 @@
 import type { User as UserAuth } from "next-auth";
 import { useSession } from "next-auth/react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -23,11 +22,6 @@ import { Navigation } from "./navigation/Navigation";
 import { useBottomNavItems } from "./useBottomNavItems";
 import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";
 import { UserDropdown } from "./user-dropdown/UserDropdown";
-
-// need to import without ssr to prevent hydration errors
-const Tips = dynamic(() => import("./Tips").then((mod) => mod.default), {
-  ssr: false,
-});
 
 export type SideBarContainerProps = {
   bannersHeight: number;
@@ -137,9 +131,6 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
 
         {!isPlatformPages && (
           <div className="md:px-2 md:pb-4 lg:p-0">
-            <div className="overflow-hidden">
-              <Tips />
-            </div>
             {bottomNavItems.map((item, index) => (
               <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
                 <ButtonOrLink
