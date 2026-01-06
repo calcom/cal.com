@@ -1,3 +1,12 @@
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon/Icon";
 import { Input } from "@calid/features/ui/components/input/input";
 import { ScrollArea } from "@calid/features/ui/components/scroll-area";
@@ -7,7 +16,6 @@ import { useMemo, useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/button";
 import { Badge } from "@calcom/ui/components/badge";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/dialog";
 
 interface WorkflowStatusDialogProps {
   isOpenDialog: boolean;
@@ -217,14 +225,14 @@ export const WorkflowStatusDialog = ({
   return (
     <Dialog open={isOpenDialog} onOpenChange={handleDialogChange}>
       <DialogContent enableOverflow>
-        <DialogHeader
-          title={t("workflow_reminders")}
-          subtitle={
-            isMultiSeat && selectedAttendee === null
+        <DialogHeader>
+          <DialogTitle>{t("workflow_reminders")}</DialogTitle>
+          <DialogDescription>
+            {isMultiSeat && selectedAttendee === null
               ? "Select an attendee to view their workflow status"
-              : "View workflow automation status"
-          }
-        />
+              : "View workflow automation status"}
+          </DialogDescription>
+        </DialogHeader>
 
         <div>
           {/* Single-seat: Show workflows directly */}
