@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateCsvRawForMembersTable,
   generateHeaderFromReactTable,
-} from "@calcom/features/users/lib/UserListTableUtils";
+} from "@calcom/web/modules/users/lib/UserListTableUtils";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { UserTableUser } from "@calcom/web/modules/users/components/UserTable/types";
 
