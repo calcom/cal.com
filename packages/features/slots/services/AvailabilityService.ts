@@ -591,7 +591,7 @@ export class AvailableSlotsService {
         id: user.id,
         email: user.email,
       }));
-      const eventTimeZone = eventType.schedule?.timeZone ?? input.timeZone ?? "UTC";
+      const eventTimeZone = eventType.schedule?.timeZone ?? usersWithCredentials[0]?.timeZone ?? "UTC";
       busyTimesFromLimitsMap = await this.getBusyTimesFromLimitsForUsers(
         usersForLimits,
         bookingLimits,
@@ -617,7 +617,7 @@ export class AvailableSlotsService {
         id: user.id,
         email: user.email,
       }));
-      const eventTimeZone = eventType.schedule?.timeZone ?? input.timeZone ?? "UTC";
+      const eventTimeZone = eventType.schedule?.timeZone ?? usersWithCredentials[0]?.timeZone ?? "UTC";
       teamBookingLimitsMap = await this.getBusyTimesFromTeamLimitsForUsers(
         usersForTeamLimits,
         teamBookingLimits,
