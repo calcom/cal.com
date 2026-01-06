@@ -10,6 +10,7 @@ export class OAuthClientRepository {
       },
       select: {
         redirectUri: true,
+        redirectUris: true,
         clientSecret: true,
         clientType: true,
       },

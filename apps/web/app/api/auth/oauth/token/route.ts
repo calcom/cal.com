@@ -12,6 +12,18 @@ import { NextResponse } from "next/server";
 const ACCESS_TOKEN_EXPIRES_IN = 1800; // 30 minutes
 const REFRESH_TOKEN_EXPIRES_IN = 30 * 24 * 60 * 60; // 30 days
 
+function isValidRedirectUri(
+  redirectUri: string,
+  clientRedirectUri: string,
+  clientRedirectUris: string[]
+): boolean {
+  // Use redirectUris array if it has items, otherwise fall back to single redirectUri
+  if (clientRedirectUris.length > 0) {
+    return clientRedirectUris.includes(redirectUri);
+  }
+  return clientRedirectUri === redirectUri;
+}
+
 function createTokenResponse(access_token: string, refresh_token: string) {
   return NextResponse.json(
     { access_token, token_type: "bearer", refresh_token, expires_in: ACCESS_TOKEN_EXPIRES_IN },
@@ -43,7 +55,7 @@ async function handleAuthorizationCode(
     return NextResponse.json({ error: "invalid_client" }, { status: 401 });
   }
 
-  if (client.redirectUri !== redirect_uri) {
+  if (!isValidRedirectUri(redirect_uri, client.redirectUri, client.redirectUris)) {
     return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
   }
 

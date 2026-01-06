@@ -149,6 +149,7 @@ describe("POST /api/auth/oauth/token", () => {
   describe("PUBLIC clients", () => {
     const mockPublicClient = {
       redirectUri: "https://app.example.com/callback",
+      redirectUris: [] as string[],
       clientSecret: null,
       clientType: "PUBLIC" as const,
     } as const;
@@ -279,6 +280,7 @@ describe("POST /api/auth/oauth/token", () => {
   describe("CONFIDENTIAL clients", () => {
     const mockConfidentialClient = {
       redirectUri: "https://app.example.com/callback",
+      redirectUris: [] as string[],
       clientSecret: "hashed_secret",
       clientType: "CONFIDENTIAL" as const,
     } as const;
@@ -494,6 +496,7 @@ describe("POST /api/auth/oauth/token", () => {
     it("should reject mismatched redirect_uri", async () => {
       prismaMock.oAuthClient.findFirst.mockResolvedValue({
         redirectUri: "https://app.example.com/callback",
+        redirectUris: [],
         clientSecret: null,
         clientType: "PUBLIC" as const,
       } as Awaited<ReturnType<typeof prismaMock.oAuthClient.findFirst>>);
@@ -514,9 +517,67 @@ describe("POST /api/auth/oauth/token", () => {
       expect(data.error).toBe("invalid_grant");
     });
 
+    it("should accept redirect_uri from redirectUris array", async () => {
+      prismaMock.oAuthClient.findFirst.mockResolvedValue({
+        redirectUri: "https://old.example.com/callback",
+        redirectUris: ["https://app.example.com/callback", "https://staging.example.com/callback"],
+        clientSecret: null,
+        clientType: "PUBLIC" as const,
+      } as Awaited<ReturnType<typeof prismaMock.oAuthClient.findFirst>>);
+      prismaMock.accessCode.findFirst.mockResolvedValue({
+        userId: 1,
+        teamId: null,
+        scopes: ["READ_BOOKING"],
+        codeChallenge: "test_challenge",
+        codeChallengeMethod: "S256",
+      } as unknown as Awaited<ReturnType<typeof prismaMock.accessCode.findFirst>>);
+      prismaMock.accessCode.deleteMany.mockResolvedValue({ count: 1 });
+      mockVerifyCodeChallenge.mockReturnValue(true);
+
+      const tokenRequest = createTokenRequest({
+        grant_type: "authorization_code",
+        code: "test_auth_code",
+        client_id: "test_client",
+        redirect_uri: "https://staging.example.com/callback",
+        code_verifier: "test_verifier",
+      });
+
+      const response = await POST(tokenRequest, { params: Promise.resolve({}) });
+      expect(response).toBeDefined();
+      if (!response) throw new Error("Response is undefined");
+
+      expect(response.status).toBe(200);
+    });
+
+    it("should reject redirect_uri not in redirectUris array", async () => {
+      prismaMock.oAuthClient.findFirst.mockResolvedValue({
+        redirectUri: "https://old.example.com/callback",
+        redirectUris: ["https://app.example.com/callback", "https://staging.example.com/callback"],
+        clientSecret: null,
+        clientType: "PUBLIC" as const,
+      } as Awaited<ReturnType<typeof prismaMock.oAuthClient.findFirst>>);
+
+      const tokenRequest = createTokenRequest({
+        grant_type: "authorization_code",
+        code: "test_auth_code",
+        client_id: "test_client",
+        redirect_uri: "https://malicious.com/callback",
+        code_verifier: "test_verifier",
+      });
+
+      const response = await POST(tokenRequest, { params: Promise.resolve({}) });
+      expect(response).toBeDefined();
+      if (!response) throw new Error("Response is undefined");
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe("invalid_grant");
+    });
+
     it("should reject expired authorization code", async () => {
       prismaMock.oAuthClient.findFirst.mockResolvedValue({
         redirectUri: "https://app.example.com/callback",
+        redirectUris: [],
         clientSecret: null,
         clientType: "PUBLIC" as const,
       } as Awaited<ReturnType<typeof prismaMock.oAuthClient.findFirst>>);
@@ -558,6 +619,7 @@ describe("POST /api/auth/oauth/token", () => {
   describe("Refresh token grant (grant_type=refresh_token)", () => {
     const mockConfidentialClient = {
       redirectUri: "https://app.example.com/callback",
+      redirectUris: [] as string[],
       clientSecret: "hashed_secret",
       clientType: "CONFIDENTIAL" as const,
     } as const;
