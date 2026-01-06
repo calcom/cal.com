@@ -15,7 +15,6 @@ import type { ReactNode } from "react";
 import { useMemo } from "react";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
@@ -94,7 +93,7 @@ function useEventTypesAction(): void {
   const router = useRouter();
   const { data } = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
     {
-      limit: 100,
+      limit: 10,
       group: { teamId: null, parentId: null },
     },
     {
@@ -125,45 +124,6 @@ function useEventTypesAction(): void {
   useRegisterActions(actions);
 }
 
-function useUpcomingBookingsAction(): void {
-  const router = useRouter();
-
-  const { data } = trpc.viewer.bookings.get.useQuery(
-    {
-      filters: {
-        statuses: ["upcoming"],
-        afterStartDate: dayjs().startOf("day").toISOString(),
-      },
-      limit: 100,
-    },
-    {
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000,
-    }
-  );
-
-  const bookingActions: Action[] = useMemo(() => {
-    if (!data?.bookings) return [];
-
-    return data.bookings.map((booking) => {
-      const startTime = dayjs(booking.startTime);
-      const formattedDate = startTime.format("MMM D");
-      const formattedTime = startTime.format("h:mm A");
-      const attendeeNames = (booking.attendees ?? []).map((a) => a.name).join(" ");
-
-      return {
-        id: `booking-${booking.uid}`,
-        name: `${booking.title} - ${formattedDate} ${formattedTime}`,
-        section: "upcoming",
-        keywords: `booking ${booking.title} ${attendeeNames}`,
-        perform: () => router.push(`/booking/${booking.uid}`),
-      };
-    });
-  }, [data?.bookings, router]);
-
-  useRegisterActions(bookingActions);
-}
-
 const KBarRoot = ({ children }: { children: ReactNode }): JSX.Element => {
   const router = useRouter();
   const actions = useMemo(() => buildKbarActions(router.push), [router.push]);
@@ -181,7 +141,6 @@ function CommandKey(): JSX.Element {
 const KBarContent = (): JSX.Element => {
   const { t } = useLocale();
   useEventTypesAction();
-  useUpcomingBookingsAction();
 
   return (
     <KBarPortal>
