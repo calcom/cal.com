@@ -8,13 +8,10 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import {
-  EventTypeEmbedButton,
-  EventTypeEmbedDialog,
-} from "@calcom/features/embed/EventTypeEmbed";
-import { EventTypeDescription } from "@calcom/features/eventtypes/components";
-import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
-import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
+import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/web/modules/embed/components/EventTypeEmbed";
+import { EventTypeDescription } from "@calcom/web/modules/event-types/components";
+import { DuplicateDialog } from "@calcom/web/modules/event-types/components/DuplicateDialog";
+import { InfiniteSkeletonLoader } from "@calcom/web/modules/event-types/components/SkeletonLoader";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import {
   extractHostTimezone,
