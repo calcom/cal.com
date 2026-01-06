@@ -3094,6 +3094,7 @@ __metadata:
     prisma: "npm:6.16.1"
     prisma-kysely: "npm:2.2.0"
     ts-node: "npm:10.9.2"
+    typescript: "npm:5.9.3"
     uuid: "npm:8.3.2"
     zod: "npm:3.25.76"
     zod-prisma-types: "npm:3.2.4"
