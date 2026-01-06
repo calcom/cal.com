@@ -116,29 +116,35 @@ export async function postHandler(request: NextRequest) {
         }),
       ]);
 
-      const results = await Promise.allSettled([
-        triggerRecordingReadyWebhook({
-          evt,
-          downloadLink,
-          booking: {
-            userId: booking?.user?.id,
-            eventTypeId: booking.eventTypeId,
-            eventTypeParentId: booking.eventType?.parentId,
-            teamId,
-          },
-        }),
-        submitBatchProcessorTranscriptionJob(recording_id),
-        sendDailyVideoRecordingEmails(evt, downloadLink),
-      ]);
+      const tasks = [
+        {
+          fn: triggerRecordingReadyWebhook({
+            evt,
+            downloadLink,
+            booking: {
+              userId: booking?.user?.id,
+              eventTypeId: booking.eventTypeId,
+              eventTypeParentId: booking.eventType?.parentId,
+              teamId,
+            },
+          }),
+          errorMsg: "trigger recording ready webhook",
+        },
+        {
+          fn: submitBatchProcessorTranscriptionJob(recording_id),
+          errorMsg: "submit transcription batch processor job",
+        },
+        {
+          fn: sendDailyVideoRecordingEmails(evt, downloadLink),
+          errorMsg: "send recording emails",
+        },
+      ];
+
+      const results = await Promise.allSettled(tasks.map((t) => t.fn));
 
       results.forEach((result, index) => {
         if (result.status === "rejected") {
-          const operations = [
-            "trigger recording ready webhook",
-            "submit transcription batch processor job",
-            "send recording emails",
-          ];
-          log.error(`Failed to ${operations[index]}:`, safeStringify(result.reason));
+          log.error(`Failed to ${tasks[index].errorMsg}:`, safeStringify(result.reason));
         }
       });
 
