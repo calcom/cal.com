@@ -3189,6 +3189,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Rerouted booking successfully. Redirecting to booking page",
   "on_booking_write_to_event_object": "On booking, write to event object",
   "field_name": "Field name",
+  "field_name_cannot_be_empty": "Field name cannot be empty",
+  "field_already_exists": "Field already exists",
   "add_new_field": "Add new field",
   "you_dont_have_access_to_reroute_this_booking": "You don't have access to reroute this booking",
   "form_response_not_found": "Form response not found",
