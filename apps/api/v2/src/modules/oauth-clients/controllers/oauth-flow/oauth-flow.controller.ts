@@ -24,9 +24,9 @@ import {
 } from "@nestjs/common";
 import {
   ApiTags as DocsTags,
-  ApiExcludeEndpoint as DocsExcludeEndpoint,
   ApiHeader as DocsHeader,
   ApiOperation,
+  ApiResponse,
 } from "@nestjs/swagger";
 import { Response as ExpressResponse } from "express";
 
@@ -49,7 +49,16 @@ export class OAuthFlowController {
   @Post("/authorize")
   @HttpCode(HttpStatus.OK)
   @UseGuards(NextAuthGuard)
-  @DocsExcludeEndpoint()
+  @DocsTags("OAuth Flow")
+  @ApiOperation({
+    summary: "Authorize an OAuth client",
+    description:
+      "Creates an authorization code for the signed-in user and redirects back to the provided redirectUri.",
+  })
+  @ApiResponse({
+    status: 302,
+    description: "Redirects to the provided redirectUri with a code query parameter.",
+  })
   async authorize(
     @Param("clientId") clientId: string,
     @Body() body: OAuthAuthorizeInput,
@@ -83,7 +92,20 @@ export class OAuthFlowController {
 
   @Post("/exchange")
   @HttpCode(HttpStatus.OK)
-  @DocsExcludeEndpoint()
+  @DocsTags("OAuth Flow")
+  @DocsHeader({
+    name: "Authorization",
+    description: "Bearer <authorization_code> from the authorize endpoint.",
+    required: true,
+  })
+  @ApiOperation({
+    summary: "Exchange authorization code for tokens",
+    description: `Use the authorization code to obtain access and refresh tokens. ${TOKENS_DOCS}`,
+  })
+  @ApiResponse({
+    status: 200,
+    type: KeysResponseDto,
+  })
   async exchange(
     @Headers("Authorization") authorization: string,
     @Param("clientId") clientId: string,
