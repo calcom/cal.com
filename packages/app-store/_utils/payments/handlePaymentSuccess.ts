@@ -18,6 +18,7 @@ import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import tasker from "@calcom/features/tasker";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -36,6 +37,16 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number,
   });
   log.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
+
+  try {
+    await tasker.cancelWithReference(booking.uid, "sendAwaitingPaymentEmail");
+    log.debug(`Cancelled scheduled awaiting payment email for booking ${bookingId}`);
+  } catch (error) {
+    log.warn(
+      { bookingId, error },
+      `Failed to cancel awaiting payment task - email may still be sent but will be suppressed by task handler`
+    );
+  }
 
   if (booking.location) evt.location = booking.location;
 

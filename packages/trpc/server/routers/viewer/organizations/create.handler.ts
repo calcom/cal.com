@@ -1,4 +1,4 @@
-import { lookup } from "dns";
+import { lookup } from "node:dns";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { isNotACompanyEmail } from "@calcom/ee/organizations/lib/server/orgCreationUtils";
