@@ -7,10 +7,10 @@ import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/s
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { isPrismaError } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
@@ -106,7 +106,7 @@ export default async function handler(body: Record<string, string>) {
           select: { id: true },
         });
       } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        if (isPrismaError(error) && error.code === "P2002") {
           const target = error.meta?.target as string[] | undefined;
           if (target?.includes("email")) {
             return NextResponse.json(
@@ -164,7 +164,7 @@ export default async function handler(body: Record<string, string>) {
         select: { id: true },
       });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      if (isPrismaError(error) && error.code === "P2002") {
         const target = error.meta?.target as string[] | undefined;
         if (target?.includes("email")) {
           return NextResponse.json(

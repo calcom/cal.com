@@ -18,8 +18,12 @@ function isZodError(cause: unknown): cause is ZodError {
   return cause instanceof ZodError || (hasName(cause) && cause.name === "ZodError");
 }
 
+// Fallback to name check when instanceof fails due to different Prisma client instances
 function isPrismaError(cause: unknown): cause is Prisma.PrismaClientKnownRequestError {
-  return cause instanceof Prisma.PrismaClientKnownRequestError;
+  return (
+    cause instanceof Prisma.PrismaClientKnownRequestError ||
+    (hasName(cause) && cause.name === "PrismaClientKnownRequestError")
+  );
 }
 
 function parseZodErrorIssues(issues: ZodIssue[]): string {
@@ -201,3 +205,5 @@ function getServerErrorFromPrismaError(
   }
   return getHttpError({ statusCode: 400, cause, traceId, tracedData });
 }
+
+export { isPrismaError };

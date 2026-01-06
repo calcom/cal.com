@@ -14,11 +14,11 @@ import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { isPrismaError } from "@calcom/lib/server/getServerErrorFromUnknown";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
 import { getTrackingFromCookies } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
@@ -193,7 +193,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
           select: { id: true },
         });
       } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        if (isPrismaError(error) && error.code === "P2002") {
           const target = error.meta?.target as string[] | undefined;
           if (target?.includes("email")) {
             return NextResponse.json(
@@ -242,7 +242,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
         },
       });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      if (isPrismaError(error) && error.code === "P2002") {
         const target = error.meta?.target as string[] | undefined;
         if (target?.includes("email")) {
           return NextResponse.json(
