@@ -80,7 +80,7 @@ describe("IntegrationAttributeSyncService", () => {
           organizationId,
           integration: "salesforce",
           enabled: true,
-          attributeSyncRules: [],
+          attributeSyncRule: null,
           syncFieldMappings: [],
         },
       ];
@@ -112,7 +112,7 @@ describe("IntegrationAttributeSyncService", () => {
         organizationId: 123,
         integration: "salesforce",
         enabled: true,
-        attributeSyncRules: [],
+        attributeSyncRule: null,
         syncFieldMappings: [],
       };
 
