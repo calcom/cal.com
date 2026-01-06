@@ -33,8 +33,6 @@ const webServer: PlaywrightTestConfig["webServer"] = [
     port: 3000,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
-    stdout: "ignore",
-    stderr: "ignore",
   },
 ];
 
