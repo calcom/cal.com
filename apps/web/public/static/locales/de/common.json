@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Teilnehmer-Nichterscheinen aktualisiert",
     "type": "Zuweisungstyp",
     "assignmentType_manual": "Manuelle Zuweisung",
-    "assignmentType_roundRobin": "Round-Robin-Zuweisung"
+    "assignmentType_roundRobin": "Round-Robin-Zuweisung",
+    "actor_impersonated_by": "Stellvertreter",
+    "source": "Quelle"
   },
   "error_loading_booking_logs": "Fehler beim Laden der Buchungsprotokolle",
   "no_audit_logs_found": "Keine Audit-Protokolle gefunden",
