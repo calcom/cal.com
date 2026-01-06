@@ -60,7 +60,6 @@ const getMeetingUrl = (booking: Booking | null): string | null => {
 };
 
 export default function BookingDetailIOS() {
-  "use no memo";
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const { userInfo } = useAuth();
 
@@ -82,7 +81,7 @@ export default function BookingDetailIOS() {
   }, [booking?.start, booking?.startTime]);
 
   // Get meeting URL for Join button
-  const meetingUrl = useMemo(() => getMeetingUrl(booking), [booking]);
+  const meetingUrl = useMemo(() => getMeetingUrl(booking ?? null), [booking]);
 
   // Handle join meeting
   const handleJoinMeeting = useCallback(() => {
@@ -111,89 +110,44 @@ export default function BookingDetailIOS() {
     });
   }, [booking, userInfo?.id, userInfo?.email]);
 
-  // Action handlers that use the booking data
-  const handleReschedule = useCallback(() => {
-    if (actionHandlersRef.current?.openRescheduleModal) {
-      actionHandlersRef.current.openRescheduleModal();
+  // Invoke a handler by name - only accesses ref at invocation time (event handler)
+  // This avoids creating closures that capture the ref during render
+  const invokeHandler = useCallback((handlerName: keyof ActionHandlers, errorMessage: string) => {
+    const handlers = actionHandlersRef.current;
+    if (handlers?.[handlerName]) {
+      (handlers[handlerName] as () => void)();
     } else {
-      Alert.alert("Error", "Unable to reschedule. Please try again.");
+      Alert.alert("Error", errorMessage);
     }
   }, []);
 
-  const handleEditLocation = useCallback(() => {
-    if (actionHandlersRef.current?.openEditLocationModal) {
-      actionHandlersRef.current.openEditLocationModal();
-    } else {
-      Alert.alert("Error", "Unable to edit location. Please try again.");
-    }
-  }, []);
-
-  const handleAddGuests = useCallback(() => {
-    if (actionHandlersRef.current?.openAddGuestsModal) {
-      actionHandlersRef.current.openAddGuestsModal();
-    } else {
-      Alert.alert("Error", "Unable to add guests. Please try again.");
-    }
-  }, []);
-
-  const handleViewRecordings = useCallback(() => {
-    if (actionHandlersRef.current?.openViewRecordingsModal) {
-      actionHandlersRef.current.openViewRecordingsModal();
-    } else {
-      Alert.alert("Error", "Unable to view recordings. Please try again.");
-    }
-  }, []);
-
-  const handleSessionDetails = useCallback(() => {
-    if (actionHandlersRef.current?.openMeetingSessionDetailsModal) {
-      actionHandlersRef.current.openMeetingSessionDetailsModal();
-    } else {
-      Alert.alert("Error", "Unable to view session details. Please try again.");
-    }
-  }, []);
-
-  const handleMarkNoShow = useCallback(() => {
-    if (actionHandlersRef.current?.openMarkNoShowModal) {
-      actionHandlersRef.current.openMarkNoShowModal();
-    } else {
-      Alert.alert("Error", "Unable to mark no-show. Please try again.");
-    }
-  }, []);
-
-  const handleReport = useCallback(() => {
-    Alert.alert("Report Booking", "Report booking functionality is not yet available");
-  }, []);
-
-  const handleCancel = useCallback(() => {
-    if (actionHandlersRef.current?.handleCancelBooking) {
-      actionHandlersRef.current.handleCancelBooking();
-    } else {
-      Alert.alert("Error", "Unable to cancel. Please try again.");
-    }
-  }, []);
-
-  // Define booking actions organized by sections
+  // Define and filter booking actions
+  // Actions store handler metadata instead of closures to avoid capturing ref during render
   const bookingActionsSections = useMemo(() => {
+    // Define all actions with handler metadata (not closures)
     const allEditEventActions = [
       {
         id: "reschedule",
         label: "Reschedule Booking",
         icon: "calendar" as const,
-        onPress: handleReschedule,
+        handlerName: "openRescheduleModal" as const,
+        errorMessage: "Unable to reschedule. Please try again.",
         gatingKey: "reschedule" as const,
       },
       {
         id: "edit-location",
         label: "Edit Location",
         icon: "location" as const,
-        onPress: handleEditLocation,
+        handlerName: "openEditLocationModal" as const,
+        errorMessage: "Unable to edit location. Please try again.",
         gatingKey: "changeLocation" as const,
       },
       {
         id: "add-guests",
         label: "Add Guests",
         icon: "person.badge.plus" as const,
-        onPress: handleAddGuests,
+        handlerName: "openAddGuestsModal" as const,
+        errorMessage: "Unable to add guests. Please try again.",
         gatingKey: "addGuests" as const,
       },
     ];
@@ -203,21 +157,24 @@ export default function BookingDetailIOS() {
         id: "view-recordings",
         label: "View Recordings",
         icon: "video" as const,
-        onPress: handleViewRecordings,
+        handlerName: "openViewRecordingsModal" as const,
+        errorMessage: "Unable to view recordings. Please try again.",
         gatingKey: "viewRecordings" as const,
       },
       {
         id: "session-details",
         label: "Meeting Session Details",
         icon: "info.circle" as const,
-        onPress: handleSessionDetails,
+        handlerName: "openMeetingSessionDetailsModal" as const,
+        errorMessage: "Unable to view session details. Please try again.",
         gatingKey: "meetingSessionDetails" as const,
       },
       {
         id: "mark-no-show",
         label: "Mark as No-Show",
         icon: "eye.slash" as const,
-        onPress: handleMarkNoShow,
+        handlerName: "openMarkNoShowModal" as const,
+        errorMessage: "Unable to mark no-show. Please try again.",
         gatingKey: "markNoShow" as const,
       },
     ];
@@ -227,7 +184,11 @@ export default function BookingDetailIOS() {
         id: "report",
         label: "Report Booking",
         icon: "flag" as const,
-        onPress: handleReport,
+        handlerName: null,
+        errorMessage: null,
+        customHandler: () => {
+          Alert.alert("Report Booking", "Report booking functionality is not yet available");
+        },
         destructive: true,
         gatingKey: null,
       },
@@ -235,12 +196,14 @@ export default function BookingDetailIOS() {
         id: "cancel",
         label: "Cancel Event",
         icon: "xmark.circle" as const,
-        onPress: handleCancel,
+        handlerName: "handleCancelBooking" as const,
+        errorMessage: "Unable to cancel. Please try again.",
         destructive: true,
         gatingKey: "cancel" as const,
       },
     ];
 
+    // Filter actions based on gating logic
     const filterAction = (action: { gatingKey: keyof typeof actions | null }) => {
       if (action.gatingKey === null) return true;
       const gating = actions[action.gatingKey];
@@ -252,17 +215,7 @@ export default function BookingDetailIOS() {
       afterEvent: allAfterEventActions.filter(filterAction),
       standalone: allStandaloneActions.filter(filterAction),
     };
-  }, [
-    actions,
-    handleReschedule,
-    handleEditLocation,
-    handleAddGuests,
-    handleViewRecordings,
-    handleSessionDetails,
-    handleMarkNoShow,
-    handleReport,
-    handleCancel,
-  ]);
+  }, [actions]);
 
   return (
     <>
@@ -308,7 +261,7 @@ export default function BookingDetailIOS() {
                 <Stack.Header.MenuAction
                   key={action.id}
                   icon={action.icon}
-                  onPress={action.onPress}
+                  onPress={() => invokeHandler(action.handlerName, action.errorMessage)}
                 >
                   {action.label}
                 </Stack.Header.MenuAction>
@@ -321,7 +274,7 @@ export default function BookingDetailIOS() {
                 <Stack.Header.MenuAction
                   key={action.id}
                   icon={action.icon}
-                  onPress={action.onPress}
+                  onPress={() => invokeHandler(action.handlerName, action.errorMessage)}
                 >
                   {action.label}
                 </Stack.Header.MenuAction>
@@ -334,7 +287,13 @@ export default function BookingDetailIOS() {
                 <Stack.Header.MenuAction
                   key={action.id}
                   icon={action.icon}
-                  onPress={action.onPress}
+                  onPress={() => {
+                    if (action.customHandler) {
+                      action.customHandler();
+                    } else if (action.handlerName && action.errorMessage) {
+                      invokeHandler(action.handlerName, action.errorMessage);
+                    }
+                  }}
                   destructive
                 >
                   {action.label}

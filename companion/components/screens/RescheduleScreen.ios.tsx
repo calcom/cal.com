@@ -31,7 +31,6 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
     { booking, onSuccess, onSavingChange, transparentBackground = false },
     ref
   ) {
-    "use no memo";
     const insets = useSafeAreaInsets();
     const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
     const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
