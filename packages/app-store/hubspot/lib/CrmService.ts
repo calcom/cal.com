@@ -266,7 +266,7 @@ export default class HubspotCalendarService implements CRM {
         fieldName: field.name,
       });
 
-      if (!!fieldValue) {
+      if (fieldValue !== null) {
         confirmedCustomFieldInputs[field.name] = fieldValue;
       }
     }
