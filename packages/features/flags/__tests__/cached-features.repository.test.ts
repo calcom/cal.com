@@ -688,4 +688,81 @@ describe("CachedFeaturesRepository", () => {
       expect(mockRedis.setCalls[0].key).not.toBe(mockRedis.setCalls[1].key);
     });
   });
+
+  describe("setValue validation", () => {
+    it("should throw error when repository returns invalid feature state value", async () => {
+      const userId = 999;
+      const featureIds = ["emails"] as FeatureId[];
+      // Mock repository to return an invalid state value (not "enabled", "disabled", or "inherit")
+      spyRepository.mockUserFeatureStates[userId] = {
+        emails: "invalid-state" as "enabled",
+      };
+
+      await expect(
+        cachedRepository.getUserFeatureStates({ userId, featureIds })
+      ).rejects.toThrow("Invalid cache value");
+    });
+
+    it("should throw error when repository returns invalid boolean for auto opt-in", async () => {
+      const userId = 888;
+      // Mock repository to return a non-boolean value
+      spyRepository.mockUserAutoOptIn[userId] = "not-a-boolean" as unknown as boolean;
+
+      await expect(cachedRepository.getUserAutoOptIn(userId)).rejects.toThrow(
+        "Invalid cache value"
+      );
+    });
+
+    it("should throw error when repository returns invalid team auto opt-in value", async () => {
+      const teamIds = [777];
+      // Mock repository to return invalid data
+      spyRepository.mockTeamsAutoOptIn = { 777: "invalid" as unknown as boolean };
+
+      await expect(cachedRepository.getTeamsAutoOptIn(teamIds)).rejects.toThrow(
+        "Invalid cache value"
+      );
+    });
+
+    it("should throw error when repository returns invalid feature list", async () => {
+      // Mock repository to return invalid feature data (missing required fields)
+      spyRepository.mockAllFeatures = [
+        { slug: "test-feature" } as unknown as import("@calcom/prisma/client").Feature,
+      ];
+
+      await expect(cachedRepository.getAllFeatures()).rejects.toThrow(
+        "Invalid cache value"
+      );
+    });
+
+    it("should include cache key in error message", async () => {
+      const userId = 666;
+      const featureIds = ["emails"] as FeatureId[];
+      spyRepository.mockUserFeatureStates[userId] = {
+        emails: "bad-value" as "enabled",
+      };
+
+      await expect(
+        cachedRepository.getUserFeatureStates({ userId, featureIds })
+      ).rejects.toThrow(
+        FeaturesCacheEntries.userFeatureStates(userId, featureIds).key
+      );
+    });
+
+    it("should not cache value when validation fails", async () => {
+      const userId = 555;
+      const featureIds = ["emails"] as FeatureId[];
+      spyRepository.mockUserFeatureStates[userId] = {
+        emails: "invalid" as "enabled",
+      };
+
+      try {
+        await cachedRepository.getUserFeatureStates({ userId, featureIds });
+      } catch {
+        // Expected to throw
+      }
+
+      // Verify that set was never called (validation failed before set)
+      expect(mockRedis.setCalls).toHaveLength(0);
+    });
+  });
 });

@@ -52,8 +52,14 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
 
   /**
    * Set a value in cache using a typed cache entry.
+   * Validates the value against the schema before storing.
+   * Throws an error if validation fails to prevent storing invalid data.
    */
   private async setValue<T>(entry: CacheEntry<T>, value: T): Promise<void> {
+    const parsed = entry.schema.safeParse(value);
+    if (!parsed.success) {
+      throw new Error(`Invalid cache value for key ${entry.key}: ${parsed.error.message}`);
+    }
     await this.redisService.set(entry.key, value, { ttl: this.cacheTtlMs });
   }
 
