@@ -85,6 +85,15 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       teamId: foundToken?.teamId ?? null,
       isSignup: true,
     });
+
+    // Check if user already exists before creating Stripe customer (e.g., invite link used by existing user)
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+    if (existingUser) {
+      return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
+    }
   } else {
     const usernameAndEmailValidation = await validateAndGetCorrectedUsernameAndEmail({
       username,

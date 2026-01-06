@@ -180,7 +180,7 @@ test.describe("Email Signup Flow Test", async () => {
     expect(responseBody.message).toBe("user_already_exists");
 
     // Should redirect to login (toast shows and redirects after 3s)
-    await page.waitForURL(/\/auth\/login/, { timeout: 8000 });
+    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 8000 });
 
     // Verify original password still works by logging in
     await page.locator('input[name="email"]').fill(existingUser.email);
@@ -188,7 +188,7 @@ test.describe("Email Signup Flow Test", async () => {
     await page.locator('button[type="submit"]').click();
 
     // Should successfully login with original password
-    await page.waitForURL(/\/(getting-started|event-types|teams)/, { timeout: 8000 });
+    await expect(page).toHaveURL(/\/(getting-started|event-types|teams)/, { timeout: 8000 });
 
     // Cleanup
     await prisma.verificationToken.deleteMany({ where: { token } });
