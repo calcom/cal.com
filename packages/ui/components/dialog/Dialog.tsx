@@ -66,7 +66,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
     },
     forwardedRef
   ) => {
-    const contentRef = useRef<HTMLDivElement>(null);
+    const contentRef = useRef<HTMLDivElement | null>(null);
 
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
       // Check for CMD+Enter (Mac) or Ctrl+Enter (Windows/Linux)
