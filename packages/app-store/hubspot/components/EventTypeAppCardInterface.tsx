@@ -2,9 +2,9 @@ import { usePathname } from "next/navigation";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
+import { CrmFieldType } from "@calcom/app-store/_lib/crm-enums";
 import WriteToObjectSettings, {
   BookingActionEnum,
-  CrmFieldType,
 } from "@calcom/app-store/_components/crm/WriteToObjectSettings";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
