@@ -1,3 +1,6 @@
+/**
+ * @vitest-environment node
+ */
 import "@calcom/lib/__mocks__/logger";
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
@@ -5,7 +8,7 @@ import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import type { GetWebhooksReturnType } from "@calcom/features/webhooks/lib/getWebhooks";
+import type { WebhookSubscriber } from "@calcom/features/webhooks/lib/dto/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import {
@@ -15,6 +18,7 @@ import {
   WorkflowTemplates,
   TimeUnit,
 } from "@calcom/prisma/enums";
+import { WebhookVersion as WebhookVersionEnum } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 
 import type { FormResponse, Field } from "../types/types";
 import { _onFormSubmission } from "./formSubmissionUtils";
@@ -100,7 +104,7 @@ describe("_onFormSubmission", () => {
 
   describe("Webhooks", () => {
     it("should call FORM_SUBMITTED webhooks", async () => {
-      const mockWebhook: GetWebhooksReturnType[number] = {
+      const mockWebhook: WebhookSubscriber = {
         id: "wh-1",
         secret: "secret",
         subscriberUrl: "https://example.com/webhook",
@@ -109,6 +113,7 @@ describe("_onFormSubmission", () => {
         eventTriggers: [WebhookTriggerEvents.FORM_SUBMITTED],
         time: null,
         timeUnit: null,
+        version: WebhookVersionEnum.V_2021_10_20,
       };
       vi.mocked(getWebhooks).mockResolvedValueOnce([mockWebhook]);
 
@@ -141,7 +146,7 @@ describe("_onFormSubmission", () => {
         "field-1": { label: "Attendee Name", value: "John Doe" },
       };
 
-      const mockWebhook: GetWebhooksReturnType[number] = {
+      const mockWebhook: WebhookSubscriber = {
         id: "wh-1",
         secret: "secret",
         subscriberUrl: "https://example.com/webhook",
@@ -150,6 +155,7 @@ describe("_onFormSubmission", () => {
         eventTriggers: [WebhookTriggerEvents.FORM_SUBMITTED],
         time: null,
         timeUnit: null,
+        version: WebhookVersionEnum.V_2021_10_20,
       };
       vi.mocked(getWebhooks).mockResolvedValueOnce([mockWebhook]);
 
