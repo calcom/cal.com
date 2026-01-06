@@ -226,6 +226,47 @@ export function useDeclineBooking() {
 }
 
 /**
+ * Hook to update the location of a booking
+ *
+ * @returns Mutation function and state
+ *
+ * @example
+ * ```tsx
+ * const { mutate: updateLocation, isPending } = useUpdateLocation();
+ *
+ * updateLocation({
+ *   uid: 'abc-123',
+ *   location: { type: 'link', link: 'https://meet.example.com' }
+ * });
+ * ```
+ */
+export function useUpdateLocation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      uid,
+      location,
+    }: {
+      uid: string;
+      location: { type: string; [key: string]: string };
+    }) => CalComAPIService.updateLocationV2(uid, location),
+    onSuccess: (_, variables) => {
+      // Invalidate all booking queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all });
+
+      // Also invalidate the specific booking detail
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.bookings.detail(variables.uid),
+      });
+    },
+    onError: (_error) => {
+      console.error("Failed to update location");
+    },
+  });
+}
+
+/**
  * Hook to prefetch bookings (useful for navigation)
  *
  * @returns Function to prefetch bookings
