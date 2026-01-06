@@ -1,4 +1,4 @@
-import { stringify } from "querystring";
+import { stringify } from "node:querystring";
 
 import dayjs from "@calcom/dayjs";
 import { getLocation } from "@calcom/lib/CalEventParser";

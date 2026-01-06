@@ -39,7 +39,7 @@ vi.mock("@calcom/features/users/repositories/UserRepository", async (importOrigi
 
   return {
     ...actual,
-    UserRepository: vi.fn().mockImplementation((prisma) => {
+    UserRepository: vi.fn(function (prisma) {
       const realInstance = new OriginalUserRepository(prisma);
       realInstance.findManyByEmailsWithEmailVerificationSettings =
         mockFindManyByEmailsWithEmailVerificationSettings;

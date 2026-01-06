@@ -1,6 +1,6 @@
-import fs from "fs";
+import fs from "node:fs"
 import matter from "gray-matter";
-import path from "path";
+import path from "node:path"
 import { z } from "zod";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
