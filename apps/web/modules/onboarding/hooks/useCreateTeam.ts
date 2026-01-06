@@ -49,13 +49,11 @@ export function useCreateTeam() {
         return;
       }
 
-            if (result.team) {
-              // Revalidate the teams cache to ensure the new team shows on /teams page
-              revalidateTeamsList();
-              // Store the teamId and redirect to invite flow after team creation
-              setTeamId(result.team.id);
-              router.push(`/onboarding/teams/invite?teamId=${result.team.id}`);
-            }
+      if (result.team) {
+        // Store the teamId and redirect to invite flow after team creation
+        setTeamId(result.team.id);
+        router.push(`/onboarding/teams/invite?teamId=${result.team.id}`);
+      }
     } catch (error) {
       console.error("Failed to create team:", error);
       throw error;
