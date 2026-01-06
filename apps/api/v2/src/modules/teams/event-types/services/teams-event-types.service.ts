@@ -13,7 +13,10 @@ import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 
 import type { SortOrderType } from "@calcom/platform-types";
 
-import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
+import {
+  createEventType,
+  updateEventType,
+} from "@calcom/platform-libraries/event-types";
 
 @Injectable()
 export class TeamsEventTypesService {
@@ -32,9 +35,6 @@ export class TeamsEventTypesService {
     teamId: number,
     body: TransformedCreateTeamEventTypeInput
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
-    if (body.bookingFields) {
-      this.eventTypesService.checkEmailOrPhoneAccessible(body.bookingFields);
-    }
     const eventTypeUser = await this.getUserToCreateTeamEvent(user);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { hosts, children, destinationCalendar, ...rest } = body;
@@ -53,10 +53,15 @@ export class TeamsEventTypesService {
   }
 
   async validateEventTypeExists(teamId: number, eventTypeId: number) {
-    const eventType = await this.teamsEventTypesRepository.getTeamEventType(teamId, eventTypeId);
+    const eventType = await this.teamsEventTypesRepository.getTeamEventType(
+      teamId,
+      eventTypeId
+    );
 
     if (!eventType) {
-      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
+      throw new NotFoundException(
+        `Event type with id ${eventTypeId} not found`
+      );
     }
   }
 
@@ -67,15 +72,26 @@ export class TeamsEventTypesService {
       id: user.id,
       role: user.role,
       organizationId: null,
-      organization: { id: null, isOrgAdmin: false, metadata: {}, requestedSlug: null },
+      organization: {
+        id: null,
+        isOrgAdmin: false,
+        metadata: {},
+        requestedSlug: null,
+      },
       profile: { id: profileId || null },
       metadata: user.metadata,
       email: user.email,
     };
   }
 
-  async getTeamEventType(teamId: number, eventTypeId: number): Promise<DatabaseTeamEventType | null> {
-    const eventType = await this.teamsEventTypesRepository.getTeamEventType(teamId, eventTypeId);
+  async getTeamEventType(
+    teamId: number,
+    eventTypeId: number
+  ): Promise<DatabaseTeamEventType | null> {
+    const eventType = await this.teamsEventTypesRepository.getTeamEventType(
+      teamId,
+      eventTypeId
+    );
 
     if (!eventType) {
       return null;
@@ -89,11 +105,12 @@ export class TeamsEventTypesService {
     eventTypeSlug: string,
     hostsLimit?: number
   ): Promise<DatabaseTeamEventType | null> {
-    const eventType = await this.teamsEventTypesRepository.getTeamEventTypeBySlug(
-      teamId,
-      eventTypeSlug,
-      hostsLimit
-    );
+    const eventType =
+      await this.teamsEventTypesRepository.getTeamEventTypeBySlug(
+        teamId,
+        eventTypeSlug,
+        hostsLimit
+      );
 
     if (!eventType) {
       return null;
@@ -102,21 +119,26 @@ export class TeamsEventTypesService {
     return eventType;
   }
 
-  async getTeamEventTypes(teamId: number, sortCreatedAt?: SortOrderType): Promise<DatabaseTeamEventType[]> {
-    return await this.teamsEventTypesRepository.getTeamEventTypes(teamId, sortCreatedAt);
+  async getTeamEventTypes(
+    teamId: number,
+    sortCreatedAt?: SortOrderType
+  ): Promise<DatabaseTeamEventType[]> {
+    return await this.teamsEventTypesRepository.getTeamEventTypes(
+      teamId,
+      sortCreatedAt
+    );
   }
 
   async updateTeamEventType(
     eventTypeId: number,
     teamId: number,
     body: TransformedUpdateTeamEventTypeInput,
-    user: UserWithProfile,
+    user: UserWithProfile
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
-    if (body.bookingFields) {
-      this.eventTypesService.checkEmailOrPhoneAccessible(body.bookingFields);
-    }
     await this.validateEventTypeExists(teamId, eventTypeId);
-    const eventTypeUser = await this.eventTypesService.getUserToUpdateEvent(user);
+    const eventTypeUser = await this.eventTypesService.getUserToUpdateEvent(
+      user
+    );
     await updateEventType({
       input: {
         id: eventTypeId,
@@ -130,26 +152,37 @@ export class TeamsEventTypesService {
       },
     });
 
-    const eventType = await this.teamsEventTypesRepository.getEventTypeById(eventTypeId);
+    const eventType = await this.teamsEventTypesRepository.getEventTypeById(
+      eventTypeId
+    );
 
     if (!eventType) {
-      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
+      throw new NotFoundException(
+        `Event type with id ${eventTypeId} not found`
+      );
     }
 
     if (eventType.schedulingType !== "MANAGED") {
       return eventType;
     }
 
-    const childrenEventTypes = await this.teamsEventTypesRepository.getEventTypeChildren(eventType.id);
+    const childrenEventTypes =
+      await this.teamsEventTypesRepository.getEventTypeChildren(eventType.id);
 
     return [eventType, ...childrenEventTypes];
   }
 
   async deleteTeamEventType(teamId: number, eventTypeId: number) {
-    const existingEventType = await this.teamsEventTypesRepository.getTeamEventType(teamId, eventTypeId);
+    const existingEventType =
+      await this.teamsEventTypesRepository.getTeamEventType(
+        teamId,
+        eventTypeId
+      );
 
     if (!existingEventType) {
-      throw new NotFoundException(`Event type with ID=${eventTypeId} does not exist.`);
+      throw new NotFoundException(
+        `Event type with ID=${eventTypeId} does not exist.`
+      );
     }
 
     return this.eventTypesRepository.deleteEventType(eventTypeId);
