@@ -66,7 +66,7 @@ export function UserPage(props: PageProps) {
               <OrgBanner
                 alt={user.profile.organization.name ?? "Organization banner"}
                 imageSrc={user.profile.organization.bannerUrl}
-                className="p-1 border-subtle rounded-xl w-full object-cover"
+                className="p-1 border border-subtle rounded-xl w-full object-cover"
               />
             )}
             <div className="p-4">
