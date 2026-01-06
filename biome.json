@@ -27,6 +27,7 @@
       "!!**/dist",
       "!!**/build",
       "!!**/public",
+      "!!**/*.d.ts",
       "!!public",
       "!!apps/web/public/embed",
       "!!packages/prisma/zod",
@@ -70,16 +71,6 @@
   },
   "overrides": [
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx"],
-      "linter": {
-        "rules": {
-          "complexity": {
-            "useArrowFunction": "off"
-          }
-        }
-      }
-    },
-    {
       "includes": ["**/*.tsx"],
       "javascript": {
         "jsxRuntime": "transparent"
@@ -100,7 +91,7 @@
       "linter": {
         "rules": {
           "nursery": {
-            "useQwikValidLexicalScope": "warn",
+            "useQwikValidLexicalScope": "off",
             "useExplicitType": "warn",
             "noReactForwardRef": "warn",
             "noTernary": "warn",
@@ -120,7 +111,8 @@
           },
           "style": {
             "useExportsLast": "warn",
-            "noProcessEnv": "warn"
+            "noProcessEnv": "warn",
+            "useNodejsImportProtocol": "error"
           },
           "complexity": {
             "noExcessiveLinesPerFunction": "warn"
@@ -129,7 +121,6 @@
             "noImgElement": "warn"
           },
           "suspicious": {
-            "noReactSpecificProps": "warn",
             "noDoubleEquals": "warn",
             "noAssignInExpressions": "warn",
             "noExplicitAny": "warn",
@@ -144,6 +135,17 @@
           "security": {
             "noBlankTarget": "warn",
             "noDangerouslySetInnerHtml": "warn"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "useArrowFunction": "off",
+            "noExcessiveLinesPerFunction": "off"
           }
         }
       }
