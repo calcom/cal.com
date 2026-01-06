@@ -42,7 +42,7 @@ import {
   UpdateEventTypeInput_2024_06_14,
   supportedIntegrations,
 } from "@calcom/platform-types";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 interface ValidationContext {
   eventTypeId?: number;

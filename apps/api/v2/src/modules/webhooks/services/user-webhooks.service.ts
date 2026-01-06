@@ -2,14 +2,15 @@ import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
 import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+// Use string literal for runtime check to avoid SWC module resolution issues with TS-only enums
+const DELEGATION_CREDENTIAL_ERROR = "DELEGATION_CREDENTIAL_ERROR" as const;
 
 @Injectable()
 export class UserWebhooksService {
   constructor(private readonly webhooksRepository: WebhooksRepository) {}
 
   async createUserWebhook(userId: number, body: PipedInputWebhookType) {
-    if (body.eventTriggers.includes(WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR)) {
+    if (body.eventTriggers.includes(DELEGATION_CREDENTIAL_ERROR)) {
       throw new BadRequestException(
         "DELEGATION_CREDENTIAL_ERROR trigger is only available for organization webhooks"
       );
