@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 
 import dayjs from "@calcom/dayjs";
-import { DecoyBookingSuccessCard } from "@calcom/features/bookings/Booker/components/DecoyBookingSuccessCard";
+import { DecoyBookingSuccessCard } from "~/bookings/components/DecoyBookingSuccessCard";
 import { useDecoyBooking } from "@calcom/features/bookings/Booker/components/hooks/useDecoyBooking";
 
 export default function BookingSuccessful() {

@@ -5,7 +5,9 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
-import { makeUserActor } from "../../../bookings/lib/types/actor";
+import type { BookingAuditTaskConsumer } from "./BookingAuditTaskConsumer";
+import type { BookingAuditViewerService } from "./BookingAuditViewerService";
+import { makeUserActor } from "../makeActor";
 import { getBookingAuditTaskConsumer } from "../../di/BookingAuditTaskConsumer.container";
 import { getBookingAuditViewerService } from "../../di/BookingAuditViewerService.container";
 import type { BookingAuditTaskConsumer } from "./BookingAuditTaskConsumer";
@@ -17,7 +19,11 @@ const generateUniqueId = () => {
   return `${timestamp}-${randomSuffix}`;
 };
 
-const createTestUser = async (overrides?: { email?: string; username?: string; name?: string }) => {
+const createTestUser = async (overrides?: {
+  email?: string;
+  username?: string;
+  name?: string;
+}) => {
   const uniqueId = generateUniqueId();
   return prisma.user.create({
     data: {
@@ -28,7 +34,10 @@ const createTestUser = async (overrides?: { email?: string; username?: string; n
   });
 };
 
-const createTestOrganization = async (overrides?: { name?: string; slug?: string }) => {
+const createTestOrganization = async (overrides?: {
+  name?: string;
+  slug?: string;
+}) => {
   const uniqueId = generateUniqueId();
   return prisma.team.create({
     data: {
@@ -83,7 +92,8 @@ const createTestBooking = async (
 ) => {
   const uniqueId = generateUniqueId();
   const startTime = overrides?.startTime || new Date();
-  const endTime = overrides?.endTime || new Date(startTime.getTime() + 60 * 60 * 1000);
+  const endTime =
+    overrides?.endTime || new Date(startTime.getTime() + 60 * 60 * 1000);
 
   return prisma.booking.create({
     data: {
@@ -101,7 +111,10 @@ const createTestBooking = async (
   });
 };
 
-const enableFeatureForOrganization = async (organizationId: number, featureSlug: string) => {
+const enableFeatureForOrganization = async (
+  organizationId: number,
+  featureSlug: string
+) => {
   await prisma.feature.upsert({
     where: { slug: featureSlug },
     create: {
@@ -200,7 +213,12 @@ describe("Booking Audit Integration", () => {
     attendee: { id: number; email: string };
     organization: { id: number };
     eventType: { id: number };
-    booking: { uid: string; startTime: Date; endTime: Date; status: BookingStatus };
+    booking: {
+      uid: string;
+      startTime: Date;
+      endTime: Date;
+      status: BookingStatus;
+    };
   };
 
   beforeEach(async () => {
@@ -247,7 +265,9 @@ describe("Booking Audit Integration", () => {
       attendeeEmails: testData.attendee?.email ? [testData.attendee.email] : [],
       eventTypeId: testData.eventType?.id,
       organizationId: testData.organization?.id,
-      userIds: [testData.owner?.id, testData.attendee?.id].filter((id): id is number => id !== undefined),
+      userIds: [testData.owner?.id, testData.attendee?.id].filter(
+        (id): id is number => id !== undefined
+      ),
       featureSlug: "booking-audit",
     });
   });
@@ -290,11 +310,15 @@ describe("Booking Audit Integration", () => {
       expect(displayData).toBeDefined();
       expect(displayData.startTime).toBeDefined();
       expect(typeof displayData.startTime).toBe("string");
-      expect(displayData.startTime).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+      expect(displayData.startTime).toMatch(
+        /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
+      );
 
       expect(displayData.endTime).toBeDefined();
       expect(typeof displayData.endTime).toBe("string");
-      expect(displayData.endTime).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+      expect(displayData.endTime).toMatch(
+        /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
+      );
 
       expect(displayData.status).toBe(testData.booking.status);
     });
@@ -330,6 +354,48 @@ describe("Booking Audit Integration", () => {
       expect(auditLog.actor.userUuid).toBe(testData.owner.uuid);
     });
 
+    it("should include impersonator details when context has impersonatedBy", async () => {
+      // Create a second user to act as impersonator
+      const impersonator = await createTestUser({ name: "Admin Impersonator" });
+
+      const actor = makeUserActor(testData.owner.uuid);
+
+      await bookingAuditTaskConsumer.onBookingAction({
+        bookingUid: testData.booking.uid,
+        actor,
+        action: "CREATED",
+        source: "WEBAPP",
+        operationId: `op-${Date.now()}`,
+        data: {
+          startTime: testData.booking.startTime.getTime(),
+          endTime: testData.booking.endTime.getTime(),
+          status: testData.booking.status,
+        },
+        timestamp: Date.now(),
+        context: {
+          impersonatedBy: impersonator.uuid,
+        },
+      });
+
+      const result = await bookingAuditViewerService.getAuditLogsForBooking({
+        bookingUid: testData.booking.uid,
+        userId: testData.owner.id,
+        userEmail: testData.owner.email,
+        userTimeZone: "UTC",
+        organizationId: testData.organization.id,
+      });
+
+      expect(result.auditLogs).toHaveLength(1);
+
+      const auditLog = result.auditLogs[0];
+      expect(auditLog.impersonatedBy).toBeDefined();
+      expect(auditLog.impersonatedBy?.displayName).toBe("Admin Impersonator");
+      expect(auditLog.impersonatedBy?.displayEmail).toBe(impersonator.email);
+
+      // Cleanup impersonator user
+      await prisma.user.delete({ where: { id: impersonator.id } });
+    });
+
     it.skip("should deny access to unauthorized users viewing audit logs", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
@@ -347,13 +413,14 @@ describe("Booking Audit Integration", () => {
         timestamp: Date.now(),
       });
 
-      const ownerResult = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: testData.booking.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const ownerResult =
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        });
       expect(ownerResult.auditLogs).toHaveLength(1);
 
       const unauthorizedUserId = 999999;
@@ -373,25 +440,33 @@ describe("Booking Audit Integration", () => {
 
   describe("when multiple bookings are created in bulk", () => {
     it("should create audit records for all bookings with same operation ID", async () => {
-      const booking2 = await createTestBooking(testData.owner.id, testData.eventType.id, {
-        attendees: [
-          {
-            email: testData.attendee.email,
-            name: "Test Attendee",
-            timeZone: "UTC",
-          },
-        ],
-      });
+      const booking2 = await createTestBooking(
+        testData.owner.id,
+        testData.eventType.id,
+        {
+          attendees: [
+            {
+              email: testData.attendee.email,
+              name: "Test Attendee",
+              timeZone: "UTC",
+            },
+          ],
+        }
+      );
 
-      const booking3 = await createTestBooking(testData.owner.id, testData.eventType.id, {
-        attendees: [
-          {
-            email: testData.attendee.email,
-            name: "Test Attendee",
-            timeZone: "UTC",
-          },
-        ],
-      });
+      const booking3 = await createTestBooking(
+        testData.owner.id,
+        testData.eventType.id,
+        {
+          attendees: [
+            {
+              email: testData.attendee.email,
+              name: "Test Attendee",
+              timeZone: "UTC",
+            },
+          ],
+        }
+      );
 
       const actor = makeUserActor(testData.owner.uuid);
       const operationId = `bulk-op-${Date.now()}`;
@@ -399,6 +474,7 @@ describe("Booking Audit Integration", () => {
 
       await bookingAuditTaskConsumer.processBulkAuditTask(
         {
+          isBulk: true,
           bookings: [
             {
               bookingUid: testData.booking.uid,
@@ -481,4 +557,3 @@ describe("Booking Audit Integration", () => {
     });
   });
 });
-
