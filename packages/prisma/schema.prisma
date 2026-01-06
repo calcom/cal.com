@@ -10,7 +10,7 @@ datasource db {
 generator client {
   provider            = "prisma-client"
   previewFeatures     = ["views"]
-  output              = "./client"
+  output              = "./generated/prisma"
   engineType          = "client"
   moduleFormat        = "cjs"
   importFileExtension = ""
@@ -24,7 +24,7 @@ generator zod {
   addIncludeType           = false
   addSelectType            = false
   validateWhereUniqueInput = false
-  prismaClientPath         = "../../client"
+  prismaClientPath         = "../../generated/prisma/client"
   moduleFormat             = "cjs"
   /// createRelationValuesTypes = true
 }

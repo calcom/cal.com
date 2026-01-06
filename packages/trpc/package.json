@@ -9,6 +9,7 @@
   "scripts": {
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
+    "prebuild": "yarn workspace @calcom/prisma prisma generate",
     "build": "yarn build:server && yarn build:react",
     "build:server": "yarn tsc --project tsconfig.server.json",
     "build:react": "yarn tsc --project tsconfig.react.json"
