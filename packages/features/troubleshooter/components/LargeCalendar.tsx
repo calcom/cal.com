@@ -3,7 +3,7 @@ import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
-import { Calendar } from "@calcom/features/calendars/weeklyview";
+import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 

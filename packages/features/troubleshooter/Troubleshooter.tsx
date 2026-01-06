@@ -2,7 +2,7 @@ import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStor
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import classNames from "@calcom/ui/classNames";
 
-import { LargeCalendar } from "./components/LargeCalendar";
+import { LargeCalendar } from "@calcom/web/modules/calendar-view/components/LargeCalendar";
 import { TroubleshooterHeader } from "./components/TroubleshooterHeader";
 import { TroubleshooterSidebar } from "./components/TroubleshooterSidebar";
 import { useInitalizeTroubleshooterStore } from "./store";
