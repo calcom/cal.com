@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Неявку учасника оновлено",
     "type": "Тип призначення",
     "assignmentType_manual": "Ручне призначення",
-    "assignmentType_roundRobin": "Призначення за ротацією"
+    "assignmentType_roundRobin": "Призначення за ротацією",
+    "actor_impersonated_by": "Виконавець",
+    "source": "Джерело"
   },
   "error_loading_booking_logs": "Помилка завантаження журналів бронювання",
   "no_audit_logs_found": "Журнали аудиту не знайдено",

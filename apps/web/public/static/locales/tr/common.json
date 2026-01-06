@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Katılımcı Gelmedi Durumu Güncellendi",
     "type": "Atama Türü",
     "assignmentType_manual": "Manuel Atama",
-    "assignmentType_roundRobin": "Round Robin Atama"
+    "assignmentType_roundRobin": "Round Robin Atama",
+    "actor_impersonated_by": "Kimliğine bürünen",
+    "source": "Kaynak"
   },
   "error_loading_booking_logs": "Rezervasyon kayıtları yüklenirken hata oluştu",
   "no_audit_logs_found": "Denetim kaydı bulunamadı",
