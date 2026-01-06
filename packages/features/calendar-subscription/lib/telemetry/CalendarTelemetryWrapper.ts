@@ -78,7 +78,6 @@ export class CalendarTelemetryWrapper implements Calendar {
         log.debug("getAvailability", {
           dateFrom,
           dateTo,
-          calendarIds: selectedCalendars.map((c) => c.id),
           calendarCount: selectedCalendars.length,
           cacheEnabled: this.deps.cacheEnabled,
         });
@@ -87,15 +86,15 @@ export class CalendarTelemetryWrapper implements Calendar {
 
         const startTime = performance.now();
         const results = await this.deps.originalCalendar.getAvailability(dateFrom, dateTo, selectedCalendars);
-        const durationMs = performance.now() - startTime;
+        const totalFetchDurationMs = performance.now() - startTime;
 
-        span.setAttribute("durationMs", durationMs);
-        span.setAttribute("eventsCount", results.length);
+        span.setAttribute("totalFetchDurationMs", totalFetchDurationMs);
+        span.setAttribute("totalEventsCount", results.length);
 
         log.info("Calendar fetch completed", {
           calendarCount: selectedCalendars.length,
-          durationMs,
-          eventsCount: results.length,
+          totalFetchDurationMs,
+          totalEventsCount: results.length,
           cacheEnabled: this.deps.cacheEnabled,
         });
 
@@ -136,7 +135,6 @@ export class CalendarTelemetryWrapper implements Calendar {
         log.debug("getAvailabilityWithTimeZones", {
           dateFrom,
           dateTo,
-          calendarIds: selectedCalendars.map((c) => c.id),
           calendarCount: selectedCalendars.length,
           cacheEnabled: this.deps.cacheEnabled,
         });
@@ -149,15 +147,15 @@ export class CalendarTelemetryWrapper implements Calendar {
           dateTo,
           selectedCalendars
         );
-        const durationMs = performance.now() - startTime;
+        const totalFetchDurationMs = performance.now() - startTime;
 
-        span.setAttribute("durationMs", durationMs);
-        span.setAttribute("eventsCount", results?.length ?? 0);
+        span.setAttribute("totalFetchDurationMs", totalFetchDurationMs);
+        span.setAttribute("totalEventsCount", results?.length ?? 0);
 
         log.info("Calendar fetch with timezones completed", {
           calendarCount: selectedCalendars.length,
-          durationMs,
-          eventsCount: results?.length ?? 0,
+          totalFetchDurationMs,
+          totalEventsCount: results?.length ?? 0,
           cacheEnabled: this.deps.cacheEnabled,
         });
 
