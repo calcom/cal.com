@@ -4165,7 +4165,7 @@
     "type": "Assignment Type",
     "assignmentType_manual": "Manual Assignment",
     "assignmentType_roundRobin": "Round Robin Assignment",
-    "actor_impersonated_by": "Impersonated by",
+    "actor_impersonated_by": "Impersonator",
     "source": "Source"
   },
   "error_loading_booking_logs": "Error loading booking logs",
