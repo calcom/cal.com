@@ -59,6 +59,13 @@ export const getCalendar = async (
       ]
     );
     shouldServeCache = isCalendarSubscriptionCacheEnabled && isCalendarSubscriptionCacheEnabledForUser;
+    log.debug("Cache feature flag check", {
+      credentialId: credential.id,
+      userId: credential.userId,
+      isCalendarSubscriptionCacheEnabled,
+      isCalendarSubscriptionCacheEnabledForUser,
+      shouldServeCache,
+    });
   }
   const isCacheSupported = CalendarCacheEventService.isCalendarTypeSupported(calendarType);
 
