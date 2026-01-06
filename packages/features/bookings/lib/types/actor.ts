@@ -1,5 +1,5 @@
 import { z } from "zod";
-
+import { v4 as uuidv4 } from "uuid";
 const UserActorSchema = z.object({
   identifiedBy: z.literal("user"),
   userUuid: z.string(),
@@ -131,8 +131,15 @@ export function makeAppActorUsingSlug(params: { appSlug: string; name: string })
   };
 }
 
+/**
+ * identifier should be unique for that actor
+ */
 export function buildActorEmail({ identifier, actorType }: { identifier: string, actorType: "system" | "guest" | "app" }): string {
   return `${identifier}@${actorType}.internal`;
+}
+
+export function getUniqueIdentifier({ prefix }: { prefix: string }): string {
+  return `${prefix}-${uuidv4()}`;
 }
 
 export const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";

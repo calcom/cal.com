@@ -54,7 +54,7 @@ import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
-import { type Actor, buildActorEmail, makeGuestActor, makeUserActor } from "./types/actor";
+import { type Actor, buildActorEmail, getUniqueIdentifier, makeGuestActor, makeUserActor } from "./types/actor";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -77,11 +77,11 @@ export type CancelBookingInput = {
 
 function getAuditActor({
   userUuid,
-  cancelledBy,
+  cancelledByEmailInQueryParam,
   bookingUid,
 }: {
   userUuid: string | null;
-  cancelledBy: string | null;
+  cancelledByEmailInQueryParam: string | null;
   bookingUid: string;
 }): Actor {
   // Prefer user actor when userUuid is available (authenticated action)
@@ -89,19 +89,25 @@ function getAuditActor({
     return makeUserActor(userUuid);
   }
 
+  let actorEmail;
   // Fall back to guest actor for unauthenticated actions (e.g., cancel link)
-  if (!cancelledBy) {
+  if (!cancelledByEmailInQueryParam) {
     log.warn(
-      "No cancelledBy email available, creating fallback guest actor for audit",
+      "No cancelledBy email in query param available, creating fallback guest actor for audit",
       safeStringify({
         bookingUid,
       })
     );
+    // Having fallback prefix makes it clear that we created guest actor from fallback logic
+    actorEmail = buildActorEmail({ identifier: getUniqueIdentifier({ prefix: "fallback" }), actorType: "guest" });
   }
-  const cancelledByEmail =
-    cancelledBy ||
-    buildActorEmail({ identifier: `fallback-${bookingUid}-${Date.now()}`, actorType: "guest" });
-  return makeGuestActor({ email: cancelledByEmail, name: null });
+  else {
+    // We can't trust cancelledByEmail as it can be set anything by anyone. If we use that as guest actor, we could accidentally attribute the action to the wrong guest actor.
+    // Having param prefix makes it clear that we created guest actor from query param
+    actorEmail = buildActorEmail({ identifier: getUniqueIdentifier({ prefix: "param" }), actorType: "guest" });
+  }
+
+  return makeGuestActor({ email: actorEmail, name: null });
 }
 
 async function handler(input: CancelBookingInput) {
@@ -127,22 +133,20 @@ async function handler(input: CancelBookingInput) {
     arePlatformEmailsEnabled,
   } = input;
 
-  // Extract userUuid from input for audit actor identification
   const userUuid = input.userUuid ?? null;
 
   // Extract action source once for reuse
   const actionSource = input.actionSource ?? "UNKNOWN";
   if (actionSource === "UNKNOWN") {
-    log.warn("Booking cancellation with unknown actionSource", {
+    log.warn("Booking cancellation with unknown actionSource", safeStringify({
       bookingUid: bookingToDelete.uid,
       userUuid,
-    });
+    }));
   }
 
-  // Extract actor once for reuse
   const actorToUse = getAuditActor({
     userUuid,
-    cancelledBy: cancelledBy ?? null,
+    cancelledByEmailInQueryParam: cancelledBy ?? null,
     bookingUid: bookingToDelete.uid,
   });
 
@@ -346,17 +350,17 @@ async function handler(input: CancelBookingInput) {
     destinationCalendar: bookingToDelete?.destinationCalendar
       ? [bookingToDelete?.destinationCalendar]
       : bookingToDelete?.user.destinationCalendar
-      ? [bookingToDelete?.user.destinationCalendar]
-      : [],
+        ? [bookingToDelete?.user.destinationCalendar]
+        : [],
     cancellationReason: cancellationReason,
     ...(teamMembers &&
       teamId && {
-        team: {
-          name: bookingToDelete?.eventType?.team?.name || "Nameless",
-          members: teamMembers,
-          id: teamId,
-        },
-      }),
+      team: {
+        name: bookingToDelete?.eventType?.team?.name || "Nameless",
+        members: teamMembers,
+        id: teamId,
+      },
+    }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
     iCalUID: bookingToDelete.iCalUID,
@@ -446,6 +450,8 @@ async function handler(input: CancelBookingInput) {
     endTime: Date;
   }[] = [];
 
+  const bookingEventHandlerService = getBookingEventHandlerService();
+
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
   if (
@@ -494,24 +500,16 @@ async function handler(input: CancelBookingInput) {
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
 
-    // Audit logging for bulk recurring booking cancellation
-    const bookingEventHandlerService = getBookingEventHandlerService();
     const operationId = uuidv4();
     await bookingEventHandlerService.onBulkBookingsCancelled({
       bookings: allUpdatedBookings.map((updatedRecurringBooking) => ({
         bookingUid: updatedRecurringBooking.uid,
         auditData: {
-          cancellationReason: {
-            old: bookingToDelete.cancellationReason,
-            new: cancellationReason ?? null,
-          },
-          cancelledBy: {
-            old: bookingToDelete.cancelledBy,
-            new: cancelledBy ?? null,
-          },
+          cancellationReason: cancellationReason ?? null,
+          cancelledBy: cancelledBy ?? null,
           status: {
             old: bookingToDelete.status,
-            new: "CANCELLED",
+            new: BookingStatus.CANCELLED,
           },
         },
       })),
@@ -558,25 +556,17 @@ async function handler(input: CancelBookingInput) {
     });
     updatedBookings.push(updatedBooking);
 
-    // Audit logging for single booking cancellation
-    const bookingEventHandlerService = getBookingEventHandlerService();
     await bookingEventHandlerService.onBookingCancelled({
       bookingUid: updatedBooking.uid,
       actor: actorToUse,
       organizationId: orgId ?? null,
       source: actionSource,
       auditData: {
-        cancellationReason: {
-          old: bookingToDelete.cancellationReason,
-          new: cancellationReason ?? null,
-        },
-        cancelledBy: {
-          old: bookingToDelete.cancelledBy,
-          new: cancelledBy ?? null,
-        },
+        cancellationReason: cancellationReason ?? null,
+        cancelledBy: cancelledBy ?? null,
         status: {
           old: bookingToDelete.status,
-          new: "CANCELLED",
+          new: BookingStatus.CANCELLED,
         },
       },
     });
@@ -721,7 +711,7 @@ type BookingCancelServiceDependencies = {
  * Handles both individual booking cancellations and bulk cancellations for recurring events.
  */
 export class BookingCancelService implements IBookingCancelService {
-  constructor(private readonly deps: BookingCancelServiceDependencies) {}
+  constructor(private readonly deps: BookingCancelServiceDependencies) { }
 
   async cancelBooking(input: { bookingData: CancelRegularBookingData; bookingMeta?: CancelBookingMeta }) {
     const cancelBookingInput: CancelBookingInput = {

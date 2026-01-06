@@ -1,5 +1,5 @@
-import { Header } from "@calcom/features/bookings/Booker/components/Header";
-import { BookerSection } from "@calcom/features/bookings/Booker/components/Section";
+import { Header } from "@calcom/web/modules/bookings/components/Header";
+import { BookerSection } from "@calcom/web/modules/bookings/components/Section";
 import { LargeCalendar } from "@calcom/features/calendar-view/LargeCalendar";
 import { bookerLayoutOptions } from "@calcom/prisma/zod-utils";
 
