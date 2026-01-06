@@ -12,16 +12,8 @@ import { DatabaseTeamEventType } from "@/modules/organizations/event-types/servi
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UsersService } from "@/modules/users/services/users.service";
-import {
-  UserWithProfile,
-  UsersRepository,
-} from "@/modules/users/users.repository";
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { dynamicEvent } from "@calcom/platform-libraries";
 import {
@@ -30,10 +22,7 @@ import {
   getEventTypesPublic,
   EventTypesPublic,
 } from "@calcom/platform-libraries/event-types";
-import type {
-  GetEventTypesQuery_2024_06_14,
-  SortOrderType,
-} from "@calcom/platform-types";
+import type { GetEventTypesQuery_2024_06_14, SortOrderType } from "@calcom/platform-types";
 import type { EventType } from "@calcom/prisma/client";
 
 @Injectable()
@@ -49,10 +38,7 @@ export class EventTypesService_2024_06_14 {
     private readonly eventTypeAccessService: EventTypeAccessService
   ) {}
 
-  async createUserEventType(
-    user: UserWithProfile,
-    body: InputEventTransformed_2024_06_14
-  ) {
+  async createUserEventType(user: UserWithProfile, body: InputEventTransformed_2024_06_14) {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
 
@@ -83,14 +69,10 @@ export class EventTypesService_2024_06_14 {
       },
     });
 
-    const eventType = await this.eventTypesRepository.getEventTypeById(
-      eventTypeCreated.id
-    );
+    const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeCreated.id);
 
     if (!eventType) {
-      throw new NotFoundException(
-        `Event type with id ${eventTypeCreated.id} not found`
-      );
+      throw new NotFoundException(`Event type with id ${eventTypeCreated.id} not found`);
     }
 
     return {
@@ -102,22 +84,17 @@ export class EventTypesService_2024_06_14 {
   async getEventTypeByIdIfAuthorized(
     authUser: ApiAuthGuardUser,
     eventTypeId: number
-  ): Promise<
-    DatabaseTeamEventType | ({ ownerId: number } & DatabaseEventType) | null
-  > {
-    const eventType = await this.eventTypesRepository.getEventTypeByIdWithHosts(
-      eventTypeId
-    );
+  ): Promise<DatabaseTeamEventType | ({ ownerId: number } & DatabaseEventType) | null> {
+    const eventType = await this.eventTypesRepository.getEventTypeByIdWithHosts(eventTypeId);
 
     if (!eventType) {
       return null;
     }
 
-    const hasAccess =
-      await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
-        authUser,
-        eventType as unknown as EventType
-      );
+    const hasAccess = await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
+      authUser,
+      eventType as unknown as EventType
+    );
 
     if (!hasAccess) {
       return null;
@@ -129,16 +106,10 @@ export class EventTypesService_2024_06_14 {
     };
   }
 
-  async checkCanCreateEventType(
-    userId: number,
-    body: InputEventTransformed_2024_06_14
-  ) {
-    const existsWithSlug =
-      await this.eventTypesRepository.getUserEventTypeBySlug(userId, body.slug);
+  async checkCanCreateEventType(userId: number, body: InputEventTransformed_2024_06_14) {
+    const existsWithSlug = await this.eventTypesRepository.getUserEventTypeBySlug(userId, body.slug);
     if (existsWithSlug) {
-      throw new BadRequestException(
-        "User already has an event type with this slug."
-      );
+      throw new BadRequestException("User already has an event type with this slug.");
     }
     await this.checkUserOwnsSchedule(userId, body.scheduleId);
   }
@@ -150,19 +121,12 @@ export class EventTypesService_2024_06_14 {
     orgId?: number;
     authUser?: AuthOptionalUser;
   }) {
-    const user = await this.usersRepository.findByUsername(
-      params.username,
-      params.orgSlug,
-      params.orgId
-    );
+    const user = await this.usersRepository.findByUsername(params.username, params.orgSlug, params.orgId);
     if (!user) {
       return null;
     }
 
-    const eventType = await this.eventTypesRepository.getUserEventTypeBySlug(
-      user.id,
-      params.eventTypeSlug
-    );
+    const eventType = await this.eventTypesRepository.getUserEventTypeBySlug(user.id, params.eventTypeSlug);
 
     if (!eventType) {
       return null;
@@ -185,11 +149,7 @@ export class EventTypesService_2024_06_14 {
     authUser?: AuthOptionalUser;
     sortCreatedAt?: SortOrderType;
   }) {
-    const user = await this.usersRepository.findByUsername(
-      params.username,
-      params.orgSlug,
-      params.orgId
-    );
+    const user = await this.usersRepository.findByUsername(params.username, params.orgSlug, params.orgId);
     if (!user) {
       return [];
     }
@@ -202,18 +162,12 @@ export class EventTypesService_2024_06_14 {
   async getUserToCreateEvent(user: UserWithProfile) {
     const organizationId = this.usersService.getUserMainOrgId(user);
     const isOrgAdmin = organizationId
-      ? await this.membershipsRepository.isUserOrganizationAdmin(
-          user.id,
-          organizationId
-        )
+      ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
     const profileId = this.usersService.getUserMainProfile(user)?.id || null;
-    const selectedCalendars =
-      await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
+    const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
     const eventTypeSelectedCalendars =
-      await this.selectedCalendarsRepository.getUserEventTypeSelectedCalendar(
-        user.id
-      );
+      await this.selectedCalendarsRepository.getUserEventTypeSelectedCalendar(user.id);
     return {
       id: user.id,
       locale: user.locale ?? "en",
@@ -226,18 +180,12 @@ export class EventTypesService_2024_06_14 {
       selectedCalendars,
       email: user.email,
       userLevelSelectedCalendars: selectedCalendars,
-      allSelectedCalendars: [
-        ...eventTypeSelectedCalendars,
-        ...selectedCalendars,
-      ],
+      allSelectedCalendars: [...eventTypeSelectedCalendars, ...selectedCalendars],
     };
   }
 
   async getUserEventType(userId: number, eventTypeId: number) {
-    const eventType = await this.eventTypesRepository.getUserEventType(
-      userId,
-      eventTypeId
-    );
+    const eventType = await this.eventTypesRepository.getUserEventType(userId, eventTypeId);
 
     if (!eventType) {
       return null;
@@ -252,10 +200,7 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getUserEventTypes(userId: number, sortCreatedAt?: SortOrderType) {
-    const eventTypes = await this.eventTypesRepository.getUserEventTypes(
-      userId,
-      sortCreatedAt
-    );
+    const eventTypes = await this.eventTypesRepository.getUserEventTypes(userId, sortCreatedAt);
 
     return eventTypes.map((eventType) => {
       return { ownerId: userId, ...eventType };
@@ -263,19 +208,14 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getUserEventTypesPublic(userId: number, sortCreatedAt?: SortOrderType) {
-    const eventTypes = await this.eventTypesRepository.getUserEventTypesPublic(
-      userId,
-      sortCreatedAt
-    );
+    const eventTypes = await this.eventTypesRepository.getUserEventTypesPublic(userId, sortCreatedAt);
 
     return eventTypes.map((eventType) => {
       return { ownerId: userId, ...eventType };
     });
   }
 
-  async getEventTypesPublicByUsername(
-    username: string
-  ): Promise<EventTypesPublic> {
+  async getEventTypesPublicByUsername(username: string): Promise<EventTypesPublic> {
     const user = await this.usersRepository.findByUsername(username);
     if (!user) {
       throw new NotFoundException(`User with username "${username}" not found`);
@@ -284,12 +224,8 @@ export class EventTypesService_2024_06_14 {
     return await getEventTypesPublic(user.id);
   }
 
-  async getEventTypes(
-    queryParams: GetEventTypesQuery_2024_06_14,
-    authUser?: AuthOptionalUser
-  ) {
-    const { username, eventSlug, usernames, orgSlug, orgId, sortCreatedAt } =
-      queryParams;
+  async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14, authUser?: AuthOptionalUser) {
+    const { username, eventSlug, usernames, orgSlug, orgId, sortCreatedAt } = queryParams;
     if (username && eventSlug) {
       const eventType = await this.getEventTypeByUsernameAndSlug({
         username,
@@ -312,11 +248,7 @@ export class EventTypesService_2024_06_14 {
     }
 
     if (usernames) {
-      const dynamicEventType = await this.getDynamicEventType(
-        usernames,
-        orgSlug,
-        orgId
-      );
+      const dynamicEventType = await this.getDynamicEventType(usernames, orgSlug, orgId);
       return [dynamicEventType];
     }
 
@@ -327,16 +259,8 @@ export class EventTypesService_2024_06_14 {
     return [];
   }
 
-  async getDynamicEventType(
-    usernames: string[],
-    orgSlug?: string,
-    orgId?: number
-  ) {
-    const users = await this.usersService.getByUsernames(
-      usernames,
-      orgSlug,
-      orgId
-    );
+  async getDynamicEventType(usernames: string[], orgSlug?: string, orgId?: number) {
+    const users = await this.usersService.getByUsernames(usernames, orgSlug, orgId);
     const usersFiltered: UserWithProfile[] = [];
     for (const user of users) {
       if (user) {
@@ -352,12 +276,7 @@ export class EventTypesService_2024_06_14 {
   }
 
   async createUserDefaultEventTypes(userId: number) {
-    const {
-      sixtyMinutes,
-      sixtyMinutesVideo,
-      thirtyMinutes,
-      thirtyMinutesVideo,
-    } = DEFAULT_EVENT_TYPES;
+    const { sixtyMinutes, sixtyMinutesVideo, thirtyMinutes, thirtyMinutesVideo } = DEFAULT_EVENT_TYPES;
 
     const defaultEventTypes = await Promise.all([
       this.eventTypesRepository.createUserEventType(userId, thirtyMinutes),
@@ -387,14 +306,10 @@ export class EventTypesService_2024_06_14 {
       },
     });
 
-    const eventType = await this.eventTypesRepository.getEventTypeById(
-      eventTypeId
-    );
+    const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
 
     if (!eventType) {
-      throw new NotFoundException(
-        `Event type with id ${eventTypeId} not found`
-      );
+      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
 
     return {
@@ -403,16 +318,10 @@ export class EventTypesService_2024_06_14 {
     };
   }
 
-  async checkCanUpdateEventType(
-    userId: number,
-    eventTypeId: number,
-    scheduleId: number | undefined | null
-  ) {
+  async checkCanUpdateEventType(userId: number, eventTypeId: number, scheduleId: number | undefined | null) {
     const existingEventType = await this.getUserEventType(userId, eventTypeId);
     if (!existingEventType) {
-      throw new NotFoundException(
-        `Event type with id ${eventTypeId} not found`
-      );
+      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
     this.checkUserOwnsEventType(userId, {
       id: eventTypeId,
@@ -423,32 +332,22 @@ export class EventTypesService_2024_06_14 {
 
   async getUserToUpdateEvent(user: UserWithProfile) {
     const profileId = this.usersService.getUserMainProfile(user)?.id || null;
-    const selectedCalendars =
-      await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
+    const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
     const eventTypeSelectedCalendars =
-      await this.selectedCalendarsRepository.getUserEventTypeSelectedCalendar(
-        user.id
-      );
+      await this.selectedCalendarsRepository.getUserEventTypeSelectedCalendar(user.id);
     return {
       ...user,
       locale: user.locale ?? "en",
       profile: { id: profileId },
       userLevelSelectedCalendars: selectedCalendars,
-      allSelectedCalendars: [
-        ...eventTypeSelectedCalendars,
-        ...selectedCalendars,
-      ],
+      allSelectedCalendars: [...eventTypeSelectedCalendars, ...selectedCalendars],
     };
   }
 
   async deleteEventType(eventTypeId: number, userId: number) {
-    const existingEventType = await this.eventTypesRepository.getEventTypeById(
-      eventTypeId
-    );
+    const existingEventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
     if (!existingEventType) {
-      throw new NotFoundException(
-        `Event type with ID=${eventTypeId} does not exist.`
-      );
+      throw new NotFoundException(`Event type with ID=${eventTypeId} does not exist.`);
     }
 
     this.checkUserOwnsEventType(userId, existingEventType);
@@ -456,34 +355,21 @@ export class EventTypesService_2024_06_14 {
     return this.eventTypesRepository.deleteEventType(eventTypeId);
   }
 
-  checkUserOwnsEventType(
-    userId: number,
-    eventType: Pick<EventType, "id" | "userId">
-  ) {
+  checkUserOwnsEventType(userId: number, eventType: Pick<EventType, "id" | "userId">) {
     if (userId !== eventType.userId) {
-      throw new ForbiddenException(
-        `User with ID=${userId} does not own event type with ID=${eventType.id}`
-      );
+      throw new ForbiddenException(`User with ID=${userId} does not own event type with ID=${eventType.id}`);
     }
   }
 
-  async checkUserOwnsSchedule(
-    userId: number,
-    scheduleId: number | null | undefined
-  ) {
+  async checkUserOwnsSchedule(userId: number, scheduleId: number | null | undefined) {
     if (!scheduleId) {
       return;
     }
 
-    const schedule = await this.schedulesRepository.getScheduleByIdAndUserId(
-      scheduleId,
-      userId
-    );
+    const schedule = await this.schedulesRepository.getScheduleByIdAndUserId(scheduleId, userId);
 
     if (!schedule) {
-      throw new NotFoundException(
-        `User with ID=${userId} does not own schedule with ID=${scheduleId}`
-      );
+      throw new NotFoundException(`User with ID=${userId} does not own schedule with ID=${scheduleId}`);
     }
   }
 }
