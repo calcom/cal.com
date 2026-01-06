@@ -1,6 +1,7 @@
 import type Stripe from "stripe";
 
 import logger from "@calcom/lib/logger";
+import { BillingPeriod } from "@calcom/prisma/client";
 
 import { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
 import type { IBillingProviderService } from "./IBillingProviderService";
@@ -214,6 +215,42 @@ export class StripeBillingService implements IBillingProviderService {
     const subscriptionEnd = subscription?.cancel_at ? new Date(subscription.cancel_at * 1000) : null;
 
     return { subscriptionStart, subscriptionTrialEnd, subscriptionEnd };
+  }
+
+  extractBillingMetadata(subscription: Stripe.Subscription): {
+    billingPeriod: BillingPeriod | null;
+    pricePerSeat: number | null;
+  } {
+    const log = logger.getSubLogger({ prefix: ["extractBillingMetadata"] });
+
+    // Get the first subscription item (should be the per-seat pricing)
+    const subscriptionItem = subscription.items.data[0];
+    if (!subscriptionItem?.price) {
+      log.warn(`No price found for subscription ${subscription.id}`);
+      return { billingPeriod: null, pricePerSeat: null };
+    }
+
+    const price = subscriptionItem.price;
+
+    // Determine billing period from interval
+    const interval = price.recurring?.interval;
+    let billingPeriod: BillingPeriod | null = null;
+
+    if (interval === "year") {
+      billingPeriod = BillingPeriod.ANNUALLY;
+    } else if (interval === "month") {
+      billingPeriod = BillingPeriod.MONTHLY;
+    } else {
+      log.warn(`Unknown billing interval "${interval}" for subscription ${subscription.id}`);
+    }
+
+    // Get price per seat (convert from cents to dollars)
+    let pricePerSeat: number | null = null;
+    if (price.unit_amount !== null) {
+      pricePerSeat = price.unit_amount / 100;
+    }
+
+    return { billingPeriod, pricePerSeat };
   }
 
   mapStripeStatusToCalStatus({

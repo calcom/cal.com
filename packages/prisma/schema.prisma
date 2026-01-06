@@ -2908,7 +2908,7 @@ model TeamBilling {
   teamId Int    @unique
   team   Team?  @relation("TeamBilling", fields: [teamId], references: [id], onDelete: Cascade)
 
-  subscriptionId       String    @unique
+  subscriptionId       String         @unique
   subscriptionItemId   String
   customerId           String
   status               String
@@ -2916,6 +2916,8 @@ model TeamBilling {
   subscriptionStart    DateTime?
   subscriptionTrialEnd DateTime?
   subscriptionEnd      DateTime?
+  billingPeriod        BillingPeriod?
+  pricePerSeat         Float?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2926,7 +2928,7 @@ model OrganizationBilling {
   teamId Int    @unique
   team   Team   @relation("OrganizationBilling", fields: [teamId], references: [id], onDelete: Cascade)
 
-  subscriptionId       String    @unique
+  subscriptionId       String         @unique
   subscriptionItemId   String
   customerId           String
   status               String
@@ -2934,6 +2936,8 @@ model OrganizationBilling {
   subscriptionStart    DateTime?
   subscriptionTrialEnd DateTime?
   subscriptionEnd      DateTime?
+  billingPeriod        BillingPeriod?
+  pricePerSeat         Float?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

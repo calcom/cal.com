@@ -60,6 +60,8 @@ async function handler(request: NextRequest) {
     if (checkoutSessionSubscription) {
       const billingService = getBillingProviderService();
       const { subscriptionStart } = billingService.extractSubscriptionDates(checkoutSessionSubscription);
+      const { billingPeriod, pricePerSeat } =
+        billingService.extractBillingMetadata(checkoutSessionSubscription);
 
       const teamBillingServiceFactory = getTeamBillingServiceFactory();
       const teamBillingService = teamBillingServiceFactory.init(finalizedTeam);
@@ -72,6 +74,8 @@ async function handler(request: NextRequest) {
         status: SubscriptionStatus.ACTIVE,
         planName: Plan.TEAM,
         subscriptionStart,
+        billingPeriod,
+        pricePerSeat,
       });
     }
 

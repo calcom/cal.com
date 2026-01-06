@@ -125,6 +125,7 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
     const stripeSubscription = await stripe.subscriptions.retrieve(paymentSubscriptionId);
     const billingService = getBillingProviderService();
     const { subscriptionStart } = billingService.extractSubscriptionDates(stripeSubscription);
+    const { billingPeriod, pricePerSeat } = billingService.extractBillingMetadata(stripeSubscription);
 
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
     const teamBillingService = teamBillingServiceFactory.init(organization);
@@ -137,6 +138,8 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.ORGANIZATION,
       subscriptionStart,
+      billingPeriod,
+      pricePerSeat,
     });
 
     logger.debug(`Marking onboarding as complete for organization ${organization.id}`);

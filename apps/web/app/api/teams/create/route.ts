@@ -95,6 +95,7 @@ async function getHandler(req: NextRequest) {
   if (checkoutSession && subscription) {
     const billingProviderService = getBillingProviderService();
     const { subscriptionStart } = billingProviderService.extractSubscriptionDates(subscription);
+    const { billingPeriod, pricePerSeat } = billingProviderService.extractBillingMetadata(subscription);
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
     const teamBillingService = teamBillingServiceFactory.init(team);
     await teamBillingService.saveTeamBilling({
@@ -106,6 +107,8 @@ async function getHandler(req: NextRequest) {
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.TEAM,
       subscriptionStart,
+      billingPeriod,
+      pricePerSeat,
     });
   }
 
