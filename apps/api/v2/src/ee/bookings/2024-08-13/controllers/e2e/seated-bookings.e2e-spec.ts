@@ -437,6 +437,80 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
     });
 
+    it("should preserve seatUid across multiple reschedules", async () => {
+      // Store the original seatUid from the first reschedule
+      const originalSeatUid = createdSeatedBooking.seatUid;
+      expect(originalSeatUid).toBeDefined();
+
+      // Second reschedule - use the seatUid from the first reschedule
+      const secondRescheduleBody: RescheduleSeatedBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 8, 17, 0, 0)).toISOString(),
+        seatUid: createdSeatedBooking.seatUid,
+      };
+
+      const secondRescheduleResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${createdSeatedBooking.uid}/reschedule`)
+        .send(secondRescheduleBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const secondRescheduleData: RescheduleBookingOutput_2024_08_13 = secondRescheduleResponse.body;
+      expect(secondRescheduleData.status).toEqual(SUCCESS_STATUS);
+      expect(secondRescheduleData.data).toBeDefined();
+      expect(responseDataIsGetSeatedBooking(secondRescheduleData.data)).toBe(true);
+
+      if (responseDataIsGetSeatedBooking(secondRescheduleData.data)) {
+        const data: CreateSeatedBookingOutput_2024_08_13 = secondRescheduleData.data;
+        // Verify seatUid is still defined and equals the original
+        expect(data.seatUid).toBeDefined();
+        expect(data.seatUid).toEqual(originalSeatUid);
+        expect(data.start).toEqual(secondRescheduleBody.start);
+
+        // Verify attendee still has the same seatUid
+        expect(data.attendees.length).toEqual(1);
+        expect(data.attendees[0].seatUid).toEqual(originalSeatUid);
+
+        // Update for potential further tests
+        createdSeatedBooking = data;
+      } else {
+        throw new Error("Invalid response data - expected seated booking but received array response");
+      }
+
+      // Third reschedule - verify seatUid can still be used for subsequent reschedules
+      const thirdRescheduleBody: RescheduleSeatedBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 8, 19, 0, 0)).toISOString(),
+        seatUid: createdSeatedBooking.seatUid,
+      };
+
+      const thirdRescheduleResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${createdSeatedBooking.uid}/reschedule`)
+        .send(thirdRescheduleBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const thirdRescheduleData: RescheduleBookingOutput_2024_08_13 = thirdRescheduleResponse.body;
+      expect(thirdRescheduleData.status).toEqual(SUCCESS_STATUS);
+      expect(thirdRescheduleData.data).toBeDefined();
+      expect(responseDataIsGetSeatedBooking(thirdRescheduleData.data)).toBe(true);
+
+      if (responseDataIsGetSeatedBooking(thirdRescheduleData.data)) {
+        const data: CreateSeatedBookingOutput_2024_08_13 = thirdRescheduleData.data;
+        // Verify seatUid is still preserved after third reschedule
+        expect(data.seatUid).toBeDefined();
+        expect(data.seatUid).toEqual(originalSeatUid);
+        expect(data.start).toEqual(thirdRescheduleBody.start);
+
+        // Verify attendee metadata and responses are preserved
+        expect(data.attendees.length).toEqual(1);
+        expect(data.attendees[0].seatUid).toEqual(originalSeatUid);
+
+        // Update for subsequent tests
+        createdSeatedBooking = data;
+      } else {
+        throw new Error("Invalid response data - expected seated booking but received array response");
+      }
+    });
+
     describe("book an event type with attendees disabled but auth provided", () => {
       let booking: CreateSeatedBookingOutput_2024_08_13;
       it("should book an event type with attendees disabled and no auth provided", async () => {
