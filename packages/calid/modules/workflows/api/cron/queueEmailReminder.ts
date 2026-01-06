@@ -49,24 +49,49 @@ const processCancelledNotifications = async (): Promise<void> => {
   notificationsToCancel.forEach((notification) => {
     const emailCancellation = cancelScheduledEmail(notification.referenceId);
 
-    const databaseUpdate = prisma.calIdWorkflowReminder.update({
-      where: {
-        id: notification.id,
-      },
-      data: {
-        scheduled: false,
-      },
-    });
+    const workflowInsightUpdate = notification.referenceId
+      ? prisma.calIdWorkflowInsights
+          .updateMany({
+            where: {
+              msgId: notification.referenceId,
+              type: WorkflowMethods.EMAIL,
+              status: WorkflowStatus.QUEUED,
+            },
+            data: {
+              status: WorkflowStatus.CANCELLED,
+            },
+          })
+          .then(() => {
+            logger.info(
+              `Updated workflow insights for cancelled Email with reference ID: ${notification.referenceId}`
+            );
+          })
+      : Promise.resolve();
 
-    cancellationOperations.push(emailCancellation, databaseUpdate);
+    const databaseUpdate = prisma.calIdWorkflowReminder
+      .update({
+        where: {
+          id: notification.id,
+        },
+        data: {
+          scheduled: false,
+        },
+      })
+      .then(() => {
+        logger.info(
+          `Marked Email reminder ${notification.id} as unscheduled in database after cancellation.`
+        );
+      });
+
+    cancellationOperations.push(emailCancellation, workflowInsightUpdate, databaseUpdate);
   });
 
-  Promise.allSettled(cancellationOperations).then((outcomes) => {
-    outcomes.forEach((outcome) => {
-      if (outcome.status === "rejected") {
-        logger.error(`Failed to cancel scheduled_sends: ${outcome.reason}`);
-      }
-    });
+  const outcomes = await Promise.allSettled(cancellationOperations);
+
+  outcomes.forEach((outcome) => {
+    if (outcome.status === "rejected") {
+      logger.error({ reason: outcome.reason }, "Failed to cancel scheduled notification");
+    }
   });
 };
 

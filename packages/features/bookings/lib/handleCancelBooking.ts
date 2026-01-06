@@ -2,8 +2,9 @@ import {
   generateRecurringInstances,
   normalizeDateForComparison,
 } from "@calid/features/modules/teams/lib/recurrenceUtil";
+import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
 import { sendCancelledReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
-import type { Attendee, CalIdWorkflow, Prisma } from "@prisma/client";
+import type { Attendee, Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import bookingCancelPaymentHandler from "@calcom/app-store/_utils/payments/bookingCancelPaymentHandler";
@@ -477,8 +478,13 @@ async function handler(input: CancelBookingInput) {
     await sendCancelledReminders({
       workflows: workflows as CalIdWorkflow[],
       smsReminderNumber: bookingToDelete.smsReminderNumber,
-      evt: { ...evt, metadata: bookingToDelete.metadata, eventType: { slug: eventType?.slug } },
+      evt: {
+        ...evt,
+        metadata: bookingToDelete.metadata,
+        eventType: { slug: eventType?.slug, id: bookingToDelete.eventTypeId },
+      },
       hideBranding: !!eventType?.owner?.hideBranding,
+      seatReferenceUid: evt.attendeeSeatId,
     });
     try {
     } catch (error) {

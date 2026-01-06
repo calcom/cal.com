@@ -429,7 +429,8 @@ export const scheduleSMSReminder = async (parameters: CalIdScheduleTextReminderA
 
 export const deleteScheduledSMSReminder = async (
   reminderIdentifier: number,
-  externalReference: string | null
+  externalReference: string | null,
+  type: WorkflowMethods = WorkflowMethods.SMS
 ): Promise<void> => {
   try {
     await prisma.calIdWorkflowReminder.update({

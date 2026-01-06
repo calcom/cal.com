@@ -53,6 +53,7 @@ import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTit
 import { BookingSeatsDialog } from "@components/booking/BookingSeatsDialog";
 import { CancelInstancesDialog } from "@components/booking/CancelInstancesDialog";
 import { RescheduleInstanceDialog } from "@components/booking/RescheduleInstanceDialog";
+import { WorkflowStatusDialog } from "@components/booking/WorkflowStatusDialog";
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { BookingCancelDialog } from "@components/dialog/BookingCancelDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
@@ -135,6 +136,15 @@ export default function BookingListItem(booking: BookingItemProps) {
   const [meetingSessionDetailsDialogIsOpen, setMeetingSessionDetailsDialogIsOpen] = useState<boolean>(false);
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
+  const [isWorkflowStatusDialogOpen, setIsWorkflowStatusDialogOpen] = useState(false);
+  // Check if booking has workflow insights
+  const hasWorkflowInsights =
+    parsedBooking.workflowInsights &&
+    Array.isArray(parsedBooking.workflowInsights) &&
+    parsedBooking.workflowInsights.length > 0;
+
+  // Check if booking is multi-seat
+  const isMultiSeat = booking.seatsReferences && booking.seatsReferences.length > 1;
 
   const attendeeList = booking.attendees.map((attendee) => {
     return {
@@ -566,6 +576,14 @@ export default function BookingListItem(booking: BookingItemProps) {
           userTimeFormat={userTimeFormat ?? 24}
         />
       )}
+      {hasWorkflowInsights && (
+        <WorkflowStatusDialog
+          isOpenDialog={isWorkflowStatusDialogOpen}
+          setIsOpenDialog={setIsWorkflowStatusDialogOpen}
+          workflowInsights={parsedBooking.workflowInsights as any[]}
+          isMultiSeat={isMultiSeat}
+        />
+      )}
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
           isOpenDialog={chargeCardDialogIsOpen}
@@ -751,6 +769,19 @@ export default function BookingListItem(booking: BookingItemProps) {
                 <div className="flex w-full flex-col lg:w-auto">
                   <div className="flex w-full flex-row flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium lg:flex-row lg:flex-nowrap lg:items-start lg:space-y-0 lg:pl-0 ltr:pr-4 rtl:pl-4">
                     {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
+                    {hasWorkflowInsights && !isRejected && (
+                      <Button
+                        color="secondary"
+                        StartIcon="zap"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsWorkflowStatusDialogOpen(true);
+                        }}
+                        className="flex items-center space-x-2"
+                        aria-label="View workflow status">
+                        <span>{t("workflow_status")}</span>
+                      </Button>
+                    )}
                     {!showCancelOrModifyInstanceAction && !!isCancelled && !isPending && !isRejected && (
                       <Button
                         color="secondary"

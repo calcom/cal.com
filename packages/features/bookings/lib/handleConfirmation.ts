@@ -282,6 +282,7 @@ export async function handleConfirmation(args: {
         rescheduleReason: updatedBookings[index].cancellationReason || null,
         metadata: { videoCallUrl: meetingUrl },
         eventType: {
+          id: booking.eventTypeId,
           slug: eventTypeSlug,
           schedulingType: updatedBookings[index].eventType?.schedulingType,
           hosts: updatedBookings[index].eventType?.hosts,
@@ -320,6 +321,7 @@ export async function handleConfirmation(args: {
         calendarEvent: evtOfBooking,
         isFirstRecurringEvent: isFirstBooking,
         hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+        seatReferenceUid: evt.attendeeSeatId,
       });
     }
   } catch (error) {
