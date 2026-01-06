@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import InsightsVirtualQueuesPage from "~/insights/insights-virtual-queues-view";
+import InsightsVirtualQueuesPage from "~/insights/views/insights-virtual-queues-view";
 
 import { checkInsightsPagePermission } from "../checkInsightsPagePermission";
 

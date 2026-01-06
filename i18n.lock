@@ -405,6 +405,7 @@ checksums:
     set_up_later: ef3f9b469acc29421fee2cbd96496aec
     current_time: 9b305d24a89fd53c07b95b1026c4013b
     details: 2a8bbb1bc386c059783f925aca2cc522
+    info: 5a6cc405211f675152b2460292fe0fb9
     welcome: 3180ad6b8de344b781637750259e0f53
     welcome_back: 4928884739ba559e6e4b960e80fe1452
     welcome_to_calcom: f6071d1cab61b56a4adf8ef813341264
@@ -1300,6 +1301,8 @@ checksums:
     schedule_deleted_successfully: fe6e460999c4dd4a9b60a3f4d9578737
     default_schedule_name: ba5a9d4aeb2115431906be1fa91f14d3
     new_schedule_heading: c3d0781d91be1cf6cab5241f7445628f
+    no_schedules_created_yet: 1df07cc038ad4ccaa7b549c563a3fd30
+    create_availability_schedule: 7c7be029f234d35d0c5dacb2813878dd
     new_schedule_description: 195d72b03024d485b69c2501c7509129
     requires_ownership_of_a_token: 81591b6e565824982da0fb4aeae85873
     example_name: febee8e9ab40b2fe5106d72675228d00
