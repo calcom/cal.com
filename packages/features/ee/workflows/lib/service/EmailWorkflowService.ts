@@ -326,6 +326,11 @@ export class EmailWorkflowService {
       throw new Error("Failed to determine attendee email");
     }
 
+    const isEmailAttendeeAction = action === WorkflowActions.EMAIL_ATTENDEE;
+    const locale = isEmailAttendeeAction
+      ? attendeeToBeUsedInMail.language?.locale || "en"
+      : evt.organizer.language.locale || "en";
+
     let emailContent = {
       emailSubject,
       emailBody: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
@@ -333,7 +338,6 @@ export class EmailWorkflowService {
     const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
 
     if (emailBody) {
-      const isEmailAttendeeAction = action === WorkflowActions.EMAIL_ATTENDEE;
       const recipientEmail = getWorkflowRecipientEmail({
         action,
         attendeeEmail: attendeeToBeUsedInMail.email,
@@ -380,10 +384,6 @@ export class EmailWorkflowService {
         eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(attendeeToBeUsedInMail.timeZone),
       };
 
-      const locale = isEmailAttendeeAction
-        ? attendeeToBeUsedInMail.language?.locale
-        : evt.organizer.language.locale;
-
       const emailSubjectTemplate = customTemplate(emailSubject, variables, locale, evt.organizer.timeFormat);
       emailContent.emailSubject = emailSubjectTemplate.text;
       emailContent.emailBody = customTemplate(
@@ -396,8 +396,8 @@ export class EmailWorkflowService {
     } else if (template === WorkflowTemplates.REMINDER) {
       emailContent = emailReminderTemplate({
         isEditingMode: false,
-        locale: evt.organizer.language.locale,
-        t: await getTranslation(evt.organizer.language.locale || "en", "common"),
+        locale,
+        t: await getTranslation(locale, "common"),
         action,
         timeFormat: evt.organizer.timeFormat,
         startTime,
@@ -413,9 +413,9 @@ export class EmailWorkflowService {
     } else if (template === WorkflowTemplates.RATING) {
       emailContent = emailRatingTemplate({
         isEditingMode: true,
-        locale: evt.organizer.language.locale,
+        locale,
         action,
-        t: await getTranslation(evt.organizer.language.locale || "en", "common"),
+        t: await getTranslation(locale, "common"),
         timeFormat: evt.organizer.timeFormat,
         startTime,
         endTime,
