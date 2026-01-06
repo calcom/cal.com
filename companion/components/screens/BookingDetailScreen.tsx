@@ -6,6 +6,7 @@ import {
   Alert,
   Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   TextInput,
@@ -188,7 +189,26 @@ const getLocationProvider = (location: string | undefined, metadata?: Record<str
 };
 
 export interface BookingDetailScreenProps {
-  uid: string;
+  /**
+   * The booking data to display. When null/undefined, shows loading or error state.
+   */
+  booking: Booking | null | undefined;
+  /**
+   * Whether the booking data is currently being fetched.
+   */
+  isLoading: boolean;
+  /**
+   * Error that occurred while fetching the booking, if any.
+   */
+  error: Error | null;
+  /**
+   * Function to refetch the booking data. Used for pull-to-refresh.
+   */
+  refetch: () => void;
+  /**
+   * Whether a refetch is currently in progress. Used for RefreshControl.
+   */
+  isRefetching?: boolean;
   /**
    * Callback to expose internal action handlers to parent component.
    * Used by iOS header menu to trigger actions like reschedule.
@@ -204,14 +224,18 @@ export interface BookingDetailScreenProps {
   }) => void;
 }
 
-export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreenProps) {
+export function BookingDetailScreen({
+  booking,
+  isLoading,
+  error,
+  refetch,
+  isRefetching = false,
+  onActionsReady,
+}: BookingDetailScreenProps) {
   const router = useRouter();
   const { userInfo } = useAuth();
   const insets = useSafeAreaInsets();
 
-  const [loading, setLoading] = useState(true);
-  const [booking, setBooking] = useState<Booking | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [showActionsModal, setShowActionsModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -375,61 +399,6 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
     });
   }, [booking, router]);
 
-  const fetchBooking = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    let bookingData: Booking | null = null;
-    let fetchError: Error | null = null;
-
-    try {
-      bookingData = await CalComAPIService.getBookingByUid(uid);
-    } catch (err) {
-      fetchError = err instanceof Error ? err : new Error(String(err));
-    }
-
-    if (bookingData) {
-      if (__DEV__) {
-        const hostCount = bookingData.hosts?.length ?? (bookingData.user ? 1 : 0);
-        const attendeeCount = bookingData.attendees?.length ?? 0;
-        console.debug("[BookingDetailScreen] booking fetched", {
-          uid: bookingData.uid,
-          status: bookingData.status,
-          hostCount,
-          attendeeCount,
-          hasRecurringEventId: Boolean(bookingData.recurringEventId),
-        });
-      }
-      setBooking(bookingData);
-      setLoading(false);
-    } else {
-      console.error("Error fetching booking");
-      if (__DEV__ && fetchError) {
-        console.debug("[BookingDetailScreen] fetchBooking failed", {
-          message: fetchError.message,
-          stack: fetchError.stack,
-        });
-      }
-      setError("Failed to load booking. Please try again.");
-      if (__DEV__) {
-        Alert.alert("Error", "Failed to load booking. Please try again.", [
-          { text: "OK", onPress: () => router.back() },
-        ]);
-      } else {
-        router.back();
-      }
-      setLoading(false);
-    }
-  }, [uid, router]);
-
-  useEffect(() => {
-    if (uid) {
-      fetchBooking();
-    } else {
-      setLoading(false);
-      setError("Invalid booking ID");
-    }
-  }, [uid, fetchBooking]);
-
   // Expose action handlers to parent component (for iOS header menu)
   useEffect(() => {
     if (booking && onActionsReady) {
@@ -546,7 +515,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
     (action) => action.variant === "destructive"
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-[#f8f9fa]">
         <ActivityIndicator size="large" color="#000000" />
@@ -556,11 +525,12 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   }
 
   if (error || !booking) {
+    const errorMessage = error?.message || "Booking not found";
     return (
       <View className="flex-1 items-center justify-center bg-[#f8f9fa] p-5">
         <Ionicons name="alert-circle" size={64} color="#800020" />
         <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
-          {error || "Booking not found"}
+          {errorMessage}
         </Text>
         <AppPressable className="mt-6 rounded-lg bg-black px-6 py-3" onPress={() => router.back()}>
           <Text className="text-base font-semibold text-white">Go Back</Text>
@@ -625,7 +595,11 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
         />
       )}
       <View className="flex-1 bg-[#]">
-        <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+        >
           {/* Title */}
           <View className="mb-3">
             <Text className="mb-2 text-2xl font-semibold text-[#333]">{booking.title}</Text>

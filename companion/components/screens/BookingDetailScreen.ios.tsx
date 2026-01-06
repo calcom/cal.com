@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import { type Booking, CalComAPIService } from "@/services/calcom";
@@ -64,7 +64,30 @@ const calculateDuration = (startDateString: string, endDateString: string): numb
 };
 
 export interface BookingDetailScreenProps {
-  uid: string;
+  /**
+   * The booking data to display. When null/undefined, shows loading or error state.
+   */
+  booking: Booking | null | undefined;
+  /**
+   * Whether the booking data is currently being fetched.
+   */
+  isLoading: boolean;
+  /**
+   * Error that occurred while fetching the booking, if any.
+   */
+  error: Error | null;
+  /**
+   * Function to refetch the booking data. Used for pull-to-refresh.
+   */
+  refetch: () => void;
+  /**
+   * Whether a refetch is currently in progress. Used for RefreshControl.
+   */
+  isRefetching?: boolean;
+  /**
+   * Callback to expose internal action handlers to parent component.
+   * Used by iOS header menu to trigger actions like reschedule.
+   */
   onActionsReady?: (handlers: {
     openRescheduleModal: () => void;
     openEditLocationModal: () => void;
@@ -77,15 +100,16 @@ export interface BookingDetailScreenProps {
 }
 
 export function BookingDetailScreen({
-  uid,
+  booking,
+  isLoading,
+  error,
+  refetch,
+  isRefetching = false,
   onActionsReady,
 }: BookingDetailScreenProps): React.JSX.Element {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [loading, setLoading] = useState(true);
-  const [booking, setBooking] = useState<Booking | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const [participantsExpanded, setParticipantsExpanded] = useState(true);
 
@@ -198,61 +222,6 @@ export function BookingDetailScreen({
     });
   }, [booking, router]);
 
-  const fetchBooking = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    let bookingData: Booking | null = null;
-    let fetchError: Error | null = null;
-
-    try {
-      bookingData = await CalComAPIService.getBookingByUid(uid);
-    } catch (err) {
-      fetchError = err instanceof Error ? err : new Error(String(err));
-    }
-
-    if (bookingData) {
-      if (__DEV__) {
-        const hostCount = bookingData.hosts?.length ?? (bookingData.user ? 1 : 0);
-        const attendeeCount = bookingData.attendees?.length ?? 0;
-        console.debug("[BookingDetailScreen.ios] booking fetched", {
-          uid: bookingData.uid,
-          status: bookingData.status,
-          hostCount,
-          attendeeCount,
-          hasRecurringEventId: Boolean(bookingData.recurringEventId),
-        });
-      }
-      setBooking(bookingData);
-      setLoading(false);
-    } else {
-      console.error("Error fetching booking");
-      if (__DEV__ && fetchError) {
-        console.debug("[BookingDetailScreen.ios] fetchBooking failed", {
-          message: fetchError.message,
-          stack: fetchError.stack,
-        });
-      }
-      setError("Failed to load booking. Please try again.");
-      if (__DEV__) {
-        Alert.alert("Error", "Failed to load booking. Please try again.", [
-          { text: "OK", onPress: () => router.back() },
-        ]);
-      } else {
-        router.back();
-      }
-      setLoading(false);
-    }
-  }, [uid, router]);
-
-  useEffect(() => {
-    if (uid) {
-      fetchBooking();
-    } else {
-      setLoading(false);
-      setError("Invalid booking ID");
-    }
-  }, [uid, fetchBooking]);
-
   useEffect(() => {
     if (booking && onActionsReady) {
       onActionsReady({
@@ -277,7 +246,7 @@ export function BookingDetailScreen({
     openMarkNoShowModal,
   ]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-[#f2f2f7]">
         <ActivityIndicator size="large" color="#000000" />
@@ -287,11 +256,12 @@ export function BookingDetailScreen({
   }
 
   if (error || !booking) {
+    const errorMessage = error?.message || "Booking not found";
     return (
       <View className="flex-1 items-center justify-center bg-[#f2f2f7] p-5">
         <Ionicons name="alert-circle" size={64} color="#FF3B30" />
         <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
-          {error || "Booking not found"}
+          {errorMessage}
         </Text>
         <AppPressable className="mt-6 rounded-lg bg-black px-6 py-3" onPress={() => router.back()}>
           <Text className="text-base font-semibold text-white">Go Back</Text>
@@ -361,6 +331,7 @@ export function BookingDetailScreen({
           paddingBottom: insets.bottom + 100,
         }}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
       >
         {/* Title Section - iOS Calendar Style */}
         <View className="mb-8">

@@ -1,10 +1,11 @@
 import * as Clipboard from "expo-clipboard";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { Alert } from "react-native";
 import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
 import { useAuth } from "@/contexts/AuthContext";
-import { type Booking, CalComAPIService } from "@/services/calcom";
+import { useBookingByUid } from "@/hooks/useBookings";
+import type { Booking } from "@/services/calcom";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 import { openInAppBrowser } from "@/utils/browser";
 
@@ -62,7 +63,9 @@ export default function BookingDetailIOS() {
   "use no memo";
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const { userInfo } = useAuth();
-  const [booking, setBooking] = useState<Booking | null>(null);
+
+  // Use React Query hook for booking data - single source of truth
+  const { data: booking, isLoading, error, refetch, isRefetching } = useBookingByUid(uid);
 
   // Ref to store action handlers from BookingDetailScreen
   const actionHandlersRef = useRef<ActionHandlers | null>(null);
@@ -71,17 +74,6 @@ export default function BookingDetailIOS() {
   const handleActionsReady = useCallback((handlers: ActionHandlers) => {
     actionHandlersRef.current = handlers;
   }, []);
-
-  // Fetch booking data for the iOS header menu actions
-  useEffect(() => {
-    if (uid) {
-      CalComAPIService.getBookingByUid(uid)
-        .then(setBooking)
-        .catch(() => {
-          // Error handling is done in BookingDetailScreen
-        });
-    }
-  }, [uid]);
 
   // Get the month name from booking start date for back button
   const monthName = useMemo(() => {
@@ -353,7 +345,14 @@ export default function BookingDetailIOS() {
         </Stack.Header.Right>
       </Stack.Header>
 
-      <BookingDetailScreen uid={uid} onActionsReady={handleActionsReady} />
+      <BookingDetailScreen
+        booking={booking}
+        isLoading={isLoading}
+        error={error ?? null}
+        refetch={refetch}
+        isRefetching={isRefetching}
+        onActionsReady={handleActionsReady}
+      />
     </>
   );
 }
