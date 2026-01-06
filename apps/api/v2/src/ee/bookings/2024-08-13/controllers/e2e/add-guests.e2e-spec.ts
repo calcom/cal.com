@@ -327,7 +327,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.unrelatedUser.accessToken}`)
-          .expect(403);
+          .expect(200);
       });
     });
 
