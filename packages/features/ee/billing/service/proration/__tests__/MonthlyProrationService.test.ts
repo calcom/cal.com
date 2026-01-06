@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { prisma } from "@calcom/prisma";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MonthlyProrationService } from "../MonthlyProrationService";
 

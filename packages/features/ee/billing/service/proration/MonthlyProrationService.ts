@@ -1,9 +1,8 @@
-import type { Logger } from "tslog";
-
 import logger from "@calcom/lib/logger";
-import type { Prisma } from "@calcom/prisma/client";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { ProrationStatus } from "@calcom/prisma/enums";
+import type { Logger } from "tslog";
 
 import type { SeatChangeTrackingService } from "../seatTracking/SeatChangeTrackingService";
 
