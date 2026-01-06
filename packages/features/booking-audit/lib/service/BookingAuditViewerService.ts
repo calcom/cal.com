@@ -48,6 +48,8 @@ type EnrichedAuditLog = {
     };
 };
 
+export type DisplayBookingAuditLog = EnrichedAuditLog;
+
 /**
  * BookingAuditViewerService - Service for viewing and formatting booking audit logs
  */
@@ -93,7 +95,7 @@ export class BookingAuditViewerService {
         userEmail: string;
         userTimeZone: string;
         organizationId: number | null;
-    }): Promise<{ bookingUid: string; auditLogs: EnrichedAuditLog[] }> {
+    }): Promise<{ bookingUid: string; auditLogs: DisplayBookingAuditLog[] }> {
         const { bookingUid, userId, userTimeZone, organizationId } = params;
         await this.accessService.assertPermissions({
             bookingUid,
