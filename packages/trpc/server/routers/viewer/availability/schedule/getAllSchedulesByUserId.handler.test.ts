@@ -14,9 +14,9 @@ vi.mock("@calcom/lib/hasEditPermissionForUser", () => ({
 }));
 
 vi.mock("@calcom/features/schedules/repositories/ScheduleRepository", () => ({
-  ScheduleRepository: vi.fn().mockImplementation(() => ({
+  ScheduleRepository: vi.fn().mockImplementation(function() { return {
     getDefaultScheduleId: vi.fn().mockResolvedValue(DEFAULT_SCHEDULE_ID),
-  })),
+  }; }),
 }));
 
 import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";

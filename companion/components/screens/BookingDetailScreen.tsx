@@ -52,8 +52,8 @@ const formatTime12Hour = (dateString: string): string => {
   return `${hour12}:${minStr}${period}`;
 };
 
-// Get timezone from date string
-const getTimezone = (_dateString: string): string => {
+// Get user's local timezone for display
+const getTimezone = (): string => {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return timeZone || "";
 };
@@ -176,7 +176,6 @@ export interface BookingDetailScreenProps {
 }
 
 export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreenProps) {
-  "use no memo";
   const router = useRouter();
   const { userInfo } = useAuth();
 
@@ -269,7 +268,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openRescheduleModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/reschedule",
+      pathname: "/reschedule",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -278,7 +277,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openEditLocationModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/edit-location",
+      pathname: "/edit-location",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -287,7 +286,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openAddGuestsModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/add-guests",
+      pathname: "/add-guests",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -296,7 +295,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openMarkNoShowModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/mark-no-show",
+      pathname: "/mark-no-show",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -305,7 +304,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openViewRecordingsModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/view-recordings",
+      pathname: "/view-recordings",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -314,7 +313,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const openMeetingSessionDetailsModal = useCallback(() => {
     if (!booking) return;
     router.push({
-      pathname: "/(tabs)/(bookings)/meeting-session-details",
+      pathname: "/meeting-session-details",
       params: { uid: booking.uid },
     });
   }, [booking, router]);
@@ -322,26 +321,36 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const fetchBooking = useCallback(async () => {
     setLoading(true);
     setError(null);
+    let bookingData: Booking | null = null;
+    let fetchError: Error | null = null;
+
     try {
-      const bookingData = await CalComAPIService.getBookingByUid(uid);
-      // Avoid logging booking payloads: they may contain PII (names/emails/notes).
+      bookingData = await CalComAPIService.getBookingByUid(uid);
+    } catch (err) {
+      fetchError = err instanceof Error ? err : new Error(String(err));
+    }
+
+    if (bookingData) {
       if (__DEV__) {
+        const hostCount = bookingData.hosts?.length ?? (bookingData.user ? 1 : 0);
+        const attendeeCount = bookingData.attendees?.length ?? 0;
         console.debug("[BookingDetailScreen] booking fetched", {
           uid: bookingData.uid,
           status: bookingData.status,
-          hostCount: bookingData.hosts?.length ?? (bookingData.user ? 1 : 0),
-          attendeeCount: bookingData.attendees?.length ?? 0,
+          hostCount,
+          attendeeCount,
           hasRecurringEventId: Boolean(bookingData.recurringEventId),
         });
       }
       setBooking(bookingData);
       setLoading(false);
-    } catch (err) {
+    } else {
       console.error("Error fetching booking");
-      if (__DEV__) {
-        const message = err instanceof Error ? err.message : String(err);
-        const stack = err instanceof Error ? err.stack : undefined;
-        console.debug("[BookingDetailScreen] fetchBooking failed", { message, stack });
+      if (__DEV__ && fetchError) {
+        console.debug("[BookingDetailScreen] fetchBooking failed", {
+          message: fetchError.message,
+          stack: fetchError.stack,
+        });
       }
       setError("Failed to load booking. Please try again.");
       if (__DEV__) {
@@ -358,6 +367,9 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   useEffect(() => {
     if (uid) {
       fetchBooking();
+    } else {
+      setLoading(false);
+      setError("Invalid booking ID");
     }
   }, [uid, fetchBooking]);
 
@@ -407,7 +419,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   if (error || !booking) {
     return (
       <View className="flex-1 items-center justify-center bg-[#f8f9fa] p-5">
-        <Ionicons name="alert-circle" size={64} color="#FF3B30" />
+        <Ionicons name="alert-circle" size={64} color="#800020" />
         <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
           {error || "Booking not found"}
         </Text>
@@ -422,7 +434,7 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
   const endTime = booking.end || booking.endTime || "";
   const dateFormatted = formatDateFull(startTime);
   const timeFormatted = `${formatTime12Hour(startTime)} - ${formatTime12Hour(endTime)}`;
-  const timezone = getTimezone(startTime);
+  const timezone = getTimezone();
   const locationProvider = getLocationProvider(booking.location, booking.responses);
 
   return (
@@ -595,8 +607,9 @@ export function BookingDetailScreen({ uid, onActionsReady }: BookingDetailScreen
           {booking.recurringEventId ||
           (booking as { recurringBookingUid?: string }).recurringBookingUid ? (
             <View className="mb-2 rounded-2xl bg-white p-6">
-              <Text className="mb-2 text-base font-medium text-[#666]">Recurring Event</Text>
-              <Text className="text-base text-[#666]">Every 2 weeks for 6 occurrences</Text>
+              <Text className="text-base font-medium text-[#666]">
+                This is part of a recurring event
+              </Text>
             </View>
           ) : null}
 
