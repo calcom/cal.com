@@ -79,15 +79,16 @@ export const getCalendar = async (
     });
   }
 
-  // Wrap with telemetry for cache-supported calendar types when telemetry is enabled
-  // This provides consistent metrics for comparing cached vs non-cached performance
-  if (isCacheSupported && isTelemetryEnabled()) {
+  // Wrap ALL calendars with telemetry when telemetry is enabled
+  // This provides consistent metrics for all calendar types
+  if (isTelemetryEnabled()) {
     log.info(
-      `Using CalendarTelemetryWrapper for credential ${credential.id} (cacheEnabled: ${useCache})`
+      `Using CalendarTelemetryWrapper for credential ${credential.id} (cacheSupported: ${isCacheSupported}, cacheEnabled: ${useCache})`
     );
     calendar = new CalendarTelemetryWrapper({
       originalCalendar: calendar,
       calendarType,
+      cacheSupported: isCacheSupported,
       cacheEnabled: useCache,
     });
   }

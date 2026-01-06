@@ -23,6 +23,7 @@ export class CalendarTelemetryWrapper implements Calendar {
     private deps: {
       originalCalendar: Calendar;
       calendarType: string;
+      cacheSupported: boolean;
       cacheEnabled: boolean;
     }
   ) {}
@@ -71,6 +72,7 @@ export class CalendarTelemetryWrapper implements Calendar {
         attributes: {
           calendarCount: selectedCalendars?.length ?? 0,
           calendarType: this.deps.calendarType,
+          cacheSupported: this.deps.cacheSupported,
           cacheEnabled: this.deps.cacheEnabled,
         },
       },
@@ -79,6 +81,7 @@ export class CalendarTelemetryWrapper implements Calendar {
           dateFrom,
           dateTo,
           calendarCount: selectedCalendars.length,
+          cacheSupported: this.deps.cacheSupported,
           cacheEnabled: this.deps.cacheEnabled,
         });
 
@@ -95,6 +98,7 @@ export class CalendarTelemetryWrapper implements Calendar {
           calendarCount: selectedCalendars.length,
           totalFetchDurationMs,
           totalEventsCount: results.length,
+          cacheSupported: this.deps.cacheSupported,
           cacheEnabled: this.deps.cacheEnabled,
         });
 
@@ -128,6 +132,7 @@ export class CalendarTelemetryWrapper implements Calendar {
         attributes: {
           calendarCount: selectedCalendars?.length ?? 0,
           calendarType: this.deps.calendarType,
+          cacheSupported: this.deps.cacheSupported,
           cacheEnabled: this.deps.cacheEnabled,
         },
       },
@@ -136,6 +141,7 @@ export class CalendarTelemetryWrapper implements Calendar {
           dateFrom,
           dateTo,
           calendarCount: selectedCalendars.length,
+          cacheSupported: this.deps.cacheSupported,
           cacheEnabled: this.deps.cacheEnabled,
         });
 
@@ -156,6 +162,7 @@ export class CalendarTelemetryWrapper implements Calendar {
           calendarCount: selectedCalendars.length,
           totalFetchDurationMs,
           totalEventsCount: results?.length ?? 0,
+          cacheSupported: this.deps.cacheSupported,
           cacheEnabled: this.deps.cacheEnabled,
         });
 
