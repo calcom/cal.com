@@ -17,7 +17,8 @@ import logger from "@calcom/lib/logger";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
 import { getTrackingFromCookies } from "@calcom/lib/tracking";
-import { prisma, Prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
@@ -169,7 +170,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     if (team) {
       const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
 
-      let user;
+      let user: { id: number };
       try {
         user = await prisma.user.create({
           data: {
@@ -217,19 +218,32 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     });
   } else {
     // Create the user
-    await prisma.user.create({
-      data: {
-        username,
-        email,
-        locked: shouldLockByDefault,
-        password: { create: { hash: hashedPassword } },
-        metadata: {
-          stripeCustomerId: customer.stripeCustomerId,
-          checkoutSessionId,
+    try {
+      await prisma.user.create({
+        data: {
+          username,
+          email,
+          locked: shouldLockByDefault,
+          password: { create: { hash: hashedPassword } },
+          metadata: {
+            stripeCustomerId: customer.stripeCustomerId,
+            checkoutSessionId,
+          },
+          creationSource: CreationSource.WEBAPP,
         },
-        creationSource: CreationSource.WEBAPP,
-      },
-    });
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        const target = error.meta?.target as string[] | undefined;
+        if (target?.includes("email")) {
+          return NextResponse.json(
+            { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
+            { status: 409 }
+          );
+        }
+      }
+      throw error;
+    }
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email });
     }

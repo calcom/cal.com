@@ -9,7 +9,8 @@ import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
-import prisma, { Prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
@@ -91,7 +92,7 @@ export default async function handler(body: Record<string, string>) {
 
       const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
 
-      let user;
+      let user: { id: number };
       try {
         user = await prisma.user.create({
           data: {
@@ -152,23 +153,27 @@ export default async function handler(body: Record<string, string>) {
       }
     }
 
-    // Check if user already exists to prevent password overwrite
-    const existingUserCount = await prisma.user.count({
-      where: { email: userEmail },
-    });
-
-    if (existingUserCount > 0) {
-      return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
+    try {
+      await prisma.user.create({
+        data: {
+          username: correctedUsername,
+          email: userEmail,
+          password: { create: { hash: hashedPassword } },
+          identityProvider: IdentityProvider.CAL,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        const target = error.meta?.target as string[] | undefined;
+        if (target?.includes("email")) {
+          return NextResponse.json(
+            { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
+            { status: 409 }
+          );
+        }
+      }
+      throw error;
     }
-
-    await prisma.user.create({
-      data: {
-        username: correctedUsername,
-        email: userEmail,
-        password: { create: { hash: hashedPassword } },
-        identityProvider: IdentityProvider.CAL,
-      },
-    });
 
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email: userEmail });
