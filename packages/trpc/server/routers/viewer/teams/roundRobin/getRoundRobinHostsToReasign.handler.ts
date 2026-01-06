@@ -300,7 +300,7 @@ type BookingWithEventType = {
   startTime: Date;
   endTime: Date;
   eventTypeId: number;
-  eventType: { teamId: number | null } | null;
+  eventType: { teamId: number | null; _count: { hostGroups: number } } | null;
 };
 
 async function fetchBookingWithEventType(
@@ -314,7 +314,9 @@ async function fetchBookingWithEventType(
       startTime: true,
       endTime: true,
       eventTypeId: true,
-      eventType: { select: { teamId: true } },
+      eventType: {
+        select: { teamId: true, _count: { select: { hostGroups: true } } },
+      },
     },
   });
   if (!booking.eventTypeId) {
@@ -360,6 +362,16 @@ async function getFilteredHostsForReassign(
   return { filteredHosts, isTeamAdminOrOwner, userHostGroupIds };
 }
 
+function getExcludeUserIdForReassign(
+  booking: BookingWithEventType
+): number | undefined {
+  const hostGroupCount = booking.eventType?._count?.hostGroups ?? 0;
+  if (hostGroupCount > 1) {
+    return undefined;
+  }
+  return booking.userId ?? undefined;
+}
+
 export const getRoundRobinHostsToReassign = async ({
   ctx,
   input,
@@ -372,6 +384,10 @@ export const getRoundRobinHostsToReassign = async ({
 
   const booking = await fetchBookingWithEventType(prisma, bookingId);
 
+  // For multi-group round-robin events, show ALL hosts including currently assigned ones.
+  // For single-group events, maintain existing behavior (hide assigned host).
+  const excludeUserId = getExcludeUserIdForReassign(booking);
+
   const { hosts, totalCount, nextCursor } = await getTeamHostsFromDB({
     eventTypeId: booking.eventTypeId,
     organizationId: user.organizationId,
@@ -379,7 +395,7 @@ export const getRoundRobinHostsToReassign = async ({
     searchTerm,
     cursor,
     limit,
-    excludeUserId: booking.userId ?? undefined,
+    excludeUserId,
   });
 
   const { filteredHosts, isTeamAdminOrOwner, userHostGroupIds } =
