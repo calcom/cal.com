@@ -458,6 +458,10 @@
       "cache": false,
       "outputs": ["dist/**", "build/**"]
     },
+    "@calcom/web#dev": {
+      "dependsOn": ["@calcom/trpc#build", "//#env-check:common", "//#env-check:app-store"],
+      "cache": false
+    },
     "dev": {
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
       "cache": false

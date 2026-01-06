@@ -121,7 +121,6 @@
             "noImgElement": "warn"
           },
           "suspicious": {
-            "noReactSpecificProps": "warn",
             "noDoubleEquals": "warn",
             "noAssignInExpressions": "warn",
             "noExplicitAny": "warn",
