@@ -50,9 +50,9 @@ const mockQueuedFormResponse = {
 
 describe("queuedResponseHandler", () => {
   beforeEach(() => {
-    vi.mocked(RoutingFormResponseRepository).mockImplementation(
-      () => mockRoutingFormResponseRepository as any
-    );
+    vi.mocked(RoutingFormResponseRepository).mockImplementation(function () {
+      return mockRoutingFormResponseRepository as any;
+    });
   });
 
   it("should process a queued form response", async () => {

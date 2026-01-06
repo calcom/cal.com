@@ -69,9 +69,7 @@ export class OAuthClientsController {
     @GetOrgId() organizationId: number,
     @Body() body: CreateOAuthClientInput
   ): Promise<CreateOAuthClientResponseDto> {
-    this.logger.log(
-      `For organisation ${organizationId} creating OAuth Client with data: ${JSON.stringify(body)}`
-    );
+    this.logger.log(`Creating OAuth Client for organisation ${organizationId}`);
 
     const organization = await this.teamsRepository.findByIdIncludeBilling(organizationId);
     if (!organization?.platformBilling || !organization?.platformBilling?.subscriptionId) {
@@ -140,7 +138,7 @@ export class OAuthClientsController {
     @Param("clientId") clientId: string,
     @Body() body: UpdateOAuthClientInput
   ): Promise<GetOAuthClientResponseDto> {
-    this.logger.log(`For client ${clientId} updating OAuth Client with data: ${JSON.stringify(body)}`);
+    this.logger.log(`Updating OAuth Client ${clientId}`);
     const client = await this.oAuthClientsService.updateOAuthClient(clientId, body);
     return { status: SUCCESS_STATUS, data: client };
   }

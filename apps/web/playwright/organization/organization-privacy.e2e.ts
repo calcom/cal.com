@@ -57,7 +57,7 @@ test.describe("Organization - Privacy", () => {
     await secondPage.goto(`/settings/organizations/${org.slug}/members`);
     await secondPage.waitForLoadState("domcontentloaded");
     const userDataTable = secondPage.getByTestId("user-list-data-table").first();
-    const membersPrivacyWarning = secondPage.getByTestId("members-privacy-warning");
+    const membersPrivacyWarning = secondPage.getByTestId("members-privacy-warning").first();
     await expect(userDataTable).toBeHidden();
     await expect(membersPrivacyWarning).toBeVisible();
     await secondContext.close();
