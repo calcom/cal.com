@@ -422,10 +422,7 @@ export interface BookingDTO {
 
 ### DTO Location and Naming
 
-**Location rules**:
-- **New features**: Always put DTOs in `packages/features/{domain}/dto/`
-- **Refactored code**: DTOs for code being migrated to the repository pattern go in `packages/lib/dto/`
-- **Truly global DTOs**: Only DTOs genuinely shared across multiple domains belong in `packages/lib/dto/` – keep this minimal
+**Location**: All DTOs go in `packages/lib/dto/`
 
 **Naming conventions**:
 - Base entity: `{Entity}Dto` (e.g., `BookingDto`)
