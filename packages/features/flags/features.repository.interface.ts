@@ -13,18 +13,34 @@ export interface IFeaturesRepository {
   getAllFeatures(): Promise<Feature[]>;
   checkIfFeatureIsEnabledGlobally(slug: FeatureId): Promise<boolean>;
   checkIfUserHasFeature(userId: number, slug: string): Promise<boolean>;
-  getUserFeaturesStatus(userId: number, slugs: string[]): Promise<Record<string, boolean>>;
-  checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
+  getUserFeaturesStatus(
+    userId: number,
+    slugs: string[]
+  ): Promise<Record<string, boolean>>;
+  checkIfUserHasFeatureNonHierarchical(
+    userId: number,
+    slug: string
+  ): Promise<boolean>;
   checkIfTeamHasFeature(teamId: number, slug: FeatureId): Promise<boolean>;
   getTeamsWithFeatureEnabled(slug: FeatureId): Promise<number[]>;
   setUserFeatureState(
     input:
-      | { userId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | {
+          userId: number;
+          featureId: FeatureId;
+          state: "enabled" | "disabled";
+          assignedBy: string;
+        }
       | { userId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void>;
   setTeamFeatureState(
     input:
-      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | {
+          teamId: number;
+          featureId: FeatureId;
+          state: "enabled" | "disabled";
+          assignedBy: string;
+        }
       | { teamId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void>;
   /**
@@ -38,12 +54,12 @@ export interface IFeaturesRepository {
   /**
    * Get multiple features' states across multiple teams.
    * Optimized for querying many teams for many features.
-   * @returns Record<featureId, Record<teamId, 'enabled' | 'disabled' | 'inherit'>>
+   * @returns Partial<Record<featureId, Record<teamId, 'enabled' | 'disabled' | 'inherit'>>>
    */
   getTeamsFeatureStates(input: {
     teamIds: number[];
     featureIds: FeatureId[];
-  }): Promise<Record<string, Record<number, FeatureState>>>;
+  }): Promise<Partial<Record<FeatureId, Record<number, FeatureState>>>>;
   /**
    * Get user's autoOptInFeatures flag.
    * @returns Promise<boolean> - True if user has auto opt-in enabled

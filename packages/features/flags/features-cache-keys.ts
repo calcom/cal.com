@@ -1,16 +1,19 @@
-import { FeatureType } from "@calcom/prisma/client";
+import { FeatureType, type Feature } from "@calcom/prisma/client";
 import { z } from "zod";
 
-import type { FeatureId } from "./config";
+import type { FeatureId, FeatureState } from "./config";
 
 /**
  * Zod schemas for cached values
  */
-const FeatureStateSchema = z.enum(["enabled", "disabled", "inherit"]);
-const FeatureStatesMapSchema = z.record(z.string(), FeatureStateSchema);
-const BooleanSchema = z.boolean();
-const NumberArraySchema = z.array(z.number());
-const NullableDateSchema = z.preprocess((value) => {
+const FeatureStateSchema: z.ZodType<FeatureState> = z.enum(["enabled", "disabled", "inherit"]);
+const FeatureStatesMapSchema: z.ZodType<Record<string, FeatureState>> = z.record(
+  z.string(),
+  FeatureStateSchema
+);
+const BooleanSchema: z.ZodType<boolean> = z.boolean();
+const NumberArraySchema: z.ZodType<number[]> = z.array(z.number());
+const NullableDateSchema: z.ZodType<Date | null, z.ZodTypeDef, unknown> = z.preprocess((value) => {
   if (value === null || value === undefined) {
     return value;
   }
@@ -26,7 +29,7 @@ const NullableDateSchema = z.preprocess((value) => {
   return value;
 }, z.date().nullable());
 
-const FeatureSchema = z.object({
+const FeatureSchema: z.ZodType<Feature, z.ZodTypeDef, unknown> = z.object({
   slug: z.string(),
   enabled: z.boolean(),
   description: z.string().nullable(),
@@ -37,16 +40,7 @@ const FeatureSchema = z.object({
   updatedAt: NullableDateSchema,
   updatedBy: z.number().nullable(),
 });
-const FeatureListSchema = z.array(FeatureSchema);
-
-/**
- * A bound cache entry with a pre-computed key and its Zod schema.
- * This is returned by FeaturesCacheEntries functions.
- */
-export type CacheEntry<T> = {
-  key: string;
-  schema: z.ZodType<T, z.ZodTypeDef, unknown>;
-};
+const FeatureListSchema: z.ZodType<Feature[], z.ZodTypeDef, unknown> = z.array(FeatureSchema);
 
 const PREFIX = "features";
 
@@ -59,6 +53,15 @@ function normalizeFeatureIds(featureIds: FeatureId[]): string {
 }
 
 /**
+ * A bound cache entry with a pre-computed key and its Zod schema.
+ * This is returned by FeaturesCacheEntries functions.
+ */
+export type CacheEntry<T> = {
+  key: string;
+  schema: z.ZodType<T, z.ZodTypeDef, unknown>;
+};
+
+/**
  * Cache entries for features caching.
  * Each entry is a function that returns a bound cache entry with a pre-computed key.
  *
@@ -69,43 +72,43 @@ function normalizeFeatureIds(featureIds: FeatureId[]): string {
  */
 export const FeaturesCacheEntries = {
   /** Cache entry for all features (TTL-only) */
-  allFeatures: () => ({
+  allFeatures: (): CacheEntry<Feature[]> => ({
     key: `${PREFIX}:allFeatures`,
     schema: FeatureListSchema,
   }),
 
   /** Cache entry for a user's feature states for specific featureIds */
-  userFeatureStates: (userId: number, featureIds: FeatureId[]) => ({
+  userFeatureStates: (userId: number, featureIds: FeatureId[]): CacheEntry<Record<string, FeatureState>> => ({
     key: `${PREFIX}:userFeatureStates:${userId}:${normalizeFeatureIds(featureIds)}`,
     schema: FeatureStatesMapSchema,
   }),
 
   /** Cache entry for a team's feature states for specific featureIds */
-  teamFeatureStates: (teamId: number, featureIds: FeatureId[]) => ({
+  teamFeatureStates: (teamId: number, featureIds: FeatureId[]): CacheEntry<Record<string, FeatureState>> => ({
     key: `${PREFIX}:teamFeatureStates:${teamId}:${normalizeFeatureIds(featureIds)}`,
     schema: FeatureStatesMapSchema,
   }),
 
   /** Cache entry for a user's auto opt-in setting */
-  userAutoOptIn: (userId: number) => ({
+  userAutoOptIn: (userId: number): CacheEntry<boolean> => ({
     key: `${PREFIX}:userAutoOptIn:${userId}`,
     schema: BooleanSchema,
   }),
 
   /** Cache entry for a team's auto opt-in setting */
-  teamAutoOptIn: (teamId: number) => ({
+  teamAutoOptIn: (teamId: number): CacheEntry<boolean> => ({
     key: `${PREFIX}:teamAutoOptIn:${teamId}`,
     schema: BooleanSchema,
   }),
 
   /** Cache entry for global feature enabled check (TTL-only) */
-  globalFeature: (slug: FeatureId) => ({
+  globalFeature: (slug: FeatureId): CacheEntry<boolean> => ({
     key: `${PREFIX}:globalFeature:${slug}`,
     schema: BooleanSchema,
   }),
 
   /** Cache entry for teams with feature enabled (TTL-only) */
-  teamsWithFeatureEnabled: (slug: FeatureId) => ({
+  teamsWithFeatureEnabled: (slug: FeatureId): CacheEntry<number[]> => ({
     key: `${PREFIX}:teamsWithFeature:${slug}`,
     schema: NumberArraySchema,
   }),

@@ -12,11 +12,21 @@ export class SpyFeaturesRepository implements IFeaturesRepository {
   checkIfFeatureIsEnabledGloballyCalls: FeatureId[] = [];
   getTeamsWithFeatureEnabledCalls: FeatureId[] = [];
   checkIfUserHasFeatureCalls: Array<{ userId: number; slug: string }> = [];
-  checkIfUserHasFeatureNonHierarchicalCalls: Array<{ userId: number; slug: string }> = [];
-  getUserFeatureStatesCalls: Array<{ userId: number; featureIds: FeatureId[] }> = [];
+  checkIfUserHasFeatureNonHierarchicalCalls: Array<{
+    userId: number;
+    slug: string;
+  }> = [];
+  getUserFeatureStatesCalls: Array<{
+    userId: number;
+    featureIds: FeatureId[];
+  }> = [];
+  getUserFeaturesStatusCalls: Array<{ userId: number; slugs: string[] }> = [];
   getUserAutoOptInCalls: number[] = [];
   checkIfTeamHasFeatureCalls: Array<{ teamId: number; slug: FeatureId }> = [];
-  getTeamsFeatureStatesCalls: Array<{ teamIds: number[]; featureIds: FeatureId[] }> = [];
+  getTeamsFeatureStatesCalls: Array<{
+    teamIds: number[];
+    featureIds: FeatureId[];
+  }> = [];
   getTeamsAutoOptInCalls: number[][] = [];
   setUserFeatureStateCalls: Array<{
     userId: number;
@@ -39,6 +49,7 @@ export class SpyFeaturesRepository implements IFeaturesRepository {
   mockUserHasFeature: Record<string, boolean> = {};
   mockUserHasFeatureNonHierarchical: Record<string, boolean> = {};
   mockUserFeatureStates: Record<number, Record<string, FeatureState>> = {};
+  mockUserFeaturesStatus: Record<number, Record<string, boolean>> = {};
   mockUserAutoOptIn: Record<number, boolean> = {};
   mockTeamHasFeature: Record<string, boolean> = {};
   mockTeamsFeatureStates: Record<string, Record<number, FeatureState>> = {};
@@ -82,6 +93,16 @@ export class SpyFeaturesRepository implements IFeaturesRepository {
     return result;
   }
 
+  async getUserFeaturesStatus(userId: number, slugs: string[]): Promise<Record<string, boolean>> {
+    this.getUserFeaturesStatusCalls.push({ userId, slugs });
+    const userStatuses = this.mockUserFeaturesStatus[userId] ?? {};
+    const result: Record<string, boolean> = {};
+    for (const slug of slugs) {
+      result[slug] = userStatuses[slug] ?? false;
+    }
+    return result;
+  }
+
   async getUserAutoOptIn(userId: number): Promise<boolean> {
     this.getUserAutoOptInCalls.push(userId);
     return this.mockUserAutoOptIn[userId] ?? false;
@@ -95,9 +116,9 @@ export class SpyFeaturesRepository implements IFeaturesRepository {
   async getTeamsFeatureStates(input: {
     teamIds: number[];
     featureIds: FeatureId[];
-  }): Promise<Record<string, Record<number, FeatureState>>> {
+  }): Promise<Partial<Record<FeatureId, Record<number, FeatureState>>>> {
     this.getTeamsFeatureStatesCalls.push(input);
-    const result: Record<string, Record<number, FeatureState>> = {};
+    const result: Partial<Record<FeatureId, Record<number, FeatureState>>> = {};
     for (const featureId of input.featureIds) {
       result[featureId] = {};
       const featureStates = this.mockTeamsFeatureStates[featureId] ?? {};
@@ -123,27 +144,45 @@ export class SpyFeaturesRepository implements IFeaturesRepository {
 
   async setUserFeatureState(
     input:
-      | { userId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | {
+          userId: number;
+          featureId: FeatureId;
+          state: "enabled" | "disabled";
+          assignedBy: string;
+        }
       | { userId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
+    let assignedBy: string | undefined;
+    if ("assignedBy" in input) {
+      assignedBy = input.assignedBy;
+    }
     this.setUserFeatureStateCalls.push({
       userId: input.userId,
       featureId: input.featureId,
       state: input.state,
-      assignedBy: "assignedBy" in input ? input.assignedBy : undefined,
+      assignedBy,
     });
   }
 
   async setTeamFeatureState(
     input:
-      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | {
+          teamId: number;
+          featureId: FeatureId;
+          state: "enabled" | "disabled";
+          assignedBy: string;
+        }
       | { teamId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
+    let assignedBy: string | undefined;
+    if ("assignedBy" in input) {
+      assignedBy = input.assignedBy;
+    }
     this.setTeamFeatureStateCalls.push({
       teamId: input.teamId,
       featureId: input.featureId,
       state: input.state,
-      assignedBy: "assignedBy" in input ? input.assignedBy : undefined,
+      assignedBy,
     });
   }
 
@@ -162,6 +201,7 @@ export class SpyFeaturesRepository implements IFeaturesRepository {
     this.checkIfUserHasFeatureCalls = [];
     this.checkIfUserHasFeatureNonHierarchicalCalls = [];
     this.getUserFeatureStatesCalls = [];
+    this.getUserFeaturesStatusCalls = [];
     this.getUserAutoOptInCalls = [];
     this.checkIfTeamHasFeatureCalls = [];
     this.getTeamsFeatureStatesCalls = [];
