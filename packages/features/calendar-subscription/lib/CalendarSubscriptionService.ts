@@ -12,8 +12,8 @@ import type { CalendarSyncService } from "@calcom/features/calendar-subscription
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { ISelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository.interface";
 import logger from "@calcom/lib/logger";
+import { withSpan } from "@calcom/lib/sentryWrapper";
 import type { SelectedCalendar } from "@calcom/prisma/client";
-import { startSpan } from "@sentry/nextjs";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
 
@@ -112,7 +112,7 @@ export class CalendarSubscriptionService {
    * Process webhook
    */
   async processWebhook(provider: CalendarSubscriptionProvider, request: Request) {
-    return startSpan(
+    return withSpan(
       {
         name: "CalendarSubscriptionService.processWebhook",
         op: "calendar.subscription.webhook",

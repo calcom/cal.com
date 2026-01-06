@@ -1,5 +1,6 @@
 import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 import logger from "@calcom/lib/logger";
+import { withSpan } from "@calcom/lib/sentryWrapper";
 import type {
   Calendar,
   CalendarEvent,
@@ -9,7 +10,6 @@ import type {
   NewCalendarEventType,
   SelectedCalendarEventTypeIds,
 } from "@calcom/types/Calendar";
-import { startSpan } from "@sentry/nextjs";
 
 const log = logger.getSubLogger({ prefix: ["CachedCalendarWrapper"] });
 
@@ -67,12 +67,14 @@ export class CalendarCacheWrapper implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
-    return startSpan(
+    return withSpan(
       {
         name: "CalendarCacheWrapper.getAvailability",
         op: "calendar.cache.getAvailability",
         attributes: {
           calendarCount: selectedCalendars?.length ?? 0,
+          cacheEnabled: true,
+          cacheSupported: true,
         },
       },
       async (span) => {
@@ -154,12 +156,14 @@ export class CalendarCacheWrapper implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
-    return startSpan(
+    return withSpan(
       {
         name: "CalendarCacheWrapper.getAvailabilityWithTimeZones",
         op: "calendar.cache.getAvailabilityWithTimeZones",
         attributes: {
           calendarCount: selectedCalendars?.length ?? 0,
+          cacheEnabled: true,
+          cacheSupported: true,
         },
       },
       async (span) => {

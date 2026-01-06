@@ -2,6 +2,7 @@ import { CalendarSubscriptionService } from "@calcom/features/calendar-subscript
 import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository";
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import { CalendarCacheWrapper } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheWrapper";
+import { CalendarTelemetryWrapper } from "@calcom/features/calendar-subscription/lib/cache/CalendarTelemetryWrapper";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
@@ -58,7 +59,9 @@ export const getCalendar = async (
     );
     shouldServeCache = isCalendarSubscriptionCacheEnabled && isCalendarSubscriptionCacheEnabledForUser;
   }
-  if (CalendarCacheEventService.isCalendarTypeSupported(calendarType) && shouldServeCache) {
+  const isCacheSupported = CalendarCacheEventService.isCalendarTypeSupported(calendarType);
+
+  if (isCacheSupported && shouldServeCache) {
     log.info(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const originalCalendar = new CalendarService(credential as any);
@@ -73,5 +76,18 @@ export const getCalendar = async (
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new CalendarService(credential as any);
+  const originalCalendar = new CalendarService(credential as any);
+
+  // Wrap with telemetry when cache is supported but disabled (for performance comparison)
+  if (isCacheSupported && !shouldServeCache) {
+    log.info(
+      `Calendar Cache is disabled but supported, using CalendarTelemetryWrapper for credential ${credential.id}`
+    );
+    return new CalendarTelemetryWrapper({
+      originalCalendar,
+      calendarType,
+    });
+  }
+
+  return originalCalendar;
 };

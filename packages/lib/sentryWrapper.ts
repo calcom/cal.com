@@ -1,4 +1,4 @@
-import { startSpan, captureException } from "@sentry/nextjs";
+import { captureException, startSpan } from "@sentry/nextjs";
 
 import { redactSensitiveData } from "./redactSensitiveData";
 
@@ -104,6 +104,76 @@ function createErrorHandler(name: string, args: unknown[]) {
  *   // sync implementation
  * }, "mySyncFunction");
  */
+/**
+ * Minimal interface for setting span attributes during execution.
+ * Compatible with Sentry's Span interface.
+ */
+export interface TelemetrySpan {
+  setAttribute(key: string, value: string | number | boolean): void;
+}
+
+/**
+ * Options for creating a telemetry span.
+ */
+export interface TelemetrySpanOptions {
+  /** Name of the span (required) */
+  name: string;
+  /** Operation type for categorization in Sentry (e.g., "calendar.cache.getAvailability") */
+  op?: string;
+  /** Initial attributes to set on the span */
+  attributes?: Record<string, string | number | boolean>;
+}
+
+/**
+ * No-op span implementation for when Sentry is not configured.
+ */
+const noOpSpan: TelemetrySpan = {
+  setAttribute: () => {},
+};
+
+/**
+ * Wraps an async function with a Sentry span for telemetry tracking.
+ * Supports custom span attributes and operation types for better categorization in Sentry.
+ *
+ * @example
+ * const result = await withSpan(
+ *   {
+ *     name: "CalendarCacheWrapper.getAvailability",
+ *     op: "calendar.cache.getAvailability",
+ *     attributes: { calendarCount: 5, cacheEnabled: true }
+ *   },
+ *   async (span) => {
+ *     // Your async code here
+ *     span.setAttribute("eventsCount", results.length);
+ *     return results;
+ *   }
+ * );
+ */
+export async function withSpan<T>(
+  options: TelemetrySpanOptions,
+  callback: (span: TelemetrySpan) => Promise<T>
+): Promise<T> {
+  // Early return with no-op span if Sentry is not configured
+  if (!process.env.NEXT_PUBLIC_SENTRY_DSN || !process.env.SENTRY_TRACES_SAMPLE_RATE) {
+    return callback(noOpSpan);
+  }
+
+  return startSpan(
+    {
+      name: options.name,
+      op: options.op,
+      attributes: options.attributes,
+    },
+    async (span) => {
+      // Create a wrapper that implements TelemetrySpan interface
+      const telemetrySpan: TelemetrySpan = {
+        setAttribute: (key, value) => span.setAttribute(key, value),
+      };
+      return callback(telemetrySpan);
+    }
+  );
+}
+
 export function withReporting<T extends any[], R>(func: (...args: T) => R, name: string): (...args: T) => R {
   if (!name?.trim()) {
     throw new Error("withReporting requires a non-empty name parameter");
