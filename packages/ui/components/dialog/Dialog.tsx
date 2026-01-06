@@ -1,12 +1,11 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ForwardRefExoticComponent, ReactNode } from "react";
-import React from "react";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
+import React, { useCallback, useEffect, useRef } from "react";
 
 import type { ButtonProps } from "../button";
 import { Button } from "../button";
@@ -67,6 +66,49 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
     },
     forwardedRef
   ) => {
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    const handleKeyDown = useCallback((event: KeyboardEvent) => {
+      // Check for CMD+Enter (Mac) or Ctrl+Enter (Windows/Linux)
+      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+        const dialogContent = contentRef.current;
+        if (!dialogContent) return;
+
+        // Find the primary CTA button within the dialog
+        // Priority: 1) data-dialog-primary attribute, 2) button with color="primary" (last one in footer)
+        const primaryButton =
+          dialogContent.querySelector<HTMLButtonElement>('[data-dialog-primary="true"]') ||
+          dialogContent.querySelector<HTMLButtonElement>(
+            '[class*="bg-brand-default"]:not([disabled]), button[type="submit"]:not([disabled])'
+          );
+
+        if (primaryButton && !primaryButton.disabled) {
+          event.preventDefault();
+          primaryButton.click();
+        }
+      }
+    }, []);
+
+    useEffect(() => {
+      document.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+      };
+    }, [handleKeyDown]);
+
+    // Combine refs if forwardedRef is provided
+    const setRefs = useCallback(
+      (node: HTMLDivElement | null) => {
+        contentRef.current = node;
+        if (typeof forwardedRef === "function") {
+          forwardedRef(node);
+        } else if (forwardedRef) {
+          forwardedRef.current = node;
+        }
+      },
+      [forwardedRef]
+    );
+
     return (
       <DialogPrimitive.Portal>
         {forceOverlayWhenNoModal ? (
@@ -88,7 +130,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             enableOverflow ? "overflow-y-auto" : "overflow-visible",
             `${props.className || ""}`
           )}
-          ref={forwardedRef}>
+          ref={setRefs}>
           {type === "creation" && (
             <div>
               <DialogHeader title={title} subtitle={props.description} />
