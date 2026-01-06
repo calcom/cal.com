@@ -1,6 +1,8 @@
 import process from "node:process";
+
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import LicenseKeyService from "@calcom/features/ee/common/server/LicenseKeyService";
+import { CALCOM_PRIVATE_API_ROUTE, WEBAPP_URL } from "@calcom/lib/constants";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { unstable_cache } from "next/cache";
@@ -11,17 +13,29 @@ import type { AppStatus } from "../_repository";
 import { healthcheckRepository } from "../_repository";
 
 const HEALTHCHECK_CACHE_TTL = 60; // 1 minute cache for health checks
+const API_HEALTH_TIMEOUT_MS = 5000; // 5 second timeout for API health checks
+
+type ApiHealthStatus = {
+  status: "ok" | "error" | "unreachable";
+  responseTime?: number;
+  error?: string;
+};
+
+type LicenseStatus = {
+  hasEnvKey: boolean;
+  hasDbKey: boolean;
+  isValid: boolean;
+  serverReachable: boolean;
+  serverUrl: string;
+  error?: string;
+};
 
 type HealthCheckData = {
   apps: {
     installed: AppStatus[];
     total: number;
   };
-  license: {
-    hasEnvKey: boolean;
-    hasDbKey: boolean;
-    isValid: boolean;
-  };
+  license: LicenseStatus;
   email: {
     hasEmailFrom: boolean;
     hasSendgridApiKey: boolean;
@@ -36,6 +50,8 @@ type HealthCheckData = {
     connected: boolean;
     error?: string;
   };
+  apiV1: ApiHealthStatus;
+  apiV2: ApiHealthStatus;
 };
 
 function getEmailConfigStatus(): HealthCheckData["email"] {
@@ -67,29 +83,124 @@ function getRedisConfigStatus(): HealthCheckData["redis"] {
   };
 }
 
-async function fetchHealthCheckData(): Promise<HealthCheckData> {
-  const [apps, dbLicenseKey, database] = await Promise.all([
-    healthcheckRepository.listApps(),
-    healthcheckRepository.getDeploymentLicenseKey(),
-    healthcheckRepository.ping(),
-  ]);
+async function checkApiHealth(url: string): Promise<ApiHealthStatus> {
+  const startTime = Date.now();
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      signal: AbortSignal.timeout(API_HEALTH_TIMEOUT_MS),
+    });
+    const responseTime = Date.now() - startTime;
 
+    if (response.ok) {
+      return { status: "ok", responseTime };
+    }
+    return {
+      status: "error",
+      responseTime,
+      error: `HTTP ${response.status}`,
+    };
+  } catch (error) {
+    const responseTime = Date.now() - startTime;
+    if (error instanceof Error) {
+      if (error.name === "TimeoutError" || error.name === "AbortError") {
+        return { status: "unreachable", responseTime, error: "Request timed out" };
+      }
+      return { status: "unreachable", responseTime, error: error.message };
+    }
+    return { status: "unreachable", responseTime, error: "Unknown error" };
+  }
+}
+
+async function checkLicenseServerReachability(): Promise<boolean> {
+  try {
+    const healthUrl = `${CALCOM_PRIVATE_API_ROUTE}/health`;
+    const response = await fetch(healthUrl, {
+      method: "GET",
+      signal: AbortSignal.timeout(API_HEALTH_TIMEOUT_MS),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function getLicenseStatus(dbLicenseKey: string | null): Promise<LicenseStatus> {
   const hasEnvKey = !!process.env.CALCOM_LICENSE_KEY;
   const hasDbKey = !!dbLicenseKey;
+  const serverUrl = CALCOM_PRIVATE_API_ROUTE;
 
-  // Validate license key using LicenseKeyService
+  // If no license key configured, skip validation
+  if (!hasEnvKey && !hasDbKey) {
+    return {
+      hasEnvKey,
+      hasDbKey,
+      isValid: false,
+      serverReachable: true, // Not relevant when no key
+      serverUrl,
+    };
+  }
+
+  // First check if license server is reachable
+  const serverReachable = await checkLicenseServerReachability();
+
+  if (!serverReachable) {
+    return {
+      hasEnvKey,
+      hasDbKey,
+      isValid: false,
+      serverReachable: false,
+      serverUrl,
+      error: "Cannot reach license server. A firewall may be blocking the request.",
+    };
+  }
+
+  // Server is reachable, now validate the license
   let isValid = false;
-  if (hasEnvKey || hasDbKey) {
-    try {
-      const deploymentRepo = healthcheckRepository.getDeploymentRepository();
-      const licenseService = await LicenseKeyService.create(deploymentRepo);
-      isValid = await licenseService.checkLicense();
-    } catch {
-      // License validation failed, keep isValid as false
-      isValid = false;
+  let error: string | undefined;
+  try {
+    const deploymentRepo = healthcheckRepository.getDeploymentRepository();
+    const licenseService = await LicenseKeyService.create(deploymentRepo);
+    isValid = await licenseService.checkLicense();
+  } catch (e) {
+    if (e instanceof Error) {
+      error = e.message;
+    } else {
+      error = "License validation failed";
     }
   }
 
+  return {
+    hasEnvKey,
+    hasDbKey,
+    isValid,
+    serverReachable: true,
+    serverUrl,
+    error,
+  };
+}
+
+function getApiV2Url(): string {
+  if (process.env.NEXT_PUBLIC_API_V2_URL) {
+    return `${process.env.NEXT_PUBLIC_API_V2_URL}/health`;
+  }
+  return `${WEBAPP_URL}/api/v2/health`;
+}
+
+async function fetchHealthCheckData(): Promise<HealthCheckData> {
+  // Build API URLs based on WEBAPP_URL
+  const apiV1Url = `${WEBAPP_URL}/api`;
+  const apiV2Url = getApiV2Url();
+
+  const [apps, dbLicenseKey, database, apiV1, apiV2] = await Promise.all([
+    healthcheckRepository.listApps(),
+    healthcheckRepository.getDeploymentLicenseKey(),
+    healthcheckRepository.ping(),
+    checkApiHealth(apiV1Url),
+    checkApiHealth(apiV2Url),
+  ]);
+
+  const license = await getLicenseStatus(dbLicenseKey);
   const email = getEmailConfigStatus();
   const redis = getRedisConfigStatus();
 
@@ -98,14 +209,12 @@ async function fetchHealthCheckData(): Promise<HealthCheckData> {
       installed: apps,
       total: apps.length,
     },
-    license: {
-      hasEnvKey,
-      hasDbKey,
-      isValid,
-    },
+    license,
     email,
     redis,
     database,
+    apiV1,
+    apiV2,
   };
 }
 

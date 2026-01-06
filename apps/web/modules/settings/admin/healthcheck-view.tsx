@@ -14,16 +14,27 @@ type AppStatus = {
   categories: string[];
 };
 
+type ApiHealthStatus = {
+  status: "ok" | "error" | "unreachable";
+  responseTime?: number;
+  error?: string;
+};
+
+type LicenseStatus = {
+  hasEnvKey: boolean;
+  hasDbKey: boolean;
+  isValid: boolean;
+  serverReachable: boolean;
+  serverUrl: string;
+  error?: string;
+};
+
 type HealthCheckData = {
   apps: {
     installed: AppStatus[];
     total: number;
   };
-  license: {
-    hasEnvKey: boolean;
-    hasDbKey: boolean;
-    isValid: boolean;
-  };
+  license: LicenseStatus;
   email: {
     hasEmailFrom: boolean;
     hasSendgridApiKey: boolean;
@@ -38,6 +49,8 @@ type HealthCheckData = {
     connected: boolean;
     error?: string;
   };
+  apiV1: ApiHealthStatus;
+  apiV2: ApiHealthStatus;
 };
 
 type StatusBadgeProps = {
@@ -111,6 +124,31 @@ function EmailProviderBadge({ provider, t }: EmailProviderBadgeProps): ReactElem
   );
 }
 
+type ApiHealthBadgeProps = {
+  status: ApiHealthStatus;
+  t: (key: string) => string;
+};
+
+function ApiHealthBadge({ status, t }: ApiHealthBadgeProps): ReactElement {
+  let variant: BadgeProps["variant"] = "orange";
+  let label = t("unreachable");
+
+  if (status.status === "ok") {
+    variant = "green";
+    label = t("healthy");
+  } else if (status.status === "error") {
+    variant = "red";
+    label = t("error");
+  }
+
+  return (
+    <Badge variant={variant} withDot>
+      {label}
+      {status.responseTime !== undefined && ` (${status.responseTime}ms)`}
+    </Badge>
+  );
+}
+
 function renderAppsList(
   apps: HealthCheckData["apps"]["installed"],
   t: (key: string) => string
@@ -166,6 +204,28 @@ function HealthCheckView({ data }: HealthCheckViewProps): ReactElement {
         )}
       </PanelCard>
 
+      {/* API Health Status */}
+      <PanelCard title={t("api_health")}>
+        <div className="flex items-center justify-between border-b border-subtle px-4 py-3">
+          <span className="text-default text-sm">API v1</span>
+          <ApiHealthBadge status={data.apiV1} t={t} />
+        </div>
+        {data.apiV1.error && (
+          <div className="border-subtle bg-error/10 border-b px-4 py-2">
+            <span className="text-error text-xs">{data.apiV1.error}</span>
+          </div>
+        )}
+        <div className="flex items-center justify-between border-b border-subtle px-4 py-3 last:border-b-0">
+          <span className="text-default text-sm">API v2</span>
+          <ApiHealthBadge status={data.apiV2} t={t} />
+        </div>
+        {data.apiV2.error && (
+          <div className="border-subtle bg-error/10 px-4 py-2">
+            <span className="text-error text-xs">{data.apiV2.error}</span>
+          </div>
+        )}
+      </PanelCard>
+
       {/* License Key Status */}
       <PanelCard title={t("license")}>
         <StatusRow label={t("environment_variable")} configured={data.license.hasEnvKey} />
@@ -176,6 +236,20 @@ function HealthCheckView({ data }: HealthCheckViewProps): ReactElement {
           configuredLabel={t("valid")}
           notConfiguredLabel={t("invalid")}
         />
+        {/* License server reachability alert */}
+        {!data.license.serverReachable && (data.license.hasEnvKey || data.license.hasDbKey) && (
+          <div className="border-subtle bg-error/10 border-t px-4 py-3">
+            <div className="text-error flex items-start gap-2 text-sm">
+              <Icon name="circle-alert" className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <div className="flex flex-col gap-1">
+                <span className="font-medium">{t("license_server_unreachable")}</span>
+                <span className="text-subtle text-xs">
+                  {t("license_server_unreachable_description", { url: data.license.serverUrl })}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </PanelCard>
 
       {/* Email Configuration */}
