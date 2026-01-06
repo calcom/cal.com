@@ -73,7 +73,7 @@ export class DeploymentsService {
       }
 
       // Only cache valid responses
-      await this.redisService.redis.set(cacheKey, JSON.stringify(data), "EX", CACHING_TIME);
+      await this.redisService.redis.set(cacheKey, JSON.stringify(data), "PX", CACHING_TIME);
       return data.status;
     } catch (error) {
       this.logger.error(`License check failed: ${(error as Error).message}`);
