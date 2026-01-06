@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "បានធ្វើបច្ចុប្បន្នភាពអ្នកចូលរួមមិនមកដល់",
     "type": "ប្រភេទការចាត់តាំង",
     "assignmentType_manual": "ការចាត់តាំងដោយដៃ",
-    "assignmentType_roundRobin": "ការចាត់តាំង Round Robin"
+    "assignmentType_roundRobin": "ការចាត់តាំង Round Robin",
+    "actor_impersonated_by": "អ្នកបន្លំ",
+    "source": "ប្រភព"
   },
   "error_loading_booking_logs": "កំហុសក្នុងការផ្ទុកកំណត់ហេតុការកក់",
   "no_audit_logs_found": "រកមិនឃើញកំណត់ហេតុសវនកម្ម",

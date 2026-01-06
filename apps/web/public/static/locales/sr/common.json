@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Nedolazak učesnika ažuriran",
     "type": "Tip dodele",
     "assignmentType_manual": "Ručna dodela",
-    "assignmentType_roundRobin": "Round Robin dodela"
+    "assignmentType_roundRobin": "Round Robin dodela",
+    "actor_impersonated_by": "Predstavlja se kao",
+    "source": "Izvor"
   },
   "error_loading_booking_logs": "Greška pri učitavanju evidencije rezervacija",
   "no_audit_logs_found": "Nije pronađena evidencija aktivnosti",
