@@ -13,13 +13,13 @@ import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
-import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
-import { prefillAvatar } from "../utils/prefillAvatar";
+import { joinAnyChildTeamOnOrgInvite } from "@calcom/features/auth/signup/utils/organization";
+import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
 import {
   findTokenByToken,
   throwIfTokenExpired,
   validateAndGetCorrectedUsernameForTeam,
-} from "../utils/token";
+} from "@calcom/features/auth/signup/utils/token";
 
 export default async function handler(body: Record<string, string>) {
   const { email, password, language, token } = signupSchema.parse(body);
