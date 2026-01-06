@@ -70,11 +70,9 @@ export class CalendarCacheWrapper implements Calendar {
     return withSpan(
       {
         name: "CalendarCacheWrapper.getAvailability",
-        op: "calendar.cache.getAvailability",
+        op: "calendar.cache.internal.getAvailability",
         attributes: {
           calendarCount: selectedCalendars?.length ?? 0,
-          cacheEnabled: true,
-          cacheSupported: true,
         },
       },
       async (span) => {
@@ -159,11 +157,9 @@ export class CalendarCacheWrapper implements Calendar {
     return withSpan(
       {
         name: "CalendarCacheWrapper.getAvailabilityWithTimeZones",
-        op: "calendar.cache.getAvailabilityWithTimeZones",
+        op: "calendar.cache.internal.getAvailabilityWithTimeZones",
         attributes: {
           calendarCount: selectedCalendars?.length ?? 0,
-          cacheEnabled: true,
-          cacheSupported: true,
         },
       },
       async (span) => {

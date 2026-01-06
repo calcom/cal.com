@@ -13,8 +13,8 @@ import type {
 const log = logger.getSubLogger({ prefix: ["CalendarTelemetryWrapper"] });
 
 /**
- * A wrapper to add telemetry to calendar services when cache is disabled.
- * This allows comparing performance between cached and non-cached calendar loading.
+ * A wrapper to add telemetry to all calendar services.
+ * This provides consistent metrics for comparing performance between cached and non-cached calendar loading.
  *
  * @see Calendar
  */
@@ -23,6 +23,7 @@ export class CalendarTelemetryWrapper implements Calendar {
     private deps: {
       originalCalendar: Calendar;
       calendarType: string;
+      cacheEnabled: boolean;
     }
   ) {}
 
@@ -66,20 +67,20 @@ export class CalendarTelemetryWrapper implements Calendar {
     return withSpan(
       {
         name: "CalendarTelemetryWrapper.getAvailability",
-        op: "calendar.cache.getAvailability",
+        op: "calendar.getAvailability",
         attributes: {
           calendarCount: selectedCalendars?.length ?? 0,
           calendarType: this.deps.calendarType,
-          cacheEnabled: false,
-          cacheSupported: true,
+          cacheEnabled: this.deps.cacheEnabled,
         },
       },
       async (span) => {
-        log.debug("getAvailability (cache disabled)", {
+        log.debug("getAvailability", {
           dateFrom,
           dateTo,
           calendarIds: selectedCalendars.map((c) => c.id),
           calendarCount: selectedCalendars.length,
+          cacheEnabled: this.deps.cacheEnabled,
         });
 
         if (!selectedCalendars?.length) return [];
@@ -88,16 +89,14 @@ export class CalendarTelemetryWrapper implements Calendar {
         const results = await this.deps.originalCalendar.getAvailability(dateFrom, dateTo, selectedCalendars);
         const durationMs = performance.now() - startTime;
 
-        span.setAttribute("originalCalendarCount", selectedCalendars.length);
-        span.setAttribute("originalFetchDurationMs", durationMs);
-        span.setAttribute("originalEventsCount", results.length);
-        span.setAttribute("cacheUsed", false);
-        span.setAttribute("totalEventsCount", results.length);
+        span.setAttribute("durationMs", durationMs);
+        span.setAttribute("eventsCount", results.length);
 
-        log.info("Calendar fetch completed (cache disabled)", {
+        log.info("Calendar fetch completed", {
           calendarCount: selectedCalendars.length,
-          fetchDurationMs: durationMs,
+          durationMs,
           eventsCount: results.length,
+          cacheEnabled: this.deps.cacheEnabled,
         });
 
         return results;
@@ -126,20 +125,20 @@ export class CalendarTelemetryWrapper implements Calendar {
     return withSpan(
       {
         name: "CalendarTelemetryWrapper.getAvailabilityWithTimeZones",
-        op: "calendar.cache.getAvailabilityWithTimeZones",
+        op: "calendar.getAvailabilityWithTimeZones",
         attributes: {
           calendarCount: selectedCalendars?.length ?? 0,
           calendarType: this.deps.calendarType,
-          cacheEnabled: false,
-          cacheSupported: true,
+          cacheEnabled: this.deps.cacheEnabled,
         },
       },
       async (span) => {
-        log.debug("getAvailabilityWithTimeZones (cache disabled)", {
+        log.debug("getAvailabilityWithTimeZones", {
           dateFrom,
           dateTo,
           calendarIds: selectedCalendars.map((c) => c.id),
           calendarCount: selectedCalendars.length,
+          cacheEnabled: this.deps.cacheEnabled,
         });
 
         if (!selectedCalendars?.length) return [];
@@ -152,16 +151,14 @@ export class CalendarTelemetryWrapper implements Calendar {
         );
         const durationMs = performance.now() - startTime;
 
-        span.setAttribute("originalCalendarCount", selectedCalendars.length);
-        span.setAttribute("originalFetchDurationMs", durationMs);
-        span.setAttribute("originalEventsCount", results?.length ?? 0);
-        span.setAttribute("cacheUsed", false);
-        span.setAttribute("totalEventsCount", results?.length ?? 0);
+        span.setAttribute("durationMs", durationMs);
+        span.setAttribute("eventsCount", results?.length ?? 0);
 
-        log.info("Calendar fetch with timezones completed (cache disabled)", {
+        log.info("Calendar fetch with timezones completed", {
           calendarCount: selectedCalendars.length,
-          fetchDurationMs: durationMs,
+          durationMs,
           eventsCount: results?.length ?? 0,
+          cacheEnabled: this.deps.cacheEnabled,
         });
 
         return results ?? [];

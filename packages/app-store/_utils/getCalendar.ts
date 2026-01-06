@@ -62,34 +62,35 @@ export const getCalendar = async (
   }
   const isCacheSupported = CalendarCacheEventService.isCalendarTypeSupported(calendarType);
 
-  if (isCacheSupported && shouldServeCache) {
-    log.info(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
-
-    const originalCalendar = new CalendarService(credential as any);
-    if (originalCalendar) {
-      // return cacheable calendar
-      const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
-      return new CalendarCacheWrapper({
-        originalCalendar,
-        calendarCacheEventRepository,
-      });
-    }
-  }
-
-
   const originalCalendar = new CalendarService(credential as any);
 
-  // Wrap with telemetry when cache is supported but disabled (for performance comparison)
-  // Only apply telemetry wrapper when telemetry is enabled (Sentry or development mode)
-  if (isCacheSupported && !shouldServeCache && isTelemetryEnabled()) {
-    log.info(
-      `Calendar Cache is disabled but supported, using CalendarTelemetryWrapper for credential ${credential.id}`
-    );
-    return new CalendarTelemetryWrapper({
-      originalCalendar,
-      calendarType,
+  // Determine if we should use cache
+  const useCache = isCacheSupported && shouldServeCache;
+
+  // Build the calendar chain: original -> cache (if enabled) -> telemetry (if enabled)
+  let calendar: Calendar = originalCalendar;
+
+  if (useCache) {
+    log.info(`Calendar Cache is enabled, using CalendarCacheWrapper for credential ${credential.id}`);
+    const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
+    calendar = new CalendarCacheWrapper({
+      originalCalendar: calendar,
+      calendarCacheEventRepository,
     });
   }
 
-  return originalCalendar;
+  // Wrap with telemetry for cache-supported calendar types when telemetry is enabled
+  // This provides consistent metrics for comparing cached vs non-cached performance
+  if (isCacheSupported && isTelemetryEnabled()) {
+    log.info(
+      `Using CalendarTelemetryWrapper for credential ${credential.id} (cacheEnabled: ${useCache})`
+    );
+    calendar = new CalendarTelemetryWrapper({
+      originalCalendar: calendar,
+      calendarType,
+      cacheEnabled: useCache,
+    });
+  }
+
+  return calendar;
 };
