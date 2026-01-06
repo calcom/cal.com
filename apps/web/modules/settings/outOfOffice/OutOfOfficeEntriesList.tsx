@@ -12,16 +12,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import {
-  DataTableWrapper,
-  DataTableToolbar,
   DataTableProvider,
   ColumnFilterType,
   useDataTable,
   useFilterValue,
   ZDateRangeFilterValue,
-  DataTableFilters,
-  DataTableSegment,
 } from "@calcom/features/data-table";
+import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment } from "~/data-table/components";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -135,6 +132,16 @@ function OutOfOfficeEntriesListContent({
     () => (isPending ? new Array(5).fill(null) : data?.rows ?? []),
     [data, selectedTab, isPending, searchTerm]
   ) as OutOfOfficeEntry[];
+
+  const deleteOutOfOfficeEntryMutation = trpc.viewer.ooo.outOfOfficeEntryDelete.useMutation({
+    onSuccess: () => {
+      showToast(t("success_deleted_entry_out_of_office"), "success");
+      setDeletedEntry((previousValue) => previousValue + 1);
+    },
+    onError: () => {
+      showToast(`An error occurred`, "error");
+    },
+  });
 
   const memoColumns = useMemo(() => {
     const columnHelper = createColumnHelper<OutOfOfficeEntry>();
@@ -330,7 +337,7 @@ function OutOfOfficeEntriesListContent({
         },
       }),
     ];
-  }, [selectedTab, isPending, onOpenEditDialog, t]);
+  }, [selectedTab, isPending, onOpenEditDialog, t, deleteOutOfOfficeEntryMutation, totalRowCount]);
 
   const table = useReactTable({
     data: flatData,
@@ -344,16 +351,6 @@ function OutOfOfficeEntriesListContent({
     manualPagination: true,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-  });
-
-  const deleteOutOfOfficeEntryMutation = trpc.viewer.ooo.outOfOfficeEntryDelete.useMutation({
-    onSuccess: () => {
-      showToast(t("success_deleted_entry_out_of_office"), "success");
-      setDeletedEntry((previousValue) => previousValue + 1);
-    },
-    onError: () => {
-      showToast(`An error occurred`, "error");
-    },
   });
 
   return (
@@ -382,7 +379,7 @@ function OutOfOfficeEntriesListContent({
         EmptyView={
           <EmptyScreen
             className="mt-6"
-            headline={selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_title") : t("ooo_empty_title")}
+            headline={searchTerm ? t("no_result_found_for", {searchTerm}) : selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_title") : t("ooo_empty_title")}
             description={
               selectedTab === OutOfOfficeTab.TEAM
                 ? t("ooo_team_empty_description")
