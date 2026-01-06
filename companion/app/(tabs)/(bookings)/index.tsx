@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Text, TextInput, View } from "react-native";
 import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
 import { Header } from "@/components/Header";
@@ -11,16 +11,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AppPressable } from "@/components/AppPressable";
 import { useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
-import type { EventType } from "@/services/calcom";
-import { CalComAPIService } from "@/services/calcom";
-import { safeLogError } from "@/utils/safeLogger";
+import { useEventTypes } from "@/hooks";
 
 export default function Bookings() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
   const [selectedEventTypeLabel, setSelectedEventTypeLabel] = useState<string | null>(null);
-  const [eventTypesLoading, setEventTypesLoading] = useState(false);
+
+  // Use React Query hook for event types (same as iOS for unified caching)
+  const { data: eventTypes = [], isLoading: eventTypesLoading } = useEventTypes();
 
   // Use the active booking filter hook
   const { activeFilter, filterOptions, filterParams, handleFilterChange } = useActiveBookingFilter(
@@ -36,26 +35,6 @@ export default function Bookings() {
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
-
-  const fetchEventTypes = useCallback(async () => {
-    setEventTypesLoading(true);
-    try {
-      const types = await CalComAPIService.getEventTypes();
-      setEventTypes(types);
-      setEventTypesLoading(false);
-    } catch (err) {
-      safeLogError("Error fetching event types:", err);
-      // Error is logged but not displayed to user for event type filter
-      setEventTypesLoading(false);
-    }
-  }, []);
-
-  // Fetch event types on mount for dropdown
-  useEffect(() => {
-    if (eventTypes.length === 0) {
-      fetchEventTypes();
-    }
-  }, [eventTypes.length, fetchEventTypes]);
 
   const clearEventTypeFilter = () => {
     setSelectedEventTypeId(null);
