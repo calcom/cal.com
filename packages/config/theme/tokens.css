@@ -1,7 +1,6 @@
 /** This file is used in webapp as well as inside shadow DOM of embed elements. **/
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
-@plugin "@tailwindcss/forms";
 @plugin "tailwindcss-radix";
 
 @plugin 'tailwind-scrollbar' {
