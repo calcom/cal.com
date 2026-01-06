@@ -3,10 +3,7 @@ import type { Feature } from "@calcom/prisma/client";
 
 import type { FeatureId, FeatureState } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
-import {
-  type CacheEntry,
-  FeaturesCacheEntries as KEYS,
-} from "./features-cache-keys";
+import { type CacheEntry, FeaturesCacheEntries as KEYS } from "./features-cache-keys";
 
 const DEFAULT_CACHE_TTL_MS: number = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -70,10 +67,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   /**
    * Get or fetch pattern: check cache, fetch if miss, store result.
    */
-  private async withCache<T>(
-    entry: CacheEntry<T>,
-    fetchData: () => Promise<T>
-  ): Promise<T> {
+  private async withCache<T>(entry: CacheEntry<T>, fetchData: () => Promise<T>): Promise<T> {
     const cached = await this.getValue(entry);
     if (cached !== null) {
       return cached;
@@ -132,9 +126,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   // === TTL-only caches (global data, no explicit invalidation) ===
 
   async getAllFeatures(): Promise<Feature[]> {
-    return this.withCache(KEYS.allFeatures() as CacheEntry<Feature[]>, () =>
-      this.featuresRepository.getAllFeatures()
-    );
+    return this.withCache(KEYS.allFeatures(), () => this.featuresRepository.getAllFeatures());
   }
 
   async checkIfFeatureIsEnabledGlobally(slug: FeatureId): Promise<boolean> {
@@ -158,22 +150,13 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
     return this.featuresRepository.checkIfUserHasFeature(userId, slug);
   }
 
-  async checkIfUserHasFeatureNonHierarchical(
-    userId: number,
-    slug: string
-  ): Promise<boolean> {
+  async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean> {
     // Delegate to repository - single feature checks are not cached
     // since composite keys (userId + featureIds) don't support single-feature lookups efficiently
-    return this.featuresRepository.checkIfUserHasFeatureNonHierarchical(
-      userId,
-      slug
-    );
+    return this.featuresRepository.checkIfUserHasFeatureNonHierarchical(userId, slug);
   }
 
-  async getUserFeaturesStatus(
-    userId: number,
-    slugs: string[]
-  ): Promise<Record<string, boolean>> {
+  async getUserFeaturesStatus(userId: number, slugs: string[]): Promise<Record<string, boolean>> {
     // Delegate to repository - this method returns boolean status, not FeatureState
     return this.featuresRepository.getUserFeaturesStatus(userId, slugs);
   }
@@ -182,24 +165,18 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
     userId: number;
     featureIds: FeatureId[];
   }): Promise<Record<string, FeatureState>> {
-    return this.withCache(
-      KEYS.userFeatureStates(input.userId, input.featureIds),
-      () => this.featuresRepository.getUserFeatureStates(input)
+    return this.withCache(KEYS.userFeatureStates(input.userId, input.featureIds), () =>
+      this.featuresRepository.getUserFeatureStates(input)
     );
   }
 
   async getUserAutoOptIn(userId: number): Promise<boolean> {
-    return this.withCache(KEYS.userAutoOptIn(userId), () =>
-      this.featuresRepository.getUserAutoOptIn(userId)
-    );
+    return this.withCache(KEYS.userAutoOptIn(userId), () => this.featuresRepository.getUserAutoOptIn(userId));
   }
 
   // === Per-team caches ===
 
-  async checkIfTeamHasFeature(
-    teamId: number,
-    slug: FeatureId
-  ): Promise<boolean> {
+  async checkIfTeamHasFeature(teamId: number, slug: FeatureId): Promise<boolean> {
     // Delegate to repository - single feature checks are not cached
     // since composite keys (teamId + featureIds) don't support single-feature lookups efficiently
     return this.featuresRepository.checkIfTeamHasFeature(teamId, slug);
@@ -218,10 +195,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
           teamIds: missingTeamIds,
           featureIds,
         }),
-      mapFreshToCacheValue: (
-        freshStates: Record<string, Record<number, FeatureState>>,
-        teamId: number
-      ) => {
+      mapFreshToCacheValue: (freshStates: Record<string, Record<number, FeatureState>>, teamId: number) => {
         const teamStates: Record<string, FeatureState> = {};
         for (const featureId of featureIds) {
           const state = freshStates[featureId]?.[teamId];
@@ -232,9 +206,10 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
         return teamStates;
       },
     });
-    const result = Object.fromEntries(
-      featureIds.map((featureId) => [featureId, {}])
-    ) as Record<FeatureId, Record<number, FeatureState>>;
+    const result = Object.fromEntries(featureIds.map((featureId) => [featureId, {}])) as Record<
+      FeatureId,
+      Record<number, FeatureState>
+    >;
     cached.forEach((states, teamId) => {
       for (const featureId of featureIds) {
         const state = states[featureId];
@@ -243,8 +218,11 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
         }
       }
     });
-    for (const [featureId, states] of Object.entries(fresh)) {
-      Object.assign(result[featureId], states);
+    for (const featureId of featureIds) {
+      const states = fresh[featureId];
+      if (states) {
+        Object.assign(result[featureId], states);
+      }
     }
     return result;
   }
@@ -253,12 +231,8 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
     const { cached, fresh } = await this.resolveTeamsCache({
       teamIds,
       getEntry: KEYS.teamAutoOptIn,
-      fetchMissing: (missingTeamIds: number[]) =>
-        this.featuresRepository.getTeamsAutoOptIn(missingTeamIds),
-      mapFreshToCacheValue: (
-        freshResults: Record<number, boolean>,
-        teamId: number
-      ) => freshResults[teamId],
+      fetchMissing: (missingTeamIds: number[]) => this.featuresRepository.getTeamsAutoOptIn(missingTeamIds),
+      mapFreshToCacheValue: (freshResults: Record<number, boolean>, teamId: number) => freshResults[teamId],
     });
     const result: Record<number, boolean> = {};
     cached.forEach((value, teamId) => {
