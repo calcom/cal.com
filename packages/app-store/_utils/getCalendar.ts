@@ -5,6 +5,7 @@ import { CalendarCacheWrapper } from "@calcom/features/calendar-subscription/lib
 import { CalendarTelemetryWrapper } from "@calcom/features/calendar-subscription/lib/telemetry/CalendarTelemetryWrapper";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
+import { isTelemetryEnabled } from "@calcom/lib/sentryWrapper";
 import { prisma } from "@calcom/prisma";
 import type { Calendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -79,11 +80,8 @@ export const getCalendar = async (
   const originalCalendar = new CalendarService(credential as any);
 
   // Wrap with telemetry when cache is supported but disabled (for performance comparison)
-  // Only apply telemetry wrapper when Sentry is configured to avoid affecting tests
-  const isSentryConfigured = Boolean(
-    process.env.NEXT_PUBLIC_SENTRY_DSN && process.env.SENTRY_TRACES_SAMPLE_RATE
-  );
-  if (isCacheSupported && !shouldServeCache && isSentryConfigured) {
+  // Only apply telemetry wrapper when telemetry is enabled (Sentry or development mode)
+  if (isCacheSupported && !shouldServeCache && isTelemetryEnabled()) {
     log.info(
       `Calendar Cache is disabled but supported, using CalendarTelemetryWrapper for credential ${credential.id}`
     );

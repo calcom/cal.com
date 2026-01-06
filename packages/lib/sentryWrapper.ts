@@ -1,6 +1,9 @@
 import { captureException, startSpan } from "@sentry/nextjs";
 
+import logger from "./logger";
 import { redactSensitiveData } from "./redactSensitiveData";
+
+const log = logger.getSubLogger({ prefix: ["Telemetry"] });
 
 /*
 WHEN TO USE
@@ -125,15 +128,52 @@ export interface TelemetrySpanOptions {
 }
 
 /**
- * No-op span implementation for when Sentry is not configured.
+ * No-op span implementation for when telemetry is completely disabled.
  */
 const noOpSpan: TelemetrySpan = {
   setAttribute: () => {},
 };
 
 /**
+ * Creates a console-logging span for local development when Sentry is not configured.
+ * Tracks attributes and logs them with duration when the span completes.
+ */
+function createConsoleSpan(
+  options: TelemetrySpanOptions
+): { span: TelemetrySpan; logCompletion: (durationMs: number, error?: unknown) => void } {
+  const attributes: Record<string, string | number | boolean> = { ...options.attributes };
+
+  const span: TelemetrySpan = {
+    setAttribute: (key, value) => {
+      attributes[key] = value;
+    },
+  };
+
+  const logCompletion = (durationMs: number, error?: unknown) => {
+    const redactedAttributes = redactSensitiveData(attributes);
+    const status = error ? "error" : "ok";
+    log.debug(
+      `[${options.op || options.name}] ${options.name} completed in ${durationMs}ms (${status})`,
+      redactedAttributes as Record<string, unknown>
+    );
+  };
+
+  return { span, logCompletion };
+}
+
+/**
+ * Check if telemetry should be enabled (either Sentry or console fallback in development).
+ */
+export function isTelemetryEnabled(): boolean {
+  const hasSentry = Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN && process.env.SENTRY_TRACES_SAMPLE_RATE);
+  const isDevelopment = process.env.NODE_ENV === "development";
+  return hasSentry || isDevelopment;
+}
+
+/**
  * Wraps an async function with a Sentry span for telemetry tracking.
  * Supports custom span attributes and operation types for better categorization in Sentry.
+ * Falls back to console logging in development mode when Sentry is not configured.
  *
  * @example
  * const result = await withSpan(
@@ -153,25 +193,43 @@ export async function withSpan<T>(
   options: TelemetrySpanOptions,
   callback: (span: TelemetrySpan) => Promise<T>
 ): Promise<T> {
-  // Early return with no-op span if Sentry is not configured
-  if (!process.env.NEXT_PUBLIC_SENTRY_DSN || !process.env.SENTRY_TRACES_SAMPLE_RATE) {
-    return callback(noOpSpan);
+  const hasSentry = Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN && process.env.SENTRY_TRACES_SAMPLE_RATE);
+  const isDevelopment = process.env.NODE_ENV === "development";
+
+  // Use Sentry if configured
+  if (hasSentry) {
+    return startSpan(
+      {
+        name: options.name,
+        op: options.op,
+        attributes: options.attributes,
+      },
+      async (span) => {
+        const telemetrySpan: TelemetrySpan = {
+          setAttribute: (key, value) => span.setAttribute(key, value),
+        };
+        return callback(telemetrySpan);
+      }
+    );
   }
 
-  return startSpan(
-    {
-      name: options.name,
-      op: options.op,
-      attributes: options.attributes,
-    },
-    async (span) => {
-      // Create a wrapper that implements TelemetrySpan interface
-      const telemetrySpan: TelemetrySpan = {
-        setAttribute: (key, value) => span.setAttribute(key, value),
-      };
-      return callback(telemetrySpan);
+  // Fall back to console logging in development mode
+  if (isDevelopment) {
+    const startTime = Date.now();
+    const { span, logCompletion } = createConsoleSpan(options);
+
+    try {
+      const result = await callback(span);
+      logCompletion(Date.now() - startTime);
+      return result;
+    } catch (error) {
+      logCompletion(Date.now() - startTime, error);
+      throw error;
     }
-  );
+  }
+
+  // No-op in production without Sentry (e.g., CI/tests)
+  return callback(noOpSpan);
 }
 
 export function withReporting<T extends any[], R>(func: (...args: T) => R, name: string): (...args: T) => R {
