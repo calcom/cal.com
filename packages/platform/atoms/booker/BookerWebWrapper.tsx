@@ -12,7 +12,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { useBookerEmbedEvents } from "@calcom/embed-core/src/embed-iframe/react-hooks";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
-import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
+import { Booker as BookerComponent } from "@calcom/web/modules/bookings/components/Booker";
 import {
   BookerStoreProvider,
   useInitializeBookerStoreContext,
