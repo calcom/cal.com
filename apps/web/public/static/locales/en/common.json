@@ -4185,5 +4185,6 @@
   "audit_logs_owner_not_in_organization": "The booking owner is not a member of your organization.",
   "audit_logs_permission_denied": "You do not have permission to view audit logs for this booking.",
   "audit_logs_permission_check_error": "An error occurred while checking permissions.",
+  "account_already_exists_please_login": "An account with this email already exists. Please log in to accept the invitation.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
