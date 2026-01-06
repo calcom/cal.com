@@ -35,6 +35,13 @@ export class BillingPeriodService {
 
   async shouldApplyMonthlyProration(teamId: number): Promise<boolean> {
     try {
+      const { checkIfFeatureIsEnabledGlobally } = await import("@calcom/features/flags/server/utils");
+
+      const isFeatureEnabled = await checkIfFeatureIsEnabledGlobally("monthly-proration");
+      if (!isFeatureEnabled) {
+        return false;
+      }
+
       const info = await this.getBillingPeriodInfo(teamId);
       return info.billingPeriod === "ANNUALLY" && !info.isInTrial && info.subscriptionStart !== null;
     } catch (error) {
