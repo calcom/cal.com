@@ -4164,7 +4164,9 @@
     "attendee_no_show_updated": "Attendee No-Show Updated",
     "type": "Assignment Type",
     "assignmentType_manual": "Manual Assignment",
-    "assignmentType_roundRobin": "Round Robin Assignment"
+    "assignmentType_roundRobin": "Round Robin Assignment",
+    "actor_impersonated_by": "Impersonator",
+    "source": "Source"
   },
   "error_loading_booking_logs": "Error loading booking logs",
   "no_audit_logs_found": "No audit logs found",

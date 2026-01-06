@@ -54,7 +54,8 @@ import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
-import { type Actor, buildActorEmail, getUniqueIdentifier, makeGuestActor, makeUserActor } from "./types/actor";
+import { buildActorEmail, getUniqueIdentifier, makeGuestActor, makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -75,6 +76,9 @@ export type CancelBookingInput = {
   actionSource?: ActionSource;
 } & PlatformParams;
 
+/**
+ * Its job is to ensure that an actor is always returned, otherwise we won't be able to audit the action.
+ */
 function getAuditActor({
   userUuid,
   cancelledByEmailInQueryParam,
@@ -84,13 +88,12 @@ function getAuditActor({
   cancelledByEmailInQueryParam: string | null;
   bookingUid: string;
 }): Actor {
-  // Prefer user actor when userUuid is available (authenticated action)
   if (userUuid) {
     return makeUserActor(userUuid);
   }
 
-  let actorEmail;
-  // Fall back to guest actor for unauthenticated actions (e.g., cancel link)
+  let actorEmail: string;
+  // Fallback to guest actor for unauthenticated cancellation
   if (!cancelledByEmailInQueryParam) {
     log.warn(
       "No cancelledBy email in query param available, creating fallback guest actor for audit",
@@ -102,8 +105,8 @@ function getAuditActor({
     actorEmail = buildActorEmail({ identifier: getUniqueIdentifier({ prefix: "fallback" }), actorType: "guest" });
   }
   else {
-    // We can't trust cancelledByEmail as it can be set anything by anyone. If we use that as guest actor, we could accidentally attribute the action to the wrong guest actor.
-    // Having param prefix makes it clear that we created guest actor from query param
+    // We can't trust cancelledByEmail and thus can't reuse it as is because it can be set anything by anyone. If we use that as guest actor, we could accidentally attribute the action to the wrong guest actor.
+    // Having param prefix makes it clear that we created guest actor from query param and we still don't use the email as is.
     actorEmail = buildActorEmail({ identifier: getUniqueIdentifier({ prefix: "param" }), actorType: "guest" });
   }
 

@@ -156,6 +156,48 @@ describe("Created Action Integration", () => {
             expect(auditLog.actor.userUuid).toBe(testData.owner.uuid);
         });
 
+        it("should include impersonator details when context has impersonatedBy", async () => {
+            // Create a second user to act as impersonator
+            const impersonator = await createTestUser({ name: "Admin Impersonator" });
+
+            const actor = makeUserActor(testData.owner.uuid);
+
+            await bookingAuditTaskConsumer.onBookingAction({
+                bookingUid: testData.booking.uid,
+                actor,
+                action: "CREATED",
+                source: "WEBAPP",
+                operationId: `op-${Date.now()}`,
+                data: {
+                    startTime: testData.booking.startTime.getTime(),
+                    endTime: testData.booking.endTime.getTime(),
+                    status: testData.booking.status,
+                },
+                timestamp: Date.now(),
+                context: {
+                    impersonatedBy: impersonator.uuid,
+                },
+            });
+
+            const result = await bookingAuditViewerService.getAuditLogsForBooking({
+                bookingUid: testData.booking.uid,
+                userId: testData.owner.id,
+                userEmail: testData.owner.email,
+                userTimeZone: "UTC",
+                organizationId: testData.organization.id,
+            });
+
+            expect(result.auditLogs).toHaveLength(1);
+
+            const auditLog = result.auditLogs[0];
+            expect(auditLog.impersonatedBy).toBeDefined();
+            expect(auditLog.impersonatedBy?.displayName).toBe("Admin Impersonator");
+            expect(auditLog.impersonatedBy?.displayEmail).toBe(impersonator.email);
+
+            // Cleanup impersonator user
+            await prisma.user.delete({ where: { id: impersonator.id } });
+        });
+
         it.skip("should deny access to unauthorized users viewing audit logs", async () => {
             const actor = makeUserActor(testData.owner.uuid);
 
@@ -225,6 +267,7 @@ describe("Created Action Integration", () => {
 
             await bookingAuditTaskConsumer.processBulkAuditTask(
                 {
+                    isBulk: true,
                     bookings: [
                         {
                             bookingUid: testData.booking.uid,
