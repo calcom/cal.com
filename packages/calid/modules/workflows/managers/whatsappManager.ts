@@ -134,18 +134,18 @@ const executeImmediateWhatsapp = async ({
       seatReferenceUid,
     });
 
-    await prisma.calIdWorkflowReminder.create({
-      data: {
-        bookingUid: uid,
-        workflowStepId: workflowStepId,
-        method: WorkflowMethods.WHATSAPP,
-        scheduledDate: currentTime.toDate(),
-        scheduled: true,
-        seatReferenceId: seatReferenceUid,
-        ...(evt.attendees[0].id && { attendeeId: evt.attendees[0].id }),
-        ...(response?.messageId && { referenceId: response.messageId }),
-      },
-    });
+    // await prisma.calIdWorkflowReminder.create({
+    //   data: {
+    //     bookingUid: uid,
+    //     workflowStepId: workflowStepId,
+    //     method: WorkflowMethods.WHATSAPP,
+    //     scheduledDate: currentTime.toDate(),
+    //     scheduled: true,
+    //     seatReferenceId: seatReferenceUid,
+    //     ...(evt.attendees[0].id && { attendeeId: evt.attendees[0].id }),
+    //     ...(response?.messageId && { referenceId: response.messageId }),
+    //   },
+    // });
 
     // NOTE: Workflow insight is already created by meta.sendSMS
     // Do NOT create it here

@@ -242,6 +242,23 @@ const executeCancellationProcess = async (): Promise<void> => {
     if (messageToCancel.referenceId) {
       const twilioRequest = twilio.cancelSMS(messageToCancel.referenceId);
 
+      const workflowInsightUpdate = prisma.calIdWorkflowInsights
+        .updateMany({
+          where: {
+            msgId: messageToCancel.referenceId,
+            type: WorkflowMethods.SMS,
+            status: WorkflowStatus.QUEUED,
+          },
+          data: {
+            status: WorkflowStatus.CANCELLED,
+          },
+        })
+        .then(() => {
+          console.log(
+            `Updated workflow insights for cancelled SMS with reference ID: ${messageToCancel.referenceId}`
+          );
+        });
+
       const databaseUpdate = prisma.calIdWorkflowReminder
         .update({
           where: {
@@ -256,7 +273,7 @@ const executeCancellationProcess = async (): Promise<void> => {
           console.log(`Cancelled SMS with reference ID: ${messageToCancel.referenceId}`);
         });
 
-      cancellationTasks.push(twilioRequest, databaseUpdate);
+      cancellationTasks.push(twilioRequest, workflowInsightUpdate, databaseUpdate);
     }
   }
 

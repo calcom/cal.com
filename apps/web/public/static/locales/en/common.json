@@ -1,4 +1,5 @@
 {
+  "workflow_status":"Workflow status",
   "workflow_reminders":"Workflow automations",
   "pw_check_least_char": "At least 7 characters",
   "pw_check_mix_case": "Mix of uppercase & lowercase",

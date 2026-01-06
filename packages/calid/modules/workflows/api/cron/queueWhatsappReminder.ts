@@ -5,7 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { INNGEST_ID } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import { WorkflowActions, WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import { inngestClient } from "@calcom/web/pages/api/inngest";
 
 import { constructVariablesForTemplate } from "../../managers/constructTemplateVariable";
@@ -106,8 +106,8 @@ const processMessageQueue = async (): Promise<number> => {
             timeZone: att.timeZone,
             phoneNumber: att.phoneNumber,
             language: {
-              locale: att.locale || 'en',
-            }
+              locale: att.locale || "en",
+            },
           })),
         },
         targetAttendee,
@@ -218,16 +218,6 @@ const executeCancellationProcess = async (): Promise<void> => {
         data: {
           referenceId: "CANCELLED",
           scheduled: false,
-        },
-      });
-
-      //mark the calIdWorkflowInsights as cancelled as well
-      await prisma.calIdWorkflowInsights.update({
-        where: {
-          msgId: messageToCancel.referenceId,
-        },
-        data: {
-          status: WorkflowStatus.CANCELLED,
         },
       });
 

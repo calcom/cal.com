@@ -292,10 +292,11 @@ export interface SendCancelledRemindersArgs {
   smsReminderNumber: string | null;
   evt: ExtendedCalendarEvent;
   hideBranding?: boolean;
+  seatReferenceUid?: string;
 }
 
 export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
-  const { smsReminderNumber, evt: eventData, workflows, hideBranding } = args;
+  const { smsReminderNumber, evt: eventData, workflows, hideBranding, seatReferenceUid } = args;
 
   const hasWorkflows = workflows.length > 0;
 
@@ -322,6 +323,7 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
         smsReminderNumber,
         hideBranding,
         calendarEvent: eventData,
+        seatReferenceUid,
       });
 
       stepIndex++;
