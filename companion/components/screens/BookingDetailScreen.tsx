@@ -36,7 +36,8 @@ import { BookingActionsModal } from "@/components/BookingActionsModal";
 import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import { SvgImage } from "@/components/SvgImage";
 import { useAuth } from "@/contexts/AuthContext";
-import { type Booking, CalComAPIService } from "@/services/calcom";
+import { useCancelBooking } from "@/hooks/useBookings";
+import type { Booking } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 import { openInAppBrowser } from "@/utils/browser";
@@ -237,9 +238,12 @@ export function BookingDetailScreen({
   const insets = useSafeAreaInsets();
 
   const [showActionsModal, setShowActionsModal] = useState(false);
-  const [isCancelling, setIsCancelling] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
+
+  // Cancel booking mutation
+  const cancelBookingMutation = useCancelBooking();
+  const isCancelling = cancelBookingMutation.isPending;
 
   const contentInsets = {
     top: insets.top,
@@ -262,31 +266,32 @@ export function BookingDetailScreen({
 
   // Cancel booking handler (needs to be defined before useEffect that exposes it)
   const performCancelBooking = useCallback(
-    async (reason: string) => {
+    (reason: string) => {
       if (!booking) return;
 
-      setIsCancelling(true);
-
-      try {
-        await CalComAPIService.cancelBooking(booking.uid, reason);
-        Alert.alert("Success", "Booking cancelled successfully", [
-          {
-            text: "OK",
-            onPress: () => router.back(),
+      cancelBookingMutation.mutate(
+        { uid: booking.uid, reason },
+        {
+          onSuccess: () => {
+            Alert.alert("Success", "Booking cancelled successfully", [
+              {
+                text: "OK",
+                onPress: () => router.back(),
+              },
+            ]);
           },
-        ]);
-        setIsCancelling(false);
-      } catch (err) {
-        console.error("Failed to cancel booking");
-        if (__DEV__) {
-          const message = err instanceof Error ? err.message : String(err);
-          console.debug("[BookingDetailScreen] cancelBooking failed", { message });
+          onError: (err) => {
+            console.error("Failed to cancel booking");
+            if (__DEV__) {
+              const message = err instanceof Error ? err.message : String(err);
+              console.debug("[BookingDetailScreen] cancelBooking failed", { message });
+            }
+            showErrorAlert("Error", "Failed to cancel booking. Please try again.");
+          },
         }
-        showErrorAlert("Error", "Failed to cancel booking. Please try again.");
-        setIsCancelling(false);
-      }
+      );
     },
-    [booking, router]
+    [booking, router, cancelBookingMutation]
   );
 
   const handleCancelBooking = useCallback(() => {

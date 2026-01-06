@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
-import { type Booking, CalComAPIService } from "@/services/calcom";
+import { useCancelBooking } from "@/hooks/useBookings";
+import type { Booking } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 
 // Format date for iOS Calendar style: "Thursday, 25 Dec 2025"
@@ -110,37 +111,41 @@ export function BookingDetailScreen({
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [isCancelling, setIsCancelling] = useState(false);
   const [participantsExpanded, setParticipantsExpanded] = useState(true);
 
+  // Cancel booking mutation
+  const cancelBookingMutation = useCancelBooking();
+  const isCancelling = cancelBookingMutation.isPending;
+
   const performCancelBooking = useCallback(
-    async (reason: string) => {
+    (reason: string) => {
       if (!booking) return;
 
-      setIsCancelling(true);
-
-      try {
-        await CalComAPIService.cancelBooking(booking.uid, reason);
-        Alert.alert("Success", "Booking cancelled successfully", [
-          {
-            text: "OK",
-            onPress: () => router.back(),
+      cancelBookingMutation.mutate(
+        { uid: booking.uid, reason },
+        {
+          onSuccess: () => {
+            Alert.alert("Success", "Booking cancelled successfully", [
+              {
+                text: "OK",
+                onPress: () => router.back(),
+              },
+            ]);
           },
-        ]);
-        setIsCancelling(false);
-      } catch (err) {
-        console.error("Failed to cancel booking");
-        if (__DEV__) {
-          const message = err instanceof Error ? err.message : String(err);
-          console.debug("[BookingDetailScreen.ios] cancelBooking failed", {
-            message,
-          });
+          onError: (err) => {
+            console.error("Failed to cancel booking");
+            if (__DEV__) {
+              const message = err instanceof Error ? err.message : String(err);
+              console.debug("[BookingDetailScreen.ios] cancelBooking failed", {
+                message,
+              });
+            }
+            showErrorAlert("Error", "Failed to cancel booking. Please try again.");
+          },
         }
-        showErrorAlert("Error", "Failed to cancel booking. Please try again.");
-        setIsCancelling(false);
-      }
+      );
     },
-    [booking, router]
+    [booking, router, cancelBookingMutation]
   );
 
   const handleCancelBooking = useCallback(() => {

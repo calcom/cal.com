@@ -117,6 +117,46 @@ export function useCancelBooking() {
 }
 
 /**
+ * Hook to mark an attendee as no-show (absent)
+ *
+ * @returns Mutation function and state
+ *
+ * @example
+ * ```tsx
+ * const { mutate: markNoShow, isPending } = useMarkNoShow();
+ *
+ * markNoShow({ uid: 'abc-123', attendeeEmail: 'attendee@example.com', absent: true });
+ * ```
+ */
+export function useMarkNoShow() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      uid,
+      attendeeEmail,
+      absent,
+    }: {
+      uid: string;
+      attendeeEmail: string;
+      absent: boolean;
+    }) => CalComAPIService.markAbsent(uid, attendeeEmail, absent),
+    onSuccess: (_, variables) => {
+      // Invalidate all booking queries to refetch fresh data
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all });
+
+      // Also invalidate the specific booking detail
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.bookings.detail(variables.uid),
+      });
+    },
+    onError: (_error) => {
+      console.error("Failed to mark attendee as no-show");
+    },
+  });
+}
+
+/**
  * Hook to reschedule a booking
  *
  * @returns Mutation function and state
