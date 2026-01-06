@@ -155,7 +155,7 @@ export class WorkflowsInputService {
     let time = currentData.time ?? null;
 
     if (updateDto.trigger && this._isOffsetTrigger(updateDto.trigger)) {
-      timeUnitForZod = updateDto.trigger.offset?.unit ?? currentData.timeUnit ?? null;
+      timeUnitForZod = updateDto.trigger.offset?.unit ?? timeUnitForZod ?? null;
       time = updateDto.trigger.offset?.value ?? currentData.time ?? null;
     }
 
