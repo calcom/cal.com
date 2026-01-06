@@ -67,8 +67,8 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
           credentialId: sync.credentialId ?? undefined,
           enabled: sync.enabled,
           organizationId: sync.organizationId,
-          ruleId: sync.attributeSyncRules[0]?.id || "",
-          rule: sync.attributeSyncRules[0]?.rule || { operator: RuleOperatorEnum.AND, conditions: [] },
+          ruleId: sync.attributeSyncRule?.id || "",
+          rule: sync.attributeSyncRule?.rule || { operator: RuleOperatorEnum.AND, conditions: [] },
           syncFieldMappings: Array.isArray(sync.syncFieldMappings) ? sync.syncFieldMappings : [],
         }
       : {
@@ -92,8 +92,8 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
         credentialId: sync.credentialId ?? undefined,
         enabled: sync.enabled,
         organizationId: sync.organizationId,
-        ruleId: sync.attributeSyncRules[0]?.id || "",
-        rule: sync.attributeSyncRules[0]?.rule || { operator: RuleOperatorEnum.AND, conditions: [] },
+        ruleId: sync.attributeSyncRule?.id || "",
+        rule: sync.attributeSyncRule?.rule || { operator: RuleOperatorEnum.AND, conditions: [] },
         syncFieldMappings: Array.isArray(sync.syncFieldMappings) ? sync.syncFieldMappings : [],
       });
     }

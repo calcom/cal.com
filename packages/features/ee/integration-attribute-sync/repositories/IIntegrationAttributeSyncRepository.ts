@@ -76,7 +76,7 @@ export interface IntegrationAttributeSync {
   integration: AttributeSyncIntegrations;
   credentialId?: number;
   enabled: boolean;
-  attributeSyncRules: AttributeSyncRule[];
+  attributeSyncRule: AttributeSyncRule | null;
   syncFieldMappings: AttributeSyncFieldMapping[];
 }
 
@@ -134,7 +134,7 @@ export interface IIntegrationAttributeSyncRepository {
 export interface IIntegrationAttributeSyncUpdateParams {
   integrationAttributeSync: Omit<
     IntegrationAttributeSync,
-    "attributeSyncRules" | "syncFieldMappings" | "integration"
+    "attributeSyncRule" | "syncFieldMappings" | "integration"
   >;
   attributeSyncRule: AttributeSyncRule;
   fieldMappingsToCreate: Omit<AttributeSyncFieldMapping, "id">[];
