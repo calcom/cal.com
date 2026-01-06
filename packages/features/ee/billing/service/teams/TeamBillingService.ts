@@ -145,8 +145,9 @@ export class TeamBillingService implements ITeamBillingService {
   async updateQuantity() {
     try {
       await this.getOrgIfNeeded();
-      const { id: teamId, metadata, isOrganization } = this.team;
-
+      const teamId = this.team.id;
+      const isOrganization = this.team.isOrganization;
+      const metadata = this.team.metadata;
       const { url } = await this.checkIfTeamPaymentRequired();
       log.debug("updateQuantity", safeStringify({ url, team: this.team }));
 
@@ -160,6 +161,14 @@ export class TeamBillingService implements ITeamBillingService {
        **/
       if (!url && !isOrganization) return;
 
+      const { BillingPeriodService } = await import("../billingPeriod/BillingPeriodService");
+      const billingPeriodService = new BillingPeriodService();
+      const shouldProrate = await billingPeriodService.shouldApplyMonthlyProration(teamId);
+
+      if (shouldProrate) {
+        log.info(`Team ${teamId} is on annual plan - skipping immediate quantity update`);
+        return;
+      }
       // TODO: To be read from organizationOnboarding for Organizations later, but considering the fact that certain old organization won't have onboarding
       const { subscriptionId, subscriptionItemId } = metadata;
       const membershipCount = await prisma.membership.count({ where: { teamId } });
@@ -221,6 +230,6 @@ export class TeamBillingService implements ITeamBillingService {
     }
   }
   async saveTeamBilling(args: IBillingRepositoryCreateArgs) {
-await this.billingRepository.create(args);
+    await this.billingRepository.create(args);
   }
 }

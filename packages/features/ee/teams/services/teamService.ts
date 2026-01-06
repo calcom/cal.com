@@ -169,6 +169,26 @@ export class TeamService {
     }
 
     await Promise.all(deleteMembershipPromises);
+
+    const { BillingPeriodService } = await import(
+      "@calcom/features/ee/billing/service/billingPeriod/BillingPeriodService"
+    );
+    const { SeatChangeTrackingService } = await import(
+      "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService"
+    );
+
+    const billingPeriodService = new BillingPeriodService();
+    const seatTracker = new SeatChangeTrackingService();
+
+    for (const teamId of teamIds) {
+      const shouldTrack = await billingPeriodService.shouldApplyMonthlyProration(teamId);
+      if (shouldTrack) {
+        for (const userId of userIds) {
+          await seatTracker.logSeatRemoval({ teamId, userId });
+        }
+      }
+    }
+
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
     const teamBillingServices = await teamBillingServiceFactory.findAndInitMany(teamIds);
     const teamBillingPromises = teamBillingServices.map((teamBillingService) =>
@@ -216,6 +236,26 @@ export class TeamService {
           );
         }
       } else throw e;
+    }
+
+    const { BillingPeriodService } = await import(
+      "@calcom/features/ee/billing/service/billingPeriod/BillingPeriodService"
+    );
+    const { SeatChangeTrackingService } = await import(
+      "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService"
+    );
+
+    const billingPeriodService = new BillingPeriodService();
+    const shouldTrack = await billingPeriodService.shouldApplyMonthlyProration(verificationToken.teamId);
+
+    if (shouldTrack) {
+      const seatTracker = new SeatChangeTrackingService();
+      await seatTracker.logSeatAddition({
+        teamId: verificationToken.teamId,
+        userId,
+        triggeredBy: userId,
+        metadata: { invitationToken: token },
+      });
     }
 
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
