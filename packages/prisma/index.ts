@@ -5,7 +5,7 @@ import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
-import { PrismaClient, type Prisma } from "./generated/prisma/client";
+import { PrismaClient, type Prisma } from "./client";
 
 const connectionString = process.env.DATABASE_URL || "";
 const pool =

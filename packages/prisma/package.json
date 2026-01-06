@@ -14,7 +14,7 @@
     "db-studio": "yarn prisma studio",
     "db-up": "docker compose up -d || docker-compose up -d",
     "dx": "yarn db-setup",
-    "generate-schemas": "prisma generate && prisma format",
+    "generate-schemas": "prisma generate && echo 'export * from \"./client\";' > client/index.ts && prisma format",
     "post-install": "yarn generate-schemas",
     "seed-app-store": "ts-node --transpile-only ../../scripts/seed-app-store.ts",
     "delete-app": "ts-node --transpile-only ./delete-app.ts",
@@ -41,7 +41,6 @@
   "types": "index.d.ts",
   "files": [
     "client",
-    "generated/prisma",
     "zod",
     "zod-utils.ts"
   ],
