@@ -1764,6 +1764,7 @@ enum OAuthClientType {
 model OAuthClient {
   clientId     String          @id @unique
   redirectUri  String
+  redirectUris String[]        @default([])
   clientSecret String?
   clientType   OAuthClientType @default(CONFIDENTIAL)
   name         String
