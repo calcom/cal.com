@@ -1,25 +1,24 @@
 "use client";
 
-import classNames from "classnames";
-import type { InferGetServerSidePropsType } from "next";
-import Link from "next/link";
-import { Toaster } from "sonner";
-
 import {
   sdkActionManager,
   useEmbedNonStylesConfig,
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/web/modules/event-types/components";
-import EmptyPage from "@calcom/web/modules/event-types/components/EmptyPage";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Icon } from "@calcom/ui/components/icon";
+import { OrgBanner } from "@calcom/ui/components/organization-banner";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
-
+import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/web/modules/event-types/components";
+import EmptyPage from "@calcom/web/modules/event-types/components/EmptyPage";
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
+import classNames from "classnames";
+import type { InferGetServerSidePropsType } from "next";
+import Link from "next/link";
+import { Toaster } from "sonner";
 
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 export function UserPage(props: PageProps) {
@@ -62,39 +61,49 @@ export function UserPage(props: PageProps) {
             isEmbed ? "border-booker border-booker-width  bg-default rounded-md" : "",
             "max-w-3xl px-4 py-24"
           )}>
-          <div className="border-subtle bg-default text-default mb-8 rounded-xl border p-4">
-            <UserAvatar
-              size="lg"
-              user={{
-                avatarUrl: user.avatarUrl,
-                profile: user.profile,
-                name: profile.name,
-                username: profile.username,
-              }}
-            />
-            <h1 className="font-cal text-emphasis mb-1 mt-4 text-xl" data-testid="name-title">
-              {profile.name}
-              {!isOrg && user.verified && (
-                <Icon
-                  name="badge-check"
-                  className="mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black"
-                />
-              )}
-              {isOrg && (
-                <Icon
-                  name="badge-check"
-                  className="mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 text-white dark:text-black"
-                />
-              )}
-            </h1>
-            {!isBioEmpty && (
-              <>
-                <div
-                  className="text-default wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  dangerouslySetInnerHTML={{ __html: props.safeBio }}
-                />
-              </>
+          <div className="border-subtle bg-default text-default mb-8 overflow-hidden rounded-xl border">
+            {isOrg && user.profile.organization?.bannerUrl && (
+              <OrgBanner
+                alt={user.profile.organization.name ?? "Organization banner"}
+                imageSrc={user.profile.organization.bannerUrl}
+                className="h-24 w-full object-cover"
+              />
             )}
+            <div className="p-4">
+              <UserAvatar
+                size="lg"
+                user={{
+                  avatarUrl: user.avatarUrl,
+                  profile: user.profile,
+                  name: profile.name,
+                  username: profile.username,
+                }}
+                className={isOrg && user.profile.organization?.bannerUrl ? "-mt-[50px]" : ""}
+              />
+              <h1 className="font-cal text-emphasis mb-1 mt-4 text-xl" data-testid="name-title">
+                {profile.name}
+                {!isOrg && user.verified && (
+                  <Icon
+                    name="badge-check"
+                    className="mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black"
+                  />
+                )}
+                {isOrg && (
+                  <Icon
+                    name="badge-check"
+                    className="mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 text-white dark:text-black"
+                  />
+                )}
+              </h1>
+              {!isBioEmpty && (
+                <>
+                  <div
+                    className="text-default wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                    dangerouslySetInnerHTML={{ __html: props.safeBio }}
+                  />
+                </>
+              )}
+            </div>
           </div>
 
           <div
