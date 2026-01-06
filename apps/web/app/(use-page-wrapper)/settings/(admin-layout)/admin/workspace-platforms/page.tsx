@@ -1,6 +1,6 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import WorkspacePlatformsPage from "~/ee/organizations/admin/WorkspacePlatformPage";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
