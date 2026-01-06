@@ -4,6 +4,7 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 
@@ -11,11 +12,13 @@ import { BookingAuditViewerService } from "../BookingAuditViewerService";
 import { BookingAuditPermissionError, BookingAuditErrorCode } from "../BookingAuditAccessService";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../../repository/IBookingAuditRepository";
 import type { AuditActorType } from "../../repository/IAuditActorRepository";
+import type { BookingAuditContext } from "../../dto/types";
 
 vi.mock("@calcom/features/pbac/services/permission-check.service");
 vi.mock("@calcom/features/users/repositories/UserRepository");
 vi.mock("@calcom/features/bookings/repositories/BookingRepository");
 vi.mock("@calcom/features/membership/repositories/MembershipRepository");
+vi.mock("@calcom/features/credentials/repositories/CredentialRepository");
 
 const createMockTeamBooking = (overrides?: {
   userId?: number;
@@ -51,6 +54,7 @@ const createMockAuditLog = (
     actorType: AuditActorType;
     actorUserUuid: string | null;
     actorName: string | null;
+    context: BookingAuditContext | null;
   }>
 ): BookingAuditWithActor => ({
   id: overrides?.id ?? "audit-log-1",
@@ -64,11 +68,13 @@ const createMockAuditLog = (
   data: overrides?.data ?? { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED" } },
   source: "WEBAPP" as const,
   operationId: "operation-id-123",
+  context: (overrides && "context" in overrides ? overrides.context : null) as BookingAuditContext | null,
   actor: {
     id: overrides?.actorId ?? "actor-1",
     type: overrides?.actorType ?? "USER" as const,
     userUuid: (overrides && "actorUserUuid" in overrides ? overrides.actorUserUuid : "user-uuid-123") as string | null,
     attendeeId: null,
+    credentialId: null,
     name: (overrides && "actorName" in overrides ? overrides.actorName : "John Doe") as string | null,
     createdAt: new Date("2024-01-01T00:00:00Z"),
   },
@@ -105,6 +111,9 @@ describe("BookingAuditViewerService - Integration Tests", () => {
   let mockAttendeeRepository: {
     findById: Mock;
   };
+  let mockCredentialRepository: {
+    findByCredentialId: Mock<CredentialRepository["findByCredentialId"]>;
+  };
   let mockLog: {
     error: Mock;
   };
@@ -140,14 +149,19 @@ describe("BookingAuditViewerService - Integration Tests", () => {
       findById: vi.fn(),
     };
 
+    mockCredentialRepository = {
+      findByCredentialId: vi.fn(),
+    };
+
     mockLog = {
       error: vi.fn(),
     };
 
-    vi.mocked(BookingRepository).mockImplementation(function() { return mockBookingRepository as unknown as BookingRepository; });
-    vi.mocked(UserRepository).mockImplementation(function() { return mockUserRepository as unknown as UserRepository; });
-    vi.mocked(MembershipRepository).mockImplementation(function() { return mockMembershipRepository as unknown as MembershipRepository; });
-    vi.mocked(PermissionCheckService).mockImplementation(function() { return mockPermissionCheckService as unknown as PermissionCheckService; });
+    vi.mocked(BookingRepository).mockImplementation(function () { return mockBookingRepository as unknown as BookingRepository; });
+    vi.mocked(UserRepository).mockImplementation(function () { return mockUserRepository as unknown as UserRepository; });
+    vi.mocked(MembershipRepository).mockImplementation(function () { return mockMembershipRepository as unknown as MembershipRepository; });
+    vi.mocked(PermissionCheckService).mockImplementation(function () { return mockPermissionCheckService as unknown as PermissionCheckService; });
+    vi.mocked(CredentialRepository).mockImplementation(function () { return mockCredentialRepository as unknown as CredentialRepository; });
 
     service = new BookingAuditViewerService({
       bookingAuditRepository: mockBookingAuditRepository as unknown as IBookingAuditRepository,
@@ -155,6 +169,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
       bookingRepository: mockBookingRepository as unknown as BookingRepository,
       membershipRepository: mockMembershipRepository as unknown as MembershipRepository,
       attendeeRepository: mockAttendeeRepository as unknown as IAttendeeRepository,
+      credentialRepository: mockCredentialRepository as unknown as CredentialRepository,
       log: mockLog as unknown as ISimpleLogger,
     });
   });
@@ -886,6 +901,143 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         expect(result.auditLogs).toHaveLength(1);
         expect(result.auditLogs[0].action).toBe("SEAT_RESCHEDULED");
         expect(result.auditLogs[0].actionDisplayTitle.components).toBeUndefined();
+      });
+    });
+
+    describe("when handling impersonatedBy context", () => {
+      beforeEach(() => {
+        mockBookingRepository.findByUidIncludeEventType.mockResolvedValue(
+          createMockTeamBooking({ teamId: 100 })
+        );
+        mockPermissionCheckService.checkPermission.mockResolvedValue(true);
+      });
+
+      it("should enrich impersonatedBy when user exists", async () => {
+        const mockLog = createMockAuditLog({
+          context: { impersonatedBy: "impersonator-uuid-456" },
+        });
+        const impersonatorUser = createMockUser({
+          id: 456,
+          name: "Admin User",
+          email: "admin@example.com",
+          avatarUrl: "https://example.com/admin-avatar.jpg",
+        });
+
+        mockBookingAuditRepository.findAllForBooking.mockResolvedValue([mockLog]);
+        mockUserRepository.findByUuid.mockResolvedValueOnce(createMockUser()); // For actor
+        mockUserRepository.findByUuid.mockResolvedValueOnce(impersonatorUser); // For impersonator
+
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
+
+        expect(mockUserRepository.findByUuid).toHaveBeenCalledWith({ uuid: "impersonator-uuid-456" });
+        expect(result.auditLogs[0].impersonatedBy).toMatchObject({
+          displayName: "Admin User",
+          displayEmail: "admin@example.com",
+          displayAvatar: "https://example.com/admin-avatar.jpg",
+        });
+      });
+
+      it("should use email as displayName when impersonator name is null", async () => {
+        const mockLog = createMockAuditLog({
+          context: { impersonatedBy: "impersonator-uuid-456" },
+        });
+        const impersonatorUser = createMockUser({
+          id: 456,
+          name: null,
+          email: "admin@example.com",
+          avatarUrl: null,
+        });
+
+        mockBookingAuditRepository.findAllForBooking.mockResolvedValue([mockLog]);
+        mockUserRepository.findByUuid.mockResolvedValueOnce(createMockUser()); // For actor
+        mockUserRepository.findByUuid.mockResolvedValueOnce(impersonatorUser); // For impersonator
+
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
+
+        expect(result.auditLogs[0].impersonatedBy).toMatchObject({
+          displayName: "admin@example.com",
+          displayEmail: "admin@example.com",
+          displayAvatar: null,
+        });
+      });
+
+      it("should show 'Deleted User' when impersonator user not found", async () => {
+        const mockLog = createMockAuditLog({
+          context: { impersonatedBy: "impersonator-uuid-456" },
+        });
+
+        mockBookingAuditRepository.findAllForBooking.mockResolvedValue([mockLog]);
+        mockUserRepository.findByUuid.mockResolvedValueOnce(createMockUser()); // For actor
+        mockUserRepository.findByUuid.mockResolvedValueOnce(null); // For impersonator (not found)
+
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
+
+        expect(mockUserRepository.findByUuid).toHaveBeenCalledWith({ uuid: "impersonator-uuid-456" });
+        expect(result.auditLogs[0].impersonatedBy).toMatchObject({
+          displayName: "Deleted User",
+          displayEmail: null,
+          displayAvatar: null,
+        });
+      });
+
+      it("should return null when context is null", async () => {
+        const mockLog = createMockAuditLog({
+          context: null,
+        });
+
+        mockBookingAuditRepository.findAllForBooking.mockResolvedValue([mockLog]);
+        mockUserRepository.findByUuid.mockResolvedValue(createMockUser());
+
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
+
+        expect(result.auditLogs[0].impersonatedBy).toBeNull();
+        // Should not call findByUuid for impersonator when context is null
+        expect(mockUserRepository.findByUuid).toHaveBeenCalledTimes(1); // Only for actor
+      });
+
+      it("should return null when impersonatedBy is not in context", async () => {
+        const mockLog = createMockAuditLog({
+          context: {},
+        });
+
+        mockBookingAuditRepository.findAllForBooking.mockResolvedValue([mockLog]);
+        mockUserRepository.findByUuid.mockResolvedValue(createMockUser());
+
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
+
+        expect(result.auditLogs[0].impersonatedBy).toBeNull();
+        // Should not call findByUuid for impersonator when impersonatedBy is not in context
+        expect(mockUserRepository.findByUuid).toHaveBeenCalledTimes(1); // Only for actor
       });
     });
   });
