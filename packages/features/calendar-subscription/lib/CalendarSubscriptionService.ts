@@ -162,11 +162,14 @@ export class CalendarSubscriptionService {
           span.setAttribute("userId", selectedCalendar.userId);
 
           // incremental event loading
-          await this.processEvents(selectedCalendar);
+          const eventsProcessed = await this.processEvents(selectedCalendar);
 
           const durationMs = performance.now() - startTime;
           span.setAttribute("success", true);
           span.setAttribute("durationMs", durationMs);
+          span.setAttribute("eventsProcessedCount", eventsProcessed.eventsFetched);
+          span.setAttribute("eventsCachedCount", eventsProcessed.eventsCached);
+          span.setAttribute("eventsSyncedCount", eventsProcessed.eventsSynced);
 
           log.info("Webhook processed successfully", {
             provider,
@@ -199,15 +202,20 @@ export class CalendarSubscriptionService {
    * - update selected calendar
    * - update cache
    * - update sync
+   * @returns Object with counts of events fetched, cached, and synced
    */
-  async processEvents(selectedCalendar: SelectedCalendar): Promise<void> {
+  async processEvents(
+    selectedCalendar: SelectedCalendar
+  ): Promise<{ eventsFetched: number; eventsCached: number; eventsSynced: number }> {
+    const result = { eventsFetched: 0, eventsCached: 0, eventsSynced: 0 };
+
     const calendarSubscriptionAdapter = this.deps.adapterFactory.get(
       selectedCalendar.integration as CalendarSubscriptionProvider
     );
 
     if (!selectedCalendar.credentialId && !selectedCalendar.delegationCredentialId) {
       log.debug("Selected Calendar doesn't have credentials", { selectedCalendarId: selectedCalendar.id });
-      return;
+      return result;
     }
 
     // for cache the feature should be enabled globally and by user/team features
@@ -219,12 +227,12 @@ export class CalendarSubscriptionService {
 
     if (!cacheEnabled && !syncEnabled) {
       log.info("Cache and sync are globally disabled", { channelId: selectedCalendar.channelId });
-      return;
+      return result;
     }
 
     log.debug("Processing events", { channelId: selectedCalendar.channelId });
     const credential = await this.getCredential(selectedCalendar);
-    if (!credential) return;
+    if (!credential) return result;
 
     let events: CalendarSubscriptionEvent | null = null;
     try {
@@ -240,8 +248,10 @@ export class CalendarSubscriptionService {
 
     if (!events?.items?.length) {
       log.debug("No events fetched", { channelId: selectedCalendar.channelId });
-      return;
+      return result;
     }
+
+    result.eventsFetched = events.items.length;
 
     log.debug("Processing events", { channelId: selectedCalendar.channelId, count: events.items.length });
     await this.deps.selectedCalendarRepository.updateSyncStatus(selectedCalendar.id, {
@@ -255,12 +265,16 @@ export class CalendarSubscriptionService {
     if (cacheEnabled && cacheEnabledForUser) {
       log.debug("Caching events", { count: events.items.length });
       await this.deps.calendarCacheEventService.handleEvents(selectedCalendar, events.items);
+      result.eventsCached = events.items.length;
     }
 
     if (syncEnabled) {
       log.debug("Syncing events", { count: events.items.length });
       await this.deps.calendarSyncService.handleEvents(selectedCalendar, events.items);
+      result.eventsSynced = events.items.length;
     }
+
+    return result;
   }
 
   /**
