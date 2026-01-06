@@ -442,9 +442,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const originalSeatUid = createdSeatedBooking.seatUid;
       expect(originalSeatUid).toBeDefined();
 
-      // Second reschedule - use the seatUid from the first reschedule
+      // Second reschedule - use time within availability window (14:00 UTC = 15:00 Rome)
+      // Note: Default schedule is typically 9-17 local time, so we use times within that window
       const secondRescheduleBody: RescheduleSeatedBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 0, 8, 17, 0, 0)).toISOString(),
+        start: new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString(),
         seatUid: createdSeatedBooking.seatUid,
       };
 
@@ -476,9 +477,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
         throw new Error("Invalid response data - expected seated booking but received array response");
       }
 
-      // Third reschedule - verify seatUid can still be used for subsequent reschedules
+      // Third reschedule - use another time within availability window (12:00 UTC = 13:00 Rome)
       const thirdRescheduleBody: RescheduleSeatedBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 0, 8, 19, 0, 0)).toISOString(),
+        start: new Date(Date.UTC(2030, 0, 8, 12, 0, 0)).toISOString(),
         seatUid: createdSeatedBooking.seatUid,
       };
 
