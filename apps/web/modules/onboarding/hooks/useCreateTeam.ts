@@ -5,7 +5,6 @@ import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import type { OnboardingState } from "../store/onboarding-store";
 import { useOnboardingStore } from "../store/onboarding-store";
