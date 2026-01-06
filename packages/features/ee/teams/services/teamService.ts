@@ -1,6 +1,8 @@
 import { randomBytes } from "crypto";
 
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import type { ActiveFilters } from "@calcom/features/data-table/lib/types";
+import { FilterSegmentRepository } from "@calcom/features/data-table/repositories/filterSegment";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
@@ -374,8 +376,154 @@ export class TeamService {
     }
 
     await deleteWorkfowRemindersOfRemovedMember(team, userId, isOrg);
+    await TeamService.deleteFilterSegmentForRemovedMembership({ userId, teamId, teamParentId: team.parentId });
 
     return { membership };
+  }
+
+  private static async deleteFilterSegmentForRemovedMembership({
+    userId,
+    teamId,
+    teamParentId,
+  }: {
+    userId: number;
+    teamId: number;
+    teamParentId: number | null;
+  }) {
+    const filterSegmentRepository = new FilterSegmentRepository();
+
+    // User ids which had filter access being the owner or admin of the team
+    const userIdsWhichLostAccess = await TeamService.findUserIdsWhichLostAccessUponMembershipDeletion({
+      userId,
+      teamId,
+      teamParentId,
+    });
+
+    // Get filter segments possibly affected by deletion
+    const filterSegments = await filterSegmentRepository.findByUserIds(userIdsWhichLostAccess);
+
+    type UpdateResult = Prisma.FilterSegmentGetPayload<{
+      select: {
+        id: true;
+        activeFilters: true;
+      };
+    }>;
+
+    // Update filter segments
+    const updatePromises: Promise<UpdateResult | void>[] = [];
+
+    for (const filterSegment of filterSegments) {
+      if (!Array.isArray(filterSegment.activeFilters)) continue;
+
+      const activeFilters = filterSegment.activeFilters as ActiveFilters;
+
+      let hasChanges: boolean = false;
+
+      const updatedActiveFilters = activeFilters
+        .map((filter) => {
+          if (filter.f !== "userId" || !filter.v) {
+            return filter;
+          }
+
+          const filterValue = filter.v;
+          if (filterValue.type === "ms") {
+            const filteredUserIds = filterValue.data.filter((id) => id !== userId);
+            if (filteredUserIds.length != filterValue.data.length) {
+              hasChanges = true;
+              return {
+                ...filter,
+                v: {
+                  ...filterValue,
+                  data: filteredUserIds,
+                },
+              };
+            }
+          } else if (filterValue.type === "ss" && filterValue.data === userId) {
+            hasChanges = true;
+            return undefined;
+          }
+
+          return filter;
+        })
+        .filter((filter) => filter !== undefined);
+
+      if (hasChanges) {
+        updatePromises.push(
+          filterSegmentRepository
+            .updateActiveFilters({ id: filterSegment.id, activeFilters: updatedActiveFilters })
+            .catch((error) => {
+              console.log(`Failed to update filter segment ${filterSegment.id}`, error);
+            })
+        );
+      }
+    }
+
+    await Promise.all(updatePromises);
+  }
+
+  private static async findUserIdsWhichLostAccessUponMembershipDeletion({
+    userId,
+    teamId,
+    teamParentId,
+  }: {
+    userId: number;
+    teamId: number;
+    teamParentId: number | null;
+  }) {
+    const teamFilter = teamParentId
+      ? {
+          OR: [{ teamId: teamId }, { teamId: teamParentId }],
+        }
+      : { teamId: teamId };
+
+    const directTeamAccessFilter: Prisma.UserWhereInput = {
+      teams: {
+        none: {
+          team: {
+            members: {
+              some: {
+                userId,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const subTeamAccessFilter: Prisma.UserWhereInput = {
+      teams: {
+        none: {
+          team: {
+            children: {
+              some: {
+                members: {
+                  some: {
+                    userId,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const memberships = await prisma.membership.findMany({
+      select: {
+        userId: true,
+      },
+      where: {
+        role: {
+          in: ["ADMIN", "OWNER"],
+        },
+        ...teamFilter,
+        user: {
+          AND: [directTeamAccessFilter, subTeamAccessFilter],
+        },
+      },
+      distinct: ["userId"],
+    });
+    return memberships.map((membership) => membership.userId);
   }
 
   // TODO: Needs to be moved to repository
