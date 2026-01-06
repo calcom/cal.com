@@ -1762,15 +1762,16 @@ enum OAuthClientType {
 }
 
 model OAuthClient {
-  clientId     String          @id @unique
-  redirectUri  String
-  redirectUris String[]        @default([])
-  clientSecret String?
-  clientType   OAuthClientType @default(CONFIDENTIAL)
-  name         String
-  logo         String?
-  isTrusted    Boolean         @default(false)
-  accessCodes  AccessCode[]
+  clientId      String          @id @unique
+  redirectUri   String
+  redirectUris  String[]        @default([])
+  clientSecret  String?
+  clientType    OAuthClientType @default(CONFIDENTIAL)
+  name          String
+  logo          String?
+  isTrusted     Boolean         @default(false)
+  allowedScopes AccessScope[]   @default([READ_BOOKING, READ_PROFILE])
+  accessCodes   AccessCode[]
 }
 
 model AccessCode {
