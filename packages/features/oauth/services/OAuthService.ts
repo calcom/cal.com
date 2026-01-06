@@ -1,5 +1,5 @@
+import { generateSecret, timingSafeCompare } from "@calcom/lib/crypto";
 import { verifyCodeChallenge } from "@calcom/lib/pkce";
-import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 
 interface OAuthClient {
   clientType: "CONFIDENTIAL" | "PUBLIC";
@@ -24,7 +24,7 @@ export class OAuthService {
       if (!client_secret) return false;
 
       const [hashedSecret] = generateSecret(client_secret);
-      if (client.clientSecret !== hashedSecret) return false;
+      if (!client.clientSecret || !timingSafeCompare(client.clientSecret, hashedSecret)) return false;
     }
 
     return true; // PUBLIC has no client_secret

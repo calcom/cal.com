@@ -1,3 +1,4 @@
+import { OAUTH_TOKEN_EXPIRY } from "@calcom/features/oauth/lib/constants";
 import { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import { OAuthService } from "@calcom/features/oauth/services/OAuthService";
@@ -8,9 +9,6 @@ import { parseUrlFormData } from "app/api/parseRequestData";
 import jwt from "jsonwebtoken";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-
-const ACCESS_TOKEN_EXPIRES_IN = 1800; // 30 minutes
-const REFRESH_TOKEN_EXPIRES_IN = 30 * 24 * 60 * 60; // 30 days
 
 function isValidRedirectUri(
   redirectUri: string,
@@ -26,7 +24,7 @@ function isValidRedirectUri(
 
 function createTokenResponse(access_token: string, refresh_token: string) {
   return NextResponse.json(
-    { access_token, token_type: "bearer", refresh_token, expires_in: ACCESS_TOKEN_EXPIRES_IN },
+    { access_token, token_type: "bearer", refresh_token, expires_in: OAUTH_TOKEN_EXPIRY.ACCESS_TOKEN },
     {
       status: 200,
       headers: {
@@ -102,12 +100,12 @@ async function handleAuthorizationCode(
 
   const access_token = jwt.sign(payloadAuthToken, secretKey, {
     algorithm: "HS256",
-    expiresIn: ACCESS_TOKEN_EXPIRES_IN,
+    expiresIn: OAUTH_TOKEN_EXPIRY.ACCESS_TOKEN,
   });
 
   const refresh_token = jwt.sign(payloadRefreshToken, secretKey, {
     algorithm: "HS256",
-    expiresIn: REFRESH_TOKEN_EXPIRES_IN,
+    expiresIn: OAUTH_TOKEN_EXPIRY.REFRESH_TOKEN,
   });
 
   return createTokenResponse(access_token, refresh_token);
@@ -176,12 +174,12 @@ async function handleRefreshToken(
 
   const access_token = jwt.sign(payloadAuthToken, secretKey, {
     algorithm: "HS256",
-    expiresIn: ACCESS_TOKEN_EXPIRES_IN,
+    expiresIn: OAUTH_TOKEN_EXPIRY.ACCESS_TOKEN,
   });
 
   const refresh_token_new = jwt.sign(payloadRefreshToken, secretKey, {
     algorithm: "HS256",
-    expiresIn: REFRESH_TOKEN_EXPIRES_IN,
+    expiresIn: OAUTH_TOKEN_EXPIRY.REFRESH_TOKEN,
   });
 
   return createTokenResponse(access_token, refresh_token_new);

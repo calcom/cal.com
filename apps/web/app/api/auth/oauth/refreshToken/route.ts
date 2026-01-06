@@ -1,3 +1,5 @@
+import process from "node:process";
+import { OAUTH_TOKEN_EXPIRY } from "@calcom/features/oauth/lib/constants";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import { OAuthService } from "@calcom/features/oauth/services/OAuthService";
 import prisma from "@calcom/prisma";
@@ -7,9 +9,6 @@ import { parseUrlFormData } from "app/api/parseRequestData";
 import jwt from "jsonwebtoken";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-
-const ACCESS_TOKEN_EXPIRES_IN = 1800; // 30 minutes
-const REFRESH_TOKEN_EXPIRES_IN = 30 * 24 * 60 * 60; // 30 days
 
 /**
  * @deprecated Use POST /api/auth/oauth/token with grant_type=refresh_token instead.
@@ -88,12 +87,12 @@ async function handler(req: NextRequest) {
 
   const access_token = jwt.sign(payloadAuthToken, secretKey, {
     algorithm: "HS256",
-    expiresIn: ACCESS_TOKEN_EXPIRES_IN,
+    expiresIn: OAUTH_TOKEN_EXPIRY.ACCESS_TOKEN,
   });
 
   const refresh_token_new = jwt.sign(payloadRefreshToken, secretKey, {
     algorithm: "HS256",
-    expiresIn: REFRESH_TOKEN_EXPIRES_IN,
+    expiresIn: OAUTH_TOKEN_EXPIRY.REFRESH_TOKEN,
   });
 
   return NextResponse.json(
@@ -101,7 +100,7 @@ async function handler(req: NextRequest) {
       access_token,
       token_type: "bearer",
       refresh_token: refresh_token_new,
-      expires_in: ACCESS_TOKEN_EXPIRES_IN,
+      expires_in: OAUTH_TOKEN_EXPIRY.ACCESS_TOKEN,
     },
     {
       status: 200,

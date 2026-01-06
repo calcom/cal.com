@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import crypto, { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
 const ALGORITHM = "aes256";
 const INPUT_ENCODING = "utf8";
@@ -12,7 +12,7 @@ const IV_LENGTH = 16; // AES blocksize
  *
  * @returns Encrypted value using key
  */
-export const symmetricEncrypt = function (text: string, key: string) {
+export const symmetricEncrypt = (text: string, key: string) => {
   const _key = Buffer.from(key, "latin1");
   const iv = crypto.randomBytes(IV_LENGTH);
   const cipher = crypto.createCipheriv(ALGORITHM, _key, iv);
@@ -28,7 +28,7 @@ export const symmetricEncrypt = function (text: string, key: string) {
  * @param text Value to decrypt
  * @param key Key used to decrypt value must be 32 bytes for AES256 encryption algorithm
  */
-export const symmetricDecrypt = function (text: string, key: string) {
+export const symmetricDecrypt = (text: string, key: string) => {
   const _key = Buffer.from(key, "latin1");
 
   const components = text.split(":");
@@ -38,4 +38,30 @@ export const symmetricDecrypt = function (text: string, key: string) {
   deciphered += decipher.final(INPUT_ENCODING);
 
   return deciphered;
+};
+
+/**
+ * Hash a secret key using SHA-256
+ */
+export const hashSecretKey = (secret: string): string => createHash("sha256").update(secret).digest("hex");
+
+/**
+ * Generate a random secret and its hash
+ * @returns [hashedSecret, plainSecret]
+ */
+export const generateSecret = (secret = randomBytes(32).toString("hex")): [string, string] => [
+  hashSecretKey(secret),
+  secret,
+];
+
+/**
+ * Timing-safe string comparison to prevent timing attacks
+ */
+export const timingSafeCompare = (a: string, b: string): boolean => {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) {
+    return false;
+  }
+  return timingSafeEqual(bufA, bufB);
 };

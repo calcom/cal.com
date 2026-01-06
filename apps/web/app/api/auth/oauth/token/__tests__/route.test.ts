@@ -1,5 +1,5 @@
+import { generateSecret, timingSafeCompare } from "@calcom/lib/crypto";
 import { verifyCodeChallenge } from "@calcom/lib/pkce";
-import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import jwt from "jsonwebtoken";
 // Import mocked dependencies after mocks are set up
 import { NextRequest } from "next/server";
@@ -55,8 +55,9 @@ vi.mock("@calcom/lib/pkce", () => ({
   verifyCodeChallenge: vi.fn(),
 }));
 
-vi.mock("@calcom/trpc/server/routers/viewer/oAuth/addClient.handler", () => ({
+vi.mock("@calcom/lib/crypto", () => ({
   generateSecret: vi.fn(),
+  timingSafeCompare: vi.fn(() => true),
 }));
 
 vi.mock("jsonwebtoken", () => ({
@@ -107,6 +108,7 @@ vi.mock("app/api/parseRequestData", () => ({
 
 const mockVerifyCodeChallenge = vi.mocked(verifyCodeChallenge);
 const mockGenerateSecret = vi.mocked(generateSecret);
+const mockTimingSafeCompare = vi.mocked(timingSafeCompare);
 const mockJwt = vi.mocked(jwt);
 
 // Set up environment
@@ -354,6 +356,7 @@ describe("POST /api/auth/oauth/token", () => {
         mockConfidentialClient as Awaited<ReturnType<typeof prismaMock.oAuthClient.findFirst>>
       );
       mockGenerateSecret.mockReturnValue(["different_hashed_secret", "wrong_secret"]);
+      mockTimingSafeCompare.mockReturnValue(false);
 
       const tokenRequest = createTokenRequest({
         grant_type: "authorization_code",
@@ -702,6 +705,7 @@ describe("POST /api/auth/oauth/token", () => {
         mockConfidentialClient as Awaited<ReturnType<typeof prismaMock.oAuthClient.findFirst>>
       );
       mockGenerateSecret.mockReturnValue(["different_hash", "wrong_secret"]);
+      mockTimingSafeCompare.mockReturnValue(false);
 
       const tokenRequest = createTokenRequest({
         grant_type: "refresh_token",
