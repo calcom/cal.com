@@ -32,7 +32,6 @@ const config: Config = {
       process.env.CI
         ? {
             isolatedModules: true,
-            diagnostics: false,
           }
         : {},
     ],
