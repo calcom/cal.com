@@ -1,18 +1,17 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
-import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
-import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
-import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
-import { UsersRepository } from "@/modules/users/users.repository";
-import { Injectable, Logger, NotFoundException, ForbiddenException } from "@nestjs/common";
-
 import type {
-  UpdateBookingLocationInput_2024_08_13,
   BookingInputLocation_2024_08_13,
   UpdateBookingInputLocation_2024_08_13,
+  UpdateBookingLocationInput_2024_08_13,
 } from "@calcom/platform-types";
-import { Booking } from "@calcom/prisma/client";
+import type { Booking } from "@calcom/prisma/client";
+import { ForbiddenException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import type { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
+import type { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
+import type { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
+import type { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import type { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import type { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
+import type { UsersRepository } from "@/modules/users/users.repository";
 
 @Injectable()
 export class BookingLocationService_2024_08_13 {

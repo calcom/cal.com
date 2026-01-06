@@ -1,9 +1,8 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { Injectable } from "@nestjs/common";
-
 import type { CreateScheduleInput_2024_06_11 } from "@calcom/platform-types";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
+import type { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import type { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 
 type InputScheduleAvailabilityTransformed = {
   days: number[];
@@ -24,7 +23,10 @@ type InputScheduleTransformed = Omit<CreateScheduleInput_2024_06_11, "availabili
 
 @Injectable()
 export class SchedulesRepository_2024_06_11 {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async createSchedule(userId: number, schedule: Omit<InputScheduleTransformed, "isDefault">) {
     const { availability, overrides } = schedule;

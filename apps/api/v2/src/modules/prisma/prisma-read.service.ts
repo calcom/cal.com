@@ -1,10 +1,9 @@
 import type { OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import type { ConfigService } from "@nestjs/config";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "@prisma/client";
 import { Pool } from "pg";
-
-import { PrismaClient } from "@calcom/prisma/client";
 
 const DB_MAX_POOL_CONNECTION = 10;
 
@@ -49,7 +48,7 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
 
     this.pool = new Pool({
       connectionString: dbUrl,
-      max: isE2E ? 1 : options.maxReadConnections ?? DB_MAX_POOL_CONNECTION,
+      max: isE2E ? 1 : (options.maxReadConnections ?? DB_MAX_POOL_CONNECTION),
       idleTimeoutMillis: 300000,
     });
 

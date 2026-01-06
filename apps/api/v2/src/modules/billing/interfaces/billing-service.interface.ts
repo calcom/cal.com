@@ -1,8 +1,7 @@
-import { PlatformPlan } from "@/modules/billing/types";
+import type { PlatformBilling, Team } from "@calcom/prisma/client";
+import type Stripe from "stripe";
+import type { PlatformPlan } from "@/modules/billing/types";
 import type { StripeService } from "@/modules/stripe/stripe.service";
-import Stripe from "stripe";
-
-import { PlatformBilling, Team } from "@calcom/prisma/client";
 
 export type BillingData = {
   team: (Team & { platformBilling: PlatformBilling | null }) | null;

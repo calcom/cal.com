@@ -1,21 +1,24 @@
-import { OAuthCalendarApp } from "@/ee/calendars/calendars.interface";
-import type { CalendarState } from "@/ee/calendars/controllers/calendars.controller";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { AppsRepository } from "@/modules/apps/apps.repository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { GOOGLE_CALENDAR_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { Prisma } from "@calcom/prisma/client";
 import { calendar_v3 } from "@googleapis/calendar";
-import { Logger, NotFoundException } from "@nestjs/common";
-import { BadRequestException, UnauthorizedException } from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { Request } from "express";
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
+import type { ConfigService } from "@nestjs/config";
+import type { Request } from "express";
 import { OAuth2Client } from "googleapis-common";
 import { z } from "zod";
-
-import { SUCCESS_STATUS, GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
-import { Prisma } from "@calcom/prisma/client";
+import type { OAuthCalendarApp } from "@/ee/calendars/calendars.interface";
+import type { CalendarState } from "@/ee/calendars/controllers/calendars.controller";
+import type { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import type { AppsRepository } from "@/modules/apps/apps.repository";
+import type { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import type { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
+import type { TokensRepository } from "@/modules/tokens/tokens.repository";
 
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
