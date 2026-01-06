@@ -209,6 +209,9 @@ function resolveWorkflowStepStatus(
     if (workflowReminder.scheduled && workflowReminder.scheduledDate > new Date()) {
       return "QUEUED";
     }
+    if (workflowReminder.scheduled && workflowReminder.scheduledDate <= new Date()) {
+      return "DELIVERED";
+    }
   }
 
   // 3. Default to QUEUED
