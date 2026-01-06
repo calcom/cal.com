@@ -142,7 +142,10 @@ export default async function handler(body: Record<string, string>) {
         });
       } catch (error) {
         if (isPrismaError(error) && error.code === "P2002") {
-          return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
+          const target = String(error.meta?.target ?? "");
+          if (target.includes("email") || target.includes("username")) {
+            return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
+          }
         }
         throw error;
       }
