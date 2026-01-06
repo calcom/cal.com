@@ -9,6 +9,8 @@ export type AppConfig = {
     keyPrefix: string;
     licenseKey: string;
     licenseKeyUrl: string;
+    encryptionKey: string;
+    signatureToken: string;
   };
   db: {
     readUrl: string;
