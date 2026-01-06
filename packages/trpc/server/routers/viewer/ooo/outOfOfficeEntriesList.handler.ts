@@ -17,8 +17,8 @@ type GetOptions = {
 export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
   const t = await getTranslation(ctx.user.locale, "common");
   const {
-    cursor,
     limit,
+    offset,
     fetchTeamMembersEntries,
     searchTerm,
     endDateFilterStartRange,
@@ -154,25 +154,20 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
     orderBy: {
       start: "asc",
     },
-    cursor: cursor ? { id: cursor } : undefined,
-    take: limit + 1,
+    skip: offset,
+    take: limit,
   });
-
-  let nextCursor: number | undefined = undefined;
-  if (outOfOfficeEntries && outOfOfficeEntries.length > limit) {
-    const nextItem = outOfOfficeEntries.pop();
-    nextCursor = nextItem?.id;
-  }
 
   return {
     rows:
       outOfOfficeEntries.map((ooo) => {
         return {
           ...ooo,
-          canEditAndDelete: fetchTeamMembersEntries ? reportingUserIds.includes(ooo.user.id) : true,
+          canEditAndDelete: fetchTeamMembersEntries && ooo.user
+            ? reportingUserIds.includes(ooo.user.id)
+            : true,
         };
       }) || [],
-    nextCursor,
     meta: {
       totalRowCount: getTotalEntries || 0,
     },

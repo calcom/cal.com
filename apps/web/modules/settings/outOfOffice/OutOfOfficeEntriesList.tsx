@@ -106,36 +106,34 @@ function OutOfOfficeEntriesListContent({
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [deletedEntry, setDeletedEntry] = useState(0);
 
-  const { searchTerm } = useDataTable();
+  const { searchTerm, limit, offset } = useDataTable();
   const searchParams = useCompatSearchParams();
   const selectedTab = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
   const endDateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
 
-  const { data, isPending, fetchNextPage, isFetching, refetch, hasNextPage } =
-    trpc.viewer.ooo.outOfOfficeEntriesList.useInfiniteQuery(
-      {
-        limit: 10,
-        fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
-        searchTerm,
-        endDateFilterStartRange: endDateRange?.startDate ?? undefined,
-        endDateFilterEndRange: endDateRange?.endDate ?? undefined,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        placeholderData: keepPreviousData,
-      }
-    );
+  const { data, isPending, refetch } = trpc.viewer.ooo.outOfOfficeEntriesList.useQuery(
+    {
+      limit,
+      offset,
+      fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
+      searchTerm,
+      endDateFilterStartRange: endDateRange?.startDate ?? undefined,
+      endDateFilterEndRange: endDateRange?.endDate ?? undefined,
+    },
+    {
+      placeholderData: keepPreviousData,
+    }
+  );
 
   useEffect(() => {
     refetch();
   }, [deletedEntry, selectedTab, refetch]);
 
-  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.meta?.totalRowCount ?? 0;
   const flatData = useMemo(
-    () =>
-      isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
-    [data, selectedTab, isPending, isFetching, searchTerm]
+    () => (isPending ? new Array(5).fill(null) : data?.rows ?? []),
+    [data, selectedTab, isPending, searchTerm]
   ) as OutOfOfficeEntry[];
 
   const memoColumns = useMemo(() => {
@@ -164,7 +162,7 @@ function OutOfOfficeEntriesListContent({
               header: `Member`,
               size: 300,
               cell: ({ row }) => {
-                if (!row.original || !row.original.user || isPending || isFetching) {
+                if (!row.original || !row.original.user || isPending) {
                   return <SkeletonText className="h-8 w-full" />;
                 }
                 const { avatarUrl, username, email, name } = row.original.user;
@@ -209,7 +207,7 @@ function OutOfOfficeEntriesListContent({
           const item = row.original;
           return (
             <>
-              {row.original && !isPending && !isFetching ? (
+              {row.original && !isPending ? (
                 <div
                   className="flex flex-row justify-between p-2"
                   data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
@@ -261,7 +259,7 @@ function OutOfOfficeEntriesListContent({
           const item = row.original;
           return (
             <>
-              {row.original && !isPending && !isFetching ? (
+              {row.original && !isPending ? (
                 <div className="flex flex-row items-center justify-end gap-x-2" data-testid="ooo-actions">
                   <Tooltip content={t("edit")}>
                     <Button
@@ -299,7 +297,7 @@ function OutOfOfficeEntriesListContent({
                         };
                         onOpenEditDialog(outOfOfficeEntryData);
                       }}
-                      disabled={isPending || isFetching || !item.canEditAndDelete}
+                      disabled={isPending || !item.canEditAndDelete}
                     />
                   </Tooltip>
                   <Tooltip content={t("delete")}>
@@ -311,7 +309,6 @@ function OutOfOfficeEntriesListContent({
                       disabled={
                         deleteOutOfOfficeEntryMutation.isPending ||
                         isPending ||
-                        isFetching ||
                         !item.canEditAndDelete
                       }
                       StartIcon="trash-2"
@@ -333,7 +330,7 @@ function OutOfOfficeEntriesListContent({
         },
       }),
     ];
-  }, [selectedTab, isPending, isFetching, onOpenEditDialog, t]);
+  }, [selectedTab, isPending, onOpenEditDialog, t]);
 
   const table = useReactTable({
     data: flatData,
@@ -366,12 +363,9 @@ function OutOfOfficeEntriesListContent({
         rowClassName={selectedTab === OutOfOfficeTab.MINE ? "hidden" : ""}
         table={table}
         isPending={isPending}
-        hasNextPage={hasNextPage}
-        fetchNextPage={fetchNextPage}
-        isFetching={isFetching}
         totalRowCount={totalRowCount}
         tableContainerRef={tableContainerRef}
-        paginationMode="infinite"
+        paginationMode="standard"
         ToolbarLeft={
           <>
             <DataTableToolbar.SearchBar />
