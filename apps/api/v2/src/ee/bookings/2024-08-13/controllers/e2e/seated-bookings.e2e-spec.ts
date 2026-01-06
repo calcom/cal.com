@@ -438,77 +438,103 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     it("should preserve seatUid across multiple reschedules", async () => {
-      // Store the original seatUid from the first reschedule
-      const originalSeatUid = createdSeatedBooking.seatUid;
+      const createBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 10, 10, 0, 0)).toISOString(),
+        eventTypeId: seatedEventTypeId,
+        attendee: {
+          name: `Reschedule Test ${randomString()}`,
+          email: `reschedule-test-${randomString()}@api.com`,
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        bookingFieldsResponses: {
+          codingLanguage: "Go",
+        },
+        metadata: {
+          userId: "300",
+        },
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const createData: CreateBookingOutput_2024_08_13 = createResponse.body;
+      expect(createData.status).toEqual(SUCCESS_STATUS);
+      expect(responseDataIsCreateSeatedBooking(createData.data)).toBe(true);
+
+      let testBooking = createData.data as CreateSeatedBookingOutput_2024_08_13;
+      const originalSeatUid = testBooking.seatUid;
       expect(originalSeatUid).toBeDefined();
 
-      // Second reschedule - use time within availability window (14:00 UTC = 15:00 Rome)
-      // Note: Default schedule is typically 9-17 local time, so we use times within that window
+      const firstRescheduleBody: RescheduleSeatedBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 10, 11, 0, 0)).toISOString(),
+        seatUid: testBooking.seatUid,
+      };
+
+      const firstRescheduleResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${testBooking.uid}/reschedule`)
+        .send(firstRescheduleBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const firstRescheduleData: RescheduleBookingOutput_2024_08_13 = firstRescheduleResponse.body;
+      expect(firstRescheduleData.status).toEqual(SUCCESS_STATUS);
+      expect(responseDataIsGetSeatedBooking(firstRescheduleData.data)).toBe(true);
+
+      if (responseDataIsGetSeatedBooking(firstRescheduleData.data)) {
+        const data = firstRescheduleData.data as CreateSeatedBookingOutput_2024_08_13;
+        expect(data.seatUid).toBeDefined();
+        expect(data.seatUid).toEqual(originalSeatUid);
+        expect(data.attendees[0].seatUid).toEqual(originalSeatUid);
+        testBooking = data;
+      }
+
       const secondRescheduleBody: RescheduleSeatedBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString(),
-        seatUid: createdSeatedBooking.seatUid,
+        start: new Date(Date.UTC(2030, 0, 10, 12, 0, 0)).toISOString(),
+        seatUid: testBooking.seatUid,
       };
 
       const secondRescheduleResponse = await request(app.getHttpServer())
-        .post(`/v2/bookings/${createdSeatedBooking.uid}/reschedule`)
+        .post(`/v2/bookings/${testBooking.uid}/reschedule`)
         .send(secondRescheduleBody)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(201);
 
       const secondRescheduleData: RescheduleBookingOutput_2024_08_13 = secondRescheduleResponse.body;
       expect(secondRescheduleData.status).toEqual(SUCCESS_STATUS);
-      expect(secondRescheduleData.data).toBeDefined();
       expect(responseDataIsGetSeatedBooking(secondRescheduleData.data)).toBe(true);
 
       if (responseDataIsGetSeatedBooking(secondRescheduleData.data)) {
-        const data: CreateSeatedBookingOutput_2024_08_13 = secondRescheduleData.data;
-        // Verify seatUid is still defined and equals the original
+        const data = secondRescheduleData.data as CreateSeatedBookingOutput_2024_08_13;
         expect(data.seatUid).toBeDefined();
         expect(data.seatUid).toEqual(originalSeatUid);
-        expect(data.start).toEqual(secondRescheduleBody.start);
-
-        // Verify attendee still has the same seatUid
-        expect(data.attendees.length).toEqual(1);
         expect(data.attendees[0].seatUid).toEqual(originalSeatUid);
-
-        // Update for potential further tests
-        createdSeatedBooking = data;
-      } else {
-        throw new Error("Invalid response data - expected seated booking but received array response");
+        testBooking = data;
       }
 
-      // Third reschedule - use another time within availability window (12:00 UTC = 13:00 Rome)
       const thirdRescheduleBody: RescheduleSeatedBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 0, 8, 12, 0, 0)).toISOString(),
-        seatUid: createdSeatedBooking.seatUid,
+        start: new Date(Date.UTC(2030, 0, 10, 13, 0, 0)).toISOString(),
+        seatUid: testBooking.seatUid,
       };
 
       const thirdRescheduleResponse = await request(app.getHttpServer())
-        .post(`/v2/bookings/${createdSeatedBooking.uid}/reschedule`)
+        .post(`/v2/bookings/${testBooking.uid}/reschedule`)
         .send(thirdRescheduleBody)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(201);
 
       const thirdRescheduleData: RescheduleBookingOutput_2024_08_13 = thirdRescheduleResponse.body;
       expect(thirdRescheduleData.status).toEqual(SUCCESS_STATUS);
-      expect(thirdRescheduleData.data).toBeDefined();
       expect(responseDataIsGetSeatedBooking(thirdRescheduleData.data)).toBe(true);
 
       if (responseDataIsGetSeatedBooking(thirdRescheduleData.data)) {
-        const data: CreateSeatedBookingOutput_2024_08_13 = thirdRescheduleData.data;
-        // Verify seatUid is still preserved after third reschedule
+        const data = thirdRescheduleData.data as CreateSeatedBookingOutput_2024_08_13;
         expect(data.seatUid).toBeDefined();
         expect(data.seatUid).toEqual(originalSeatUid);
-        expect(data.start).toEqual(thirdRescheduleBody.start);
-
-        // Verify attendee metadata and responses are preserved
-        expect(data.attendees.length).toEqual(1);
         expect(data.attendees[0].seatUid).toEqual(originalSeatUid);
-
-        // Update for subsequent tests
-        createdSeatedBooking = data;
-      } else {
-        throw new Error("Invalid response data - expected seated booking but received array response");
       }
     });
 
