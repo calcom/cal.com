@@ -13,6 +13,7 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 import type { ISelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository.interface";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
+import { startSpan } from "@sentry/nextjs";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
 
@@ -111,22 +112,84 @@ export class CalendarSubscriptionService {
    * Process webhook
    */
   async processWebhook(provider: CalendarSubscriptionProvider, request: Request) {
-    log.debug("processWebhook", { provider });
-    const calendarSubscriptionAdapter = this.deps.adapterFactory.get(provider);
+    return startSpan(
+      {
+        name: "CalendarSubscriptionService.processWebhook",
+        op: "calendar.subscription.webhook",
+        attributes: {
+          provider,
+        },
+      },
+      async (span) => {
+        const startTime = performance.now();
+        log.debug("processWebhook", { provider });
 
-    const isValid = await calendarSubscriptionAdapter.validate(request);
-    if (!isValid) throw new Error("Invalid webhook request");
+        try {
+          const calendarSubscriptionAdapter = this.deps.adapterFactory.get(provider);
 
-    const channelId = await calendarSubscriptionAdapter.extractChannelId(request);
-    if (!channelId) throw new Error("Missing channel ID in webhook");
+          const isValid = await calendarSubscriptionAdapter.validate(request);
+          if (!isValid) {
+            span.setAttribute("success", false);
+            span.setAttribute("errorMessage", "Invalid webhook request");
+            throw new Error("Invalid webhook request");
+          }
 
-    log.debug("Processing webhook", { channelId });
-    const selectedCalendar = await this.deps.selectedCalendarRepository.findByChannelId(channelId);
-    // it maybe caused by an old subscription being triggered
-    if (!selectedCalendar) return null;
+          const channelId = await calendarSubscriptionAdapter.extractChannelId(request);
+          if (!channelId) {
+            span.setAttribute("success", false);
+            span.setAttribute("errorMessage", "Missing channel ID in webhook");
+            throw new Error("Missing channel ID in webhook");
+          }
 
-    // incremental event loading
-    await this.processEvents(selectedCalendar);
+          log.debug("Processing webhook", { channelId });
+          span.setAttribute("channelId", channelId);
+
+          const selectedCalendar = await this.deps.selectedCalendarRepository.findByChannelId(channelId);
+          // it maybe caused by an old subscription being triggered
+          if (!selectedCalendar) {
+            span.setAttribute("success", true);
+            span.setAttribute("skipped", true);
+            span.setAttribute("skipReason", "Calendar not found for channel");
+            log.info("Webhook processed - calendar not found", {
+              provider,
+              channelId,
+              durationMs: performance.now() - startTime,
+            });
+            return null;
+          }
+
+          span.setAttribute("selectedCalendarId", selectedCalendar.id);
+          span.setAttribute("userId", selectedCalendar.userId);
+
+          // incremental event loading
+          await this.processEvents(selectedCalendar);
+
+          const durationMs = performance.now() - startTime;
+          span.setAttribute("success", true);
+          span.setAttribute("durationMs", durationMs);
+
+          log.info("Webhook processed successfully", {
+            provider,
+            channelId,
+            selectedCalendarId: selectedCalendar.id,
+            durationMs,
+          });
+        } catch (error) {
+          const durationMs = performance.now() - startTime;
+          span.setAttribute("success", false);
+          span.setAttribute("durationMs", durationMs);
+          span.setAttribute("errorMessage", error instanceof Error ? error.message : "Unknown error");
+
+          log.error("Webhook processing failed", {
+            provider,
+            durationMs,
+            error: error instanceof Error ? error.message : "Unknown error",
+          });
+
+          throw error;
+        }
+      }
+    );
   }
 
   /**
