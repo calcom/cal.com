@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 import { ColumnFilterType, DataTableProvider } from "@calcom/features/data-table";
 import type { DateRangeFilterOptions } from "@calcom/features/data-table/lib/types";
-import { DateRangeFilter } from "~/data-table/components/filters/DateRangeFilter";
+import { DateRangeFilter } from "@calcom/web/modules/data-table/components/filters/DateRangeFilter";
 
 type DemoRow = {
   id: number;

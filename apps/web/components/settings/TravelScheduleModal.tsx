@@ -10,7 +10,7 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Label, SettingsToggle, DateRangePicker, DatePicker } from "@calcom/ui/components/form";
 
-import type { FormValues } from "~/settings/my-account/general-view";
+import type { FormValues } from "@calcom/web/modules/settings/my-account/general-view";
 
 interface TravelScheduleModalProps {
   open: boolean;

@@ -7,7 +7,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { OrganizationInviteView } from "~/onboarding/organization/invite/organization-invite-view";
+import { OrganizationInviteView } from "@calcom/web/modules/onboarding/organization/invite/organization-invite-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

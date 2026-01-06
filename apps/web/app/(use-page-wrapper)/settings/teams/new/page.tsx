@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import CreateNewTeamView, { LayoutWrapper } from "~/settings/teams/new/create-new-team-view";
+import CreateNewTeamView, { LayoutWrapper } from "@calcom/web/modules/settings/teams/new/create-new-team-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

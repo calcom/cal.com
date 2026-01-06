@@ -13,7 +13,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { InputError, Input } from "@calcom/ui/components/form";
 
-import type { FormValues } from "~/settings/my-account/profile-view";
+import type { FormValues } from "@calcom/web/modules/settings/my-account/profile-view";
 
 type CustomEmailTextFieldProps = {
   formMethods: UseFormReturn<FormValues>;

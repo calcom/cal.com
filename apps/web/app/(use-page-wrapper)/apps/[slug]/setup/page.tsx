@@ -7,7 +7,7 @@ import { getServerSideProps } from "@calcom/app-store/_pages/setup/_getServerSid
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import SetupView, { type PageProps as ClientPageProps } from "~/apps/[slug]/setup/setup-view";
+import SetupView, { type PageProps as ClientPageProps } from "@calcom/web/modules/apps/[slug]/setup/setup-view";
 
 export const generateMetadata = async ({ params: _params }: ServerPageProps) => {
   const params = await _params;

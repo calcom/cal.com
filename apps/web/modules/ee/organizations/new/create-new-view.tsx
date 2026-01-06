@@ -1,6 +1,6 @@
 "use client";
 
-import { CreateANewOrganizationForm } from "~/ee/organizations/components/CreateANewOrganizationForm";
+import { CreateANewOrganizationForm } from "@calcom/web/modules/ee/organizations/components/CreateANewOrganizationForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";

@@ -7,7 +7,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import ManagedUsersView from "~/settings/platform/managed-users/managed-users-view";
+import ManagedUsersView from "@calcom/web/modules/settings/platform/managed-users/managed-users-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

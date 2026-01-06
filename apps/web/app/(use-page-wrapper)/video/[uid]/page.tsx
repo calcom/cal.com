@@ -8,8 +8,8 @@ import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constant
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
-import type { PageProps as ClientPageProps } from "~/videos/views/videos-single-view";
-import VideosSingleView from "~/videos/views/videos-single-view";
+import type { PageProps as ClientPageProps } from "@calcom/web/modules/videos/views/videos-single-view";
+import VideosSingleView from "@calcom/web/modules/videos/views/videos-single-view";
 
 export const generateMetadata = async () => {
   const t = await getTranslate();

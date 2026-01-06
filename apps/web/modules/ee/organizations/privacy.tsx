@@ -4,13 +4,13 @@ import { usePathname } from "next/navigation";
 
 import { DataTableProvider } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
-import OrgAutoJoinSetting from "~/ee/organizations/components/OrgAutoJoinSetting";
+import LicenseRequired from "@calcom/web/modules/ee/common/components/LicenseRequired";
+import OrgAutoJoinSetting from "@calcom/web/modules/ee/organizations/components/OrgAutoJoinSetting";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
-import { BlocklistTable } from "~/ee/organizations/privacy/blocklist-table";
-import MakeTeamPrivateSwitch from "~/ee/teams/components/MakeTeamPrivateSwitch";
+import { BlocklistTable } from "@calcom/web/modules/ee/organizations/privacy/blocklist-table";
+import MakeTeamPrivateSwitch from "@calcom/web/modules/ee/teams/components/MakeTeamPrivateSwitch";
 
 const PrivacyView = ({
   permissions,

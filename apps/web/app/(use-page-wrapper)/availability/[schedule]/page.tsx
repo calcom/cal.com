@@ -7,7 +7,7 @@ import { z } from "zod";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 import { travelSchedulesRouter } from "@calcom/trpc/server/routers/viewer/travelSchedules/_router";
 
-import { AvailabilitySettingsWebWrapper } from "~/availability/[schedule]/schedule-view";
+import { AvailabilitySettingsWebWrapper } from "@calcom/web/modules/availability/[schedule]/schedule-view";
 
 const querySchema = z.object({
   schedule: z

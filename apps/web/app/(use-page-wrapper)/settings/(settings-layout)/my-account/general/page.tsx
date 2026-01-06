@@ -9,7 +9,7 @@ import { getTravelSchedule } from "@calcom/web/app/cache/travelSchedule";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import GeneralView from "~/settings/my-account/general-view";
+import GeneralView from "@calcom/web/modules/settings/my-account/general-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

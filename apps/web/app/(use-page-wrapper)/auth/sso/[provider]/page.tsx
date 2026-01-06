@@ -6,8 +6,8 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/auth/sso/[provider]/getServerSideProps";
 
-import type { SSOProviderPageProps } from "~/auth/sso/provider-view";
-import SSOProviderView from "~/auth/sso/provider-view";
+import type { SSOProviderPageProps } from "@calcom/web/modules/auth/sso/provider-view";
+import SSOProviderView from "@calcom/web/modules/auth/sso/provider-view";
 
 const getData = withAppDirSsr<SSOProviderPageProps>(getServerSideProps);
 const ServerPage = async ({ params, searchParams }: PageProps) => {

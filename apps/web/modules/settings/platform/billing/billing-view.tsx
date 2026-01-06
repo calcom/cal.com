@@ -15,8 +15,8 @@ import { useUnsubscribeTeamToStripe } from "@lib/hooks/settings/platform/billing
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 
-import { CtaRow } from "~/settings/billing/billing-view";
-import Shell from "~/shell/Shell";
+import { CtaRow } from "@calcom/web/modules/settings/billing/billing-view";
+import Shell from "@calcom/web/modules/shell/Shell";
 
 declare global {
   interface Window {

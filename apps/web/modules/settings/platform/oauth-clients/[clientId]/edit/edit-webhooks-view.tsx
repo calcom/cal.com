@@ -17,8 +17,8 @@ import {
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 
-import Shell from "~/shell/Shell";
-import { WebhookForm } from "~/webhooks/components";
+import Shell from "@calcom/web/modules/shell/Shell";
+import { WebhookForm } from "@calcom/web/modules/webhooks/components";
 
 export default function EditOAuthClientWebhooks() {
   const { t } = useLocale();

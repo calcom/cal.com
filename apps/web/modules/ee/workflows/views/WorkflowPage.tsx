@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { Toaster } from "sonner";
 
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/web/modules/ee/common/components/LicenseRequired";
 import {
   isSMSAction,
   isSMSOrWhatsappAction,

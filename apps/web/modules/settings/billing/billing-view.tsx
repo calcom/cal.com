@@ -8,7 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 
-import BillingCredits from "~/settings/billing/components/BillingCredits";
+import BillingCredits from "@calcom/web/modules/settings/billing/components/BillingCredits";
 
 interface CtaRowProps {
   title: string;

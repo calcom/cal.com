@@ -7,7 +7,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { OrganizationBrandView } from "~/onboarding/organization/brand/organization-brand-view";
+import { OrganizationBrandView } from "@calcom/web/modules/onboarding/organization/brand/organization-brand-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

@@ -12,7 +12,7 @@ import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import Page from "~/getting-started/[[...step]]/onboarding-view";
+import Page from "@calcom/web/modules/getting-started/[[...step]]/onboarding-view";
 
 export const generateMetadata = async ({ params }: ServerPageProps) => {
   const stepParam = (await params).step;

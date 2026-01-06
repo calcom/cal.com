@@ -13,7 +13,7 @@ import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import EventTypes, { EventTypesCTA } from "~/event-types/views/event-types-listing-view";
+import EventTypes, { EventTypesCTA } from "@calcom/web/modules/event-types/views/event-types-listing-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

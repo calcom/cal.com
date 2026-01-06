@@ -8,7 +8,7 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import type { CategoryDataProps } from "@lib/apps/categories/[category]/getStaticProps";
 
-import Shell from "~/shell/Shell";
+import Shell from "@calcom/web/modules/shell/Shell";
 
 export default function Apps({ apps, category }: CategoryDataProps) {
   const { t, isLocaleReady } = useLocale();

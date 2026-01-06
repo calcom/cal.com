@@ -6,7 +6,7 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
-import User, { type PageProps as ClientPageProps } from "~/users/views/users-public-view";
+import User, { type PageProps as ClientPageProps } from "@calcom/web/modules/users/views/users-public-view";
 
 export const generateMetadata = async () => {
   return {

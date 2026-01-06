@@ -6,8 +6,8 @@ import { cookies, headers } from "next/headers";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/video/meeting-ended/[uid]/getServerSideProps";
 
-import type { PageProps as ClientPageProps } from "~/videos/views/videos-meeting-ended-single-view";
-import MeetingEnded from "~/videos/views/videos-meeting-ended-single-view";
+import type { PageProps as ClientPageProps } from "@calcom/web/modules/videos/views/videos-meeting-ended-single-view";
+import MeetingEnded from "@calcom/web/modules/videos/views/videos-meeting-ended-single-view";
 
 export const generateMetadata = async ({ params }: ServerPageProps) =>
   await _generateMetadata(

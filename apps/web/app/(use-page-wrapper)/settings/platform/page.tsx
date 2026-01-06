@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import PlatformView from "~/settings/platform/platform-view";
+import PlatformView from "@calcom/web/modules/settings/platform/platform-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

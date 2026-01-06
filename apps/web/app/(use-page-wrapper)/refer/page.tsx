@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
 
-import Shell from "~/shell/Shell";
+import Shell from "@calcom/web/modules/shell/Shell";
 
 import { DubReferralsPage } from "./DubReferralsPage";
 

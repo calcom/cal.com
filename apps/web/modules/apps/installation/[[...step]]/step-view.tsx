@@ -32,7 +32,7 @@ import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCa
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
 import { StepHeader } from "@components/apps/installation/StepHeader";
 
-import { STEPS } from "~/apps/installation/[[...step]]/constants";
+import { STEPS } from "@calcom/web/modules/apps/installation/[[...step]]/constants";
 
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
   Pick<

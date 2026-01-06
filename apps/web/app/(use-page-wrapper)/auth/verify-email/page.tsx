@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import VerifyEmailPage from "~/auth/verify-email-view";
+import VerifyEmailPage from "@calcom/web/modules/auth/verify-email-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

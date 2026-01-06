@@ -5,10 +5,10 @@ import { cookies, headers } from "next/headers";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/getServerSideProps";
 
-import type { PageProps as TeamPageProps } from "~/team/team-view";
-import TeamPage from "~/team/team-view";
-import UserPage from "~/users/views/users-public-view";
-import type { PageProps as UserPageProps } from "~/users/views/users-public-view";
+import type { PageProps as TeamPageProps } from "@calcom/web/modules/team/team-view";
+import TeamPage from "@calcom/web/modules/team/team-view";
+import UserPage from "@calcom/web/modules/users/views/users-public-view";
+import type { PageProps as UserPageProps } from "@calcom/web/modules/users/views/users-public-view";
 
 const getData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
 

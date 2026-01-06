@@ -3,7 +3,7 @@ import { getTranslate } from "app/_utils";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-import PasswordViewWrapper from "~/settings/security/password-view";
+import PasswordViewWrapper from "@calcom/web/modules/settings/security/password-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

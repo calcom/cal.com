@@ -2,7 +2,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-import LockedSMSView from "~/settings/admin/locked-sms-view";
+import LockedSMSView from "@calcom/web/modules/settings/admin/locked-sms-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

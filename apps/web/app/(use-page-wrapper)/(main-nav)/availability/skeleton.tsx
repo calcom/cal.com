@@ -5,7 +5,7 @@ import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppD
 import SkeletonLoader from "@calcom/features/availability/components/SkeletonLoader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { AvailabilityCTA } from "~/availability/availability-view";
+import { AvailabilityCTA } from "@calcom/web/modules/availability/availability-view";
 
 export default function AvailabilityLoader() {
   const { t } = useLocale();

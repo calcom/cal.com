@@ -6,8 +6,8 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/auth/sso/direct/getServerSideProps";
 
-import type { SSODirectPageProps } from "~/auth/sso/direct-view";
-import SSODirectView from "~/auth/sso/direct-view";
+import type { SSODirectPageProps } from "@calcom/web/modules/auth/sso/direct-view";
+import SSODirectView from "@calcom/web/modules/auth/sso/direct-view";
 
 const getData = withAppDirSsr<SSODirectPageProps>(getServerSideProps);
 const ServerPage = async ({ params, searchParams }: PageProps) => {

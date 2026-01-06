@@ -5,8 +5,8 @@ import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { Icon } from "@calcom/ui/components/icon";
 
-import Shell from "~/shell/Shell";
-import { UpgradeTip } from "~/shell/UpgradeTip";
+import Shell from "@calcom/web/modules/shell/Shell";
+import { UpgradeTip } from "@calcom/web/modules/shell/UpgradeTip";
 
 export default function EnterprisePage() {
   const { t } = useLocale();

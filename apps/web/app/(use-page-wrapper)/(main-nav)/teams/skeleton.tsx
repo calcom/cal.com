@@ -5,7 +5,7 @@ import { TeamsCTA } from "app/(use-page-wrapper)/(main-nav)/teams/CTA";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import SkeletonLoaderTeamList from "~/ee/teams/components/SkeletonloaderTeamList";
+import SkeletonLoaderTeamList from "@calcom/web/modules/ee/teams/components/SkeletonloaderTeamList";
 
 export const TeamsListSkeleton = () => {
   const { t } = useLocale();

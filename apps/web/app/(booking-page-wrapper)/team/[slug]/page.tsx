@@ -9,8 +9,8 @@ import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
 
-import type { PageProps } from "~/team/team-view";
-import LegacyPage from "~/team/team-view";
+import type { PageProps } from "@calcom/web/modules/team/team-view";
+import LegacyPage from "@calcom/web/modules/team/team-view";
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const { team, markdownStrippedBio, isSEOIndexable, currentOrgDomain } = await getData(

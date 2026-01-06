@@ -15,7 +15,7 @@ import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/or
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { MembersView } from "~/members/members-view";
+import { MembersView } from "@calcom/web/modules/members/members-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

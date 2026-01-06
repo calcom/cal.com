@@ -10,7 +10,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { CreateTeamEventType, LayoutWrapper } from "~/settings/teams/[id]/event-types-view";
+import { CreateTeamEventType, LayoutWrapper } from "@calcom/web/modules/settings/teams/[id]/event-types-view";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(

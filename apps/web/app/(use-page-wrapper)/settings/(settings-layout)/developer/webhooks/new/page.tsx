@@ -5,7 +5,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { appsRouter } from "@calcom/trpc/server/routers/viewer/apps/_router";
 import { webhookRouter } from "@calcom/trpc/server/routers/viewer/webhook/_router";
 
-import { NewWebhookView } from "~/webhooks/views/webhook-new-view";
+import { NewWebhookView } from "@calcom/web/modules/webhooks/views/webhook-new-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

@@ -24,7 +24,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { withLicenseRequired } from "~/ee/common/components/LicenseRequired";
+import { withLicenseRequired } from "@calcom/web/modules/ee/common/components/LicenseRequired";
 
 const { Cell, ColumnTitle, Header, Row } = Table;
 

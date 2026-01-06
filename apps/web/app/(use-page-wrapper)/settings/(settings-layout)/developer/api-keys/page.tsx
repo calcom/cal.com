@@ -9,7 +9,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import ApiKeysView from "~/settings/developer/api-keys-view";
+import ApiKeysView from "@calcom/web/modules/settings/developer/api-keys-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

@@ -7,8 +7,8 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/auth/verify-email-change/getServerSideProps";
 
-import type { PageProps as ClientPageProps } from "~/auth/verify-email-change-view";
-import VerifyEmailChange from "~/auth/verify-email-change-view";
+import type { PageProps as ClientPageProps } from "@calcom/web/modules/auth/verify-email-change-view";
+import VerifyEmailChange from "@calcom/web/modules/auth/verify-email-change-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

@@ -18,7 +18,7 @@ import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
 import { buildLegacyCtx, buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 
-import CachedClientView, { type TeamBookingPageProps } from "~/team/type-view-cached";
+import CachedClientView, { type TeamBookingPageProps } from "@calcom/web/modules/team/type-view-cached";
 
 import { getCachedTeamData, getEnrichedEventType, getCRMData, shouldUseApiV2ForTeamSlots } from "./queries";
 

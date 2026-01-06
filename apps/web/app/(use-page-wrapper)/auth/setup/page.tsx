@@ -9,8 +9,8 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/setup/getServerSideProps";
 
-import Setup from "~/auth/setup-view";
-import type { PageProps as ClientPageProps } from "~/auth/setup-view";
+import Setup from "@calcom/web/modules/auth/setup-view";
+import type { PageProps as ClientPageProps } from "@calcom/web/modules/auth/setup-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

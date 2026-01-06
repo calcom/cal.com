@@ -4,7 +4,7 @@ import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import Logout from "~/auth/logout-view";
+import Logout from "@calcom/web/modules/auth/logout-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

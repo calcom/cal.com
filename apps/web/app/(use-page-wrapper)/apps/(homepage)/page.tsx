@@ -9,7 +9,7 @@ import type { AppCategories } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import AppsPage from "~/apps/apps-view";
+import AppsPage from "@calcom/web/modules/apps/apps-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

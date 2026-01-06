@@ -19,7 +19,7 @@ import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 
-import { TimeTimeUnitInput } from "~/ee/workflows/components/TimeTimeUnitInput";
+import { TimeTimeUnitInput } from "@calcom/web/modules/ee/workflows/components/TimeTimeUnitInput";
 
 import WebhookTestDisclosure from "./WebhookTestDisclosure";
 

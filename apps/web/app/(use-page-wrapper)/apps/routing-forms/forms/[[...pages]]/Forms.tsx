@@ -7,7 +7,7 @@ import { useFormContext } from "react-hook-form";
 
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/web/modules/ee/common/components/LicenseRequired";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
@@ -34,11 +34,11 @@ import {
   FormActionsProvider,
 } from "@calcom/web/components/apps/routing-forms/FormActions";
 
-import { useHasPaidPlan } from "~/billing/hooks/useHasPaidPlan";
-import SkeletonLoaderTeamList from "~/ee/teams/components/SkeletonloaderTeamList";
-import { CreateButtonWithTeamsList } from "~/ee/teams/components/createButton/CreateButtonWithTeamsList";
-import { ShellMain } from "~/shell/Shell";
-import { UpgradeTip } from "~/shell/UpgradeTip";
+import { useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
+import SkeletonLoaderTeamList from "@calcom/web/modules/ee/teams/components/SkeletonloaderTeamList";
+import { CreateButtonWithTeamsList } from "@calcom/web/modules/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import { ShellMain } from "@calcom/web/modules/shell/Shell";
+import { UpgradeTip } from "@calcom/web/modules/shell/UpgradeTip";
 
 function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {
   const { t } = useLocale();

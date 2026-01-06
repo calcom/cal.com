@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import Page from "~/auth/platform/authorize-view";
+import Page from "@calcom/web/modules/auth/platform/authorize-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

@@ -27,7 +27,7 @@ import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 
-import { UpgradeTeamsBadgeWebWrapper } from "~/billing/components/UpgradeTeamsBadgeWebWrapper";
+import { UpgradeTeamsBadgeWebWrapper } from "@calcom/web/modules/billing/components/UpgradeTeamsBadgeWebWrapper";
 
 const useBrandColors = (
   currentTheme: string | null,

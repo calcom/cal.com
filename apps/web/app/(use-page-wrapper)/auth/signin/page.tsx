@@ -9,8 +9,8 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/auth/signin/getServerSideProps";
 
-import SignIn from "~/auth/signin-view";
-import type { PageProps as ClientPageProps } from "~/auth/signin-view";
+import SignIn from "@calcom/web/modules/auth/signin-view";
+import type { PageProps as ClientPageProps } from "@calcom/web/modules/auth/signin-view";
 
 const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {

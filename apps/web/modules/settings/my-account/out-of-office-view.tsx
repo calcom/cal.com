@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 
-import type { BookingRedirectForm } from "~/settings/outOfOffice/types";
+import type { BookingRedirectForm } from "@calcom/web/modules/settings/outOfOffice/types";
 
-import { CreateOrEditOutOfOfficeEntryModal } from "~/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
-import OutOfOfficeEntriesList from "~/settings/outOfOffice/OutOfOfficeEntriesList";
-import { OutOfOfficeTab } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
+import { CreateOrEditOutOfOfficeEntryModal } from "@calcom/web/modules/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
+import OutOfOfficeEntriesList from "@calcom/web/modules/settings/outOfOffice/OutOfOfficeEntriesList";
+import { OutOfOfficeTab } from "@calcom/web/modules/settings/outOfOffice/OutOfOfficeToggleGroup";
 
 import { HolidaysView } from "./holidays-view";
 

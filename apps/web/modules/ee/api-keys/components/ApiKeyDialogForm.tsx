@@ -3,8 +3,8 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import type { TApiKeys } from "~/ee/api-keys/components/ApiKeyListItem";
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import type { TApiKeys } from "@calcom/web/modules/ee/api-keys/components/ApiKeyListItem";
+import LicenseRequired from "@calcom/web/modules/ee/common/components/LicenseRequired";
 import { API_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

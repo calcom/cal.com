@@ -1,6 +1,6 @@
 "use client";
 
-import PaymentStatusView from "~/ee/organizations/new/_components/PaymentStatusView";
+import PaymentStatusView from "@calcom/web/modules/ee/organizations/new/_components/PaymentStatusView";
 
 import { OrganizationWizardLayout } from "./_components/OrganizationWizardLayout";
 

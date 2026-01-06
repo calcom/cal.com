@@ -16,7 +16,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { OutOfOfficeToggleGroup } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
+import { OutOfOfficeToggleGroup } from "@calcom/web/modules/settings/outOfOffice/OutOfOfficeToggleGroup";
 
 function HolidaysCTA() {
   const { t } = useLocale();

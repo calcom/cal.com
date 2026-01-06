@@ -6,7 +6,7 @@ import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permi
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import OrgSettingsAttributesPage from "~/ee/organizations/attributes/attributes-list-view";
+import OrgSettingsAttributesPage from "@calcom/web/modules/ee/organizations/attributes/attributes-list-view";
 
 import { validateUserHasOrg } from "../../actions/validateUserHasOrg";
 

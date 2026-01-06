@@ -6,8 +6,8 @@ import { cookies, headers } from "next/headers";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/signup/getServerSideProps";
 
-import type { SignupProps } from "~/signup-view";
-import Signup from "~/signup-view";
+import type { SignupProps } from "@calcom/web/modules/signup-view";
+import Signup from "@calcom/web/modules/signup-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

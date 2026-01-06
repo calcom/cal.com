@@ -9,10 +9,10 @@ import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/getServerSideProps";
 
-import type { PageProps as TeamPageProps } from "~/team/team-view";
-import TeamPage from "~/team/team-view";
-import UserPage from "~/users/views/users-public-view";
-import type { PageProps as UserPageProps } from "~/users/views/users-public-view";
+import type { PageProps as TeamPageProps } from "@calcom/web/modules/team/team-view";
+import TeamPage from "@calcom/web/modules/team/team-view";
+import UserPage from "@calcom/web/modules/users/views/users-public-view";
+import type { PageProps as UserPageProps } from "@calcom/web/modules/users/views/users-public-view";
 
 export type OrgPageProps = UserPageProps | TeamPageProps;
 const getData = withAppDirSsr<OrgPageProps>(getServerSideProps);

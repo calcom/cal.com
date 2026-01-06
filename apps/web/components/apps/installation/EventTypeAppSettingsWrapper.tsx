@@ -6,7 +6,7 @@ import useAppsData from "@calcom/features/apps/hooks/useAppsData";
 
 import type { ConfigureStepCardProps } from "@components/apps/installation/ConfigureStepCard";
 
-import type { TEventType } from "~/apps/installation/[[...step]]/step-view";
+import type { TEventType } from "@calcom/web/modules/apps/installation/[[...step]]/step-view";
 
 type EventTypeAppSettingsWrapperProps = Pick<
   ConfigureStepCardProps,

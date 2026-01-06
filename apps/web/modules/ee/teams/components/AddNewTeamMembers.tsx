@@ -22,7 +22,7 @@ import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/comp
 import { showToast } from "@calcom/ui/components/toast";
 import InviteLinkSettingsModal from "@calcom/web/modules/ee/teams/components/InviteLinkSettingsModal";
 
-import { MemberInvitationModalWithoutMembers } from "~/ee/teams/components/MemberInvitationModal";
+import { MemberInvitationModalWithoutMembers } from "@calcom/web/modules/ee/teams/components/MemberInvitationModal";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 

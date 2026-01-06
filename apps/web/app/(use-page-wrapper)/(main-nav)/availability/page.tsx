@@ -15,7 +15,7 @@ import { AvailabilitySliderTable } from "@calcom/web/modules/timezone-buddy/comp
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { AvailabilityList, AvailabilityCTA } from "~/availability/availability-view";
+import { AvailabilityList, AvailabilityCTA } from "@calcom/web/modules/availability/availability-view";
 
 import { ShellMainAppDir } from "../ShellMainAppDir";
 

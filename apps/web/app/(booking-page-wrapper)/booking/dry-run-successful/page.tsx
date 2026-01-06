@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import BookingDryRunSuccessView from "~/bookings/views/booking-dry-run-success-view";
+import BookingDryRunSuccessView from "@calcom/web/modules/bookings/views/booking-dry-run-success-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

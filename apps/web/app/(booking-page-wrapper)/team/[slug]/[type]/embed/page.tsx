@@ -8,7 +8,7 @@ import { loadTranslations } from "@calcom/lib/server/i18n";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 
-import TypePage, { type PageProps as ClientPageProps } from "~/team/type-view";
+import TypePage, { type PageProps as ClientPageProps } from "@calcom/web/modules/team/type-view";
 
 export const generateMetadata = async () => {
   return {

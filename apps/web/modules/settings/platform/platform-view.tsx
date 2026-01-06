@@ -17,7 +17,7 @@ import { OAuthClientsList } from "@components/settings/platform/dashboard/oauth-
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@components/settings/platform/pricing/platform-pricing";
 
-import Shell from "~/shell/Shell";
+import Shell from "@calcom/web/modules/shell/Shell";
 
 const queryClient = new QueryClient();
 

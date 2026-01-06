@@ -11,8 +11,8 @@ import { prisma } from "@calcom/prisma";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/video/meeting-not-started/[uid]/getServerSideProps";
 
-import type { PageProps as ClientPageProps } from "~/videos/views/videos-meeting-not-started-single-view";
-import MeetingNotStarted from "~/videos/views/videos-meeting-not-started-single-view";
+import type { PageProps as ClientPageProps } from "@calcom/web/modules/videos/views/videos-meeting-not-started-single-view";
+import MeetingNotStarted from "@calcom/web/modules/videos/views/videos-meeting-not-started-single-view";
 
 const querySchema = z.object({
   uid: z.string(),

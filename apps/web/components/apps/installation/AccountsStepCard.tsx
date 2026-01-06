@@ -8,7 +8,7 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { StepCard } from "@calcom/ui/components/card";
 
-import type { TTeams } from "~/apps/installation/[[...step]]/step-view";
+import type { TTeams } from "@calcom/web/modules/apps/installation/[[...step]]/step-view";
 
 export type PersonalAccountProps = Pick<User, "id" | "avatarUrl" | "name"> & { alreadyInstalled: boolean };
 

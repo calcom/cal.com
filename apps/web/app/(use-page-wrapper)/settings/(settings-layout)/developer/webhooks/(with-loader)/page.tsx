@@ -9,7 +9,7 @@ import { webhookRouter } from "@calcom/trpc/server/routers/viewer/webhook/_route
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import WebhooksView from "~/webhooks/views/webhooks-view";
+import WebhooksView from "@calcom/web/modules/webhooks/views/webhooks-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

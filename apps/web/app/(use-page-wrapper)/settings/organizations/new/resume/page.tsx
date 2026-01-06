@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import ResumeOnboardingPage, { LayoutWrapper } from "~/ee/organizations/new/resume-view";
+import ResumeOnboardingPage, { LayoutWrapper } from "@calcom/web/modules/ee/organizations/new/resume-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

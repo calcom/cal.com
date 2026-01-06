@@ -7,7 +7,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { PersonalCalendarView } from "~/onboarding/personal/calendar/personal-calendar-view";
+import { PersonalCalendarView } from "@calcom/web/modules/onboarding/personal/calendar/personal-calendar-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

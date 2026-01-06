@@ -8,8 +8,8 @@ import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomai
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/instant-meeting/team/[slug]/[type]/getServerSideProps";
 
-import type { Props } from "~/org/[orgSlug]/instant-meeting/team/[slug]/[type]/instant-meeting-view";
-import Page from "~/org/[orgSlug]/instant-meeting/team/[slug]/[type]/instant-meeting-view";
+import type { Props } from "@calcom/web/modules/org/[orgSlug]/instant-meeting/team/[slug]/[type]/instant-meeting-view";
+import Page from "@calcom/web/modules/org/[orgSlug]/instant-meeting/team/[slug]/[type]/instant-meeting-view";
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);

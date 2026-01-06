@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import PushNotificationsView from "~/settings/my-account/push-notifications-view";
+import PushNotificationsView from "@calcom/web/modules/settings/my-account/push-notifications-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

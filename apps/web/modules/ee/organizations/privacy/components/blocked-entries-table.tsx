@@ -5,7 +5,7 @@ import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/rea
 import { useMemo, useState } from "react";
 
 import { useDataTable } from "@calcom/features/data-table";
-import { DataTableWrapper } from "~/data-table/components";
+import { DataTableWrapper } from "@calcom/web/modules/data-table/components";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";

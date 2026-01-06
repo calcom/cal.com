@@ -1,7 +1,7 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
-import WorkspacePlatformsPage from "~/ee/organizations/admin/WorkspacePlatformPage";
+import LicenseRequired from "@calcom/web/modules/ee/common/components/LicenseRequired";
+import WorkspacePlatformsPage from "@calcom/web/modules/ee/organizations/admin/WorkspacePlatformPage";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async () =>

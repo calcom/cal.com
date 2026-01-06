@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import AddNewTeamMembers, { LayoutWrapper } from "~/settings/teams/[id]/onboard-members-view";
+import AddNewTeamMembers, { LayoutWrapper } from "@calcom/web/modules/settings/teams/[id]/onboard-members-view";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(

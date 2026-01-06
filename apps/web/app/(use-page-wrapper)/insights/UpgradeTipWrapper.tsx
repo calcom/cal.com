@@ -8,7 +8,7 @@ import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { UpgradeTip } from "~/shell/UpgradeTip";
+import { UpgradeTip } from "@calcom/web/modules/shell/UpgradeTip";
 
 export default function UpgradeTipWrapper({ children }: { children: React.ReactNode }) {
   const { t } = useLocale();

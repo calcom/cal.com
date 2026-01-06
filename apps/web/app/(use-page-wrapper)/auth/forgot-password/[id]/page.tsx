@@ -7,8 +7,8 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/auth/forgot-password/[id]/getServerSideProps";
 
-import type { PageProps as ClientPageProps } from "~/auth/forgot-password/[id]/forgot-password-single-view";
-import SetNewUserPassword from "~/auth/forgot-password/[id]/forgot-password-single-view";
+import type { PageProps as ClientPageProps } from "@calcom/web/modules/auth/forgot-password/[id]/forgot-password-single-view";
+import SetNewUserPassword from "@calcom/web/modules/auth/forgot-password/[id]/forgot-password-single-view";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) => {
   return await _generateMetadata(

@@ -10,7 +10,7 @@ import { PlatformManagedUsersTable } from "@calcom/web/modules/users/components/
 
 import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
 
-import Shell from "~/shell/Shell";
+import Shell from "@calcom/web/modules/shell/Shell";
 
 type OAuthClientOption = { label: string; value: string };
 

@@ -8,7 +8,7 @@ import {
   ColumnFilterType,
   type FilterableColumn,
 } from "@calcom/features/data-table";
-import { DataTableFilters, DateRangeFilter } from "~/data-table/components";
+import { DataTableFilters, DateRangeFilter } from "@calcom/web/modules/data-table/components";
 import type { FilterType } from "@calcom/types/data-table";
 import { useDataTable } from "@calcom/features/data-table/hooks/useDataTable";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";

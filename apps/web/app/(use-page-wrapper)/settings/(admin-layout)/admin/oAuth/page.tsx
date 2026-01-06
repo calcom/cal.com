@@ -2,7 +2,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-import LegacyPage from "~/settings/admin/oauth-view";
+import LegacyPage from "@calcom/web/modules/settings/admin/oauth-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

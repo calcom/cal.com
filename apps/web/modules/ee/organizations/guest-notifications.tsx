@@ -1,10 +1,10 @@
 "use client";
 
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/web/modules/ee/common/components/LicenseRequired";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/components/skeleton";
 
-import DisableGuestBookingEmailsSetting from "~/ee/organizations/components/DisableGuestBookingEmailsSetting";
+import DisableGuestBookingEmailsSetting from "@calcom/web/modules/ee/organizations/components/DisableGuestBookingEmailsSetting";
 
 const SkeletonLoader = () => {
   return (

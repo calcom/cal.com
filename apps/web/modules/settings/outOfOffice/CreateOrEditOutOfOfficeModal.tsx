@@ -20,11 +20,11 @@ import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
-import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "~/billing/components/UpgradeTeamsBadgeWebWrapper";
-import { OutOfOfficeTab } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
+import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "@calcom/web/modules/billing/components/UpgradeTeamsBadgeWebWrapper";
+import { OutOfOfficeTab } from "@calcom/web/modules/settings/outOfOffice/OutOfOfficeToggleGroup";
 
-export type { BookingRedirectForm } from "~/settings/outOfOffice/types";
-import type { BookingRedirectForm } from "~/settings/outOfOffice/types";
+export type { BookingRedirectForm } from "@calcom/web/modules/settings/outOfOffice/types";
+import type { BookingRedirectForm } from "@calcom/web/modules/settings/outOfOffice/types";
 
 type Option = { value: number; label: string };
 

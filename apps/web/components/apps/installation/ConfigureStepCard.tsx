@@ -21,7 +21,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import EventTypeAppSettingsWrapper from "@components/apps/installation/EventTypeAppSettingsWrapper";
 import EventTypeConferencingAppSettings from "@components/apps/installation/EventTypeConferencingAppSettings";
 
-import type { TEventType, TEventTypesForm, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
+import type { TEventType, TEventTypesForm, TEventTypeGroup } from "@calcom/web/modules/apps/installation/[[...step]]/step-view";
 
 export type TFormType = {
   id: number;

@@ -3,7 +3,7 @@ import { getTranslate } from "app/_utils";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-import TwoFactorAuthView from "~/settings/security/two-factor-auth-view";
+import TwoFactorAuthView from "@calcom/web/modules/settings/security/two-factor-auth-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

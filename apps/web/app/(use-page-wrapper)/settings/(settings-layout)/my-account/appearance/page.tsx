@@ -11,7 +11,7 @@ import { getCachedHasTeamPlan } from "@calcom/web/app/cache/membership";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import AppearancePage from "~/settings/my-account/appearance-view";
+import AppearancePage from "@calcom/web/modules/settings/my-account/appearance-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

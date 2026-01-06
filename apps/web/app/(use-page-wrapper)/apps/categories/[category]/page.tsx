@@ -6,7 +6,7 @@ import { AppCategories } from "@calcom/prisma/enums";
 
 import { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
 
-import CategoryPage from "~/apps/categories/[category]/category-view";
+import CategoryPage from "@calcom/web/modules/apps/categories/[category]/category-view";
 
 const querySchema = z.object({
   category: z.enum(Object.values(AppCategories) as [AppCategories, ...AppCategories[]]),

@@ -9,7 +9,7 @@ import {
   useDataTable,
   useDisplayedFilterCount,
 } from "@calcom/features/data-table";
-import { DataTableSegment, DataTableFilters } from "~/data-table/components";
+import { DataTableSegment, DataTableFilters } from "@calcom/web/modules/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -19,13 +19,13 @@ import { Button } from "@calcom/ui/components/button";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
-import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
-import { useBookingListColumns } from "~/bookings/hooks/useBookingListColumns";
-import { useBookingListData } from "~/bookings/hooks/useBookingListData";
-import { useBookingStatusTab } from "~/bookings/hooks/useBookingStatusTab";
-import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
-import { useListAutoSelector } from "~/bookings/hooks/useListAutoSelector";
-import { useListNavigationCapabilities } from "~/bookings/hooks/useListNavigationCapabilities";
+import { useBookingFilters } from "@calcom/web/modules/bookings/hooks/useBookingFilters";
+import { useBookingListColumns } from "@calcom/web/modules/bookings/hooks/useBookingListColumns";
+import { useBookingListData } from "@calcom/web/modules/bookings/hooks/useBookingListData";
+import { useBookingStatusTab } from "@calcom/web/modules/bookings/hooks/useBookingStatusTab";
+import { useFacetedUniqueValues } from "@calcom/web/modules/bookings/hooks/useFacetedUniqueValues";
+import { useListAutoSelector } from "@calcom/web/modules/bookings/hooks/useListAutoSelector";
+import { useListNavigationCapabilities } from "@calcom/web/modules/bookings/hooks/useListNavigationCapabilities";
 
 import {
   BookingDetailsSheetStoreProvider,

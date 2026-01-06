@@ -6,8 +6,8 @@ import { cookies, headers } from "next/headers";
 import { getServerSideProps } from "@lib/apps/installation/[[...step]]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import type { OnboardingPageProps } from "~/apps/installation/[[...step]]/step-view";
-import Page from "~/apps/installation/[[...step]]/step-view";
+import type { OnboardingPageProps } from "@calcom/web/modules/apps/installation/[[...step]]/step-view";
+import Page from "@calcom/web/modules/apps/installation/[[...step]]/step-view";
 
 export const generateMetadata = async ({ params }: PageProps) => {
   const stepParam = (await params).step;

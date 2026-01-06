@@ -1,6 +1,6 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
-import DirectorySyncTeamView from "~/ee/dsync/views/team-dsync-view";
+import DirectorySyncTeamView from "@calcom/web/modules/ee/dsync/views/team-dsync-view";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";

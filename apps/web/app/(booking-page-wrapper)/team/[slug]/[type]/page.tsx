@@ -12,8 +12,8 @@ import { prisma } from "@calcom/prisma";
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 
-import LegacyPage from "~/team/type-view";
-import type { PageProps as LegacyPageProps } from "~/team/type-view";
+import LegacyPage from "@calcom/web/modules/team/type-view";
+import type { PageProps as LegacyPageProps } from "@calcom/web/modules/team/type-view";
 
 import CachedTeamBooker, {
   generateMetadata as generateCachedMetadata,

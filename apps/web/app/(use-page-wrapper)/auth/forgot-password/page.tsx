@@ -8,7 +8,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import ForgotPassword from "~/auth/forgot-password/forgot-password-view";
+import ForgotPassword from "@calcom/web/modules/auth/forgot-password/forgot-password-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

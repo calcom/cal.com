@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
-import { DataTable, DataTableToolbar } from "~/data-table/components";
+import { DataTable, DataTableToolbar } from "@calcom/web/modules/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 

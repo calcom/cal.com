@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
-import ProfileView from "~/settings/my-account/profile-view";
+import ProfileView from "@calcom/web/modules/settings/my-account/profile-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

@@ -12,7 +12,7 @@ import { calendarsRouter } from "@calcom/trpc/server/routers/viewer/calendars/_r
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import InstalledApps from "~/apps/installed/[category]/installed-category-view";
+import InstalledApps from "@calcom/web/modules/apps/installed/[category]/installed-category-view";
 
 const querySchema = z.object({
   category: z.nativeEnum(AppCategories),

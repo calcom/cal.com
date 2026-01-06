@@ -11,8 +11,8 @@ import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
 
-import type { PageProps as LegacyPageProps } from "~/users/views/users-type-public-view";
-import LegacyPage from "~/users/views/users-type-public-view";
+import type { PageProps as LegacyPageProps } from "@calcom/web/modules/users/views/users-type-public-view";
+import LegacyPage from "@calcom/web/modules/users/views/users-type-public-view";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);

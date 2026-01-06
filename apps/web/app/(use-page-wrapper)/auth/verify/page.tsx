@@ -2,7 +2,7 @@ import type { PageProps as _PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { z } from "zod";
 
-import VerifyPage from "~/auth/verify-view";
+import VerifyPage from "@calcom/web/modules/auth/verify-view";
 
 const querySchema = z.object({
   stripeCustomerId: z.string().optional(),

@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
 
-import AppView from "~/apps/[slug]/slug-view";
+import AppView from "@calcom/web/modules/apps/[slug]/slug-view";
 
 const paramsSchema = z.object({
   slug: z.string(),

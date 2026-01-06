@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import LegacyPage from "~/upgrade/upgrade-view";
+import LegacyPage from "@calcom/web/modules/upgrade/upgrade-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

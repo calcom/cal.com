@@ -7,7 +7,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import PlatformPlansView from "~/settings/platform/plans/platform-plans-view";
+import PlatformPlansView from "@calcom/web/modules/settings/platform/plans/platform-plans-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

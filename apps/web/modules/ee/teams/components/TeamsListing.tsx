@@ -13,8 +13,8 @@ import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
-import SkeletonLoaderTeamList from "~/ee/teams/components/SkeletonloaderTeamList";
-import { UpgradeTip } from "~/shell/UpgradeTip";
+import SkeletonLoaderTeamList from "@calcom/web/modules/ee/teams/components/SkeletonloaderTeamList";
+import { UpgradeTip } from "@calcom/web/modules/shell/UpgradeTip";
 
 import TeamList from "./TeamList";
 

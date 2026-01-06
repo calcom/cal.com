@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import Troubleshoot from "~/availability/troubleshoot/troubleshoot-view";
+import Troubleshoot from "@calcom/web/modules/availability/troubleshoot/troubleshoot-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

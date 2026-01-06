@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import Page from "~/more/more-page-view";
+import Page from "@calcom/web/modules/more/more-page-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

@@ -10,7 +10,7 @@ import {
   convertFacetedValuesToMap,
   useDataTable,
 } from "@calcom/features/data-table";
-import { DataTableWrapper, DataTableToolbar, DataTableFilters } from "~/data-table/components";
+import { DataTableWrapper, DataTableToolbar, DataTableFilters } from "@calcom/web/modules/data-table/components";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { CallDetailsState, CallDetailsAction } from "@calcom/features/ee/workflows/lib/types";

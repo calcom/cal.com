@@ -5,7 +5,7 @@ import { cookies, headers } from "next/headers";
 import { getServerSideProps } from "@lib/apps/categories/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import Page from "~/apps/categories/categories-view";
+import Page from "@calcom/web/modules/apps/categories/categories-view";
 
 const getData = withAppDirSsr(getServerSideProps);
 

@@ -3,7 +3,7 @@
 import ConnectionInfo from "./ConnectionInfo";
 import OIDCConnection from "./OIDCConnection";
 import SAMLConnection from "./SAMLConnection";
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/web/modules/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";

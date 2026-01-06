@@ -10,7 +10,7 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 import { useBootIntercom } from "@calcom/web/modules/ee/support/lib/intercom/useIntercom";
 
-import { IntercomContactForm } from "~/ee/support/components/IntercomContactForm";
+import { IntercomContactForm } from "@calcom/web/modules/ee/support/components/IntercomContactForm";
 
 declare global {
   interface Window {

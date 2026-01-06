@@ -7,7 +7,7 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/d/[link]/[slug]/getServerSideProps";
 import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
 
-import Type from "~/d/[link]/d-type-view";
+import Type from "@calcom/web/modules/d/[link]/d-type-view";
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const _params = await params;

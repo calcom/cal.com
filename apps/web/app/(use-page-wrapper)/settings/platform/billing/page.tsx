@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import PlatformBillingUpgrade from "~/settings/platform/billing/billing-view";
+import PlatformBillingUpgrade from "@calcom/web/modules/settings/platform/billing/billing-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

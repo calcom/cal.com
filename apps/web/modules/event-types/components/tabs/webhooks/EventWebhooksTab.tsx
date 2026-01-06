@@ -17,9 +17,9 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
-import { WebhookForm } from "~/webhooks/components";
-import EventTypeWebhookListItem from "~/webhooks/components/EventTypeWebhookListItem";
-import type { TWebhook, WebhookFormSubmitData } from "~/webhooks/components/WebhookForm";
+import { WebhookForm } from "@calcom/web/modules/webhooks/components";
+import EventTypeWebhookListItem from "@calcom/web/modules/webhooks/components/EventTypeWebhookListItem";
+import type { TWebhook, WebhookFormSubmitData } from "@calcom/web/modules/webhooks/components/WebhookForm";
 
 export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();

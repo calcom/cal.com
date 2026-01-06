@@ -3,7 +3,7 @@ import { getTranslate } from "app/_utils";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-import ProfileImpersonationViewWrapper from "~/settings/security/impersonation-view";
+import ProfileImpersonationViewWrapper from "@calcom/web/modules/settings/security/impersonation-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

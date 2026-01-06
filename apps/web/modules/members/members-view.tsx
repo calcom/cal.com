@@ -1,7 +1,7 @@
 "use client";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/web/modules/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserListTable } from "@calcom/web/modules/users/components/UserTable/UserListTable";
 import type { UserListTableProps } from "@calcom/web/modules/users/components/UserTable/UserListTable";

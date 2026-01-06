@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import CreateNewView from "~/settings/platform/oauth-clients/create-new-view";
+import CreateNewView from "@calcom/web/modules/settings/platform/oauth-clients/create-new-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

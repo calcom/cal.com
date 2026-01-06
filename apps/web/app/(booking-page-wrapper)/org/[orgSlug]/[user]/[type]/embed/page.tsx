@@ -8,10 +8,10 @@ import { loadTranslations } from "@calcom/lib/server/i18n";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";
 
-import type { PageProps as TeamTypePageProps } from "~/team/type-view";
-import TeamTypePage from "~/team/type-view";
-import UserTypePage from "~/users/views/users-type-public-view";
-import type { PageProps as UserTypePageProps } from "~/users/views/users-type-public-view";
+import type { PageProps as TeamTypePageProps } from "@calcom/web/modules/team/type-view";
+import TeamTypePage from "@calcom/web/modules/team/type-view";
+import UserTypePage from "@calcom/web/modules/users/views/users-type-public-view";
+import type { PageProps as UserTypePageProps } from "@calcom/web/modules/users/views/users-type-public-view";
 
 const getData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
 

@@ -14,9 +14,9 @@ import { QueryCell } from "@lib/QueryCell";
 
 import type { TFormType } from "@components/apps/installation/ConfigureStepCard";
 
-import type { TEventType } from "~/apps/installation/[[...step]]/step-view";
-import Locations from "~/event-types/components/locations/Locations";
-import type { TLocationOptions, TEventTypeLocation } from "~/event-types/components/locations/Locations";
+import type { TEventType } from "@calcom/web/modules/apps/installation/[[...step]]/step-view";
+import Locations from "@calcom/web/modules/event-types/components/locations/Locations";
+import type { TLocationOptions, TEventTypeLocation } from "@calcom/web/modules/event-types/components/locations/Locations";
 
 const LocationsWrapper = ({
   eventType,

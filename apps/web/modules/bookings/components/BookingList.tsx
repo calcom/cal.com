@@ -2,7 +2,7 @@
 
 import type { Table as ReactTable } from "@tanstack/react-table";
 
-import { DataTableWrapper } from "~/data-table/components";
+import { DataTableWrapper } from "@calcom/web/modules/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 

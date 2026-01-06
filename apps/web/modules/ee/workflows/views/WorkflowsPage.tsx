@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/web/modules/ee/common/components/LicenseRequired";
 import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
@@ -26,7 +26,7 @@ import {
 } from "@calcom/web/modules/ee/workflows/components/WorkflowCreationDialog";
 import WorkflowList from "@calcom/web/modules/ee/workflows/components/WorkflowListPage";
 
-import { CreateButtonWithTeamsList } from "~/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import { CreateButtonWithTeamsList } from "@calcom/web/modules/ee/teams/components/createButton/CreateButtonWithTeamsList";
 
 type PageProps = {
   filteredList?: Awaited<ReturnType<typeof WorkflowRepository.getFilteredList>>;

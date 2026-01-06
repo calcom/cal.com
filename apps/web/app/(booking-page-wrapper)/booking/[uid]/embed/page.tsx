@@ -7,11 +7,11 @@ import { loadTranslations } from "@calcom/lib/server/i18n";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import OldPage from "~/bookings/views/bookings-single-view";
+import OldPage from "@calcom/web/modules/bookings/views/bookings-single-view";
 import {
   getServerSideProps,
   type PageProps as ClientPageProps,
-} from "~/bookings/views/bookings-single-view.getServerSideProps";
+} from "@calcom/web/modules/bookings/views/bookings-single-view.getServerSideProps";
 
 export const metadata = {
   robots: {

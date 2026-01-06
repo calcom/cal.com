@@ -1,8 +1,8 @@
 import { _generateMetadata } from "app/_utils";
 
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/web/modules/ee/common/components/LicenseRequired";
 
-import LegacyPage from "~/connect-and-join/connect-and-join-view";
+import LegacyPage from "@calcom/web/modules/connect-and-join/connect-and-join-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

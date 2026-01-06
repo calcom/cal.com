@@ -5,7 +5,7 @@ import { cookies, headers } from "next/headers";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
 
-import TeamPage, { type PageProps as ClientPageProps } from "~/team/team-view";
+import TeamPage, { type PageProps as ClientPageProps } from "@calcom/web/modules/team/team-view";
 
 export const generateMetadata = async () => {
   return {

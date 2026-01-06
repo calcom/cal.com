@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import EditView from "~/settings/platform/oauth-clients/[clientId]/edit/edit-view";
+import EditView from "@calcom/web/modules/settings/platform/oauth-clients/[clientId]/edit/edit-view";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ clientId: string }> }) =>
   await _generateMetadata(

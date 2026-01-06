@@ -8,7 +8,7 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/settings/license-key/new/getServerSideProps";
 
-import CreateANewLicenseKeyForm, { LayoutWrapper } from "~/settings/license-key/new/new-view";
+import CreateANewLicenseKeyForm, { LayoutWrapper } from "@calcom/web/modules/settings/license-key/new/new-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

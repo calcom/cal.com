@@ -1,6 +1,6 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
-import LegacyPage from "~/ee/organizations/other-team-profile-view";
+import LegacyPage from "@calcom/web/modules/ee/organizations/other-team-profile-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import { validateUserHasOrg } from "../../../../actions/validateUserHasOrg";

@@ -11,7 +11,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ScrollableArea } from "@calcom/ui/components/scrollable";
 
-import type { TEventType, TEventTypesForm, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
+import type { TEventType, TEventTypesForm, TEventTypeGroup } from "@calcom/web/modules/apps/installation/[[...step]]/step-view";
 
 type EventTypesCardProps = {
   userName: string;
