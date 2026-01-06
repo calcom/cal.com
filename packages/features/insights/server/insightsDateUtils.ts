@@ -136,7 +136,7 @@ export const formatPeriod = ({
       const shouldShowMonth = wholeStart.isSame(start, "day") || start.date() === 1;
 
       if (shouldShowMonth) {
-        return omitYear ? start.format("MMM D") : start.format("MMM D, YYYY");
+        return omitYear ? start.locale("en").format("MMM D") : start.locale("en").format("MMM D, YYYY");
       } else {
         return omitYear ? start.format("D") : start.format("D, YYYY");
       }
@@ -144,22 +144,22 @@ export const formatPeriod = ({
     case "week": {
       const startFormat = "MMM D";
       let endFormat = "MMM D";
-      if (start.format("MMM") === end.format("MMM")) {
+      if (start.locale("en").format("MMM") === end.locale("en").format("MMM")) {
         endFormat = "D";
       }
 
       if (start.format("YYYY") !== end.format("YYYY")) {
-        return `${start.format(`${startFormat} , YYYY`)} - ${end.format(`${endFormat}, YYYY`)}`;
+        return `${start.locale("en").format(`${startFormat} , YYYY`)} - ${end.locale("en").format(`${endFormat}, YYYY`)}`;
       }
 
       if (omitYear) {
-        return `${start.format(startFormat)} - ${end.format(endFormat)}`;
+        return `${start.locale("en").format(startFormat)} - ${end.locale("en").format(endFormat)}`;
       } else {
-        return `${start.format(startFormat)} - ${end.format(endFormat)}, ${end.format("YYYY")}`;
+        return `${start.locale("en").format(startFormat)} - ${end.locale("en").format(endFormat)}, ${end.format("YYYY")}`;
       }
     }
     case "month": {
-      return omitYear ? start.format("MMM") : start.format("MMM YYYY");
+      return omitYear ? start.locale("en").format("MMM") : start.locale("en").format("MMM YYYY");
     }
     case "year": {
       return start.format("YYYY");
@@ -186,24 +186,24 @@ export const formatPeriodFull = ({
 
   switch (timeView) {
     case "day": {
-      return omitYear ? start.format("MMM D") : start.format("MMM D, YYYY");
+      return omitYear ? start.locale("en").format("MMM D") : start.locale("en").format("MMM D, YYYY");
     }
     case "week": {
       const startFormat = "MMM D";
       const endFormat = "MMM D";
 
       if (start.format("YYYY") !== end.format("YYYY")) {
-        return `${start.format(`${startFormat}, YYYY`)} - ${end.format(`${endFormat}, YYYY`)}`;
+        return `${start.locale("en").format(`${startFormat}, YYYY`)} - ${end.locale("en").format(`${endFormat}, YYYY`)}`;
       }
 
       if (omitYear) {
-        return `${start.format(startFormat)} - ${end.format(endFormat)}`;
+        return `${start.locale("en").format(startFormat)} - ${end.locale("en").format(endFormat)}`;
       } else {
-        return `${start.format(startFormat)} - ${end.format(endFormat)}, ${end.format("YYYY")}`;
+        return `${start.locale("en").format(startFormat)} - ${end.locale("en").format(endFormat)}, ${end.format("YYYY")}`;
       }
     }
     case "month": {
-      return omitYear ? start.format("MMM") : start.format("MMM YYYY");
+      return omitYear ? start.locale("en").format("MMM") : start.locale("en").format("MMM YYYY");
     }
     case "year": {
       return start.format("YYYY");
