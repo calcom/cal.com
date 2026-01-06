@@ -132,6 +132,12 @@ async function handler(input: CancelBookingInput) {
 
   // Extract action source once for reuse
   const actionSource = input.actionSource ?? "UNKNOWN";
+  if (actionSource === "UNKNOWN") {
+    log.warn("Booking cancellation with unknown actionSource", {
+      bookingUid: bookingToDelete.uid,
+      userUuid,
+    });
+  }
 
   // Extract actor once for reuse
   const actorToUse = getAuditActor({
