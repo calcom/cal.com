@@ -9,7 +9,7 @@ import { Select } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { SelectOption, WriteToRecordEntrySchema, WriteToObjectSettingsProps } from "./WriteToObjectSettings.types";
+import type { WriteToRecordEntrySchema, WriteToObjectSettingsProps } from "./WriteToObjectSettings.types";
 import {
   DATE_FIELD_TYPE,
   CHECKBOX_FIELD_TYPE,
@@ -18,15 +18,6 @@ import {
   buildWhenToWriteOptions,
   buildCheckboxFieldValueOptions,
 } from "./WriteToObjectSettings.utils";
-
-export { CrmFieldType, DateFieldType, WhenToWrite } from "@calcom/app-store/_lib/crm-enums";
-export {
-  BookingActionEnum,
-  type SelectOption,
-  type WriteToRecordEntry,
-  type WriteToRecordEntrySchema,
-  type WriteToObjectSettingsProps,
-} from "./WriteToObjectSettings.types";
 
 const WriteToObjectSettings = ({
   bookingAction,
@@ -503,5 +494,13 @@ const WriteToObjectSettings = ({
     </>
   );
 };
+
+export {
+  BookingActionEnum,
+  type SelectOption,
+  type WriteToRecordEntry,
+  type WriteToRecordEntrySchema,
+  type WriteToObjectSettingsProps,
+} from "./WriteToObjectSettings.types";
 
 export default WriteToObjectSettings;
