@@ -12,6 +12,7 @@ import type { TranslationWithParams } from "../actions/IAuditActionService";
 import type { ActionSource } from "../types/actionSource";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
 import { getAppNameFromSlug } from "../getAppNameFromSlug";
+import type { BookingAuditContext } from "../dto/types";
 
 interface BookingAuditViewerServiceDeps {
     bookingAuditRepository: IBookingAuditRepository;
@@ -46,7 +47,14 @@ type EnrichedAuditLog = {
         displayEmail: string | null;
         displayAvatar: string | null;
     };
+    impersonatedBy?: {
+        displayName: string;
+        displayEmail: string | null;
+        displayAvatar: string | null;
+    } | null;
 };
+
+export type DisplayBookingAuditLog = EnrichedAuditLog;
 
 /**
  * BookingAuditViewerService - Service for viewing and formatting booking audit logs
@@ -93,7 +101,7 @@ export class BookingAuditViewerService {
         userEmail: string;
         userTimeZone: string;
         organizationId: number | null;
-    }): Promise<{ bookingUid: string; auditLogs: EnrichedAuditLog[] }> {
+    }): Promise<{ bookingUid: string; auditLogs: DisplayBookingAuditLog[] }> {
         const { bookingUid, userId, userTimeZone, organizationId } = params;
         await this.accessService.assertPermissions({
             bookingUid,
@@ -148,6 +156,8 @@ export class BookingAuditViewerService {
             ? actionService.getDisplayFields(parsedData)
             : null;
 
+        const impersonatedBy = await this.enrichImpersonator(log.context);
+
         return {
             id: log.id,
             bookingUid: log.bookingUid,
@@ -171,6 +181,7 @@ export class BookingAuditViewerService {
                 displayEmail: enrichedActor.displayEmail,
                 displayAvatar: enrichedActor.displayAvatar,
             },
+            impersonatedBy,
         };
     }
     /**
@@ -226,6 +237,31 @@ export class BookingAuditViewerService {
                 userTimeZone,
                 storedData: parsedData,
             }),
+        };
+    }
+
+    private async enrichImpersonator(context: BookingAuditContext | null): Promise<{
+        displayName: string;
+        displayEmail: string | null;
+        displayAvatar: string | null;
+    } | null> {
+        if (!context?.impersonatedBy) {
+            return null;
+        }
+
+        const impersonatorUser = await this.userRepository.findByUuid({ uuid: context.impersonatedBy });
+        if (!impersonatorUser) {
+            return {
+                displayName: "Deleted User",
+                displayEmail: null,
+                displayAvatar: null,
+            };
+        }
+
+        return {
+            displayName: impersonatorUser.name || impersonatorUser.email,
+            displayEmail: impersonatorUser.email,
+            displayAvatar: impersonatorUser.avatarUrl || null,
         };
     }
 

@@ -403,6 +403,7 @@
   "set_up_later": "稍後設定",
   "current_time": "現在時間",
   "details": "詳細資訊",
+  "info": "資訊",
   "welcome": "歡迎",
   "welcome_back": "歡迎回來",
   "welcome_to_calcom": "歡迎使用 {{appName}}",
@@ -1298,6 +1299,8 @@
   "schedule_deleted_successfully": "成功刪除行程表",
   "default_schedule_name": "工作時間",
   "new_schedule_heading": "新增開放時間行程表",
+  "no_schedules_created_yet": "您尚未建立任何可用性排程。請先建立一個來開始使用。",
+  "create_availability_schedule": "建立可用性排程",
   "new_schedule_description": "新增開放時間行程表，就可以管理每個活動類型的開放時間。可以用在單一或多個活動類型。",
   "requires_ownership_of_a_token": "必須有屬於以下位址的 Token 所有權：",
   "example_name": "王小明",
@@ -4160,7 +4163,9 @@
     "attendee_no_show_updated": "與會者未出席狀態已更新",
     "type": "分配類型",
     "assignmentType_manual": "手動分配",
-    "assignmentType_roundRobin": "循環分配"
+    "assignmentType_roundRobin": "循環分配",
+    "actor_impersonated_by": "模擬者",
+    "source": "來源"
   },
   "error_loading_booking_logs": "載入預約日誌時出錯",
   "no_audit_logs_found": "未找到審計日誌",
