@@ -542,6 +542,7 @@ export const EventAdvancedTab = ({
   }
 
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
+  const [disableCancelling, setDisableCancelling] = useState(eventType.disabledCancelling || false);
 
   const [allowReschedulingCancelledBookings, setallowReschedulingCancelledBookings] = useState(
     eventType.allowReschedulingCancelledBookings ?? false
