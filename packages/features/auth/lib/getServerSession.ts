@@ -124,12 +124,14 @@ export async function getServerSession(options: {
       },
       select: {
         id: true,
+        uuid: true,
         role: true,
       },
     });
     if (impersonatedByUser) {
       session.user.impersonatedBy = {
         id: impersonatedByUser?.id,
+        uuid: impersonatedByUser.uuid,
         role: impersonatedByUser.role,
       };
     }
