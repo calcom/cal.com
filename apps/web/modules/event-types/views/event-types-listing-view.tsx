@@ -350,7 +350,10 @@ export const InfiniteEventTypeList = ({
 
   // Update flattened list when pages change
   useEffect(() => {
-    setFlattenedEventTypes(pages?.flatMap((page) => page.eventTypes) ?? []);
+    // Only sync from server if there's no pending drag operation
+    if (!pendingOrderRef.current) {
+      setFlattenedEventTypes(pages?.flatMap((page) => page.eventTypes) ?? []);
+    }
   }, [pages]);
 
   const utils = trpc.useUtils();
