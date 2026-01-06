@@ -3,11 +3,11 @@ import { Button } from "@calcom/ui/components/button";
 import { Input, Select, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
+import { getDefaultFieldMapping } from "../lib/fieldMappingHelpers";
 import type {
   IFieldMappingFormState,
   IFieldMappingWithOptionalId,
 } from "../repositories/IIntegrationAttributeSyncRepository";
-import { getDefaultFieldMapping } from "../lib/fieldMappingHelpers";
 
 type AttributeOptions = {
   label: string;
@@ -58,7 +58,6 @@ const MappingRow = ({ mapping, onChange, onRemove, attributeOptions, isLoading }
 
   return (
     <div className="bg-default border-subtle flex flex-wrap items-center gap-3 rounded-lg border p-3">
-      {/* Integration field name input */}
       <div className="flex-1" style={{ minWidth: "200px" }}>
         <Input
           type="text"
@@ -70,10 +69,8 @@ const MappingRow = ({ mapping, onChange, onRemove, attributeOptions, isLoading }
         />
       </div>
 
-      {/* Arrow/connector */}
       <Icon name="arrow-right" className="text-subtle h-4 w-4" />
 
-      {/* Cal.com attribute selector */}
       <div className="flex-1" style={{ minWidth: "200px" }}>
         <Select
           size="sm"
@@ -87,10 +84,8 @@ const MappingRow = ({ mapping, onChange, onRemove, attributeOptions, isLoading }
         />
       </div>
 
-      {/* Enable toggle */}
       <Switch checked={mapping.enabled} onCheckedChange={handleEnabledChange} disabled={isLoading} />
 
-      {/* Remove button */}
       <Button
         color="minimal"
         size="sm"
@@ -98,6 +93,7 @@ const MappingRow = ({ mapping, onChange, onRemove, attributeOptions, isLoading }
         onClick={onRemove}
         disabled={isLoading}
         className="text-subtle hover:text-default"
+        aria-label={t("remove")}
       />
     </div>
   );

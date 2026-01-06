@@ -10,10 +10,10 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import DynamicPostHogPageView from "@calcom/features/ee/event-tracking/lib/posthog/web/pageViewDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
-import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
-import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
+import DynamicHelpscoutProvider from "@calcom/web/modules/ee/support/lib/helpscout/providerDynamic";
+import DynamicIntercomProvider from "@calcom/web/modules/ee/support/lib/intercom/providerDynamic";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";

@@ -1123,11 +1123,40 @@ export class EventTypeRepository {
   }
 
   async findFirstEventTypeId({ slug, teamId, userId }: { slug: string; teamId?: number; userId?: number }) {
+    // Use compound unique keys when available for optimal performance
+    // Note: teamId and userId are mutually exclusive - never both provided
+    if (teamId) {
+      return this.prismaClient.eventType.findUnique({
+        where: {
+          teamId_slug: {
+            teamId,
+            slug,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+    }
+
+    if (userId) {
+      return this.prismaClient.eventType.findUnique({
+        where: {
+          userId_slug: {
+            userId,
+            slug,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+    }
+
+    // Fallback to findFirst if neither is provided (shouldn't happen in practice)
     return this.prismaClient.eventType.findFirst({
       where: {
         slug,
-        ...(teamId ? { teamId } : {}),
-        ...(userId ? { userId } : {}),
       },
       select: {
         id: true,

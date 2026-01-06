@@ -1,7 +1,6 @@
-import { createReadStream, existsSync } from "fs";
-import { promises as fs } from "fs";
-import { IncomingMessage, ServerResponse } from "http";
-import { extname, join, normalize } from "path";
+import { createReadStream, existsSync, promises as fs } from "node:fs";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import { extname, join, normalize } from "node:path";
 
 const distDir = join(process.cwd(), "dist");
 
@@ -55,7 +54,12 @@ const sendFile = (res: ServerResponse, filePath: string) => {
 
   const stream = createReadStream(filePath);
   stream.on("error", (error) => {
-    console.error("Failed to read file:", error);
+    console.error("Failed to read file");
+    if (process.env.NODE_ENV !== "production") {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      console.debug("[companion/api] Failed to read file", { message, stack });
+    }
     res.statusCode = 500;
     res.end("Internal Server Error");
   });
@@ -76,7 +80,12 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     const filePath = await resolveFilePath(safePath);
     sendFile(res, filePath);
   } catch (error) {
-    console.error("Server render error:", error);
+    console.error("Server render error");
+    if (process.env.NODE_ENV !== "production") {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      console.debug("[companion/api] Server render error", { message, stack });
+    }
     res.statusCode = 500;
     res.end("Internal Server Error");
   }

@@ -48,7 +48,7 @@ export const attributeSyncRuleSchema: z.ZodType<IAttributeSyncRule> = z.object({
 // Define base schema without type annotation to preserve ZodObject methods like .extend()
 const _newFieldMappingSchema = z.object({
   integrationFieldName: z.string().min(1),
-  attributeId: z.string(),
+  attributeId: z.string().min(1),
   enabled: z.boolean(),
 });
 
