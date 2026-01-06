@@ -12,16 +12,12 @@ import posthog from "posthog-js";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import {
   DataTableProvider,
-  DataTableWrapper,
-  DataTableToolbar,
-  DataTableSelectionBar,
-  DataTableFilters,
-  DataTableSegment,
   useColumnFilters,
   ColumnFilterType,
   convertFacetedValuesToMap,
   useDataTable,
 } from "@calcom/features/data-table";
+import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment, DataTableSelectionBar } from "~/data-table/components";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import {

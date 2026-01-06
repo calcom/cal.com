@@ -1,6 +1,6 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
-import UsersAddView from "@calcom/features/ee/users/pages/users-add-view";
+import UsersAddView from "~/ee/users/views/users-add-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async () =>
