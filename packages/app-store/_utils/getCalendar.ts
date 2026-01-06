@@ -63,7 +63,7 @@ export const getCalendar = async (
 
   if (isCacheSupported && shouldServeCache) {
     log.info(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const originalCalendar = new CalendarService(credential as any);
     if (originalCalendar) {
       // return cacheable calendar
@@ -75,11 +75,15 @@ export const getCalendar = async (
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const originalCalendar = new CalendarService(credential as any);
 
   // Wrap with telemetry when cache is supported but disabled (for performance comparison)
-  if (isCacheSupported && !shouldServeCache) {
+  // Only apply telemetry wrapper when Sentry is configured to avoid affecting tests
+  const isSentryConfigured = Boolean(
+    process.env.NEXT_PUBLIC_SENTRY_DSN && process.env.SENTRY_TRACES_SAMPLE_RATE
+  );
+  if (isCacheSupported && !shouldServeCache && isSentryConfigured) {
     log.info(
       `Calendar Cache is disabled but supported, using CalendarTelemetryWrapper for credential ${credential.id}`
     );
