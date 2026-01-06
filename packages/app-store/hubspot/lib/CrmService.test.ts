@@ -693,6 +693,52 @@ describe("HubspotCalendarService", () => {
       const createCall = mockHubspotClient.crm.objects.meetings.basicApi.create.mock.calls[0][0];
       expect(createCall.properties.hubspot_owner_id).toBe("owner-123");
     });
+
+    it("should create meeting successfully when owner lookup fails due to missing scope", async () => {
+      mockAppOptions({});
+
+      // Mock owner lookup to fail with 403 missing scope error (simulating owners.read scope not granted)
+      mockHubspotClient.crm.owners.ownersApi.getPage.mockRejectedValue({
+        code: 403,
+        body: {
+          status: "error",
+          message: "This app hasn't been granted all required scopes to make this call.",
+          category: "MISSING_SCOPES",
+        },
+      });
+
+      mockHubspotClient.crm.objects.meetings.basicApi.create.mockResolvedValue({
+        id: "meeting-123",
+        properties: {},
+      });
+
+      mockHubspotClient.crm.associations.batchApi.create.mockResolvedValue({
+        results: [],
+      });
+
+      const event = createMockEvent();
+      const contacts = [{ id: "contact-1", email: "attendee@example.com" }];
+
+      // Should not throw and meeting should be created successfully
+      const result = await service.createEvent(event, contacts);
+
+      expect(result).toEqual({
+        uid: "meeting-123",
+        id: "meeting-123",
+        type: "hubspot_other_calendar",
+        password: "",
+        url: "",
+        additionalInfo: { contacts, associatedMeeting: { results: [] } },
+      });
+
+      // Verify meeting was created without owner
+      const createCall = mockHubspotClient.crm.objects.meetings.basicApi.create.mock.calls[0][0];
+      expect(createCall.properties.hubspot_owner_id).toBeUndefined();
+
+      // Verify meeting creation and association still happened
+      expect(mockHubspotClient.crm.objects.meetings.basicApi.create).toHaveBeenCalled();
+      expect(mockHubspotClient.crm.associations.batchApi.create).toHaveBeenCalled();
+    });
   });
 
   describe("updateEvent", () => {
