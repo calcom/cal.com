@@ -1,14 +1,44 @@
 "use client";
 
-import type { ReactElement } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BadgeProps } from "@calcom/ui/components/badge";
 import { Badge } from "@calcom/ui/components/badge";
 import { PanelCard } from "@calcom/ui/components/card";
 import { Icon } from "@calcom/ui/components/icon";
+import type { ReactElement } from "react";
 
-import type { HealthCheckData } from "~/settings/(admin-layout)/admin/healthcheck/_queries";
+type AppStatus = {
+  slug: string;
+  dirName: string;
+  enabled: boolean;
+  categories: string[];
+};
+
+type HealthCheckData = {
+  apps: {
+    installed: AppStatus[];
+    total: number;
+  };
+  license: {
+    hasEnvKey: boolean;
+    hasDbKey: boolean;
+    isValid: boolean;
+  };
+  email: {
+    hasEmailFrom: boolean;
+    hasSendgridApiKey: boolean;
+    hasSmtpConfig: boolean;
+    provider: "sendgrid" | "smtp" | "none";
+  };
+  redis: {
+    hasUpstashUrl: boolean;
+    hasUpstashToken: boolean;
+  };
+  database: {
+    connected: boolean;
+    error?: string;
+  };
+};
 
 type StatusBadgeProps = {
   configured: boolean;
@@ -41,12 +71,7 @@ type StatusRowProps = {
   notConfiguredLabel?: string;
 };
 
-function StatusRow({
-  label,
-  configured,
-  configuredLabel,
-  notConfiguredLabel,
-}: StatusRowProps): ReactElement {
+function StatusRow({ label, configured, configuredLabel, notConfiguredLabel }: StatusRowProps): ReactElement {
   return (
     <div className="flex items-center justify-between border-b border-subtle px-4 py-3 last:border-b-0">
       <span className="text-default text-sm">{label}</span>
@@ -56,6 +81,33 @@ function StatusRow({
         notConfiguredLabel={notConfiguredLabel}
       />
     </div>
+  );
+}
+
+function getEmailProviderLabel(provider: "sendgrid" | "smtp" | "none", t: (key: string) => string): string {
+  if (provider === "sendgrid") {
+    return "SendGrid";
+  }
+  if (provider === "smtp") {
+    return "SMTP";
+  }
+  return t("not_configured");
+}
+
+type EmailProviderBadgeProps = {
+  provider: "sendgrid" | "smtp" | "none";
+  t: (key: string) => string;
+};
+
+function EmailProviderBadge({ provider, t }: EmailProviderBadgeProps): ReactElement {
+  let variant: BadgeProps["variant"] = "orange";
+  if (provider !== "none") {
+    variant = "green";
+  }
+  return (
+    <Badge variant={variant} withDot>
+      {getEmailProviderLabel(provider, t)}
+    </Badge>
   );
 }
 
@@ -107,7 +159,7 @@ function HealthCheckView({ data }: HealthCheckViewProps): ReactElement {
         {data.database.error && (
           <div className="border-subtle bg-error/10 border-t px-4 py-3">
             <div className="text-error flex items-center gap-2 text-sm">
-              <Icon name="alert-circle" className="h-4 w-4" />
+              <Icon name="circle-alert" className="h-4 w-4" />
               <span>{data.database.error}</span>
             </div>
           </div>
@@ -118,12 +170,27 @@ function HealthCheckView({ data }: HealthCheckViewProps): ReactElement {
       <PanelCard title={t("license")}>
         <StatusRow label={t("environment_variable")} configured={data.license.hasEnvKey} />
         <StatusRow label={t("database_configuration")} configured={data.license.hasDbKey} />
+        <StatusRow
+          label={t("license_validation")}
+          configured={data.license.isValid}
+          configuredLabel={t("valid")}
+          notConfiguredLabel={t("invalid")}
+        />
       </PanelCard>
 
       {/* Email Configuration */}
       <PanelCard title={t("email_configuration")}>
         <StatusRow label="EMAIL_FROM" configured={data.email.hasEmailFrom} />
-        <StatusRow label="SENDGRID_API_KEY" configured={data.email.hasSendgridApiKey} />
+        <div className="flex items-center justify-between border-b border-subtle px-4 py-3 last:border-b-0">
+          <span className="text-default text-sm">{t("email_provider")}</span>
+          <EmailProviderBadge provider={data.email.provider} t={t} />
+        </div>
+        {data.email.provider === "sendgrid" && (
+          <StatusRow label="SENDGRID_API_KEY" configured={data.email.hasSendgridApiKey} />
+        )}
+        {data.email.provider === "smtp" && (
+          <StatusRow label="SMTP (EMAIL_SERVER_HOST/PORT)" configured={data.email.hasSmtpConfig} />
+        )}
       </PanelCard>
 
       {/* Redis Configuration */}
@@ -163,4 +230,5 @@ function HealthCheckView({ data }: HealthCheckViewProps): ReactElement {
   );
 }
 
+export type { HealthCheckData };
 export default HealthCheckView;

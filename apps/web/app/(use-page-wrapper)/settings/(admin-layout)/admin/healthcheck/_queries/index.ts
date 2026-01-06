@@ -1,16 +1,16 @@
-import { unstable_cache } from "next/cache";
 import process from "node:process";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import LicenseKeyService from "@calcom/features/ee/common/server/LicenseKeyService";
+import { UserPermissionRole } from "@calcom/prisma/enums";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { unstable_cache } from "next/cache";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import prisma from "@calcom/prisma";
+import type { AppStatus } from "../_repository";
+import { healthcheckRepository } from "../_repository";
 
 const HEALTHCHECK_CACHE_TTL = 60; // 1 minute cache for health checks
-
-type AppStatus = {
-  slug: string;
-  dirName: string;
-  enabled: boolean;
-  categories: string[];
-};
 
 type HealthCheckData = {
   apps: {
@@ -20,10 +20,13 @@ type HealthCheckData = {
   license: {
     hasEnvKey: boolean;
     hasDbKey: boolean;
+    isValid: boolean;
   };
   email: {
     hasEmailFrom: boolean;
     hasSendgridApiKey: boolean;
+    hasSmtpConfig: boolean;
+    provider: "sendgrid" | "smtp" | "none";
   };
   redis: {
     hasUpstashUrl: boolean;
@@ -35,76 +38,57 @@ type HealthCheckData = {
   };
 };
 
-async function getInstalledApps(): Promise<AppStatus[]> {
-  const apps = await prisma.app.findMany({
-    select: {
-      slug: true,
-      dirName: true,
-      enabled: true,
-      categories: true,
-    },
-    orderBy: {
-      slug: "asc",
-    },
-  });
+function getEmailConfigStatus(): HealthCheckData["email"] {
+  const hasEmailFrom = !!process.env.EMAIL_FROM;
+  const hasSendgridApiKey = !!process.env.SENDGRID_API_KEY;
+  const hasSmtpHost = !!process.env.EMAIL_SERVER_HOST;
+  const hasSmtpPort = !!process.env.EMAIL_SERVER_PORT;
+  const hasSmtpConfig = hasSmtpHost && hasSmtpPort;
 
-  return apps;
-}
-
-async function getLicenseKeyStatus(): Promise<{ hasEnvKey: boolean; hasDbKey: boolean }> {
-  const hasEnvKey = !!process.env.CALCOM_LICENSE_KEY;
-
-  let hasDbKey = false;
-  try {
-    const deployment = await prisma.deployment.findUnique({
-      where: { id: 1 },
-      select: { licenseKey: true },
-    });
-    hasDbKey = !!deployment?.licenseKey;
-  } catch {
-    // Deployment table might not exist in some setups
-    hasDbKey = false;
+  let provider: "sendgrid" | "smtp" | "none" = "none";
+  if (hasSendgridApiKey) {
+    provider = "sendgrid";
+  } else if (hasSmtpConfig) {
+    provider = "smtp";
   }
 
-  return { hasEnvKey, hasDbKey };
-}
-
-function getEmailConfigStatus(): { hasEmailFrom: boolean; hasSendgridApiKey: boolean } {
   return {
-    hasEmailFrom: !!process.env.EMAIL_FROM,
-    hasSendgridApiKey: !!process.env.SENDGRID_API_KEY,
+    hasEmailFrom,
+    hasSendgridApiKey,
+    hasSmtpConfig,
+    provider,
   };
 }
 
-function getRedisConfigStatus(): { hasUpstashUrl: boolean; hasUpstashToken: boolean } {
+function getRedisConfigStatus(): HealthCheckData["redis"] {
   return {
     hasUpstashUrl: !!process.env.UPSTASH_REDIS_REST_URL,
     hasUpstashToken: !!process.env.UPSTASH_REDIS_REST_TOKEN,
   };
 }
 
-async function getDatabaseStatus(): Promise<{ connected: boolean; error?: string }> {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    return { connected: true };
-  } catch (error) {
-    let errorMessage = "Unknown database error";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    return {
-      connected: false,
-      error: errorMessage,
-    };
-  }
-}
-
 async function fetchHealthCheckData(): Promise<HealthCheckData> {
-  const [apps, license, database] = await Promise.all([
-    getInstalledApps(),
-    getLicenseKeyStatus(),
-    getDatabaseStatus(),
+  const [apps, dbLicenseKey, database] = await Promise.all([
+    healthcheckRepository.listApps(),
+    healthcheckRepository.getDeploymentLicenseKey(),
+    healthcheckRepository.ping(),
   ]);
+
+  const hasEnvKey = !!process.env.CALCOM_LICENSE_KEY;
+  const hasDbKey = !!dbLicenseKey;
+
+  // Validate license key using LicenseKeyService
+  let isValid = false;
+  if (hasEnvKey || hasDbKey) {
+    try {
+      const deploymentRepo = healthcheckRepository.getDeploymentRepository();
+      const licenseService = await LicenseKeyService.create(deploymentRepo);
+      isValid = await licenseService.checkLicense();
+    } catch {
+      // License validation failed, keep isValid as false
+      isValid = false;
+    }
+  }
 
   const email = getEmailConfigStatus();
   const redis = getRedisConfigStatus();
@@ -114,14 +98,18 @@ async function fetchHealthCheckData(): Promise<HealthCheckData> {
       installed: apps,
       total: apps.length,
     },
-    license,
+    license: {
+      hasEnvKey,
+      hasDbKey,
+      isValid,
+    },
     email,
     redis,
     database,
   };
 }
 
-const getHealthCheckData: () => Promise<HealthCheckData> = unstable_cache(
+const cachedFetchHealthCheckData: () => Promise<HealthCheckData> = unstable_cache(
   fetchHealthCheckData,
   ["admin-healthcheck"],
   {
@@ -129,6 +117,22 @@ const getHealthCheckData: () => Promise<HealthCheckData> = unstable_cache(
     tags: ["admin-healthcheck"],
   }
 );
+
+/**
+ * Get health check data for admin users only.
+ * This function verifies admin role before returning cached health check data.
+ */
+async function getHealthCheckData(): Promise<HealthCheckData> {
+  // Verify admin role - defense in depth (layout also checks)
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const userRole = session?.user?.role;
+
+  if (userRole !== UserPermissionRole.ADMIN) {
+    redirect("/settings/my-account/profile");
+  }
+
+  return cachedFetchHealthCheckData();
+}
 
 export type { AppStatus, HealthCheckData };
 export { getHealthCheckData };

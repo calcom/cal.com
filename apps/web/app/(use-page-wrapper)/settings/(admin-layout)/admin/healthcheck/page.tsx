@@ -1,8 +1,7 @@
-import type { Metadata } from "next";
-import type { ReactElement } from "react";
-
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { _generateMetadata, getTranslate } from "app/_utils";
+import type { Metadata } from "next";
+import type { ReactElement } from "react";
 
 import HealthCheckView from "~/settings/admin/healthcheck-view";
 
