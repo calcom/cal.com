@@ -1,20 +1,37 @@
-import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
+
+type AttributeToUserCreateManyInput = {
+  id?: string;
+  memberId: number;
+  attributeOptionId: string;
+  weight?: number;
+  createdById: number;
+  updatedById: number;
+  createdByDSyncId?: string | null;
+  updatedByDSyncId?: string | null;
+};
+
+type AttributeToUserWhereInput = {
+  memberId?: number | { in?: number[] };
+  attributeOptionId?: string | { in?: string[] };
+};
 
 export class PrismaAttributeToUserRepository {
-  static async createManySkipDuplicates(data: Prisma.AttributeToUserCreateManyInput[]) {
-    return await prisma.attributeToUser.createMany({ data, skipDuplicates: true });
+  constructor(private prismaClient: PrismaClient) {}
+
+  async createManySkipDuplicates(data: AttributeToUserCreateManyInput[]) {
+    return await this.prismaClient.attributeToUser.createMany({ data, skipDuplicates: true });
   }
 
-  static async deleteMany(where: Prisma.AttributeToUserWhereInput) {
+  async deleteMany(where: AttributeToUserWhereInput) {
     if (Object.keys(where).length === 0) {
       throw new Error("Empty where clause provided to deleteMany. Potential data loss risk.");
     }
-    return await prisma.attributeToUser.deleteMany({ where });
+    return await this.prismaClient.attributeToUser.deleteMany({ where });
   }
 
-  static async findManyIncludeAttribute(where: Prisma.AttributeToUserWhereInput) {
-    return await prisma.attributeToUser.findMany({
+  async findManyIncludeAttribute(where: AttributeToUserWhereInput) {
+    return await this.prismaClient.attributeToUser.findMany({
       where,
       include: {
         attributeOption: {
@@ -28,12 +45,12 @@ export class PrismaAttributeToUserRepository {
     });
   }
 
-  static async findManyByOrgMembershipIds({ orgMembershipIds }: { orgMembershipIds: number[] }) {
+  async findManyByOrgMembershipIds({ orgMembershipIds }: { orgMembershipIds: number[] }) {
     if (!orgMembershipIds.length) {
       return [];
     }
 
-    const attributesAssignedToTeamMembers = await prisma.attributeToUser.findMany({
+    const attributesAssignedToTeamMembers = await this.prismaClient.attributeToUser.findMany({
       where: {
         memberId: {
           in: orgMembershipIds,
