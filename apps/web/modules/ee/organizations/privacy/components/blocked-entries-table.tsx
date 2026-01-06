@@ -4,7 +4,8 @@ import { keepPreviousData } from "@tanstack/react-query";
 import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 
-import { DataTableWrapper, useDataTable } from "@calcom/features/data-table";
+import { useDataTable } from "@calcom/features/data-table";
+import { DataTableWrapper } from "~/data-table/components";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
