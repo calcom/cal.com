@@ -27,11 +27,21 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
       redirectUri: true,
       name: true,
       clientType: true,
+      allowedScopes: true,
     },
   });
 
   if (!client) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Client ID not valid" });
+  }
+
+  // Validate requested scopes are within client's allowed scopes
+  const invalidScopes = scopes.filter((scope) => !client.allowedScopes.includes(scope as AccessScope));
+  if (invalidScopes.length > 0) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Requested scopes not allowed: ${invalidScopes.join(", ")}`,
+    });
   }
 
   if (client.clientType === "PUBLIC") {
