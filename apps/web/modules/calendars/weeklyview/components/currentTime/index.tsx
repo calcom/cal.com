@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 
-import { useCalendarStore } from "../../state/store";
+import { useCalendarStore } from "@calcom/features/calendars/weeklyview/state/store";
 
 function calculateMinutesFromStart(startHour: number, currentHour: number, currentMinute: number) {
   const startMinute = startHour * 60;

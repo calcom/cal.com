@@ -7,10 +7,10 @@ import { useTimePreferences } from "@calcom/features/bookings/lib";
 import classNames from "@calcom/ui/classNames";
 
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/components/OutOfOfficeInSlots";
-import { useCalendarStore } from "../../state/store";
-import type { CalendarAvailableTimeslots } from "../../types/state";
-import type { GridCellToDateProps } from "../../utils";
-import { gridCellToDateTime } from "../../utils";
+import { useCalendarStore } from "@calcom/features/calendars/weeklyview/state/store";
+import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
+import type { GridCellToDateProps } from "@calcom/features/calendars/weeklyview/utils";
+import { gridCellToDateTime } from "@calcom/features/calendars/weeklyview/utils";
 
 type EmptyCellProps = GridCellToDateProps & {
   isDisabled?: boolean;

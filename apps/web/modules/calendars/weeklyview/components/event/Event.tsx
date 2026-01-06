@@ -5,7 +5,7 @@ import type { BookingStatus } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import type { CalendarEvent } from "../../types/events";
+import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 
 type EventProps = {
   event: CalendarEvent;
