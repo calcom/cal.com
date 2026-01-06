@@ -19,7 +19,7 @@ async function handler(req: NextRequest) {
   const { client_id, client_secret, grant_type, refresh_token } = await parseUrlFormData(req);
 
   if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-    return NextResponse.json({ message: "CALENDSO_ENCRYPTION_KEY is not set" }, { status: 500 });
+    return NextResponse.json({ error: "server_error" }, { status: 500 });
   }
 
   if (!client_id) {
@@ -55,7 +55,9 @@ async function handler(req: NextRequest) {
       return NextResponse.json({ error: "invalid_request" }, { status: 400 });
     }
 
-    decodedRefreshToken = jwt.verify(refreshTokenValue, secretKey) as OAuthTokenPayload;
+    decodedRefreshToken = jwt.verify(refreshTokenValue, secretKey, {
+      algorithms: ["HS256"],
+    }) as OAuthTokenPayload;
   } catch {
     return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
   }
@@ -85,10 +87,12 @@ async function handler(req: NextRequest) {
   };
 
   const access_token = jwt.sign(payloadAuthToken, secretKey, {
+    algorithm: "HS256",
     expiresIn: ACCESS_TOKEN_EXPIRES_IN,
   });
 
   const refresh_token_new = jwt.sign(payloadRefreshToken, secretKey, {
+    algorithm: "HS256",
     expiresIn: REFRESH_TOKEN_EXPIRES_IN,
   });
 

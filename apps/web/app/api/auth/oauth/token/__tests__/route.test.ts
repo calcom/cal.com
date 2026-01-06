@@ -597,7 +597,9 @@ describe("POST /api/auth/oauth/token", () => {
         expires_in: 1800,
       });
 
-      expect(mockJwt.verify).toHaveBeenCalledWith("valid_refresh_token", "test_encryption_key");
+      expect(mockJwt.verify).toHaveBeenCalledWith("valid_refresh_token", "test_encryption_key", {
+        algorithms: ["HS256"],
+      });
     });
 
     it("should reject refresh_token without client_id", async () => {
