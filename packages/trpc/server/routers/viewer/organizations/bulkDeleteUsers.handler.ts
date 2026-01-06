@@ -9,6 +9,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TBulkUsersDelete } from "./bulkDeleteUsers.schema.";
+import { TeamService } from "@calcom/ee/teams/services/teamService";
 
 type BulkDeleteUsersHandler = {
   ctx: {
@@ -72,6 +73,19 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
       },
     },
   });
+
+  await Promise.all(input.userIds.map(async (userId) => {
+    const teamIdsToDeleteFrom = await TeamService.getTeamsToBeRemovedFrom({
+      userId,
+      teamId: currentUserOrgId,
+      isOrg: true,
+    });
+    return TeamService.deleteFilterSegmentForRemovedMembership({
+      userId,
+      teamIds: teamIdsToDeleteFrom,
+      teamParentId: null,
+    })
+  }))
 
   const removeOrgrelation = prisma.user.updateMany({
     where: {

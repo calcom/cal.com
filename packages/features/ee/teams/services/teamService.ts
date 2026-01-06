@@ -367,6 +367,12 @@ export class TeamService {
     const team = await TeamService.fetchTeamOrThrow(teamId);
     const user = await TeamService.fetchUserOrThrow(userId);
 
+    const teamIdsToDeleteFrom = await TeamService.getTeamsToBeRemovedFrom({
+      userId,
+      teamId,
+      isOrg,
+    });
+
     if (isOrg) {
       log.debug("Removing a member from the organization");
       await TeamService.removeFromOrganization(membership, team, user);
@@ -376,18 +382,22 @@ export class TeamService {
     }
 
     await deleteWorkfowRemindersOfRemovedMember(team, userId, isOrg);
-    await TeamService.deleteFilterSegmentForRemovedMembership({ userId, teamId, teamParentId: team.parentId });
+    await TeamService.deleteFilterSegmentForRemovedMembership({
+      userId,
+      teamIds: teamIdsToDeleteFrom,
+      teamParentId: team.parentId,
+    });
 
     return { membership };
   }
 
-  private static async deleteFilterSegmentForRemovedMembership({
+  static async deleteFilterSegmentForRemovedMembership({
     userId,
-    teamId,
+    teamIds,
     teamParentId,
   }: {
     userId: number;
-    teamId: number;
+    teamIds: number[];
     teamParentId: number | null;
   }) {
     const filterSegmentRepository = new FilterSegmentRepository();
@@ -395,7 +405,7 @@ export class TeamService {
     // User ids which had filter access being the owner or admin of the team
     const userIdsWhichLostAccess = await TeamService.findUserIdsWhichLostAccessUponMembershipDeletion({
       userId,
-      teamId,
+      teamIds,
       teamParentId,
     });
 
@@ -463,18 +473,25 @@ export class TeamService {
 
   private static async findUserIdsWhichLostAccessUponMembershipDeletion({
     userId,
-    teamId,
+    teamIds,
     teamParentId,
   }: {
     userId: number;
-    teamId: number;
+    teamIds: number[];
     teamParentId: number | null;
   }) {
     const teamFilter = teamParentId
       ? {
-          OR: [{ teamId: teamId }, { teamId: teamParentId }],
+          OR: [
+            {
+              teamId: {
+                in: teamIds,
+              },
+            },
+            { teamId: teamParentId },
+          ],
         }
-      : { teamId: teamId };
+      : { teamId: { in: teamIds } };
 
     const directTeamAccessFilter: Prisma.UserWhereInput = {
       teams: {
@@ -711,5 +728,35 @@ export class TeamService {
         },
       }),
     ]);
+  }
+
+  static async getTeamsToBeRemovedFrom({
+    userId,
+    teamId,
+    isOrg,
+  }: {
+    userId: number;
+    teamId: number;
+    isOrg: boolean;
+  }) {
+    const teams = [teamId];
+
+    if (!isOrg) {
+      return teams;
+    }
+
+    // Get subteams which the user is a part of
+    const memberships = await prisma.membership.findMany({
+      select: {
+        teamId: true,
+      },
+      where: {
+        userId,
+        team: { parentId: teamId },
+      },
+    });
+
+    memberships.forEach((membership) => teams.push(membership.teamId));
+    return teams;
   }
 }
