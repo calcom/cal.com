@@ -16,6 +16,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
+import { getTrackingFromCookies } from "@calcom/lib/tracking";
 import { prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -105,13 +106,24 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     username = usernameAndEmailValidation.username;
   }
 
-  // Create the customer in Stripe
+  // Create the customer in Stripe with ad tracking metadata
+  const cookieStore = await cookies();
+  const cookiesObj = Object.fromEntries(cookieStore.getAll().map((c) => [c.name, c.value]));
+  const tracking = getTrackingFromCookies(cookiesObj);
 
   const customer = await billingService.createCustomer({
     email,
     metadata: {
       email /* Stripe customer email can be changed, so we add this to keep track of which email was used to signup */,
       username,
+      ...(tracking.googleAds?.gclid && {
+        gclid: tracking.googleAds.gclid,
+        campaignId: tracking.googleAds.campaignId,
+      }),
+      ...(tracking.linkedInAds?.liFatId && {
+        liFatId: tracking.linkedInAds.liFatId,
+        linkedInCampaignId: tracking.linkedInAds.campaignId,
+      }),
     },
   });
 

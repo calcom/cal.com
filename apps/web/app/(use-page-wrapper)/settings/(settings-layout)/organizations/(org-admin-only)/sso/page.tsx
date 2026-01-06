@@ -1,7 +1,7 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { redirect } from "next/navigation";
 
-import OrgSSOView from "@calcom/features/ee/sso/page/orgs-sso-view";
+import OrgSSOView from "~/ee/sso/views/orgs-sso-view";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
