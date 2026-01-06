@@ -1,3 +1,6 @@
+import type { z } from "zod";
+import { v4 as uuidv4 } from "uuid";
+
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
@@ -18,8 +21,8 @@ import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repos
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
-  cancelNoShowTasksForBooking,
   deleteWebhookScheduledTriggers,
+  cancelNoShowTasksForBooking,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
@@ -37,14 +40,13 @@ import prisma from "@calcom/prisma";
 import type { Prisma, PrismaClient, WorkflowReminder } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { bookingMetadataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import { bookingCancelInput, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import { v4 as uuidv4 } from "uuid";
-import type { z } from "zod";
+
 import type {
-  CancelBookingMeta,
   CancelRegularBookingData,
+  CancelBookingMeta,
   HandleCancelBookingResponse,
 } from "./dto/BookingCancel";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -67,9 +69,6 @@ type PlatformParams = {
 export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 
 export type CancelBookingInput = {
-  /**
-   * @deprecated Use userUuid instead
-   */
   userId?: number;
   userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
@@ -133,12 +132,6 @@ async function handler(input: CancelBookingInput) {
 
   // Extract action source once for reuse
   const actionSource = input.actionSource ?? "UNKNOWN";
-  if (actionSource === "UNKNOWN") {
-    log.warn("Booking cancellation with unknown actionSource", {
-      bookingUid: bookingToDelete.uid,
-      userUuid,
-    });
-  }
 
   // Extract actor once for reuse
   const actorToUse = getAuditActor({
@@ -347,8 +340,8 @@ async function handler(input: CancelBookingInput) {
     destinationCalendar: bookingToDelete?.destinationCalendar
       ? [bookingToDelete?.destinationCalendar]
       : bookingToDelete?.user.destinationCalendar
-        ? [bookingToDelete?.user.destinationCalendar]
-        : [],
+      ? [bookingToDelete?.user.destinationCalendar]
+      : [],
     cancellationReason: cancellationReason,
     ...(teamMembers &&
       teamId && {
