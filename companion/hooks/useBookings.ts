@@ -267,6 +267,42 @@ export function useUpdateLocation() {
 }
 
 /**
+ * Hook to add guests to a booking
+ *
+ * @returns Mutation function and state
+ *
+ * @example
+ * ```tsx
+ * const { mutate: addGuests, isPending } = useAddGuests();
+ *
+ * addGuests({
+ *   uid: 'abc-123',
+ *   guests: [{ email: 'guest@example.com', name: 'Guest Name' }]
+ * });
+ * ```
+ */
+export function useAddGuests() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ uid, guests }: { uid: string; guests: { email: string; name?: string }[] }) =>
+      CalComAPIService.addGuests(uid, guests),
+    onSuccess: (_, variables) => {
+      // Invalidate all booking queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all });
+
+      // Also invalidate the specific booking detail
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.bookings.detail(variables.uid),
+      });
+    },
+    onError: (_error) => {
+      console.error("Failed to add guests");
+    },
+  });
+}
+
+/**
  * Hook to prefetch bookings (useful for navigation)
  *
  * @returns Function to prefetch bookings
