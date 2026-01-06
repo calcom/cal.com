@@ -6,17 +6,17 @@ import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
 import { v4 as uuidv4 } from "uuid";
 
-import type { AddMembersWithSwitchCustomClassNames } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
+import type { AddMembersWithSwitchCustomClassNames } from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
 import AddMembersWithSwitch, {
   mapUserToValue,
-} from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
-import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
-import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import { EditWeightsForAllTeamMembers } from "@calcom/features/eventtypes/components/EditWeightsForAllTeamMembers";
-import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
-import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
-import WeightDescription from "@calcom/features/eventtypes/components/WeightDescription";
+} from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
+import AssignAllTeamMembers from "@calcom/web/modules/event-types/components/AssignAllTeamMembers";
+import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
+import ChildrenEventTypeSelect from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
+import { EditWeightsForAllTeamMembers } from "@calcom/web/modules/event-types/components/EditWeightsForAllTeamMembers";
+import { sortHosts } from "@calcom/web/modules/event-types/components/HostEditDialogs";
+import { LearnMoreLink } from "@calcom/web/modules/event-types/components/LearnMoreLink";
+import WeightDescription from "@calcom/web/modules/event-types/components/WeightDescription";
 import type {
   FormValues,
   TeamMember,
