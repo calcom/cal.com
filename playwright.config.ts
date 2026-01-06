@@ -33,6 +33,8 @@ const webServer: PlaywrightTestConfig["webServer"] = [
     port: 3000,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
+    stdout: "ignore",
+    stderr: "ignore",
   },
 ];
 
@@ -91,7 +93,7 @@ const config: PlaywrightTestConfig = {
   retries: process.env.CI ? 1 : 0,
   // While debugging it should be focussed mode
   // eslint-disable-next-line turbo/no-undeclared-env-vars
-  workers: process.env.PWDEBUG ? 1 : os.cpus().length,
+  workers: 3,
   timeout: DEFAULT_TEST_TIMEOUT,
   maxFailures: headless ? 10 : undefined,
   fullyParallel: true,

@@ -89,7 +89,7 @@ jobs:
       - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/cache-build
       - name: Run Tests
-        run: yarn e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }} --workers=6
+        run: yarn e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }} --workers=3
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: always()
