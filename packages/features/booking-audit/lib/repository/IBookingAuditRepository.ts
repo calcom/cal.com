@@ -1,7 +1,7 @@
 import type { JsonValue } from "@calcom/types/Json";
 import type { AuditActorType } from "./IAuditActorRepository";
 import type { ActionSource } from "../types/actionSource";
-import type { BookingAuditContext } from "../../../bookings/lib/types/actor";
+import type { BookingAuditContext } from "../dto/types";
 
 export type BookingAuditType = "RECORD_CREATED" | "RECORD_UPDATED" | "RECORD_DELETED"
 
@@ -40,6 +40,7 @@ type BookingAudit = {
 }
 
 export type BookingAuditWithActor = BookingAudit & {
+    context: BookingAuditContext | null;
     actor: {
         id: string;
         type: AuditActorType;

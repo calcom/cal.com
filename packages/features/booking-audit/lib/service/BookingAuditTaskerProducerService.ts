@@ -7,7 +7,8 @@ import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.s
 
 import type { BookingAuditAction } from "../types/bookingAuditTask";
 import type { ActionSource } from "../types/actionSource";
-import { makeActorById, type PiiFreeActor, type Actor, type BookingAuditContext, buildActorEmail } from "../../../bookings/lib/types/actor";
+import type { PiiFreeActor, Actor, BookingAuditContext } from "../dto/types";
+import { makeActorById, buildActorEmail } from "../makeActor";
 import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";

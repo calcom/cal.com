@@ -2813,8 +2813,9 @@ model BookingAudit {
 
   data Json?
 
-  // Context for cross-cutting concerns like impersonation
+  // Context for across action types concerns like impersonation, ip, userAgent etc.
   // This is separate from `data` because it isn't related to action type but makes sense with every action
+  // BookingAuditContextSchema
   context Json?
 
   @@index([actorId])

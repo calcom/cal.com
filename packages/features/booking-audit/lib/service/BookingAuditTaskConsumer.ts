@@ -4,7 +4,7 @@ import logger from "@calcom/lib/logger";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
-import type { PiiFreeActor, BookingAuditContext } from "../../../bookings/lib/types/actor";
+import type { PiiFreeActor, BookingAuditContext } from "../dto/types";
 import type {
     SingleBookingAuditTaskConsumerPayload,
     BulkBookingAuditTaskConsumerPayload,

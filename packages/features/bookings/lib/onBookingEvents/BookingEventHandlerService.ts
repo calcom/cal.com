@@ -17,7 +17,7 @@ import type { ActionSource } from "@calcom/features/booking-audit/lib/types/acti
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { Actor, BookingAuditContext } from "../types/actor";
+import type { Actor, BookingAuditContext } from "@calcom/features/booking-audit/lib/dto/types";
 import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types";
 
 interface BookingEventHandlerDeps {

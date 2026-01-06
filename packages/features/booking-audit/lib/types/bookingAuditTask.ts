@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { PiiFreeActorSchema, BookingAuditContextSchema } from "../../../bookings/lib/types/actor";
+import { PiiFreeActorSchema, BookingAuditContextSchema } from "../dto/types";
 import { ActionSourceSchema } from "./actionSource";
 
 /**

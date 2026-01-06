@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { Actor, BookingAuditContext } from "../../../bookings/lib/types/actor";
+import type { Actor, BookingAuditContext } from "../dto/types";
 import type { ActionSource } from "../types/actionSource";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
