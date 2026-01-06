@@ -1,9 +1,9 @@
 import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { createHash } from "crypto";
-import EventEmitter from "events";
-import type { IncomingMessage, ServerResponse } from "http";
-import { createServer } from "http";
+import { createHash } from "node:crypto";
+import EventEmitter from "node:events";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import { createServer } from "node:http";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 import { v4 as uuid } from "uuid";
@@ -416,19 +416,32 @@ export async function fillStripeTestCheckout(page: Page) {
 
 export function goToUrlWithErrorHandling({ page, url }: { page: Page; url: string }) {
   return new Promise<{ success: boolean; url: string }>(async (resolve) => {
+    let resolved = false;
     const onRequestFailed = (request: PlaywrightRequest) => {
+      // Only consider it a navigation failure if it's the main document request
+      // Ignore failures for subresources like images, scripts, RSC requests, etc.
+      if (!request.isNavigationRequest() || request.frame() !== page.mainFrame()) {
+        const failedToLoadUrl = request.url();
+        console.log("goToUrlWithErrorHandling: Failed to load URL:", failedToLoadUrl);
+        return;
+      }
+      if (resolved) return;
+      resolved = true;
       const failedToLoadUrl = request.url();
-      console.log("goToUrlWithErrorHandling: Failed to load URL:", failedToLoadUrl);
+      console.log("goToUrlWithErrorHandling: Navigation failed for URL:", failedToLoadUrl);
       resolve({ success: false, url: failedToLoadUrl });
     };
     page.on("requestfailed", onRequestFailed);
     try {
-      await page.goto(url);
+      await page.goto(url, { waitUntil: "domcontentloaded" });
     } catch {
       // do nothing
     }
     page.off("requestfailed", onRequestFailed);
-    resolve({ success: true, url: page.url() });
+    if (!resolved) {
+      resolved = true;
+      resolve({ success: true, url: page.url() });
+    }
   });
 }
 
@@ -480,6 +493,9 @@ export async function gotoBookingPage(page: Page) {
   const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
 
   await page.goto(previewLink ?? "");
+  await page.waitForURL((url) => {
+    return url.searchParams.get("overlayCalendar") === "true";
+  });
 }
 
 export async function saveEventType(page: Page) {

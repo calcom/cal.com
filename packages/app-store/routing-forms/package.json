@@ -8,16 +8,15 @@
   "dependencies": {
     "@calcom/lib": "workspace:*",
     "dotenv": "16.6.1",
-    "json-logic-js": "^2.0.2",
-    "react-awesome-query-builder": "^5.1.2"
+    "json-logic-js": "2.0.2",
+    "react-awesome-query-builder": "5.1.2"
   },
   "scripts": {
-    "lint": "eslint .",
-    "lint:fix": "eslint ."
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write ."
   },
   "devDependencies": {
-    "@calcom/eslint-config": "workspace:*",
     "@calcom/types": "workspace:*",
-    "@types/json-logic-js": "^1.2.1"
+    "@types/json-logic-js": "1.2.1"
   }
 }

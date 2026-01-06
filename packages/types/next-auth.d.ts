@@ -13,11 +13,12 @@ declare module "next-auth" {
     hasValidLicense: boolean;
     profileId?: number | null;
     upId: string;
-    user: User;
+    user: User & { uuid: PrismaUser["uuid"] };
   }
 
   interface User extends Omit<DefaultUser, "id"> {
     id: PrismaUser["id"];
+    uuid?: PrismaUser["uuid"];
     emailVerified?: PrismaUser["emailVerified"];
     email_verified?: boolean;
     completedOnboarding?: boolean;
@@ -41,6 +42,7 @@ declare module "next-auth" {
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
     locale?: string | null;
     profile?: UserProfile;
+    samlTenant?: string;
   }
 }
 

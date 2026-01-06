@@ -1,28 +1,32 @@
-import { formatDuration } from "../../utils/formatters";
-import { getEventDuration } from "../../utils/getEventDuration";
-import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
-import { EventTypeListItemProps } from "./types";
-import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
-import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
-import { Ionicons } from "@expo/vector-icons";
+import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
+import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import React from "react";
-import { View, Text, Pressable } from "react-native";
+import type React from "react";
+import { Pressable, View } from "react-native";
+import {
+  DurationBadge,
+  EventTypeDescription,
+  EventTypeTitle,
+  PriceAndConfirmationBadges,
+} from "./EventTypeListItemParts";
+import type { EventTypeListItemProps } from "./types";
+import { useEventTypeListItemData } from "./useEventTypeListItemData";
 
 export const EventTypeListItem = ({
   item,
   index,
   filteredEventTypes,
-  copiedEventTypeId,
+  copiedEventTypeId: _copiedEventTypeId,
   handleEventTypePress,
-  handleEventTypeLongPress,
+  handleEventTypeLongPress: _handleEventTypeLongPress,
   handleCopyLink,
   handlePreview,
   onEdit,
   onDuplicate,
   onDelete,
 }: EventTypeListItemProps) => {
-  const duration = getEventDuration(item);
+  const { formattedDuration, normalizedDescription, hasPrice, formattedPrice } =
+    useEventTypeListItemData(item);
   const isLast = index === filteredEventTypes.length - 1;
 
   type ButtonSystemImage = React.ComponentProps<typeof Button>["systemImage"];
@@ -49,93 +53,97 @@ export const EventTypeListItem = ({
     {
       label: "Edit",
       icon: "pencil",
-      onPress: () => onEdit(item),
+      onPress: () => onEdit?.(item),
       role: "default",
     },
     {
       label: "Duplicate",
       icon: "square.on.square",
-      onPress: () => onDuplicate(item),
+      onPress: () => onDuplicate?.(item),
       role: "default",
     },
     {
       label: "Delete",
       icon: "trash",
-      onPress: () => onDelete(item),
+      onPress: () => onDelete?.(item),
       role: "destructive",
     },
   ];
 
   return (
-    <View className={`bg-white active:bg-[#F8F9FA] ${!isLast ? "border-b border-[#E5E5EA]" : ""}`}>
-      <View className="flex-shrink-1 flex-row items-center justify-between">
-        <Pressable
-          onPress={() => handleEventTypePress(item)}
-          style={{ paddingHorizontal: 16, paddingVertical: 16 }}
-          className="flex-grow"
+    <View
+      className={`bg-cal-bg active:bg-cal-bg-secondary ${!isLast ? "border-b border-cal-border" : ""}`}
+    >
+      {/* Native iOS Context Menu for long-press */}
+      <Host matchContents>
+        <ContextMenu
+          modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
+          activationMethod="longPress"
         >
-          <View className="mr-4 flex-1">
-            <View className="mb-1 flex-row items-center">
-              <Text className="flex-1 text-base font-semibold text-[#333]">{item.title} </Text>
-            </View>
-            {item.description ? (
-              <Text className="mb-2 mt-0.5 text-sm leading-5 text-[#666]" numberOfLines={2}>
-                {normalizeMarkdown(item.description)}
-              </Text>
-            ) : null}
-            <View className="mt-2 flex-row items-center self-start rounded-lg border border-[#E5E5EA] bg-[#E5E5EA] px-2 py-1">
-              <Ionicons name="time-outline" size={14} color="#000" />
-              <Text className="ml-1.5 text-xs font-semibold text-black">
-                {formatDuration(duration)}
-              </Text>
-            </View>
-            {(item.price != null && item.price > 0) || item.requiresConfirmation ? (
-              <View className="mt-2 flex-row items-center gap-3">
-                {item.price != null && item.price > 0 ? (
-                  <Text className="text-sm font-medium text-[#34C759]">
-                    {item.currency || "$"}
-                    {item.price}
-                  </Text>
-                ) : null}
-                {item.requiresConfirmation ? (
-                  <View className="rounded bg-[#FF9500] px-2 py-0.5">
-                    <Text className="text-xs font-medium text-white">Requires Confirmation</Text>
-                  </View>
-                ) : null}
-              </View>
-            ) : null}
-          </View>
-        </Pressable>
+          <ContextMenu.Items>
+            {eventTypes.map((eventType) => (
+              <Button
+                key={eventType.label}
+                systemImage={eventType.icon}
+                onPress={eventType.onPress}
+                role={eventType.role}
+                label={eventType.label}
+              />
+            ))}
+          </ContextMenu.Items>
+          <ContextMenu.Trigger>
+            <View className="flex-shrink-1 flex-row items-center justify-between">
+              <Pressable
+                onPress={() => handleEventTypePress(item)}
+                style={{ paddingHorizontal: 16, paddingVertical: 16 }}
+                className="flex-grow"
+              >
+                <View className="mr-4 flex-1">
+                  <EventTypeTitle title={item.title} />
+                  <EventTypeDescription normalizedDescription={normalizedDescription} />
+                  <DurationBadge formattedDuration={formattedDuration} />
+                  <PriceAndConfirmationBadges
+                    hasPrice={hasPrice}
+                    formattedPrice={formattedPrice}
+                    requiresConfirmation={item.requiresConfirmation}
+                  />
+                </View>
+              </Pressable>
 
-        <Host matchContents>
-          <ContextMenu
-            modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"), padding()]}
-            activationMethod="singlePress"
-          >
-            <ContextMenu.Items>
-              {eventTypes.map((eventType) => (
-                <Button
-                  key={eventType.label}
-                  systemImage={eventType.icon}
-                  onPress={eventType.onPress}
-                  role={eventType.role}
-                  label={eventType.label}
-                />
-              ))}
-            </ContextMenu.Items>
-            <ContextMenu.Trigger>
-              <HStack>
-                <Image
-                  systemName="ellipsis"
-                  color="primary"
-                  size={24}
-                  modifiers={[frame({ height: 24, width: 17 })]}
-                />
-              </HStack>
-            </ContextMenu.Trigger>
-          </ContextMenu>
-        </Host>
-      </View>
+              <View style={{ paddingRight: 16 }}>
+                <Host matchContents>
+                  <ContextMenu
+                    modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
+                    activationMethod="singlePress"
+                  >
+                    <ContextMenu.Items>
+                      {eventTypes.map((eventType) => (
+                        <Button
+                          key={eventType.label}
+                          systemImage={eventType.icon}
+                          onPress={eventType.onPress}
+                          role={eventType.role}
+                          label={eventType.label}
+                        />
+                      ))}
+                    </ContextMenu.Items>
+                    <ContextMenu.Trigger>
+                      <HStack>
+                        <Image
+                          systemName="ellipsis"
+                          color="primary"
+                          size={24}
+                          modifiers={[frame({ height: 24, width: 17 })]}
+                        />
+                      </HStack>
+                    </ContextMenu.Trigger>
+                  </ContextMenu>
+                </Host>
+              </View>
+            </View>
+          </ContextMenu.Trigger>
+        </ContextMenu>
+      </Host>
     </View>
   );
 };

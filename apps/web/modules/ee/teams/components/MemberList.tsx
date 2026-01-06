@@ -20,15 +20,12 @@ import type { Dispatch, SetStateAction } from "react";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import {
   DataTableProvider,
-  DataTableToolbar,
-  DataTableFilters,
-  DataTableWrapper,
-  DataTableSelectionBar,
   useDataTable,
   useFetchMoreOnBottomReached,
   useColumnFilters,
   convertFacetedValuesToMap,
 } from "@calcom/features/data-table";
+import { DataTableToolbar, DataTableFilters, DataTableWrapper, DataTableSelectionBar } from "~/data-table/components";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
