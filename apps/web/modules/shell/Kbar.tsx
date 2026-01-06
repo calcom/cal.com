@@ -154,7 +154,7 @@ function useUpcomingBookingsAction(): void {
       return {
         id: `booking-${booking.uid}`,
         name: `${booking.title} - ${formattedDate} ${formattedTime}`,
-        section: "upcoming",
+        section: { name: "upcoming", priority: 1 },
         keywords: `booking ${booking.title} ${attendeeNames}`,
         perform: () => router.push(`/booking/${booking.uid}`),
       };
