@@ -17,7 +17,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, vi, expect } from "vitest";
 
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
@@ -64,6 +64,8 @@ describe("roundRobinReassignment test", () => {
     const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
+    // Clear any existing mock calls from previous tests
+    eventManagerSpy.mockClear();
     eventManagerSpy.mockResolvedValue({ referencesToCreate: [] });
 
     const users = testUsers;
@@ -197,6 +199,8 @@ describe("roundRobinReassignment test", () => {
     const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
+    // Clear any existing mock calls from previous tests
+    eventManagerSpy.mockClear();
 
     const users = testUsers;
 

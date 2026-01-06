@@ -1,5 +1,6 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
-import { sendScheduledEmailsAndSMS } from "@calcom/emails";
+import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
@@ -7,18 +8,34 @@ import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirma
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import tasker from "@calcom/features/tasker";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
 const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
-export async function handlePaymentSuccess(paymentId: number, bookingId: number) {
+export async function handlePaymentSuccess(paymentId: number, bookingId: number, traceContext: TraceContext) {
+  const updatedTraceContext = distributedTracing.updateTrace(traceContext, {
+    bookingId,
+    paymentId,
+  });
   log.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
+
+  try {
+    await tasker.cancelWithReference(booking.uid, "sendAwaitingPaymentEmail");
+    log.debug(`Cancelled scheduled awaiting payment email for booking ${bookingId}`);
+  } catch (error) {
+    log.warn(
+      { bookingId, error },
+      `Failed to cancel awaiting payment task - email may still be sent but will be suppressed by task handler`
+    );
+  }
 
   if (booking.location) evt.location = booking.location;
 
@@ -87,6 +104,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
         booking,
         paid: true,
         platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
+        traceContext: updatedTraceContext,
       });
     } else {
       await handleBookingRequested({

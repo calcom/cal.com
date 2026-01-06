@@ -1,0 +1,9 @@
+@source "../../../apps/web/pages/**/*.{js,ts,jsx,tsx}";
+@source "../../../apps/web/app/**/*.{js,ts,jsx,tsx}";
+@source "../../../apps/web/modules/**/*.{js,ts,jsx,tsx}";  
+@source "../../../apps/web/components/**/*.{js,ts,jsx,tsx}";
+@source "../../../packages/app-store/**/*{components,pages}/**/*.{js,ts,jsx,tsx}";
+@source "../../../packages/features/**/*.{js,ts,jsx,tsx}";
+@source "../../../packages/ui/**/*.{js,ts,jsx,tsx}";
+@source "../../../packages/platform/atoms/**/*.{js,ts,jsx,tsx}";
+@source "../../../packages/coss-ui/src/**/*.{js,ts,jsx,tsx}";

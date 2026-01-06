@@ -1,28 +1,27 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
-import { sendNoShowFeeChargedEmail } from "@calcom/emails";
+import { sendNoShowFeeChargedEmail } from "@calcom/emails/billing-email-service";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 
 import { handleNoShowFee } from "./handleNoShowFee";
 
 vi.mock("@calcom/app-store/payment.services.generated", () => ({
   PaymentServiceMap: {
     stripepayment: Promise.resolve({
-      PaymentService: vi.fn().mockImplementation(() => ({
+      PaymentService: vi.fn().mockImplementation(function() { return {
         chargeCard: vi.fn(),
-      })),
+      }; }),
     }),
   },
 }));
 
-vi.mock("@calcom/emails", () => ({
+vi.mock("@calcom/emails/billing-email-service", () => ({
   sendNoShowFeeChargedEmail: vi.fn(),
 }));
 
@@ -30,23 +29,23 @@ vi.mock("@calcom/lib/server/i18n", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => key),
 }));
 
-vi.mock("@calcom/lib/server/repository/credential", () => ({
+vi.mock("@calcom/features/credentials/repositories/CredentialRepository", () => ({
   CredentialRepository: {
     findPaymentCredentialByAppIdAndUserIdOrTeamId: vi.fn(),
     findPaymentCredentialByAppIdAndTeamId: vi.fn(),
   },
 }));
 
-vi.mock("@calcom/lib/server/repository/membership", () => ({
+vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
   MembershipRepository: {
     findUniqueByUserIdAndTeamId: vi.fn(),
   },
 }));
 
-vi.mock("@calcom/lib/server/repository/team", () => ({
-  TeamRepository: vi.fn().mockImplementation(() => ({
+vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
+  TeamRepository: vi.fn().mockImplementation(function() { return {
     findParentOrganizationByTeamId: vi.fn(),
-  })),
+  }; }),
 }));
 
 vi.mock("@calcom/prisma", () => ({
@@ -63,7 +62,7 @@ describe("handleNoShowFee", () => {
     };
 
     const paymentServiceModule = await PaymentServiceMap.stripepayment;
-    vi.mocked(paymentServiceModule.PaymentService).mockImplementation(() => mockPaymentService);
+    vi.mocked(paymentServiceModule.PaymentService).mockImplementation(function() { return mockPaymentService; });
   });
 
   const mockBooking = {
@@ -212,7 +211,7 @@ describe("handleNoShowFee", () => {
       const mockTeamRepository = {
         findParentOrganizationByTeamId: vi.fn().mockResolvedValue({ id: 2 }),
       };
-      vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepository);
+      vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepository; });
 
       const result = await handleNoShowFee({
         booking: teamBooking,

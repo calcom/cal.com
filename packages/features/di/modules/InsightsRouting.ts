@@ -1,5 +1,5 @@
-import type { IInsightsRoutingService } from "@calcom/lib/server/service/InsightsRoutingDIService";
-import { InsightsRoutingService } from "@calcom/lib/server/service/InsightsRoutingDIService";
+import type { IInsightsRoutingService } from "@calcom/features/insights/services/InsightsRoutingDIService";
+import { InsightsRoutingService } from "@calcom/features/insights/services/InsightsRoutingDIService";
 
 import { createModule } from "../di";
 import { DI_TOKENS } from "../tokens";

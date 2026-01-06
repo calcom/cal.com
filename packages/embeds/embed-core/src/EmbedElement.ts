@@ -8,7 +8,7 @@ import {
   addDarkColorSchemeChangeListener,
   getMaxHeightForModal,
 } from "./ui-utils";
-
+import type { ExternalThemeClass } from "./ui/themeClass";
 type ShadowRootWithStyle = ShadowRoot & {
   host: HTMLElement & { style: CSSStyleDeclaration };
 };
@@ -19,7 +19,7 @@ export class EmbedElement extends HTMLElement {
   public isModal!: boolean;
   public skeletonContainerHeightTimer: number | null = null;
   // Theme Class is derived from `this.theme` as well as system color scheme preference
-  public themeClass!: string;
+  public themeClass!: ExternalThemeClass;
   public layout!: AllPossibleLayouts;
   public getSkeletonData!: (_args: { layout: AllPossibleLayouts; pageType: EmbedPageType | null }) => {
     skeletonContent: string;
@@ -29,6 +29,8 @@ export class EmbedElement extends HTMLElement {
 
   private boundResizeHandler: () => void;
   private boundPrefersDarkThemeChangedHandler: (e: MediaQueryListEvent) => void;
+  private boundEnsureContainerTakesSkeletonHeightWhenVisible: () => void;
+
   private isSkeletonSupportedPageType() {
     const pageType = this.getPageType();
     // Any pageType being set is considered as skeleton supported. There is always a fallback skeleton loader if no direct match for a skeleton loader is found based on pageType
@@ -99,7 +101,7 @@ export class EmbedElement extends HTMLElement {
         return;
       }
     }
-    const rafId = requestAnimationFrame(this.ensureContainerTakesSkeletonHeightWhenVisible.bind(this));
+    const rafId = requestAnimationFrame(this.boundEnsureContainerTakesSkeletonHeightWhenVisible);
     this.skeletonContainerHeightTimer = rafId;
     return rafId;
   }
@@ -158,6 +160,7 @@ export class EmbedElement extends HTMLElement {
     this.getSkeletonData = data.getSkeletonData;
     this.boundResizeHandler = this.resizeHandler.bind(this);
     this.boundPrefersDarkThemeChangedHandler = this.prefersDarkThemeChangedHandler.bind(this);
+    this.boundEnsureContainerTakesSkeletonHeightWhenVisible = this.ensureContainerTakesSkeletonHeightWhenVisible.bind(this);
   }
 
   public isSkeletonLoaderVisible() {

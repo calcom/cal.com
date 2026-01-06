@@ -384,13 +384,6 @@ describe("Cancel Booking", () => {
             ],
           },
         ],
-        teams: [
-          {
-            id: 1,
-            name: "Test Team",
-            slug: "test-team",
-          },
-        ],
         users: [organizer, hostAttendee],
         apps: [TestData.apps["daily-video"]],
       })
@@ -786,13 +779,6 @@ describe("Cancel Booking", () => {
             paymentOption: "HOLD",
           },
         ],
-        teams: [
-          {
-            id: 1,
-            name: "Test Team",
-            slug: "test-team",
-          },
-        ],
         users: [organizer, teamMember],
         apps: [TestData.apps["daily-video"]],
       })
@@ -831,7 +817,6 @@ describe("Cancel Booking", () => {
     const booker = getBooker({
       email: "booker@example.com",
       name: "Booker",
-      id: 999,
     });
 
     const organizer = getOrganizer({
@@ -941,5 +926,131 @@ describe("Cancel Booking", () => {
     });
 
     expect(result.success).toBe(true);
+  });
+
+  test("Should trigger BOOKING_CANCELLED webhook with username and usernameInOrg for organization bookings", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      username: "organizer-username",
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "org-booking-uid";
+    const idOfBookingToBeCancelled = 5080;
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+    await createBookingScenario(
+      getScenarioData(
+        {
+          webhooks: [
+            {
+              userId: organizer.id,
+              eventTriggers: ["BOOKING_CANCELLED"],
+              subscriberUrl: "http://my-webhook.example.com",
+              active: true,
+              eventTypeId: 1,
+              appId: null,
+            },
+          ],
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 30,
+              length: 30,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          bookings: [
+            {
+              id: idOfBookingToBeCancelled,
+              uid: uidOfBookingToBeCancelled,
+              attendees: [
+                {
+                  email: booker.email,
+                },
+              ],
+              eventTypeId: 1,
+              userId: 101,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+              status: BookingStatus.ACCEPTED,
+              startTime: `${plus1DateString}T05:00:00.000Z`,
+              endTime: `${plus1DateString}T05:15:00.000Z`,
+              metadata: {
+                videoCallUrl: "https://existing-daily-video-call-url.example.com",
+              },
+            },
+          ],
+          organizer,
+          apps: [TestData.apps["daily-video"]],
+        },
+        {
+          id: 1,
+          profileUsername: "username-in-org",
+        }
+      )
+    );
+
+    mockSuccessfulVideoMeetingCreation({
+      metadataLookupKey: "dailyvideo",
+      videoMeetingData: {
+        id: "MOCK_ID",
+        password: "MOCK_PASS",
+        url: `http://mock-dailyvideo.example.com/meeting-org`,
+      },
+    });
+
+    mockCalendarToHaveNoBusySlots("googlecalendar", {
+      create: {
+        id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID_ORG",
+      },
+    });
+
+    await handleCancelBooking({
+      bookingData: {
+        id: idOfBookingToBeCancelled,
+        uid: uidOfBookingToBeCancelled,
+        cancelledBy: organizer.email,
+        cancellationReason: "Organization booking cancellation test",
+      },
+    });
+
+    expectBookingCancelledWebhookToHaveBeenFired({
+      booker,
+      organizer: {
+        ...organizer,
+        usernameInOrg: "username-in-org",
+      },
+      location: BookingLocations.CalVideo,
+      subscriberUrl: "http://my-webhook.example.com",
+      payload: {
+        cancelledBy: organizer.email,
+        organizer: {
+          id: organizer.id,
+          username: organizer.username,
+          email: organizer.email,
+          name: organizer.name,
+          timeZone: organizer.timeZone,
+        },
+      },
+    });
   });
 });

@@ -8,7 +8,7 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { dataTableQueryParamsSerializer } from "@calcom/features/data-table/lib/serializers";
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
+import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/web/modules/embed/components/RoutingFormEmbed";
 import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -95,9 +95,7 @@ function NewFormDialog({
     <Dialog open={newFormDialogState !== null} onOpenChange={(open) => !open && setNewFormDialogState(null)}>
       <DialogContent className="overflow-y-auto">
         <div className="mb-1">
-          <h3
-            className="text-emphasis !font-cal text-semibold leading-20 text-xl font-medium"
-            id="modal-title">
+          <h3 className="text-emphasis !font-cal text-semibold text-xl font-medium" id="modal-title">
             {teamId ? t("add_new_team_form") : t("add_new_form")}
           </h3>
           <div>
@@ -117,7 +115,7 @@ function NewFormDialog({
               duplicateFrom: formToDuplicate,
             });
           }}>
-          <div className="mt-3 space-y-5">
+          <div className="mt-3 stack-y-5">
             <TextField label={t("title")} required placeholder={t("a_routing_form")} {...register("name")} />
             <div className="mb-5">
               <TextAreaField
@@ -175,7 +173,10 @@ export const FormActionsDropdown = ({
             type="button"
             variant="icon"
             color="secondary"
-            className={classNames(disabled && "opacity-30")}
+            className={classNames(
+              disabled && "opacity-30",
+              "ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
+            )}
             StartIcon="ellipsis"
           />
         </DropdownMenuTrigger>
@@ -272,16 +273,14 @@ function Dialogs({
 
 const actionsCtx = createContext({
   appUrl: "",
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
   setNewFormDialogState: null as SetNewFormDialogState | null,
   newFormDialogState: null as NewFormDialogState,
   _delete: {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     onAction: (_arg: { routingForm: RoutingForm | null }) => {},
     isPending: false,
   },
   toggle: {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     onAction: (_arg: { routingForm: RoutingForm | null; checked: boolean }) => {},
     isPending: false,
   },

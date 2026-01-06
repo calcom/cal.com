@@ -37,10 +37,11 @@ const decryptedSchema = z.object({
 });
 
 // Move the sessionGetter function outside the GET function
-const createSessionGetter = (userId: number) => async () => {
+const createSessionGetter = (userId: number, userUuid: string) => async () => {
   return {
     user: {
       id: userId,
+      uuid: userUuid,
       username: "" /* Not used in this context */,
       role: UserPermissionRole.USER,
       /* Not used in this context */
@@ -59,7 +60,6 @@ const createSessionGetter = (userId: number) => async () => {
 };
 
 async function handler(request: NextRequest) {
-  const url = new URL(request.url);
   const searchParams = request.nextUrl.searchParams;
 
   const { action, token, reason } = querySchema.parse(Object.fromEntries(searchParams.entries()));
@@ -86,13 +86,14 @@ async function handler(request: NextRequest) {
   });
 
   // Use the factory function instead of declaring inside the block
-  const sessionGetter = createSessionGetter(userId);
+  const sessionGetter = createSessionGetter(userId, user.uuid);
 
   try {
     /** @see https://trpc.io/docs/server-side-calls */
     // Create a legacy request object for compatibility
     const legacyReq = buildLegacyRequest(await headers(), await cookies());
-    const res = {} as any; // Response is still mocked as it's not used in this context
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Response is mocked as it's not used in this context
+    const res = {} as any;
 
     const ctx = await createContext({ req: legacyReq, res }, sessionGetter);
     const createCaller = createCallerFactory(bookingsRouter);
@@ -120,10 +121,10 @@ async function handler(request: NextRequest) {
   } catch (e) {
     let message = "Error confirming booking";
     if (e instanceof TRPCError) message = (e as TRPCError).message;
-    return NextResponse.redirect(`${url.origin}/booking/${bookingUid}?error=${encodeURIComponent(message)}`);
+    return NextResponse.redirect(new URL(`/booking/${bookingUid}?error=${encodeURIComponent(message)}`, request.url));
   }
 
-  return NextResponse.redirect(`${url.origin}/booking/${bookingUid}`);
+  return NextResponse.redirect(new URL(`/booking/${bookingUid}`, request.url));
 }
 
 export const GET = defaultResponderForAppDir(handler);

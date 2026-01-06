@@ -1,15 +1,16 @@
 import type { Logger } from "tslog";
 
-import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
-import { enrichUsersWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
+import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
+import type { RoutingFormResponse } from "@calcom/features/bookings/lib/getLuckyUser";
 import { getQualifiedHostsService } from "@calcom/features/di/containers/QualifiedHosts";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
+import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { RoutingFormResponse } from "@calcom/lib/server/getLuckyUser";
-import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import { userSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -52,6 +53,7 @@ type EventType = Pick<
   | "rescheduleWithSameRoundRobinHost"
   | "teamId"
   | "includeNoShowInRRCalculation"
+  | "rrHostSubsetEnabled"
 >;
 
 type InputProps = {
@@ -66,6 +68,7 @@ type InputProps = {
   isPlatform: boolean;
   hostname: string | undefined;
   forcedSlug: string | undefined;
+  rrHostSubsetIds?: number[];
 };
 
 const _loadAndValidateUsers = async ({
@@ -80,6 +83,7 @@ const _loadAndValidateUsers = async ({
   isPlatform,
   hostname,
   forcedSlug,
+  rrHostSubsetIds,
 }: InputProps): Promise<{
   qualifiedRRUsers: UsersWithDelegationCredentials;
   additionalFallbackRRUsers: UsersWithDelegationCredentials;
@@ -130,7 +134,11 @@ const _loadAndValidateUsers = async ({
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
   // Determine if users are locked
-  const containsBlockedUser = await checkIfUsersAreBlocked(users);
+  const containsBlockedUser = await checkIfUsersAreBlocked({
+    users,
+    organizationId: null,
+    span: sentrySpan,
+  });
 
   if (containsBlockedUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
@@ -150,6 +158,7 @@ const _loadAndValidateUsers = async ({
       rescheduleUid,
       contactOwnerEmail,
       routingFormResponse,
+      rrHostSubsetIds,
     });
   const allQualifiedHostsHashMap = [...qualifiedRRHosts, ...(allFallbackRRHosts ?? []), ...fixedHosts].reduce(
     (acc, host) => {

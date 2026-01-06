@@ -18,7 +18,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 import { describe, vi, expect } from "vitest";
 
 import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
@@ -179,7 +179,10 @@ type ConferenceResult = {
 const mockEventManagerReschedule = async (config?: MockEventManagerConfig) => {
   const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const spy = vi.spyOn(EventManager.prototype as any, "reschedule");
+  const existingSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
+  // Clear any existing mock calls from previous tests
+  existingSpy.mockClear();
+  const spy = existingSpy;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   spy.mockImplementation(async (event: any) => {
@@ -465,9 +468,9 @@ describe("roundRobinManualReassignment test", () => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
     await mockEventManagerReschedule();
 
-    const sendRoundRobinReassignedEmailsAndSMSSpy = vi.spyOn(
-      await import("@calcom/emails"),
-      "sendRoundRobinReassignedEmailsAndSMS"
+    const sendReassignedEmailsAndSMSSpy = vi.spyOn(
+      await import("@calcom/emails/email-manager"),
+      "sendReassignedEmailsAndSMS"
     );
 
     const testDestinationCalendar = createTestDestinationCalendar();
@@ -523,7 +526,7 @@ describe("roundRobinManualReassignment test", () => {
       reassignedById: 1,
     });
 
-    expect(sendRoundRobinReassignedEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
+    expect(sendReassignedEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -1,8 +1,12 @@
 import { defineWorkspace } from "vitest/config";
 
-const packagedEmbedTestsOnly = process.argv.includes("--packaged-embed-tests-only");
-const timeZoneDependentTestsOnly = process.argv.includes("--timeZoneDependentTestsOnly");
-const integrationTestsOnly = process.argv.includes("--integrationTestsOnly");
+// Vitest 4.0 no longer allows custom CLI flags, so we use environment variables instead
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const packagedEmbedTestsOnly = process.env.VITEST_MODE === "packaged-embed";
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const timeZoneDependentTestsOnly = process.env.VITEST_MODE === "timezone";
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const integrationTestsOnly = process.env.VITEST_MODE === "integration";
 // eslint-disable-next-line turbo/no-undeclared-env-vars
 const envTZ = process.env.TZ;
 if (timeZoneDependentTestsOnly && !envTZ) {
@@ -136,8 +140,18 @@ const workspaces = packagedEmbedTestsOnly
           globals: true,
           name: "@calcom/app-store-core",
           include: ["packages/app-store/*.{test,spec}.[jt]s?(x)"],
+          exclude: ["packages/app-store/delegationCredential.test.ts"],
           environment: "jsdom",
           setupFiles: ["packages/ui/components/test-setup.tsx"],
+        },
+      },
+      {
+        test: {
+          globals: true,
+          name: "@calcom/app-store-delegation-credential",
+          include: ["packages/app-store/delegationCredential.test.ts"],
+          environment: "node",
+          setupFiles: ["setupVitest.ts"],
         },
       },
       {

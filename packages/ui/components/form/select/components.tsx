@@ -19,7 +19,7 @@ export const InputComponent = <
     <reactSelectComponents.Input
       // disables our default form focus highlight on the react-select input element
       inputClassName={classNames(
-        "focus:ring-0 focus:ring-offset-0 !text-default dark:!text-white",
+        "focus:ring-0 focus:ring-offset-0 !text-default dark:text-white!",
         inputClassName
       )}
       {...props}
@@ -35,6 +35,11 @@ type ExtendedOption = {
   isCalAi?: boolean;
   creditsTeamId?: number;
   isOrganization?: boolean;
+  upgradeTeamsBadgeProps?: {
+    hasPaidPlan?: boolean;
+    hasActiveTeamPlan?: boolean;
+    isTrial?: boolean;
+  };
 };
 
 export const OptionComponent = <
@@ -59,7 +64,10 @@ export const OptionComponent = <
           {props.label || <>&nbsp;</>}
         </span>
         {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? (
-          <UpgradeTeamsBadge checkForActiveStatus={true} />
+          <UpgradeTeamsBadge
+            checkForActiveStatus={true}
+            {...(props.data as unknown as ExtendedOption).upgradeTeamsBadgeProps}
+          />
         ) : (props.data as unknown as ExtendedOption).needsCredits ? (
           <CreditsBadge
             teamId={(props.data as unknown as ExtendedOption).creditsTeamId}

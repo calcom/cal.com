@@ -1,18 +1,80 @@
 import prismock from "../../../../../../tests/libs/__mocks__/prisma";
-
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
-import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { UserPermissionRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
-
 import { intentToCreateOrgHandler } from "./intentToCreateOrg.handler";
+import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
+import {
+  BillingPeriod,
+  UserPermissionRole,
+  CreationSource,
+} from "@calcom/prisma/enums";
+import { TRPCError } from "@trpc/server";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
   LicenseKeySingleton: {
     getInstance: vi.fn(),
   },
+}));
+
+vi.mock("@calcom/features/ee/organizations/lib/OrganizationPaymentService");
+
+vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
+  TeamRepository: class {
+    constructor() {}
+    findOwnedTeamsByUserId() {
+      return Promise.resolve([]);
+    }
+    findById() {
+      return Promise.resolve({
+        id: 1,
+        name: "Test Org",
+        slug: "test-org",
+        logoUrl: null,
+        parentId: null,
+        metadata: {},
+        isOrganization: true,
+        organizationSettings: null,
+        isPlatform: false,
+      });
+    }
+  },
+}));
+
+vi.mock(
+  "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler",
+  () => ({
+    createTeamsHandler: vi.fn().mockResolvedValue({}),
+  })
+);
+
+vi.mock(
+  "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler",
+  () => ({
+    inviteMembersWithNoInviterPermissionCheck: vi.fn().mockResolvedValue({}),
+  })
+);
+
+vi.mock("@calcom/lib/server/i18n", () => ({
+  getTranslation: vi
+    .fn()
+    .mockImplementation(async (locale: string, namespace: string) => {
+      const t = (key: string) => key;
+      t.locale = locale;
+      t.namespace = namespace;
+      return t;
+    }),
+}));
+
+vi.mock("@calcom/lib/domainManager/organization", () => ({
+  createDomain: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("@calcom/emails/organization-email-service", () => ({
+  sendOrganizationCreationEmail: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
+  sendEmailVerification: vi.fn().mockResolvedValue({}),
 }));
 
 const mockInput = {
@@ -23,6 +85,7 @@ const mockInput = {
   seats: 5,
   pricePerSeat: 20,
   isPlatform: false,
+  creationSource: "WEBAPP",
 };
 
 // Helper functions for creating test data
@@ -49,8 +112,39 @@ async function createTestUser(data: {
 describe("intentToCreateOrgHandler", () => {
   beforeEach(async () => {
     vi.resetAllMocks();
-    // @ts-expect-error reset is a method on Prismock
     await prismock.reset();
+
+    vi.mocked(OrganizationPaymentService).mockImplementation(function () {
+      return {
+        createOrganizationOnboarding: vi
+          .fn()
+          .mockImplementation(async (data: any) => {
+            return await prismock.organizationOnboarding.create({
+              data: {
+                id: "onboarding-123",
+                name: data.name,
+                slug: data.slug,
+                orgOwnerEmail: data.orgOwnerEmail,
+                seats: data.seats ?? 10,
+                pricePerSeat: data.pricePerSeat ?? 15,
+                billingPeriod: data.billingPeriod ?? BillingPeriod.MONTHLY,
+                isComplete: false,
+                stripeCustomerId: null,
+                createdById: data.createdByUserId,
+                teams: data.teams ?? [],
+                invitedMembers: data.invitedMembers ?? [],
+                isPlatform: data.isPlatform ?? false,
+              },
+            });
+          }),
+        createPaymentIntent: vi.fn().mockResolvedValue({
+          checkoutUrl: "https://stripe.com/checkout/session",
+          organizationOnboarding: {},
+          subscription: {},
+          sessionId: "session-123",
+        }),
+      } as any;
+    });
   });
 
   describe("hosted", () => {
@@ -64,7 +158,10 @@ describe("intentToCreateOrgHandler", () => {
       });
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
+        incrementUsage: vi.fn().mockResolvedValue(undefined),
       });
+      process.env.STRIPE_ORG_PRODUCT_ID = "prod_test123";
+      process.env.STRIPE_ORG_MONTHLY_PRICE_ID = "price_test123";
     });
 
     it("should allow admin user to create org for another user", async () => {
@@ -88,7 +185,7 @@ describe("intentToCreateOrgHandler", () => {
         },
       });
 
-      // Verify the result shape
+      // Admin creating for different user with no teams/invites triggers handover
       expect(result).toEqual({
         userId: expect.any(Number),
         orgOwnerEmail: mockInput.orgOwnerEmail,
@@ -99,19 +196,27 @@ describe("intentToCreateOrgHandler", () => {
         billingPeriod: mockInput.billingPeriod,
         isPlatform: mockInput.isPlatform,
         organizationOnboardingId: expect.any(String),
+        checkoutUrl: null,
+        organizationId: null, // Not created yet - handover flow
+        handoverUrl: expect.stringContaining(
+          "/settings/organizations/new/resume?onboardingId="
+        ),
       });
 
       // Verify organization onboarding was created
-      const organizationOnboarding = await prismock.organizationOnboarding.findFirst({
-        where: {
-          slug: mockInput.slug,
-        },
-      });
+      const organizationOnboarding =
+        await prismock.organizationOnboarding.findFirst({
+          where: {
+            slug: mockInput.slug,
+          },
+        });
 
       expect(organizationOnboarding).toBeDefined();
       expect(organizationOnboarding?.name).toBe(mockInput.name);
       expect(organizationOnboarding?.slug).toBe(mockInput.slug);
-      expect(organizationOnboarding?.orgOwnerEmail).toBe(mockInput.orgOwnerEmail);
+      expect(organizationOnboarding?.orgOwnerEmail).toBe(
+        mockInput.orgOwnerEmail
+      );
     });
 
     it("should allow user to create org for themselves", async () => {
@@ -146,7 +251,12 @@ describe("intentToCreateOrgHandler", () => {
             user: null as any,
           },
         })
-      ).rejects.toThrow(new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." }));
+      ).rejects.toThrow(
+        new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You are not authorized.",
+        })
+      );
     });
 
     it("should throw forbidden error when non-admin tries to create org for another user", async () => {
@@ -193,7 +303,7 @@ describe("intentToCreateOrgHandler", () => {
       );
     });
 
-    it("should throw error when organization onboarding already exists", async () => {
+    it("should throw error when organization onboarding already exists and is complete", async () => {
       // Create admin user
       const adminUser = await createTestUser({
         email: "admin@example.com",
@@ -207,7 +317,7 @@ describe("intentToCreateOrgHandler", () => {
         emailVerified: new Date(),
       });
 
-      // Create existing organization onboarding
+      // Create existing COMPLETE organization onboarding
       await prismock.organizationOnboarding.create({
         data: {
           name: mockInput.name,
@@ -217,6 +327,7 @@ describe("intentToCreateOrgHandler", () => {
           seats: mockInput.seats,
           pricePerSeat: mockInput.pricePerSeat,
           createdById: adminUser.id,
+          isComplete: true, // Must be complete to throw error
         },
       });
 
@@ -249,6 +360,7 @@ describe("intentToCreateOrgHandler", () => {
     it("should throw error when license is not valid", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(false),
+        incrementUsage: vi.fn().mockResolvedValue(undefined),
       });
       const adminUser = await createTestUser({
         email: "admin@example.com",
@@ -268,6 +380,7 @@ describe("intentToCreateOrgHandler", () => {
     it("should allow admin user to create org for another user", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
+        incrementUsage: vi.fn().mockResolvedValue(undefined),
       });
       // Create admin user
       const adminUser = await createTestUser({
@@ -289,7 +402,7 @@ describe("intentToCreateOrgHandler", () => {
         },
       });
 
-      // Verify the result shape
+      // Admin creating for different user with no teams/invites triggers handover (same as hosted)
       expect(result).toEqual({
         userId: expect.any(Number),
         orgOwnerEmail: mockInput.orgOwnerEmail,
@@ -300,19 +413,154 @@ describe("intentToCreateOrgHandler", () => {
         billingPeriod: mockInput.billingPeriod,
         isPlatform: mockInput.isPlatform,
         organizationOnboardingId: expect.any(String),
+        checkoutUrl: null,
+        organizationId: null, // Not created yet - handover flow
+        handoverUrl: expect.stringContaining(
+          "/settings/organizations/new/resume?onboardingId="
+        ),
       });
 
       // Verify organization onboarding was created
-      const organizationOnboarding = await prismock.organizationOnboarding.findFirst({
-        where: {
-          slug: mockInput.slug,
-        },
-      });
+      const organizationOnboarding =
+        await prismock.organizationOnboarding.findFirst({
+          where: {
+            slug: mockInput.slug,
+          },
+        });
 
       expect(organizationOnboarding).toBeDefined();
       expect(organizationOnboarding?.name).toBe(mockInput.name);
       expect(organizationOnboarding?.slug).toBe(mockInput.slug);
-      expect(organizationOnboarding?.orgOwnerEmail).toBe(mockInput.orgOwnerEmail);
+      expect(organizationOnboarding?.orgOwnerEmail).toBe(
+        mockInput.orgOwnerEmail
+      );
+    });
+
+    it("should handle teams and invites in the request", async () => {
+      vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
+        checkLicense: vi.fn().mockResolvedValue(true),
+        incrementUsage: vi.fn().mockResolvedValue(undefined),
+      });
+      const adminUser = await createTestUser({
+        email: "admin@example.com",
+        role: UserPermissionRole.ADMIN,
+      });
+
+      await createTestUser({
+        email: mockInput.orgOwnerEmail,
+        completedOnboarding: true,
+        emailVerified: new Date(),
+      });
+
+      const inputWithTeamsAndInvites = {
+        ...mockInput,
+        teams: [
+          { id: -1, name: "Engineering", isBeingMigrated: false, slug: null },
+          { id: -1, name: "Sales", isBeingMigrated: false, slug: null },
+        ],
+        invitedMembers: [
+          { email: "member1@example.com", name: "Member 1" },
+          { email: "member2@example.com", name: "Member 2" },
+        ],
+      };
+
+      const result = await intentToCreateOrgHandler({
+        input: inputWithTeamsAndInvites,
+        ctx: {
+          user: adminUser,
+        },
+      });
+
+      expect(result.organizationOnboardingId).toBeDefined();
+
+      const organizationOnboarding =
+        await prismock.organizationOnboarding.findFirst({
+          where: {
+            slug: mockInput.slug,
+          },
+        });
+
+      expect(organizationOnboarding).toBeDefined();
+      expect(organizationOnboarding?.teams).toEqual(
+        inputWithTeamsAndInvites.teams
+      );
+      expect(organizationOnboarding?.invitedMembers).toEqual(
+        inputWithTeamsAndInvites.invitedMembers
+      );
+    });
+
+    it("should preserve teamName, teamId, and role in invites payload", async () => {
+      vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
+        checkLicense: vi.fn().mockResolvedValue(true),
+        incrementUsage: vi.fn().mockResolvedValue(undefined),
+      });
+      const adminUser = await createTestUser({
+        email: "admin@example.com",
+        role: UserPermissionRole.ADMIN,
+      });
+
+      await createTestUser({
+        email: mockInput.orgOwnerEmail,
+        completedOnboarding: true,
+        emailVerified: new Date(),
+      });
+
+      // This matches the exact payload from the frontend
+      const inputWithTeamsAndInvites = {
+        ...mockInput,
+        teams: [
+          { id: -1, name: "New", isBeingMigrated: false, slug: null },
+          { id: -1, name: "team", isBeingMigrated: false, slug: null },
+        ],
+        invitedMembers: [
+          { email: "new@new.com", teamName: "new", teamId: -1, role: "ADMIN" },
+          {
+            email: "team@new.com",
+            teamName: "team",
+            teamId: -1,
+            role: "ADMIN",
+          },
+        ],
+      };
+
+      const result = await intentToCreateOrgHandler({
+        input: inputWithTeamsAndInvites,
+        ctx: {
+          user: adminUser,
+        },
+      });
+
+      expect(result.organizationOnboardingId).toBeDefined();
+
+      const organizationOnboarding =
+        await prismock.organizationOnboarding.findFirst({
+          where: {
+            slug: mockInput.slug,
+          },
+        });
+
+      expect(organizationOnboarding).toBeDefined();
+      expect(organizationOnboarding?.teams).toEqual(
+        inputWithTeamsAndInvites.teams
+      );
+
+      // Verify invitedMembers are stored with all fields including teamName, teamId, and role
+      expect(organizationOnboarding?.invitedMembers).toBeDefined();
+      expect(organizationOnboarding?.invitedMembers).toHaveLength(2);
+
+      const invitedMembers = organizationOnboarding?.invitedMembers as any[];
+      expect(invitedMembers[0]).toMatchObject({
+        email: "new@new.com",
+        teamName: "new",
+        teamId: -1,
+        role: "ADMIN",
+      });
+      expect(invitedMembers[1]).toMatchObject({
+        email: "team@new.com",
+        teamName: "team",
+        teamId: -1,
+        role: "ADMIN",
+      });
     });
   });
 });

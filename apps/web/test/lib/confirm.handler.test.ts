@@ -9,6 +9,7 @@ import {
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import * as handleConfirmationModule from "@calcom/features/bookings/lib/handleConfirmation";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -73,6 +74,7 @@ describe("confirmHandler", () => {
             location: "integrations:daily",
             attendees: [attendeeUser],
             responses: { name: attendeeUser.name, email: attendeeUser.email, notes: "Sensitive information" },
+            user: { id: organizer.id },
           },
         ],
         organizer,
@@ -91,6 +93,7 @@ describe("confirmHandler", () => {
         timeZone: organizer.timeZone,
         username: organizer.username,
       } as NonNullable<TrpcSessionUser>,
+      traceContext: distributedTracing.createTrace("test_confirm_handler"),
     };
 
     const res = await confirmHandler({
