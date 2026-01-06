@@ -59,14 +59,14 @@ export function UserPage(props: PageProps) {
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
             isEmbed ? "border-booker border-booker-width  bg-default rounded-md" : "",
-            "max-w-3xl px-4 py-24"
+            "max-w-3xl px-4 py-12"
           )}>
           <div className="border-subtle bg-default text-default mb-8 overflow-hidden rounded-xl border">
             {isOrg && user.profile.organization?.bannerUrl && (
               <OrgBanner
                 alt={user.profile.organization.name ?? "Organization banner"}
                 imageSrc={user.profile.organization.bannerUrl}
-                className="h-24 w-full object-cover"
+                className="p-1 border-subtle rounded-xl w-full object-cover"
               />
             )}
             <div className="p-4">
@@ -78,9 +78,9 @@ export function UserPage(props: PageProps) {
                   name: profile.name,
                   username: profile.username,
                 }}
-                className={isOrg && user.profile.organization?.bannerUrl ? "-mt-[50px]" : ""}
+                className={isOrg && user.profile.organization?.bannerUrl ? "-mt-14" : ""}
               />
-              <h1 className="font-cal text-emphasis mb-1 mt-4 text-xl" data-testid="name-title">
+              <h1 className={classNames("font-cal text-emphasis mb-1 text-xl", isOrg && user.profile.organization?.bannerUrl ? "" : "mt-4")} data-testid="name-title">
                 {profile.name}
                 {!isOrg && user.verified && (
                   <Icon
