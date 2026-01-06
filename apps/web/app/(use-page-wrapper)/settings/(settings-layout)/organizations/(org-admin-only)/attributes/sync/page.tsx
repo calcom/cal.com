@@ -4,7 +4,7 @@ import IntegrationAttributeSyncView from "@calcom/features/ee/integration-attrib
 import { getIntegrationAttributeSyncService } from "@calcom/features/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
+import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { prisma } from "@calcom/prisma";
 
 import { validateUserHasOrgPerms } from "../../../actions/validateUserHasOrgPerms";

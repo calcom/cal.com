@@ -2992,6 +2992,8 @@ model IntegrationAttributeSync {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
 }
 
 model AttributeSyncRule {
@@ -3018,4 +3020,6 @@ model AttributeSyncFieldMapping {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([integrationAttributeSyncId])
 }

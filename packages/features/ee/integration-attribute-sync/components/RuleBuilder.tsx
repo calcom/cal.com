@@ -1,7 +1,7 @@
 import type { MultiValue, SingleValue } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
+import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import { Button } from "@calcom/ui/components/button";
 import { Input, Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -294,14 +294,14 @@ const AttributeConditionFields = ({
     switch (selectedAttribute.type) {
       case "SINGLE_SELECT":
       case "MULTI_SELECT": {
-        const valueOptions = selectedAttribute.options.map((opt) => ({
+        const valueOptions = selectedAttribute.options.map((opt: { id: string; value: string }) => ({
           value: opt.id,
           label: opt.value,
         }));
 
         const selectedValues = isMulti
-          ? valueOptions.filter((opt) => condition.value.includes(opt.value))
-          : valueOptions.find((opt) => condition.value[0] === opt.value);
+          ? valueOptions.filter((opt: { value: string; label: string }) => condition.value.includes(opt.value))
+          : valueOptions.find((opt: { value: string; label: string }) => condition.value[0] === opt.value);
 
         return (
           <div className="flex-1" style={{ minWidth: "200px" }}>
