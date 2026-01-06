@@ -4,8 +4,6 @@
   "private": true,
   "scripts": {
     "clean": "rm -rf .turbo && rm -rf node_modules",
-    "build": "tsc --build --force tsconfig.generated.json",
-    "build:watch": "tsc --build --force tsconfig.generated.json --watch",
     "build:auto-migrations": "ts-node --transpile-only ./auto-migrations.ts",
     "db-deploy": "yarn prisma migrate deploy",
     "db-migrate": "yarn prisma migrate dev",
@@ -37,8 +35,7 @@
   },
   "devDependencies": {
     "npm-run-all": "4.1.5",
-    "ts-node": "10.9.2",
-    "typescript": "5.9.3"
+    "ts-node": "10.9.2"
   },
   "main": "index.ts",
   "types": "index.d.ts",
