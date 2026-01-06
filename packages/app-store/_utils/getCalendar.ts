@@ -97,6 +97,7 @@ export const getCalendar = async (
       calendarType,
       cacheSupported: isCacheSupported,
       cacheEnabled: useCache,
+      credentialId: credential.id,
     });
   }
 

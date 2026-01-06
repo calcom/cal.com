@@ -25,6 +25,7 @@ export class CalendarTelemetryWrapper implements Calendar {
       calendarType: string;
       cacheSupported: boolean;
       cacheEnabled: boolean;
+      credentialId: number;
     }
   ) {}
 
@@ -70,6 +71,7 @@ export class CalendarTelemetryWrapper implements Calendar {
         name: "CalendarTelemetryWrapper.getAvailability",
         op: "calendar.getAvailability",
         attributes: {
+          credentialId: this.deps.credentialId,
           calendarCount: selectedCalendars?.length ?? 0,
           calendarType: this.deps.calendarType,
           cacheSupported: this.deps.cacheSupported,
@@ -130,6 +132,7 @@ export class CalendarTelemetryWrapper implements Calendar {
         name: "CalendarTelemetryWrapper.getAvailabilityWithTimeZones",
         op: "calendar.getAvailabilityWithTimeZones",
         attributes: {
+          credentialId: this.deps.credentialId,
           calendarCount: selectedCalendars?.length ?? 0,
           calendarType: this.deps.calendarType,
           cacheSupported: this.deps.cacheSupported,
