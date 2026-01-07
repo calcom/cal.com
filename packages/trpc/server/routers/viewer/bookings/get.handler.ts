@@ -191,14 +191,9 @@ function parseUtcTimestamp(input: string | Date): number {
   }
 
   // If timezone is missing, force UTC
-  if (!/[zZ]|[+-]\d\d:\d\d$/.test(input)) {
-    return Date.parse(`${input}Z`);
-  }
-
-  return Date.parse(input);
+  return Date.parse(!/[zZ]|[+-]\d\d:\d\d$/.test(input) ? `${input}Z` : input);
 }
 
-// Helper function to determine status with precedence rules
 function resolveWorkflowStepStatus(
   workflowInsight: {
     status: WorkflowStatus;
@@ -216,24 +211,24 @@ function resolveWorkflowStepStatus(
 
   // 2. Check workflowReminder
   if (workflowReminder) {
+    const parsedScheduledDate = parseUtcTimestamp(workflowReminder.scheduledDate);
+    const currentTime = Date.now();
+
+    if (workflowReminder.scheduled && parsedScheduledDate <= currentTime) {
+      return "DELIVERED";
+    }
     if (workflowReminder.cancelled) {
       return "CANCELLED";
     }
-
-    const scheduledAt = parseUtcTimestamp(workflowReminder.scheduledDate);
-    const now = Date.now();
-
-    if (workflowReminder.scheduled && scheduledAt > now) {
+    if (workflowReminder.scheduled && parsedScheduledDate > currentTime) {
       return "QUEUED";
     }
-
-    if (workflowReminder.scheduled && scheduledAt <= now) {
-      return "DELIVERED";
-    }
   }
-  // 3. Default to SCHEDULED
+
+  // 3. Default to QUEUED
   return "QUEUED";
 }
+
 export async function getBookings({
   user,
   prisma,
