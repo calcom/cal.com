@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Deltaker møtte ikke oppdatert",
     "type": "Tildelingstype",
     "assignmentType_manual": "Manuell tildeling",
-    "assignmentType_roundRobin": "Round Robin-tildeling"
+    "assignmentType_roundRobin": "Round Robin-tildeling",
+    "actor_impersonated_by": "Etterligner",
+    "source": "Kilde"
   },
   "error_loading_booking_logs": "Feil ved lasting av bookinglogger",
   "no_audit_logs_found": "Ingen revisjonslogger funnet",

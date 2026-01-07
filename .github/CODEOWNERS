@@ -1,5 +1,5 @@
 /**/package.json @calcom/Foundation
-/apps/api/**/* @calcom/API
+/apps/api/**/* @calcom/Foundation
 /apps/web/**/layout.tsx @calcom/Consumer @calcom/Foundation
 /apps/web/lib/csp.ts @calcom/Foundation
 /apps/web/lib/buildNonce.ts @calcom/Foundation

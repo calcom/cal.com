@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "অংশগ্রহণকারী নো-শো আপডেট করা হয়েছে",
     "type": "নিয়োগের ধরন",
     "assignmentType_manual": "ম্যানুয়াল নিয়োগ",
-    "assignmentType_roundRobin": "রাউন্ড রবিন নিয়োগ"
+    "assignmentType_roundRobin": "রাউন্ড রবিন নিয়োগ",
+    "actor_impersonated_by": "ছদ্মবেশী",
+    "source": "উৎস"
   },
   "error_loading_booking_logs": "বুকিং লগ লোড করতে সমস্যা হয়েছে",
   "no_audit_logs_found": "কোন অডিট লগ পাওয়া যায়নি",
