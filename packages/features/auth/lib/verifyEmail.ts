@@ -6,6 +6,7 @@ import {
   sendEmailVerificationLink,
   sendChangeOfEmailVerificationLink,
 } from "@calcom/emails/auth-email-service";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
@@ -15,6 +16,10 @@ import logger from "@calcom/lib/logger";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
 
 const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
@@ -25,6 +30,7 @@ interface VerifyEmailType {
   secondaryEmailId?: number;
   isVerifyingEmail?: boolean;
   isPlatform?: boolean;
+  eventTypeId?: number;
 }
 
 export const sendEmailVerification = async ({
@@ -37,14 +43,23 @@ export const sendEmailVerification = async ({
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
   const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
+  const emailVerification =
+    await featuresRepository.checkIfFeatureIsEnabledGlobally(
+      "email-verification"
+    );
 
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
     return { ok: true, skipped: true };
   }
 
-  if (await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null, span: sentrySpan })) {
+  if (
+    await checkIfEmailIsBlockedInWatchlistController({
+      email,
+      organizationId: null,
+      span: sentrySpan,
+    })
+  ) {
     log.warn("Email is blocked - not sending verification email", email);
     return { ok: false, skipped: false };
   }
@@ -90,8 +105,15 @@ export const sendEmailVerificationByCode = async ({
   language,
   username,
   isVerifyingEmail,
+  eventTypeId,
 }: VerifyEmailType) => {
-  if (await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null, span: sentrySpan })) {
+  if (
+    await checkIfEmailIsBlockedInWatchlistController({
+      email,
+      organizationId: null,
+      span: sentrySpan,
+    })
+  ) {
     log.warn("Email is blocked - not sending verification email", email);
     return { ok: false, skipped: false };
   }
@@ -104,6 +126,31 @@ export const sendEmailVerificationByCode = async ({
   totp.options = { step: 900 };
   const code = totp.generate(secret);
 
+  let hideBranding = false;
+  if (eventTypeId) {
+    const userRepository = new UserRepository(prisma);
+    const teamRepository = new TeamRepository(prisma);
+    const eventTypeRepository = new EventTypeRepository(prisma);
+
+    let teamId: number | undefined;
+    let userId: number | undefined;
+
+    const eventType =
+      await eventTypeRepository.findByIdIncludeHostsAndTeamMembers({
+        id: eventTypeId,
+      });
+
+    teamId = eventType?.teamId ?? undefined;
+    userId = eventType?.userId ?? undefined;
+
+    hideBranding = await getHideBranding({
+      userId,
+      teamId,
+      userRepository,
+      teamRepository,
+    });
+  }
+
   await sendEmailVerificationCode({
     language: translation,
     verificationEmailCode: code,
@@ -112,6 +159,7 @@ export const sendEmailVerificationByCode = async ({
       name: username,
     },
     isVerifyingEmail,
+    hideBranding,
   });
 
   return { ok: true, skipped: false };
@@ -126,11 +174,17 @@ interface ChangeOfEmail {
   language?: string;
 }
 
-export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOfEmail) => {
+export const sendChangeOfEmailVerification = async ({
+  user,
+  language,
+}: ChangeOfEmail) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
   const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
+  const emailVerification =
+    await featuresRepository.checkIfFeatureIsEnabledGlobally(
+      "email-verification"
+    );
 
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
@@ -144,7 +198,10 @@ export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOf
       span: sentrySpan,
     })
   ) {
-    log.warn("Email is blocked - not sending verification email", user.emailFrom);
+    log.warn(
+      "Email is blocked - not sending verification email",
+      user.emailFrom
+    );
     return { ok: false, skipped: false };
   }
 

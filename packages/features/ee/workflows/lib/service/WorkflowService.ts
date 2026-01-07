@@ -8,7 +8,7 @@ import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
-import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
+import { BrandingRepository } from "@calcom/features/profile/repositories/BrandingRepository";
 import { tasker } from "@calcom/features/tasker";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
@@ -130,7 +130,8 @@ export class WorkflowService {
       }
     }
 
-    const hideBranding = await getHideBranding({
+    const brandingRepository = new BrandingRepository(prisma);
+    const hideBranding = await brandingRepository.getHideBrandingByIds({
       userId: form.userId,
       teamId: form.teamId ?? undefined,
     });

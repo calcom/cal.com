@@ -8,7 +8,7 @@ import {
   bookingAuthorizationCheckSelect,
   bookingDetailsSelect,
 } from "@calcom/prisma/selects/booking";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { credentialForCalendarServiceSelect, safeCredentialSelect } from "@calcom/prisma/selects/credential";
 
 type ManagedEventReassignmentCreateParams = {
   uid: string;
@@ -890,6 +890,13 @@ export class BookingRepository {
             name: true,
             email: true,
             username: true,
+            locale: true,
+            hideBranding: true,
+            organizationId: true,
+            destinationCalendar: true,
+            credentials: {
+              select: safeCredentialSelect,
+            },
           },
         },
         references: {
@@ -920,6 +927,20 @@ export class BookingRepository {
       select: {
         ...bookingMinimalSelect,
         uid: true,
+        user: {
+          select: {
+            credentials: {
+              select: safeCredentialSelect,
+            },
+          },
+        },
+        references: {
+          select: {
+            uid: true,
+            type: true,
+            meetingUrl: true,
+          },
+        },
       },
     });
   }
@@ -1449,14 +1470,34 @@ export class BookingRepository {
             hideOrganizerEmail: true,
             teamId: true,
             metadata: true,
+            team: {
+              select: {
+                id: true,
+                hideBranding: true,
+                parentId: true,
+                parent: {
+                  select: {
+                    hideBranding: true,
+                  },
+                },
+              },
+            },
+            parent: {
+              select: {
+                teamId: true,
+              },
+            },
           },
         },
         user: {
           select: {
+            id: true,
             email: true,
             name: true,
-            timeZone: true,
             locale: true,
+            timeZone: true,
+            hideBranding: true,
+            organizationId: true,
             profiles: {
               select: {
                 organizationId: true,
@@ -1503,9 +1544,19 @@ export class BookingRepository {
         destinationCalendar: true,
         references: true,
         user: {
-          include: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            organizationId: true,
+            hideBranding: true,
+            username: true,
             destinationCalendar: true,
-            credentials: true,
+            credentials: {
+              select: safeCredentialSelect,
+            },
             profiles: {
               select: {
                 organizationId: true,
@@ -1599,6 +1650,104 @@ export class BookingRepository {
             id: true,
             referenceId: true,
             method: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findByIdIncludeDestinationCalendarAndBranding(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        location: true,
+        userId: true,
+        eventTypeId: true,
+        responses: true,
+        iCalUID: true,
+        userPrimaryEmail: true,
+        attendees: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+          },
+        },
+        destinationCalendar: true,
+        references: {
+          select: {
+            id: true,
+            type: true,
+            uid: true,
+            meetingId: true,
+            meetingPassword: true,
+            meetingUrl: true,
+          },
+        },
+        eventType: {
+          select: {
+            id: true,
+            title: true,
+            parentId: true,
+            bookingFields: true,
+            recurringEvent: true,
+            seatsPerTimeSlot: true,
+            seatsShowAttendees: true,
+            customReplyToEmail: true,
+            hideOrganizerEmail: true,
+            schedulingType: true,
+            metadata: true,
+            teamId: true,
+            team: {
+              select: {
+                id: true,
+                parentId: true,
+                hideBranding: true,
+                parent: {
+                  select: {
+                    id: true,
+                    hideBranding: true,
+                  },
+                },
+              },
+            },
+            owner: {
+              select: {
+                id: true,
+                hideBranding: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            organizationId: true,
+            hideBranding: true,
+            username: true,
+            destinationCalendar: true,
+            credentials: {
+              select: safeCredentialSelect,
+            },
+            profiles: {
+              select: {
+                organizationId: true,
+              },
+            },
           },
         },
       },

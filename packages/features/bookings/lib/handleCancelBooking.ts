@@ -4,7 +4,7 @@ import { DailyLocationType } from "@calcom/app-store/constants";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
-import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
+import { sendCancelledEmailsAndSMS, withHideBranding } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
@@ -15,6 +15,7 @@ import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -253,9 +254,27 @@ async function handler(input: CancelBookingInput) {
     },
   });
 
-  const bookerUrl = await getBookerBaseUrl(
-    bookingToDelete.eventType?.team?.parentId ?? ownerProfile?.organizationId ?? null
-  );
+  const organizationId =
+    bookingToDelete.eventType?.team?.parentId ??
+    bookingToDelete.user?.organizationId ??
+    ownerProfile?.organizationId ??
+    null;
+
+  const bookerUrl = await getBookerBaseUrl(organizationId);
+
+  let hideBranding = false;
+
+  if (!bookingToDelete.eventTypeId) {
+    log.warn("Booking missing eventTypeId, defaulting hideBranding to false");
+    hideBranding = false;
+  } else {
+    hideBranding = await shouldHideBrandingForEvent({
+      eventTypeId: bookingToDelete.eventTypeId,
+      team: bookingToDelete.eventType?.team ?? null,
+      owner: bookingToDelete.user ?? null,
+      organizationId: organizationId,
+    });
+  }
 
   const evt: CalendarEvent = {
     bookerUrl,
@@ -309,6 +328,7 @@ async function handler(input: CancelBookingInput) {
     iCalUID: bookingToDelete.iCalUID,
     iCalSequence: bookingToDelete.iCalSequence + 1,
     platformClientId,
+    hideBranding,
     platformRescheduleUrl,
     platformCancelUrl,
     hideOrganizerEmail: bookingToDelete.eventType?.hideOrganizerEmail,
@@ -375,7 +395,7 @@ async function handler(input: CancelBookingInput) {
         },
       },
     },
-    hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
+    hideBranding,
     creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
   });
 
@@ -592,12 +612,18 @@ async function handler(input: CancelBookingInput) {
 
   try {
     // TODO: if emails fail try to requeue them
-    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
+    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled)) {
+      log.debug("Sending cancellation emails with branding config", {
+        hideBranding: evt.hideBranding,
+        arePlatformEmailsEnabled,
+      });
+
       await sendCancelledEmailsAndSMS(
-        evt,
+        withHideBranding(evt, hideBranding),
         { eventName: bookingToDelete?.eventType?.eventName },
         bookingToDelete?.eventType?.metadata as EventTypeMetadata
       );
+    }
   } catch (error) {
     log.error("Error deleting event", error);
   }

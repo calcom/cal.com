@@ -13,8 +13,15 @@ vi.mock("@calcom/features/tasker");
 const mockScheduleWorkflowReminders = vi.mocked(scheduleWorkflowReminders);
 const mockTasker = vi.mocked(tasker);
 
+// Mock the hideBranding functions to return false
 vi.mock("@calcom/features/profile/lib/hideBranding", () => ({
   getHideBranding: vi.fn().mockResolvedValue(false),
+}));
+
+vi.mock("@calcom/features/profile/repositories/BrandingRepository", () => ({
+  BrandingRepository: vi.fn().mockImplementation(() => ({
+    getHideBrandingByIds: vi.fn().mockResolvedValue(false),
+  })),
 }));
 
 const mockWorkflowReminderCreate = vi.fn();

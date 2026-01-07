@@ -24,7 +24,10 @@ import {
   Get,
   Query,
 } from "@nestjs/common";
-import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
+import {
+  ApiTags as DocsTags,
+  ApiExcludeController as DocsExcludeController,
+} from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
@@ -41,7 +44,12 @@ export class AtomsVerificationController {
   @Post("/verification/email/send-code")
   @Version(VERSION_NEUTRAL)
   @HttpCode(HttpStatus.OK)
-  @Throttle({ limit: 3, ttl: 60000, blockDuration: 60000, name: "atoms_verification_email_send_code" })
+  @Throttle({
+    limit: 3,
+    ttl: 60000,
+    blockDuration: 60000,
+    name: "atoms_verification_email_send_code",
+  })
   async sendEmailVerificationCode(
     @Body() body: SendVerificationEmailInput
   ): Promise<SendVerificationEmailOutput> {
@@ -50,6 +58,7 @@ export class AtomsVerificationController {
       username: body.username,
       language: body.language,
       isVerifyingEmail: body.isVerifyingEmail,
+      eventTypeId: body.eventTypeId,
     });
 
     return {
@@ -64,10 +73,11 @@ export class AtomsVerificationController {
   async checkEmailVerificationRequired(
     @Query() query: CheckEmailVerificationRequiredParams
   ): Promise<ApiResponse<boolean>> {
-    const required = await this.verificationService.checkEmailVerificationRequired({
-      email: query.email,
-      userSessionEmail: query.userSessionEmail,
-    });
+    const required =
+      await this.verificationService.checkEmailVerificationRequired({
+        email: query.email,
+        userSessionEmail: query.userSessionEmail,
+      });
 
     return {
       data: required,
@@ -78,7 +88,9 @@ export class AtomsVerificationController {
   @Post("/verification/email/verify-code")
   @Version(VERSION_NEUTRAL)
   @HttpCode(HttpStatus.OK)
-  async verifyEmailCode(@Body() body: VerifyEmailCodeInput): Promise<VerifyEmailCodeOutput> {
+  async verifyEmailCode(
+    @Body() body: VerifyEmailCodeInput
+  ): Promise<VerifyEmailCodeOutput> {
     await this.verificationService.verifyEmailCodeUnAuthenticated({
       email: body.email,
       code: body.code,
@@ -98,10 +110,11 @@ export class AtomsVerificationController {
     @Body() body: VerifyEmailCodeInput,
     @GetUser() user: UserWithProfile
   ): Promise<VerifyEmailCodeOutput> {
-    const verified = await this.verificationService.verifyEmailCodeAuthenticated(user, {
-      email: body.email,
-      code: body.code,
-    });
+    const verified =
+      await this.verificationService.verifyEmailCodeAuthenticated(user, {
+        email: body.email,
+        code: body.code,
+      });
 
     return {
       data: { verified },

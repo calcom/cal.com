@@ -4,7 +4,10 @@ import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { PrismaBookingPaymentRepository } from "@calcom/lib/server/repository/PrismaBookingPaymentRepository";
@@ -93,9 +96,34 @@ export async function sendAwaitingPaymentEmail(payload: string): Promise<void> {
       return;
     }
 
+    // Compute hideBranding based on event type, team, and user settings
+    const teamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking.eventType?.parentId ?? null,
+      },
+    });
+    const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
+    const userId = triggerForUser ? booking.userId : null;
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
+    let hideBranding = false;
+    if (!booking.eventTypeId) {
+      log.warn("Booking missing eventTypeId, defaulting hideBranding to false");
+      hideBranding = false;
+    } else {
+      hideBranding = await shouldHideBrandingForEvent({
+        eventTypeId: booking.eventTypeId,
+        team: booking.eventType?.team ?? null,
+        owner: booking.user ?? null,
+        organizationId: orgId ?? null,
+      });
+    }
+
     await sendAwaitingPaymentEmailAndSMS(
       {
         ...evt,
+        hideBranding,
         attendees: attendeesToEmail,
         paymentInfo: {
           link: createPaymentLink({

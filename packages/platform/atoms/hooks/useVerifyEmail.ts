@@ -5,7 +5,11 @@ import { useState } from "react";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { ApiResponse, ApiErrorResponse, ApiSuccessResponseWithoutData } from "@calcom/platform-types";
+import type {
+  ApiResponse,
+  ApiErrorResponse,
+  ApiSuccessResponseWithoutData,
+} from "@calcom/platform-types";
 
 import { useMe } from "../hooks/useMe";
 import http from "../lib/http";
@@ -22,6 +26,7 @@ export type UseVerifyEmailReturnType = ReturnType<typeof useVerifyEmail>;
 interface RequestEmailVerificationInput {
   email: string;
   username?: string;
+  eventTypeId?: number;
 }
 
 export const useVerifyEmail = ({
@@ -30,10 +35,14 @@ export const useVerifyEmail = ({
   requiresBookerEmailVerification,
   onVerifyEmail,
 }: IUseVerifyEmailProps) => {
-  const [isEmailVerificationModalVisible, setEmailVerificationModalVisible] = useState(false);
+  const [isEmailVerificationModalVisible, setEmailVerificationModalVisible] =
+    useState(false);
   const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
   const setVerifiedEmail = useBookerStore((state) => state.setVerifiedEmail);
-  const isRescheduling = useBookerStore((state) => Boolean(state.rescheduleUid && state.bookingData));
+  const isRescheduling = useBookerStore((state) =>
+    Boolean(state.rescheduleUid && state.bookingData)
+  );
+  const eventTypeId = useBookerStore((state) => state.eventId);
   const debouncedEmail = useDebounce(email, 600);
   const { data: user } = useMe();
 
@@ -64,12 +73,17 @@ export const useVerifyEmail = ({
   >({
     mutationFn: (props: RequestEmailVerificationInput) => {
       return http
-        .post<ApiResponse<{ sent: boolean }>>("/atoms/verification/email/send-code", props)
+        .post<ApiResponse<{ sent: boolean }>>(
+          "/atoms/verification/email/send-code",
+          props
+        )
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {
             return res.data;
           }
-          throw new Error(res.data.error?.message || "Failed to send verification email");
+          throw new Error(
+            res.data.error?.message || "Failed to send verification email"
+          );
         });
     },
     onSuccess: () => {
@@ -85,6 +99,7 @@ export const useVerifyEmail = ({
     sendEmailVerificationMutation.mutate({
       email,
       username: typeof name === "string" ? name : name?.firstName,
+      eventTypeId: eventTypeId ?? undefined,
     });
   };
 
@@ -100,7 +115,9 @@ export const useVerifyEmail = ({
     isEmailVerificationModalVisible,
     setEmailVerificationModalVisible,
     setVerifiedEmail,
-    renderConfirmNotVerifyEmailButtonCond: Boolean(renderConfirmNotVerifyEmailButtonCond),
+    renderConfirmNotVerifyEmailButtonCond: Boolean(
+      renderConfirmNotVerifyEmailButtonCond
+    ),
     isVerificationCodeSending,
   };
 };

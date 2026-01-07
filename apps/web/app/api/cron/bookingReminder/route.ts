@@ -3,8 +3,11 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { sendOrganizerRequestReminderEmail } from "@calcom/emails/email-manager";
+import { sendOrganizerRequestReminderEmail, withHideBranding } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -57,14 +60,30 @@ async function postHandler(request: NextRequest) {
             timeZone: true,
             destinationCalendar: true,
             isPlatformManaged: true,
+            hideBranding: true,
+            organizationId: true,
             platformOAuthClients: { select: { id: true, areEmailsEnabled: true } },
           },
         },
         eventType: {
           select: {
+            id: true,
+            parentId: true,
             recurringEvent: true,
             bookingFields: true,
             metadata: true,
+            team: {
+              select: {
+                id: true,
+                parentId: true,
+                hideBranding: true,
+                parent: {
+                  select: {
+                    hideBranding: true,
+                  },
+                },
+              },
+            },
           },
         },
         responses: true,
@@ -116,6 +135,24 @@ async function postHandler(request: NextRequest) {
 
       const attendeesList = await Promise.all(attendeesListPromises);
       const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
+
+      const teamId = await getTeamIdFromEventType({
+        eventType: {
+          team: { id: booking.eventType?.team?.id ?? null },
+          parentId: booking.eventType?.parentId ?? null,
+        },
+      });
+      const orgId = await getOrgIdFromMemberOrTeamId({
+        memberId: booking.user?.id ?? null,
+        teamId,
+      });
+      const hideBranding = await shouldHideBrandingForEvent({
+        eventTypeId: booking.eventType?.id ?? 0,
+        team: booking.eventType?.team ?? null,
+        owner: booking.user ?? null,
+        organizationId: orgId ?? null,
+      });
+
       const evt: CalendarEvent = {
         type: booking.title,
         title: booking.title,
@@ -139,9 +176,13 @@ async function postHandler(request: NextRequest) {
         uid: booking.uid,
         recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
         destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
+        hideBranding,
       };
 
-      await sendOrganizerRequestReminderEmail(evt, booking?.eventType?.metadata as EventTypeMetadata);
+      await sendOrganizerRequestReminderEmail(
+        withHideBranding(evt),
+        booking?.eventType?.metadata as EventTypeMetadata
+      );
 
       await prisma.reminderMail.create({
         data: {

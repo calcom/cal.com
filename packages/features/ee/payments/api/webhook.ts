@@ -13,6 +13,7 @@ import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -135,8 +136,18 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
       traceContext: updatedTraceContext,
     });
   } else if (areEmailsEnabled) {
-    await sendOrganizerRequestEmail({ ...evt }, eventType.metadata);
-    await sendAttendeeRequestEmailAndSMS({ ...evt }, evt.attendees[0], eventType.metadata);
+    const organizationId = booking.eventType?.team?.parentId ?? user.organizationId ?? null;
+
+    const hideBranding = await shouldHideBrandingForEvent({
+      eventTypeId: booking.eventTypeId ?? 0,
+      team: booking.eventType?.team ?? null,
+      owner: booking.eventType?.team ? null : user ?? null,
+      organizationId: organizationId,
+    });
+
+    const evtWithBranding = { ...evt, hideBranding };
+    await sendOrganizerRequestEmail(evtWithBranding, eventType.metadata);
+    await sendAttendeeRequestEmailAndSMS(evtWithBranding, evt.attendees[0], eventType.metadata);
   }
 };
 
