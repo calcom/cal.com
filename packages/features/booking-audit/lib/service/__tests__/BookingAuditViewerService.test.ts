@@ -152,6 +152,7 @@ const createMockAuditLog = (
 
 type MockUser = {
   id: number;
+  uuid: string;
   name: string | null;
   email: string;
   avatarUrl: string | null;
@@ -159,17 +160,19 @@ type MockUser = {
 
 const createMockUser = (
   uuid?: string,
-  overrides?: Partial<{ id: number; name: string | null; email: string; avatarUrl: string | null }>
+  overrides?: Partial<{ id: number; uuid: string; name: string | null; email: string; avatarUrl: string | null }>
 ) => {
+  const userUuid = uuid ?? overrides?.uuid ?? `user-uuid-${overrides?.id ?? 123}`;
   const user: MockUser = {
     id: overrides?.id ?? 123,
+    uuid: userUuid,
     name: (overrides && "name" in overrides ? overrides.name : "John Doe") as string | null,
     email: overrides?.email ?? "john@example.com",
     avatarUrl: (overrides && "avatarUrl" in overrides ? overrides.avatarUrl : null) as string | null,
   };
 
-  if (uuid) {
-    DB.users[uuid] = user;
+  if (userUuid) {
+    DB.users[userUuid] = user;
   }
 
   return user;
@@ -199,6 +202,8 @@ describe("BookingAuditViewerService - Integration Tests", () => {
   let mockUserRepository: {
     getUserOrganizationAndTeams: Mock<UserRepository["getUserOrganizationAndTeams"]>;
     findByUuid: Mock<UserRepository["findByUuid"]>;
+    findByUuids: Mock<UserRepository["findByUuids"]>;
+    findByIds: Mock<UserRepository["findByIds"]>;
   };
   let mockBookingAuditRepository: {
     create: Mock<IBookingAuditRepository["create"]>;
@@ -243,6 +248,15 @@ describe("BookingAuditViewerService - Integration Tests", () => {
       getUserOrganizationAndTeams: vi.fn(),
       findByUuid: vi.fn().mockImplementation(({ uuid }: { uuid: string }) => {
         return Promise.resolve(DB.users[uuid] ?? null);
+      }),
+      findByUuids: vi.fn().mockImplementation(({ uuids }: { uuids: string[] }) => {
+        return Promise.resolve(uuids.map((uuid) => DB.users[uuid]).filter(Boolean));
+      }),
+      findByIds: vi.fn().mockImplementation(({ ids }: { ids: number[] }) => {
+        // Find users by ID from DB.users (need to search by value)
+        return Promise.resolve(
+          Object.values(DB.users).filter((user) => ids.includes(user.id))
+        );
       }),
     };
 

@@ -18,6 +18,8 @@ export type TranslationWithParams = {
     components?: TranslationComponent[];
 };
 
+import type { EnrichmentDataStore, DataRequirements } from "../service/EnrichmentDataStore";
+
 /**
  * This is agnostic of the action and is common for all actions
  */
@@ -34,6 +36,7 @@ export type GetDisplayJsonParams = {
 export type GetDisplayTitleParams = {
     storedData: BaseStoredAuditData;
     userTimeZone: string;
+    dbStore: EnrichmentDataStore;
 };
 
 /**
@@ -85,12 +88,22 @@ export interface IAuditActionService {
     getDisplayJson?(params: GetDisplayJsonParams): Record<string, unknown>;
 
     /**
+     * Declare what data this action needs for getDisplayTitle
+     * Returns identifiers to be bulk-fetched before enrichment
+     * Optional - implement only if the action needs data from the database
+     * @param storedData - Parsed stored data { version, fields }
+     * @returns Data requirements with arrays of identifiers to fetch
+     */
+    getDataRequirements?(storedData: BaseStoredAuditData): DataRequirements;
+
+    /**
      * Get the display title for the audit action
      * Returns a translation key with optional interpolation params for dynamic titles
      * (e.g., "Booking reassigned to John Doe" instead of just "Reassignment")
-     * @param params - Object containing storedData and userTimeZone
+     * @param params - Object containing storedData, userTimeZone, and dbStore
      * @param params.storedData - Parsed stored data { version, fields }
      * @param params.userTimeZone - User's timezone for date formatting (required)
+     * @param params.dbStore - Pre-fetched data store for enrichment (required)
      * @returns Translation key with optional interpolation params
      */
     getDisplayTitle(params: GetDisplayTitleParams): Promise<TranslationWithParams>;

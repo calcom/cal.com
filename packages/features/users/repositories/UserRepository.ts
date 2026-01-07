@@ -82,6 +82,7 @@ const teamSelect = {
 
 const userSelect = {
   id: true,
+  uuid: true,
   username: true,
   name: true,
   email: true,
@@ -413,6 +414,24 @@ export class UserRepository {
     });
   }
 
+  async findByUuids({ uuids }: { uuids: string[] }) {
+    if (uuids.length === 0) return [];
+    return this.prismaClient.user.findMany({
+      where: {
+        uuid: {
+          in: uuids,
+        },
+      },
+      select: {
+        id: true,
+        uuid: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+      },
+    });
+  }
+
   async findByIdOrThrow({ id }: { id: number }) {
     const user = await this.findById({ id });
     if (!user) {
@@ -491,7 +510,7 @@ export class UserRepository {
     T extends {
       id: number;
       username: string | null;
-    }
+    },
   >({
     user,
   }: {
@@ -534,7 +553,7 @@ export class UserRepository {
     T extends {
       id: number;
       username: string | null;
-    }
+    },
   >({
     user,
   }: {
@@ -702,7 +721,7 @@ export class UserRepository {
             username: string | null;
             id: number;
           };
-        }
+        },
   >(entity: T) {
     if ("profile" in entity) {
       const { profile, ...entityWithoutProfile } = entity;
