@@ -13,6 +13,7 @@ export interface SeatChangeLogParams {
   triggeredBy?: number;
   seatCount?: number;
   metadata?: Prisma.InputJsonValue;
+  monthKey?: string;
 }
 
 export interface MonthlyChanges {
@@ -29,8 +30,8 @@ export class SeatChangeTrackingService {
   }
 
   async logSeatAddition(params: SeatChangeLogParams): Promise<void> {
-    const { teamId, userId, triggeredBy, seatCount = 1, metadata } = params;
-    const monthKey = this.calculateMonthKey(new Date());
+    const { teamId, userId, triggeredBy, seatCount = 1, metadata, monthKey: providedMonthKey } = params;
+    const monthKey = providedMonthKey || this.calculateMonthKey(new Date());
 
     const { teamBillingId, organizationBillingId } = await this.getBillingIds(teamId);
 
@@ -50,8 +51,8 @@ export class SeatChangeTrackingService {
   }
 
   async logSeatRemoval(params: SeatChangeLogParams): Promise<void> {
-    const { teamId, userId, triggeredBy, seatCount = 1, metadata } = params;
-    const monthKey = this.calculateMonthKey(new Date());
+    const { teamId, userId, triggeredBy, seatCount = 1, metadata, monthKey: providedMonthKey } = params;
+    const monthKey = providedMonthKey || this.calculateMonthKey(new Date());
 
     const { teamBillingId, organizationBillingId } = await this.getBillingIds(teamId);
 
