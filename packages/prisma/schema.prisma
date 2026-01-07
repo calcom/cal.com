@@ -2919,6 +2919,7 @@ model TeamBilling {
   // Monthly proration fields
   billingPeriod     BillingPeriod? // MONTHLY or ANNUALLY
   pricePerSeat      Float? // Price per seat for proration calculations
+  paidSeats         Int? // High-water mark: max seats paid for in current billing period
   monthlyProrations MonthlyProration[]
   seatChangeLogs    SeatChangeLog[]
 
@@ -2943,6 +2944,7 @@ model OrganizationBilling {
   // Monthly proration fields
   billingPeriod     BillingPeriod? // MONTHLY or ANNUALLY
   pricePerSeat      Float? // Price per seat for proration calculations
+  paidSeats         Int? // High-water mark: max seats paid for in current billing period
   monthlyProrations MonthlyProration[]
   seatChangeLogs    SeatChangeLog[]
 

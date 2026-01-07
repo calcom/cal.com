@@ -10,6 +10,7 @@ export interface BillingInfo {
   subscriptionEnd: Date | null;
   pricePerSeat: number | null;
   billingPeriod: string | null;
+  paidSeats: number | null;
 }
 
 export interface TeamWithBilling {
@@ -38,6 +39,7 @@ export class MonthlyProrationTeamRepository {
             subscriptionEnd: true,
             pricePerSeat: true,
             billingPeriod: true,
+            paidSeats: true,
           },
         },
         organizationBilling: {
@@ -50,6 +52,7 @@ export class MonthlyProrationTeamRepository {
             subscriptionEnd: true,
             pricePerSeat: true,
             billingPeriod: true,
+            paidSeats: true,
           },
         },
         _count: {
@@ -131,6 +134,27 @@ export class MonthlyProrationTeamRepository {
     }
   }
 
+  async updatePaidSeats(
+    teamId: number,
+    isOrganization: boolean,
+    billingId: string,
+    paidSeats: number
+  ): Promise<void> {
+    if (!billingId) return;
+
+    if (isOrganization) {
+      await prisma.organizationBilling.update({
+        where: { id: billingId },
+        data: { paidSeats },
+      });
+    } else {
+      await prisma.teamBilling.update({
+        where: { id: billingId },
+        data: { paidSeats },
+      });
+    }
+  }
+
   private extractBillingFromMetadata(metadata: unknown): BillingInfo | null {
     const parsed = teamMetadataSchema.parse(metadata);
 
@@ -147,6 +171,7 @@ export class MonthlyProrationTeamRepository {
       subscriptionEnd: null,
       pricePerSeat: parsed.orgPricePerSeat || null,
       billingPeriod: parsed.billingPeriod || null,
+      paidSeats: null,
     };
   }
 }

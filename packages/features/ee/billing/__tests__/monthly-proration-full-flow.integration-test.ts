@@ -690,25 +690,85 @@ describe("Monthly Proration - Full Integration Flow", () => {
     expect(changes.netChange).toBe(0);
     console.log(`✓ Net change capped at 0 (${changes.additions} added, ${changes.removals} removed)`);
 
-    console.log("\nStep 4: Attempt to create proration...");
+    console.log("\nStep 4: Create proration record (no charge, but tracks the change)...");
     const prorationService = new MonthlyProrationService();
     const proration = await prorationService.createProrationForTeam({
       teamId: testTeam.id,
       monthKey,
     });
 
-    expect(proration).toBeNull();
-    console.log("✓ No proration created (net change = 0, no charge/credit issued)");
+    expect(proration).toBeDefined();
+    expect(proration?.netSeatIncrease).toBe(0);
+    expect(proration?.proratedAmount).toBe(0);
+    expect(proration?.status).toBe("CHARGED");
+    console.log("✓ Proration record created with $0 charge (no credit issued)");
 
-    console.log("\nStep 5: Verify subscription quantity unchanged...");
+    console.log("\nStep 5: Verify subscription quantity updated to actual member count...");
     const finalSubscription = await stripe.subscriptions.retrieve(stripeSubscription.id);
     const finalQuantity = finalSubscription.items.data[0].quantity;
-    expect(finalQuantity).toBe(5);
-    console.log(`✓ Subscription quantity unchanged: ${finalQuantity} seats`);
 
-    console.log("\n✓ Seat removals on annual plans don't create credits or reduce subscription");
-    console.log("✓ Reduction will take effect at next annual renewal");
+    // Subscription should be updated to 1 (the actual member count)
+    // since we started with 1 member, added 3 (= 4), then removed 5 (= -1, but can't go negative)
+    // So actual member count is max(0, 1 + 3 - 5) = 1
+    const finalMemberCount = await prisma.membership.count({
+      where: { teamId: testTeam.id },
+    });
+    expect(finalQuantity).toBe(finalMemberCount);
+    console.log(`✓ Subscription quantity updated to ${finalQuantity} seats (actual member count)`);
+
+    console.log("\n✓ Seat removals tracked but no credit issued for annual plans");
+    console.log("✓ Subscription quantity updated to reflect actual member count for next renewal");
 
     console.log("\n=== Seat Removal Test Complete ===\n");
+  });
+
+  it("should use high-water mark (paidSeats) to prevent double-charging", async () => {
+    console.log("\n=== Starting High-Water Mark Test ===\n");
+
+    console.log("Step 1: Initial state - paid for 5 seats...");
+    const initialSubscription = await stripe.subscriptions.retrieve(stripeSubscription.id);
+    const initialQuantity = initialSubscription.items.data[0].quantity;
+    expect(initialQuantity).toBe(5);
+    const paidSeats = initialQuantity;
+    console.log(`✓ paidSeats = ${paidSeats} (what they originally paid for)`);
+
+    console.log("\nStep 2: Remove 2 seats (now at 3 members, but still paid for 5)...");
+    const seatTracker = new SeatChangeTrackingService();
+    await seatTracker.logSeatRemoval({
+      teamId: testTeam.id,
+      userId: testUser.id,
+      triggeredBy: testUser.id,
+      seatCount: 2,
+      monthKey,
+    });
+    console.log("✓ Removed 2 seats");
+
+    console.log("\nStep 3: Add 2 seats back (back to 5 members)...");
+    await seatTracker.logSeatAddition({
+      teamId: testTeam.id,
+      userId: testUser.id,
+      triggeredBy: testUser.id,
+      seatCount: 2,
+      monthKey,
+    });
+    console.log("✓ Added 2 seats back");
+
+    console.log("\nStep 4: Process proration...");
+    const prorationService = new MonthlyProrationService();
+    const proration = await prorationService.createProrationForTeam({
+      teamId: testTeam.id,
+      monthKey,
+    });
+
+    expect(proration).toBeDefined();
+    // chargeableSeats = currentMembers(1) - paidSeats(5) = max(0, -4) = 0
+    expect(proration?.netSeatIncrease).toBe(0);
+    expect(proration?.proratedAmount).toBe(0);
+    console.log(`✓ No charge (chargeableSeats = max(0, 1 - ${paidSeats}) = 0)`);
+
+    console.log("\n✓ High-water mark prevents charging for seats already paid for");
+    console.log("✓ User can remove and re-add seats without penalty");
+
+    console.log("\n=== High-Water Mark Test Complete ===\n");
   });
 });

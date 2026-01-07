@@ -61,10 +61,6 @@ export class MonthlyProrationService {
 
     const changes = await seatTracker.getMonthlyChanges({ teamId, monthKey });
 
-    if (changes.netChange === 0) {
-      return null;
-    }
-
     const teamWithBilling = await this.teamRepository.getTeamWithBilling(teamId);
 
     if (!teamWithBilling) throw new Error(`Team ${teamId} not found`);
@@ -88,28 +84,33 @@ export class MonthlyProrationService {
       throw new Error(`No subscription item ID found for team ${teamId}`);
     }
 
+    const currentSeatCount = teamWithBilling.memberCount;
+
+    // Calculate chargeable seats based on high-water mark (paidSeats)
+    // Lazy-load paidSeats from Stripe if not set
+    const paidSeats = billing.paidSeats ?? (await this.getSubscriptionQuantity(billing.subscriptionId));
+    const chargeableSeats = Math.max(0, currentSeatCount - paidSeats);
+
     const [year, month] = monthKey.split("-").map(Number);
     const periodEnd = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
     const calculation = this.calculateProration({
-      netSeatIncrease: changes.netChange,
+      netSeatIncrease: chargeableSeats,
       subscriptionStart: billing.subscriptionStart,
       subscriptionEnd: billing.subscriptionEnd,
       pricePerSeat: billing.pricePerSeat,
       monthEnd: periodEnd,
     });
 
-    const currentSeatCount = teamWithBilling.memberCount;
-
     const proration = await this.prorationRepository.createProration({
       teamId,
       monthKey,
       periodStart: new Date(Date.UTC(year, month - 1, 1)),
       periodEnd,
-      seatsAtStart: currentSeatCount - changes.netChange,
+      seatsAtStart: paidSeats,
       seatsAdded: changes.additions,
       seatsRemoved: changes.removals,
-      netSeatIncrease: changes.netChange,
+      netSeatIncrease: chargeableSeats,
       seatsAtEnd: currentSeatCount,
       subscriptionId: billing.subscriptionId,
       subscriptionItemId: billing.subscriptionItemId,
@@ -131,9 +132,27 @@ export class MonthlyProrationService {
 
     if (calculation.proratedAmount > 0) {
       await this.createStripeInvoiceItem(proration);
+      return proration;
     }
 
-    return proration;
+    // No charge, but still update subscription quantity for future renewals
+    await this.updateSubscriptionQuantity(
+      proration.subscriptionId,
+      proration.subscriptionItemId,
+      proration.seatsAtEnd
+    );
+
+    // Update paidSeats even when no charge (member count dropped but still under high-water mark)
+    await this.teamRepository.updatePaidSeats(
+      teamId,
+      teamWithBilling.isOrganization,
+      billing.id,
+      proration.seatsAtEnd
+    );
+
+    return await this.prorationRepository.updateProrationStatus(proration.id, "CHARGED", {
+      chargedAt: new Date(),
+    });
   }
 
   private calculateProration(params: {
@@ -218,11 +237,35 @@ export class MonthlyProrationService {
       chargedAt: new Date(),
     });
 
-    await stripe.subscriptions.update(proration.subscriptionId, {
+    await this.updateSubscriptionQuantity(
+      proration.subscriptionId,
+      proration.subscriptionItemId,
+      proration.seatsAtEnd
+    );
+
+    // Update paidSeats to new high-water mark
+    const billingId = proration.teamBillingId || proration.organizationBillingId;
+    if (billingId) {
+      const isOrganization = !!proration.organizationBillingId;
+      await this.teamRepository.updatePaidSeats(
+        proration.teamId,
+        isOrganization,
+        billingId,
+        proration.seatsAtEnd
+      );
+    }
+  }
+
+  private async updateSubscriptionQuantity(
+    subscriptionId: string,
+    subscriptionItemId: string,
+    quantity: number
+  ): Promise<void> {
+    await stripe.subscriptions.update(subscriptionId, {
       items: [
         {
-          id: proration.subscriptionItemId,
-          quantity: proration.seatsAtEnd,
+          id: subscriptionItemId,
+          quantity,
         },
       ],
       proration_behavior: "none",
@@ -289,6 +332,7 @@ export class MonthlyProrationService {
       const subscriptionTrialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
 
       if (needsCreation) {
+        const paidSeats = subscription.items.data[0]?.quantity || 0;
         const createdBilling = isOrganization
           ? await prisma.organizationBilling.create({
               data: {
@@ -300,6 +344,7 @@ export class MonthlyProrationService {
                 planName: "ORGANIZATION",
                 billingPeriod,
                 pricePerSeat,
+                paidSeats,
                 subscriptionStart,
                 subscriptionEnd,
                 subscriptionTrialEnd,
@@ -315,6 +360,7 @@ export class MonthlyProrationService {
                 planName: "TEAM",
                 billingPeriod,
                 pricePerSeat,
+                paidSeats,
                 subscriptionStart,
                 subscriptionEnd,
                 subscriptionTrialEnd,
@@ -324,6 +370,7 @@ export class MonthlyProrationService {
         billing.id = createdBilling.id;
         billing.customerId = customerId;
         billing.subscriptionItemId = subscriptionItemId;
+        billing.paidSeats = paidSeats;
       } else {
         await this.teamRepository.updateBillingInfo(teamId, isOrganization, billing.id, {
           billingPeriod,
@@ -352,5 +399,10 @@ export class MonthlyProrationService {
       );
       throw error;
     }
+  }
+
+  private async getSubscriptionQuantity(subscriptionId: string): Promise<number> {
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    return subscription.items.data[0]?.quantity || 0;
   }
 }
