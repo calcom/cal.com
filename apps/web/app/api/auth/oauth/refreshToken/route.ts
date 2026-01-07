@@ -1,19 +1,24 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { parseUrlFormData } from "app/api/parseRequestData";
-import jwt from "jsonwebtoken";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
+import process from "node:process";
+import { OAUTH_TOKEN_EXPIRY } from "@calcom/features/oauth/lib/constants";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import { OAuthService } from "@calcom/features/oauth/services/OAuthService";
 import prisma from "@calcom/prisma";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseUrlFormData } from "app/api/parseRequestData";
+import jwt from "jsonwebtoken";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
+/**
+ * @deprecated Use POST /api/auth/oauth/token with grant_type=refresh_token instead.
+ * This endpoint is maintained for backwards compatibility.
+ */
 async function handler(req: NextRequest) {
   const { client_id, client_secret, grant_type, refresh_token } = await parseUrlFormData(req);
 
   if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-    return NextResponse.json({ message: "CALENDSO_ENCRYPTION_KEY is not set" }, { status: 500 });
+    return NextResponse.json({ error: "server_error" }, { status: 500 });
   }
 
   if (!client_id) {
@@ -49,7 +54,9 @@ async function handler(req: NextRequest) {
       return NextResponse.json({ error: "invalid_request" }, { status: 400 });
     }
 
-    decodedRefreshToken = jwt.verify(refreshTokenValue, secretKey) as OAuthTokenPayload;
+    decodedRefreshToken = jwt.verify(refreshTokenValue, secretKey, {
+      algorithms: ["HS256"],
+    }) as OAuthTokenPayload;
   } catch {
     return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
   }
@@ -61,8 +68,6 @@ async function handler(req: NextRequest) {
   if (decodedRefreshToken.clientId !== client_id) {
     return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
   }
-
-  const accessTokenExpiresIn = 1800; // 30 minutes
 
   const payloadAuthToken: OAuthTokenPayload = {
     userId: decodedRefreshToken.userId,
@@ -81,11 +86,13 @@ async function handler(req: NextRequest) {
   };
 
   const access_token = jwt.sign(payloadAuthToken, secretKey, {
-    expiresIn: accessTokenExpiresIn,
+    algorithm: "HS256",
+    expiresIn: OAUTH_TOKEN_EXPIRY.ACCESS_TOKEN,
   });
 
   const refresh_token_new = jwt.sign(payloadRefreshToken, secretKey, {
-    expiresIn: 30 * 24 * 60 * 60, // 30 days
+    algorithm: "HS256",
+    expiresIn: OAUTH_TOKEN_EXPIRY.REFRESH_TOKEN,
   });
 
   return NextResponse.json(
@@ -93,7 +100,7 @@ async function handler(req: NextRequest) {
       access_token,
       token_type: "bearer",
       refresh_token: refresh_token_new,
-      expires_in: accessTokenExpiresIn,
+      expires_in: OAUTH_TOKEN_EXPIRY.ACCESS_TOKEN,
     },
     {
       status: 200,
@@ -101,6 +108,8 @@ async function handler(req: NextRequest) {
         "Content-Type": "application/json;charset=UTF-8",
         "Cache-Control": "no-store",
         Pragma: "no-cache",
+        Deprecation: "true",
+        Link: '</api/auth/oauth/token>; rel="successor-version"',
       },
     }
   );

@@ -1,0 +1,142 @@
+---
+title: "OAuth 2.0"
+---
+
+<Warning>
+**API v1 is deprecated and will be discontinued on February 15, 2026.** Please migrate to [API v2](/api-reference/v2/introduction) as soon as possible.
+</Warning>
+
+Cal.com supports OAuth 2.0 for third-party applications to access user data with their consent. This guide covers the authorization code flow with PKCE support.
+
+## OAuth Flow Overview
+
+1. **Authorization Request**: Your app redirects users to Cal.com's authorization page
+2. **User Consent**: User approves or denies access to their Cal.com data
+3. **Authorization Code**: Cal.com redirects back with an authorization code
+4. **Token Exchange**: Your app exchanges the code for access and refresh tokens
+5. **API Access**: Use access tokens to make authenticated API requests
+
+## Client Types
+
+### PUBLIC Clients (PKCE Required)
+For browser-based or mobile apps that cannot securely store a client secret.
+- **PKCE is mandatory** with `S256` challenge method
+- No client secret required
+
+### CONFIDENTIAL Clients
+For server-side applications that can securely store a client secret.
+- Client secret required for token exchange
+- PKCE optional but recommended for enhanced security
+
+## Endpoints
+
+### Authorization Endpoint
+```
+GET /auth/oauth2/authorize
+```
+
+Query Parameters:
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `client_id` | Yes | Your OAuth client ID |
+| `redirect_uri` | Yes | Must match a registered redirect URI |
+| `response_type` | Yes | Must be `code` |
+| `scope` | No | Space-separated list of requested scopes |
+| `state` | Recommended | CSRF protection token |
+| `code_challenge` | PUBLIC clients | Base64-URL-encoded SHA-256 hash of code_verifier |
+| `code_challenge_method` | PUBLIC clients | Must be `S256` |
+
+### Token Endpoint
+```
+POST /api/auth/oauth/token
+Content-Type: application/x-www-form-urlencoded
+```
+
+#### Authorization Code Exchange
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `grant_type` | Yes | Must be `authorization_code` |
+| `code` | Yes | Authorization code from callback |
+| `client_id` | Yes | Your OAuth client ID |
+| `redirect_uri` | Yes | Must match the authorization request |
+| `client_secret` | CONFIDENTIAL | Required for confidential clients |
+| `code_verifier` | PUBLIC | The original random string used to generate code_challenge |
+
+#### Refresh Token Exchange
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `grant_type` | Yes | Must be `refresh_token` |
+| `refresh_token` | Yes | The refresh token |
+| `client_id` | Yes | Your OAuth client ID |
+| `client_secret` | CONFIDENTIAL | Required for confidential clients |
+
+### Token Response
+
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "token_type": "bearer",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
+  "expires_in": 1800
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `access_token` | JWT for API authentication (30 minute expiry) |
+| `token_type` | Always `bearer` |
+| `refresh_token` | JWT for obtaining new access tokens (30 day expiry) |
+| `expires_in` | Access token lifetime in seconds |
+
+## Scopes
+
+| Scope | Description |
+|-------|-------------|
+| `READ_BOOKING` | Read access to user's bookings |
+| `READ_PROFILE` | Read access to user's profile information |
+
+Requested scopes must be within the client's `allowedScopes`. Requests for unauthorized scopes will be rejected.
+
+## PKCE Implementation
+
+For PUBLIC clients (and recommended for all clients):
+
+1. Generate a random `code_verifier` (43-128 characters)
+2. Create `code_challenge` = BASE64URL(SHA256(code_verifier))
+3. Include `code_challenge` and `code_challenge_method=S256` in authorization request
+4. Include `code_verifier` in token exchange request
+
+```javascript
+// Example PKCE generation
+const codeVerifier = crypto.randomBytes(32).toString('base64url');
+const codeChallenge = crypto
+  .createHash('sha256')
+  .update(codeVerifier)
+  .digest('base64url');
+```
+
+## Error Responses
+
+Token endpoint errors follow RFC 6749:
+
+| Error | Description |
+|-------|-------------|
+| `invalid_request` | Missing required parameter or malformed request |
+| `invalid_client` | Client authentication failed |
+| `invalid_grant` | Authorization code/refresh token invalid or expired |
+| `unsupported_grant_type` | Grant type not supported |
+
+## Security Best Practices
+
+1. **Always use HTTPS** for all OAuth endpoints
+2. **Validate the `state` parameter** to prevent CSRF attacks
+3. **Store tokens securely** - never expose in client-side code or logs
+4. **Use short-lived access tokens** with refresh token rotation
+5. **Implement PKCE** even for confidential clients when possible
+6. **Validate redirect URIs** exactly match registered URIs
+
+## Multiple Redirect URIs
+
+OAuth clients can register multiple redirect URIs. During authorization, the `redirect_uri` parameter must exactly match one of the registered URIs.

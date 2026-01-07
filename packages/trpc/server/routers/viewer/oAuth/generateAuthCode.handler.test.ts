@@ -1,8 +1,7 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
-
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { TRPCError } from "@trpc/server";
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
 import { generateAuthCodeHandler } from "./generateAuthCode.handler";
 
@@ -27,6 +26,7 @@ describe("generateAuthCodeHandler", () => {
       redirectUri: "https://app.example.com/callback",
       name: "Test Public Client",
       clientType: "PUBLIC" as const,
+      allowedScopes: ["READ_BOOKING", "READ_PROFILE"],
     };
 
     it("should generate authorization code for PUBLIC client with valid PKCE", async () => {
@@ -155,6 +155,7 @@ describe("generateAuthCodeHandler", () => {
       redirectUri: "https://app.example.com/callback",
       name: "Test Confidential Client",
       clientType: "CONFIDENTIAL" as const,
+      allowedScopes: ["READ_BOOKING", "READ_PROFILE"],
     };
 
     it("should generate authorization code for CONFIDENTIAL client without PKCE", async () => {
@@ -286,6 +287,7 @@ describe("generateAuthCodeHandler", () => {
         redirectUri: "https://app.example.com/callback",
         name: "Test Public Client",
         clientType: "PUBLIC" as const,
+        allowedScopes: ["READ_BOOKING", "READ_PROFILE"],
       };
 
       prismaMock.oAuthClient.findUnique.mockResolvedValue(mockPublicClient);
@@ -349,6 +351,118 @@ describe("generateAuthCodeHandler", () => {
           message: "code_challenge_method must be S256 for public clients",
         })
       );
+    });
+  });
+
+  describe("Scope validation", () => {
+    const mockClientWithLimitedScopes = {
+      clientId: "limited_client",
+      redirectUri: "https://app.example.com/callback",
+      name: "Limited Client",
+      clientType: "CONFIDENTIAL" as const,
+      allowedScopes: ["READ_BOOKING"],
+    };
+
+    const mockClientWithAllScopes = {
+      clientId: "full_client",
+      redirectUri: "https://app.example.com/callback",
+      name: "Full Client",
+      clientType: "CONFIDENTIAL" as const,
+      allowedScopes: ["READ_BOOKING", "READ_PROFILE"],
+    };
+
+    it("should accept requested scopes that are within allowedScopes", async () => {
+      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockClientWithAllScopes);
+      prismaMock.accessCode.create.mockResolvedValue({
+        id: 1,
+        code: "test_auth_code",
+        clientId: "full_client",
+        userId: 1,
+        teamId: null,
+        scopes: ["READ_BOOKING"],
+        codeChallenge: null,
+        codeChallengeMethod: null,
+        expiresAt: new Date(),
+      });
+
+      const input = {
+        clientId: "full_client",
+        scopes: ["READ_BOOKING"],
+        teamSlug: undefined,
+        codeChallenge: undefined,
+        codeChallengeMethod: undefined,
+      };
+
+      await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).resolves.toBeDefined();
+      expect(prismaMock.accessCode.create).toHaveBeenCalled();
+    });
+
+    it("should reject requested scopes not in allowedScopes", async () => {
+      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockClientWithLimitedScopes);
+
+      const input = {
+        clientId: "limited_client",
+        scopes: ["READ_PROFILE"],
+        teamSlug: undefined,
+        codeChallenge: undefined,
+        codeChallengeMethod: undefined,
+      };
+
+      await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
+        new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Requested scopes not allowed: READ_PROFILE",
+        })
+      );
+
+      expect(prismaMock.accessCode.create).not.toHaveBeenCalled();
+    });
+
+    it("should reject when any requested scope is not allowed", async () => {
+      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockClientWithLimitedScopes);
+
+      const input = {
+        clientId: "limited_client",
+        scopes: ["READ_BOOKING", "READ_PROFILE"],
+        teamSlug: undefined,
+        codeChallenge: undefined,
+        codeChallengeMethod: undefined,
+      };
+
+      await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
+        new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Requested scopes not allowed: READ_PROFILE",
+        })
+      );
+
+      expect(prismaMock.accessCode.create).not.toHaveBeenCalled();
+    });
+
+    it("should accept empty scopes array", async () => {
+      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockClientWithLimitedScopes);
+      prismaMock.accessCode.create.mockResolvedValue({
+        id: 1,
+        code: "test_auth_code",
+        clientId: "limited_client",
+        userId: 1,
+        teamId: null,
+        scopes: [],
+        codeChallenge: null,
+        codeChallengeMethod: null,
+        expiresAt: new Date(),
+      });
+
+      const input = {
+        clientId: "limited_client",
+        scopes: [],
+        teamSlug: undefined,
+        codeChallenge: undefined,
+        codeChallengeMethod: undefined,
+      };
+
+      await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).resolves.toBeDefined();
+      expect(prismaMock.accessCode.create).toHaveBeenCalled();
     });
   });
 });

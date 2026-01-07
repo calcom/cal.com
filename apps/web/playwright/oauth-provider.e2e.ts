@@ -1,9 +1,8 @@
-import { expect } from "@playwright/test";
-import { createHash, randomBytes } from "node:crypto";
-
+import { randomBytes } from "node:crypto";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { generateSecret } from "@calcom/lib/crypto";
 import { prisma } from "@calcom/prisma";
-import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
+import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 
