@@ -1,43 +1,52 @@
 import {
-  transformLocationsInternalToApi,
-  transformBookingFieldsInternalToApi,
-  InternalLocationSchema,
-  SystemField,
-  CustomField,
-  transformIntervalLimitsInternalToApi,
-  transformFutureBookingLimitsInternalToApi,
-  transformRecurrenceInternalToApi,
-  transformBookerLayoutsInternalToApi,
-  transformRequiresConfirmationInternalToApi,
-  transformEventTypeColorsInternalToApi,
-  transformSeatsInternalToApi,
-  InternalLocation,
-  BookingFieldSchema,
-} from "@/ee/event-types/event-types_2024_06_14/transformers";
-import { Injectable } from "@nestjs/common";
-
-import {
-  userMetadata,
+  getBookingFieldsWithSystemFields,
   parseBookingLimit,
   parseRecurringEvent,
-  getBookingFieldsWithSystemFields,
+  userMetadata,
 } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema, parseEventTypeColor } from "@calcom/platform-libraries/event-types";
 import { getBookerBaseUrlSync } from "@calcom/platform-libraries/organizations";
 import type {
-  TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
-  NoticeThresholdTransformedSchema,
   EventTypeOutput_2024_06_14,
-  OutputUnknownLocation_2024_06_14,
-  OutputUnknownBookingField_2024_06_14,
+  NoticeThresholdTransformedSchema,
   OutputBookingField_2024_06_14,
+  OutputUnknownBookingField_2024_06_14,
+  OutputUnknownLocation_2024_06_14,
+  TransformFutureBookingsLimitSchema_2024_06_14,
 } from "@calcom/platform-types";
-import type { EventType, Schedule, DestinationCalendar, CalVideoSettings, Prisma } from "@calcom/prisma/client";
+import type {
+  CalVideoSettings,
+  DestinationCalendar,
+  EventType,
+  Prisma,
+  Schedule,
+  Team,
+} from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  BookingFieldSchema,
+  CustomField,
+  InternalLocation,
+  InternalLocationSchema,
+  SystemField,
+  transformBookerLayoutsInternalToApi,
+  transformBookingFieldsInternalToApi,
+  transformEventTypeColorsInternalToApi,
+  transformFutureBookingLimitsInternalToApi,
+  transformIntervalLimitsInternalToApi,
+  transformLocationsInternalToApi,
+  transformRecurrenceInternalToApi,
+  transformRequiresConfirmationInternalToApi,
+  transformSeatsInternalToApi,
+} from "@/ee/event-types/event-types_2024_06_14/transformers";
+import { UsersService } from "@/modules/users/services/users.service";
 
 type UserProfile = {
   username: string | null;
-  organization: { slug: string | null } | null;
+  organizationId: number | null;
+  organization: Pick<Team, "id" | "slug" | "name" | "isPlatform"> | null;
 };
 
 type EventTypeUser = {
@@ -49,7 +58,9 @@ type EventTypeUser = {
   darkBrandColor: string | null;
   weekStart: string;
   metadata: Prisma.JsonValue;
+  organizationId: number | null;
   organization?: { slug: string | null } | null;
+  movedToProfile?: UserProfile | null;
   profiles?: UserProfile[];
 };
 
@@ -117,6 +128,10 @@ type Input = Pick<
 
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly configService: ConfigService
+  ) {}
 
   getResponseEventType(
     ownerId: number,
@@ -401,7 +416,7 @@ export class OutputEventTypesService_2024_06_14 {
       return "";
     }
 
-    const profile = user.profiles?.[0];
+    const profile = this.usersService.getUserMainProfile(user as any);
     const username = profile?.username ?? user.username;
 
     if (!username) {
@@ -409,9 +424,11 @@ export class OutputEventTypesService_2024_06_14 {
     }
 
     const orgSlug = profile?.organization?.slug ?? null;
-    const baseUrl = getBookerBaseUrlSync(orgSlug).replace(/\/$/, "");
+    const webAppUrl = this.configService.get<string>("app.baseUrl", "https://app.cal.com");
+    const baseUrl = orgSlug ? getBookerBaseUrlSync(orgSlug) : webAppUrl;
+    const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
 
-    return `${baseUrl}/${username}/${slug}`;
+    return `${normalizedBaseUrl}/${username}/${slug}`;
   }
 
   getResponseEventTypesWithoutHiddenFields(

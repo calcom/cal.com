@@ -15537,6 +15537,31 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -20805,6 +20830,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "bookingUrl": {
+            "type": "string",
+            "description": "Full URL to the booking page for this event type",
+            "example": "https://cal.com/john-doe/30min",
+            "format": "uri"
           }
         },
         "required": [
@@ -20828,7 +20859,8 @@
           "hidden",
           "bookingRequiresAuthentication",
           "ownerId",
-          "users"
+          "users",
+          "bookingUrl"
         ]
       },
       "CreateEventTypeOutput_2024_06_14": {

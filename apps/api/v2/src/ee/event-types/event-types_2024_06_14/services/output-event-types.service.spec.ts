@@ -1,3 +1,7 @@
+import { ConfigService } from "@nestjs/config";
+
+import { UsersService } from "@/modules/users/services/users.service";
+
 import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
 
 jest.mock("@calcom/platform-libraries/organizations", () => ({
@@ -9,9 +13,28 @@ jest.mock("@calcom/platform-libraries/organizations", () => ({
 
 describe("OutputEventTypesService_2024_06_14", () => {
   let service: OutputEventTypesService_2024_06_14;
+  let usersService: jest.Mocked<UsersService>;
+  let configService: jest.Mocked<ConfigService>;
 
   beforeEach(() => {
-    service = new OutputEventTypesService_2024_06_14();
+    usersService = {
+      getUserMainProfile: jest.fn((user: any) => {
+        return (
+          user?.movedToProfile ||
+          user.profiles?.find((p: any) => p.organizationId === user.organizationId) ||
+          user.profiles?.[0]
+        );
+      }),
+    } as any;
+
+    configService = {
+      get: jest.fn((key: string, defaultValue?: string) => {
+        if (key === "app.baseUrl") return "https://cal.com";
+        return defaultValue;
+      }),
+    } as any;
+
+    service = new OutputEventTypesService_2024_06_14(usersService, configService);
   });
 
   describe("buildBookingUrl", () => {
@@ -25,7 +48,9 @@ describe("OutputEventTypesService_2024_06_14", () => {
         darkBrandColor: null,
         weekStart: "Monday",
         metadata: {},
+        organizationId: null,
         organization: null,
+        movedToProfile: null,
         profiles: [],
       };
       const slug = "30min";
@@ -45,11 +70,14 @@ describe("OutputEventTypesService_2024_06_14", () => {
         darkBrandColor: null,
         weekStart: "Monday",
         metadata: {},
+        organizationId: 1,
         organization: { slug: "acme" },
+        movedToProfile: null,
         profiles: [
           {
             username: "owner1",
-            organization: { slug: "acme" },
+            organizationId: 1,
+            organization: { id: 1, slug: "acme", name: "Acme", isPlatform: false },
           },
         ],
       };
@@ -70,11 +98,14 @@ describe("OutputEventTypesService_2024_06_14", () => {
         darkBrandColor: null,
         weekStart: "Monday",
         metadata: {},
+        organizationId: 2,
         organization: { slug: "i" },
+        movedToProfile: null,
         profiles: [
           {
             username: null,
-            organization: { slug: "i" },
+            organizationId: 2,
+            organization: { id: 2, slug: "i", name: "I", isPlatform: false },
           },
         ],
       };
@@ -104,11 +135,14 @@ describe("OutputEventTypesService_2024_06_14", () => {
         darkBrandColor: null,
         weekStart: "Monday",
         metadata: {},
+        organizationId: 3,
         organization: { slug: null },
+        movedToProfile: null,
         profiles: [
           {
             username: "user",
-            organization: { slug: null },
+            organizationId: 3,
+            organization: { id: 3, slug: null, name: "Org", isPlatform: false },
           },
         ],
       };
@@ -132,7 +166,9 @@ describe("OutputEventTypesService_2024_06_14", () => {
         darkBrandColor: null,
         weekStart: "Monday",
         metadata: {},
+        organizationId: null,
         organization: null,
+        movedToProfile: null,
         profiles: [],
       };
       const slug = "30min";
@@ -153,7 +189,9 @@ describe("OutputEventTypesService_2024_06_14", () => {
         darkBrandColor: null,
         weekStart: "Monday",
         metadata: {},
+        organizationId: null,
         organization: null,
+        movedToProfile: null,
         profiles: [],
       };
       const slug = "30min";
@@ -173,7 +211,9 @@ describe("OutputEventTypesService_2024_06_14", () => {
         darkBrandColor: null,
         weekStart: "Monday",
         metadata: {},
+        organizationId: null,
         organization: null,
+        movedToProfile: null,
         profiles: [],
       };
       const slug = "30min";
