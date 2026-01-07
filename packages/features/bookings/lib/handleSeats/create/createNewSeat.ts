@@ -11,14 +11,11 @@ import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredenti
 import EventManager from "@calcom/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
-import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
-import type { IEventTypePaymentCredentialType } from "../../handleNewBooking/types";
 import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking } from "../types";
 
 const createNewSeat = async (
@@ -33,7 +30,6 @@ const createNewSeat = async (
     eventType,
     additionalNotes,
     noEmail,
-    paymentAppData,
     allCredentials,
     organizerUser,
     fullName,
@@ -160,85 +156,9 @@ const createNewSeat = async (
 
   const foundBooking = await findBookingQuery(seatedBooking.id);
 
-  if (!Number.isNaN(paymentAppData.price) && paymentAppData.price > 0 && !!seatedBooking) {
-    const credentialPaymentAppCategories = await prisma.credential.findMany({
-      where: {
-        ...(paymentAppData.credentialId ? { id: paymentAppData.credentialId } : { userId: organizerUser.id }),
-        app: {
-          categories: {
-            hasSome: ["payment"],
-          },
-        },
-      },
-      select: {
-        key: true,
-        appId: true,
-        app: {
-          select: {
-            categories: true,
-            dirName: true,
-          },
-        },
-      },
-    });
-
-    const eventTypePaymentAppCredential = credentialPaymentAppCategories.find((credential) => {
-      return credential.appId === paymentAppData.appId;
-    });
-
-    if (!eventTypePaymentAppCredential) {
-      throw new HttpError({ statusCode: 400, message: ErrorCode.MissingPaymentCredential });
-    }
-    if (!eventTypePaymentAppCredential?.appId) {
-      throw new HttpError({ statusCode: 400, message: ErrorCode.MissingPaymentAppId });
-    }
-
-    console.log("reference Id: ", attendeeUniqueId);
-
-    const bookingSeat = await prisma.bookingSeat.findUnique({
-      where: {
-        referenceUid: attendeeUniqueId,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    const currentEventAttendee = evt.attendees.find(
-      (attendee) =>
-        attendee.email === inviteeToAdd.email ||
-        (inviteeToAdd.attendeePhoneNumber && attendee.phoneNumber === inviteeToAdd.attendeePhoneNumber)
-    );
-
-    currentEventAttendee.bookingSeat = bookingSeat;
-
-    const payment = await handlePayment({
-      evt,
-      selectedEventType: eventType,
-      paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
-      booking: seatedBooking,
-      bookerName: fullName,
-      bookerEmail,
-      bookerPhoneNumber,
-      bookingSeat: {
-        id: bookingSeat.id,
-      },
-      responses,
-    });
-
-    const paymentLink = isPrismaObjOrUndefined(payment?.data)?.paymentLink as string;
-
-    resultBooking = { ...foundBooking };
-    resultBooking["message"] = "Payment required";
-    resultBooking["paymentUid"] = payment?.uid;
-    resultBooking["id"] = payment?.id;
-    resultBooking["paymentLink"] = paymentLink;
-  } else {
-    resultBooking = { ...foundBooking };
-  }
+  resultBooking = { ...foundBooking };
 
   resultBooking["seatReferenceUid"] = evt.attendeeSeatId;
-
   return resultBooking;
 };
 

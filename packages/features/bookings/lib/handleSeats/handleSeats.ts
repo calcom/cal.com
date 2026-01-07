@@ -6,10 +6,15 @@ import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhoo
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { handlePayment } from "@calcom/lib/payment/handlePayment";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
+import { findBookingQuery } from "../handleNewBooking/findBookingQuery";
 import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
+import type { IEventTypePaymentCredentialType } from "../handleNewBooking/types";
 import createNewSeat from "./create/createNewSeat";
 import rescheduleSeatedBooking from "./reschedule/rescheduleSeatedBooking";
 import type { NewSeatedBookingObject, SeatedBooking, HandleSeatsResultBooking } from "./types";
@@ -17,11 +22,15 @@ import type { NewSeatedBookingObject, SeatedBooking, HandleSeatsResultBooking } 
 const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   const {
     eventType,
+
+    isConfirmedByDefault,
     reqBodyUser,
+    noPaymentRequired,
     rescheduleUid,
     reqBookingUid,
     invitee,
     bookerEmail,
+    bookerPhoneNumber,
     smsReminderNumber,
     eventTypeInfo,
     uid,
@@ -79,17 +88,34 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     return;
   }
 
+  const bookingRepo = new BookingRepository(prisma);
+
+  const existingBooking = await bookingRepo.getValidBookingFromEventTypeForAttendee({
+    eventTypeId,
+    bookerEmail,
+    bookerPhoneNumber: bookerPhoneNumber ?? undefined,
+    startTime: new Date(dayjs(seatedBooking.startTime).utc().format()),
+  });
+
+  const existingBookingSeat = await prisma.bookingSeat.findFirst({
+    where: {
+      bookingId: seatedBooking.id,
+      attendee: {
+        OR: [{ email: bookerEmail }, bookerPhoneNumber ? { phoneNumber: bookerPhoneNumber } : {}],
+      },
+    },
+    include: {
+      attendee: true,
+    },
+  });
+
   // See if attendee is already signed up for timeslot
-  if (
-    seatedBooking.attendees.find((attendee: { email: string }) => {
-      return attendee.email === invitee[0].email;
-    }) &&
-    dayjs.utc(seatedBooking.startTime).format() === evt.startTime
-  ) {
+  if (existingBooking && noPaymentRequired) {
     throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
   }
 
-  // There are two paths here, reschedule a booking with seats and booking seats without reschedule
+  // There are three paths here, booking seat already exists, reschedule a booking with seats and booking seats without reschedule
+
   if (rescheduleUid) {
     resultBooking = await rescheduleSeatedBooking(
       // Assert that the rescheduleUid is defined
@@ -98,39 +124,60 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       resultBooking,
       loggerWithEventDetails
     );
+  } else if (existingBookingSeat) {
+    const foundBooking = await findBookingQuery(seatedBooking.id);
+    resultBooking = { ...foundBooking, seatReferenceUid: existingBookingSeat.referenceUid };
   } else {
     resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, reqBodyMetadata);
   }
 
+  const payment = await handleSeatPayment({
+    resultBooking,
+    rescheduleSeatedBookingObject: newSeatedBookingObject,
+    seatedBooking,
+  });
+
+  const paymentLink = isPrismaObjOrUndefined(payment?.data)?.paymentLink as string;
+
   // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking
   if (resultBooking) {
+    if (payment) {
+      resultBooking["message"] = "Payment required";
+    }
+    resultBooking["paymentUid"] = payment?.uid;
+    resultBooking["id"] = payment?.id;
+    resultBooking["paymentLink"] = paymentLink;
+
     const metadata = {
       ...(typeof resultBooking.metadata === "object" && resultBooking.metadata),
       ...reqBodyMetadata,
     };
     try {
-      await scheduleWorkflowReminders({
-        workflows,
-        smsReminderNumber: smsReminderNumber || null,
-        calendarEvent: {
-          ...evt,
-          // rescheduleReason,
-          ...{
-            metadata,
-            eventType: {
-              slug: eventType.slug,
-              schedulingType: eventType.schedulingType,
-              hosts: eventType.hosts,
+      // If there is an existing booking seat, we have already scheduled the reminders
+      if (!existingBookingSeat) {
+        await scheduleWorkflowReminders({
+          workflows,
+          smsReminderNumber: smsReminderNumber || null,
+          calendarEvent: {
+            ...evt,
+            // rescheduleReason,
+            ...{
+              metadata,
+              eventType: {
+                slug: eventType.slug,
+                schedulingType: eventType.schedulingType,
+                hosts: eventType.hosts,
+              },
             },
           },
-        },
-        isNotConfirmed: evt.requiresConfirmation || false,
-        isRescheduleEvent: !!rescheduleUid,
-        isFirstRecurringEvent: true,
-        emailAttendeeSendToOverride: bookerEmail,
-        seatReferenceUid: evt.attendeeSeatId,
-        // isDryRun,
-      });
+          isNotConfirmed: evt.requiresConfirmation || false,
+          isRescheduleEvent: !!rescheduleUid,
+          isFirstRecurringEvent: true,
+          emailAttendeeSendToOverride: bookerEmail,
+          seatReferenceUid: evt.attendeeSeatId,
+          // isDryRun,
+        });
+      }
     } catch (error) {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
     }
@@ -160,5 +207,89 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
   return resultBooking;
 };
+
+async function handleSeatPayment({
+  resultBooking,
+  rescheduleSeatedBookingObject,
+  seatedBooking,
+}: {
+  rescheduleSeatedBookingObject: any;
+  seatedBooking: SeatedBooking;
+  resultBooking: HandleSeatsResultBooking;
+}) {
+  if (!resultBooking || !resultBooking!["seatReferenceUid"]) {
+    return;
+  }
+
+  const { eventType, fullName, paymentAppData, bookerEmail, responses, bookerPhoneNumber, organizerUser } =
+    rescheduleSeatedBookingObject;
+
+  let { evt } = rescheduleSeatedBookingObject;
+
+  if (!Number.isNaN(paymentAppData.price) && paymentAppData.price > 0 && !!seatedBooking) {
+    const credentialPaymentAppCategories = await prisma.credential.findMany({
+      where: {
+        ...(paymentAppData.credentialId ? { id: paymentAppData.credentialId } : { userId: organizerUser.id }),
+        app: {
+          categories: {
+            hasSome: ["payment"],
+          },
+        },
+      },
+      select: {
+        key: true,
+        appId: true,
+        app: {
+          select: {
+            categories: true,
+            dirName: true,
+          },
+        },
+      },
+    });
+
+    const eventTypePaymentAppCredential = credentialPaymentAppCategories.find((credential) => {
+      return credential.appId === paymentAppData.appId;
+    });
+
+    if (!eventTypePaymentAppCredential) {
+      throw new HttpError({ statusCode: 400, message: ErrorCode.MissingPaymentCredential });
+    }
+    if (!eventTypePaymentAppCredential?.appId) {
+      throw new HttpError({ statusCode: 400, message: ErrorCode.MissingPaymentAppId });
+    }
+
+    const bookingSeat = await prisma.bookingSeat.findUnique({
+      where: {
+        referenceUid: resultBooking!["seatReferenceUid"],
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!bookingSeat) {
+      throw new HttpError({ statusCode: 404, message: ErrorCode.BookingNotFound });
+    }
+
+    const payment = await handlePayment({
+      evt,
+      selectedEventType: eventType,
+      paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
+      booking: seatedBooking,
+      bookerName: fullName,
+      bookerEmail,
+      bookerPhoneNumber,
+      bookingSeat: {
+        id: bookingSeat.id,
+      },
+      responses,
+    });
+
+    return payment;
+  }
+
+  return null;
+}
 
 export default handleSeats;
