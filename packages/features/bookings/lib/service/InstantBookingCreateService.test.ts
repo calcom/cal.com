@@ -9,7 +9,7 @@ import {
   mockSuccessfulVideoMeetingCreation,
   mockCalendarToHaveNoBusySlots,
   mockNoTranslations,
-} from "@calcom/features/test/utils/bookingScenario/bookingScenario";
+} from "../../../../tests/libs/bookingScenario/bookingScenario";
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 

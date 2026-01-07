@@ -11,13 +11,13 @@ import {
   getOrganizer,
   TestData,
   getScenarioData,
-} from "@calcom/features/test/utils/bookingScenario/bookingScenario";
-import { getMockRequestDataForBooking } from "@calcom/features/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/features/test/utils/bookingScenario/setupAndTeardown";
+} from "../../../../../tests/libs/bookingScenario/bookingScenario";
+import { getMockRequestDataForBooking } from "../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "../../../../../tests/libs/bookingScenario/setupAndTeardown";
 
 import { vi, describe, expect, beforeEach } from "vitest";
 
-import { test } from "@calcom/features/test/fixtures/fixtures";
+import { test } from "../../../../../tests/libs/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 

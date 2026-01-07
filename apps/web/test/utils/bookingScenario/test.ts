@@ -1,8 +1,8 @@
-import { createOrganization } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { createOrganization } from "./bookingScenario";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
-import { test } from "@calcom/web/test/fixtures/fixtures";
-import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "../../fixtures/fixtures";
+import type { Fixtures } from "../../fixtures/fixtures";
 
 type OrgContext = {
   org: {
@@ -11,7 +11,9 @@ type OrgContext = {
   } | null;
 };
 
-const WEBSITE_PROTOCOL = new URL(WEBSITE_URL).protocol;
+type TestFunctionWithOrg = (context: Fixtures & OrgContext) => Promise<void> | void;
+
+const WEBSITE_PROTOCOL: string = new URL(WEBSITE_URL).protocol;
 const _testWithAndWithoutOrg = (
   description: string,
   fn: (context: Fixtures & OrgContext) => Promise<void> | void,
@@ -51,8 +53,6 @@ const _testWithAndWithoutOrg = (
     timeout
   );
 };
-
-type TestFunctionWithOrg = (context: Fixtures & OrgContext) => Promise<void> | void;
 
 export const testWithAndWithoutOrg = (
   description: string,

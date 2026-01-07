@@ -20,7 +20,7 @@ import {
   createDelegationCredential,
   createOrganization,
   buildDelegationCredential,
-} from "@calcom/features/test/utils/bookingScenario/bookingScenario";
+} from "../../../../../tests/libs/bookingScenario/bookingScenario";
 import {
   expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
@@ -30,12 +30,12 @@ import {
   expectICalUIDAsString,
   expectBookingToNotHaveReference,
   expectNoAttemptToCreateCalendarEvent,
-} from "@calcom/features/test/utils/bookingScenario/expects";
+} from "../../../../../tests/libs/bookingScenario/expects";
 import {
   getMockRequestDataForBooking,
   getMockRequestDataForDynamicGroupBooking,
-} from "@calcom/features/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/features/test/utils/bookingScenario/setupAndTeardown";
+} from "../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "../../../../../tests/libs/bookingScenario/setupAndTeardown";
 
 import { vi } from "vitest";
 import { describe, expect } from "vitest";
@@ -43,7 +43,7 @@ import { describe, expect } from "vitest";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { test } from "@calcom/features/test/fixtures/fixtures";
+import { test } from "../../../../../tests/libs/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 

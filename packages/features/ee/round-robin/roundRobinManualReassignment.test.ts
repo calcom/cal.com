@@ -7,20 +7,20 @@ import {
   getMockBookingAttendee,
   TestData,
   addWorkflowReminders,
-} from "@calcom/features/test/utils/bookingScenario/bookingScenario";
+} from "../../../tests/libs/bookingScenario/bookingScenario";
 import {
   expectBookingToBeInDatabase,
   expectSuccessfulRoundRobinReschedulingEmails,
   expectWorkflowToBeTriggered,
-} from "@calcom/features/test/utils/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/features/test/utils/bookingScenario/setupAndTeardown";
+} from "../../../tests/libs/bookingScenario/expects";
+import { setupAndTeardown } from "../../../tests/libs/bookingScenario/setupAndTeardown";
 
 import { describe, vi, expect } from "vitest";
 
 import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
-import { test } from "@calcom/features/test/fixtures/fixtures";
+import { test } from "../../../tests/libs/fixtures/fixtures";
 
 vi.mock("@calcom/features/bookings/lib/EventManager");
 vi.mock("@calcom/app-store/utils", () => ({

@@ -10,10 +10,10 @@ import {
   getScenarioData,
   mockCalendarToHaveNoBusySlots,
   mockCalendar,
-} from "@calcom/features/test/utils/bookingScenario/bookingScenario";
-import { expectBookingToBeInDatabase } from "@calcom/features/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/features/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/features/test/utils/bookingScenario/setupAndTeardown";
+} from "../../../../../tests/libs/bookingScenario/bookingScenario";
+import { expectBookingToBeInDatabase } from "../../../../../tests/libs/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "../../../../../tests/libs/bookingScenario/setupAndTeardown";
 
 import { describe, expect, test } from "vitest";
 

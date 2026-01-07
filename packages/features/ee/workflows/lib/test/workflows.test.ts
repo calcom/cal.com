@@ -6,12 +6,12 @@ import {
   TestData,
   createBookingScenario,
   createOrganization,
-} from "@calcom/features/test/utils/bookingScenario/bookingScenario";
+} from "../../../../../tests/libs/bookingScenario/bookingScenario";
 import {
   expectSMSWorkflowToBeTriggered,
   expectSMSWorkflowToBeNotTriggered,
-} from "@calcom/features/test/utils/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/features/test/utils/bookingScenario/setupAndTeardown";
+} from "../../../../../tests/libs/bookingScenario/expects";
+import { setupAndTeardown } from "../../../../../tests/libs/bookingScenario/setupAndTeardown";
 
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
@@ -29,7 +29,7 @@ import {
   WorkflowTriggerEvents,
   WorkflowActions,
 } from "@calcom/prisma/enums";
-import { test } from "@calcom/features/test/fixtures/fixtures";
+import { test } from "../../../../../tests/libs/fixtures/fixtures";
 
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { deleteRemindersOfActiveOnIds } from "../deleteRemindersOfActiveOnIds";

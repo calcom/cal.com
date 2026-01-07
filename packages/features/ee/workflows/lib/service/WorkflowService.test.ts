@@ -3,7 +3,7 @@ import { describe, expect, vi, beforeEach } from "vitest";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { tasker } from "@calcom/features/tasker";
 import { WorkflowTriggerEvents, WorkflowActions, WorkflowTemplates, TimeUnit } from "@calcom/prisma/enums";
-import { test } from "@calcom/features/test/fixtures/fixtures";
+import { test } from "../../../../../tests/libs/fixtures/fixtures";
 
 import { WorkflowService } from "./WorkflowService";
 

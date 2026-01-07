@@ -9,18 +9,18 @@ import {
   mockSuccessfulVideoMeetingCreation,
   TestData,
   getDate,
-} from "@calcom/features/test/utils/bookingScenario/bookingScenario";
+} from "../../../../tests/libs/bookingScenario/bookingScenario";
 import {
   expectBookingCancelledWebhookToHaveBeenFired,
   expectWorkflowToBeTriggered,
-} from "@calcom/features/test/utils/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/features/test/utils/bookingScenario/setupAndTeardown";
+} from "../../../../tests/libs/bookingScenario/expects";
+import { setupAndTeardown } from "../../../../tests/libs/bookingScenario/setupAndTeardown";
 
 import { describe, expect, vi } from "vitest";
 
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/features/test/fixtures/fixtures";
+import { test } from "../../../../tests/libs/fixtures/fixtures";
 
 vi.mock("@calcom/features/bookings/lib/payment/processPaymentRefund", () => ({
   processPaymentRefund: vi.fn(),

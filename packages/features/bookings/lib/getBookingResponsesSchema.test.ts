@@ -3,7 +3,7 @@ import { describe, expect } from "vitest";
 import type { z } from "zod";
 
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-import { test } from "@calcom/features/test/fixtures/fixtures";
+import { test } from "../../../../tests/libs/fixtures/fixtures";
 
 import getBookingResponsesSchema, { getBookingResponsesPartialSchema } from "./getBookingResponsesSchema";
 

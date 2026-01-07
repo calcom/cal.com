@@ -1,11 +1,13 @@
+import process from "node:process";
+
 import {
   enableEmailFeature,
   mockNoTranslations,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "./bookingScenario";
 
 import { beforeEach, afterEach } from "vitest";
 
-export function setupAndTeardown() {
+export function setupAndTeardown(): void {
   beforeEach(() => {
     // Required to able to generate token in email in some cases
     //@ts-expect-error - It is a readonly variable
