@@ -30,7 +30,8 @@
       "@calcom/platform-libraries/repositories": ["../../../packages/platform/libraries/repositories.ts"],
       "@calcom/platform-libraries/bookings": ["../../../packages/platform/libraries/bookings.ts"],
       "@calcom/platform-libraries/private-links": ["../../../packages/platform/libraries/private-links.ts"],
-      "@calcom/platform-libraries/organizations": ["../../../packages/platform/libraries/organizations.ts"]
+      "@calcom/platform-libraries/organizations": ["../../../packages/platform/libraries/organizations.ts"],
+      "@calcom/platform-libraries/errors": ["../../../packages/platform/libraries/errors.ts"]
     },
     "incremental": true,
     "skipLibCheck": true,
