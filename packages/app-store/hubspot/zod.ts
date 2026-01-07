@@ -5,6 +5,8 @@ import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 export const appDataSchema = eventTypeAppCardZod.extend({
   ignoreGuests: z.boolean().optional(),
   skipContactCreation: z.boolean().optional(),
+  setOrganizerAsOwner: z.boolean().optional(),
+  overwriteContactOwner: z.boolean().optional(),
 });
 
 export const appKeysSchema = z.object({

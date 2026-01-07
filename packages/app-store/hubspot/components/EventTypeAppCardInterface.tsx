@@ -23,6 +23,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
 
   const ignoreGuests = getAppData("ignoreGuests") ?? false;
   const skipContactCreation = getAppData("skipContactCreation") ?? false;
+  const setOrganizerAsOwner = getAppData("setOrganizerAsOwner") ?? false;
+  const overwriteContactOwner = getAppData("overwriteContactOwner") ?? false;
 
   return (
     <AppCard
@@ -66,6 +68,41 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
             />
           </Section.SubSectionHeader>
         </Section.SubSection>
+        <Section.SubSection>
+          <Section.SubSectionHeader
+            icon="user-check"
+            title={t("hubspot_set_organizer_as_owner")}
+            labelFor="set-organizer-as-owner">
+            <Switch
+              size="sm"
+              labelOnLeading
+              checked={setOrganizerAsOwner}
+              onCheckedChange={(checked) => {
+                setAppData("setOrganizerAsOwner", checked);
+                if (!checked) {
+                  setAppData("overwriteContactOwner", false);
+                }
+              }}
+            />
+          </Section.SubSectionHeader>
+        </Section.SubSection>
+        {setOrganizerAsOwner ? (
+          <Section.SubSection>
+            <Section.SubSectionHeader
+              icon="refresh-cw"
+              title={t("hubspot_overwrite_contact_owner")}
+              labelFor="overwrite-contact-owner">
+              <Switch
+                size="sm"
+                labelOnLeading
+                checked={overwriteContactOwner}
+                onCheckedChange={(checked) => {
+                  setAppData("overwriteContactOwner", checked);
+                }}
+              />
+            </Section.SubSectionHeader>
+          </Section.SubSection>
+        ) : null}
       </Section.Content>
     </AppCard>
   );
