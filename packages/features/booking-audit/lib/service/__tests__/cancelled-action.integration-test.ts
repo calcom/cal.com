@@ -4,7 +4,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 import type { BookingAuditTaskConsumer } from "../BookingAuditTaskConsumer";
 import type { BookingAuditViewerService } from "../BookingAuditViewerService";
-import { makeUserActor } from "../../../../bookings/lib/types/actor";
+import { makeUserActor } from "../../makeActor";
 import { getBookingAuditTaskConsumer } from "../../../di/BookingAuditTaskConsumer.container";
 import { getBookingAuditViewerService } from "../../../di/BookingAuditViewerService.container";
 import {
