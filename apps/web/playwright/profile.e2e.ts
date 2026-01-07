@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import type { createUsersFixture } from "playwright/fixtures/users";
+import type { createUsersFixture } from "./fixtures/users";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { PrismaClient } from "@calcom/prisma";
@@ -51,7 +51,7 @@ test.describe("Update Profile", () => {
     const [emailInfo, emailDomain] = user.email.split("@");
     const email = `${emailInfo}-updated@${emailDomain}`;
 
-    await user.apiLogin();
+    await user.apiLogin("/settings/my-account/profile");
     await page.goto("/settings/my-account/profile");
 
     const emailInput = page.getByTestId("profile-form-email-0");
@@ -217,7 +217,7 @@ test.describe("Update Profile", () => {
 
     const [emailInfo, emailDomain] = user.email.split("@");
 
-    await user.apiLogin();
+    await user.apiLogin("/settings/my-account/profile");
     await page.goto("/settings/my-account/profile");
 
     await page.getByTestId("add-secondary-email").click();

@@ -162,7 +162,7 @@ export default function ImageUploader({
                 type="file"
                 name={id}
                 placeholder={t("upload_image")}
-                className="text-default pointer-events-none absolute mt-4 opacity-0 "
+                className="text-default absolute mt-4 opacity-0"
                 accept="image/*"
               />
               {t("choose_a_file")}
