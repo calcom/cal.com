@@ -1,73 +1,95 @@
-import { CalComAPIService, Booking } from "../../services/calcom";
-import { showErrorAlert } from "../../utils/alerts";
-import { openInAppBrowser } from "../../utils/browser";
-import { getDefaultLocationIconUrl, defaultLocations } from "../../utils/defaultLocations";
-import { formatAppIdToDisplayName } from "../../utils/formatters";
-import { getAppIconUrl } from "../../utils/getAppIconUrl";
-import { shadows } from "../../utils/shadows";
-import { AppPressable } from "../AppPressable";
-import { BookingActionsModal } from "../BookingActionsModal";
-import { FullScreenModal } from "../FullScreenModal";
-import { SvgImage } from "../SvgImage";
 import { Ionicons } from "@expo/vector-icons";
-import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  Alert,
   ActivityIndicator,
-  TextInput,
+  Alert,
   Platform,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Text as UIText } from "@/components/ui/text";
+import { AppPressable } from "@/components/AppPressable";
+import { BookingActionsModal } from "@/components/BookingActionsModal";
+import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
+import { SvgImage } from "@/components/SvgImage";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCancelBooking } from "@/hooks/useBookings";
+import type { Booking } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
+import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
+import { openInAppBrowser } from "@/utils/browser";
+import { defaultLocations, getDefaultLocationIconUrl } from "@/utils/defaultLocations";
+import { formatAppIdToDisplayName } from "@/utils/formatters";
+import { getAppIconUrl } from "@/utils/getAppIconUrl";
+
+// Empty actions result for when no booking is loaded
+const EMPTY_ACTIONS: BookingActionsResult = {
+  reschedule: { visible: false, enabled: false },
+  rescheduleRequest: { visible: false, enabled: false },
+  cancel: { visible: false, enabled: false },
+  changeLocation: { visible: false, enabled: false },
+  addGuests: { visible: false, enabled: false },
+  viewRecordings: { visible: false, enabled: false },
+  meetingSessionDetails: { visible: false, enabled: false },
+  markNoShow: { visible: false, enabled: false },
+};
 
 // Format date: "Tuesday, November 25, 2025"
 const formatDateFull = (dateString: string): string => {
   if (!dateString) return "";
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  } catch (error) {
-    return "";
-  }
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 };
 
 // Format time: "9:40pm - 10:00pm"
 const formatTime12Hour = (dateString: string): string => {
   if (!dateString) return "";
-  try {
-    const date = new Date(dateString);
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const period = hours >= 12 ? "pm" : "am";
-    const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-    const minStr = minutes.toString().padStart(2, "0");
-    return `${hour12}:${minStr}${period}`;
-  } catch (error) {
-    return "";
-  }
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "";
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const period = hours >= 12 ? "pm" : "am";
+  const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  const minStr = minutes.toString().padStart(2, "0");
+  return `${hour12}:${minStr}${period}`;
 };
 
-// Get timezone from date string
-const getTimezone = (dateString: string): string => {
-  if (!dateString) return "";
-  try {
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    return timeZone;
-  } catch (error) {
-    return "";
-  }
+// Get user's local timezone for display
+const getTimezone = (): string => {
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return timeZone || "";
 };
 
-// Get initials from a name (e.g., "Keith Williams" -> "KW", "Dhairyashil Shinde" -> "DS")
+// Get initials from a name(e.g., "Keith Williams" -> "KW", "Dhairyashil Shinde" -> "DS")
 const getInitials = (name: string): string => {
   if (!name) return "";
   const parts = name.trim().split(/\s+/);
@@ -168,64 +190,244 @@ const getLocationProvider = (location: string | undefined, metadata?: Record<str
 };
 
 export interface BookingDetailScreenProps {
-  uid: string;
+  /**
+   * The booking data to display. When null/undefined, shows loading or error state.
+   */
+  booking: Booking | null | undefined;
+  /**
+   * Whether the booking data is currently being fetched.
+   */
+  isLoading: boolean;
+  /**
+   * Error that occurred while fetching the booking, if any.
+   */
+  error: Error | null;
+  /**
+   * Function to refetch the booking data. Used for pull-to-refresh.
+   */
+  refetch: () => void;
+  /**
+   * Whether a refetch is currently in progress. Used for RefreshControl.
+   */
+  isRefetching?: boolean;
+  /**
+   * Callback to expose internal action handlers to parent component.
+   * Used by iOS header menu to trigger actions like reschedule.
+   */
+  onActionsReady?: (handlers: {
+    openRescheduleModal: () => void;
+    openEditLocationModal: () => void;
+    openAddGuestsModal: () => void;
+    openViewRecordingsModal: () => void;
+    openMeetingSessionDetailsModal: () => void;
+    openMarkNoShowModal: () => void;
+    handleCancelBooking: () => void;
+  }) => void;
 }
 
-export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
+export function BookingDetailScreen({
+  booking,
+  isLoading,
+  error,
+  refetch,
+  isRefetching = false,
+  onActionsReady,
+}: BookingDetailScreenProps) {
   const router = useRouter();
+  const { userInfo } = useAuth();
   const insets = useSafeAreaInsets();
 
-  const [loading, setLoading] = useState(true);
-  const [booking, setBooking] = useState<Booking | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [showActionsModal, setShowActionsModal] = useState(false);
-  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
-  const [rescheduleDate, setRescheduleDate] = useState("");
-  const [rescheduleTime, setRescheduleTime] = useState("");
-  const [rescheduleReason, setRescheduleReason] = useState("");
-  const [rescheduling, setRescheduling] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState("");
 
-  useEffect(() => {
-    if (uid) {
-      fetchBooking();
-    }
-  }, [uid]);
+  // Cancel booking mutation
+  const cancelBookingMutation = useCancelBooking();
+  const isCancelling = cancelBookingMutation.isPending;
 
-  const fetchBooking = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const bookingData = await CalComAPIService.getBookingByUid(uid);
-      // Avoid logging booking payloads: they may contain PII (names/emails/notes).
-      if (__DEV__) {
-        console.debug("[BookingDetailScreen] booking fetched", {
-          uid: bookingData.uid,
-          status: bookingData.status,
-          hostCount: bookingData.hosts?.length ?? (bookingData.user ? 1 : 0),
-          attendeeCount: bookingData.attendees?.length ?? 0,
-          hasRecurringEventId: Boolean(bookingData.recurringEventId),
-        });
-      }
-      setBooking(bookingData);
-    } catch (err) {
-      console.error("Error fetching booking");
-      if (__DEV__) {
-        const message = err instanceof Error ? err.message : String(err);
-        const stack = err instanceof Error ? err.stack : undefined;
-        console.debug("[BookingDetailScreen] fetchBooking failed", { message, stack });
-      }
-      setError("Failed to load booking. Please try again.");
-      if (__DEV__) {
-        Alert.alert("Error", "Failed to load booking. Please try again.", [
-          { text: "OK", onPress: () => router.back() },
-        ]);
-      } else {
-        router.back();
-      }
-    } finally {
-      setLoading(false);
-    }
+  const contentInsets = {
+    top: insets.top,
+    bottom: insets.bottom,
+    left: 12,
+    right: 12,
   };
+
+  // Compute actions using centralized gating
+  const actions = useMemo(() => {
+    if (!booking) return EMPTY_ACTIONS;
+    return getBookingActions({
+      booking,
+      eventType: undefined, // EventType not available in this context
+      currentUserId: userInfo?.id,
+      currentUserEmail: userInfo?.email,
+      isOnline: true, // Assume online for now
+    });
+  }, [booking, userInfo?.id, userInfo?.email]);
+
+  // Cancel booking handler (needs to be defined before useEffect that exposes it)
+  const performCancelBooking = useCallback(
+    (reason: string) => {
+      if (!booking) return;
+
+      cancelBookingMutation.mutate(
+        { uid: booking.uid, reason },
+        {
+          onSuccess: () => {
+            Alert.alert("Success", "Booking cancelled successfully", [
+              {
+                text: "OK",
+                onPress: () => router.back(),
+              },
+            ]);
+          },
+          onError: (err) => {
+            console.error("Failed to cancel booking");
+            if (__DEV__) {
+              const message = err instanceof Error ? err.message : String(err);
+              console.debug("[BookingDetailScreen] cancelBooking failed", { message });
+            }
+            showErrorAlert("Error", "Failed to cancel booking. Please try again.");
+          },
+        }
+      );
+    },
+    [booking, router, cancelBookingMutation]
+  );
+
+  const handleCancelBooking = useCallback(() => {
+    if (!booking) return;
+
+    if (Platform.OS === "android") {
+      setCancellationReason("");
+      setShowCancelDialog(true);
+    } else {
+      Alert.alert("Cancel Booking", `Are you sure you want to cancel "${booking.title}"?`, [
+        { text: "No", style: "cancel" },
+        {
+          text: "Yes, Cancel",
+          style: "destructive",
+          onPress: () => {
+            if (Platform.OS === "ios") {
+              Alert.prompt(
+                "Cancellation Reason",
+                "Please provide a reason for cancelling this booking:",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Cancel Booking",
+                    style: "destructive",
+                    onPress: (reason?: string) => {
+                      performCancelBooking(reason?.trim() || "Cancelled by host");
+                    },
+                  },
+                ],
+                "plain-text",
+                "",
+                "default"
+              );
+            } else {
+              performCancelBooking("Cancelled by host");
+            }
+          },
+        },
+      ]);
+    }
+  }, [booking, performCancelBooking]);
+
+  const handleConfirmCancel = useCallback(() => {
+    const reason = cancellationReason.trim() || "Cancelled by host";
+    setShowCancelDialog(false);
+    setCancellationReason("");
+    performCancelBooking(reason);
+  }, [cancellationReason, performCancelBooking]);
+
+  const handleCloseCancelDialog = useCallback(() => {
+    setShowCancelDialog(false);
+    setCancellationReason("");
+  }, []);
+
+  const handleReportBooking = useCallback(() => {
+    Alert.alert("Report Booking", "Report booking functionality is not yet available");
+  }, []);
+
+  // Navigate to reschedule screen (same pattern as senior's - navigate to screen in same folder)
+  const openRescheduleModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/reschedule",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to edit location screen (same pattern as senior's - navigate to screen in same folder)
+  const openEditLocationModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/edit-location",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to add guests screen (same pattern as senior's - navigate to screen in same folder)
+  const openAddGuestsModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/add-guests",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to mark no show screen (same pattern as senior's - navigate to screen in same folder)
+  const openMarkNoShowModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/mark-no-show",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to view recordings screen (same pattern as senior's - navigate to screen in same folder)
+  const openViewRecordingsModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/view-recordings",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Navigate to meeting session details screen (same pattern as senior's - navigate to screen in same folder)
+  const openMeetingSessionDetailsModal = useCallback(() => {
+    if (!booking) return;
+    router.push({
+      pathname: "/meeting-session-details",
+      params: { uid: booking.uid },
+    });
+  }, [booking, router]);
+
+  // Expose action handlers to parent component (for iOS header menu)
+  useEffect(() => {
+    if (booking && onActionsReady) {
+      onActionsReady({
+        openRescheduleModal,
+        openEditLocationModal,
+        openAddGuestsModal,
+        openViewRecordingsModal,
+        openMeetingSessionDetailsModal,
+        openMarkNoShowModal,
+        handleCancelBooking,
+      });
+    }
+  }, [
+    booking,
+    onActionsReady,
+    openRescheduleModal,
+    openEditLocationModal,
+    openAddGuestsModal,
+    openViewRecordingsModal,
+    openMeetingSessionDetailsModal,
+    handleCancelBooking,
+    openMarkNoShowModal,
+  ]);
 
   const handleJoinMeeting = () => {
     if (!booking?.location) return;
@@ -236,82 +438,89 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
     }
   };
 
-  const openRescheduleModal = () => {
-    if (!booking) return;
+  const dropdownActions = useMemo(() => {
+    if (!booking) return [];
 
-    // Pre-fill with the current booking date/time (using local timezone consistently)
-    const currentDate = new Date(booking.startTime);
-    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}-${String(currentDate.getDate()).padStart(2, "0")}`;
-    const timeStr = `${String(currentDate.getHours()).padStart(2, "0")}:${String(
-      currentDate.getMinutes()
-    ).padStart(2, "0")}`;
+    type DropdownAction = {
+      label: string;
+      icon: keyof typeof Ionicons.glyphMap;
+      onPress: () => void;
+      visible: boolean;
+      variant?: "default" | "destructive";
+    };
 
-    setRescheduleDate(dateStr);
-    setRescheduleTime(timeStr);
-    setRescheduleReason("");
-    setShowRescheduleModal(true);
-  };
+    const allActions: DropdownAction[] = [
+      {
+        label: "Reschedule Booking",
+        icon: "calendar-outline",
+        onPress: openRescheduleModal,
+        visible: actions.reschedule.visible && actions.reschedule.enabled,
+      },
+      {
+        label: "Edit Location",
+        icon: "location-outline",
+        onPress: openEditLocationModal,
+        visible: actions.changeLocation.visible && actions.changeLocation.enabled,
+      },
+      {
+        label: "Add Guests",
+        icon: "people-outline",
+        onPress: openAddGuestsModal,
+        visible: actions.addGuests.visible && actions.addGuests.enabled,
+      },
+      {
+        label: "View Recordings",
+        icon: "videocam-outline",
+        onPress: openViewRecordingsModal,
+        visible: actions.viewRecordings.visible && actions.viewRecordings.enabled,
+      },
+      {
+        label: "Meeting Session Details",
+        icon: "information-circle-outline",
+        onPress: openMeetingSessionDetailsModal,
+        visible: actions.meetingSessionDetails.visible && actions.meetingSessionDetails.enabled,
+      },
+      {
+        label: "Mark as No-Show",
+        icon: "eye-off-outline",
+        onPress: openMarkNoShowModal,
+        visible: actions.markNoShow.visible && actions.markNoShow.enabled,
+      },
+      {
+        label: "Report Booking",
+        icon: "flag-outline",
+        onPress: handleReportBooking,
+        visible: true,
+        variant: "destructive",
+      },
+      {
+        label: "Cancel Event",
+        icon: "close-circle-outline",
+        onPress: handleCancelBooking,
+        visible: actions.cancel.visible && actions.cancel.enabled,
+        variant: "destructive",
+      },
+    ];
 
-  const handleReschedule = async () => {
-    if (!booking || !rescheduleDate || !rescheduleTime) {
-      showErrorAlert("Error", "Please enter both date and time");
-      return;
-    }
+    return allActions.filter((action) => action.visible);
+  }, [
+    booking,
+    actions,
+    openRescheduleModal,
+    openEditLocationModal,
+    openAddGuestsModal,
+    openViewRecordingsModal,
+    openMeetingSessionDetailsModal,
+    openMarkNoShowModal,
+    handleReportBooking,
+    handleCancelBooking,
+  ]);
 
-    // Parse the date and time
-    const dateTimeStr = `${rescheduleDate}T${rescheduleTime}:00`;
-    const newDateTime = new Date(dateTimeStr);
+  const destructiveStartIndex = dropdownActions.findIndex(
+    (action) => action.variant === "destructive"
+  );
 
-    // Validate the date
-    if (isNaN(newDateTime.getTime())) {
-      showErrorAlert(
-        "Error",
-        "Invalid date or time format. Please use YYYY-MM-DD for date and HH:MM for time."
-      );
-      return;
-    }
-
-    // Check if the new time is in the future
-    if (newDateTime <= new Date()) {
-      showErrorAlert("Error", "Please select a future date and time");
-      return;
-    }
-
-    // Convert to UTC ISO string
-    const startUtc = newDateTime.toISOString();
-
-    setRescheduling(true);
-    try {
-      await CalComAPIService.rescheduleBooking(booking.uid, {
-        start: startUtc,
-        reschedulingReason: rescheduleReason.trim() || undefined,
-      });
-
-      Alert.alert("Success", "Booking rescheduled successfully");
-      setShowRescheduleModal(false);
-      setRescheduleDate("");
-      setRescheduleTime("");
-      setRescheduleReason("");
-
-      // Refresh booking data
-      await fetchBooking();
-    } catch (error) {
-      console.error("Failed to reschedule booking");
-      if (__DEV__) {
-        const message = error instanceof Error ? error.message : String(error);
-        const stack = error instanceof Error ? error.stack : undefined;
-        console.debug("[BookingDetailScreen] rescheduleBooking failed", { message, stack });
-      }
-      showErrorAlert("Error", "Failed to reschedule booking. Please try again.");
-    } finally {
-      setRescheduling(false);
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-[#f8f9fa]">
         <ActivityIndicator size="large" color="#000000" />
@@ -321,11 +530,12 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
   }
 
   if (error || !booking) {
+    const errorMessage = error?.message || "Booking not found";
     return (
       <View className="flex-1 items-center justify-center bg-[#f8f9fa] p-5">
-        <Ionicons name="alert-circle" size={64} color="#FF3B30" />
+        <Ionicons name="alert-circle" size={64} color="#800020" />
         <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
-          {error || "Booking not found"}
+          {errorMessage}
         </Text>
         <AppPressable className="mt-6 rounded-lg bg-black px-6 py-3" onPress={() => router.back()}>
           <Text className="text-base font-semibold text-white">Go Back</Text>
@@ -338,7 +548,7 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
   const endTime = booking.end || booking.endTime || "";
   const dateFormatted = formatDateFull(startTime);
   const timeFormatted = `${formatTime12Hour(startTime)} - ${formatTime12Hour(endTime)}`;
-  const timezone = getTimezone(startTime);
+  const timezone = getTimezone();
   const locationProvider = getLocationProvider(booking.location, booking.responses);
 
   return (
@@ -348,18 +558,53 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
         <Stack.Screen
           options={{
             headerRight: () => (
-              <AppPressable
-                className="h-10 w-10 items-center justify-center rounded-full"
-                onPress={() => setShowActionsModal(true)}
-              >
-                <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
-              </AppPressable>
+              <HeaderButtonWrapper side="right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Pressable className="h-10 w-10 items-center justify-center rounded-full">
+                      <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
+                    </Pressable>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent
+                    insets={contentInsets}
+                    sideOffset={8}
+                    className="w-52"
+                    align="end"
+                  >
+                    {dropdownActions.map((action, index) => (
+                      <React.Fragment key={action.label}>
+                        {index === destructiveStartIndex && destructiveStartIndex > 0 && (
+                          <DropdownMenuSeparator />
+                        )}
+                        <DropdownMenuItem variant={action.variant} onPress={action.onPress}>
+                          <Ionicons
+                            name={action.icon}
+                            size={18}
+                            color={action.variant === "destructive" ? "#800020" : "#374151"}
+                            style={{ marginRight: 8 }}
+                          />
+                          <UIText
+                            className={action.variant === "destructive" ? "text-destructive" : ""}
+                          >
+                            {action.label}
+                          </UIText>
+                        </DropdownMenuItem>
+                      </React.Fragment>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </HeaderButtonWrapper>
             ),
           }}
         />
       )}
       <View className="flex-1 bg-[#]">
-        <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+        >
           {/* Title */}
           <View className="mb-3">
             <Text className="mb-2 text-2xl font-semibold text-[#333]">{booking.title}</Text>
@@ -396,7 +641,7 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
                 ) : booking.hosts && booking.hosts.length > 0 ? (
                   booking.hosts.map((host, hostIndex) => (
                     <View
-                      key={hostIndex}
+                      key={host.email ?? host.name}
                       className={`flex-row items-start ${hostIndex > 0 ? "mt-4" : ""}`}
                     >
                       <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-black">
@@ -422,21 +667,49 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
             ) : null}
             {booking.attendees && booking.attendees.length > 0 ? (
               <View>
-                {booking.attendees.map((attendee, index) => (
-                  <View key={index} className={`flex-row items-start ${index > 0 ? "mt-4" : ""}`}>
-                    <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-black">
-                      <Text className="text-base font-semibold text-white">
-                        {getInitials(attendee.name)}
-                      </Text>
+                {booking.attendees.map((attendee, index) => {
+                  const isNoShow =
+                    (attendee as { noShow?: boolean; absent?: boolean }).noShow === true ||
+                    (attendee as { noShow?: boolean; absent?: boolean }).absent === true;
+                  return (
+                    <View
+                      key={attendee.email}
+                      className={`flex-row items-start ${index > 0 ? "mt-4" : ""}`}
+                    >
+                      <View
+                        className={`mr-3 h-12 w-12 items-center justify-center rounded-full ${
+                          isNoShow ? "bg-[#800020]" : "bg-black"
+                        }`}
+                      >
+                        <Text className="text-base font-semibold text-white">
+                          {getInitials(attendee.name)}
+                        </Text>
+                      </View>
+                      <View className="flex-1">
+                        <View className="mb-1 flex-row items-center">
+                          <Text
+                            className={`text-base font-medium ${
+                              isNoShow ? "text-[#800020]" : "text-[#333]"
+                            }`}
+                          >
+                            {attendee.name}
+                          </Text>
+                          {isNoShow && (
+                            <View className="ml-2 flex-row items-center rounded-full bg-[#FEE2E2] px-2 py-0.5">
+                              <Ionicons name="eye-off" size={12} color="#800020" />
+                              <Text className="ml-1 text-xs font-medium text-[#800020]">
+                                No-show
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text className={`text-sm ${isNoShow ? "text-[#800020]" : "text-[#666]"}`}>
+                          {attendee.email}
+                        </Text>
+                      </View>
                     </View>
-                    <View className="flex-1">
-                      <Text className="mb-1 text-base font-medium text-[#333]">
-                        {attendee.name}
-                      </Text>
-                      <Text className="text-sm text-[#666]">{attendee.email}</Text>
-                    </View>
-                  </View>
-                ))}
+                  );
+                })}
               </View>
             ) : null}
           </View>
@@ -483,8 +756,9 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
           {booking.recurringEventId ||
           (booking as { recurringBookingUid?: string }).recurringBookingUid ? (
             <View className="mb-2 rounded-2xl bg-white p-6">
-              <Text className="mb-2 text-base font-medium text-[#666]">Recurring Event</Text>
-              <Text className="text-base text-[#666]">Every 2 weeks for 6 occurrences</Text>
+              <Text className="text-base font-medium text-[#666]">
+                This is part of a recurring event
+              </Text>
             </View>
           ) : null}
 
@@ -522,171 +796,72 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
           visible={showActionsModal}
           onClose={() => setShowActionsModal(false)}
           booking={booking}
-          hasLocationUrl={!!locationProvider?.url}
-          isUpcoming={booking ? new Date(booking.startTime) > new Date() : false}
-          isPast={booking ? new Date(booking.startTime) <= new Date() : false}
-          isCancelled={booking?.status?.toUpperCase() === "CANCELLED"}
-          isUnconfirmed={booking?.status?.toUpperCase() === "PENDING"}
+          actions={actions}
           onReschedule={openRescheduleModal}
-          onEditLocation={() => {
-            Alert.alert("Edit Location", "Edit location functionality coming soon");
-          }}
-          onAddGuests={() => {
-            Alert.alert("Add Guests", "Add guests functionality coming soon");
-          }}
-          onViewRecordings={() => {
-            Alert.alert("View Recordings", "View recordings functionality coming soon");
-          }}
-          onMeetingSessionDetails={() => {
-            Alert.alert(
-              "Meeting Session Details",
-              "Meeting session details functionality coming soon"
-            );
-          }}
-          onMarkNoShow={() => {
-            Alert.alert("Mark as No-Show", "Mark as no-show functionality coming soon");
-          }}
+          onEditLocation={openEditLocationModal}
+          onAddGuests={openAddGuestsModal}
+          onViewRecordings={openViewRecordingsModal}
+          onMeetingSessionDetails={openMeetingSessionDetailsModal}
+          onMarkNoShow={openMarkNoShowModal}
           onReportBooking={() => {
-            Alert.alert("Report Booking", "Report booking functionality coming soon");
+            Alert.alert("Report Booking", "Report booking functionality is not yet available");
           }}
-          onCancelBooking={() => {
-            Alert.alert("Cancel Booking", "Are you sure you want to cancel this booking?", [
-              { text: "No", style: "cancel" },
-              {
-                text: "Yes, Cancel",
-                style: "destructive",
-                onPress: () => {
-                  // TODO: Implement cancel booking
-                  if (__DEV__)
-                    console.debug("[BookingDetailScreen] cancel booking (not implemented yet)");
-                },
-              },
-            ]);
-          }}
+          onCancelBooking={handleCancelBooking}
         />
 
-        {/* Reschedule Modal */}
-        <FullScreenModal
-          visible={showRescheduleModal}
-          animationType="fade"
-          onRequestClose={() => setShowRescheduleModal(false)}
-        >
-          <AppPressable
-            className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
-            onPress={() => setShowRescheduleModal(false)}
-          >
-            <AppPressable
-              className="w-[90%] max-w-[500px] rounded-2xl bg-white"
-              onPress={(e) => e.stopPropagation()}
-              style={shadows.xl()}
-            >
-              {/* Header */}
-              <View className="px-8 pb-4 pt-6">
-                <View className="flex-row items-start space-x-3">
-                  <View className="h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#F3F4F6]">
-                    <Ionicons name="calendar-outline" size={24} color="#111827" />
-                  </View>
-                  <View className="flex-1 pt-1">
-                    <Text className="mb-2 text-2xl font-semibold text-[#111827]">
-                      Reschedule Booking
-                    </Text>
-                    <Text className="text-sm text-[#6B7280]">
-                      Select a new date and time for this booking.
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Content */}
-              <ScrollView className="max-h-[400px] px-8 pb-6">
-                {/* Date Input */}
-                <View className="mb-4">
-                  <Text className="mb-2 text-sm font-bold text-[#111827]">
-                    New Date
-                    <Text className="font-normal text-[#6B7280]"> (YYYY-MM-DD)</Text>
-                  </Text>
-                  <TextInput
-                    className="rounded-md border border-[#D1D5DB] bg-white px-3 py-3 text-base text-[#111827]"
-                    placeholder="2024-12-25"
-                    placeholderTextColor="#9CA3AF"
-                    value={rescheduleDate}
-                    onChangeText={setRescheduleDate}
-                    editable={!rescheduling}
-                    keyboardType="default"
-                  />
-                </View>
-
-                {/* Time Input */}
-                <View className="mb-4">
-                  <Text className="mb-2 text-sm font-bold text-[#111827]">
-                    New Time
-                    <Text className="font-normal text-[#6B7280]"> (HH:MM, 24-hour)</Text>
-                  </Text>
-                  <TextInput
-                    className="rounded-md border border-[#D1D5DB] bg-white px-3 py-3 text-base text-[#111827]"
-                    placeholder="14:30"
-                    placeholderTextColor="#9CA3AF"
-                    value={rescheduleTime}
-                    onChangeText={setRescheduleTime}
-                    editable={!rescheduling}
-                    keyboardType="default"
-                  />
-                </View>
-
-                {/* Reason Input */}
-                <View className="mb-2">
-                  <Text className="mb-2 text-sm font-bold text-[#111827]">
-                    Reason
-                    <Text className="font-normal text-[#6B7280]"> (Optional)</Text>
-                  </Text>
-                  <TextInput
-                    className="min-h-[80px] rounded-md border border-[#D1D5DB] bg-white px-3 py-3 text-base text-[#111827]"
-                    placeholder="Enter reason for rescheduling..."
-                    placeholderTextColor="#9CA3AF"
-                    value={rescheduleReason}
-                    onChangeText={setRescheduleReason}
-                    multiline
-                    numberOfLines={3}
-                    textAlignVertical="top"
-                    editable={!rescheduling}
-                  />
-                </View>
-              </ScrollView>
-
-              {/* Footer */}
-              <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4">
-                <View className="flex-row justify-end gap-2 space-x-2">
-                  <AppPressable
-                    className="rounded-xl border border-[#D1D5DB] bg-white px-2 py-2 md:px-4"
-                    onPress={() => {
-                      setShowRescheduleModal(false);
-                      setRescheduleDate("");
-                      setRescheduleTime("");
-                      setRescheduleReason("");
-                    }}
-                    disabled={rescheduling}
-                  >
-                    <Text className="text-base font-medium text-[#374151]">Cancel</Text>
-                  </AppPressable>
-                  <AppPressable
-                    className={`rounded-xl bg-[#111827] px-2 py-2 md:px-4 ${
-                      rescheduling ? "opacity-60" : ""
-                    }`}
-                    onPress={handleReschedule}
-                    disabled={rescheduling}
-                  >
-                    {rescheduling ? (
-                      <ActivityIndicator size="small" color="white" />
-                    ) : (
-                      <Text className="text-base font-medium text-white">Reschedule</Text>
-                    )}
-                  </AppPressable>
-                </View>
-              </View>
-            </AppPressable>
-          </AppPressable>
-        </FullScreenModal>
+        {/* Cancelling overlay */}
+        {isCancelling && (
+          <View className="absolute inset-0 items-center justify-center bg-black/50">
+            <View className="rounded-2xl bg-white px-8 py-6">
+              <ActivityIndicator size="large" color="#000" />
+              <Text className="mt-3 text-base font-medium text-gray-700">
+                Cancelling booking...
+              </Text>
+            </View>
+          </View>
+        )}
       </View>
+
+      {/* Cancel Event AlertDialog (Android only) */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader className="items-start">
+            <AlertDialogTitle>
+              <UIText className="text-left text-lg font-semibold">Cancel event</UIText>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <UIText className="text-left text-sm text-muted-foreground">
+                Cancellation reason will be shared with guests
+              </UIText>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <View>
+            <UIText className="mb-2 text-sm font-medium">Reason for cancellation</UIText>
+            <TextInput
+              className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827]"
+              placeholder="Why are you cancelling?"
+              placeholderTextColor="#9CA3AF"
+              value={cancellationReason}
+              onChangeText={setCancellationReason}
+              autoFocus
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+              style={{ minHeight: 80 }}
+            />
+          </View>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onPress={handleCloseCancelDialog}>
+              <UIText>Nevermind</UIText>
+            </AlertDialogCancel>
+            <AlertDialogAction onPress={handleConfirmCancel}>
+              <UIText className="text-white">Cancel event</UIText>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
