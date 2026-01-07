@@ -56,7 +56,7 @@ Content`;
       expect(result.content).toBe("Just plain text content");
     });
 
-    it("handles trailing spaces after frontmatter delimiters", () => {
+    it("parses simple frontmatter correctly", () => {
       const source = `---
 items:
   - test.jpg
@@ -97,13 +97,16 @@ Content`;
   });
 
   describe("security (JSON_SCHEMA protection)", () => {
-    it("throws on unsafe YAML types", () => {
+    it("returns empty data on unsafe YAML types", () => {
       const source = `---
 date: !!js/date 2024-01-01
 ---
 Content`;
 
-      expect(() => parseFrontmatter(source)).toThrow();
+      const result = parseFrontmatter(source);
+
+      expect(result.data).toEqual({});
+      expect(result.content).toBe("Content");
     });
   });
 });

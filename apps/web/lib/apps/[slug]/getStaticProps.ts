@@ -3,11 +3,14 @@ import path from "node:path";
 
 import yaml from "js-yaml";
 import { z } from "zod";
-import { prisma } from "@calcom/prisma";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import { getAppAssetFullPath } from "@calcom/app-store/getAppAssetFullPath";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
+import { prisma } from "@calcom/prisma";
+import logger from "@calcom/lib/logger";
+
+const log = logger.getSubLogger({ prefix: ["lib", "parseFrontmatter"] });
 
 const FRONTMATTER_REGEX = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/;
 
@@ -27,10 +30,15 @@ export function parseFrontmatter(source: string): { data: Record<string, unknown
   }
 
   let data: Record<string, unknown> = {};
-  const parsed = yaml.load(match[1], { schema: yaml.JSON_SCHEMA });
 
-  if (isRecord(parsed)) {
-    data = parsed;
+  try {
+    const parsed = yaml.load(match[1], { schema: yaml.JSON_SCHEMA });
+
+    if (isRecord(parsed)) {
+      data = parsed;
+    }
+  } catch (error) {
+    log.warn("Invalid YAML frontmatter", { error });
   }
 
   return {
