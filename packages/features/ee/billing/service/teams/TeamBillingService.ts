@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -10,18 +8,20 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import type { z } from "zod";
 
 // import billing from "../..";
 import type {
   IBillingRepository,
   IBillingRepositoryCreateArgs,
 } from "../../repository/billing/IBillingRepository";
-import { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
+import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
+import { BillingPeriodService } from "../billingPeriod/BillingPeriodService";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
 import {
-  TeamBillingPublishResponseStatus,
   type ITeamBillingService,
   type TeamBillingInput,
+  TeamBillingPublishResponseStatus,
 } from "./ITeamBillingService";
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });
@@ -161,7 +161,6 @@ export class TeamBillingService implements ITeamBillingService {
        **/
       if (!url && !isOrganization) return;
 
-      const { BillingPeriodService } = await import("../billingPeriod/BillingPeriodService");
       const billingPeriodService = new BillingPeriodService();
       const shouldProrate = await billingPeriodService.shouldApplyMonthlyProration(teamId);
 

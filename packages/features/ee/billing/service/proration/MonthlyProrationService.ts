@@ -1,12 +1,11 @@
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-import type { ProrationStatus } from "@calcom/prisma/enums";
 import type { Logger } from "tslog";
 import { MonthlyProrationRepository } from "../../repository/proration/MonthlyProrationRepository";
 import type { BillingInfo } from "../../repository/proration/MonthlyProrationTeamRepository";
 import { MonthlyProrationTeamRepository } from "../../repository/proration/MonthlyProrationTeamRepository";
-import type { SeatChangeTrackingService } from "../seatTracking/SeatChangeTrackingService";
+import { SeatChangeTrackingService } from "../seatTracking/SeatChangeTrackingService";
 
 const log = logger.getSubLogger({ prefix: ["MonthlyProrationService"] });
 
@@ -55,7 +54,6 @@ export class MonthlyProrationService {
   async createProrationForTeam(params: CreateProrationParams) {
     const { teamId, monthKey } = params;
 
-    const { SeatChangeTrackingService } = await import("../seatTracking/SeatChangeTrackingService");
     const seatTracker = new SeatChangeTrackingService();
 
     const changes = await seatTracker.getMonthlyChanges({ teamId, monthKey });
@@ -167,8 +165,6 @@ export class MonthlyProrationService {
     monthKey: string;
     teamId: number;
   }) {
-    const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
-
     const amountInCents = Math.round(proration.proratedAmount * 100);
 
     const invoiceItem = await stripe.invoiceItems.create({
@@ -184,8 +180,20 @@ export class MonthlyProrationService {
       },
     });
 
+    const invoice = await stripe.invoices.create({
+      customer: proration.customerId,
+      auto_advance: true,
+      metadata: {
+        type: "monthly_proration",
+        prorationId: proration.id,
+      },
+    });
+
+    await stripe.invoices.finalizeInvoice(invoice.id);
+
     await this.prorationRepository.updateProrationStatus(proration.id, "INVOICE_CREATED", {
       invoiceItemId: invoiceItem.id,
+      invoiceId: invoice.id,
     });
 
     return invoiceItem;
@@ -235,7 +243,6 @@ export class MonthlyProrationService {
     this.logger.info(`[${teamId}] ${needsCreation ? "creating" : "populating"} billing data from stripe`);
 
     try {
-      const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
       const subscription = await stripe.subscriptions.retrieve(billing.subscriptionId);
 
       const billingPeriod =

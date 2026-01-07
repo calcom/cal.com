@@ -1,5 +1,5 @@
 import logger from "@calcom/lib/logger";
-
+import { MonthlyProrationService } from "../../service/proration/MonthlyProrationService";
 import type { SWHMap } from "./__handler";
 
 const log = logger.getSubLogger({ prefix: ["invoice-payment-failed"] });
@@ -21,7 +21,6 @@ const handler = async (data: SWHMap["invoice.payment_failed"]["data"]) => {
 
   const failureReason = invoice.last_finalization_error?.message || "payment failed";
 
-  const { MonthlyProrationService } = await import("../../service/proration/MonthlyProrationService");
   const prorationService = new MonthlyProrationService();
 
   await prorationService.handleProrationPaymentFailure({ prorationId, reason: failureReason });
