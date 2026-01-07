@@ -14,11 +14,18 @@ import {
   View,
 } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
+import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import { AdvancedTab } from "@/components/event-type-detail/tabs/AdvancedTab";
 import { AvailabilityTab } from "@/components/event-type-detail/tabs/AvailabilityTab";
 import { BasicsTab } from "@/components/event-type-detail/tabs/BasicsTab";
 import { LimitsTab } from "@/components/event-type-detail/tabs/LimitsTab";
 import { RecurringTab } from "@/components/event-type-detail/tabs/RecurringTab";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { truncateTitle } from "@/components/event-type-detail/utils";
 import { buildPartialUpdatePayload } from "@/components/event-type-detail/utils/buildPartialUpdatePayload";
 import {
@@ -1113,19 +1120,72 @@ export default function EventTypeDetail() {
   const saveButtonText = id === "new" ? "Create" : "Save";
 
   const renderHeaderLeft = () => (
-    <AppPressable onPress={() => router.back()} className="px-2 py-2">
-      <Ionicons name="close" size={24} color="#007AFF" />
-    </AppPressable>
+    <HeaderButtonWrapper side="left">
+      <AppPressable onPress={() => router.back()} className="px-2 py-2">
+        <Ionicons name="close" size={24} color="#007AFF" />
+      </AppPressable>
+    </HeaderButtonWrapper>
   );
 
   const renderHeaderRight = () => (
-    <AppPressable
-      onPress={handleSave}
-      disabled={saving}
-      className={`px-2 py-2 ${saving ? "opacity-50" : ""}`}
-    >
-      <Text className="text-[16px] font-semibold text-[#007AFF]">{saveButtonText}</Text>
-    </AppPressable>
+    <HeaderButtonWrapper side="right">
+      <View className="flex-row items-center" style={{ gap: Platform.OS === "web" ? 24 : 8 }}>
+        {/* Tab Navigation Dropdown Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <AppPressable className="flex-row items-center gap-1 px-2 py-2">
+              <Text className="text-[16px] font-semibold text-[#007AFF]" numberOfLines={1}>
+                {tabs.find((tab) => tab.id === activeTab)?.label ?? "Basics"}
+              </Text>
+              <Ionicons
+                name="chevron-down"
+                size={16}
+                color="#007AFF"
+                style={{ marginLeft: 2, flexShrink: 0 }}
+              />
+            </AppPressable>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            insets={{ top: 60, bottom: 20, left: 12, right: 12 }}
+            sideOffset={8}
+            className="w-44"
+            align="end"
+          >
+            {tabs.map((tab) => {
+              const isSelected = activeTab === tab.id;
+              return (
+                <DropdownMenuItem key={tab.id} onPress={() => setActiveTab(tab.id)}>
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons
+                      name={isSelected ? "checkmark-circle" : tab.icon}
+                      size={16}
+                      color={isSelected ? "#007AFF" : "#666"}
+                    />
+                    <Text
+                      className={
+                        isSelected ? "text-base font-semibold text-[#007AFF]" : "text-base"
+                      }
+                    >
+                      {tab.label}
+                    </Text>
+                  </View>
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Save Button */}
+        <AppPressable
+          onPress={handleSave}
+          disabled={saving}
+          className={`px-2 py-2 ${saving ? "opacity-50" : ""}`}
+        >
+          <Text className="text-[16px] font-semibold text-[#007AFF]">{saveButtonText}</Text>
+        </AppPressable>
+      </View>
+    </HeaderButtonWrapper>
   );
 
   return (
@@ -1155,10 +1215,9 @@ export default function EventTypeDetail() {
               {tabs.map((tab) => (
                 <Stack.Header.MenuAction
                   key={tab.id}
-                  isOn={activeTab === tab.id}
                   icon={
                     activeTab === tab.id
-                      ? "checkmark"
+                      ? "checkmark.circle.fill"
                       : tab.icon === "link"
                         ? "link"
                         : tab.icon === "calendar"
@@ -1197,7 +1256,8 @@ export default function EventTypeDetail() {
           contentContainerStyle={{ padding: 16, paddingBottom: 200 }}
           contentInsetAdjustmentBehavior="automatic"
         >
-          <Activity mode={Platform.OS !== "ios" ? "visible" : "hidden"}>
+          {/* Horizontal tabs only shown on web; Android uses header dropdown menu */}
+          <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
             <View
               style={{
                 paddingBottom: 12,
@@ -1986,41 +2046,43 @@ export default function EventTypeDetail() {
             </View>
           ) : null}
 
-          <View className="rounded-2xl bg-white p-5 mt-3 gap-3">
-            <View className="h-12 flex-row items-center justify-between">
-              <Text>Hidden</Text>
-              <Switch
-                value={isHidden}
-                onValueChange={setIsHidden}
-                trackColor={{ false: "#E5E5EA", true: "#000" }}
-                thumbColor="#FFFFFF"
-              />
+          {activeTab === "basics" && (
+            <View className="rounded-2xl bg-white p-5 mt-3 gap-3">
+              <View className="h-12 flex-row items-center justify-between">
+                <Text>Hidden</Text>
+                <Switch
+                  value={isHidden}
+                  onValueChange={setIsHidden}
+                  trackColor={{ false: "#E5E5EA", true: "#000" }}
+                  thumbColor="#FFFFFF"
+                />
+              </View>
+
+              <TouchableOpacity
+                className="h-12 flex-row items-center justify-between"
+                onPress={handlePreview}
+              >
+                <Text>Preview</Text>
+                <Ionicons name="open-outline" size={20} color="#000" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="h-12 flex-row items-center justify-between"
+                onPress={handleCopyLink}
+              >
+                <Text>Copy Link</Text>
+                <Ionicons name="link-outline" size={20} color="#000" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="h-12 flex-row items-center justify-between"
+                onPress={handleDelete}
+              >
+                <Text className="text-red-500">Delete</Text>
+                <Ionicons name="trash-outline" size={20} color="#ef4444" />
+              </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              className="h-12 flex-row items-center justify-between"
-              onPress={handlePreview}
-            >
-              <Text>Preview</Text>
-              <Ionicons name="open-outline" size={20} color="#000" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="h-12 flex-row items-center justify-between"
-              onPress={handleCopyLink}
-            >
-              <Text>Copy Link</Text>
-              <Ionicons name="link-outline" size={20} color="#000" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="h-12 flex-row items-center justify-between"
-              onPress={handleDelete}
-            >
-              <Text className="text-red-500">Delete</Text>
-              <Ionicons name="trash-outline" size={20} color="#ef4444" />
-            </TouchableOpacity>
-          </View>
+          )}
         </ScrollView>
       </View>
     </>
