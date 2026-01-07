@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "참석자 불참 업데이트됨",
     "type": "할당 유형",
     "assignmentType_manual": "수동 할당",
-    "assignmentType_roundRobin": "라운드 로빈 할당"
+    "assignmentType_roundRobin": "라운드 로빈 할당",
+    "actor_impersonated_by": "가장자",
+    "source": "소스"
   },
   "error_loading_booking_logs": "예약 로그 로드 오류",
   "no_audit_logs_found": "감사 로그를 찾을 수 없음",
