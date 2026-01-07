@@ -39,7 +39,6 @@ import { v4 as uuidv4 } from "uuid";
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 import type { AuditActor } from "@calcom/prisma/client";
-import { AppActorBySlug } from "booking-audit/lib/dto/types";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
@@ -68,7 +67,7 @@ async function fireBookingAcceptedEvent({
   }[];
 }) {
   const bookingEventHandlerService = getBookingEventHandlerService();
-  const actor = await getActor(userUuid);
+  const actor = getActor({ userUuid, actor: null });
   if (updatedBookings.length > 1) {
     const operationId = uuidv4();
     await bookingEventHandlerService.onBulkBookingsAccepted({

@@ -27,7 +27,7 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { makeAppActor, makeAppActorUsingSlug } from "@calcom/features/booking-audit/lib/makeActor";
-import { ActorIdentification } from "booking-audit/lib/dto/types";
+import type { ActorIdentification } from "@calcom/features/booking-audit/lib/dto/types";
 
 const log = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
 
