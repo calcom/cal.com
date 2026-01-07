@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import jwt from "jsonwebtoken";
+import * as jwt from "jsonwebtoken";
 
 type OAuthTokenPayload = {
   userId?: number;

@@ -5,7 +5,7 @@ import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import "dotenv/config";
 import { WinstonModule } from "nest-winston";
-import qs from "qs";
+import * as qs from "qs";
 
 import { bootstrap } from "./app";
 import { AppModule } from "./app.module";

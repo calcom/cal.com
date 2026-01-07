@@ -1,25 +1,18 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist/apps/api/v2",
-        "installCommand": "yarn install",
-        "buildCommand": "cd ../../.. && yarn turbo run build --filter=@calcom/api-v2"
-      }
-    },
-    {
-      "src": "dist/apps/api/v2/src/main.js",
-      "use": "@vercel/node"
+  "buildCommand": "cd ../../.. && yarn turbo run build --filter=@calcom/api-v2",
+  "outputDirectory": "dist/apps/api/v2",
+  "installCommand": "yarn install",
+  "functions": {
+    "src/main.js": {
+      "memory": 1024,
+      "maxDuration": 30
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "dist/apps/api/v2/src/main.js",
-      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+      "source": "/(.*)",
+      "destination": "/src/main.js"
     }
   ]
 }

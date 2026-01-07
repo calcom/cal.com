@@ -1,5 +1,5 @@
 import { getEnv } from "@/env";
-import Sentry from "@sentry/nestjs";
+import * as Sentry from "@sentry/nestjs";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
 if (process.env.SENTRY_DSN) {
