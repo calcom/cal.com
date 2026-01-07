@@ -39,9 +39,9 @@ vi.mock("@calcom/features/auth/signup/utils/createOrUpdateMemberships", () => ({
 vi.mock("@calcom/features/auth/signup/utils/validateUsername", () => ({
   validateAndGetCorrectedUsernameAndEmail: vi.fn().mockResolvedValue({ isValid: true, username: "testuser" }),
 }));
-vi.mock("@calcom/features/auth/signup/utils/organization", () => ({ joinAnyChildTeamOnOrgInvite: vi.fn() }));
-vi.mock("@calcom/features/auth/signup/utils/prefillAvatar", () => ({ prefillAvatar: vi.fn() }));
-vi.mock("@calcom/features/auth/signup/utils/token", () => ({
+vi.mock("../../utils/organization", () => ({ joinAnyChildTeamOnOrgInvite: vi.fn() }));
+vi.mock("../../utils/prefillAvatar", () => ({ prefillAvatar: vi.fn() }));
+vi.mock("../../utils/token", () => ({
   findTokenByToken: (...args: unknown[]) => mockFindTokenByToken(...args),
   throwIfTokenExpired: vi.fn(),
   validateAndGetCorrectedUsernameForTeam: (...args: unknown[]) => mockValidateAndGetCorrectedUsernameForTeam(...args),

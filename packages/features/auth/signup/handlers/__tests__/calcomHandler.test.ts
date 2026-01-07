@@ -67,8 +67,8 @@ vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.contr
   checkIfEmailIsBlockedInWatchlistController: vi.fn().mockResolvedValue(false),
 }));
 vi.mock("@calcom/web/lib/buildLegacyCtx", () => ({ buildLegacyRequest: vi.fn() }));
-vi.mock("@calcom/features/auth/signup/utils/organization", () => ({ joinAnyChildTeamOnOrgInvite: vi.fn() }));
-vi.mock("@calcom/features/auth/signup/utils/token", () => ({
+vi.mock("../../utils/organization", () => ({ joinAnyChildTeamOnOrgInvite: vi.fn() }));
+vi.mock("../../utils/token", () => ({
   findTokenByToken: (...args: unknown[]) => mockFindTokenByToken(...args),
   throwIfTokenExpired: vi.fn(),
   validateAndGetCorrectedUsernameForTeam: (...args: unknown[]) => mockValidateAndGetCorrectedUsernameForTeam(...args),
@@ -83,7 +83,7 @@ vi.mock("@calcom/lib/server/username", () => ({
 }));
 
 // Import after mocks
-await import("../calcomSignupHandler");
+await import("../calcomHandler");
 import { runP2002TestSuite } from "./p2002.test-suite";
 
 function callHandler(body: Record<string, string | undefined>): Promise<MockResponse> {
