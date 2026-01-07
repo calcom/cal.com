@@ -59,7 +59,7 @@ export async function checkWatchlistBlocking(
     // Fail-open: If watchlist check fails, allow booking to proceed
     // This ensures availability even if watchlist service is down
     log.error("Watchlist check failed, allowing users through (fail-open)", {
-      error: safeStringify(error),
+      error: error instanceof Error ? error.message : "Unknown error",
       emailCount: emails.length,
       organizationId,
     });
