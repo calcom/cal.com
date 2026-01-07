@@ -187,8 +187,8 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number,
       })
     );
 
-    // Don't await for webhooks, fire and forget
-    Promise.all(bookingPaidSubscribers);
+    // Wait for webhook invocations to finish before returning
+    await Promise.all(bookingPaidSubscribers);
 
     // Trigger BOOKING_PAID workflows
     try {
