@@ -1955,4 +1955,11 @@ export class BookingRepository {
       },
     });
   }
+
+  async updateRecordedStatus({ bookingUid, isRecorded }: { bookingUid: string; isRecorded: boolean }): Promise<void> {
+    await this.prismaClient.booking.update({
+      where: { uid: bookingUid },
+      data: { isRecorded },
+    });
+  }
 }
