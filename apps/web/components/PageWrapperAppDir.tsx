@@ -1,7 +1,7 @@
 "use client";
 
 import "@calcom/embed-core/src/embed-iframe";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 
 import AppProviders from "@lib/app-providers-app-dir";
 
