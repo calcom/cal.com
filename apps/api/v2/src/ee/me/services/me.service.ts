@@ -28,6 +28,16 @@ export class MeService {
     const { user, updateData } = params;
     const update = { ...updateData };
 
+    if (update.timeZone && user.defaultScheduleId) {
+      await this.schedulesService.updateUserSchedule(
+        user,
+        user.defaultScheduleId,
+        {
+          timeZone: update.timeZone,
+        }
+      );
+    }
+
     const isEmailVerificationEnabled = user.isPlatformManaged
       ? false
       : await this.featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
@@ -57,12 +67,6 @@ export class MeService {
           }),
         ]);
 
-        if (update.timeZone && user.defaultScheduleId) {
-          await this.schedulesService.updateUserSchedule(user, user.defaultScheduleId, {
-            timeZone: update.timeZone,
-          });
-        }
-
         return {
           updatedUser,
         };
@@ -78,25 +82,10 @@ export class MeService {
       }
     }
 
-    // Filter out undefined values and only update if there are actual fields to update
-    const filteredUpdate = Object.entries(update).reduce((acc, [key, value]) => {
-      if (value !== undefined) {
-        // @ts-expect-error Element implicitly has any type
-        acc[key] = value;
-      }
-      return acc;
-    }, {} as UpdateManagedUserInput);
-
     const updatedUser =
-      Object.keys(filteredUpdate).length > 0
-        ? await this.usersRepository.update(user.id, filteredUpdate)
+      Object.keys(update).length > 0
+        ? await this.usersRepository.update(user.id, update)
         : user;
-
-    if (update.timeZone && user.defaultScheduleId) {
-      await this.schedulesService.updateUserSchedule(user, user.defaultScheduleId, {
-        timeZone: update.timeZone,
-      });
-    }
 
     if (sendEmailVerification && newEmail) {
       await sendChangeOfEmailVerification({
