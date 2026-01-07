@@ -238,7 +238,9 @@ export const NavigationItem: React.FC<{
           className={classNames(
             "grid transition-all duration-300 ease-in-out",
             shouldShowChildren ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-          )}>
+          )}
+          aria-hidden={!shouldShowChildren}
+          inert={!shouldShowChildren ? ("" as any) : undefined}>
           <div className="overflow-hidden">
             {item.child?.map((item, index) => (
               <NavigationItem index={index} key={item.name} item={item} isChild />
