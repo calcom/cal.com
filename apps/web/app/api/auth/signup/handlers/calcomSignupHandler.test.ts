@@ -3,28 +3,14 @@ import { vi } from "vitest";
 
 import type { MockResponse } from "@calcom/features/auth/signup/handlers/__tests__/mocks/next.mocks";
 
-// Hoisted imports for proper mock initialization
-const {
+import {
   prismaMock,
   resetPrismaMock,
-  createPrismaMock,
-} = (await vi.hoisted(
-  async () => await import("@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks")
-)) as Awaited<typeof import("@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks")>;
-
-const {
-  createNextServerMock,
-  createNextHeadersMock,
-} = (await vi.hoisted(
-  async () => await import("@calcom/features/auth/signup/handlers/__tests__/mocks/next.mocks")
-)) as Awaited<typeof import("@calcom/features/auth/signup/handlers/__tests__/mocks/next.mocks")>;
-
-const {
+} from "@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks";
+import {
   createMockTeam,
   createMockFoundToken,
-} = (await vi.hoisted(
-  async () => await import("@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories")
-)) as Awaited<typeof import("@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories")>;
+} from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
 
 const mockFindTokenByToken: Mock = vi.fn();
 const mockValidateAndGetCorrectedUsernameForTeam: Mock = vi.fn();
@@ -37,12 +23,24 @@ type UsernameStatus = {
 
 type InnerHandler = (body: Record<string, string>, status: UsernameStatus) => Promise<MockResponse>;
 
-let capturedHandler: InnerHandler | null = null;
+var mockCapturedHandler: InnerHandler | null;
 
-vi.mock("next/server", createNextServerMock);
-vi.mock("next/headers", createNextHeadersMock);
-vi.mock("@calcom/prisma", createPrismaMock);
-vi.mock("@calcom/prisma/client", createPrismaMock);
+vi.mock("next/server", async () => {
+  const { createNextServerMock } = await import("@calcom/features/auth/signup/handlers/__tests__/mocks/next.mocks");
+  return createNextServerMock();
+});
+vi.mock("next/headers", async () => {
+  const { createNextHeadersMock } = await import("@calcom/features/auth/signup/handlers/__tests__/mocks/next.mocks");
+  return createNextHeadersMock();
+});
+vi.mock("@calcom/prisma", async () => {
+  const { createPrismaMock } = await import("@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks");
+  return createPrismaMock();
+});
+vi.mock("@calcom/prisma/client", async () => {
+  const { createPrismaMock } = await import("@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks");
+  return createPrismaMock();
+});
 vi.mock("@calcom/lib/logger", () => ({
   default: { getSubLogger: () => ({ warn: vi.fn(), error: vi.fn(), debug: vi.fn(), info: vi.fn() }) },
 }));
@@ -77,18 +75,18 @@ vi.mock("@calcom/features/auth/signup/utils/token", () => ({
 // Capture inner handler from usernameHandler wrapper
 vi.mock("@calcom/lib/server/username", () => ({
   usernameHandler: (handler: InnerHandler) => {
-    capturedHandler = handler;
+    mockCapturedHandler = handler;
     return handler;
   },
 }));
 
 // Import after mocks
-await import("./calcomSignupHandler");
+import "./calcomSignupHandler";
 import { runP2002TestSuite } from "@calcom/features/auth/signup/handlers/__tests__/p2002.test-suite";
 
 function callHandler(body: Record<string, string | undefined>): Promise<MockResponse> {
-  if (!capturedHandler) throw new Error("Handler not captured");
-  return capturedHandler(body as Record<string, string>, {
+  if (!mockCapturedHandler) throw new Error("Handler not captured");
+  return mockCapturedHandler(body as Record<string, string>, {
     statusCode: 200,
     requestedUserName: body.username || "testuser",
     json: { available: true, premium: false },
