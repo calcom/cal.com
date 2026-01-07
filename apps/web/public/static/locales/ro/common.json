@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Absență participant actualizată",
     "type": "Tip de alocare",
     "assignmentType_manual": "Alocare manuală",
-    "assignmentType_roundRobin": "Alocare Round Robin"
+    "assignmentType_roundRobin": "Alocare Round Robin",
+    "actor_impersonated_by": "Impersonator",
+    "source": "Sursă"
   },
   "error_loading_booking_logs": "Eroare la încărcarea jurnalelor de rezervare",
   "no_audit_logs_found": "Nu au fost găsite jurnale de audit",

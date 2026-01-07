@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "No presentació de l'assistent actualitzada",
     "type": "Tipus d'assignació",
     "assignmentType_manual": "Assignació manual",
-    "assignmentType_roundRobin": "Assignació Round Robin"
+    "assignmentType_roundRobin": "Assignació Round Robin",
+    "actor_impersonated_by": "Suplantador",
+    "source": "Origen"
   },
   "error_loading_booking_logs": "Error en carregar els registres de reserves",
   "no_audit_logs_found": "No s'han trobat registres d'auditoria",

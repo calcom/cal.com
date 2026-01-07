@@ -4,7 +4,6 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
-  ActionSheetIOS,
   Alert,
   Platform,
   RefreshControl,
@@ -37,6 +36,7 @@ import {
   useDuplicateEventType,
   useEventTypes,
 } from "@/hooks";
+import { useEventTypeFilter } from "@/hooks/useEventTypeFilter";
 import { CalComAPIService, type EventType } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
@@ -94,18 +94,12 @@ export default function EventTypes() {
   // Toast state for web platform
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const [copiedEventTypeId, setCopiedEventTypeId] = useState<number | null>(null);
-
   // Function to show toast
-  const showToastMessage = (message: string, eventTypeId?: number) => {
+  const showToastMessage = (message: string) => {
     setToastMessage(message);
     setShowToast(true);
-    if (eventTypeId) {
-      setCopiedEventTypeId(eventTypeId);
-    }
     setTimeout(() => {
       setShowToast(false);
-      setCopiedEventTypeId(null);
     }, 2000);
   };
 
@@ -113,18 +107,34 @@ export default function EventTypes() {
   // Handle pull-to-refresh (offline-aware)
   const onRefresh = () => offlineAwareRefresh(refetch);
 
-  // Filter event types based on search query
+  // Event type filter and sort hook
+  const {
+    sortBy,
+    filters,
+    setSortBy,
+    toggleFilter,
+    resetFilters,
+    filteredAndSortedEventTypes,
+    activeFilterCount,
+  } = useEventTypeFilter();
+
+  // Filter event types based on search query and filter/sort options
   const filteredEventTypes = useMemo(() => {
-    if (searchQuery.trim() === "") {
-      return eventTypes;
+    // First apply filter/sort from the hook
+    let filtered = filteredAndSortedEventTypes(eventTypes);
+
+    // Then apply search query filter
+    if (searchQuery.trim() !== "") {
+      const searchLower = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (eventType) =>
+          eventType.title.toLowerCase().includes(searchLower) ||
+          eventType.description?.toLowerCase().includes(searchLower)
+      );
     }
-    const searchLower = searchQuery.toLowerCase();
-    return eventTypes.filter(
-      (eventType) =>
-        eventType.title.toLowerCase().includes(searchLower) ||
-        eventType.description?.toLowerCase().includes(searchLower)
-    );
-  }, [eventTypes, searchQuery]);
+
+    return filtered;
+  }, [eventTypes, searchQuery, filteredAndSortedEventTypes]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -134,53 +144,13 @@ export default function EventTypes() {
     handleEdit(eventType);
   };
 
-  const handleEventTypeLongPress = (eventType: EventType) => {
-    if (Platform.OS === "web") {
-      // Show custom modal for web platform
-      setSelectedEventType(eventType);
-      setShowActionModal(true);
-      return;
-    }
-
-    // Android handles long-press via DropdownMenu in EventTypeListItem.android.tsx
-    if (Platform.OS === "android") {
-      return;
-    }
-
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: ["Cancel", "Edit", "Duplicate", "Delete"],
-        destructiveButtonIndex: 3, // Delete button
-        cancelButtonIndex: 0,
-        title: eventType.title,
-        message: eventType.description ? normalizeMarkdown(eventType.description) : undefined,
-      },
-      (buttonIndex) => {
-        switch (buttonIndex) {
-          case 1: // Edit
-            handleEdit(eventType);
-            break;
-          case 2: // Duplicate
-            handleDuplicate(eventType);
-            break;
-          case 3: // Delete
-            handleDelete(eventType);
-            break;
-          default:
-            // Cancel - do nothing
-            break;
-        }
-      }
-    );
-  };
-
   const handleCopyLink = async (eventType: EventType) => {
     try {
       const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
       await Clipboard.setStringAsync(link);
 
       if (Platform.OS === "web") {
-        showToastMessage("Link copied!", eventType.id);
+        showToastMessage("Link copied!");
       } else {
         Alert.alert("Link Copied", "Event type link copied!");
       }
@@ -532,7 +502,7 @@ export default function EventTypes() {
       <Stack.Header
         style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
         blurEffect={isLiquidGlassAvailable() ? undefined : "light"} // Only looks cool on iOS 18 and below
-        hidden={Platform.OS === "android"}
+        hidden={Platform.OS === "android" || Platform.OS === "web"}
       >
         <Stack.Header.Title large>Event Types</Stack.Header.Title>
         <Stack.Header.Right>
@@ -549,7 +519,16 @@ export default function EventTypes() {
       </Stack.Header>
       {(Platform.OS === "web" || Platform.OS === "android") && (
         <>
-          <Header />
+          <Header
+            eventTypeFilterConfig={{
+              sortBy,
+              filters,
+              onSortChange: setSortBy,
+              onToggleFilter: toggleFilter,
+              onResetFilters: resetFilters,
+              activeFilterCount,
+            }}
+          />
           <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
             <TextInput
               className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
@@ -579,26 +558,37 @@ export default function EventTypes() {
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >
-        <View className="px-2 pt-4 md:px-4">
-          <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
-            {filteredEventTypes.map((item, index) => (
-              <EventTypeListItem
-                key={item.id.toString()}
-                item={item}
-                index={index}
-                filteredEventTypes={filteredEventTypes}
-                copiedEventTypeId={copiedEventTypeId}
-                handleEventTypePress={handleEventTypePress}
-                handleEventTypeLongPress={handleEventTypeLongPress}
-                handleCopyLink={handleCopyLink}
-                handlePreview={handlePreview}
-                onEdit={handleEdit}
-                onDuplicate={handleDuplicate}
-                onDelete={handleDelete}
-              />
-            ))}
+        {filteredEventTypes.length === 0 && activeFilterCount > 0 ? (
+          <View className="flex-1 items-center justify-center bg-white p-5 pt-20">
+            <EmptyScreen
+              icon="filter-outline"
+              headline="No event types match your filters"
+              description="Try adjusting your filter criteria or clear all filters to see all event types"
+              buttonText="Clear Filters"
+              onButtonPress={resetFilters}
+              className="border-0"
+            />
           </View>
-        </View>
+        ) : (
+          <View className="px-2 pt-4 md:px-4">
+            <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+              {filteredEventTypes.map((item, index) => (
+                <EventTypeListItem
+                  key={item.id.toString()}
+                  item={item}
+                  index={index}
+                  filteredEventTypes={filteredEventTypes}
+                  handleEventTypePress={handleEventTypePress}
+                  handleCopyLink={handleCopyLink}
+                  handlePreview={handlePreview}
+                  onEdit={handleEdit}
+                  onDuplicate={handleDuplicate}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       {/* Create Event Type Modal - Android uses AlertDialog */}
