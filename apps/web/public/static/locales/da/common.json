@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Deltager ikke mødt op opdateret",
     "type": "Tildelingstype",
     "assignmentType_manual": "Manuel tildeling",
-    "assignmentType_roundRobin": "Round Robin-tildeling"
+    "assignmentType_roundRobin": "Round Robin-tildeling",
+    "actor_impersonated_by": "Imitator",
+    "source": "Kilde"
   },
   "error_loading_booking_logs": "Fejl ved indlæsning af bookinglogfiler",
   "no_audit_logs_found": "Ingen revisionslogfiler fundet",
