@@ -264,23 +264,13 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
 export type CalendarFetchMode = "slots" | "overlay" | "booking";
 
 /**
- * Parameters for getAvailability method
+ * Parameters for getAvailability and getAvailabilityWithTimeZones methods
  */
 export interface GetAvailabilityParams {
   dateFrom: string;
   dateTo: string;
   selectedCalendars: IntegrationCalendar[];
   mode: CalendarFetchMode;
-  fallbackToPrimary?: boolean;
-}
-
-/**
- * Parameters for getAvailabilityWithTimeZones method
- */
-export interface GetAvailabilityWithTimeZonesParams {
-  dateFrom: string;
-  dateTo: string;
-  selectedCalendars: IntegrationCalendar[];
   fallbackToPrimary?: boolean;
 }
 
@@ -312,7 +302,7 @@ export interface Calendar {
   getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]>;
 
   // for OOO calibration (only google calendar for now)
-  getAvailabilityWithTimeZones?(params: GetAvailabilityWithTimeZonesParams): Promise<{
+  getAvailabilityWithTimeZones?(params: GetAvailabilityParams): Promise<{
     start: Date | string;
     end: Date | string;
     timeZone: string;

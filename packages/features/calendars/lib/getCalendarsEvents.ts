@@ -71,6 +71,7 @@ export const getCalendarsEventsWithTimezones = async (
         dateFrom,
         dateTo,
         selectedCalendars: passedSelectedCalendars,
+        mode: "slots",
         fallbackToPrimary: allowFallbackToPrimary,
       })) || [];
 

@@ -18,7 +18,6 @@ import type {
   CalendarEvent,
   EventBusyDate,
   GetAvailabilityParams,
-  GetAvailabilityWithTimeZonesParams,
   IntegrationCalendar,
   NewCalendarEventType,
   SelectedCalendarEventTypeIds,
@@ -494,7 +493,7 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async getAvailabilityWithTimeZones(
-    params: GetAvailabilityWithTimeZonesParams
+    params: GetAvailabilityParams
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
     const { dateFrom, dateTo, selectedCalendars, fallbackToPrimary } = params;
     const calendar = await this.authedCalendar();

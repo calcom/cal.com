@@ -226,6 +226,7 @@ describe("CalendarCacheWrapper", () => {
         dateFrom: "2025-01-01",
         dateTo: "2025-01-02",
         selectedCalendars: [],
+        mode: "slots",
       });
 
       expect(result).toEqual([]);
@@ -263,6 +264,7 @@ describe("CalendarCacheWrapper", () => {
         dateFrom: "2025-01-01",
         dateTo: "2025-01-02",
         selectedCalendars,
+        mode: "slots",
       });
 
       expect(result).toEqual([
@@ -305,6 +307,7 @@ describe("CalendarCacheWrapper", () => {
         dateFrom: "2025-01-01",
         dateTo: "2025-01-02",
         selectedCalendars,
+        mode: "slots",
       });
 
       expect(result).toEqual(originalEvents);
@@ -313,6 +316,7 @@ describe("CalendarCacheWrapper", () => {
         dateFrom: "2025-01-01",
         dateTo: "2025-01-02",
         selectedCalendars,
+        mode: "slots",
         fallbackToPrimary: undefined,
       });
     });
@@ -358,6 +362,7 @@ describe("CalendarCacheWrapper", () => {
         dateFrom: "2025-01-01",
         dateTo: "2025-01-02",
         selectedCalendars,
+        mode: "slots",
       });
 
       expect(result).toEqual([
@@ -403,6 +408,7 @@ describe("CalendarCacheWrapper", () => {
         dateFrom: "2025-01-01",
         dateTo: "2025-01-02",
         selectedCalendars,
+        mode: "slots",
       });
 
       expect(result).toEqual([
@@ -431,6 +437,7 @@ describe("CalendarCacheWrapper", () => {
         dateFrom: "2025-01-01",
         dateTo: "2025-01-02",
         selectedCalendars,
+        mode: "slots",
       });
 
       expect(result).toEqual([]);

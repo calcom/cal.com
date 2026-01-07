@@ -7,7 +7,6 @@ import type {
   CalendarServiceEvent,
   EventBusyDate,
   GetAvailabilityParams,
-  GetAvailabilityWithTimeZonesParams,
   IntegrationCalendar,
   NewCalendarEventType,
   SelectedCalendarEventTypeIds,
@@ -160,7 +159,7 @@ export class CalendarCacheWrapper implements Calendar {
    * @returns Combined array of time-zone-aware availability ranges
    */
   async getAvailabilityWithTimeZones(
-    params: GetAvailabilityWithTimeZonesParams
+    params: GetAvailabilityParams
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
     return withSpan(
@@ -221,6 +220,7 @@ export class CalendarCacheWrapper implements Calendar {
             dateFrom,
             dateTo,
             selectedCalendars: withoutSync,
+            mode: params.mode,
             fallbackToPrimary: params.fallbackToPrimary,
           });
           const originalDurationMs = performance.now() - originalStartTime;

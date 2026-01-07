@@ -6,7 +6,6 @@ import type {
   CalendarServiceEvent,
   EventBusyDate,
   GetAvailabilityParams,
-  GetAvailabilityWithTimeZonesParams,
   IntegrationCalendar,
   NewCalendarEventType,
   SelectedCalendarEventTypeIds,
@@ -128,7 +127,7 @@ export class CalendarTelemetryWrapper implements Calendar {
    * @returns Array of time-zone-aware availability ranges
    */
   async getAvailabilityWithTimeZones(
-    params: GetAvailabilityWithTimeZonesParams
+    params: GetAvailabilityParams
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
     // Check if the original calendar supports this method
@@ -164,6 +163,7 @@ export class CalendarTelemetryWrapper implements Calendar {
           dateFrom,
           dateTo,
           selectedCalendars,
+          mode: params.mode,
           fallbackToPrimary: params.fallbackToPrimary,
         });
         const totalFetchDurationMs = performance.now() - startTime;

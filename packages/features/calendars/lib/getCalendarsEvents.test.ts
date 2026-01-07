@@ -536,6 +536,7 @@ describe("getCalendarsEventsWithTimezones", () => {
         dateFrom: "2010-12-01",
         dateTo: "2010-12-04",
         selectedCalendars: [selectedCalendar],
+        mode: "slots",
         fallbackToPrimary: false,
       });
       expect(result).toEqual([
@@ -578,6 +579,7 @@ describe("getCalendarsEventsWithTimezones", () => {
         dateFrom: startDate,
         dateTo: endDate,
         selectedCalendars: [],
+        mode: "slots",
         fallbackToPrimary: true,
       });
       expect(result).toEqual([[]]);
