@@ -33,20 +33,14 @@ import type {
   OutputUnknownBookingField_2024_06_14,
   OutputBookingField_2024_06_14,
 } from "@calcom/platform-types";
-import type {
-  EventType,
-  Schedule,
-  DestinationCalendar,
-  CalVideoSettings,
-  Prisma,
-} from "@calcom/prisma/client";
+import type { EventType, Schedule, DestinationCalendar, CalVideoSettings, Prisma } from "@calcom/prisma/client";
 
 type UserProfile = {
-  username: string;
+  username: string | null;
   organization: { slug: string | null } | null;
 };
 
-type UserWithOrganization = {
+type EventTypeUser = {
   id: number;
   name: string | null;
   username: string | null;
@@ -59,12 +53,8 @@ type UserWithOrganization = {
   profiles?: UserProfile[];
 };
 
-type EnrichedUser = Omit<UserWithOrganization, "profiles"> & {
-  profile: UserProfile | null;
-};
-
 type EventTypeRelations = {
-  users: UserWithOrganization[];
+  users: EventTypeUser[];
   schedule: Schedule | null;
   destinationCalendar?: DestinationCalendar | null;
   calVideoSettings?: CalVideoSettings | null;
@@ -127,6 +117,7 @@ type Input = Pick<
 
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
+
   getResponseEventType(
     ownerId: number,
     databaseEventType: Input,
@@ -197,7 +188,7 @@ export class OutputEventTypesService_2024_06_14 {
     } as TransformFutureBookingsLimitSchema_2024_06_14);
     const destinationCalendar = this.transformDestinationCalendar(databaseEventType.destinationCalendar);
     const bookerActiveBookingsLimit = this.transformBookerActiveBookingsLimit(databaseEventType);
-    const bookingUrl = this.buildBookingUrl(databaseEventType.users, slug);
+    const bookingUrl = this.buildBookingUrl(databaseEventType.users[0], slug);
 
     return {
       id,
@@ -342,7 +333,7 @@ export class OutputEventTypesService_2024_06_14 {
     return EventTypeMetaDataSchema.parse(metadata);
   }
 
-  transformUsers(users: UserWithOrganization[]) {
+  transformUsers(users: EventTypeUser[]) {
     return users.map((user) => {
       const metadata = user.metadata ? userMetadata.parse(user.metadata) : {};
       return {
@@ -405,37 +396,19 @@ export class OutputEventTypesService_2024_06_14 {
     });
   }
 
-  enrichUserWithProfile(user: UserWithOrganization): EnrichedUser {
-    const profile = user.profiles?.[0] ?? null;
-
-    if (profile) {
-      return {
-        ...user,
-        username: profile.username,
-        profile,
-      };
-    }
-
-    return {
-      ...user,
-      profile: user.organization ? { username: user.username ?? "", organization: user.organization } : null,
-    };
-  }
-
-  buildBookingUrl(users: UserWithOrganization[], slug: string): string {
-    const firstUser = users[0];
-    if (!firstUser) {
+  buildBookingUrl(user: EventTypeUser | undefined, slug: string): string {
+    if (!user) {
       return "";
     }
 
-    const enrichedUser = this.enrichUserWithProfile(firstUser);
-    const username = enrichedUser.username;
+    const profile = user.profiles?.[0];
+    const username = profile?.username ?? user.username;
 
     if (!username) {
       return "";
     }
 
-    const orgSlug = enrichedUser.profile?.organization?.slug ?? null;
+    const orgSlug = profile?.organization?.slug ?? null;
     const baseUrl = getBookerBaseUrlSync(orgSlug).replace(/\/$/, "");
 
     return `${baseUrl}/${username}/${slug}`;

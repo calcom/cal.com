@@ -14,7 +14,27 @@ describe("OutputEventTypesService_2024_06_14", () => {
     service = new OutputEventTypesService_2024_06_14();
   });
 
-  describe("enrichUserWithProfile", () => {
+  describe("buildBookingUrl", () => {
+    it("should return correct URL for user without organization", () => {
+      const user = {
+        id: 1,
+        name: "John Doe",
+        username: "john-doe",
+        avatarUrl: null,
+        brandColor: null,
+        darkBrandColor: null,
+        weekStart: "Monday",
+        metadata: {},
+        organization: null,
+        profiles: [],
+      };
+      const slug = "30min";
+
+      const result = service.buildBookingUrl(user, slug);
+
+      expect(result).toBe("https://cal.com/john-doe/30min");
+    });
+
     it("should use profile username for org users", () => {
       const user = {
         id: 1,
@@ -33,125 +53,68 @@ describe("OutputEventTypesService_2024_06_14", () => {
           },
         ],
       };
+      const slug = "30min";
 
-      const enriched = service.enrichUserWithProfile(user);
+      const result = service.buildBookingUrl(user, slug);
 
-      expect(enriched.username).toBe("owner1");
-      expect(enriched.profile?.organization?.slug).toBe("acme");
+      expect(result).toBe("https://acme.cal.com/owner1/30min");
     });
 
-    it("should keep original username for non-org users", () => {
+    it("should fall back to user username when profile has no username", () => {
       const user = {
         id: 1,
-        name: "John",
-        username: "john-doe",
+        name: "Keith",
+        username: "keith",
         avatarUrl: null,
         brandColor: null,
         darkBrandColor: null,
         weekStart: "Monday",
         metadata: {},
-        organization: null,
-        profiles: [],
+        organization: { slug: "i" },
+        profiles: [
+          {
+            username: null,
+            organization: { slug: "i" },
+          },
+        ],
       };
-
-      const enriched = service.enrichUserWithProfile(user);
-
-      expect(enriched.username).toBe("john-doe");
-      expect(enriched.profile).toBeNull();
-    });
-  });
-
-  describe("buildBookingUrl", () => {
-    it("should return correct URL for user without organization", () => {
-      const users = [
-        {
-          username: "john-doe",
-          organization: null,
-          profiles: [],
-        },
-      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
       const slug = "30min";
 
-      const result = service.buildBookingUrl(users, slug);
-
-      expect(result).toBe("https://cal.com/john-doe/30min");
-    });
-
-    it("should use profile username for org users", () => {
-      const users = [
-        {
-          username: "owner1-acme",
-          organization: { slug: "acme" },
-          profiles: [
-            {
-              username: "owner1",
-              organization: { slug: "acme" },
-            },
-          ],
-        },
-      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
-      const slug = "30min";
-
-      const result = service.buildBookingUrl(users, slug);
-
-      expect(result).toBe("https://acme.cal.com/owner1/30min");
-    });
-
-    it("should fall back to user data when no profile exists", () => {
-      const users = [
-        {
-          username: "keith",
-          organization: { slug: "i" },
-          profiles: [],
-        },
-      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
-      const slug = "30min";
-
-      const result = service.buildBookingUrl(users, slug);
+      const result = service.buildBookingUrl(user, slug);
 
       expect(result).toBe("https://i.cal.com/keith/30min");
     });
 
-    it("should return empty string when users array is empty", () => {
-      const users: Parameters<typeof service.buildBookingUrl>[0] = [];
+    it("should return empty string when user is undefined", () => {
+      const user = undefined;
       const slug = "30min";
 
-      const result = service.buildBookingUrl(users, slug);
+      const result = service.buildBookingUrl(user, slug);
 
       expect(result).toBe("");
     });
 
-    it("should use first user when multiple users exist", () => {
-      const users = [
-        {
-          username: "first-user",
-          organization: null,
-          profiles: [],
-        },
-        {
-          username: "second-user",
-          organization: { slug: "org" },
-          profiles: [],
-        },
-      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
-      const slug = "meeting";
-
-      const result = service.buildBookingUrl(users, slug);
-
-      expect(result).toBe("https://cal.com/first-user/meeting");
-    });
-
     it("should handle organization with null slug", () => {
-      const users = [
-        {
-          username: "user",
-          organization: { slug: null },
-          profiles: [],
-        },
-      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
+      const user = {
+        id: 1,
+        name: "User",
+        username: "user",
+        avatarUrl: null,
+        brandColor: null,
+        darkBrandColor: null,
+        weekStart: "Monday",
+        metadata: {},
+        organization: { slug: null },
+        profiles: [
+          {
+            username: "user",
+            organization: { slug: null },
+          },
+        ],
+      };
       const slug = "consultation";
 
-      const result = service.buildBookingUrl(users, slug);
+      const result = service.buildBookingUrl(user, slug);
 
       expect(result).toBe("https://cal.com/user/consultation");
     });
@@ -160,47 +123,62 @@ describe("OutputEventTypesService_2024_06_14", () => {
       const { getBookerBaseUrlSync } = require("@calcom/platform-libraries/organizations");
       getBookerBaseUrlSync.mockReturnValueOnce("https://cal.com/");
 
-      const users = [
-        {
-          username: "john",
-          organization: null,
-          profiles: [],
-        },
-      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
+      const user = {
+        id: 1,
+        name: "John",
+        username: "john",
+        avatarUrl: null,
+        brandColor: null,
+        darkBrandColor: null,
+        weekStart: "Monday",
+        metadata: {},
+        organization: null,
+        profiles: [],
+      };
       const slug = "30min";
 
-      const result = service.buildBookingUrl(users, slug);
+      const result = service.buildBookingUrl(user, slug);
 
       // Trailing slash should be stripped to avoid double slashes
       expect(result).toBe("https://cal.com/john/30min");
     });
 
     it("should return empty string when username is empty", () => {
-      const users = [
-        {
-          username: "",
-          organization: null,
-          profiles: [],
-        },
-      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
+      const user = {
+        id: 1,
+        name: "User",
+        username: "",
+        avatarUrl: null,
+        brandColor: null,
+        darkBrandColor: null,
+        weekStart: "Monday",
+        metadata: {},
+        organization: null,
+        profiles: [],
+      };
       const slug = "30min";
 
-      const result = service.buildBookingUrl(users, slug);
+      const result = service.buildBookingUrl(user, slug);
 
       expect(result).toBe("");
     });
 
     it("should return empty string when username is null", () => {
-      const users = [
-        {
-          username: null,
-          organization: null,
-          profiles: [],
-        },
-      ] as unknown as Parameters<typeof service.buildBookingUrl>[0];
+      const user = {
+        id: 1,
+        name: "User",
+        username: null,
+        avatarUrl: null,
+        brandColor: null,
+        darkBrandColor: null,
+        weekStart: "Monday",
+        metadata: {},
+        organization: null,
+        profiles: [],
+      };
       const slug = "30min";
 
-      const result = service.buildBookingUrl(users, slug);
+      const result = service.buildBookingUrl(user, slug);
 
       expect(result).toBe("");
     });
