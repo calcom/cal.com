@@ -25,7 +25,7 @@ export const getCalendarsEventsWithTimezones = async (
 
   const calendarAndCredentialPairs = await Promise.all(
     calendarCredentials.map(async (credential) => {
-      const calendar = await getCalendar(credential);
+      const calendar = await getCalendar(credential, "slots");
       return [calendar, credential] as const;
     })
   );
@@ -89,7 +89,7 @@ const getCalendarsEvents = async (
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
-  mode?: CalendarFetchMode
+  mode: CalendarFetchMode
 ): Promise<EventBusyDate[][]> => {
   const calendarCredentials = withCredentials
     .filter((credential) => credential.type.endsWith("_calendar"))
@@ -155,7 +155,7 @@ const getCalendarsEvents = async (
       dateFrom,
       dateTo,
       selectedCalendars: passedSelectedCalendars,
-      mode: mode ?? "slots",
+      mode,
       fallbackToPrimary: allowFallbackToPrimary,
     });
     performance.mark("eventBusyDatesEnd");

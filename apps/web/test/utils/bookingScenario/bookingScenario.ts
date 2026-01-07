@@ -1759,7 +1759,7 @@ type GetAvailabilityMethodMockCall = CalendarServiceMethodMockCallBase & {
     dateFrom: string;
     dateTo: string;
     selectedCalendars: IntegrationCalendar[];
-    mode?: "slots" | "overlay" | "booking";
+    mode: "slots" | "overlay" | "booking";
   };
 };
 
