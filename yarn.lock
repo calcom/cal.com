@@ -3546,7 +3546,6 @@ __metadata:
     env-cmd: "npm:10.1.0"
     glob: "npm:10.4.5"
     google-auth-library: "npm:9.15.0"
-    gray-matter: "npm:4.0.3"
     handlebars: "npm:4.7.7"
     i18next: "npm:23.2.3"
     ical.js: "npm:1.5.0"

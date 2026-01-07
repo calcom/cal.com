@@ -74,6 +74,13 @@ vi.mock("@calcom/lib/logger", () => ({
     })),
   },
 }));
+// Mock routing-forms modules to prevent async import issues during test teardown
+vi.mock("@calcom/features/routing-forms/lib/findFieldValueByIdentifier", () => ({
+  findFieldValueByIdentifier: vi.fn(),
+}));
+vi.mock("@calcom/app-store/routing-forms/lib/findFieldValueByIdentifier", () => ({
+  findFieldValueByIdentifier: vi.fn(),
+}));
 
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
