@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Parte-hartzailearen agertu ez eguneratua",
     "type": "Esleipena mota",
     "assignmentType_manual": "Eskuzko esleipen",
-    "assignmentType_roundRobin": "Round Robin esleipen"
+    "assignmentType_roundRobin": "Round Robin esleipen",
+    "actor_impersonated_by": "Ordezkaritza egilea",
+    "source": "Iturria"
   },
   "error_loading_booking_logs": "Errorea erreserba erregistroak kargatzean",
   "no_audit_logs_found": "Ez da auditoria erregistrorik aurkitu",
