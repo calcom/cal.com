@@ -3,6 +3,7 @@ import { Expose, Type } from "class-transformer";
 import { IsBoolean, IsEnum, IsNotEmptyObject, IsOptional, IsString, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+import { OAuthClientType } from "@calcom/prisma/enums";
 
 export class OAuth2ClientDto {
   @ApiProperty({
@@ -10,8 +11,8 @@ export class OAuth2ClientDto {
     example: "clxxxxxxxxxxxxxxxx",
   })
   @IsString()
-  @Expose()
-  clientId!: string;
+  @Expose({ name: "clientId" })
+  id!: string;
 
   @ApiProperty({
     description: "The redirect URI for the OAuth client",
@@ -45,6 +46,15 @@ export class OAuth2ClientDto {
   @IsBoolean()
   @Expose()
   isTrusted!: boolean;
+
+  @ApiProperty({
+    description: "The type of OAuth client (CONFIDENTIAL or PUBLIC)",
+    example: "CONFIDENTIAL",
+    enum: OAuthClientType,
+  })
+  @IsEnum(OAuthClientType)
+  @Expose({ name: "clientType" })
+  type!: OAuthClientType;
 }
 
 export class OAuth2ClientResponseDto {

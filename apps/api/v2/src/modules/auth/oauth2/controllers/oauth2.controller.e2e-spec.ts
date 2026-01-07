@@ -14,6 +14,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import * as nextAuthJwt from "next-auth/jwt";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OAuth2ClientRepositoryFixture } from "test/fixtures/repository/oauth2-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
@@ -27,44 +28,6 @@ jest.mock("next-auth/jwt", () => ({
   getToken: jest.fn(),
 }));
 const mockGetToken = nextAuthJwt.getToken as jest.MockedFunction<typeof nextAuthJwt.getToken>;
-
-class OAuthClientFixture {
-  private prismaReadClient: PrismaReadService["prisma"];
-  private prismaWriteClient: PrismaWriteService["prisma"];
-
-  constructor(module: TestingModule) {
-    this.prismaReadClient = module.get(PrismaReadService).prisma;
-    this.prismaWriteClient = module.get(PrismaWriteService).prisma;
-  }
-
-  async create(data: {
-    clientId: string;
-    name: string;
-    redirectUri: string;
-    clientSecret?: string;
-    clientType?: OAuthClientType;
-    logo?: string;
-    isTrusted?: boolean;
-  }) {
-    return this.prismaWriteClient.oAuthClient.create({
-      data: {
-        clientId: data.clientId,
-        name: data.name,
-        redirectUri: data.redirectUri,
-        clientSecret: data.clientSecret,
-        clientType: data.clientType || OAuthClientType.CONFIDENTIAL,
-        logo: data.logo,
-        isTrusted: data.isTrusted || false,
-      },
-    });
-  }
-
-  async delete(clientId: string) {
-    return this.prismaWriteClient.oAuthClient.delete({
-      where: { clientId },
-    });
-  }
-}
 
 describe("OAuth2 Controller Endpoints", () => {
   describe("User Not Authenticated", () => {
@@ -111,7 +74,7 @@ describe("OAuth2 Controller Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let teamRepositoryFixture: TeamRepositoryFixture;
     let membershipRepositoryFixture: MembershipRepositoryFixture;
-    let oAuthClientFixture: OAuthClientFixture;
+    let oAuthClientFixture: OAuth2ClientRepositoryFixture;
 
     let user: User;
     let team: Team;
@@ -143,7 +106,7 @@ describe("OAuth2 Controller Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
-      oAuthClientFixture = new OAuthClientFixture(moduleRef);
+      oAuthClientFixture = new OAuth2ClientRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -177,11 +140,12 @@ describe("OAuth2 Controller Endpoints", () => {
           .get(`/api/v2/auth/oauth2/clients/${testClientId}`)
           .expect(200);
 
-        expect(response.body.status).toBe("success");
-        expect(response.body.data.clientId).toBe(testClientId);
-        expect(response.body.data.name).toBe("Test OAuth Client");
-        expect(response.body.data.redirectUri).toBe(testRedirectUri);
-        expect(response.body.data.clientSecret).toBeUndefined();
+                expect(response.body.status).toBe("success");
+                expect(response.body.data.id).toBe(testClientId);
+                expect(response.body.data.name).toBe("Test OAuth Client");
+                expect(response.body.data.redirectUri).toBe(testRedirectUri);
+                expect(response.body.data.type).toBe(OAuthClientType.CONFIDENTIAL);
+                expect(response.body.data.clientSecret).toBeUndefined();
       });
 
       it("should return 404 for non-existent client ID", async () => {

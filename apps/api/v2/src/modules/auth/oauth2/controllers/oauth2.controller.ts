@@ -34,7 +34,7 @@ import { ErrorWithCode, getHttpStatusCode } from "@calcom/platform-libraries/err
   version: API_VERSIONS_VALUES,
 })
 @ApiExcludeController(true)
-@ApiTags("Auth / OAuth2")
+@ApiTags("OAuth2")
 export class OAuth2Controller {
   private readonly logger = new Logger("OAuth2Controller");
 
