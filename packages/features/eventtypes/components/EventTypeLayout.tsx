@@ -107,7 +107,7 @@ function EventTypeSingleLayout({
         <div className="flex items-center gap-2">
           <span>{eventType.title}</span>
           {team?.name && (
-            <Badge className="text-xs" variant="gray">
+            <Badge className="hidden text-xs md:flex" variant="gray">
               {team.name}
             </Badge>
           )}
