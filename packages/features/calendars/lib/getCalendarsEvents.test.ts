@@ -270,13 +270,13 @@ describe("getCalendarsEvents", () => {
         [selectedCalendar]
       );
 
-      expect(getAvailabilitySpy).toHaveBeenCalledWith(
-        "2010-12-01",
-        "2010-12-04",
-        [selectedCalendar],
-        undefined,
-        false
-      );
+      expect(getAvailabilitySpy).toHaveBeenCalledWith({
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedCalendar],
+        mode: "slots",
+        fallbackToPrimary: false,
+      });
       expect(result).toEqual([
         availability.map((av) => ({
           ...av,
@@ -341,20 +341,20 @@ describe("getCalendarsEvents", () => {
         [selectedGoogleCalendar, selectedOfficeCalendar]
       );
 
-      expect(getGoogleAvailabilitySpy).toHaveBeenCalledWith(
-        "2010-12-01",
-        "2010-12-04",
-        [selectedGoogleCalendar],
-        undefined,
-        false
-      );
-      expect(getOfficeAvailabilitySpy).toHaveBeenCalledWith(
-        "2010-12-01",
-        "2010-12-04",
-        [selectedOfficeCalendar],
-        undefined,
-        false
-      );
+      expect(getGoogleAvailabilitySpy).toHaveBeenCalledWith({
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedGoogleCalendar],
+        mode: "slots",
+        fallbackToPrimary: false,
+      });
+      expect(getOfficeAvailabilitySpy).toHaveBeenCalledWith({
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedOfficeCalendar],
+        mode: "slots",
+        fallbackToPrimary: false,
+      });
       expect(result).toEqual([
         googleAvailability.map((av) => ({
           ...av,
@@ -396,7 +396,13 @@ describe("getCalendarsEvents", () => {
 
       const result = await getCalendarsEvents(credentials, startDate, endDate, []);
 
-      expect(getAvailabilitySpy).toHaveBeenCalledWith(startDate, endDate, [], undefined, true);
+      expect(getAvailabilitySpy).toHaveBeenCalledWith({
+        dateFrom: startDate,
+        dateTo: endDate,
+        selectedCalendars: [],
+        mode: "slots",
+        fallbackToPrimary: true,
+      });
       expect(result).toEqual([[]]);
     });
   });
@@ -526,12 +532,12 @@ describe("getCalendarsEventsWithTimezones", () => {
         [selectedCalendar]
       );
 
-      expect(getAvailabilityWithTimezonesSpy).toHaveBeenCalledWith(
-        "2010-12-01",
-        "2010-12-04",
-        [selectedCalendar],
-        false
-      );
+      expect(getAvailabilityWithTimezonesSpy).toHaveBeenCalledWith({
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedCalendar],
+        fallbackToPrimary: false,
+      });
       expect(result).toEqual([
         availability.map((av) => ({
           ...av,
@@ -568,7 +574,12 @@ describe("getCalendarsEventsWithTimezones", () => {
 
       const result = await getCalendarsEventsWithTimezones(credentials, startDate, endDate, []);
 
-      expect(getAvailabilityWithTimezonesSpy).toHaveBeenCalledWith(startDate, endDate, [], true);
+      expect(getAvailabilityWithTimezonesSpy).toHaveBeenCalledWith({
+        dateFrom: startDate,
+        dateTo: endDate,
+        selectedCalendars: [],
+        fallbackToPrimary: true,
+      });
       expect(result).toEqual([[]]);
     });
   });
