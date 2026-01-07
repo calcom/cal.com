@@ -113,7 +113,15 @@ export class WorkflowReminderRepository {
       include: {
         workflowStep: {
           include: {
-            workflow: true,
+            workflow: {
+              include: {
+                team: {
+                  select: {
+                    isOrganization: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

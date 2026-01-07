@@ -68,6 +68,7 @@ export class EmailWorkflowService {
     }
 
     const workflow = workflowReminder.workflowStep.workflow;
+    const isOrganization = workflow.team?.isOrganization ?? false;
 
     let emailAttendeeSendToOverride: string | null = null;
     if (workflowReminder.seatReferenceId) {
@@ -107,6 +108,7 @@ export class EmailWorkflowService {
       action: workflowReminder.workflowStep.action as ScheduleEmailReminderAction,
       template: workflowReminder.workflowStep.template,
       includeCalendarEvent: workflowReminder.workflowStep.includeCalendarEvent,
+      isOrganization,
     });
 
     const results = await Promise.allSettled(
@@ -247,6 +249,7 @@ export class EmailWorkflowService {
     template,
     includeCalendarEvent,
     triggerEvent,
+    isOrganization,
   }: {
     evt: BookingInfo;
     sendTo: string[];
@@ -259,6 +262,7 @@ export class EmailWorkflowService {
     template?: WorkflowTemplates;
     includeCalendarEvent?: boolean;
     triggerEvent: WorkflowTriggerEvents;
+    isOrganization?: boolean;
   }) {
     const log = logger.getSubLogger({
       prefix: [`[generateEmailPayloadForEvtWorkflow]: bookingUid: ${evt?.uid}`],
@@ -473,9 +477,15 @@ export class EmailWorkflowService {
     const customReplyToEmail =
       evt?.eventType?.customReplyToEmail || (evt as CalendarEvent).customReplyToEmail;
 
+    // Organization accounts are allowed to use cloaked links (URL behind text)
+    // since they are paid accounts with lower spam/scam risk
+    const processedEmailBody = isOrganization
+      ? emailContent.emailBody
+      : replaceCloakedLinksInHtml(emailContent.emailBody);
+
     return {
       subject: emailContent.emailSubject,
-      html: replaceCloakedLinksInHtml(emailContent.emailBody),
+      html: processedEmailBody,
       ...(!evt.hideOrganizerEmail && {
         replyTo: customReplyToEmail || evt.organizer.email,
       }),
