@@ -275,7 +275,7 @@ export const getBusyCalendarTimes = async (
         startDate,
         endDate,
         selectedCalendars,
-        mode
+        mode ?? "slots"
       );
     }
   } catch (e) {
