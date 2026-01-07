@@ -190,7 +190,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-02",
-        []
+        [],
+        "slots"
       );
 
       expect(result).toEqual([]);
@@ -206,7 +207,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-02",
-        []
+        [],
+        "slots"
       );
 
       expect(result).toEqual([[]]);
@@ -229,7 +231,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-02",
-        [selectedCalendar]
+        [selectedCalendar],
+        "slots"
       );
 
       expect(result).toEqual([[]]);
@@ -267,7 +270,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-04",
-        [selectedCalendar]
+        [selectedCalendar],
+        "slots"
       );
 
       expect(getAvailabilitySpy).toHaveBeenCalledWith({
@@ -338,7 +342,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-04",
-        [selectedGoogleCalendar, selectedOfficeCalendar]
+        [selectedGoogleCalendar, selectedOfficeCalendar],
+        "slots"
       );
 
       expect(getGoogleAvailabilitySpy).toHaveBeenCalledWith({
@@ -376,7 +381,8 @@ describe("getCalendarsEvents", () => {
         [buildRegularCredential(credential)],
         "2010-12-01",
         "2010-12-02",
-        []
+        [],
+        "slots"
       );
 
       expect(getAvailabilitySpy).not.toHaveBeenCalled();
@@ -394,7 +400,7 @@ describe("getCalendarsEvents", () => {
         .spyOn(GoogleCalendarService.prototype, "getAvailability")
         .mockReturnValue(Promise.resolve([]));
 
-      const result = await getCalendarsEvents(credentials, startDate, endDate, []);
+      const result = await getCalendarsEvents(credentials, startDate, endDate, [], "slots");
 
       expect(getAvailabilitySpy).toHaveBeenCalledWith({
         dateFrom: startDate,
