@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "與會者未出席狀態已更新",
     "type": "分配類型",
     "assignmentType_manual": "手動分配",
-    "assignmentType_roundRobin": "循環分配"
+    "assignmentType_roundRobin": "循環分配",
+    "actor_impersonated_by": "模擬者",
+    "source": "來源"
   },
   "error_loading_booking_logs": "載入預約日誌時出錯",
   "no_audit_logs_found": "未找到審計日誌",

@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Deltagarens frånvaro uppdaterad",
     "type": "Tilldelningstyp",
     "assignmentType_manual": "Manuell tilldelning",
-    "assignmentType_roundRobin": "Turordningstilldelning"
+    "assignmentType_roundRobin": "Turordningstilldelning",
+    "actor_impersonated_by": "Imitatör",
+    "source": "Källa"
   },
   "error_loading_booking_logs": "Fel vid inläsning av bokningsloggar",
   "no_audit_logs_found": "Inga granskningsloggar hittades",

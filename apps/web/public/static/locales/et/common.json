@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Osaleja mitteilmumise olek uuendatud",
     "type": "Määramise tüüp",
     "assignmentType_manual": "Käsitsi määramine",
-    "assignmentType_roundRobin": "Ringjaotuse määramine"
+    "assignmentType_roundRobin": "Ringjaotuse määramine",
+    "actor_impersonated_by": "Imiteerija",
+    "source": "Allikas"
   },
   "error_loading_booking_logs": "Broneeringu logide laadimisel tekkis viga",
   "no_audit_logs_found": "Auditiloge ei leitud",

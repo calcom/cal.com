@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Osallistujan poissaolo päivitetty",
     "type": "Määrityksen tyyppi",
     "assignmentType_manual": "Manuaalinen määritys",
-    "assignmentType_roundRobin": "Round Robin -määritys"
+    "assignmentType_roundRobin": "Round Robin -määritys",
+    "actor_impersonated_by": "Esiintyjä",
+    "source": "Lähde"
   },
   "error_loading_booking_logs": "Virhe ladattaessa varauslokeja",
   "no_audit_logs_found": "Tarkastuslokeja ei löytynyt",

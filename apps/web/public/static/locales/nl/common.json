@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Deelnemer niet verschenen bijgewerkt",
     "type": "Toewijzingstype",
     "assignmentType_manual": "Handmatige toewijzing",
-    "assignmentType_roundRobin": "Round Robin toewijzing"
+    "assignmentType_roundRobin": "Round Robin toewijzing",
+    "actor_impersonated_by": "Imitator",
+    "source": "Bron"
   },
   "error_loading_booking_logs": "Fout bij laden van boekingslogboeken",
   "no_audit_logs_found": "Geen auditlogboeken gevonden",
