@@ -2,6 +2,15 @@
   "version": 2,
   "builds": [
     {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/apps/api/v2",
+        "installCommand": "yarn install",
+        "buildCommand": "cd ../../.. && yarn turbo run build --filter=@calcom/api-v2"
+      }
+    },
+    {
       "src": "dist/apps/api/v2/src/main.js",
       "use": "@vercel/node"
     }
@@ -12,8 +21,5 @@
       "dest": "dist/apps/api/v2/src/main.js",
       "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
