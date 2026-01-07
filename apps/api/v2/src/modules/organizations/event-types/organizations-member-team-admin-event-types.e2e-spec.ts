@@ -63,9 +63,11 @@ describe("Organizations Event Types Endpoints", () => {
     let collectiveEventType: TeamEventTypeOutput_2024_06_14;
     let managedEventType: TeamEventTypeOutput_2024_06_14;
 
-    const managedEventTypeSlug = `organizations-event-types-managed-${randomString()}`;
+    let managedEventTypeSlug: string;
 
     beforeAll(async () => {
+      // Generate unique slug inside beforeAll to ensure uniqueness across test runs
+      managedEventTypeSlug = `organizations-event-types-managed-${randomString()}`;
       const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
@@ -1383,6 +1385,9 @@ describe("Organizations Event Types Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(teammate1.email);
       await userRepositoryFixture.deleteByEmail(teammate2.email);
       await userRepositoryFixture.deleteByEmail(falseTestUser.email);
+      // Explicitly delete all team event types before deleting the team to ensure proper cleanup
+      await eventTypesRepositoryFixture.deleteAllTeamEventTypes(team.id);
+      await eventTypesRepositoryFixture.deleteAllTeamEventTypes(falseTestTeam.id);
       await teamsRepositoryFixture.delete(team.id);
       await teamsRepositoryFixture.delete(falseTestTeam.id);
       await organizationsRepositoryFixture.delete(org.id);

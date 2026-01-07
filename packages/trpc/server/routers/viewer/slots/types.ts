@@ -1,4 +1,4 @@
-import type { IncomingMessage } from "http";
+import type { IncomingMessage } from "node:http";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";

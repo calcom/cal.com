@@ -1,7 +1,7 @@
-import type { EventAdvancedBaseProps } from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
-import { EventAdvancedTab } from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
 import { localeOptions } from "@calcom/lib/i18n";
 import { trpc } from "@calcom/trpc/react";
+import type { EventAdvancedBaseProps } from "@calcom/web/modules/event-types/components/tabs/advanced/EventAdvancedTab";
+import { EventAdvancedTab } from "@calcom/web/modules/event-types/components/tabs/advanced/EventAdvancedTab";
 
 const EventAdvancedWebWrapper = ({ ...props }: EventAdvancedBaseProps) => {
   const connectedCalendarsQuery = trpc.viewer.calendars.connectedCalendars.useQuery();
