@@ -15,6 +15,7 @@ import type { UserProfile } from "@calcom/types/UserProfile";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { TRPCError } from "@trpc/server";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 
 enum DirectAction {
   ACCEPT = "accept",
@@ -37,7 +38,10 @@ async function getHandler(request: NextRequest) {
     if (action === DirectAction.REJECT) {
       // Rejections should use POST method
       return NextResponse.redirect(
-        new URL(`/booking/${bookingUid}?error=${encodeURIComponent("Rejection requires POST method")}`, request.url)
+        new URL(
+          `/booking/${bookingUid}?error=${encodeURIComponent("Rejection requires POST method")}`,
+          request.url
+        )
       );
     }
 
@@ -136,7 +140,8 @@ async function handleBookingAction(
       bookingId: booking.id,
       recurringEventId: booking.recurringEventId || undefined,
       confirmed: action === DirectAction.ACCEPT,
-      actionSource: "WEBAPP",
+      actionSource: "MAGIC_LINK",
+      actor: makeUserActor(user.uuid),
       /** Ignored reason input unless we're rejecting */
       reason: action === DirectAction.REJECT ? reason : undefined,
     });

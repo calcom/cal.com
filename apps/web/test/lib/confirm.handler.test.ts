@@ -13,6 +13,7 @@ import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 
 describe("confirmHandler", () => {
   beforeEach(() => {
@@ -98,7 +99,14 @@ describe("confirmHandler", () => {
 
     const res = await confirmHandler({
       ctx,
-      input: { bookingId: 101, confirmed: true, reason: "", emailsEnabled: true, actionSource: "WEBAPP" },
+      input: {
+        bookingId: 101,
+        confirmed: true,
+        reason: "",
+        emailsEnabled: true,
+        actor: makeUserActor(ctx.user.uuid),
+        actionSource: "WEBAPP",
+      },
     });
 
     expect(res?.status).toBe(BookingStatus.ACCEPTED);

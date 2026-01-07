@@ -23,7 +23,6 @@ import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
@@ -39,25 +38,24 @@ import { v4 as uuidv4 } from "uuid";
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 
-const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
-
-function getActor({ userUuid, actor }: { userUuid: string | null; actor: ActorIdentification | null }) {
-  if (actor) {
-    return actor;
-  }
-
-  if (userUuid) {
-    return makeUserActor(userUuid);
-  }
-}
+// Allows specifying actor by userUuid also
+type SimplifiedActorIdentifier =
+  | {
+      userUuid: null;
+      actor: ActorIdentification;
+    }
+  | {
+      userUuid: string;
+      actor: null;
+    };
 
 async function fireBookingAcceptedEvent({
-  userUuid,
+  actor,
   organizationId,
   actionSource,
   updatedBookings,
 }: {
-  userUuid: string | null;
+  actor: ActorIdentification;
   organizationId: number | null;
   actionSource: ActionSource;
   updatedBookings: {
@@ -65,11 +63,6 @@ async function fireBookingAcceptedEvent({
     status: BookingStatus;
   }[];
 }) {
-  const actor = getActor({ userUuid, actor: null });
-  // Skip audit logging if we don't have a valid actor
-  if (!actor) {
-    return;
-  }
   const bookingEventHandlerService = getBookingEventHandlerService();
   if (updatedBookings.length > 1) {
     const operationId = uuidv4();
@@ -100,63 +93,51 @@ async function fireBookingAcceptedEvent({
   }
 }
 
-// Allows specifying actor either by userUuid or by ActorIdentification itself
-type SimplifiedActorIdentifier =
-  | {
-      userUuid: null;
-      actor: ActorIdentification;
-    }
-  | {
-      userUuid: string;
-      actor: null;
-    };
-
-export async function handleConfirmation(
-  args: {
-    user: EventManagerUser & { username: string | null };
-    evt: CalendarEvent;
-    recurringEventId?: string;
-    prisma: PrismaClient;
-    bookingId: number;
-    booking: {
-      startTime: Date;
+export async function handleConfirmation(args: {
+  user: EventManagerUser & { username: string | null };
+  evt: CalendarEvent;
+  recurringEventId?: string;
+  prisma: PrismaClient;
+  bookingId: number;
+  booking: {
+    startTime: Date;
+    id: number;
+    uid: string;
+    eventType: {
+      currency: string;
+      description: string | null;
       id: number;
-      uid: string;
-      eventType: {
-        currency: string;
-        description: string | null;
-        id: number;
-        length: number;
-        price: number;
-        requiresConfirmation: boolean;
-        metadata?: Prisma.JsonValue;
-        title: string;
-        team?: {
-          parentId: number | null;
-        } | null;
-        teamId?: number | null;
-        parentId?: number | null;
-        parent?: {
-          teamId: number | null;
-        } | null;
-        workflows?: {
-          workflow: Workflow;
-        }[];
-      } | null;
+      length: number;
+      price: number;
+      requiresConfirmation: boolean;
       metadata?: Prisma.JsonValue;
-      eventTypeId: number | null;
-      smsReminderNumber: string | null;
-      userId: number | null;
-      location: string | null;
-      status: BookingStatus;
-    };
-    paid?: boolean;
-    emailsEnabled?: boolean;
-    platformClientParams?: PlatformClientParams;
-    traceContext: TraceContext;
-    actionSource: ActionSource;
-  } & SimplifiedActorIdentifier
-) {
+      title: string;
+      team?: {
+        parentId: number | null;
+      } | null;
+      teamId?: number | null;
+      parentId?: number | null;
+      parent?: {
+        teamId: number | null;
+      } | null;
+      workflows?: {
+        workflow: Workflow;
+      }[];
+    } | null;
+    metadata?: Prisma.JsonValue;
+    eventTypeId: number | null;
+    smsReminderNumber: string | null;
+    userId: number | null;
+    location: string | null;
+    status: BookingStatus;
+  };
+  paid?: boolean;
+  emailsEnabled?: boolean;
+  platformClientParams?: PlatformClientParams;
+  traceContext: TraceContext;
+  actionSource: ActionSource;
+  actor: ActorIdentification;
+}) {
   const {
     user,
     evt,
@@ -169,7 +150,7 @@ export async function handleConfirmation(
     platformClientParams,
     traceContext,
     actionSource,
-    userUuid,
+    actor,
   } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
@@ -423,7 +404,7 @@ export async function handleConfirmation(
   const bookerUrl = await getBookerBaseUrl(orgId ?? null);
 
   fireBookingAcceptedEvent({
-    userUuid: userUuid ?? null,
+    actor,
     updatedBookings,
     organizationId: orgId ?? null,
     actionSource,

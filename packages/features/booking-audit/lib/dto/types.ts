@@ -32,7 +32,7 @@ const AppActorBySlugSchema = z.object({
   name: z.string(),
 });
 
-export const ActorSchema = z.discriminatedUnion("identifiedBy", [
+export const ActorIdentificationSchema = z.discriminatedUnion("identifiedBy", [
   ActorByIdSchema,
   UserActorSchema,
   AttendeeActorSchema,
@@ -47,7 +47,7 @@ export const PiiFreeActorSchema = z.discriminatedUnion("identifiedBy", [
   AttendeeActorSchema,
 ]);
 
-export type Actor = z.infer<typeof ActorSchema>;
+export type ActorIdentification = z.infer<typeof ActorIdentificationSchema>;
 export type PiiFreeActor = z.infer<typeof PiiFreeActorSchema>;
 
 export type UserActor = z.infer<typeof UserActorSchema>;
@@ -56,13 +56,7 @@ export type AttendeeActor = z.infer<typeof AttendeeActorSchema>;
 export type ActorById = z.infer<typeof ActorByIdSchema>;
 export type AppActorByCredentialId = z.infer<typeof AppActorByCredentialIdSchema>;
 export type AppActorBySlug = z.infer<typeof AppActorBySlugSchema>;
-export type ActorIdentification =
-  | UserActor
-  | GuestActor
-  | AttendeeActor
-  | ActorById
-  | AppActorByCredentialId
-  | AppActorBySlug;
+
 /**
  * Schema for booking audit context - Records things that are common across all actions but could be useful to capture when the action is performed.
  * e.g. impersonation, userAgent, ip etc.

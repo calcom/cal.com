@@ -29,15 +29,12 @@ import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import logger from "@calcom/lib/logger";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { TRPCError } from "@trpc/server";
-
+import type { Ensure } from "@calcom/types/utils";
 import type { TrpcSessionUser } from "../../../types";
 import type { TConfirmInputSchema } from "./confirm.schema";
-import { safeStringify } from "@calcom/lib/safeStringify";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 
-const log = logger.getSubLogger({ prefix: ["[confirmHandler]"] });
 type ConfirmOptions = {
   ctx: {
     user: Pick<
@@ -46,7 +43,8 @@ type ConfirmOptions = {
     >;
     traceContext: TraceContext;
   };
-  input: TConfirmInputSchema;
+  // Make actionSource required here because API V2 or webapp must pass it.
+  input: Ensure<TConfirmInputSchema, "actionSource">;
 };
 
 async function fireRejectionEvent({
@@ -60,7 +58,7 @@ async function fireRejectionEvent({
   bookingUid: string;
   userUuid: string;
   organizationId: number | null;
-  actionSource: ActionSource;
+  actionSource: ValidActionSource;
   rejectionReason: string | null;
   currentBookingStatus: BookingStatus;
 }) {
@@ -77,7 +75,9 @@ async function fireRejectionEvent({
     source: actionSource,
   });
 }
-
+/**
+ * It is called by API V2 as well directly
+ */
 export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   const {
     bookingId,
@@ -87,6 +87,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     emailsEnabled,
     platformClientParams,
     actionSource,
+    actor,
   } = input;
 
   const booking = await prisma.booking.findUniqueOrThrow({
@@ -367,8 +368,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       platformClientParams,
       traceContext,
       actionSource,
-      userUuid: ctx.user.uuid,
-      actor: null,
+      actor,
     });
   } else {
     evt.rejectionReason = rejectionReason;

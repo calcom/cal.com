@@ -161,7 +161,6 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
       platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
       traceContext: updatedTraceContext,
       actionSource: "WEBHOOK",
-      userUuid: null,
       actor,
     });
   } else if (areEmailsEnabled) {

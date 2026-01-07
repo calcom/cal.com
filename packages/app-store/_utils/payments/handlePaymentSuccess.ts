@@ -148,7 +148,6 @@ export async function handlePaymentSuccess(params: {
         platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
         traceContext: updatedTraceContext,
         actionSource: "WEBHOOK",
-        userUuid: null,
         actor,
       });
     } else {

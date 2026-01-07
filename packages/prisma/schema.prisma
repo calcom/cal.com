@@ -2734,6 +2734,7 @@ enum BookingAuditSource {
   API_V2  @map("api_v2")
   WEBAPP  @map("webapp")
   WEBHOOK @map("webhook")
+  MAGIC_LINK @map("magic_link")
   UNKNOWN @map("unknown")
 }
 

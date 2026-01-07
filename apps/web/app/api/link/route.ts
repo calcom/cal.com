@@ -15,6 +15,7 @@ import type { UserProfile } from "@calcom/types/UserProfile";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { TRPCError } from "@trpc/server";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 
 enum DirectAction {
   ACCEPT = "accept",
@@ -109,7 +110,6 @@ async function handler(request: NextRequest) {
       recurringEventId: booking.recurringEventId || undefined,
       confirmed: action === DirectAction.ACCEPT,
       reason,
-      actionSource: "WEBAPP",
       platformClientParams: platformClientId
         ? {
             platformClientId,
@@ -118,11 +118,15 @@ async function handler(request: NextRequest) {
             platformBookingUrl,
           }
         : undefined,
+      actionSource: "MAGIC_LINK",
+      actor: makeUserActor(user.uuid),
     });
   } catch (e) {
     let message = "Error confirming booking";
     if (e instanceof TRPCError) message = (e as TRPCError).message;
-    return NextResponse.redirect(new URL(`/booking/${bookingUid}?error=${encodeURIComponent(message)}`, request.url));
+    return NextResponse.redirect(
+      new URL(`/booking/${bookingUid}?error=${encodeURIComponent(message)}`, request.url)
+    );
   }
 
   return NextResponse.redirect(new URL(`/booking/${bookingUid}`, request.url));

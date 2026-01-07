@@ -10,7 +10,8 @@ import type {
   ZodRawShape,
   ZodTypeAny,
 } from "zod";
-
+import { ActorIdentificationSchema } from "@calcom/features/booking-audit/lib/dto/types";
+import { ValidActionSourceSchema } from "@calcom/features/booking-audit/lib/types/actionSource";
 import type { Prisma } from "./client";
 import { EventTypeCustomInputType } from "./enums";
 
@@ -356,9 +357,14 @@ export const stringOrNumber = z.union([
 
 export const requiredCustomInputSchema = z.union([
   // string must be given & nonempty
-  z.string().trim().min(1),
+  z
+    .string()
+    .trim()
+    .min(1),
   // boolean must be true if set.
-  z.boolean().refine((v) => v === true),
+  z
+    .boolean()
+    .refine((v) => v === true),
 ]);
 
 const PlatformClientParamsSchema = z.object({
@@ -379,7 +385,11 @@ export const bookingConfirmPatchBodySchema = z.object({
   reason: z.string().optional(),
   emailsEnabled: z.boolean().default(true),
   platformClientParams: PlatformClientParamsSchema.optional(),
-  actionSource: z.enum(["WEBAPP", "API_V1", "API_V2", "WEBHOOK"]),
+  // TODO: IDeally we shouldn't allow action source through trpc request, it must be derived at backend
+  // But, at MAGIC_LINK places, we are currently calling TRPC endpoint fn directly, so we need to allow it here.
+  // We need to switch to calling the handler and not the trpc fn directly.
+  actionSource: ValidActionSourceSchema.optional(),
+  actor: ActorIdentificationSchema,
 });
 
 export const bookingCancelSchema = z.object({
@@ -642,7 +652,7 @@ export function denullishShape<
   UnknownKeys extends UnknownKeysParam = "strip",
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<T, Catchall>,
-  Input = objectInputType<T, Catchall>
+  Input = objectInputType<T, Catchall>,
 >(
   obj: ZodObject<T, UnknownKeys, Catchall, Output, Input>
 ): ZodObject<ZodDenullishShape<T>, UnknownKeys, Catchall> {
@@ -674,13 +684,14 @@ export const entries = <O extends Record<string, unknown>>(
 /**
  * Returns a type with all readonly notations removed (traverses recursively on an object)
  */
-type DeepWriteable<T> = T extends Readonly<{
-  -readonly [K in keyof T]: T[K];
-}>
-  ? {
-      -readonly [K in keyof T]: DeepWriteable<T[K]>;
-    }
-  : T; /* Make it work with readonly types (this is not strictly necessary) */
+type DeepWriteable<T> =
+  T extends Readonly<{
+    -readonly [K in keyof T]: T[K];
+  }>
+    ? {
+        -readonly [K in keyof T]: DeepWriteable<T[K]>;
+      }
+    : T; /* Make it work with readonly types (this is not strictly necessary) */
 
 type FromEntries<T> = T extends [infer Keys, unknown][]
   ? { [K in Keys & PropertyKey]: Extract<T[number], [K, unknown]>[1] }
@@ -693,7 +704,7 @@ type FromEntries<T> = T extends [infer Keys, unknown][]
  * @see https://github.com/3x071c/lsg-remix/blob/e2a9592ba3ec5103556f2cf307c32f08aeaee32d/app/lib/util/fromEntries.ts
  */
 export const fromEntries = <
-  E extends [PropertyKey, unknown][] | ReadonlyArray<readonly [PropertyKey, unknown]>
+  E extends [PropertyKey, unknown][] | ReadonlyArray<readonly [PropertyKey, unknown]>,
 >(
   entries: E
 ): FromEntries<DeepWriteable<E>> => {

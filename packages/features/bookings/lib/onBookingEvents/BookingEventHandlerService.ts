@@ -17,7 +17,7 @@ import type { ActionSource } from "@calcom/features/booking-audit/lib/types/acti
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { Actor, BookingAuditContext } from "@calcom/features/booking-audit/lib/dto/types";
+import type { ActorIdentification, BookingAuditContext } from "@calcom/features/booking-audit/lib/dto/types";
 import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types";
 
 interface BookingEventHandlerDeps {
@@ -28,7 +28,7 @@ interface BookingEventHandlerDeps {
 
 interface OnBookingCreatedParams {
   payload: BookingCreatedPayload;
-  actor: Actor;
+  actor: ActorIdentification;
   auditData: CreatedAuditData;
   source: ActionSource;
   operationId?: string | null;
@@ -37,7 +37,7 @@ interface OnBookingCreatedParams {
 
 interface OnBookingRescheduledParams {
   payload: BookingRescheduledPayload;
-  actor: Actor;
+  actor: ActorIdentification;
   auditData: RescheduledAuditData;
   source: ActionSource;
   operationId?: string | null;
@@ -46,7 +46,7 @@ interface OnBookingRescheduledParams {
 
 interface BaseBookingEventParams<TAuditData> {
   bookingUid: string;
-  actor: Actor;
+  actor: ActorIdentification;
   organizationId: number | null;
   auditData: TAuditData;
   source: ActionSource;
@@ -308,7 +308,7 @@ export class BookingEventHandlerService {
       bookingUid: string;
       auditData: AcceptedAuditData;
     }>;
-    actor: Actor;
+    actor: ActorIdentification;
     organizationId: number | null;
     operationId?: string | null;
     source: ActionSource;
@@ -337,7 +337,7 @@ export class BookingEventHandlerService {
       bookingUid: string;
       auditData: CancelledAuditData;
     }>;
-    actor: Actor;
+    actor: ActorIdentification;
     organizationId: number | null;
     operationId?: string | null;
     source: ActionSource;
