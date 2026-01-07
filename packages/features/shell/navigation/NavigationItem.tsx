@@ -143,9 +143,10 @@ export const NavigationItem: React.FC<{
             aria-expanded={isExpanded}
             aria-current={current ? "page" : undefined}
             onClick={() => {
-              setIsExpanded(!isExpanded);
               if (isTablet && hasChildren) {
                 setIsTooltipOpen(!isTooltipOpen);
+              } else {
+                setIsExpanded(!isExpanded);
               }
             }}
             className={classNames(
