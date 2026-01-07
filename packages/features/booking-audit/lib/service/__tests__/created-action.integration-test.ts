@@ -174,6 +174,7 @@ describe("Created Action Integration", () => {
           startTime: testData.booking.startTime.getTime(),
           endTime: testData.booking.endTime.getTime(),
           status: testData.booking.status,
+          hostUserUuid: testData.owner.uuid,
         },
         timestamp: Date.now(),
         context: {
