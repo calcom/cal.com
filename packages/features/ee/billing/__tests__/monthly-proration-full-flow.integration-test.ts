@@ -17,9 +17,7 @@ import { BillingPeriodService } from "../service/billingPeriod/BillingPeriodServ
 const STRIPE_SECRET_KEY = process.env.STRIPE_PRIVATE_KEY || "";
 
 if (!STRIPE_SECRET_KEY || !STRIPE_SECRET_KEY.startsWith("sk_test_")) {
-  throw new Error(
-    "STRIPE_PRIVATE_KEY must be set to a test key (sk_test_...) for integration tests"
-  );
+  throw new Error("STRIPE_PRIVATE_KEY must be set to a test key (sk_test_...) for integration tests");
 }
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
@@ -158,12 +156,8 @@ describe("Monthly Proration - Full Integration Flow", () => {
     console.log(`Created Stripe subscription: ${stripeSubscription.id}`);
 
     // 6. Create TeamBilling record
-    const subscriptionStart = new Date(
-      stripeSubscription.current_period_start * 1000
-    );
-    const subscriptionEnd = new Date(
-      stripeSubscription.current_period_end * 1000
-    );
+    const subscriptionStart = new Date(stripeSubscription.current_period_start * 1000);
+    const subscriptionEnd = new Date(stripeSubscription.current_period_end * 1000);
     const subscriptionTrialEnd = stripeSubscription.trial_end
       ? new Date(stripeSubscription.trial_end * 1000)
       : null;
@@ -533,5 +527,91 @@ describe("Monthly Proration - Full Integration Flow", () => {
     }
 
     console.log("\n=== Metadata Fallback Test Complete ===\n");
+  });
+
+  it("should update subscription quantity after proration is charged", async () => {
+    console.log("\n=== Starting Subscription Quantity Update Test ===\n");
+
+    console.log("Step 1: Get initial subscription quantity...");
+    const initialSubscription = await stripe.subscriptions.retrieve(stripeSubscription.id);
+    const initialQuantity = initialSubscription.items.data[0].quantity;
+    expect(initialQuantity).toBe(5);
+    console.log(`✓ Initial subscription quantity: ${initialQuantity} seats`);
+
+    // Get current member count (should be 1 - just the owner)
+    const initialMemberCount = await prisma.membership.count({
+      where: { teamId: testTeam.id },
+    });
+    console.log(`  Current membership count: ${initialMemberCount}`);
+
+    console.log("\nStep 2: Add 3 actual members to the team...");
+    const seatTracker = new SeatChangeTrackingService();
+
+    // Create 3 new users and add them as members
+    for (let i = 0; i < 3; i++) {
+      const newUser = await prisma.user.create({
+        data: {
+          email: `test-member-${Date.now()}-${i}@example.com`,
+          username: `testmember-${Date.now()}-${i}`,
+          name: `Test Member ${i + 1}`,
+        },
+      });
+
+      await prisma.membership.create({
+        data: {
+          userId: newUser.id,
+          teamId: testTeam.id,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+      });
+
+      // Log the seat addition
+      await seatTracker.logSeatAddition({
+        teamId: testTeam.id,
+        userId: newUser.id,
+        triggeredBy: testUser.id,
+        seatCount: 1,
+        monthKey,
+      });
+    }
+
+    const finalMemberCount = await prisma.membership.count({
+      where: { teamId: testTeam.id },
+    });
+    console.log(`✓ Added 3 members. New count: ${finalMemberCount}`);
+
+    console.log("\nStep 3: Verify subscription quantity is NOT updated immediately...");
+    const subscriptionAfterAdd = await stripe.subscriptions.retrieve(stripeSubscription.id);
+    const quantityAfterAdd = subscriptionAfterAdd.items.data[0].quantity;
+    expect(quantityAfterAdd).toBe(5); // Should still be 5, not 4 (1 initial member + 3 added)
+    console.log(`✓ Subscription quantity unchanged: ${quantityAfterAdd} seats (expected behavior)`);
+
+    console.log("\nStep 4: Process monthly proration...");
+    const prorationService = new MonthlyProrationService();
+    const proration = await prorationService.createProrationForTeam({
+      teamId: testTeam.id,
+      monthKey,
+    });
+    expect(proration).toBeDefined();
+    expect(proration?.netSeatIncrease).toBe(3);
+    console.log(`✓ Proration created for ${proration?.netSeatIncrease} net seats`);
+
+    console.log("\nStep 5: Mark proration as charged...");
+    await prorationService.handleProrationPaymentSuccess(proration!.id);
+    console.log("✓ Proration payment successful");
+
+    console.log("\nStep 6: Verify subscription quantity is NOW updated to new total...");
+    const finalSubscription = await stripe.subscriptions.retrieve(stripeSubscription.id);
+    const finalQuantity = finalSubscription.items.data[0].quantity;
+
+    expect(finalQuantity).toBe(4);
+    console.log(`✓ Subscription quantity updated: ${initialQuantity} → ${finalQuantity} seats`);
+
+    console.log("\nStep 7: Verify subsequent renewals will use correct quantity...");
+    expect(finalSubscription.items.data[0].quantity).toBe(4);
+    console.log("✓ Next annual renewal will charge for 4 seats");
+
+    console.log("\n=== Subscription Quantity Update Test Complete ===\n");
   });
 });

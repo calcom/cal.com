@@ -39,6 +39,7 @@ export class MonthlyProrationRepository {
     status: ProrationStatus,
     additionalData?: {
       invoiceItemId?: string;
+      invoiceId?: string;
       chargedAt?: Date;
       failedAt?: Date;
       failureReason?: string;

@@ -110,7 +110,7 @@ export class MonthlyProrationTeamRepository {
     isOrganization: boolean,
     billingId: string,
     data: {
-      billingPeriod?: string;
+      billingPeriod?: "MONTHLY" | "ANNUALLY";
       pricePerSeat?: number;
       subscriptionStart?: Date;
       subscriptionEnd?: Date;

@@ -44,7 +44,10 @@ export class MonthlyProrationService {
 
     const results = [];
     for (const team of teamsToProcess) {
-      const result = await this.createProrationForTeam({ teamId: team.id, monthKey });
+      const result = await this.createProrationForTeam({
+        teamId: team.id,
+        monthKey,
+      });
       if (result) results.push(result);
     }
 
@@ -120,7 +123,11 @@ export class MonthlyProrationService {
       organizationBillingId: teamWithBilling.isOrganization ? billing.id : null,
     });
 
-    await seatTracker.markAsProcessed({ teamId, monthKey, prorationId: proration.id });
+    await seatTracker.markAsProcessed({
+      teamId,
+      monthKey,
+      prorationId: proration.id,
+    });
 
     if (calculation.proratedAmount > 0) {
       await this.createStripeInvoiceItem(proration);
@@ -171,7 +178,9 @@ export class MonthlyProrationService {
       customer: proration.customerId,
       amount: amountInCents,
       currency: "usd",
-      description: `Additional ${proration.netSeatIncrease} seat${proration.netSeatIncrease > 1 ? "s" : ""} for ${proration.monthKey}`,
+      description: `Additional ${proration.netSeatIncrease} seat${
+        proration.netSeatIncrease > 1 ? "s" : ""
+      } for ${proration.monthKey}`,
       metadata: {
         type: "monthly_proration",
         prorationId: proration.id,
@@ -200,8 +209,23 @@ export class MonthlyProrationService {
   }
 
   async handleProrationPaymentSuccess(prorationId: string) {
+    const proration = await this.prorationRepository.findById(prorationId);
+    if (!proration) {
+      throw new Error(`Proration ${prorationId} not found`);
+    }
+
     await this.prorationRepository.updateProrationStatus(prorationId, "CHARGED", {
       chargedAt: new Date(),
+    });
+
+    await stripe.subscriptions.update(proration.subscriptionId, {
+      items: [
+        {
+          id: proration.subscriptionItemId,
+          quantity: proration.seatsAtEnd,
+        },
+      ],
+      proration_behavior: "none",
     });
   }
 
@@ -265,21 +289,37 @@ export class MonthlyProrationService {
       const subscriptionTrialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
 
       if (needsCreation) {
-        const createdBilling = await prisma[isOrganization ? "organizationBilling" : "teamBilling"].create({
-          data: {
-            teamId,
-            subscriptionId: billing.subscriptionId,
-            subscriptionItemId,
-            customerId,
-            status: subscription.status.toUpperCase(),
-            planName: isOrganization ? "ORGANIZATION" : "TEAM",
-            billingPeriod,
-            pricePerSeat,
-            subscriptionStart,
-            subscriptionEnd,
-            subscriptionTrialEnd,
-          },
-        });
+        const createdBilling = isOrganization
+          ? await prisma.organizationBilling.create({
+              data: {
+                teamId,
+                subscriptionId: billing.subscriptionId,
+                subscriptionItemId,
+                customerId,
+                status: subscription.status.toUpperCase(),
+                planName: "ORGANIZATION",
+                billingPeriod,
+                pricePerSeat,
+                subscriptionStart,
+                subscriptionEnd,
+                subscriptionTrialEnd,
+              },
+            })
+          : await prisma.teamBilling.create({
+              data: {
+                teamId,
+                subscriptionId: billing.subscriptionId,
+                subscriptionItemId,
+                customerId,
+                status: subscription.status.toUpperCase(),
+                planName: "TEAM",
+                billingPeriod,
+                pricePerSeat,
+                subscriptionStart,
+                subscriptionEnd,
+                subscriptionTrialEnd,
+              },
+            });
 
         billing.id = createdBilling.id;
         billing.customerId = customerId;
@@ -288,8 +328,8 @@ export class MonthlyProrationService {
         await this.teamRepository.updateBillingInfo(teamId, isOrganization, billing.id, {
           billingPeriod,
           pricePerSeat,
-          subscriptionStart,
-          subscriptionEnd,
+          ...(subscriptionStart && { subscriptionStart }),
+          ...(subscriptionEnd && { subscriptionEnd }),
         });
       }
 
