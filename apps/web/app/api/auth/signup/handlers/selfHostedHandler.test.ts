@@ -9,6 +9,7 @@ import {
   createMockTeam,
   createMockFoundToken,
 } from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
+import type { SignupBody } from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
 
 const mockFindTokenByToken: Mock = vi.fn();
 const mockValidateAndGetCorrectedUsernameForTeam: Mock = vi.fn();
@@ -49,8 +50,8 @@ vi.mock("@calcom/features/auth/signup/utils/token", () => ({
 import handler from "./selfHostedHandler";
 import { runP2002TestSuite } from "@calcom/features/auth/signup/handlers/__tests__/p2002.test-suite";
 
-function callHandler(body: Record<string, string | undefined>): ReturnType<typeof handler> {
-  return handler(body as Record<string, string>);
+function callHandler(body: SignupBody): ReturnType<typeof handler> {
+  return handler(body as unknown as Record<string, string>);
 }
 
 runP2002TestSuite("selfHostedHandler", callHandler, () => {

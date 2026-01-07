@@ -11,6 +11,7 @@ import {
   createMockTeam,
   createMockFoundToken,
 } from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
+import type { SignupBody } from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
 
 const mockFindTokenByToken: Mock = vi.fn();
 const mockValidateAndGetCorrectedUsernameForTeam: Mock = vi.fn();
@@ -84,9 +85,9 @@ vi.mock("@calcom/lib/server/username", () => ({
 import "./calcomSignupHandler";
 import { runP2002TestSuite } from "@calcom/features/auth/signup/handlers/__tests__/p2002.test-suite";
 
-function callHandler(body: Record<string, string | undefined>): Promise<MockResponse> {
+function callHandler(body: SignupBody): Promise<MockResponse> {
   if (!mockCapturedHandler) throw new Error("Handler not captured");
-  return mockCapturedHandler(body as Record<string, string>, {
+  return mockCapturedHandler(body as unknown as Record<string, string>, {
     statusCode: 200,
     requestedUserName: body.username || "testuser",
     json: { available: true, premium: false },
