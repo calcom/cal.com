@@ -78,11 +78,9 @@ export default class HubspotCalendarService implements CRM {
   `;
   };
 
-  // biome-ignore lint/nursery/useExplicitType: Return type is inferred from HubSpot API
   private async ensureFieldsExistOnMeeting(fieldsToTest: string[]) {
     const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnMeeting]`] });
     const fieldSet = new Set(fieldsToTest);
-    // biome-ignore lint/suspicious/noExplicitAny: HubSpot Property type requires index signature
     const foundFields: Array<{ name: string; type: string; [key: string]: any }> = [];
 
     try {
@@ -106,7 +104,6 @@ export default class HubspotCalendarService implements CRM {
       }
 
       return foundFields;
-    // biome-ignore lint/suspicious/noExplicitAny: Error type needs to be any for logging
     } catch (e: any) {
       log.error(`Error ensuring fields ${fieldsToTest} exist on Meeting object with error ${e}`);
       // Return empty array to gracefully degrade - meeting creation will proceed without custom field validation
