@@ -30,7 +30,7 @@ import {
   mockCalendarToCrashOnCreateEvent,
   mockVideoAppToCrashOnCreateMeeting,
   BookingLocations,
-} from "../../../../../tests/libs/bookingScenario/bookingScenario";
+} from "../../../../../../tests/libs/bookingScenario/bookingScenario";
 import {
   expectWorkflowToBeTriggered,
   expectWorkflowToBeNotTriggered,
@@ -45,10 +45,10 @@ import {
   expectSuccessfulCalendarEventCreationInCalendar,
   expectICalUIDAsString,
   expectBookingTrackingToBeInDatabase,
-} from "../../../../../tests/libs/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "../../../../../tests/libs/bookingScenario/setupAndTeardown";
-import { testWithAndWithoutOrg } from "../../../../../tests/libs/bookingScenario/test";
+} from "../../../../../../tests/libs/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "../../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "../../../../../../tests/libs/bookingScenario/setupAndTeardown";
+import { testWithAndWithoutOrg } from "../../../../../../tests/libs/bookingScenario/test";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -61,7 +61,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { CreationSource, WatchlistType } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "../../../../../tests/libs/fixtures/fixtures";
+import { test } from "../../../../../../tests/libs/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 

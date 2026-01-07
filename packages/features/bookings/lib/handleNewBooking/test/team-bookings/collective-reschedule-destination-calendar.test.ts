@@ -9,10 +9,10 @@ import {
   mockCalendarToHaveNoBusySlots,
   getDate,
   BookingLocations,
-} from "../../../../../../tests/libs/bookingScenario/bookingScenario";
-import { expectBookingToBeInDatabase } from "../../../../../../tests/libs/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "../../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "../../../../../../tests/libs/bookingScenario/setupAndTeardown";
+} from "../../../../../../../tests/libs/bookingScenario/bookingScenario";
+import { expectBookingToBeInDatabase } from "../../../../../../../tests/libs/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "../../../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "../../../../../../../tests/libs/bookingScenario/setupAndTeardown";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -22,7 +22,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "../../../../../../tests/libs/fixtures/fixtures";
+import { test } from "../../../../../../../tests/libs/fixtures/fixtures";
 
 import { getNewBookingHandler } from "../getNewBookingHandler";
 

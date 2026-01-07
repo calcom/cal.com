@@ -3,7 +3,7 @@ import {
   addTeamsToDb,
   addEventTypesToDb,
   addUsersToDb,
-} from "../../../../tests/libs/bookingScenario/bookingScenario";
+} from "../../../../../tests/libs/bookingScenario/bookingScenario";
 
 import { describe, test, expect, vi } from "vitest";
 

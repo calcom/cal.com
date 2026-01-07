@@ -1,11 +1,11 @@
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
-import { expectWebhookToHaveBeenCalledWith } from "../../../../tests/libs/bookingScenario/expects";
+import { expectWebhookToHaveBeenCalledWith } from "../../../../../tests/libs/bookingScenario/expects";
 
 import { describe, expect, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { test } from "../../../../tests/libs/fixtures/fixtures";
+import { test } from "../../../../../tests/libs/fixtures/fixtures";
 
 import { handleWebhookScheduledTriggers } from "../handleWebhookScheduledTriggers";
 

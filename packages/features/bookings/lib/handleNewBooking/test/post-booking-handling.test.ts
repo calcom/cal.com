@@ -15,10 +15,10 @@ import {
   getScenarioData,
   mockCalendarToHaveNoBusySlots,
   BookingLocations,
-} from "../../../../../tests/libs/bookingScenario/bookingScenario";
-import { expectBookingToBeInDatabase } from "../../../../../tests/libs/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "../../../../../tests/libs/bookingScenario/setupAndTeardown";
+} from "../../../../../../tests/libs/bookingScenario/bookingScenario";
+import { expectBookingToBeInDatabase } from "../../../../../../tests/libs/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "../../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "../../../../../../tests/libs/bookingScenario/setupAndTeardown";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";

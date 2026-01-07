@@ -12,15 +12,15 @@ import {
   getScenarioData,
   getGoogleCalendarCredential,
   mockCalendarToHaveNoBusySlots,
-} from "../../../../../tests/libs/bookingScenario/bookingScenario";
-import { getMockRequestDataForBooking } from "../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "../../../../../tests/libs/bookingScenario/setupAndTeardown";
+} from "../../../../../../tests/libs/bookingScenario/bookingScenario";
+import { getMockRequestDataForBooking } from "../../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "../../../../../../tests/libs/bookingScenario/setupAndTeardown";
 
 import { afterEach, beforeEach, vi } from "vitest";
 import { describe, expect } from "vitest";
 
 import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "../../../../../tests/libs/fixtures/fixtures";
+import { test } from "../../../../../../tests/libs/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
