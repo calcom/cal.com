@@ -491,7 +491,10 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(mockUserRepository.findByUuid).toHaveBeenCalledWith({ uuid: "user-uuid-456" });
+        // Verify bulk-fetching optimization: findByUuids should be called with actor UUID
+        expect(mockUserRepository.findByUuids).toHaveBeenCalledWith({
+          uuids: expect.arrayContaining(["user-uuid-456"]),
+        });
         expect(result.auditLogs[0].actor).toMatchObject({
           displayName: "Jane Smith",
           displayEmail: "jane@example.com",
@@ -564,7 +567,8 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           displayEmail: null,
           displayAvatar: null,
         });
-        expect(mockUserRepository.findByUuid).not.toHaveBeenCalled();
+        // SYSTEM actors don't have userUuid, so no user UUIDs should be collected for actor enrichment
+        // findByUuids may still be called for action-specific requirements (like hostUserUuid)
       });
 
       it("should show 'Guest' for GUEST actor without name", async () => {
@@ -1016,7 +1020,10 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(mockUserRepository.findByUuid).toHaveBeenCalledWith({ uuid: "impersonator-uuid-456" });
+        // Verify bulk-fetching optimization: findByUuids should be called with impersonator UUID
+        expect(mockUserRepository.findByUuids).toHaveBeenCalledWith({
+          uuids: expect.arrayContaining(["impersonator-uuid-456"]),
+        });
         expect(result.auditLogs[0].impersonatedBy).toMatchObject({
           displayName: "Admin User",
           displayEmail: "admin@example.com",
@@ -1067,7 +1074,11 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(mockUserRepository.findByUuid).toHaveBeenCalledWith({ uuid: "impersonator-uuid-456" });
+        // Verify bulk-fetching optimization: findByUuids should be called with impersonator UUID
+        // Even though user doesn't exist, the UUID should still be collected and bulk-fetched
+        expect(mockUserRepository.findByUuids).toHaveBeenCalledWith({
+          uuids: expect.arrayContaining(["impersonator-uuid-456"]),
+        });
         expect(result.auditLogs[0].impersonatedBy).toMatchObject({
           displayName: "Deleted User",
           displayEmail: null,

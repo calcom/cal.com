@@ -149,6 +149,10 @@ export class BookingAuditViewerService {
   /**
    * Collects data requirements from all audit logs
    * Aggregates user IDs, user UUIDs, and booking UIDs needed for enrichment
+   * This includes:
+   * - Actor userUuids (for USER type actors)
+   * - Impersonator UUIDs (from log.context.impersonatedBy)
+   * - Action-specific requirements (from getDataRequirements)
    */
   private collectDataRequirements(auditLogs: BookingAuditWithActor[]): DataRequirements {
     const requirements: DataRequirements = {
@@ -158,6 +162,17 @@ export class BookingAuditViewerService {
     };
 
     for (const log of auditLogs) {
+      // Collect actor userUuids for USER type actors
+      if (log.actor.type === "USER" && log.actor.userUuid) {
+        requirements.userUuids?.push(log.actor.userUuid);
+      }
+
+      // Collect impersonator UUIDs
+      if (log.context?.impersonatedBy) {
+        requirements.userUuids?.push(log.context.impersonatedBy);
+      }
+
+      // Collect action-specific requirements
       const actionService = this.actionServiceRegistry.getActionService(log.action);
       const parsedData = actionService.parseStored(log.data);
 
@@ -220,7 +235,7 @@ export class BookingAuditViewerService {
     userTimeZone: string,
     dbStore: EnrichmentDataStore
   ): Promise<EnrichedAuditLog> {
-    const enrichedActor = await this.enrichActorInformation(log.actor);
+    const enrichedActor = await this.enrichActorInformation(log.actor, dbStore);
 
     const actionService = this.actionServiceRegistry.getActionService(log.action);
     const parsedData = actionService.parseStored(log.data);
@@ -237,7 +252,7 @@ export class BookingAuditViewerService {
 
     const displayFields = actionService.getDisplayFields ? actionService.getDisplayFields(parsedData) : null;
 
-    const impersonatedBy = await this.enrichImpersonator(log.context);
+    const impersonatedBy = await this.enrichImpersonator(log.context, dbStore);
 
     return {
       id: log.id,
@@ -321,16 +336,19 @@ export class BookingAuditViewerService {
     };
   }
 
-  private async enrichImpersonator(context: BookingAuditContext | null): Promise<{
+  private enrichImpersonator(
+    context: BookingAuditContext | null,
+    dbStore: EnrichmentDataStore
+  ): {
     displayName: string;
     displayEmail: string | null;
     displayAvatar: string | null;
-  } | null> {
+  } | null {
     if (!context?.impersonatedBy) {
       return null;
     }
 
-    const impersonatorUser = await this.userRepository.findByUuid({ uuid: context.impersonatedBy });
+    const impersonatorUser = dbStore.getUserByUuid(context.impersonatedBy);
     if (!impersonatorUser) {
       return {
         displayName: "Deleted User",
@@ -348,8 +366,12 @@ export class BookingAuditViewerService {
 
   /**
    * Enrich actor information with user details if userUuid exists
+   * Uses pre-fetched data from dbStore for USER actors to avoid N+1 queries
    */
-  private async enrichActorInformation(actor: BookingAuditWithActor["actor"]): Promise<{
+  private async enrichActorInformation(
+    actor: BookingAuditWithActor["actor"],
+    dbStore: EnrichmentDataStore
+  ): Promise<{
     displayName: string;
     displayEmail: string | null;
     displayAvatar: string | null;
@@ -419,7 +441,8 @@ export class BookingAuditViewerService {
         if (!actor.userUuid) {
           throw new Error("User UUID is required for USER actor");
         }
-        const actorUser = await this.userRepository.findByUuid({ uuid: actor.userUuid });
+        // Use pre-fetched data from dbStore to avoid N+1 queries
+        const actorUser = dbStore.getUserByUuid(actor.userUuid);
         if (actorUser) {
           return {
             displayName: actorUser.name || actorUser.email,
