@@ -8,6 +8,7 @@ import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types"
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { VerticalDivider } from "@calcom/ui/components/divider";
@@ -103,6 +104,13 @@ function EventTypeSingleLayout({
       backPath={teamId ? `/event-types?teamId=${teamId}` : "/event-types"}
       title={`${eventType.title} | ${t("event_type")}`}
       heading={eventType.title}
+      beforeCTAactions={
+        team?.name ? (
+          <Badge className="ml-4 hidden text-xs md:flex" variant="gray">
+            {team.name}
+          </Badge>
+        ) : null
+      }
       CTA={
         <div className="flex items-center justify-end">
           {!formMethods.getValues("metadata")?.managedEventConfig && (
