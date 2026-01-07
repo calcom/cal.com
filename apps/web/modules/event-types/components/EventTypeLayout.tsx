@@ -105,7 +105,7 @@ function EventTypeSingleLayout({
         <div className="flex min-w-0 items-center">
           <span className="min-w-0 truncate">{eventType.title}</span>
           {eventType.team && (
-            <Badge className="ml-2 text-xs" variant="gray">
+            <Badge className="ml-2 text-xs" variant="gray" startIcon="users">
               {eventType.team.name}
             </Badge>
           )}
