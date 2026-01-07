@@ -1,8 +1,9 @@
-import type { Logger } from "tslog";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { BillingPeriod } from "@calcom/prisma/enums";
+import type { Logger } from "tslog";
 
 const log = logger.getSubLogger({ prefix: ["BillingPeriodService"] });
 
@@ -17,8 +18,6 @@ export interface BillingPeriodInfo {
 }
 
 export class BillingPeriodService {
-  private logger: Logger<unknown>;
-
   constructor(customLogger?: Logger<unknown>) {
     this.logger = customLogger || log;
   }
@@ -35,16 +34,16 @@ export class BillingPeriodService {
 
   async shouldApplyMonthlyProration(teamId: number): Promise<boolean> {
     try {
-      const { checkIfFeatureIsEnabledGlobally } = await import("@calcom/features/flags/server/utils");
+      const featuresRepository = new FeaturesRepository(prisma);
+      const isFeatureEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
 
-      const isFeatureEnabled = await checkIfFeatureIsEnabledGlobally("monthly-proration");
       if (!isFeatureEnabled) {
         return false;
       }
 
       const info = await this.getBillingPeriodInfo(teamId);
       return info.billingPeriod === "ANNUALLY" && !info.isInTrial && info.subscriptionStart !== null;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
