@@ -25,7 +25,7 @@ import CrmManager from "./crmManager";
 // vi.mock("@calcom/app-store/_utils/getCrm");
 
 describe.skip("crmManager tests", () => {
-    test("Set crmService if not set", async () => {
+  test("Set crmService if not set", async () => {
     const spy = vi.spyOn(CrmManager.prototype as any, "getCrmService");
     const crmManager = new CrmManager({
       id: 1,
