@@ -5,6 +5,9 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 
+// Using relative path to avoid @calcom/web import (circular dependency)
+import en from "../../../../../../apps/web/public/static/locales/en/common.json";
+
 import { getTemplateBodyForAction } from "../actionHelperFunctions";
 import compareReminderBodyToTemplate from "../compareReminderBodyToTemplate";
 import plainTextReminderTemplates from "../reminders/templates/plainTextTemplates";
@@ -26,9 +29,7 @@ const translation = async () => {
     lng: "en",
     resources: {
       en: {
-        translation: {
-          test: "test",
-        },
+        translation: en,
       },
     },
   });
