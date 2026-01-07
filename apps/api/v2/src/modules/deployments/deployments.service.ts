@@ -1,6 +1,6 @@
 import { DeploymentsRepository } from "@/modules/deployments/deployments.repository";
 import { RedisService } from "@/modules/redis/redis.service";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 const CACHING_TIME = 86400000; // 24 hours in milliseconds
@@ -12,6 +12,8 @@ type LicenseCheckResponse = {
 };
 @Injectable()
 export class DeploymentsService {
+  private readonly logger = new Logger(DeploymentsService.name);
+
   constructor(
     private readonly deploymentsRepository: DeploymentsRepository,
     private readonly configService: ConfigService,
@@ -38,10 +40,37 @@ export class DeploymentsService {
     if (cachedData) {
       return (JSON.parse(cachedData) as LicenseCheckResponse)?.status;
     }
-    const response = await fetch(licenseKeyUrl, { mode: "cors" });
-    const data = (await response.json()) as LicenseCheckResponse;
-    const cacheKey = getLicenseCacheKey(licenseKey);
-    this.redisService.redis.set(cacheKey, JSON.stringify(data), "EX", CACHING_TIME);
-    return data.status;
+
+    try {
+      const response = await fetch(licenseKeyUrl, {
+        mode: "cors",
+        signal: AbortSignal.timeout(10000),
+      });
+
+      if (!response.ok) {
+        this.logger.warn(`License server returned ${response.status}`);
+        return false;
+      }
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
+        this.logger.warn(`License server returned ${contentType}, expected JSON`);
+        return false;
+      }
+
+      const data = (await response.json()) as LicenseCheckResponse;
+
+      if (typeof data?.status !== "boolean") {
+        this.logger.warn("License server returned invalid JSON structure");
+        return false;
+      }
+
+      const cacheKey = getLicenseCacheKey(licenseKey);
+      this.redisService.redis.set(cacheKey, JSON.stringify(data), "EX", CACHING_TIME);
+      return data.status;
+    } catch (error) {
+      this.logger.warn(`License check failed: ${(error as Error).message}`);
+      return false;
+    }
   }
 }
