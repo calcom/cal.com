@@ -16,7 +16,6 @@
     "@calcom/dayjs": "workspace:*",
     "@calcom/lib": "workspace:*",
     "@calcom/trpc": "workspace:*",
-    "@calcom/types": "workspace:*",
     "@calcom/ui": "workspace:*",
     "@evyweb/ioctopus": "1.2.0",
     "@tanstack/react-table": "8.20.6",

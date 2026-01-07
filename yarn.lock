@@ -2578,7 +2578,6 @@ __metadata:
     "@calcom/dayjs": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/trpc": "workspace:*"
-    "@calcom/types": "workspace:*"
     "@calcom/ui": "workspace:*"
     "@evyweb/ioctopus": "npm:1.2.0"
     "@tanstack/react-table": "npm:8.20.6"
