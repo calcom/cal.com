@@ -273,7 +273,8 @@ export default class LarkCalendarService implements Calendar {
   async getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    _mode?: "slots" | "overlay" | "booking"
   ): Promise<EventBusyDate[]> {
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)

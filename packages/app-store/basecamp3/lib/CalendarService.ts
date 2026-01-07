@@ -250,7 +250,8 @@ export default class BasecampCalendarService implements Calendar {
   async getAvailability(
     _dateFrom: string,
     _dateTo: string,
-    _selectedCalendars: IntegrationCalendar[]
+    _selectedCalendars: IntegrationCalendar[],
+    _mode?: "slots" | "overlay" | "booking"
   ): Promise<EventBusyDate[]> {
     return Promise.resolve([]);
   }

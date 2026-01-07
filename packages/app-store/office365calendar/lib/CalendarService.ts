@@ -362,7 +362,8 @@ export default class Office365CalendarService implements Calendar {
   async getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    _mode?: "slots" | "overlay" | "booking"
   ): Promise<EventBusyDate[]> {
     const dateFromParsed = new Date(dateFrom);
     const dateToParsed = new Date(dateTo);

@@ -136,7 +136,8 @@ export default class ExchangeCalendarService implements Calendar {
   async getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    _mode?: "slots" | "overlay" | "booking"
   ): Promise<EventBusyDate[]> {
     const calendars: IntegrationCalendar[] = await this.listCalendars();
     const promises: Promise<EventBusyDate[]>[] = calendars

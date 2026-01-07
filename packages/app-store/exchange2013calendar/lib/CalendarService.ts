@@ -142,7 +142,12 @@ export default class ExchangeCalendarService implements Calendar {
     }
   }
 
-  async getAvailability(dateFrom: string, dateTo: string, selectedCalendars: IntegrationCalendar[]) {
+  async getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[],
+    _mode?: "slots" | "overlay" | "booking"
+  ) {
     try {
       const externalCalendars: IntegrationCalendar[] = await this.listCalendars();
       const calendarsToGetAppointmentsFrom = [];

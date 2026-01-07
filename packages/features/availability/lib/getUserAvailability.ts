@@ -38,7 +38,7 @@ import type {
 } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
+import type { CalendarFetchMode, EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
 
 import { findUsersForAvailabilityCheck } from "./findUsersForAvailabilityCheck";
@@ -58,7 +58,7 @@ const availabilitySchema = z
     returnDateOverrides: z.boolean(),
     bypassBusyCalendarTimes: z.boolean().optional(),
     silentlyHandleCalendarFailures: z.boolean().optional(),
-    shouldServeCache: z.boolean().optional(),
+    mode: z.enum(["slots", "overlay", "booking"]).optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -115,7 +115,7 @@ type GetUserAvailabilityQuery = {
   returnDateOverrides: boolean;
   bypassBusyCalendarTimes: boolean;
   silentlyHandleCalendarFailures?: boolean;
-  shouldServeCache?: boolean;
+  mode?: CalendarFetchMode;
 };
 
 export type CurrentSeats = Awaited<
@@ -304,7 +304,7 @@ export class UserAvailabilityService {
       returnDateOverrides,
       bypassBusyCalendarTimes = false,
       silentlyHandleCalendarFailures = false,
-      shouldServeCache,
+      mode,
     } = availabilitySchema.parse(query);
 
     log.debug(
@@ -467,7 +467,7 @@ export class UserAvailabilityService {
         currentBookings: initialData?.currentBookings,
         bypassBusyCalendarTimes,
         silentlyHandleCalendarFailures,
-        shouldServeCache,
+        mode,
       });
     } catch (error) {
       log.error(`Error fetching busy times for user ${username}:`, error);

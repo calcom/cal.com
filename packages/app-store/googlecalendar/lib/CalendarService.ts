@@ -670,6 +670,13 @@ export default class GoogleCalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
     /**
+     * The mode of the calendar fetch request. Used by the cache layer to determine if cache should be used.
+     * - "slots": Check feature flags and use cache when available (for getting actual calendar availability)
+     * - "overlay": Don't use cache (for overlay calendar availability)
+     * - "booking": Don't use cache (for booking confirmation)
+     */
+    _mode?: "slots" | "overlay" | "booking",
+    /**
      * If true, we will fallback to the primary calendar if no valid selected calendars are found
      */
     fallbackToPrimary?: boolean

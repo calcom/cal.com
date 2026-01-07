@@ -1759,7 +1759,7 @@ type GetAvailabilityMethodMockCall = CalendarServiceMethodMockCallBase & {
     dateFrom: string;
     dateTo: string;
     selectedCalendars: IntegrationCalendar[];
-    shouldServeCache?: boolean;
+    mode?: "slots" | "overlay" | "booking";
   };
 };
 
@@ -1964,7 +1964,7 @@ export async function mockCalendar(
             dateFrom: string,
             dateTo: string,
             selectedCalendars: IntegrationCalendar[],
-            shouldServeCache?: boolean
+            mode?: "slots" | "overlay" | "booking"
           ): Promise<EventBusyDate[]> => {
             if (calendarData?.getAvailabilityCrash) {
               throw new Error("MockCalendarService.getAvailability fake error");
@@ -1974,7 +1974,7 @@ export async function mockCalendar(
                 dateFrom,
                 dateTo,
                 selectedCalendars,
-                shouldServeCache,
+                mode,
               },
               calendarServiceConstructorArgs: {
                 credential,

@@ -18,6 +18,7 @@ import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFr
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   CalendarEvent,
+  CalendarFetchMode,
   CalendarServiceEvent,
   EventBusyDate,
   IntegrationCalendar,
@@ -236,7 +237,7 @@ export const getBusyCalendarTimes = async (
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
-  shouldServeCache?: boolean,
+  mode?: CalendarFetchMode,
   includeTimeZone?: boolean
 ) => {
   let results: (EventBusyDate & { timeZone?: string })[][] = [];
@@ -274,7 +275,7 @@ export const getBusyCalendarTimes = async (
         startDate,
         endDate,
         selectedCalendars,
-        shouldServeCache
+        mode
       );
     }
   } catch (e) {

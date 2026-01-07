@@ -284,7 +284,7 @@ export interface Calendar {
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
-    shouldServeCache?: boolean,
+    mode?: CalendarFetchMode,
     fallbackToPrimary?: boolean
   ): Promise<EventBusyDate[]>;
 
@@ -323,3 +323,11 @@ export type SelectedCalendar = Pick<
   _SelectedCalendar,
   "userId" | "integration" | "externalId" | "credentialId"
 >;
+
+/**
+ * Mode for calendar fetch operations to control caching behavior:
+ * - "slots": For getting actual calendar availability (uses cache when available)
+ * - "overlay": For getting overlay calendar availability (does not use cache)
+ * - "booking": For booking confirmation (does not use cache)
+ */
+export type CalendarFetchMode = "slots" | "overlay" | "booking";
