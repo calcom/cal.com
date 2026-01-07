@@ -133,22 +133,44 @@ export const OnboardingInviteBrowserView = ({
               duration: 0.5,
               ease: "backOut",
             }}>
-            <div className="bg-default border-subtle flex flex-col gap-4 rounded-2xl border p-8">
-              <div className="flex flex-col items-start gap-4">
-                <Avatar
-                  size="lg"
-                  imageSrc={avatar || undefined}
-                  alt={displayName}
-                  className="border-default h-12 w-12 border-2"
-                />
-                <div className="flex w-full flex-col items-start gap-1">
-                  <h2 className="text-emphasis font-cal w-full text-left text-xl font-semibold leading-tight">
-                    {displayName}
-                  </h2>
-                  <p className="text-subtle text-left text-sm font-normal leading-tight">
-                    {displayBio || "We're emailing you all the details"}
-                  </p>
-                </div>
+            <div className="bg-default border-subtle flex flex-col rounded-2xl border">
+              <div className="relative p-1">
+                {/* Banner Image */}
+                {organizationBrand.banner && (
+                  <div className="border-subtle relative h-36 w-full overflow-hidden rounded-xl border">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={organizationBrand.banner}
+                      alt={displayName}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                )}
+
+                {/* Organization Avatar - Overlaying the banner */}
+                {organizationBrand.banner && avatar && (
+                  <div className="absolute -bottom-6 left-4">
+                    <Avatar size="lg" imageSrc={avatar} alt={displayName} className="h-12 w-12 border" />
+                  </div>
+                )}
+              </div>
+
+              {/* Organization Info */}
+              <div className={`flex flex-col items-start gap-1 px-4 pb-4 pt-8`}>
+                {!organizationBrand.banner && avatar && (
+                  <Avatar
+                    size="lg"
+                    imageSrc={avatar}
+                    alt={displayName}
+                    className="border-default mb-4 h-12 w-12 border-2"
+                  />
+                )}
+                <h2 className="text-emphasis font-cal w-full text-left text-xl font-semibold leading-tight">
+                  {displayName}
+                </h2>
+                <p className="text-subtle text-left text-sm font-normal leading-tight">
+                  {displayBio || "We're emailing you all the details"}
+                </p>
               </div>
             </div>
 

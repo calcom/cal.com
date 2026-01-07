@@ -9,7 +9,7 @@ import type { TextComponent } from "../lib";
  */
 export async function isValidCalURL(url: string) {
   const regex = new RegExp(
-    `^https://(?:[a-zA-Z0-9-]+\\.)?${CAL_URL.replace("https://", "")}/(team/)?(org/)?`,
+    `^https://(?:[a-zA-Z0-9-]+\\.)?${CAL_URL.replace("https://", "")}/`,
     "i"
   );
 

@@ -1,4 +1,3 @@
- 
 import { sortBy } from "lodash";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -135,7 +134,7 @@ export const getConnectedCalendars = async (
           errorMessage = error.message;
         }
 
-        log.error("getConnectedCalendars failed", errorMessage, safeStringify({ item }));
+        log.error("getConnectedCalendars failed", error, safeStringify({ credentialId: item.credential.id }));
 
         return {
           integration: cleanIntegrationKeys(item.integration),
@@ -366,7 +365,7 @@ export const createEvent = async (
     })
   );
   return {
-    appName: credential.appId || "",
+    appName: credential.appName || credential.appId || "",
     type: credential.type,
     success,
     uid,
@@ -451,7 +450,7 @@ export const updateEvent = async (
   }
 
   return {
-    appName: credential.appId || "",
+    appName: credential.appName || credential.appId || "",
     type: credential.type,
     success,
     uid,

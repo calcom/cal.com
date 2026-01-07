@@ -16,6 +16,7 @@ import type { HttpError } from "@calcom/lib/http-error";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { BookingReference, Attendee, Booking, Membership } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/client";
@@ -72,7 +73,7 @@ vi.mock("@calcom/app-store/video.adapters.generated", () => ({
 }));
 
 // We don't need to test it. Also, it causes Formbricks error when imported
-vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
+vi.mock("@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic", () => ({
   default: {},
 }));
 
@@ -2207,7 +2208,6 @@ export function mockCrmApp(
   }[] = [];
   const eventsCreated: boolean[] = [];
 
-  // Mock the CrmServiceMap directly instead of using the old app-store index approach
   vi.doMock("@calcom/app-store/crm.apps.generated", async (importOriginal) => {
     const original = await importOriginal<typeof import("@calcom/app-store/crm.apps.generated")>();
 
@@ -2219,16 +2219,17 @@ export function mockCrmApp(
       createContact() {
         if (crmData?.createContacts) {
           contactsCreated = crmData.createContacts;
-          return Promise.resolve(crmData?.createContacts);
+          return Promise.resolve(crmData.createContacts);
         }
         return Promise.resolve([]);
       }
 
       getContacts(email: string) {
         if (crmData?.getContacts) {
-          contactsQueried = crmData?.getContacts;
-          const contactsOfEmail = contactsQueried.filter((contact) => contact.email === email);
-          return Promise.resolve(contactsOfEmail);
+          contactsQueried = crmData.getContacts;
+          return Promise.resolve(
+            contactsQueried.filter((c) => c.email === email)
+          );
         }
         return Promise.resolve([]);
       }
@@ -2243,19 +2244,27 @@ export function mockCrmApp(
       ...original,
       CrmServiceMap: {
         ...original.CrmServiceMap,
-        [metadataLookupKey]: Promise.resolve({
+        // ✅ IMPORTANT: no Promise here
+        [metadataLookupKey]: {
           default: MockCrmService,
-        }),
+        },
       },
     };
   });
 
   return {
-    contactsCreated,
-    contactsQueried,
-    eventsCreated,
+    get contactsCreated() {
+      return contactsCreated;
+    },
+    get contactsQueried() {
+      return contactsQueried;
+    },
+    get eventsCreated() {
+      return eventsCreated;
+    },
   };
 }
+
 
 export function getBooker({
   name,
@@ -2287,7 +2296,11 @@ export function getMockedStripePaymentEvent({ paymentIntentId }: { paymentIntent
 export async function mockPaymentSuccessWebhookFromStripe({ externalId }: { externalId: string }) {
   let webhookResponse = null;
   try {
-    await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }));
+    const traceContext = distributedTracing.createTrace("test_stripe_webhook");
+    await handleStripePaymentSuccess(
+      getMockedStripePaymentEvent({ paymentIntentId: externalId }),
+      traceContext
+    );
   } catch (e) {
     log.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
     webhookResponse = e as HttpError;
@@ -2366,7 +2379,7 @@ const getMockAppStatus = ({
   }
   const foundApp = foundEntry[1];
   return {
-    appName: overrideName ?? foundApp.slug,
+    appName: overrideName ?? foundApp.name,
     type: foundApp.type,
     failures,
     success,
