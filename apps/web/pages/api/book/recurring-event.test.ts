@@ -9,16 +9,16 @@ import {
   mockSuccessfulVideoMeetingCreation,
   TestData,
   Timezones,
-} from "../../test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "../../test/utils/bookingScenario/createMockNextJsRequest";
+} from "../../../../../tests/libs/bookingScenario/bookingScenario";
+import { createMockNextJsRequest } from "../../../../../tests/libs/bookingScenario/createMockNextJsRequest";
 import {
   expectBookingCreatedWebhookToHaveBeenFired,
   expectBookingToBeInDatabase, // expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
-} from "../../test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "../../test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "../../test/utils/bookingScenario/setupAndTeardown";
+} from "../../../../../tests/libs/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "../../../../../tests/libs/bookingScenario/setupAndTeardown";
 
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect } from "vitest";
@@ -27,7 +27,7 @@ import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "../../test/fixtures/fixtures";
+import { test } from "../../../../../tests/libs/fixtures/fixtures";
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
@@ -156,7 +156,7 @@ describe("handleNewBooking", () => {
               }),
           });
 
-          const createdBookings = await handleRecurringEventBooking(req, res);
+          const createdBookings = await handleRecurringEventBooking(req);
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
           for (const [index, createdBooking] of Object.entries(createdBookings)) {
             logger.debug("Assertion for Booking with index:", index, { createdBooking });
@@ -374,7 +374,7 @@ describe("handleNewBooking", () => {
               }),
           });
 
-          expect(() => handleRecurringEventBooking(req, res)).rejects.toThrow(
+          await expect(handleRecurringEventBooking(req)).rejects.toThrow(
             ErrorCode.NoAvailableUsersFound
           );
           // Actually the first booking goes through in this case but the status is still a failure. We should do a dry run to check if booking is possible  for the 2 slots and if yes, then only go for the actual booking otherwise fail the recurring bookign
@@ -507,7 +507,7 @@ describe("handleNewBooking", () => {
               }),
           });
 
-          const createdBookings = await handleRecurringEventBooking(req, res);
+          const createdBookings = await handleRecurringEventBooking(req);
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
           for (const [index, createdBooking] of Object.entries(createdBookings)) {
             logger.debug("Assertion for Booking with index:", index, { createdBooking });
@@ -725,7 +725,7 @@ describe("handleNewBooking", () => {
               }),
           });
 
-          const createdBookings = await handleRecurringEventBooking(req, res);
+          const createdBookings = await handleRecurringEventBooking(req);
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
           for (const [index, createdBooking] of Object.entries(createdBookings)) {
             logger.debug("Assertion for Booking with index:", index, { createdBooking });
@@ -985,7 +985,7 @@ describe("handleNewBooking", () => {
         });
         let error = { message: "" };
         try {
-          await handleRecurringEventBooking(req, res);
+          await handleRecurringEventBooking(req);
         } catch (e) {
           error = e as Error;
         }
@@ -1167,11 +1167,11 @@ describe("handleNewBooking", () => {
             }),
         });
 
-        const createdBookings1 = await handleRecurringEventBooking(req, res);
+        const createdBookings1 = await handleRecurringEventBooking(req);
 
         const assignedUserIds1 = createdBookings1.map((booking) => booking.userId);
 
-        const createdBookings2 = await handleRecurringEventBooking(req1, res1);
+        const createdBookings2 = await handleRecurringEventBooking(req1);
 
         const assignedUserIds2 = createdBookings2.map((booking) => booking.userId);
 
@@ -1388,11 +1388,11 @@ describe("handleNewBooking", () => {
             }),
         });
 
-        const createdBookings1 = await handleRecurringEventBooking(req, res);
+        const createdBookings1 = await handleRecurringEventBooking(req);
 
         const assignedUserIds1 = createdBookings1.map((booking) => booking.userId);
 
-        const createdBookings2 = await handleRecurringEventBooking(req1, res1);
+        const createdBookings2 = await handleRecurringEventBooking(req1);
 
         const assignedUserIds2 = createdBookings2.map((booking) => booking.userId);
 

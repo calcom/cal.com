@@ -1,6 +1,6 @@
 import { organizationRepositoryMock } from "@calcom/features/ee/organizations/__mocks__/organizationMock";
 
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import { setupAndTeardown } from "../../tests/libs/bookingScenario/setupAndTeardown";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 

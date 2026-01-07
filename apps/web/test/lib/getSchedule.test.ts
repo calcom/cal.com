@@ -12,7 +12,7 @@ import {
   TestData,
   createCredentials,
   mockCrmApp,
-} from "../utils/bookingScenario/bookingScenario";
+} from "../../../../tests/libs/bookingScenario/bookingScenario";
 
 import { describe, vi, test } from "vitest";
 

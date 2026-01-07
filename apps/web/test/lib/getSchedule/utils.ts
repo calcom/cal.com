@@ -1,4 +1,4 @@
-import { getDate } from "../../utils/bookingScenario/bookingScenario";
+import { getDate } from "../../../../../tests/libs/bookingScenario/bookingScenario";
 
 import { vi } from "vitest";
 
