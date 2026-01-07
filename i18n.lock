@@ -4160,6 +4160,8 @@ checksums:
     booking_audit_action/type: 39fc6aaaa71126c54e4e0b1240cfc944
     booking_audit_action/assignmentType_manual: a2b0a30df1960410a290e0fa6cff2652
     booking_audit_action/assignmentType_roundRobin: 5400ab8b8ee0b110b4b69950a8ff07df
+    booking_audit_action/actor_impersonated_by: 1c3e65f03e0e224a791fab266b45e5a2
+    booking_audit_action/source: 6e87903ef260da661b2bf6d858ba68ca
     error_loading_booking_logs: feda9ea6cc7e2a363c10d473e71d4dc5
     no_audit_logs_found: 394ad0c0a33bcf8cd2819b2b9cdc5ab2
     hide_details: 51086404511c662af46ac4e54838f38f

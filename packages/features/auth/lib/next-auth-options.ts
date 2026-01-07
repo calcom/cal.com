@@ -336,6 +336,13 @@ if (isSAMLLoginEnabled) {
       };
     }) => {
       log.debug("BoxyHQ:profile", safeStringify({ profile }));
+      if (!profile.email) {
+        log.warn("saml:profile - email missing from IdP response", {
+          hasFirstName: !!profile.firstName,
+          hasLastName: !!profile.lastName,
+          tenant: profile.requested?.tenant,
+        });
+      }
       const userRepo = new UserRepository(prisma);
       const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
@@ -371,12 +378,14 @@ if (isSAMLLoginEnabled) {
       async authorize(credentials): Promise<SamlIdpUser | null> {
         log.debug("CredentialsProvider:saml-idp:authorize", safeStringify({ credentials }));
         if (!credentials) {
+          log.warn("saml-idp:authorize - missing credentials object");
           return null;
         }
 
         const { code } = credentials;
 
         if (!code) {
+          log.warn("saml-idp:authorize - missing code in credentials");
           return null;
         }
 
@@ -392,12 +401,14 @@ if (isSAMLLoginEnabled) {
         });
 
         if (!access_token) {
+          log.warn("saml-idp:authorize - failed to obtain access_token from oauthController.token");
           return null;
         }
         // Fetch user info
         const userInfo = await oauthController.userInfo(access_token);
 
         if (!userInfo) {
+          log.warn("saml-idp:authorize - failed to obtain userInfo from oauthController.userInfo");
           return null;
         }
 
@@ -426,7 +437,13 @@ if (isSAMLLoginEnabled) {
               });
             }
           }
-          if (!user) throw new Error(ErrorCode.UserNotFound);
+          if (!user) {
+            log.warn("saml-idp:authorize - user not found and could not be auto-provisioned", {
+              emailDomain: email.split("@")[1],
+              hostedCal: Boolean(HOSTED_CAL_FEATURES),
+            });
+            throw new Error(ErrorCode.UserNotFound);
+          }
         }
         const [userProfile] = user?.allProfiles ?? [];
         return {
@@ -773,8 +790,8 @@ export const getOptions = ({
         return await autoMergeIdentities();
       }
 
-      log.info(
-        "callbacks:jwt:accountType:unknown",
+      log.warn(
+        "callbacks:jwt - unknown account type",
         safeStringify({ accountType: account.type, accountProvider: account.provider })
       );
       return token;
@@ -845,14 +862,20 @@ export const getOptions = ({
         }
 
         if (account?.type !== "oauth") {
+          log.warn("callbacks:signIn - unsupported account type for non-saml-idp provider", {
+            accountType: account?.type,
+            provider: account?.provider,
+          });
           return false;
         }
       }
       if (!user.email) {
+        log.warn("callbacks:signIn - user email is missing", { provider: account?.provider });
         return false;
       }
 
       if (!user.name) {
+        log.warn("callbacks:signIn - user name is missing", { emailDomain: user.email.split("@")[1], provider: account?.provider });
         return false;
       }
       if (account?.provider) {
@@ -1202,6 +1225,10 @@ export const getOptions = ({
         }
       }
 
+      log.warn("callbacks:signIn - no matching provider or condition, denying access", {
+        provider: account?.provider,
+        accountType: account?.type,
+      });
       return false;
     },
     /**
