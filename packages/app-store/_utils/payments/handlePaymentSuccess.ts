@@ -19,7 +19,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAppNameFromSlug } from "@calcom/features/booking-audit/lib/getAppNameFromSlug";
-import type { ActorIdentification } from "@calcom/features/booking-audit/lib/dto/types";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { z } from "zod";
 
@@ -33,7 +33,7 @@ function getActor({
   bookingId: number;
   apps: z.infer<typeof eventTypeAppMetadataOptionalSchema>;
 }) {
-  let actor: ActorIdentification;
+  let actor: Actor;
   const appData = apps?.[appSlug as keyof typeof apps];
   if (appData?.credentialId) {
     actor = makeAppActor({ credentialId: appData.credentialId });

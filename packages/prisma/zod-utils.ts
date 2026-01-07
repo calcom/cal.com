@@ -10,7 +10,7 @@ import type {
   ZodRawShape,
   ZodTypeAny,
 } from "zod";
-import { ActorIdentificationSchema } from "@calcom/features/booking-audit/lib/dto/types";
+import { ActorSchema } from "@calcom/features/booking-audit/lib/dto/types";
 import { ValidActionSourceSchema } from "@calcom/features/booking-audit/lib/types/actionSource";
 import type { Prisma } from "./client";
 import { EventTypeCustomInputType } from "./enums";
@@ -389,7 +389,7 @@ export const bookingConfirmPatchBodySchema = z.object({
   // But, at MAGIC_LINK places, we are currently calling TRPC endpoint fn directly, so we need to allow it here.
   // We need to switch to calling the handler and not the trpc fn directly.
   actionSource: ValidActionSourceSchema.optional(),
-  actor: ActorIdentificationSchema,
+  actor: ActorSchema,
 });
 
 export const bookingCancelSchema = z.object({

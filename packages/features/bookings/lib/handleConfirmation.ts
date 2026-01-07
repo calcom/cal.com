@@ -2,7 +2,7 @@ import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils"
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActorIdentification } from "@calcom/features/booking-audit/lib/dto/types";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
@@ -38,24 +38,13 @@ import { v4 as uuidv4 } from "uuid";
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 
-// Allows specifying actor by userUuid also
-type SimplifiedActorIdentifier =
-  | {
-      userUuid: null;
-      actor: ActorIdentification;
-    }
-  | {
-      userUuid: string;
-      actor: null;
-    };
-
 async function fireBookingAcceptedEvent({
   actor,
   organizationId,
   actionSource,
   updatedBookings,
 }: {
-  actor: ActorIdentification;
+  actor: Actor;
   organizationId: number | null;
   actionSource: ActionSource;
   updatedBookings: {
@@ -136,7 +125,7 @@ export async function handleConfirmation(args: {
   platformClientParams?: PlatformClientParams;
   traceContext: TraceContext;
   actionSource: ActionSource;
-  actor: ActorIdentification;
+  actor: Actor;
 }) {
   const {
     user,
