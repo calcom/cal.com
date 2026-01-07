@@ -2,7 +2,6 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
-import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -30,11 +29,11 @@ import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@cal
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { TRPCError } from "@trpc/server";
-import type { Ensure } from "@calcom/types/utils";
+import { v4 as uuidv4 } from "uuid";
 import type { TrpcSessionUser } from "../../../types";
 import type { TConfirmInputSchema } from "./confirm.schema";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import { Actor } from "@calcom/features/booking-audit/lib/dto/types";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 
 type ConfirmOptions = {
   ctx: {
@@ -49,32 +48,50 @@ type ConfirmOptions = {
 };
 
 async function fireRejectionEvent({
-  bookingUid,
-  userUuid,
+  actor,
   organizationId,
   actionSource,
+  rejectedBookings,
   rejectionReason,
-  currentBookingStatus,
 }: {
-  bookingUid: string;
-  userUuid: string;
+  actor: Actor;
   organizationId: number | null;
-  actionSource: ValidActionSource;
   rejectionReason: string | null;
-  currentBookingStatus: BookingStatus;
-}) {
+  actionSource: ValidActionSource;
+  rejectedBookings: {
+    uid: string;
+    status: BookingStatus;
+  }[];
+}): Promise<void> {
   const bookingEventHandlerService = getBookingEventHandlerService();
-  const actor = makeUserActor(userUuid);
-  await bookingEventHandlerService.onBookingRejected({
-    bookingUid,
-    actor,
-    organizationId,
-    auditData: {
-      rejectionReason: rejectionReason ?? null,
-      status: { old: currentBookingStatus, new: BookingStatus.REJECTED },
-    },
-    source: actionSource,
-  });
+  if (rejectedBookings.length > 1) {
+    const operationId = uuidv4();
+    await bookingEventHandlerService.onBulkBookingsRejected({
+      bookings: rejectedBookings.map((booking) => ({
+        bookingUid: booking.uid,
+        auditData: {
+          rejectionReason,
+          status: { old: booking.status, new: BookingStatus.REJECTED },
+        },
+      })),
+      actor,
+      organizationId,
+      operationId,
+      source: actionSource,
+    });
+  } else if (rejectedBookings.length === 1) {
+    const booking = rejectedBookings[0];
+    await bookingEventHandlerService.onBookingRejected({
+      bookingUid: booking.uid,
+      actor,
+      organizationId,
+      auditData: {
+        rejectionReason,
+        status: { old: booking.status, new: BookingStatus.REJECTED },
+      },
+      source: actionSource,
+    });
+  }
 }
 /**
  * It is called by API V2 as well directly
@@ -373,19 +390,41 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     });
   } else {
     evt.rejectionReason = rejectionReason;
+    let rejectedBookings: {
+      uid: string;
+      status: BookingStatus;
+    }[] = [];
+
     if (recurringEventId) {
       // The booking to reject is a recurring event and comes from /booking/upcoming, proceeding to mark all related
       // bookings as rejected.
-      await prisma.booking.updateMany({
+      const unconfirmedRecurringBookings = await prisma.booking.findMany({
         where: {
           recurringEventId,
           status: BookingStatus.PENDING,
+        },
+        select: {
+          uid: true,
+          status: true,
+        },
+      });
+
+      await prisma.booking.updateMany({
+        where: {
+          uid: {
+            in: unconfirmedRecurringBookings.map((booking) => booking.uid),
+          },
         },
         data: {
           status: BookingStatus.REJECTED,
           rejectionReason,
         },
       });
+
+      rejectedBookings = unconfirmedRecurringBookings.map((recurringBooking) => ({
+        uid: recurringBooking.uid,
+        status: recurringBooking.status,
+      }));
     } else {
       // handle refunds
       if (booking.payment.length) {
@@ -405,6 +444,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           rejectionReason,
         },
       });
+
+      rejectedBookings = [
+        {
+          uid: booking.uid,
+          status: booking.status,
+        },
+      ];
     }
 
     if (emailsEnabled) {
@@ -421,12 +467,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
 
     await fireRejectionEvent({
-      bookingUid: booking.uid,
-      userUuid: ctx.user.uuid,
+      actor,
       actionSource,
-      rejectionReason: rejectionReason ?? null,
-      currentBookingStatus: booking.status,
       organizationId: orgId ?? null,
+      rejectionReason: rejectionReason ?? null,
+      rejectedBookings,
     });
 
     // send BOOKING_REJECTED webhooks

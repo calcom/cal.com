@@ -392,7 +392,7 @@ export async function handleConfirmation(args: {
 
   const bookerUrl = await getBookerBaseUrl(orgId ?? null);
 
-  fireBookingAcceptedEvent({
+  await fireBookingAcceptedEvent({
     actor,
     updatedBookings,
     organizationId: orgId ?? null,

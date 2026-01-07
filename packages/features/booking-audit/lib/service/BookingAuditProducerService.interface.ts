@@ -200,4 +200,16 @@ export interface BookingAuditProducerService {
     operationId?: string | null;
     context?: BookingAuditContext;
   }): Promise<void>;
+
+  queueBulkRejectedAudit(params: {
+    bookings: Array<{
+      bookingUid: string;
+      data: z.infer<typeof RejectedAuditActionService.latestFieldsSchema>;
+    }>;
+    actor: Actor;
+    organizationId: number | null;
+    source: ActionSource;
+    operationId?: string | null;
+    context?: BookingAuditContext;
+  }): Promise<void>;
 }

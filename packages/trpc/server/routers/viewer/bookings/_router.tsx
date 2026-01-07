@@ -13,7 +13,7 @@ import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
 import { ZReportBookingInputSchema } from "./reportBooking.schema";
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import { bookingsProcedure } from "./util";
-
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 export const bookingsRouter = router({
   get: authedProcedure.input(ZGetInputSchema).query(async ({ input, ctx }) => {
     const { getHandler } = await import("./get.handler");
@@ -58,6 +58,7 @@ export const bookingsRouter = router({
       ctx,
       input: {
         ...input,
+        actor: makeUserActor(ctx.user.uuid),
         actionSource: "WEBAPP",
       }
     });
