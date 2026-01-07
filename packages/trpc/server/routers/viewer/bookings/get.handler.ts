@@ -611,9 +611,10 @@ export async function getBookings({
               ])
               .whereRef("Booking.userId", "=", "users.id")
           ).as("user"),
-          jsonArrayFrom(
-            eb.selectFrom("Attendee").selectAll().whereRef("Attendee.bookingId", "=", "Booking.id")
-          ).as("attendees"),
+          // N+1 query: attendees will be fetched in a loop below instead of batched here
+          // jsonArrayFrom(
+          //   eb.selectFrom("Attendee").selectAll().whereRef("Attendee.bookingId", "=", "Booking.id")
+          // ).as("attendees"),
           jsonArrayFrom(
             eb
               .selectFrom("BookingSeat")
@@ -652,6 +653,17 @@ export async function getBookings({
         .orderBy(orderBy.key, orderBy.order)
         .execute()
     : [];
+
+  // N+1 Query Pattern: Fetch attendees individually for each booking instead of batched
+  // This is intentionally inefficient - each booking triggers a separate database query
+  type AttendeeType = Awaited<ReturnType<typeof prisma.attendee.findMany>>;
+  const bookingsWithAttendees: Array<(typeof plainBookings)[number] & { attendees: AttendeeType }> = [];
+  for (const booking of plainBookings) {
+    const attendees = await prisma.attendee.findMany({
+      where: { bookingId: booking.id },
+    });
+    bookingsWithAttendees.push({ ...booking, attendees });
+  }
 
   const [
     recurringInfoBasic,
@@ -723,7 +735,7 @@ export async function getBookings({
   log.info(
     `fetching all bookings for ${user.id}`,
     safeStringify({
-      ids: plainBookings.map((booking) => booking.id),
+      ids: bookingsWithAttendees.map((booking) => booking.id),
       filters,
       orderBy,
       take,
@@ -731,7 +743,7 @@ export async function getBookings({
     })
   );
 
-  const checkIfUserIsHost = (userId: number, booking: (typeof plainBookings)[number]) => {
+  const checkIfUserIsHost = (userId: number, booking: (typeof bookingsWithAttendees)[number]) => {
     if (booking.user?.id === userId) {
       return true;
     }
@@ -748,14 +760,15 @@ export async function getBookings({
   };
 
   const bookings = await Promise.all(
-    plainBookings.map(async (booking) => {
+    bookingsWithAttendees.map(async (booking) => {
       // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
+      let filteredAttendees = booking.attendees;
       if (
         booking.seatsReferences.length &&
         !booking.eventType?.seatsShowAttendees &&
         !checkIfUserIsHost(user.id, booking)
       ) {
-        booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
+        filteredAttendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 
       let rescheduler = null;
@@ -775,6 +788,7 @@ export async function getBookings({
 
       return {
         ...booking,
+        attendees: filteredAttendees,
         rescheduler,
         eventType: {
           ...booking.eventType,
