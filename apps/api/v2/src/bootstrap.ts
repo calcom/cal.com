@@ -7,7 +7,7 @@ import type { ValidationError } from "@nestjs/common";
 import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 // FIX: Changed to * as to avoid "no call signatures" error
-import * as cookieParser from "cookie-parser";
+import cookieParser from "cookie-parser";
 import { Request } from "express";
 import helmet from "helmet";
 
