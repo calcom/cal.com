@@ -14,7 +14,7 @@ import {
   BookingLocations,
   getZoomAppCredential,
   getDefaultBookingFields,
-} from "../../../../../../../tests/libs/bookingScenario/bookingScenario";
+} from "@calcom/testing/libs/bookingScenario/bookingScenario";
 import {
   // expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
@@ -25,9 +25,9 @@ import {
   expectSMSToBeTriggered,
   expectBookingRequestedEmails,
   expectBookingRequestedWebhookToHaveBeenFired,
-} from "../../../../../../../tests/libs/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "../../../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "../../../../../../../tests/libs/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/libs/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/libs/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/libs/bookingScenario/setupAndTeardown";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -41,7 +41,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestSMS } from "@calcom/lib/testSMS";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "../../../../../../../tests/libs/fixtures/fixtures";
+import { test } from "@calcom/testing/libs/fixtures/fixtures";
 
 import { getNewBookingHandler } from "../getNewBookingHandler";
 

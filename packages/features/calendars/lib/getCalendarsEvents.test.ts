@@ -1,4 +1,4 @@
-import "../../../../tests/libs/__mocks__/prisma";
+import "@calcom/testing/libs/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 

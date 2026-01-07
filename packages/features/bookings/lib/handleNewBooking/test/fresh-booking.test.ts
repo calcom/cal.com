@@ -7,7 +7,7 @@
  *
  * They don't intend to test what the apps logic should do, but rather test if the apps are called with the correct data. For testing that, once should write tests within each app.
  */
-import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "@calcom/testing/libs/__mocks__/prisma";
 
 import {
   createBookingScenario,
@@ -30,7 +30,7 @@ import {
   mockCalendarToCrashOnCreateEvent,
   mockVideoAppToCrashOnCreateMeeting,
   BookingLocations,
-} from "../../../../../../tests/libs/bookingScenario/bookingScenario";
+} from "@calcom/testing/libs/bookingScenario/bookingScenario";
 import {
   expectWorkflowToBeTriggered,
   expectWorkflowToBeNotTriggered,
@@ -45,10 +45,10 @@ import {
   expectSuccessfulCalendarEventCreationInCalendar,
   expectICalUIDAsString,
   expectBookingTrackingToBeInDatabase,
-} from "../../../../../../tests/libs/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "../../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "../../../../../../tests/libs/bookingScenario/setupAndTeardown";
-import { testWithAndWithoutOrg } from "../../../../../../tests/libs/bookingScenario/test";
+} from "@calcom/testing/libs/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/libs/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/libs/bookingScenario/setupAndTeardown";
+import { testWithAndWithoutOrg } from "@calcom/testing/libs/bookingScenario/test";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -61,7 +61,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { CreationSource, WatchlistType } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "../../../../../../tests/libs/fixtures/fixtures";
+import { test } from "@calcom/testing/libs/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 

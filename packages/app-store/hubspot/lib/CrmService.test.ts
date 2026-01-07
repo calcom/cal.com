@@ -2,7 +2,7 @@ import type { TFunction } from "i18next";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import { setupAndTeardown } from "../../../../tests/libs/bookingScenario/setupAndTeardown";
+import { setupAndTeardown } from "@calcom/testing/libs/bookingScenario/setupAndTeardown";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { z } from "zod";
 

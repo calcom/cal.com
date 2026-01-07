@@ -1,4 +1,4 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/libs/__mocks__/prisma";
 
 import {
   createBookingScenario,
@@ -9,7 +9,7 @@ import {
   mockSuccessfulVideoMeetingCreation,
   mockCalendarToHaveNoBusySlots,
   mockNoTranslations,
-} from "../../../../../tests/libs/bookingScenario/bookingScenario";
+} from "@calcom/testing/libs/bookingScenario/bookingScenario";
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 

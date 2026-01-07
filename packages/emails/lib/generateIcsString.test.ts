@@ -4,7 +4,7 @@ import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import { buildCalendarEvent, buildPerson } from "@calcom/lib/test/builder";
 import { buildVideoCallData } from "@calcom/lib/test/builder";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import { test } from "../../../tests/libs/fixtures/fixtures";
+import { test } from "@calcom/testing/libs/fixtures/fixtures";
 
 import generateIcsString from "./generateIcsString";
 
