@@ -1,32 +1,31 @@
 import type { Mock } from "vitest";
 import { vi } from "vitest";
 
-// Hoisted imports for proper mock initialization
-const {
+import {
   prismaMock,
   resetPrismaMock,
-  createPrismaMock,
-} = (await vi.hoisted(
-  async () => await import("./mocks/prisma.mocks")
-)) as Awaited<typeof import("./mocks/prisma.mocks")>;
-
-const { createNextServerMock } = (await vi.hoisted(
-  async () => await import("./mocks/next.mocks")
-)) as Awaited<typeof import("./mocks/next.mocks")>;
-
-const {
+} from "@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks";
+import {
   createMockTeam,
   createMockFoundToken,
-} = (await vi.hoisted(
-  async () => await import("./mocks/signup.factories")
-)) as Awaited<typeof import("./mocks/signup.factories")>;
+} from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
+import type { SignupBody } from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
 
 const mockFindTokenByToken: Mock = vi.fn();
 const mockValidateAndGetCorrectedUsernameForTeam: Mock = vi.fn();
 
-vi.mock("next/server", createNextServerMock);
-vi.mock("@calcom/prisma", createPrismaMock);
-vi.mock("@calcom/prisma/client", createPrismaMock);
+vi.mock("next/server", async () => {
+  const { createNextServerMock } = await import("@calcom/features/auth/signup/handlers/__tests__/mocks/next.mocks");
+  return createNextServerMock();
+});
+vi.mock("@calcom/prisma", async () => {
+  const { createPrismaMock } = await import("@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks");
+  return createPrismaMock();
+});
+vi.mock("@calcom/prisma/client", async () => {
+  const { createPrismaMock } = await import("@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks");
+  return createPrismaMock();
+});
 vi.mock("@calcom/lib/logger", () => ({
   default: { getSubLogger: () => ({ warn: vi.fn(), error: vi.fn(), debug: vi.fn(), info: vi.fn() }) },
 }));
@@ -39,20 +38,20 @@ vi.mock("@calcom/features/auth/signup/utils/createOrUpdateMemberships", () => ({
 vi.mock("@calcom/features/auth/signup/utils/validateUsername", () => ({
   validateAndGetCorrectedUsernameAndEmail: vi.fn().mockResolvedValue({ isValid: true, username: "testuser" }),
 }));
-vi.mock("../../utils/organization", () => ({ joinAnyChildTeamOnOrgInvite: vi.fn() }));
-vi.mock("../../utils/prefillAvatar", () => ({ prefillAvatar: vi.fn() }));
-vi.mock("../../utils/token", () => ({
+vi.mock("@calcom/features/auth/signup/utils/organization", () => ({ joinAnyChildTeamOnOrgInvite: vi.fn() }));
+vi.mock("@calcom/features/auth/signup/utils/prefillAvatar", () => ({ prefillAvatar: vi.fn() }));
+vi.mock("@calcom/features/auth/signup/utils/token", () => ({
   findTokenByToken: (...args: unknown[]) => mockFindTokenByToken(...args),
   throwIfTokenExpired: vi.fn(),
   validateAndGetCorrectedUsernameForTeam: (...args: unknown[]) => mockValidateAndGetCorrectedUsernameForTeam(...args),
 }));
 
 // Import after mocks
-import handler from "../selfHostedHandler";
-import { runP2002TestSuite } from "./p2002.test-suite";
+import handler from "./selfHostedHandler";
+import { runP2002TestSuite } from "@calcom/features/auth/signup/handlers/__tests__/p2002.test-suite";
 
-function callHandler(body: Record<string, string | undefined>): ReturnType<typeof handler> {
-  return handler(body as Record<string, string>);
+function callHandler(body: SignupBody): ReturnType<typeof handler> {
+  return handler(body as unknown as Record<string, string>);
 }
 
 runP2002TestSuite("selfHostedHandler", callHandler, () => {
