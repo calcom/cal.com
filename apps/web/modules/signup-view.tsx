@@ -16,6 +16,7 @@ import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
+import { fetchSignup, isUserAlreadyExistsError, hasCheckoutSession } from "@calcom/features/auth/signup/lib/fetchSignup";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -222,23 +223,6 @@ export default function Signup({
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
   const displayBackButton = token ? false : displayEmailForm;
 
-  const handleErrorsAndStripe = async (resp: Response) => {
-    if (!resp.ok) {
-      const err = await resp.json();
-      if (err.checkoutSessionId) {
-        const stripe = await getStripe();
-        if (stripe) {
-          const { error } = await stripe.redirectToCheckout({
-            sessionId: err.checkoutSessionId,
-          });
-          console.warn(error.message);
-        }
-      } else {
-        throw new Error(err.message);
-      }
-    }
-  };
-
   const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
 
   const signUp: SubmitHandler<FormValues> = async (_data) => {
@@ -252,77 +236,90 @@ export default function Signup({
       username_taken: usernameTaken,
     });
 
-    await fetch("/api/auth/signup", {
-      body: JSON.stringify({
-        ...data,
-        language: i18n.language,
-        token,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-        "cf-access-token": cfToken ?? "invalid-token",
-      },
-      method: "POST",
-    })
-      .then(handleErrorsAndStripe)
-      .then(async () => {
-        if (process.env.NEXT_PUBLIC_GTM_ID)
-          pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
-
-        // telemetry.event(telemetryEventTypes.signup, collectPageParameters());
-
-        const gettingStartedPath = onboardingV3Enabled ? "onboarding/getting-started" : "getting-started";
-        const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : gettingStartedPath;
-        const gettingStartedWithPlatform = "settings/platform/new";
-
-        const constructCallBackIfUrlPresent = () => {
-          if (isOrgInviteByLink) {
-            return `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`;
-          }
-
-          return addOrUpdateQueryParam(`${WEBAPP_URL}/${searchParams.get("callbackUrl")}`, "from", "signup");
-        };
-
-        const constructCallBackIfUrlNotPresent = () => {
-          if (isPlatformUser) {
-            return `${WEBAPP_URL}/${gettingStartedWithPlatform}?from=signup`;
-          }
-
-          return `${WEBAPP_URL}/${verifyOrGettingStarted}?from=signup`;
-        };
-
-        const constructCallBackUrl = () => {
-          const callbackUrlSearchParams = searchParams?.get("callbackUrl");
-
-          return callbackUrlSearchParams
-            ? constructCallBackIfUrlPresent()
-            : constructCallBackIfUrlNotPresent();
-        };
-
-        const callBackUrl = constructCallBackUrl();
-
-        await signIn<"credentials">("credentials", {
+    try {
+      const result = await fetchSignup(
+        {
           ...data,
-          callbackUrl: callBackUrl,
-        });
-      })
-      .catch((err) => {
-        setTurnstileKey((k) => k + 1);
-        formMethods.setValue("cfToken", undefined);
+          language: i18n.language,
+          token,
+        },
+        cfToken
+      );
 
-        if (err.message === INVALID_CLOUDFLARE_TOKEN_ERROR) {
+      if (!result.ok) {
+        if (isUserAlreadyExistsError(result)) {
+          showToast(t("account_already_exists_please_login"), "warning");
+          const callbackUrl = token ? `/teams?token=${token}` : "/event-types";
+          setTimeout(() => {
+            router.push(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+          }, 3000);
           return;
         }
 
-        posthog.capture("signup_form_submit_error", {
-          has_token: !!token,
-          is_org_invite: isOrgInviteByLink,
-          org_slug: orgSlug,
-          is_premium_username: premiumUsername,
-          error_message: err.message,
-        });
-        formMethods.setError("apiError", { message: err.message });
+        if (hasCheckoutSession(result)) {
+          const stripe = await getStripe();
+          if (stripe) {
+            const { error } = await stripe.redirectToCheckout({
+              sessionId: result.error.checkoutSessionId,
+            });
+            if (error) console.warn(error.message);
+          }
+          return;
+        }
+
+        throw new Error(result.error.message);
+      }
+
+      if (process.env.NEXT_PUBLIC_GTM_ID) {
+        pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
+      }
+
+      const gettingStartedPath = onboardingV3Enabled ? "onboarding/getting-started" : "getting-started";
+      const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : gettingStartedPath;
+      const gettingStartedWithPlatform = "settings/platform/new";
+
+      const constructCallBackIfUrlPresent = () => {
+        if (isOrgInviteByLink) {
+          return `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`;
+        }
+        return addOrUpdateQueryParam(`${WEBAPP_URL}/${searchParams.get("callbackUrl")}`, "from", "signup");
+      };
+
+      const constructCallBackIfUrlNotPresent = () => {
+        if (isPlatformUser) {
+          return `${WEBAPP_URL}/${gettingStartedWithPlatform}?from=signup`;
+        }
+        return `${WEBAPP_URL}/${verifyOrGettingStarted}?from=signup`;
+      };
+
+      const constructCallBackUrl = () => {
+        const callbackUrlSearchParams = searchParams?.get("callbackUrl");
+        return callbackUrlSearchParams ? constructCallBackIfUrlPresent() : constructCallBackIfUrlNotPresent();
+      };
+
+      await signIn<"credentials">("credentials", {
+        ...data,
+        callbackUrl: constructCallBackUrl(),
       });
+    } catch (err) {
+      setTurnstileKey((k) => k + 1);
+      formMethods.setValue("cfToken", undefined);
+
+      const errorMessage = err instanceof Error ? err.message : t("unexpected_error_try_again");
+
+      if (errorMessage === INVALID_CLOUDFLARE_TOKEN_ERROR) {
+        return;
+      }
+
+      posthog.capture("signup_form_submit_error", {
+        has_token: !!token,
+        is_org_invite: isOrgInviteByLink,
+        org_slug: orgSlug,
+        is_premium_username: premiumUsername,
+        error_message: errorMessage,
+      });
+      formMethods.setError("apiError", { message: errorMessage });
+    }
   };
 
   return (
@@ -563,7 +560,7 @@ export default function Signup({
                         const username = formMethods.getValues("username");
                         if (!username) {
                           // should not be reached but needed to bypass type errors
-                          showToast("error", t("username_required"));
+                          showToast(t("username_required"), "error");
                           return;
                         }
 

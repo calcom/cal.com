@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Đã cập nhật vắng mặt của người tham dự",
     "type": "Loại phân công",
     "assignmentType_manual": "Phân công thủ công",
-    "assignmentType_roundRobin": "Phân công round robin"
+    "assignmentType_roundRobin": "Phân công round robin",
+    "actor_impersonated_by": "Người mạo danh",
+    "source": "Nguồn"
   },
   "error_loading_booking_logs": "Lỗi khi tải nhật ký đặt lịch",
   "no_audit_logs_found": "Không tìm thấy nhật ký kiểm tra nào",

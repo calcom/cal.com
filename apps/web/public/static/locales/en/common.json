@@ -3189,6 +3189,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Rerouted booking successfully. Redirecting to booking page",
   "on_booking_write_to_event_object": "On booking, write to event object",
   "field_name": "Field name",
+  "field_name_cannot_be_empty": "Field name cannot be empty",
+  "field_already_exists": "Field already exists",
   "add_new_field": "Add new field",
   "you_dont_have_access_to_reroute_this_booking": "You don't have access to reroute this booking",
   "form_response_not_found": "Form response not found",
@@ -4171,7 +4173,9 @@
     "seat_rescheduled": "Seat Rescheduled {{oldDate}} -> <0>{{newDate}}</0>",
     "assignment_type": "Assignment",
     "assignment_type_manual": "Manual",
-    "assignment_type_round_robin": "Round Robin"
+    "assignment_type_round_robin": "Round Robin",
+    "actor_impersonated_by": "Impersonator",
+    "source": "Source"
   },
   "error_loading_booking_logs": "Error loading booking logs",
   "no_audit_logs_found": "No audit logs found",
@@ -4188,5 +4192,6 @@
   "audit_logs_owner_not_in_organization": "The booking owner is not a member of your organization.",
   "audit_logs_permission_denied": "You do not have permission to view audit logs for this booking.",
   "audit_logs_permission_check_error": "An error occurred while checking permissions.",
+  "account_already_exists_please_login": "An account with this email already exists. Please log in to accept the invitation.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
