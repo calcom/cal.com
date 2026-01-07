@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Inasistencia del asistente actualizada",
     "type": "Tipo de asignación",
     "assignmentType_manual": "Asignación manual",
-    "assignmentType_roundRobin": "Asignación por turnos"
+    "assignmentType_roundRobin": "Asignación por turnos",
+    "actor_impersonated_by": "Suplantador",
+    "source": "Origen"
   },
   "error_loading_booking_logs": "Error al cargar los registros de la reserva",
   "no_audit_logs_found": "No se encontraron registros de auditoría",

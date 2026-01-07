@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Absence du participant mise à jour",
     "type": "Type d'affectation",
     "assignmentType_manual": "Affectation manuelle",
-    "assignmentType_roundRobin": "Affectation round-robin"
+    "assignmentType_roundRobin": "Affectation round-robin",
+    "actor_impersonated_by": "Usurpateur",
+    "source": "Source"
   },
   "error_loading_booking_logs": "Erreur lors du chargement des journaux de réservation",
   "no_audit_logs_found": "Aucun journal d'audit trouvé",

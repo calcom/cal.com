@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Обновлено отсутствие участника",
     "type": "Тип назначения",
     "assignmentType_manual": "Ручное назначение",
-    "assignmentType_roundRobin": "Назначение по кругу"
+    "assignmentType_roundRobin": "Назначение по кругу",
+    "actor_impersonated_by": "Имя пользователя, вошедшего от вашего имени",
+    "source": "Источник"
   },
   "error_loading_booking_logs": "Ошибка загрузки журналов бронирования",
   "no_audit_logs_found": "Журналы аудита не найдены",
