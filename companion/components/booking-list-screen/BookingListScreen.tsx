@@ -1,11 +1,32 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { Activity, useMemo, useState } from "react";
-import { Alert, FlatList, RefreshControl, ScrollView, Text, View } from "react-native";
+import {
+  Alert,
+  FlatList,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { BookingListItem } from "@/components/booking-list-item/BookingListItem";
+import { RecurringBookingListItem } from "@/components/booking-list-item/RecurringBookingListItem";
 import { BookingModals } from "@/components/booking-modals/BookingModals";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Text as UIText } from "@/components/ui/text";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   type BookingFilter,
@@ -17,11 +38,12 @@ import {
   useRescheduleBooking,
 } from "@/hooks";
 import type { Booking, EventType } from "@/services/calcom";
-import type { ListItem } from "@/utils/bookings-utils";
+import type { ListItem, RecurringBookingGroup } from "@/utils/bookings-utils";
 import {
   filterByEventType,
   getEmptyStateContent,
   groupBookingsByMonth,
+  groupRecurringBookings,
   searchBookings,
 } from "@/utils/bookings-utils";
 import { offlineAwareRefresh } from "@/utils/network";
@@ -100,8 +122,12 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     showRejectModal,
     rejectReason,
     setRejectReason,
+    showCancelModal,
+    cancelReason,
+    setCancelReason,
+    handleSubmitCancel,
+    handleCloseCancelModal,
     selectedBooking,
-    setSelectedBooking,
     handleBookingPress,
     handleCancelBooking,
     handleInlineConfirm,
@@ -123,7 +149,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToReschedule = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/reschedule",
+        pathname: "/reschedule",
         params: { uid: booking.uid },
       });
     },
@@ -134,7 +160,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToEditLocation = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/edit-location",
+        pathname: "/edit-location",
         params: { uid: booking.uid },
       });
     },
@@ -145,7 +171,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToAddGuests = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/add-guests",
+        pathname: "/add-guests",
         params: { uid: booking.uid },
       });
     },
@@ -156,7 +182,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToMarkNoShow = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/mark-no-show",
+        pathname: "/mark-no-show",
         params: { uid: booking.uid },
       });
     },
@@ -167,7 +193,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToViewRecordings = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/view-recordings",
+        pathname: "/view-recordings",
         params: { uid: booking.uid },
       });
     },
@@ -178,7 +204,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const handleNavigateToMeetingSessionDetails = React.useCallback(
     (booking: Booking) => {
       router.push({
-        pathname: "/(tabs)/(bookings)/meeting-session-details",
+        pathname: "/meeting-session-details",
         params: { uid: booking.uid },
       });
     },
@@ -238,7 +264,302 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     return filtered;
   }, [bookings, searchQuery, selectedEventTypeId]);
 
-  const [showBookingActionsModal, setShowBookingActionsModal] = React.useState(false);
+  // Generate list items based on filter type
+  const listItems = useMemo<ListItem[]>(() => {
+    if (activeFilter === "recurring") {
+      // For recurring filter, group bookings by recurringBookingUid
+      const groups = groupRecurringBookings(filteredBookings);
+      return groups.map((group) => ({
+        type: "recurringGroup" as const,
+        group,
+        key: `recurring-${group.recurringBookingUid}`,
+      }));
+    }
+
+    if (activeFilter === "unconfirmed") {
+      // For unconfirmed filter, group recurring bookings but keep non-recurring separate
+      const recurringBookings: Booking[] = [];
+      const nonRecurringBookings: Booking[] = [];
+
+      filteredBookings.forEach((booking) => {
+        if (booking.recurringBookingUid) {
+          recurringBookings.push(booking);
+        } else {
+          nonRecurringBookings.push(booking);
+        }
+      });
+
+      // Group recurring bookings
+      const recurringGroups = groupRecurringBookings(recurringBookings);
+      const recurringItems: ListItem[] = recurringGroups.map((group) => ({
+        type: "recurringGroup" as const,
+        group,
+        key: `recurring-${group.recurringBookingUid}`,
+      }));
+
+      // Keep non-recurring bookings with month grouping
+      const nonRecurringItems = groupBookingsByMonth(nonRecurringBookings);
+
+      // Combine: recurring groups first, then non-recurring
+      return [...recurringItems, ...nonRecurringItems];
+    }
+
+    // For other filters, use month grouping
+    return groupBookingsByMonth(filteredBookings);
+  }, [filteredBookings, activeFilter]);
+
+  // State for bulk action loading
+  const [isCancellingAll, setIsCancellingAll] = React.useState(false);
+  const [isConfirmingAll, setIsConfirmingAll] = React.useState(false);
+  const [isDecliningAll, setIsDecliningAll] = React.useState(false);
+
+  // Android dialog state for Cancel All
+  const [showCancelAllDialog, setShowCancelAllDialog] = React.useState(false);
+  const [cancelAllGroup, setCancelAllGroup] = React.useState<RecurringBookingGroup | null>(null);
+  const [cancelAllReason, setCancelAllReason] = React.useState("");
+
+  // Android dialog state for Reject All
+  const [showRejectAllDialog, setShowRejectAllDialog] = React.useState(false);
+  const [rejectAllGroup, setRejectAllGroup] = React.useState<RecurringBookingGroup | null>(null);
+  const [rejectAllReason, setRejectAllReason] = React.useState("");
+
+  // Handle recurring group press - navigate to first upcoming booking
+  const handleRecurringGroupPress = React.useCallback(
+    (group: RecurringBookingGroup) => {
+      handleBookingPress(group.firstUpcoming);
+    },
+    [handleBookingPress]
+  );
+
+  // Cancel all remaining bookings in a recurring series
+  const handleCancelAllRemaining = React.useCallback(
+    async (group: RecurringBookingGroup) => {
+      // For Android, open dialog with reason input
+      if (Platform.OS === "android") {
+        setCancelAllGroup(group);
+        setCancelAllReason("");
+        setShowCancelAllDialog(true);
+        return;
+      }
+
+      // For iOS, use Alert.prompt
+      Alert.alert(
+        "Cancel All Remaining",
+        `Are you sure you want to cancel all ${group.remainingCount} remaining bookings in this series?`,
+        [
+          { text: "No", style: "cancel" },
+          {
+            text: "Yes, Cancel All",
+            style: "destructive",
+            onPress: () => {
+              Alert.prompt(
+                "Cancellation Reason",
+                "Please provide a reason for cancelling these bookings:",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Cancel All",
+                    style: "destructive",
+                    onPress: (reason?: string) => {
+                      const cancellationReason = reason?.trim() || "Cancelled all remaining";
+                      setIsCancellingAll(true);
+                      cancelBookingMutation(
+                        {
+                          uid: group.recurringBookingUid,
+                          reason: cancellationReason,
+                        },
+                        {
+                          onSuccess: () => {
+                            Alert.alert("Success", "All remaining bookings have been cancelled.");
+                            setIsCancellingAll(false);
+                          },
+                          onError: () => {
+                            Alert.alert("Error", "Failed to cancel bookings. Please try again.");
+                            setIsCancellingAll(false);
+                          },
+                        }
+                      );
+                    },
+                  },
+                ],
+                "plain-text",
+                "",
+                "default"
+              );
+            },
+          },
+        ]
+      );
+    },
+    [cancelBookingMutation]
+  );
+
+  // Confirm all unconfirmed bookings in a recurring series
+  const handleConfirmAll = React.useCallback(
+    async (group: RecurringBookingGroup) => {
+      const unconfirmedBookings = group.bookings.filter(
+        (b) =>
+          b.status?.toLowerCase() === "pending" ||
+          b.status?.toLowerCase() === "requires_confirmation" ||
+          b.requiresConfirmation
+      );
+
+      if (unconfirmedBookings.length === 0) {
+        Alert.alert("Info", "No unconfirmed bookings to confirm.");
+        return;
+      }
+
+      Alert.alert(
+        "Confirm All",
+        `Are you sure you want to confirm ${unconfirmedBookings.length} unconfirmed bookings?`,
+        [
+          { text: "No", style: "cancel" },
+          {
+            text: "Yes, Confirm All",
+            onPress: async () => {
+              setIsConfirmingAll(true);
+              let successCount = 0;
+              let errorCount = 0;
+
+              for (const booking of unconfirmedBookings) {
+                try {
+                  const success = await new Promise<boolean>((resolve, _reject) => {
+                    confirmBookingMutation(
+                      { uid: booking.uid },
+                      {
+                        onSuccess: () => {
+                          resolve(true);
+                        },
+                        onError: () => {
+                          resolve(false); // Continue even on error
+                        },
+                      }
+                    );
+                  });
+                  if (success) {
+                    successCount++;
+                  } else {
+                    errorCount++;
+                  }
+                } catch {
+                  errorCount++;
+                }
+              }
+
+              setIsConfirmingAll(false);
+              if (errorCount > 0) {
+                Alert.alert(
+                  "Partial Success",
+                  `Confirmed ${successCount} bookings. Failed to confirm ${errorCount}.`
+                );
+              } else {
+                Alert.alert("Success", `All ${successCount} bookings have been confirmed.`);
+              }
+            },
+          },
+        ]
+      );
+    },
+    [confirmBookingMutation]
+  );
+
+  // Reject all unconfirmed bookings in a recurring series
+  const handleRejectAll = React.useCallback(
+    async (group: RecurringBookingGroup) => {
+      const unconfirmedBookings = group.bookings.filter(
+        (b) =>
+          b.status?.toLowerCase() === "pending" ||
+          b.status?.toLowerCase() === "requires_confirmation" ||
+          b.requiresConfirmation
+      );
+
+      if (unconfirmedBookings.length === 0) {
+        Alert.alert("Info", "No unconfirmed bookings to reject.");
+        return;
+      }
+
+      // For Android, open dialog with reason input
+      if (Platform.OS === "android") {
+        setRejectAllGroup(group);
+        setRejectAllReason("");
+        setShowRejectAllDialog(true);
+        return;
+      }
+
+      // For iOS, use Alert.prompt
+      Alert.alert(
+        "Reject All",
+        `Are you sure you want to reject ${unconfirmedBookings.length} unconfirmed bookings?`,
+        [
+          { text: "No", style: "cancel" },
+          {
+            text: "Yes, Reject All",
+            style: "destructive",
+            onPress: () => {
+              Alert.prompt(
+                "Rejection Reason",
+                "Optionally provide a reason for rejecting (press OK to skip):",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "OK",
+                    onPress: async (reason?: string) => {
+                      setIsDecliningAll(true);
+                      let successCount = 0;
+                      let errorCount = 0;
+
+                      for (const booking of unconfirmedBookings) {
+                        try {
+                          const success = await new Promise<boolean>((resolve, _reject) => {
+                            declineBookingMutation(
+                              {
+                                uid: booking.uid,
+                                reason: reason || undefined,
+                              },
+                              {
+                                onSuccess: () => {
+                                  resolve(true);
+                                },
+                                onError: () => {
+                                  resolve(false);
+                                },
+                              }
+                            );
+                          });
+
+                          if (success) {
+                            successCount++;
+                          } else {
+                            errorCount++;
+                          }
+                        } catch {
+                          errorCount++;
+                        }
+                      }
+
+                      setIsDecliningAll(false);
+                      if (errorCount > 0) {
+                        Alert.alert(
+                          "Partial Success",
+                          `Rejected ${successCount} bookings. Failed to reject ${errorCount}.`
+                        );
+                      } else {
+                        Alert.alert("Success", `All ${successCount} bookings have been rejected.`);
+                      }
+                    },
+                  },
+                ],
+                "plain-text",
+                "",
+                "default"
+              );
+            },
+          },
+        ]
+      );
+    },
+    [declineBookingMutation]
+  );
 
   const renderBookingItem = ({ item }: { item: Booking }) => {
     return (
@@ -248,17 +569,8 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         isConfirming={isConfirming}
         isDeclining={isDeclining}
         onPress={handleBookingPress}
-        onLongPress={(booking) => {
-          setSelectedBooking(booking);
-          setShowBookingActionsModal(true);
-        }}
         onConfirm={handleInlineConfirm}
         onReject={handleOpenRejectModal}
-        onActionsPress={(booking) => {
-          setSelectedBooking(booking);
-          setShowBookingActionsModal(true);
-        }}
-        // iOS context menu action handlers - now use screen navigation
         onReschedule={handleNavigateToReschedule}
         onEditLocation={handleNavigateToEditLocation}
         onAddGuests={handleNavigateToAddGuests}
@@ -279,6 +591,31 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         <View className="border-b border-[#E5E5EA] bg-[#f1f1f1] px-2 py-3 md:px-4">
           <Text className="text-base font-bold text-[#333]">{item.monthYear}</Text>
         </View>
+      );
+    }
+    if (item.type === "recurringGroup") {
+      return (
+        <RecurringBookingListItem
+          group={item.group}
+          userEmail={userInfo?.email}
+          isConfirmingAll={isConfirmingAll}
+          isDecliningAll={isDecliningAll}
+          isCancellingAll={isCancellingAll}
+          onPress={handleRecurringGroupPress}
+          onConfirmAll={handleConfirmAll}
+          onRejectAll={handleRejectAll}
+          onCancelAllRemaining={handleCancelAllRemaining}
+          onReschedule={handleNavigateToReschedule}
+          onEditLocation={handleNavigateToEditLocation}
+          onAddGuests={handleNavigateToAddGuests}
+          onViewRecordings={handleNavigateToViewRecordings}
+          onMeetingSessionDetails={handleNavigateToMeetingSessionDetails}
+          onMarkNoShow={handleNavigateToMarkNoShow}
+          onReportBooking={() => {
+            Alert.alert("Report Booking", "Report booking functionality is not yet available");
+          }}
+          onCancelBooking={handleCancelBooking}
+        />
       );
     }
     return renderBookingItem({ item: item.booking });
@@ -372,7 +709,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
       <Activity mode={showList ? "visible" : "hidden"}>
         <Activity mode={iosStyle ? "visible" : "hidden"}>
           <FlatList
-            data={groupBookingsByMonth(filteredBookings)}
+            data={listItems}
             keyExtractor={(item) => item.key}
             renderItem={renderListItem}
             contentContainerStyle={{ paddingBottom: 90 }}
@@ -389,7 +726,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
           <View className="flex-1 px-2 pt-4 md:px-4">
             <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
               <FlatList
-                data={groupBookingsByMonth(filteredBookings)}
+                data={listItems}
                 keyExtractor={(item) => item.key}
                 renderItem={renderListItem}
                 contentContainerStyle={{ paddingBottom: 90 }}
@@ -423,47 +760,229 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         selectedEventTypeId={selectedEventTypeId}
         onFilterClose={() => setShowFilterModal?.(false)}
         onEventTypeSelect={onEventTypeChange}
-        showBookingActionsModal={showBookingActionsModal}
+        showBookingActionsModal={false}
         selectedBooking={selectedBooking}
-        onActionsClose={() => setShowBookingActionsModal(false)}
-        onReschedule={() => {
-          // Navigate to reschedule screen instead of opening modal
-          if (selectedBooking) {
-            setShowBookingActionsModal(false);
-            handleNavigateToReschedule(selectedBooking);
-          }
-        }}
-        onCancel={() => {
-          if (selectedBooking) handleCancelBooking(selectedBooking);
-        }}
-        onEditLocation={(booking) => {
-          // Navigate to edit location screen instead of opening modal
-          setShowBookingActionsModal(false);
-          handleNavigateToEditLocation(booking);
-        }}
-        onAddGuests={(booking) => {
-          // Navigate to add guests screen instead of opening modal
-          setShowBookingActionsModal(false);
-          handleNavigateToAddGuests(booking);
-        }}
-        onViewRecordings={(booking) => {
-          // Navigate to view recordings screen instead of opening modal
-          setShowBookingActionsModal(false);
-          handleNavigateToViewRecordings(booking);
-        }}
-        onMeetingSessionDetails={(booking) => {
-          // Navigate to meeting session details screen instead of opening modal
-          setShowBookingActionsModal(false);
-          handleNavigateToMeetingSessionDetails(booking);
-        }}
-        onMarkNoShow={(booking) => {
-          // Navigate to mark no show screen instead of opening modal
-          setShowBookingActionsModal(false);
-          handleNavigateToMarkNoShow(booking);
-        }}
+        onActionsClose={() => {}}
+        onReschedule={() => {}}
+        onCancel={() => {}}
+        onEditLocation={() => {}}
+        onAddGuests={() => {}}
+        onViewRecordings={() => {}}
+        onMeetingSessionDetails={() => {}}
+        onMarkNoShow={() => {}}
       />
 
-      {/* Action Modals */}
+      {/* Cancel Event AlertDialog for Android */}
+      {Platform.OS === "android" && (
+        <AlertDialog open={showCancelModal} onOpenChange={handleCloseCancelModal}>
+          <AlertDialogContent>
+            <AlertDialogHeader className="items-start">
+              <AlertDialogTitle>
+                <UIText className="text-left text-lg font-semibold">Cancel event</UIText>
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                <UIText className="text-left text-sm text-muted-foreground">
+                  Cancellation reason will be shared with guests
+                </UIText>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            {/* Reason Input */}
+            <View>
+              <UIText className="mb-2 text-sm font-medium">Reason for cancellation</UIText>
+              <TextInput
+                className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827]"
+                placeholder="Why are you cancelling?"
+                placeholderTextColor="#9CA3AF"
+                value={cancelReason}
+                onChangeText={setCancelReason}
+                autoFocus
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                style={{ minHeight: 80 }}
+              />
+            </View>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel onPress={handleCloseCancelModal}>
+                <UIText>Nevermind</UIText>
+              </AlertDialogCancel>
+              <AlertDialogAction onPress={handleSubmitCancel}>
+                <UIText className="text-white">Cancel event</UIText>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
+      {/* Android: Cancel All Remaining Dialog */}
+      {Platform.OS === "android" && showCancelAllDialog && cancelAllGroup && (
+        <AlertDialog open={showCancelAllDialog} onOpenChange={setShowCancelAllDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cancel All Remaining</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to cancel all {cancelAllGroup.remainingCount} remaining
+                bookings in this series?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <View className="py-4">
+              <Text className="mb-2 text-sm font-medium text-cal-text">
+                Cancellation Reason (required)
+              </Text>
+              <TextInput
+                className="rounded-lg border border-cal-border bg-cal-bg px-3 py-2 text-base text-cal-text"
+                placeholder="Please provide a reason for cancelling"
+                value={cancelAllReason}
+                onChangeText={setCancelAllReason}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                style={{ minHeight: 80 }}
+              />
+            </View>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onPress={() => {
+                  setShowCancelAllDialog(false);
+                  setCancelAllGroup(null);
+                  setCancelAllReason("");
+                }}
+              >
+                <UIText>Nevermind</UIText>
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onPress={() => {
+                  const reason = cancelAllReason.trim() || "Cancelled all remaining";
+                  setShowCancelAllDialog(false);
+                  setIsCancellingAll(true);
+
+                  cancelBookingMutation(
+                    { uid: cancelAllGroup.recurringBookingUid, reason },
+                    {
+                      onSuccess: () => {
+                        Alert.alert("Success", "All remaining bookings have been cancelled.");
+                        setIsCancellingAll(false);
+                        setCancelAllGroup(null);
+                        setCancelAllReason("");
+                      },
+                      onError: () => {
+                        Alert.alert("Error", "Failed to cancel bookings. Please try again.");
+                        setIsCancellingAll(false);
+                      },
+                    }
+                  );
+                }}
+              >
+                <UIText className="text-white">Cancel All</UIText>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
+      {/* Android: Reject All Dialog */}
+      {Platform.OS === "android" && showRejectAllDialog && rejectAllGroup && (
+        <AlertDialog open={showRejectAllDialog} onOpenChange={setShowRejectAllDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Reject All</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to reject all unconfirmed bookings in this series?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <View className="py-4">
+              <Text className="mb-2 text-sm font-medium text-cal-text">
+                Rejection Reason (optional)
+              </Text>
+              <TextInput
+                className="rounded-lg border border-cal-border bg-cal-bg px-3 py-2 text-base text-cal-text"
+                placeholder="Optionally provide a reason for rejecting"
+                value={rejectAllReason}
+                onChangeText={setRejectAllReason}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                style={{ minHeight: 80 }}
+              />
+            </View>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onPress={() => {
+                  setShowRejectAllDialog(false);
+                  setRejectAllGroup(null);
+                  setRejectAllReason("");
+                }}
+              >
+                <UIText>Nevermind</UIText>
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onPress={async () => {
+                  const reason = rejectAllReason.trim() || undefined;
+                  setShowRejectAllDialog(false);
+                  setIsDecliningAll(true);
+
+                  const unconfirmedBookings = rejectAllGroup.bookings.filter(
+                    (b) =>
+                      b.status?.toLowerCase() === "pending" ||
+                      b.status?.toLowerCase() === "requires_confirmation" ||
+                      b.requiresConfirmation
+                  );
+
+                  let successCount = 0;
+                  let errorCount = 0;
+
+                  for (const booking of unconfirmedBookings) {
+                    try {
+                      const success = await new Promise<boolean>((resolve, _reject) => {
+                        declineBookingMutation(
+                          { uid: booking.uid, reason },
+                          {
+                            onSuccess: () => {
+                              resolve(true);
+                            },
+                            onError: () => {
+                              resolve(false);
+                            },
+                          }
+                        );
+                      });
+
+                      if (success) {
+                        successCount++;
+                      } else {
+                        errorCount++;
+                      }
+                    } catch {
+                      errorCount++;
+                    }
+                  }
+
+                  setIsDecliningAll(false);
+                  setRejectAllGroup(null);
+                  setRejectAllReason("");
+
+                  if (errorCount > 0) {
+                    Alert.alert(
+                      "Partial Success",
+                      `Rejected ${successCount} bookings. Failed to reject ${errorCount}.`
+                    );
+                  } else {
+                    Alert.alert("Success", `All ${successCount} bookings have been rejected.`);
+                  }
+                }}
+              >
+                <UIText className="text-white">Reject All</UIText>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 };

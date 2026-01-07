@@ -4,7 +4,6 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
-  ActionSheetIOS,
   Alert,
   Platform,
   RefreshControl,
@@ -21,11 +20,23 @@ import { FullScreenModal } from "@/components/FullScreenModal";
 import { Header } from "@/components/Header";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Text as AlertDialogText } from "@/components/ui/text";
+import {
   useCreateEventType,
   useDeleteEventType,
   useDuplicateEventType,
   useEventTypes,
 } from "@/hooks";
+import { useEventTypeFilter } from "@/hooks/useEventTypeFilter";
 import { CalComAPIService, type EventType } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
@@ -42,6 +53,7 @@ export default function EventTypes() {
   // Modal state for creating new event type
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState("");
+  const [titleError, setTitleError] = useState("");
 
   // Use React Query hooks
   const {
@@ -82,18 +94,12 @@ export default function EventTypes() {
   // Toast state for web platform
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const [copiedEventTypeId, setCopiedEventTypeId] = useState<number | null>(null);
-
   // Function to show toast
-  const showToastMessage = (message: string, eventTypeId?: number) => {
+  const showToastMessage = (message: string) => {
     setToastMessage(message);
     setShowToast(true);
-    if (eventTypeId) {
-      setCopiedEventTypeId(eventTypeId);
-    }
     setTimeout(() => {
       setShowToast(false);
-      setCopiedEventTypeId(null);
     }, 2000);
   };
 
@@ -101,18 +107,34 @@ export default function EventTypes() {
   // Handle pull-to-refresh (offline-aware)
   const onRefresh = () => offlineAwareRefresh(refetch);
 
-  // Filter event types based on search query
+  // Event type filter and sort hook
+  const {
+    sortBy,
+    filters,
+    setSortBy,
+    toggleFilter,
+    resetFilters,
+    filteredAndSortedEventTypes,
+    activeFilterCount,
+  } = useEventTypeFilter();
+
+  // Filter event types based on search query and filter/sort options
   const filteredEventTypes = useMemo(() => {
-    if (searchQuery.trim() === "") {
-      return eventTypes;
+    // First apply filter/sort from the hook
+    let filtered = filteredAndSortedEventTypes(eventTypes);
+
+    // Then apply search query filter
+    if (searchQuery.trim() !== "") {
+      const searchLower = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (eventType) =>
+          eventType.title.toLowerCase().includes(searchLower) ||
+          eventType.description?.toLowerCase().includes(searchLower)
+      );
     }
-    const searchLower = searchQuery.toLowerCase();
-    return eventTypes.filter(
-      (eventType) =>
-        eventType.title.toLowerCase().includes(searchLower) ||
-        eventType.description?.toLowerCase().includes(searchLower)
-    );
-  }, [eventTypes, searchQuery]);
+
+    return filtered;
+  }, [eventTypes, searchQuery, filteredAndSortedEventTypes]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -122,59 +144,13 @@ export default function EventTypes() {
     handleEdit(eventType);
   };
 
-  const handleEventTypeLongPress = (eventType: EventType) => {
-    if (Platform.OS === "web") {
-      // Show custom modal for web platform
-      setSelectedEventType(eventType);
-      setShowActionModal(true);
-      return;
-    }
-
-    if (Platform.OS !== "ios") {
-      // Fallback for non-iOS platforms (Android)
-      Alert.alert(eventType.title, eventType.description || "", [
-        { text: "Cancel", style: "cancel" },
-        { text: "Edit", onPress: () => handleEdit(eventType) },
-        { text: "Duplicate", onPress: () => handleDuplicate(eventType) },
-        { text: "Delete", style: "destructive", onPress: () => handleDelete(eventType) },
-      ]);
-      return;
-    }
-
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: ["Cancel", "Edit", "Duplicate", "Delete"],
-        destructiveButtonIndex: 3, // Delete button
-        cancelButtonIndex: 0,
-        title: eventType.title,
-        message: eventType.description ? normalizeMarkdown(eventType.description) : undefined,
-      },
-      (buttonIndex) => {
-        switch (buttonIndex) {
-          case 1: // Edit
-            handleEdit(eventType);
-            break;
-          case 2: // Duplicate
-            handleDuplicate(eventType);
-            break;
-          case 3: // Delete
-            handleDelete(eventType);
-            break;
-          default:
-            // Cancel - do nothing
-            break;
-        }
-      }
-    );
-  };
-
   const handleCopyLink = async (eventType: EventType) => {
     try {
       const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
       await Clipboard.setStringAsync(link);
 
       if (Platform.OS === "web") {
-        showToastMessage("Link copied!", eventType.id);
+        showToastMessage("Link copied!");
       } else {
         Alert.alert("Link Copied", "Event type link copied!");
       }
@@ -216,6 +192,42 @@ export default function EventTypes() {
   };
 
   const handleDelete = (eventType: EventType) => {
+    // Use native Alert.alert on Android for simple yes/no confirmation
+    if (Platform.OS === "android") {
+      Alert.alert(
+        "Delete Event Type",
+        `This will permanently delete the "${eventType.title}" event type. This action cannot be undone.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => {
+              deleteEventTypeMutation(eventType.id, {
+                onSuccess: () => {
+                  Alert.alert("Success", "Event type deleted successfully");
+                },
+                onError: (error) => {
+                  const message = error instanceof Error ? error.message : String(error);
+                  console.error("Failed to delete event type", message);
+                  if (__DEV__) {
+                    const stack = error instanceof Error ? error.stack : undefined;
+                    console.debug("[EventTypes] deleteEventType failed", {
+                      message,
+                      stack,
+                    });
+                  }
+                  showErrorAlert("Error", "Failed to delete event type. Please try again.");
+                },
+              });
+            },
+          },
+        ]
+      );
+      return;
+    }
+
+    // Use custom modal for iOS and web
     setEventTypeToDelete(eventType);
     setShowDeleteModal(true);
   };
@@ -240,7 +252,10 @@ export default function EventTypes() {
         console.error("Failed to delete event type", message);
         if (__DEV__) {
           const stack = error instanceof Error ? error.stack : undefined;
-          console.debug("[EventTypes] deleteEventType failed", { message, stack });
+          console.debug("[EventTypes] deleteEventType failed", {
+            message,
+            stack,
+          });
         }
         if (Platform.OS === "web") {
           showToastMessage("Failed to delete event type");
@@ -285,7 +300,10 @@ export default function EventTypes() {
           console.error("Failed to duplicate event type", message);
           if (__DEV__) {
             const stack = error instanceof Error ? error.stack : undefined;
-            console.debug("[EventTypes] duplicateEventType failed", { message, stack });
+            console.debug("[EventTypes] duplicateEventType failed", {
+              message,
+              stack,
+            });
           }
           if (Platform.OS === "web") {
             showToastMessage("Failed to duplicate event type");
@@ -328,17 +346,30 @@ export default function EventTypes() {
   const handleCloseCreateModal = () => {
     setShowCreateModal(false);
     setNewEventTitle("");
+    setTitleError("");
   };
 
   const handleCreateEventType = () => {
+    // Clear previous error
+    setTitleError("");
+
     if (!newEventTitle.trim()) {
-      Alert.alert("Error", "Please enter a title for your event type");
+      // Use inline error for Android AlertDialog, Alert for others
+      if (Platform.OS === "android") {
+        setTitleError("Please enter a title for your event type");
+      } else {
+        Alert.alert("Error", "Please enter a title for your event type");
+      }
       return;
     }
 
     const autoSlug = slugify(newEventTitle.trim());
     if (!autoSlug) {
-      Alert.alert("Error", "Title must contain at least one letter or number");
+      if (Platform.OS === "android") {
+        setTitleError("Title must contain at least one letter or number");
+      } else {
+        Alert.alert("Error", "Title must contain at least one letter or number");
+      }
       return;
     }
 
@@ -371,7 +402,10 @@ export default function EventTypes() {
           console.error("Failed to create event type", message);
           if (__DEV__) {
             const stack = error instanceof Error ? error.stack : undefined;
-            console.debug("[EventTypes] createEventType failed", { message, stack });
+            console.debug("[EventTypes] createEventType failed", {
+              message,
+              stack,
+            });
           }
           showErrorAlert("Error", "Failed to create event type. Please try again.");
         },
@@ -468,7 +502,7 @@ export default function EventTypes() {
       <Stack.Header
         style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
         blurEffect={isLiquidGlassAvailable() ? undefined : "light"} // Only looks cool on iOS 18 and below
-        hidden={Platform.OS === "android"}
+        hidden={Platform.OS === "android" || Platform.OS === "web"}
       >
         <Stack.Header.Title large>Event Types</Stack.Header.Title>
         <Stack.Header.Right>
@@ -485,7 +519,16 @@ export default function EventTypes() {
       </Stack.Header>
       {(Platform.OS === "web" || Platform.OS === "android") && (
         <>
-          <Header />
+          <Header
+            eventTypeFilterConfig={{
+              sortBy,
+              filters,
+              onSortChange: setSortBy,
+              onToggleFilter: toggleFilter,
+              onResetFilters: resetFilters,
+              activeFilterCount,
+            }}
+          />
           <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
             <TextInput
               className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
@@ -515,96 +558,166 @@ export default function EventTypes() {
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >
-        <View className="px-2 pt-4 md:px-4">
-          <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
-            {filteredEventTypes.map((item, index) => (
-              <EventTypeListItem
-                key={item.id.toString()}
-                item={item}
-                index={index}
-                filteredEventTypes={filteredEventTypes}
-                copiedEventTypeId={copiedEventTypeId}
-                handleEventTypePress={handleEventTypePress}
-                handleEventTypeLongPress={handleEventTypeLongPress}
-                handleCopyLink={handleCopyLink}
-                handlePreview={handlePreview}
-                onEdit={handleEdit}
-                onDuplicate={handleDuplicate}
-                onDelete={handleDelete}
-              />
-            ))}
+        {filteredEventTypes.length === 0 && activeFilterCount > 0 ? (
+          <View className="flex-1 items-center justify-center bg-white p-5 pt-20">
+            <EmptyScreen
+              icon="filter-outline"
+              headline="No event types match your filters"
+              description="Try adjusting your filter criteria or clear all filters to see all event types"
+              buttonText="Clear Filters"
+              onButtonPress={resetFilters}
+              className="border-0"
+            />
           </View>
-        </View>
+        ) : (
+          <View className="px-2 pt-4 md:px-4">
+            <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+              {filteredEventTypes.map((item, index) => (
+                <EventTypeListItem
+                  key={item.id.toString()}
+                  item={item}
+                  index={index}
+                  filteredEventTypes={filteredEventTypes}
+                  handleEventTypePress={handleEventTypePress}
+                  handleCopyLink={handleCopyLink}
+                  handlePreview={handlePreview}
+                  onEdit={handleEdit}
+                  onDuplicate={handleDuplicate}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </View>
+          </View>
+        )}
       </ScrollView>
 
-      {/* Create Event Type Modal */}
-      <FullScreenModal
-        visible={showCreateModal}
-        animationType="fade"
-        onRequestClose={handleCloseCreateModal}
-      >
-        <TouchableOpacity
-          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
-          activeOpacity={1}
-          onPress={handleCloseCreateModal}
+      {/* Create Event Type Modal - Android uses AlertDialog */}
+      {Platform.OS === "android" ? (
+        <AlertDialog
+          open={showCreateModal}
+          onOpenChange={(open) => {
+            if (!open) handleCloseCreateModal();
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader className="items-start">
+              <AlertDialogTitle>
+                <AlertDialogText className="text-left text-lg font-semibold">
+                  Add a new event type
+                </AlertDialogText>
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                <AlertDialogText className="text-left text-sm text-muted-foreground">
+                  Set up event types to offer different types of meetings.
+                </AlertDialogText>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            {/* Title Input */}
+            <View>
+              <AlertDialogText className="mb-2 text-sm font-medium">Title</AlertDialogText>
+              <TextInput
+                className={`rounded-md border bg-white px-3 py-2.5 text-base text-[#111827] ${
+                  titleError ? "border-red-500" : "border-[#D1D5DB]"
+                }`}
+                placeholder="Quick Chat"
+                placeholderTextColor="#9CA3AF"
+                value={newEventTitle}
+                onChangeText={(text) => {
+                  setNewEventTitle(text);
+                  if (titleError) setTitleError("");
+                }}
+                autoFocus
+                autoCapitalize="words"
+                returnKeyType="done"
+                onSubmitEditing={handleCreateEventType}
+              />
+              {titleError ? (
+                <AlertDialogText className="mt-1 text-sm text-red-500">
+                  {titleError}
+                </AlertDialogText>
+              ) : null}
+            </View>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel onPress={handleCloseCreateModal} disabled={creating}>
+                <AlertDialogText>Cancel</AlertDialogText>
+              </AlertDialogCancel>
+              <AlertDialogAction onPress={handleCreateEventType} disabled={creating}>
+                <AlertDialogText className="text-white">Continue</AlertDialogText>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ) : (
+        <FullScreenModal
+          visible={showCreateModal}
+          animationType="fade"
+          onRequestClose={handleCloseCreateModal}
         >
           <TouchableOpacity
-            className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white"
+            className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
             activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-            style={shadows.xl()}
+            onPress={handleCloseCreateModal}
           >
-            {/* Header */}
-            <View className="px-8 pb-4 pt-6">
-              <Text className="mb-2 text-2xl font-semibold text-[#111827]">
-                Add a new event type
-              </Text>
-              <Text className="text-sm text-[#6B7280]">
-                Set up event types to offer different types of meetings.
-              </Text>
-            </View>
-
-            {/* Content */}
-            <View className="px-8 pb-6">
-              {/* Title */}
-              <View className="mb-4">
-                <Text className="mb-2 text-sm font-medium text-[#374151]">Title</Text>
-                <TextInput
-                  className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827] focus:border-black focus:ring-2 focus:ring-black"
-                  placeholder="Quick Chat"
-                  placeholderTextColor="#9CA3AF"
-                  value={newEventTitle}
-                  onChangeText={setNewEventTitle}
-                  autoFocus
-                  autoCapitalize="words"
-                  returnKeyType="done"
-                  onSubmitEditing={handleCreateEventType}
-                />
+            <TouchableOpacity
+              className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white"
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+              style={shadows.xl()}
+            >
+              {/* Header */}
+              <View className="px-8 pb-4 pt-6">
+                <Text className="mb-2 text-2xl font-semibold text-[#111827]">
+                  Add a new event type
+                </Text>
+                <Text className="text-sm text-[#6B7280]">
+                  Set up event types to offer different types of meetings.
+                </Text>
               </View>
-            </View>
 
-            {/* Footer */}
-            <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4">
-              <View className="flex-row justify-end gap-2 space-x-2">
-                <TouchableOpacity
-                  className="rounded-xl border border-[#D1D5DB] bg-white px-4 py-2"
-                  onPress={handleCloseCreateModal}
-                  disabled={creating}
-                >
-                  <Text className="text-base font-medium text-[#374151]">Close</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  className={`rounded-xl bg-[#111827] px-4 py-2 ${creating ? "opacity-60" : ""}`}
-                  onPress={handleCreateEventType}
-                  disabled={creating}
-                >
-                  <Text className="text-base font-medium text-white">Continue</Text>
-                </TouchableOpacity>
+              {/* Content */}
+              <View className="px-8 pb-6">
+                {/* Title */}
+                <View className="mb-4">
+                  <Text className="mb-2 text-sm font-medium text-[#374151]">Title</Text>
+                  <TextInput
+                    className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827] focus:border-black focus:ring-2 focus:ring-black"
+                    placeholder="Quick Chat"
+                    placeholderTextColor="#9CA3AF"
+                    value={newEventTitle}
+                    onChangeText={setNewEventTitle}
+                    autoFocus
+                    autoCapitalize="words"
+                    returnKeyType="done"
+                    onSubmitEditing={handleCreateEventType}
+                  />
+                </View>
               </View>
-            </View>
+
+              {/* Footer */}
+              <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4">
+                <View className="flex-row justify-end gap-2 space-x-2">
+                  <TouchableOpacity
+                    className="rounded-xl border border-[#D1D5DB] bg-white px-4 py-2"
+                    onPress={handleCloseCreateModal}
+                    disabled={creating}
+                  >
+                    <Text className="text-base font-medium text-[#374151]">Close</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className={`rounded-xl bg-[#111827] px-4 py-2 ${creating ? "opacity-60" : ""}`}
+                    onPress={handleCreateEventType}
+                    disabled={creating}
+                  >
+                    <Text className="text-base font-medium text-white">Continue</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableOpacity>
           </TouchableOpacity>
-        </TouchableOpacity>
-      </FullScreenModal>
+        </FullScreenModal>
+      )}
 
       {/* Action Modal for Web Platform */}
       <FullScreenModal
