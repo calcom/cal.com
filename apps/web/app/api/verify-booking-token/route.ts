@@ -96,6 +96,7 @@ async function handleBookingAction(
     return {
       user: {
         id: Number(userId),
+        uuid: user.uuid,
         username: "" /* Not used in this context */,
         role: UserPermissionRole.USER,
         /* Not used in this context */
@@ -118,7 +119,9 @@ async function handleBookingAction(
     const createCaller = createCallerFactory(bookingsRouter);
 
     // Use buildLegacyRequest to create a request object compatible with Pages Router
+
     const legacyReq = request ? buildLegacyRequest(await headers(), await cookies()) : ({} as any);
+
     const res = {} as any;
 
     const ctx = await createContext({ req: legacyReq, res }, sessionGetter);

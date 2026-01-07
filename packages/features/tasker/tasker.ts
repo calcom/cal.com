@@ -1,7 +1,8 @@
 import type { z } from "zod";
 
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
-import type { BookingAuditTaskBasePayload } from "@calcom/features/booking-audit/lib/types/bookingAuditTask";
+import type { BookingAuditTaskConsumerPayload } from "@calcom/features/booking-audit/lib/types/bookingAuditTask";
+
 export type TaskerTypes = "internal" | "redis";
 type TaskPayloads = {
   sendWebhook: string;
@@ -37,7 +38,10 @@ type TaskPayloads = {
     responses?: FORM_SUBMITTED_WEBHOOK_RESPONSES | null;
     routedEventTypeId?: number | null;
   };
-  bookingAudit: BookingAuditTaskBasePayload;
+  bookingAudit: BookingAuditTaskConsumerPayload;
+  sendAwaitingPaymentEmail: z.infer<
+    typeof import("./tasks/sendAwaitingPaymentEmail").sendAwaitingPaymentEmailPayloadSchema
+  >;
 };
 export type TaskTypes = keyof TaskPayloads;
 export type TaskHandler = (payload: string, taskId?: string) => Promise<void>;

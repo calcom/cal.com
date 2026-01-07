@@ -19,9 +19,9 @@ vi.mock("@calcom/features/profile/lib/hideBranding", () => ({
 
 const mockWorkflowReminderCreate = vi.fn();
 vi.mock("@calcom/features/ee/workflows/repositories/WorkflowReminderRepository", () => ({
-  WorkflowReminderRepository: vi.fn().mockImplementation(() => ({
+  WorkflowReminderRepository: vi.fn().mockImplementation(function() { return {
     create: mockWorkflowReminderCreate,
-  })),
+  }; }),
 }));
 
 vi.mock("@calcom/prisma", () => ({

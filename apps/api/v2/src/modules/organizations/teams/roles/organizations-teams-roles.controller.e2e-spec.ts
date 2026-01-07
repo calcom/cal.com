@@ -126,7 +126,11 @@ describe("Organizations Roles Endpoints", () => {
     });
 
     await featuresRepositoryFixture.create({ slug: "pbac", enabled: true });
-    await featuresRepositoryFixture.enableFeatureForTeam(pbacEnabledTeam.id, "pbac");
+    await featuresRepositoryFixture.setTeamFeatureState({
+      teamId: pbacEnabledTeam.id,
+      featureId: "pbac",
+      state: "enabled",
+    });
 
     // Create memberships
     await membershipRepositoryFixture.create({
