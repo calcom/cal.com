@@ -1,16 +1,14 @@
 import { useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
-import dayjs from "@calcom/dayjs";
 import {
   useBookerStoreContext,
   useInitializeBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { Header } from "@calcom/features/bookings/Booker/components/Header";
-import { BookerSection } from "@calcom/features/bookings/Booker/components/Section";
+import { Header } from "@calcom/web/modules/bookings/components/Header";
+import { BookerSection } from "@calcom/web/modules/bookings/components/Section";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
-import { usePrefetch } from "@calcom/features/bookings/Booker/components/hooks/usePrefetch";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { LargeCalendar } from "@calcom/features/calendar-view/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -59,28 +57,15 @@ export const EventTypeCalendarViewComponent = (
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
 
-  const [bookerState, _setBookerState] = useBookerStoreContext(
-    (state) => [state.state, state.setState],
-    shallow
-  );
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
-  const date = dayjs(selectedDate).format("YYYY-MM-DD");
   const month = useBookerStoreContext((state) => state.month);
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
 
-  const { prefetchNextMonth, monthCount } = usePrefetch({
-    date,
-    month,
-    bookerLayout,
-    bookerState,
-  });
-
   const [startTime, endTime] = useTimesForSchedule({
     month,
-    monthCount,
     dayCount,
-    prefetchNextMonth,
     selectedDate,
+    bookerLayout,
   });
 
   const { timezone } = useTimePreferences();

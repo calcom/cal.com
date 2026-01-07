@@ -20,6 +20,15 @@ import getFieldIdentifier from "./getFieldIdentifier";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/formSubmissionUtils"] });
 
+/**
+ * Normalizes an identifier for use in Handlebars templates by replacing spaces with hyphens.
+ * This allows webhook payload templates to use {{identifier-with-hyphens}} syntax
+ * even when the form field identifier contains spaces (e.g., "attendee name" → "attendee-name").
+ */
+function normalizeIdentifierForHandlebars(identifier: string): string {
+  return identifier.replace(/\s+/g, "-");
+}
+
 type SelectFieldWebhookResponse = string | number | string[] | { label: string; id: string | null };
 export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
   string,
@@ -184,7 +193,8 @@ export async function _onFormSubmission(
       rootData: {
         // Send responses unwrapped at root level for backwards compatibility
         ...Object.entries(fieldResponsesByIdentifier).reduce((acc, [key, value]) => {
-          acc[key] = value.value;
+          const normalizedKey = normalizeIdentifierForHandlebars(key);
+          acc[normalizedKey] = value.value;
           return acc;
         }, {} as Record<string, FormResponse[keyof FormResponse]["value"]>),
       },

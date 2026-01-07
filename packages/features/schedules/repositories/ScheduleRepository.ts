@@ -5,16 +5,19 @@ import {
   transformWorkingHoursForAtom,
 } from "@calcom/lib/schedules/transformers";
 import type { PrismaClient } from "@calcom/prisma";
-import prisma from "@calcom/prisma";
-import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
+import type { User } from "@calcom/prisma/client";
 
 export type FindDetailedScheduleByIdReturnType = Awaited<
-  ReturnType<typeof ScheduleRepository.findDetailedScheduleById>
+  ReturnType<ScheduleRepository["findDetailedScheduleById"]>
 >;
 
 export class ScheduleRepository {
   // when instantiating, prismaClient injection is required
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(private readonly prismaClient: PrismaClient) {
+    if (!prismaClient) {
+      throw new Error("PrismaClient is required for ScheduleRepository");
+    }
+  }
 
   async findScheduleByIdForBuildDateRanges({ scheduleId }: { scheduleId: number }) {
     const schedule = await this.prismaClient.schedule.findUnique({
@@ -63,8 +66,8 @@ export class ScheduleRepository {
     return schedule;
   }
 
-  static async findScheduleById({ id }: { id: number }) {
-    const schedule = await prisma.schedule.findUnique({
+  async findScheduleById({ id }: { id: number }) {
+    const schedule = await this.prismaClient.schedule.findUnique({
       where: {
         id,
       },
@@ -80,7 +83,7 @@ export class ScheduleRepository {
     return schedule;
   }
 
-  static async findDetailedScheduleById({
+  async findDetailedScheduleById({
     isManagedEventType,
     scheduleId,
     userId,
@@ -93,9 +96,9 @@ export class ScheduleRepository {
     scheduleId?: number;
     isManagedEventType?: boolean;
   }) {
-    const schedule = await prisma.schedule.findUnique({
+    const schedule = await this.prismaClient.schedule.findUnique({
       where: {
-        id: scheduleId || (await getDefaultScheduleId(userId, prisma)),
+        id: scheduleId || (await this.getDefaultScheduleId(userId)),
       },
       select: {
         id: true,
@@ -109,7 +112,7 @@ export class ScheduleRepository {
     if (!schedule) {
       throw new Error("Schedule not found");
     }
-    const isCurrentUserPartOfTeam = hasReadPermissionsForUserId({ memberId: schedule?.userId, userId });
+    const isCurrentUserPartOfTeam = await hasReadPermissionsForUserId({ memberId: schedule?.userId, userId });
 
     const isCurrentUserOwner = schedule?.userId === userId;
 
@@ -119,7 +122,7 @@ export class ScheduleRepository {
 
     const timeZone = schedule.timeZone || userTimeZone;
 
-    const schedulesCount = await prisma.schedule.count({
+    const schedulesCount = await this.prismaClient.schedule.count({
       where: {
         userId: userId,
       },
@@ -141,7 +144,7 @@ export class ScheduleRepository {
     };
   }
 
-  static async findManyDetailedScheduleByUserId({
+  async findManyDetailedScheduleByUserId({
     isManagedEventType,
     userId,
     defaultScheduleId,
@@ -154,7 +157,7 @@ export class ScheduleRepository {
 
     isManagedEventType?: boolean;
   }) {
-    const schedules = await prisma.schedule.findMany({
+    const schedules = await this.prismaClient.schedule.findMany({
       where: {
         userId: userId,
       },
@@ -202,5 +205,57 @@ export class ScheduleRepository {
     });
 
     return schedulesFormatted;
+  }
+
+  async getDefaultScheduleId(userId: number) {
+    const user = await this.prismaClient.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        defaultScheduleId: true,
+      },
+    });
+
+    if (user?.defaultScheduleId) {
+      return user.defaultScheduleId;
+    }
+
+    // If we're returning the default schedule for the first time then we should set it in the user record
+    const defaultSchedule = await this.prismaClient.schedule.findFirst({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!defaultSchedule) {
+      // Handle case where defaultSchedule is null by throwing an error
+      throw new Error("No schedules found for user");
+    }
+
+    return defaultSchedule.id;
+  }
+
+  async hasDefaultSchedule(user: Partial<User>) {
+    const defaultSchedule = await this.prismaClient.schedule.findFirst({
+      where: {
+        userId: user.id,
+      },
+    });
+    return !!user.defaultScheduleId || !!defaultSchedule;
+  }
+
+  async setupDefaultSchedule(userId: number, scheduleId: number) {
+    return this.prismaClient.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        defaultScheduleId: scheduleId,
+      },
+    });
   }
 }

@@ -1,13 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
-import { MembershipRole, WatchlistType, WatchlistAction } from "@calcom/prisma/enums";
+import { WatchlistErrors } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
+import { WatchlistType, WatchlistAction } from "@calcom/prisma/enums";
 
 import { deleteWatchlistEntryHandler } from "./deleteWatchlistEntry.handler";
 
-vi.mock("@calcom/features/pbac/services/permission-check.service");
-vi.mock("@calcom/lib/server/repository/watchlist.repository");
+vi.mock("@calcom/features/di/watchlist/containers/watchlist");
+vi.mock("@calcom/features/watchlist/lib/repository/WatchlistRepository");
 
 describe("deleteWatchlistEntryHandler", () => {
   const mockUser = {
@@ -28,19 +27,25 @@ describe("deleteWatchlistEntryHandler", () => {
     updatedAt: new Date(),
   };
 
-  const mockPermissionCheckService = {
-    checkPermission: vi.fn(),
+  const mockService = {
+    deleteWatchlistEntry: vi.fn(),
   };
 
   const mockWatchlistRepo = {
     findEntryWithAuditAndReports: vi.fn(),
-    deleteEntry: vi.fn(),
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-    vi.mocked(PermissionCheckService).mockImplementation(() => mockPermissionCheckService as any);
-    vi.mocked(WatchlistRepository).mockImplementation(() => mockWatchlistRepo as any);
+    const { getOrganizationWatchlistOperationsService } = await import(
+      "@calcom/features/di/watchlist/containers/watchlist"
+    );
+    const { WatchlistRepository } = await import(
+      "@calcom/features/watchlist/lib/repository/WatchlistRepository"
+    );
+
+    vi.mocked(getOrganizationWatchlistOperationsService).mockReturnValue(mockService as never);
+    vi.mocked(WatchlistRepository).mockImplementation(function() { return mockWatchlistRepo as never; });
   });
 
   describe("access control", () => {
@@ -57,56 +62,11 @@ describe("deleteWatchlistEntryHandler", () => {
         message: "You must be part of an organization to manage blocklist",
       });
 
-      expect(mockPermissionCheckService.checkPermission).not.toHaveBeenCalled();
-    });
-
-    it("should throw UNAUTHORIZED when user lacks permission", async () => {
-      mockPermissionCheckService.checkPermission.mockResolvedValue(false);
-
-      await expect(
-        deleteWatchlistEntryHandler({
-          ctx: { user: mockUser },
-          input: {
-            id: "entry-123",
-          },
-        })
-      ).rejects.toMatchObject({
-        code: "UNAUTHORIZED",
-        message: "You are not authorized to delete blocklist entries",
-      });
-
-      expect(mockWatchlistRepo.findEntryWithAuditAndReports).not.toHaveBeenCalled();
-    });
-
-    it("should check permission with correct parameters", async () => {
-      mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
-        entry: mockEntry,
-        auditHistory: [],
-      });
-      mockWatchlistRepo.deleteEntry.mockResolvedValue(undefined);
-
-      await deleteWatchlistEntryHandler({
-        ctx: { user: mockUser },
-        input: {
-          id: "entry-123",
-        },
-      });
-
-      expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledWith({
-        userId: 1,
-        teamId: 100,
-        permission: "watchlist.delete",
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-      });
+      expect(mockService.deleteWatchlistEntry).not.toHaveBeenCalled();
     });
   });
 
-  describe("validation", () => {
-    beforeEach(() => {
-      mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-    });
-
+  describe("validation in handler", () => {
     it("should throw NOT_FOUND when entry does not exist", async () => {
       mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: null,
@@ -124,8 +84,6 @@ describe("deleteWatchlistEntryHandler", () => {
         code: "NOT_FOUND",
         message: "Blocklist entry not found",
       });
-
-      expect(mockWatchlistRepo.deleteEntry).not.toHaveBeenCalled();
     });
 
     it("should throw FORBIDDEN when entry belongs to different organization", async () => {
@@ -145,22 +103,63 @@ describe("deleteWatchlistEntryHandler", () => {
         code: "FORBIDDEN",
         message: "You can only delete blocklist entries from your organization",
       });
-
-      expect(mockWatchlistRepo.deleteEntry).not.toHaveBeenCalled();
     });
   });
 
-  describe("successful deletion", () => {
-    beforeEach(() => {
-      mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-    });
-
-    it("should successfully delete entry when authorized", async () => {
+  describe("error mapping from service", () => {
+    it("should map PERMISSION_DENIED error to UNAUTHORIZED", async () => {
       mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: mockEntry,
         auditHistory: [],
       });
-      mockWatchlistRepo.deleteEntry.mockResolvedValue(undefined);
+      mockService.deleteWatchlistEntry.mockRejectedValue(
+        WatchlistErrors.permissionDenied("You are not authorized to delete blocklist entries")
+      );
+
+      await expect(
+        deleteWatchlistEntryHandler({
+          ctx: { user: mockUser },
+          input: {
+            id: "entry-123",
+          },
+        })
+      ).rejects.toMatchObject({
+        code: "UNAUTHORIZED",
+        message: "You are not authorized to delete blocklist entries",
+      });
+    });
+
+    it("should map unknown service errors to INTERNAL_SERVER_ERROR", async () => {
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
+        entry: mockEntry,
+        auditHistory: [],
+      });
+      mockService.deleteWatchlistEntry.mockRejectedValue(new Error("Database connection failed"));
+
+      await expect(
+        deleteWatchlistEntryHandler({
+          ctx: { user: mockUser },
+          input: {
+            id: "entry-123",
+          },
+        })
+      ).rejects.toMatchObject({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to delete blocklist entry",
+      });
+    });
+  });
+
+  describe("successful delegation", () => {
+    it("should delegate to service with correct parameters", async () => {
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
+        entry: mockEntry,
+        auditHistory: [],
+      });
+      mockService.deleteWatchlistEntry.mockResolvedValue({
+        success: true,
+        message: "Blocklist entry deleted successfully",
+      });
 
       const result = await deleteWatchlistEntryHandler({
         ctx: { user: mockUser },
@@ -169,26 +168,12 @@ describe("deleteWatchlistEntryHandler", () => {
         },
       });
 
+      expect(mockService.deleteWatchlistEntry).toHaveBeenCalledWith({
+        entryId: "entry-123",
+        userId: 1,
+      });
       expect(result.success).toBe(true);
       expect(result.message).toBe("Blocklist entry deleted successfully");
-      expect(mockWatchlistRepo.deleteEntry).toHaveBeenCalledWith("entry-123", 1);
-    });
-
-    it("should pass correct userId to deleteEntry", async () => {
-      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
-        entry: mockEntry,
-        auditHistory: [],
-      });
-      mockWatchlistRepo.deleteEntry.mockResolvedValue(undefined);
-
-      await deleteWatchlistEntryHandler({
-        ctx: { user: { ...mockUser, id: 42 } },
-        input: {
-          id: "entry-123",
-        },
-      });
-
-      expect(mockWatchlistRepo.deleteEntry).toHaveBeenCalledWith("entry-123", 42);
     });
   });
 });

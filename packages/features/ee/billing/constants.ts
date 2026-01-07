@@ -4,6 +4,7 @@
  */
 export const CHECKOUT_SESSION_TYPES = {
   PHONE_NUMBER_SUBSCRIPTION: "phone_number_subscription",
+  TEAM_CREATION: "team_creation",
 } as const;
 
 export type CheckoutSessionType = (typeof CHECKOUT_SESSION_TYPES)[keyof typeof CHECKOUT_SESSION_TYPES];
