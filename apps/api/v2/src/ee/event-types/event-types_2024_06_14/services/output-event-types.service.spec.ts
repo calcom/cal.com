@@ -142,28 +142,34 @@ describe("OutputEventTypesService_2024_06_14", () => {
 
     it("should handle base URL with trailing slash", () => {
       const { getBookerBaseUrlSync } = require("@calcom/platform-libraries/organizations");
-      getBookerBaseUrlSync.mockReturnValueOnce("https://cal.com/");
+      getBookerBaseUrlSync.mockReturnValueOnce("https://acme.cal.com/");
 
       const user = {
         id: 1,
         name: "John",
-        username: "john",
+        username: "john-acme",
         avatarUrl: null,
         brandColor: null,
         darkBrandColor: null,
         weekStart: "Monday",
         metadata: {},
-        organizationId: null,
-        organization: null,
+        organizationId: 1,
+        organization: { slug: "acme" },
         movedToProfile: null,
-        profiles: [],
+        profiles: [
+          {
+            username: "john",
+            organizationId: 1,
+            organization: { id: 1, slug: "acme", name: "Acme", isPlatform: false },
+          },
+        ],
       };
       const slug = "30min";
 
       const result = service.buildBookingUrl(user, slug);
 
       // Trailing slash should be stripped to avoid double slashes
-      expect(result).toBe("https://cal.com/john/30min");
+      expect(result).toBe("https://acme.cal.com/john/30min");
     });
 
     it("should return empty string when username is empty", () => {
