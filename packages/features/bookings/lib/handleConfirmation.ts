@@ -76,7 +76,7 @@ export async function handleConfirmation(args: {
     smsReminderNumber: string | null;
     userId: number | null;
     location: string | null;
-    status: string;
+    status: BookingStatus;
   };
   paid?: boolean;
   emailsEnabled?: boolean;
