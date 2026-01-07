@@ -1,4 +1,6 @@
 {
+  "workflow_status": "Статус на работния процес",
+  "workflow_reminders": "Автоматизации на работния процес",
   "pw_check_least_char": "Поне 7 знака",
   "pw_check_mix_case": "Комбинация от главни и малки букви",
   "pw_check_number": "Поне една цифра",
@@ -3584,9 +3586,11 @@
   "workflow_trends": "Тенденции на работните процеси",
   "workflow_type": "Тип работен процес",
   "workflows_triggered": "Общо задействани работни процеси",
+  "workflows_queued": "Работни процеси на опашка",
   "workflows_sent": "Изпратени работни процеси",
   "workflows_read": "Прочетени работни процеси",
   "workflows_failed": "Неуспешни работни процеси",
+  "workflows_cancelled": "Отменени работни процеси",
   "others": "Други",
   "upload_logo_description": "Качете лого за вашата публична страница",
   "team_appearance_theme_title": "Тема на страницата за резервации",

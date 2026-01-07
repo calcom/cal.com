@@ -1,4 +1,6 @@
 {
+  "workflow_status": "İş axınının statusu",
+  "workflow_reminders": "İş axınının avtomatlaşdırılması",
   "pw_check_least_char": "Ən azı 7 simvol",
   "pw_check_mix_case": "Böyük və kiçik hərflərin qarışığı",
   "pw_check_number": "Ən azı bir rəqəm",
@@ -3584,9 +3586,11 @@
   "workflow_trends": "İş axını tendensiyaları",
   "workflow_type": "İş axını növü",
   "workflows_triggered": "Ümumi işə salınmış iş axınları",
+  "workflows_queued": "Növbədə olan iş axınları",
   "workflows_sent": "Göndərilmiş iş axınları",
   "workflows_read": "Oxunmuş iş axınları",
   "workflows_failed": "Uğursuz iş axınları",
+  "workflows_cancelled": "Ləğv edilmiş iş axınları",
   "others": "Digərləri",
   "upload_logo_description": "İctimai səhifəniz üçün loqo yükləyin",
   "team_appearance_theme_title": "Rezervasiya səhifəsinin teması",

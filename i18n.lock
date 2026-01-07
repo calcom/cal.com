@@ -1,6 +1,8 @@
 version: 1
 checksums:
   76a1ee1ae6f7c2f515beace0bc21adc7:
+    workflow_status: 9c9a2f8324d3f698ec2d788f43bd4849
+    workflow_reminders: afd5d3684ba7c3aa74712e4dfb439281
     pw_check_least_char: 142d03d1e2ad95e34ca82bb7f4b3f0ef
     pw_check_mix_case: b66a6c17ec847027bcd25b861f97ddf4
     pw_check_number: 4394176451bc12fb0caafc71c63de0b7
@@ -3581,9 +3583,11 @@ checksums:
     workflow_trends: 9ad83f90f1a59a0a6288088e7f72b116
     workflow_type: ecf06454e683e87ddd007abbbf397522
     workflows_triggered: 76c2ff3d9f09c5a859b7fb77581468f1
+    workflows_queued: fbdaf6f06f98289f83d8522e5afcb752
     workflows_sent: 92e114ed93133dae5634b2994ac3057b
     workflows_read: efe6dc39ae07e55a58a21568e8353956
     workflows_failed: 668411b3e26f4668057762e8753b925f
+    workflows_cancelled: 802dda251b0503c27f4a6c7f8ce0239f
     others: 39160224ce0e35eb4eb252c997edf4d8
     upload_logo_description: 81b0377916ab653a226d67cbf997f323
     team_appearance_theme_title: c9835133b15db4a30587af5468a91909

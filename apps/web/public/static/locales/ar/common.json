@@ -1,4 +1,6 @@
 {
+  "workflow_status": "حالة سير العمل",
+  "workflow_reminders": "أتمتة سير العمل",
   "pw_check_least_char": "7 أحرف على الأقل",
   "pw_check_mix_case": "مزيج من الحروف الكبيرة والصغيرة",
   "pw_check_number": "رقم واحد على الأقل",
@@ -3584,9 +3586,11 @@
   "workflow_trends": "اتجاهات سير العمل",
   "workflow_type": "نوع سير العمل",
   "workflows_triggered": "إجمالي سير العمل المُفعّل",
+  "workflows_queued": "سير العمل في قائمة الانتظار",
   "workflows_sent": "سير العمل المُرسل",
   "workflows_read": "سير العمل المقروء",
   "workflows_failed": "سير العمل الفاشل",
+  "workflows_cancelled": "سير العمل الملغى",
   "others": "آخرون",
   "upload_logo_description": "تحميل شعار لصفحتك العامة",
   "team_appearance_theme_title": "سمة صفحة الحجز",
