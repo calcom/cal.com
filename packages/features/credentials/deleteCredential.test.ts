@@ -1,7 +1,7 @@
 import {
   addEventTypesToDb,
   mockNoTranslations,
-} from "@calcom/testing/libs/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 
 import { describe, test, expect, beforeEach } from "vitest";
 

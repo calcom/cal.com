@@ -77,7 +77,7 @@ class MockPaymentService {
     selectedEventTypeTitle?: string,
     eventTitle?: string
   ) {
-    const { default: prismaMock } = await import("@calcom/testing/libs/__mocks__/prisma");
+    const { default: prismaMock } = await import("@calcom/testing/lib/__mocks__/prisma");
     const externalId = "mock_payment_external_id";
 
     const paymentCreateData = {

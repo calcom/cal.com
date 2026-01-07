@@ -12,18 +12,18 @@ import {
   getOrganizer,
   getGoogleCalendarCredential,
   mockCalendarToHaveNoBusySlots,
-} from "@calcom/testing/libs/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import {
   expectBookingToBeInDatabase,
   expectSuccessfulRoundRobinReschedulingEmails,
-} from "@calcom/testing/libs/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/testing/libs/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { SchedulingType, BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/testing/libs/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 describe("roundRobinReassignment test", () => {
   setupAndTeardown();

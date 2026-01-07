@@ -9,15 +9,15 @@ import {
   mockSuccessfulVideoMeetingCreation,
   mockCalendarToHaveNoBusySlots,
   BookingLocations,
-} from "@calcom/testing/libs/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import {
   expectSuccessfulBookingCreationEmails,
   expectBookingToBeInDatabase,
   expectSuccessfulCalendarEventCreationInCalendar,
   expectICalUIDAsString,
-} from "@calcom/testing/libs/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/testing/libs/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/testing/libs/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -26,7 +26,7 @@ import { describe, expect } from "vitest";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import dayjs from "@calcom/dayjs";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/testing/libs/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 

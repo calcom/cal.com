@@ -1,4 +1,4 @@
-import { mockCrmApp } from "@calcom/testing/libs/bookingScenario/bookingScenario";
+import { mockCrmApp } from "@calcom/testing/lib/bookingScenario/bookingScenario";
 
 import type { TFunction } from "i18next";
 import { describe, expect, test, vi } from "vitest";

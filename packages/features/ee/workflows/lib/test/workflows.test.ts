@@ -1,4 +1,4 @@
-import prismock from "@calcom/testing/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import {
   getOrganizer,
@@ -6,12 +6,12 @@ import {
   TestData,
   createBookingScenario,
   createOrganization,
-} from "@calcom/testing/libs/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import {
   expectSMSWorkflowToBeTriggered,
   expectSMSWorkflowToBeNotTriggered,
-} from "@calcom/testing/libs/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/testing/libs/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
@@ -29,7 +29,7 @@ import {
   WorkflowTriggerEvents,
   WorkflowActions,
 } from "@calcom/prisma/enums";
-import { test } from "@calcom/testing/libs/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { deleteRemindersOfActiveOnIds } from "../deleteRemindersOfActiveOnIds";

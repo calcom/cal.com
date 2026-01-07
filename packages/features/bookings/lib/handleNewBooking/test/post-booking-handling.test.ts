@@ -3,7 +3,7 @@
  *
  * These tests focus specifically on testing what happens after a successful booking or rescheduling.
  */
-import prismaMock from "@calcom/testing/libs/__mocks__/prisma";
+import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
 
 import {
   createBookingScenario,
@@ -15,10 +15,10 @@ import {
   getScenarioData,
   mockCalendarToHaveNoBusySlots,
   BookingLocations,
-} from "@calcom/testing/libs/bookingScenario/bookingScenario";
-import { expectBookingToBeInDatabase } from "@calcom/testing/libs/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/testing/libs/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/testing/libs/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { expectBookingToBeInDatabase } from "@calcom/testing/lib/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";

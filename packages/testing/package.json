@@ -6,7 +6,7 @@
   "exports": {
     ".": "./index.ts",
     "./setupVitest": "./setupVitest.ts",
-    "./libs/*": "./libs/*"
+    "./lib/*": "./lib/*"
   },
   "scripts": {
     "lint": "biome lint .",

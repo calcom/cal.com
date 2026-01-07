@@ -5,9 +5,9 @@ import {
   TestData,
   getOrganizer,
   getScenarioData,
-} from "@calcom/testing/libs/bookingScenario/bookingScenario";
-import { expectWebhookToHaveBeenCalledWith } from "@calcom/testing/libs/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/testing/libs/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { expectWebhookToHaveBeenCalledWith } from "@calcom/testing/lib/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, vi, test, expect } from "vitest";
 

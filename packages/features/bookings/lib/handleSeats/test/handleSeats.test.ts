@@ -1,4 +1,4 @@
-import prismaMock from "@calcom/testing/libs/__mocks__/prisma";
+import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
 
 import {
   getBooker,
@@ -12,11 +12,11 @@ import {
   BookingLocations,
   getDate,
   getMockBookingAttendee,
-} from "@calcom/testing/libs/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/testing/libs/bookingScenario/createMockNextJsRequest";
-import { getMockRequestDataForBooking } from "@calcom/testing/libs/bookingScenario/getMockRequestDataForBooking";
-import { getMockRequestDataForCancelBooking } from "@calcom/testing/libs/bookingScenario/getMockRequestDataForCancelBooking";
-import { setupAndTeardown } from "@calcom/testing/libs/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { createMockNextJsRequest } from "@calcom/testing/lib/bookingScenario/createMockNextJsRequest";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { getMockRequestDataForCancelBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForCancelBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, test, vi, expect } from "vitest";
 

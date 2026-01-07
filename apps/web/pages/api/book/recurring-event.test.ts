@@ -9,16 +9,16 @@ import {
   mockSuccessfulVideoMeetingCreation,
   TestData,
   Timezones,
-} from "@calcom/testing/libs/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/testing/libs/bookingScenario/createMockNextJsRequest";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { createMockNextJsRequest } from "@calcom/testing/lib/bookingScenario/createMockNextJsRequest";
 import {
   expectBookingCreatedWebhookToHaveBeenFired,
   expectBookingToBeInDatabase, // expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
-} from "@calcom/testing/libs/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/testing/libs/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/testing/libs/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect } from "vitest";
@@ -27,7 +27,7 @@ import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/testing/libs/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 

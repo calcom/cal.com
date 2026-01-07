@@ -1,11 +1,11 @@
-import prismock from "@calcom/testing/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import {
   createBookingScenario,
   Timezones,
   TestData,
   type ScenarioData,
-} from "@calcom/testing/libs/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 
 import { describe, test, vi } from "vitest";
 import type { z } from "zod";

@@ -8,15 +8,15 @@ import {
   Timezones,
   getDate,
   getGoogleCalendarCredential,
-} from "@calcom/testing/libs/bookingScenario/bookingScenario";
-import { getMockRequestDataForBooking } from "@calcom/testing/libs/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/testing/libs/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, expect } from "vitest";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/testing/libs/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 

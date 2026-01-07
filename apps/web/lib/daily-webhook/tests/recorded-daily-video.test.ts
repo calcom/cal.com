@@ -6,8 +6,8 @@ import {
   getMockBookingAttendee,
   getOrganizer,
   getBooker,
-} from "@calcom/testing/libs/bookingScenario/bookingScenario";
-import { expectWebhookToHaveBeenCalledWith } from "@calcom/testing/libs/bookingScenario/expects";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { expectWebhookToHaveBeenCalledWith } from "@calcom/testing/lib/bookingScenario/expects";
 
 import { NextRequest } from "next/server";
 import { createMocks } from "node-mocks-http";

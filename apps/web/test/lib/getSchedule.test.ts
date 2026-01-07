@@ -1,4 +1,4 @@
-import CalendarManagerMock from "@calcom/testing/libs/__mocks__/CalendarManager";
+import CalendarManagerMock from "@calcom/testing/lib/__mocks__/CalendarManager";
 import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
 
 import {
@@ -12,7 +12,7 @@ import {
   TestData,
   createCredentials,
   mockCrmApp,
-} from "@calcom/testing/libs/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 
 import { describe, vi, test } from "vitest";
 
