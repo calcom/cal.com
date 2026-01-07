@@ -1,4 +1,4 @@
-import CalendarManagerMock from "@calcom/testing/lib/__mocks__/CalendarManager";
+import CalendarManagerMock from "@calcom/features/calendars/lib/__mocks__/CalendarManager";
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { v4 as uuid } from "uuid";

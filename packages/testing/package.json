@@ -2,11 +2,11 @@
   "name": "@calcom/testing",
   "version": "0.0.0",
   "private": true,
-  "main": "index.ts",
+  "main": "./src/index.ts",
   "exports": {
-    ".": "./index.ts",
-    "./setupVitest": "./setupVitest.ts",
-    "./lib/*": "./lib/*"
+    ".": "./src/index.ts",
+    "./setupVitest": "./src/setupVitest.ts",
+    "./lib/*": "./src/lib/*"
   },
   "scripts": {
     "lint": "biome lint .",

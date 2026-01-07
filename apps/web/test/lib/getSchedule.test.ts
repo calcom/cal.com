@@ -1,4 +1,4 @@
-import CalendarManagerMock from "@calcom/testing/lib/__mocks__/CalendarManager";
+import CalendarManagerMock from "@calcom/features/calendars/lib/__mocks__/CalendarManager";
 import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
 
 import {

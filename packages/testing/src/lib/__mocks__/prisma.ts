@@ -21,7 +21,7 @@ const handlePrismockBugs = (prismock: any) => {
       logger.silly("Fixed Prismock bug-2");
     }
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     return __findManyWebhook(...rest);
   };
 };
@@ -109,7 +109,7 @@ vi.mock("@calcom/prisma", async (importOriginal) => {
 beforeEach(() => {
   if (prismockInstance) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     prismockInstance.reset();
     handlePrismockBugs(prismockInstance);
   }

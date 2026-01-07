@@ -2,21 +2,16 @@
 import i18nMock from "../__mocks__/libServerI18n";
 import prismock from "../__mocks__/prisma";
 
-import type Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import { vi } from "vitest";
 import "vitest-fetch-mock";
 import type { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/dayjs";
-import type { HttpError } from "@calcom/lib/http-error";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { BookingReference, Attendee, Booking, Membership } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/client";
@@ -641,13 +636,13 @@ export async function addBookings(bookings: InputBooking[]) {
 
   await addBookingsToDb(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     allBookings.map((booking) => {
       const bookingCreate = booking;
       if (booking.references) {
         bookingCreate.references = {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
+          //@ts-expect-error
           createMany: {
             data: booking.references,
           },
@@ -656,7 +651,7 @@ export async function addBookings(bookings: InputBooking[]) {
       if (booking.attendees) {
         bookingCreate.attendees = {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
+          //@ts-expect-error
           createMany: {
             data: booking.attendees.map((attendee) => {
               if (attendee.bookingSeat) {
@@ -678,7 +673,7 @@ export async function addBookings(bookings: InputBooking[]) {
       if (booking?.user?.id) {
         bookingCreate.user = {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
+          //@ts-expect-error
           connect: {
             id: booking.user.id,
           },
@@ -910,7 +905,7 @@ export async function addUsers(users: InputUser[]) {
     if (user.schedules) {
       newUser.schedules = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         createMany: {
           data: user.schedules.map((schedule) => {
             return {
@@ -928,7 +923,7 @@ export async function addUsers(users: InputUser[]) {
     if (user.credentials) {
       newUser.credentials = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         createMany: {
           data: user.credentials,
         },
@@ -939,7 +934,7 @@ export async function addUsers(users: InputUser[]) {
       const addedTeams = await addTeamsToDb(user.teams.map((team) => team.team));
       newUser.teams = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         createMany: {
           data: user.teams.map((team, index) => {
             return {
@@ -953,7 +948,7 @@ export async function addUsers(users: InputUser[]) {
     if (user.selectedCalendars) {
       newUser.selectedCalendars = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         createMany: {
           data: user.selectedCalendars,
         },
@@ -962,7 +957,7 @@ export async function addUsers(users: InputUser[]) {
     if (user.destinationCalendar) {
       newUser.destinationCalendar = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         create: user.destinationCalendar,
       };
     }
@@ -978,7 +973,7 @@ export async function addUsers(users: InputUser[]) {
     prismaUsersCreate.push(newUser);
   }
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
+  //@ts-expect-error
   return await addUsersToDb(prismaUsersCreate);
 }
 
@@ -1463,7 +1458,7 @@ export const TestData = {
     "google-calendar": {
       ...appStoreMetadata.googlecalendar,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         client_id: "client_id",
@@ -1474,7 +1469,7 @@ export const TestData = {
     "office365-calendar": {
       ...appStoreMetadata.office365calendar,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         client_id: "client_id",
@@ -1484,7 +1479,7 @@ export const TestData = {
     "google-meet": {
       ...appStoreMetadata.googlevideo,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         client_id: "client_id",
@@ -1495,7 +1490,7 @@ export const TestData = {
     "daily-video": {
       ...appStoreMetadata.dailyvideo,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         api_key: "",
@@ -1508,7 +1503,7 @@ export const TestData = {
     zoomvideo: {
       ...appStoreMetadata.zoomvideo,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         api_key: "",
@@ -1521,7 +1516,7 @@ export const TestData = {
     "stripe-payment": {
       ...appStoreMetadata.stripepayment,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         api_key: "",
@@ -1654,7 +1649,7 @@ export function getScenarioData(
         {
           organizationId: orgId,
           username: profileUsername,
-          uid: ProfileRepository.generateProfileUid(),
+          uid: uuidv4(),
         },
       ];
     });
@@ -2272,32 +2267,6 @@ export function getBooker({
     email,
     attendeePhoneNumber,
   };
-}
-
-export function getMockedStripePaymentEvent({ paymentIntentId }: { paymentIntentId: string }) {
-  return {
-    id: null,
-    data: {
-      object: {
-        id: paymentIntentId,
-      },
-    },
-  } as unknown as Stripe.Event;
-}
-
-export async function mockPaymentSuccessWebhookFromStripe({ externalId }: { externalId: string }) {
-  let webhookResponse = null;
-  try {
-    const traceContext = distributedTracing.createTrace("test_stripe_webhook");
-    await handleStripePaymentSuccess(
-      getMockedStripePaymentEvent({ paymentIntentId: externalId }),
-      traceContext
-    );
-  } catch (e) {
-    log.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
-    webhookResponse = e as HttpError;
-  }
-  return { webhookResponse };
 }
 
 export function getExpectedCalEventForBookingRequest({

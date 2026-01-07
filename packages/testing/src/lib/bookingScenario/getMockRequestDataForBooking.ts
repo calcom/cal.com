@@ -1,6 +1,6 @@
 import { getDate } from "./bookingScenario";
 
-import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import type { Tracking } from "../types";
 import type { SchedulingType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 
