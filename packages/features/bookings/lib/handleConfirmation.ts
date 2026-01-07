@@ -38,11 +38,10 @@ import { v4 as uuidv4 } from "uuid";
 
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import type { AuditActor } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
-function getActor({ userUuid, actor }: { userUuid: string | null; actor: AuditActor | null }) {
+function getActor({ userUuid, actor }: { userUuid: string | null; actor: ActorIdentification | null }) {
   if (actor) {
     return actor;
   }
