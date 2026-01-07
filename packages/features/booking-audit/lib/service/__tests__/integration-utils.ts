@@ -3,9 +3,6 @@ import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import type { FeatureId } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
-import type { BookingAuditTaskConsumer } from "./BookingAuditTaskConsumer";
-import type { BookingAuditViewerService } from "./BookingAuditViewerService";
-
 export const generateUniqueId = () => {
   const timestamp = Date.now();
   const randomSuffix = Math.random().toString(36).substring(7);
