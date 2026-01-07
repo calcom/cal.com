@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Zaktualizowano nieobecność uczestnika",
     "type": "Typ przypisania",
     "assignmentType_manual": "Ręczne przypisanie",
-    "assignmentType_roundRobin": "Przypisanie Round Robin"
+    "assignmentType_roundRobin": "Przypisanie Round Robin",
+    "actor_impersonated_by": "Osoba podszywająca się",
+    "source": "Źródło"
   },
   "error_loading_booking_logs": "Błąd podczas ładowania logów rezerwacji",
   "no_audit_logs_found": "Nie znaleziono logów audytu",
