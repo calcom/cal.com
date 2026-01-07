@@ -9,6 +9,7 @@ import type {
   CalendarEvent,
   EventBusyDate,
   GetAvailabilityParams,
+  IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
