@@ -114,7 +114,7 @@ describe("intentToCreateOrgHandler", () => {
     vi.resetAllMocks();
     await prismock.reset();
 
-    vi.mocked(OrganizationPaymentService).mockImplementation(() => {
+    vi.mocked(OrganizationPaymentService).mockImplementation(function () {
       return {
         createOrganizationOnboarding: vi
           .fn()
@@ -279,6 +279,25 @@ describe("intentToCreateOrgHandler", () => {
           message: "You can only create organization where you are the owner",
         })
       );
+    });
+
+    it("should reject non-admin creating org for another user even with isPlatform flag", async () => {
+      const nonAdminUser = await createTestUser({
+        email: "nonadmin@example.com",
+        role: UserPermissionRole.USER,
+      });
+
+      await expect(
+        intentToCreateOrgHandler({
+          input: { ...mockInput, isPlatform: true },
+          ctx: {
+            user: nonAdminUser,
+          },
+        })
+      ).rejects.toMatchObject({
+        code: "FORBIDDEN",
+        message: "You can only create organization where you are the owner",
+      });
     });
 
     it("should throw error when target user is not found", async () => {

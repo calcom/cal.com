@@ -14,15 +14,17 @@ import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { isPrismaError } from "@calcom/lib/server/getServerErrorFromUnknown";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
 import { getTrackingFromCookies } from "@calcom/lib/tracking";
-import { prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { buildLegacyRequest } from "@calcom/web/lib/buildLegacyCtx";
 
+import { SIGNUP_ERROR_CODES } from "../constants";
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import {
   findTokenByToken,
@@ -83,6 +85,16 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       teamId: foundToken?.teamId ?? null,
       isSignup: true,
     });
+
+    if (foundToken?.teamId) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+        select: { invitedTo: true },
+      });
+      if (existingUser && existingUser.invitedTo !== foundToken.teamId) {
+        return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
+      }
+    }
   } else {
     const usernameAndEmailValidation = await validateAndGetCorrectedUsernameAndEmail({
       username,
@@ -167,29 +179,57 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     });
     if (team) {
       const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
-      const user = await prisma.user.upsert({
-        where: { email },
-        update: {
-          username,
-          emailVerified: new Date(Date.now()),
-          identityProvider: IdentityProvider.CAL,
-          password: {
-            upsert: {
-              create: { hash: hashedPassword },
-              update: { hash: hashedPassword },
-            },
+
+      if (username) {
+        const existingUserByUsername = await prisma.user.findFirst({
+          where: {
+            username,
+            organizationId,
+            NOT: { email },
           },
-          organizationId,
-        },
-        create: {
-          username,
-          email,
-          identityProvider: IdentityProvider.CAL,
-          password: { create: { hash: hashedPassword } },
-          organizationId,
-        },
-      });
-      // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies
+          select: { id: true },
+        });
+        if (existingUserByUsername) {
+          return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
+        }
+      }
+
+      let user: { id: number };
+      try {
+        user = await prisma.user.upsert({
+          where: { email },
+          update: {
+            username,
+            emailVerified: new Date(Date.now()),
+            identityProvider: IdentityProvider.CAL,
+            password: {
+              upsert: {
+                create: { hash: hashedPassword },
+                update: { hash: hashedPassword },
+              },
+            },
+            organizationId,
+          },
+          create: {
+            username,
+            email,
+            emailVerified: new Date(Date.now()),
+            identityProvider: IdentityProvider.CAL,
+            password: { create: { hash: hashedPassword } },
+            organizationId,
+          },
+          select: { id: true },
+        });
+      } catch (error) {
+        if (isPrismaError(error) && error.code === "P2002") {
+          const target = String(error.meta?.target ?? "");
+          if (target.includes("email") || target.includes("username")) {
+            return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
+          }
+        }
+        throw error;
+      }
+
       await createOrUpdateMemberships({
         user,
         team,
@@ -212,19 +252,33 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     });
   } else {
     // Create the user
-    await prisma.user.create({
-      data: {
-        username,
-        email,
-        locked: shouldLockByDefault,
-        password: { create: { hash: hashedPassword } },
-        metadata: {
-          stripeCustomerId: customer.stripeCustomerId,
-          checkoutSessionId,
+    try {
+      await prisma.user.create({
+        data: {
+          username,
+          email,
+          locked: shouldLockByDefault,
+          password: { create: { hash: hashedPassword } },
+          metadata: {
+            stripeCustomerId: customer.stripeCustomerId,
+            checkoutSessionId,
+          },
+          creationSource: CreationSource.WEBAPP,
         },
-        creationSource: CreationSource.WEBAPP,
-      },
-    });
+      });
+    } catch (error) {
+      // Fallback for race conditions where user was created between our check and create
+      if (isPrismaError(error) && error.code === "P2002") {
+        const target = String(error.meta?.target ?? "");
+        if (target.includes("email") || target.includes("username")) {
+          return NextResponse.json(
+            { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
+            { status: 409 }
+          );
+        }
+      }
+      throw error;
+    }
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email });
     }
