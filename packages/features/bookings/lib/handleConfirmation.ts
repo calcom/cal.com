@@ -42,24 +42,24 @@ async function fireBookingAcceptedEvent({
   actor,
   organizationId,
   actionSource,
-  updatedBookings,
+  acceptedBookings,
 }: {
   actor: Actor;
   organizationId: number | null;
   actionSource: ActionSource;
-  updatedBookings: {
+  acceptedBookings: {
     uid: string;
-    status: BookingStatus;
+    oldStatus: BookingStatus;
   }[];
 }) {
   const bookingEventHandlerService = getBookingEventHandlerService();
-  if (updatedBookings.length > 1) {
+  if (acceptedBookings.length > 1) {
     const operationId = uuidv4();
     await bookingEventHandlerService.onBulkBookingsAccepted({
-      bookings: updatedBookings.map((updatedBooking) => ({
-        bookingUid: updatedBooking.uid,
+      bookings: acceptedBookings.map((acceptedBooking) => ({
+        bookingUid: acceptedBooking.uid,
         auditData: {
-          status: { old: updatedBooking.status, new: BookingStatus.ACCEPTED },
+          status: { old: acceptedBooking.oldStatus, new: BookingStatus.ACCEPTED },
         },
       })),
       actor,
@@ -67,15 +67,15 @@ async function fireBookingAcceptedEvent({
       operationId,
       source: actionSource,
     });
-  } else if (updatedBookings.length === 1) {
-    const updatedBooking = updatedBookings[0];
+  } else if (acceptedBookings.length === 1) {
+    const acceptedBooking = acceptedBookings[0];
     // Single booking acceptance
     await bookingEventHandlerService.onBookingAccepted({
-      bookingUid: updatedBooking.uid,
+      bookingUid: acceptedBooking.uid,
       actor,
       organizationId,
       auditData: {
-        status: { old: updatedBooking.status, new: BookingStatus.ACCEPTED },
+        status: { old: acceptedBooking.oldStatus, new: BookingStatus.ACCEPTED },
       },
       source: actionSource,
     });
@@ -241,6 +241,10 @@ export async function handleConfirmation(args: {
   const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
   const meetingUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
 
+  let acceptedBookings: {
+    oldStatus: BookingStatus;
+    uid: string;
+  }[];
   if (recurringEventId) {
     // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
     // bookings as confirmed. Prisma updateMany does not support relations, so doing this in two steps for now.
@@ -250,6 +254,11 @@ export async function handleConfirmation(args: {
         status: BookingStatus.PENDING,
       },
     });
+
+    acceptedBookings = unconfirmedRecurringBookings.map((booking) => ({
+      oldStatus: booking.status,
+      uid: booking.uid,
+    }));
 
     const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) =>
       prisma.booking.update({
@@ -375,6 +384,12 @@ export async function handleConfirmation(args: {
       },
     });
     updatedBookings.push(updatedBooking);
+    acceptedBookings = [
+      {
+        oldStatus: booking.status,
+        uid: booking.uid,
+      },
+    ];
   }
 
   const teamId = await getTeamIdFromEventType({
@@ -394,7 +409,7 @@ export async function handleConfirmation(args: {
 
   await fireBookingAcceptedEvent({
     actor,
-    updatedBookings,
+    acceptedBookings,
     organizationId: orgId ?? null,
     actionSource,
   });

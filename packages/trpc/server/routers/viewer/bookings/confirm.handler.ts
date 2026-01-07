@@ -60,7 +60,7 @@ async function fireRejectionEvent({
   actionSource: ValidActionSource;
   rejectedBookings: {
     uid: string;
-    status: BookingStatus;
+    oldStatus: BookingStatus;
   }[];
 }): Promise<void> {
   const bookingEventHandlerService = getBookingEventHandlerService();
@@ -71,7 +71,7 @@ async function fireRejectionEvent({
         bookingUid: booking.uid,
         auditData: {
           rejectionReason,
-          status: { old: booking.status, new: BookingStatus.REJECTED },
+          status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
         },
       })),
       actor,
@@ -87,7 +87,7 @@ async function fireRejectionEvent({
       organizationId,
       auditData: {
         rejectionReason,
-        status: { old: booking.status, new: BookingStatus.REJECTED },
+        status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
       },
       source: actionSource,
     });
@@ -392,7 +392,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     evt.rejectionReason = rejectionReason;
     let rejectedBookings: {
       uid: string;
-      status: BookingStatus;
+      oldStatus: BookingStatus;
     }[] = [];
 
     if (recurringEventId) {
@@ -423,7 +423,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
       rejectedBookings = unconfirmedRecurringBookings.map((recurringBooking) => ({
         uid: recurringBooking.uid,
-        status: recurringBooking.status,
+        oldStatus: recurringBooking.status,
       }));
     } else {
       // handle refunds
@@ -448,7 +448,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       rejectedBookings = [
         {
           uid: booking.uid,
-          status: booking.status,
+          oldStatus: booking.status,
         },
       ];
     }
