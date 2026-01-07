@@ -1,10 +1,10 @@
 "use client";
 
-import { cva } from "class-variance-authority";
-import React, { forwardRef, useId, useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import { cva } from "class-variance-authority";
+import type React from "react";
+import { forwardRef, useId, useState } from "react";
 
 import { Icon } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
@@ -182,7 +182,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               "text-default rounded-lg text-sm font-medium leading-none",
               "placeholder:text-muted disabled:cursor-not-allowed disabled:bg-transparent",
               addOnLeading && "rounded-none pl-0.5 pr-0",
-              addOnSuffix && "pl-0",
+              addOnSuffix && !addOnLeading && "pl-1",
               className
             )}
             {...passThrough}
