@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "main": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./setupVitest": "./setupVitest.ts",
+    "./libs/*": "./libs/*"
+  },
   "scripts": {
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
