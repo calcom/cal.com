@@ -9,7 +9,6 @@ import { Icon } from "@calid/features/ui/components/icon";
 import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
 import { NumberInput } from "@calid/features/ui/components/input/input";
 import { Label } from "@calid/features/ui/components/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@calid/features/ui/components/popover";
 import { RadioGroup } from "@calid/features/ui/components/radio-group";
 import { RadioGroupItem } from "@calid/features/ui/components/radio-group";
 import { Switch } from "@calid/features/ui/components/switch";
@@ -341,13 +340,16 @@ const RangeLimitRadioItem = memo(
     const { t } = useLocale();
     const [dateRange, setDateRange] = useState<{ startDate?: Date; endDate?: Date } | undefined>();
 
-    const handleDateChange = useCallback(({ startDate, endDate }: { startDate?: Date; endDate?: Date }, onChange: (value: any) => void) => {
-      setDateRange({ startDate, endDate });
-      onChange({
-        startDate,
-        endDate,
-      });
-    }, []);
+    const handleDateChange = useCallback(
+      ({ startDate, endDate }: { startDate?: Date; endDate?: Date }, onChange: (value: any) => void) => {
+        setDateRange({ startDate, endDate });
+        onChange({
+          startDate,
+          endDate,
+        });
+      },
+      []
+    );
 
     return (
       <div className="mb-2 text-sm text-gray-700 sm:flex-row sm:items-center">
@@ -599,45 +601,31 @@ export const IntervalLimitsManager = memo(
 );
 
 IntervalLimitsManager.displayName = "IntervalLimitsManager";
-
 const MaxActiveBookingsPerBookerController = memo(
   ({ fieldPermissions }: { fieldPermissions: ReturnType<typeof useFieldPermissions> }) => {
     const { t } = useLocale();
     const formMethods = useFormContext<FormValues>();
-
-    const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
-      (formMethods.getValues("maxActiveBookingsPerBooker") ?? 0) > 0
-    );
 
     const isRecurringEvent = !!formMethods.getValues("recurringEvent");
     const maxActiveBookingPerBookerOfferReschedule = formMethods.watch(
       "maxActiveBookingPerBookerOfferReschedule"
     );
 
-    const handleToggleChange = useCallback(
-      (active: boolean, onChange: (value: any) => void) => {
-        if (active) {
-          onChange(1);
-        } else {
-          onChange(null);
-        }
-        setMaxActiveBookingsPerBookerToggle(!maxActiveBookingsPerBookerToggle);
-      },
-      [maxActiveBookingsPerBookerToggle]
-    );
+    const handleToggleChange = useCallback((active: boolean, onChange: (value: number | null) => void) => {
+      onChange(active ? 1 : null);
+    }, []);
 
     const handleInputChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: any) => void) => {
-        onChange(e.target.value === "" ? null : parseInt(e.target.value, 10));
+      (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: number | null) => void) => {
+        const val = e.target.value;
+        onChange(val === "" ? null : parseInt(val, 10));
       },
       []
     );
 
     const handleOfferRescheduleChange = useCallback(
       (isChecked: boolean) => {
-        formMethods.setValue("maxActiveBookingPerBookerOfferReschedule", isChecked, {
-          shouldDirty: true,
-        });
+        formMethods.setValue("maxActiveBookingPerBookerOfferReschedule", isChecked, { shouldDirty: true });
       },
       [formMethods]
     );
@@ -645,51 +633,58 @@ const MaxActiveBookingsPerBookerController = memo(
     return (
       <Controller
         name="maxActiveBookingsPerBooker"
-        render={({ field: { onChange, value } }) => (
-          <SettingsToggle
-            title={t("booker_booking_limit")}
-            description={t("booker_booking_limit_description")}
-            checked={maxActiveBookingsPerBookerToggle}
-            disabled={
-              isRecurringEvent || fieldPermissions.getFieldState("maxActiveBookingsPerBooker").isDisabled
-            }
-            tooltip={isRecurringEvent ? t("recurring_event_doesnt_support_booker_booking_limit") : ""}
-            LockedIcon={
-              <FieldPermissionIndicator
-                fieldName="maxActiveBookingsPerBooker"
-                fieldPermissions={fieldPermissions}
-                t={t}
-              />
-            }
-            onCheckedChange={(active) => handleToggleChange(active, onChange)}>
-            <div className="space-y-4">
-              <div>
-                <Label>Maximum bookings</Label>
-                <div className="flex items-center space-x-2">
-                  <NumberInput
-                    value={value ?? ""}
-                    onChange={(e) => handleInputChange(e, onChange)}
-                    min={1}
-                    step={1}
-                    className="w-20"
-                    data-testid="booker-booking-limit-input"
-                    placeholder="1"
-                  />
-                  <span className="text-sm text-gray-600">bookings</span>
+        render={({ field: { onChange, value } }) => {
+          const isToggleOn = (value ?? 0) > 0;
+
+          return (
+            <SettingsToggle
+              title={t("booker_booking_limit")}
+              description={t("booker_booking_limit_description")}
+              checked={isToggleOn}
+              disabled={
+                isRecurringEvent || fieldPermissions.getFieldState("maxActiveBookingsPerBooker").isDisabled
+              }
+              tooltip={isRecurringEvent ? t("recurring_event_doesnt_support_booker_booking_limit") : ""}
+              LockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="maxActiveBookingsPerBooker"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }
+              onCheckedChange={(active) => handleToggleChange(active, onChange)}>
+              <div className="space-y-4">
+                <div>
+                  <Label>Maximum bookings</Label>
+                  <div className="flex items-center space-x-2">
+                    <NumberInput
+                      value={value ?? ""}
+                      onChange={(e) => handleInputChange(e, onChange)}
+                      min={1}
+                      step={1}
+                      className="w-20"
+                      data-testid="booker-booking-limit-input"
+                      placeholder="1"
+                      disabled={!isToggleOn}
+                    />
+                    <span className="text-sm text-gray-600">bookings</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <CheckboxField
+                      checked={!!maxActiveBookingPerBookerOfferReschedule}
+                      onCheckedChange={handleOfferRescheduleChange}
+                      disabled={!isToggleOn}
+                    />
+                    <span className="text-sm text-gray-600">{t("offer_to_reschedule_last_booking")}</span>
+                  </div>
                 </div>
               </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <CheckboxField
-                    checked={!!maxActiveBookingPerBookerOfferReschedule}
-                    onCheckedChange={handleOfferRescheduleChange}
-                  />
-                  <span className="text-sm text-gray-600">{t("offer_to_reschedule_last_booking")}</span>
-                </div>
-              </div>
-            </div>
-          </SettingsToggle>
-        )}
+            </SettingsToggle>
+          );
+        }}
       />
     );
   }
@@ -885,7 +880,6 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
 
   // Field permissions management
   const fieldPermissions = useFieldPermissions({ eventType, translate: t, formMethods });
-  console.log("fieldPermissions:", fieldPermissions);
 
   const watchPeriodType = formMethods.watch("periodType");
   const { value: watchPeriodTypeUiValue, rollingExcludeUnavailableDays } =

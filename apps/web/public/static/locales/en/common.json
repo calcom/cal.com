@@ -1,4 +1,6 @@
 {
+  "workflow_status":"Workflow status",
+  "workflow_reminders":"Workflow automations",
   "pw_check_least_char": "At least 7 characters",
   "pw_check_mix_case": "Mix of uppercase & lowercase",
   "pw_check_number": "At least one number",
@@ -3584,9 +3586,11 @@
   "workflow_trends": "Workflow Trends",
   "workflow_type": "Workflow Type",
   "workflows_triggered": "Total Workflows Triggered",
+  "workflows_queued": "Workflows Queued",
   "workflows_sent": "Workflows Sent",
   "workflows_read": "Workflows Read",
   "workflows_failed": "Workflows Failed",
+  "workflows_cancelled": "Workflows Cancelled",
   "others": "Others",
   "upload_logo_description": "Upload a logo for your public page",
   "team_appearance_theme_title": "Booking page theme",

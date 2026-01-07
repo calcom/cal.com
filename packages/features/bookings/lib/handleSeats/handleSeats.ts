@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import { scheduleWorkflowReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
+import { uuid } from "short-uuid";
 
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -99,6 +100,8 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       loggerWithEventDetails
     );
   } else {
+    evt.attendeeSeatId = uuid();
+    evt.uid = seatedBooking.uid;
     resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, reqBodyMetadata);
   }
 
@@ -118,6 +121,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
           ...{
             metadata,
             eventType: {
+              id: eventType.id,
               slug: eventType.slug,
               schedulingType: eventType.schedulingType,
               hosts: eventType.hosts,

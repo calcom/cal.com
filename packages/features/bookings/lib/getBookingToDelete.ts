@@ -117,7 +117,7 @@ export const bookingToDeleteSelect = {
   status: true,
 };
 export async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
-  const data =  await prisma.booking.findUniqueOrThrow({
+  const data = await prisma.booking.findUniqueOrThrow({
     where: {
       id,
       uid,

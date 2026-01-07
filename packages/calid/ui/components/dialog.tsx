@@ -138,12 +138,12 @@ export const DialogContent = React.forwardRef<
           }
         }}
         onOpenAutoFocus={(event) => {
-          if (showCloseButton && !onOpenAutoFocus) {
+          if (!onOpenAutoFocus) {
             event.preventDefault();
             return;
           }
 
-          onOpenAutoFocus?.(event);
+          onOpenAutoFocus(event);
         }}
         {...props}>
         {showCloseButton && (
