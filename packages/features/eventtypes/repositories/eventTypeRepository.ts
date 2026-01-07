@@ -8,11 +8,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
 import type { PrismaClient } from "@calcom/prisma";
-import {
-  prisma,
-  availabilityUserSelect,
-  userSelect as userSelectWithSelectedCalendars,
-} from "@calcom/prisma";
+import { availabilityUserSelect, userSelect as userSelectWithSelectedCalendars } from "@calcom/prisma";
 import type { EventType as PrismaEventType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -490,7 +486,7 @@ export class EventTypeRepository {
 
     if (!teamMembership) throw new ErrorWithCode(ErrorCode.Unauthorized, "User is not a member of this team");
 
-    return await prisma.eventType.findMany({
+    return await this.prismaClient.eventType.findMany({
       where: {
         teamId,
         ...where,
@@ -1127,11 +1123,40 @@ export class EventTypeRepository {
   }
 
   async findFirstEventTypeId({ slug, teamId, userId }: { slug: string; teamId?: number; userId?: number }) {
+    // Use compound unique keys when available for optimal performance
+    // Note: teamId and userId are mutually exclusive - never both provided
+    if (teamId) {
+      return this.prismaClient.eventType.findUnique({
+        where: {
+          teamId_slug: {
+            teamId,
+            slug,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+    }
+
+    if (userId) {
+      return this.prismaClient.eventType.findUnique({
+        where: {
+          userId_slug: {
+            userId,
+            slug,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+    }
+
+    // Fallback to findFirst if neither is provided (shouldn't happen in practice)
     return this.prismaClient.eventType.findFirst({
       where: {
         slug,
-        ...(teamId ? { teamId } : {}),
-        ...(userId ? { userId } : {}),
       },
       select: {
         id: true,
