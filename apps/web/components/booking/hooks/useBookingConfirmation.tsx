@@ -47,6 +47,7 @@ export function useBookingConfirmation(options: UseBookingConfirmationOptions = 
       bookingId,
       confirmed,
       reason: reason || "",
+      actionSource: "WEBAPP" as const,
     };
 
     /**

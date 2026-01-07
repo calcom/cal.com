@@ -109,6 +109,7 @@ async function handler(request: NextRequest) {
       recurringEventId: booking.recurringEventId || undefined,
       confirmed: action === DirectAction.ACCEPT,
       reason,
+      actionSource: "WEBAPP",
       platformClientParams: platformClientId
         ? {
             platformClientId,

@@ -136,6 +136,7 @@ async function handleBookingAction(
       bookingId: booking.id,
       recurringEventId: booking.recurringEventId || undefined,
       confirmed: action === DirectAction.ACCEPT,
+      actionSource: "WEBAPP",
       /** Ignored reason input unless we're rejecting */
       reason: action === DirectAction.REJECT ? reason : undefined,
     });

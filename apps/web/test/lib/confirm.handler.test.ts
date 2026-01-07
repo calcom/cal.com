@@ -98,7 +98,7 @@ describe("confirmHandler", () => {
 
     const res = await confirmHandler({
       ctx,
-      input: { bookingId: 101, confirmed: true, reason: "", emailsEnabled: true },
+      input: { bookingId: 101, confirmed: true, reason: "", emailsEnabled: true, actionSource: "WEBAPP" },
     });
 
     expect(res?.status).toBe(BookingStatus.ACCEPTED);
