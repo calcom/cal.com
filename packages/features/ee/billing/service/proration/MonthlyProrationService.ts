@@ -3,7 +3,9 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { ProrationStatus } from "@calcom/prisma/enums";
 import type { Logger } from "tslog";
-
+import { MonthlyProrationRepository } from "../../repository/proration/MonthlyProrationRepository";
+import type { BillingInfo } from "../../repository/proration/MonthlyProrationTeamRepository";
+import { MonthlyProrationTeamRepository } from "../../repository/proration/MonthlyProrationTeamRepository";
 import type { SeatChangeTrackingService } from "../seatTracking/SeatChangeTrackingService";
 
 const log = logger.getSubLogger({ prefix: ["MonthlyProrationService"] });
@@ -25,17 +27,21 @@ interface ProcessMonthlyProrationsParams {
 
 export class MonthlyProrationService {
   private logger: Logger<unknown>;
+  private teamRepository: MonthlyProrationTeamRepository;
+  private prorationRepository: MonthlyProrationRepository;
 
   constructor(customLogger?: Logger<unknown>) {
     this.logger = customLogger || log;
+    this.teamRepository = new MonthlyProrationTeamRepository();
+    this.prorationRepository = new MonthlyProrationRepository();
   }
 
   async processMonthlyProrations(params: ProcessMonthlyProrationsParams) {
     const { monthKey, teamIds } = params;
 
-    const teamsToProcess = teamIds
-      ? await this.getTeamsById(teamIds)
-      : await this.getAnnualTeamsForMonth(monthKey);
+    const teamIdsList = teamIds || (await this.teamRepository.getAnnualTeamsWithSeatChanges(monthKey));
+
+    const teamsToProcess = teamIdsList.map((id: number) => ({ id }));
 
     const results = [];
     for (const team of teamsToProcess) {
@@ -58,45 +64,27 @@ export class MonthlyProrationService {
       return null;
     }
 
-    const team = await prisma.team.findUnique({
-      where: { id: teamId },
-      select: {
-        isOrganization: true,
-        teamBilling: {
-          select: {
-            id: true,
-            subscriptionId: true,
-            subscriptionItemId: true,
-            customerId: true,
-            subscriptionStart: true,
-            subscriptionEnd: true,
-            pricePerSeat: true,
-          },
-        },
-        organizationBilling: {
-          select: {
-            id: true,
-            subscriptionId: true,
-            subscriptionItemId: true,
-            customerId: true,
-            subscriptionStart: true,
-            subscriptionEnd: true,
-            pricePerSeat: true,
-          },
-        },
-        _count: {
-          select: { members: true },
-        },
-      },
-    });
+    const teamWithBilling = await this.teamRepository.getTeamWithBilling(teamId);
 
-    if (!team) throw new Error(`Team ${teamId} not found`);
+    if (!teamWithBilling) throw new Error(`Team ${teamId} not found`);
+    if (!teamWithBilling.billing) {
+      throw new Error(`No billing record or metadata found for team ${teamId}`);
+    }
 
-    const billing = team.isOrganization ? team.organizationBilling : team.teamBilling;
-    if (!billing) throw new Error(`No billing record found for team ${teamId}`);
+    const billing = teamWithBilling.billing;
+
+    if (!billing.billingPeriod || !billing.pricePerSeat) {
+      this.logger.info(`[${teamId}] no billing record, checking metadata for subscription info`);
+    }
+
+    await this.ensureBillingDataPopulated(teamId, teamWithBilling.isOrganization, billing);
+
     if (!billing.pricePerSeat) throw new Error(`No price per seat found for team ${teamId}`);
     if (!billing.subscriptionStart || !billing.subscriptionEnd) {
       throw new Error(`Incomplete subscription info for team ${teamId}`);
+    }
+    if (!billing.subscriptionItemId) {
+      throw new Error(`No subscription item ID found for team ${teamId}`);
     }
 
     const [year, month] = monthKey.split("-").map(Number);
@@ -110,31 +98,28 @@ export class MonthlyProrationService {
       monthEnd: periodEnd,
     });
 
-    const currentSeatCount = team._count.members;
+    const currentSeatCount = teamWithBilling.memberCount;
 
-    const proration = await prisma.monthlyProration.create({
-      data: {
-        teamId,
-        monthKey,
-        periodStart: new Date(Date.UTC(year, month - 1, 1)),
-        periodEnd,
-        seatsAtStart: currentSeatCount - changes.netChange,
-        seatsAdded: changes.additions,
-        seatsRemoved: changes.removals,
-        netSeatIncrease: changes.netChange,
-        seatsAtEnd: currentSeatCount,
-        subscriptionId: billing.subscriptionId,
-        subscriptionItemId: billing.subscriptionItemId,
-        customerId: billing.customerId,
-        subscriptionStart: billing.subscriptionStart,
-        subscriptionEnd: billing.subscriptionEnd,
-        remainingDays: calculation.remainingDays,
-        pricePerSeat: billing.pricePerSeat,
-        proratedAmount: calculation.proratedAmount,
-        status: "PENDING" as ProrationStatus,
-        teamBillingId: team.isOrganization ? null : billing.id,
-        organizationBillingId: team.isOrganization ? billing.id : null,
-      },
+    const proration = await this.prorationRepository.createProration({
+      teamId,
+      monthKey,
+      periodStart: new Date(Date.UTC(year, month - 1, 1)),
+      periodEnd,
+      seatsAtStart: currentSeatCount - changes.netChange,
+      seatsAdded: changes.additions,
+      seatsRemoved: changes.removals,
+      netSeatIncrease: changes.netChange,
+      seatsAtEnd: currentSeatCount,
+      subscriptionId: billing.subscriptionId,
+      subscriptionItemId: billing.subscriptionItemId,
+      customerId: billing.customerId,
+      subscriptionStart: billing.subscriptionStart,
+      subscriptionEnd: billing.subscriptionEnd,
+      remainingDays: calculation.remainingDays,
+      pricePerSeat: billing.pricePerSeat,
+      proratedAmount: calculation.proratedAmount,
+      teamBillingId: teamWithBilling.isOrganization ? null : billing.id,
+      organizationBillingId: teamWithBilling.isOrganization ? billing.id : null,
     });
 
     await seatTracker.markAsProcessed({ teamId, monthKey, prorationId: proration.id });
@@ -157,13 +142,11 @@ export class MonthlyProrationService {
 
     const subscriptionEndDate = new Date(subscriptionEnd);
     const monthEndDate = new Date(monthEnd);
+    const subscriptionStartDate = new Date(subscriptionStart);
 
-    const relevantEndDate = subscriptionEndDate < monthEndDate ? subscriptionEndDate : monthEndDate;
-
-    const remainingMs = relevantEndDate.getTime() - monthEndDate.getTime();
+    const remainingMs = subscriptionEndDate.getTime() - monthEndDate.getTime();
     const remainingDays = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60 * 24)));
 
-    const subscriptionStartDate = new Date(subscriptionStart);
     const totalSubscriptionDays = Math.ceil(
       (subscriptionEndDate.getTime() - subscriptionStartDate.getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -201,45 +184,34 @@ export class MonthlyProrationService {
       },
     });
 
-    await prisma.monthlyProration.update({
-      where: { id: proration.id },
-      data: {
-        invoiceItemId: invoiceItem.id,
-        status: "INVOICE_CREATED" as ProrationStatus,
-      },
+    await this.prorationRepository.updateProrationStatus(proration.id, "INVOICE_CREATED", {
+      invoiceItemId: invoiceItem.id,
     });
 
     return invoiceItem;
   }
 
   async handleProrationPaymentSuccess(prorationId: string) {
-    await prisma.monthlyProration.update({
-      where: { id: prorationId },
-      data: {
-        status: "CHARGED" as ProrationStatus,
-        chargedAt: new Date(),
-      },
+    await this.prorationRepository.updateProrationStatus(prorationId, "CHARGED", {
+      chargedAt: new Date(),
     });
   }
 
   async handleProrationPaymentFailure(params: { prorationId: string; reason: string }) {
     const { prorationId, reason } = params;
 
-    await prisma.monthlyProration.update({
-      where: { id: prorationId },
-      data: {
-        status: "FAILED" as ProrationStatus,
-        failedAt: new Date(),
-        failureReason: reason,
-        retryCount: { increment: 1 },
-      },
+    const proration = await this.prorationRepository.findById(prorationId);
+    if (!proration) throw new Error(`Proration ${prorationId} not found`);
+
+    await this.prorationRepository.updateProrationStatus(prorationId, "FAILED", {
+      failedAt: new Date(),
+      failureReason: reason,
+      retryCount: (proration.retryCount || 0) + 1,
     });
   }
 
   async retryFailedProration(prorationId: string) {
-    const proration = await prisma.monthlyProration.findUnique({
-      where: { id: prorationId },
-    });
+    const proration = await this.prorationRepository.findById(prorationId);
 
     if (!proration) throw new Error(`Proration ${prorationId} not found`);
     if (proration.status !== "FAILED") throw new Error(`Proration ${prorationId} is not in FAILED status`);
@@ -247,28 +219,91 @@ export class MonthlyProrationService {
     await this.createStripeInvoiceItem(proration);
   }
 
-  private async getAnnualTeamsForMonth(monthKey: string) {
-    return await prisma.team.findMany({
-      where: {
-        OR: [
-          { teamBilling: { billingPeriod: "ANNUALLY", subscriptionTrialEnd: { lt: new Date() } } },
-          { organizationBilling: { billingPeriod: "ANNUALLY", subscriptionTrialEnd: { lt: new Date() } } },
-        ],
-        seatChangeLogs: {
-          some: {
-            monthKey,
-            processedInProrationId: null,
-          },
-        },
-      },
-      select: { id: true },
-    });
-  }
+  private async ensureBillingDataPopulated(teamId: number, isOrganization: boolean, billing: BillingInfo) {
+    const needsCreation = !billing.id || billing.id === "";
 
-  private async getTeamsById(teamIds: number[]) {
-    return await prisma.team.findMany({
-      where: { id: { in: teamIds } },
-      select: { id: true },
-    });
+    if (
+      !needsCreation &&
+      billing.billingPeriod &&
+      billing.pricePerSeat &&
+      billing.subscriptionStart &&
+      billing.subscriptionEnd
+    ) {
+      return;
+    }
+
+    this.logger.info(`[${teamId}] ${needsCreation ? "creating" : "populating"} billing data from stripe`);
+
+    try {
+      const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
+      const subscription = await stripe.subscriptions.retrieve(billing.subscriptionId);
+
+      const billingPeriod =
+        subscription.items.data[0]?.price.recurring?.interval === "year" ? "ANNUALLY" : "MONTHLY";
+
+      const pricePerSeat = subscription.items.data[0]?.price.unit_amount
+        ? subscription.items.data[0].price.unit_amount / 100
+        : 0;
+
+      const subscriptionStart = subscription.current_period_start
+        ? new Date(subscription.current_period_start * 1000)
+        : null;
+
+      const subscriptionEnd = subscription.current_period_end
+        ? new Date(subscription.current_period_end * 1000)
+        : null;
+
+      const subscriptionItemId = subscription.items.data[0]?.id || billing.subscriptionItemId || "";
+      const customerId = subscription.customer as string;
+      const subscriptionTrialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
+
+      if (needsCreation) {
+        const createdBilling = await prisma[isOrganization ? "organizationBilling" : "teamBilling"].create({
+          data: {
+            teamId,
+            subscriptionId: billing.subscriptionId,
+            subscriptionItemId,
+            customerId,
+            status: subscription.status.toUpperCase(),
+            planName: isOrganization ? "ORGANIZATION" : "TEAM",
+            billingPeriod,
+            pricePerSeat,
+            subscriptionStart,
+            subscriptionEnd,
+            subscriptionTrialEnd,
+          },
+        });
+
+        billing.id = createdBilling.id;
+        billing.customerId = customerId;
+        billing.subscriptionItemId = subscriptionItemId;
+      } else {
+        await this.teamRepository.updateBillingInfo(teamId, isOrganization, billing.id, {
+          billingPeriod,
+          pricePerSeat,
+          subscriptionStart,
+          subscriptionEnd,
+        });
+      }
+
+      this.logger.info(
+        `[${teamId}] ${needsCreation ? "created" : "populated"}: ${billingPeriod}, $${pricePerSeat}/seat`
+      );
+
+      billing.billingPeriod = billingPeriod;
+      billing.pricePerSeat = pricePerSeat;
+      billing.subscriptionStart = subscriptionStart;
+      billing.subscriptionEnd = subscriptionEnd;
+      billing.subscriptionItemId = subscriptionItemId;
+      if (needsCreation) {
+        billing.customerId = customerId;
+      }
+    } catch (error) {
+      this.logger.error(
+        `[${teamId}] failed to ${needsCreation ? "create" : "populate"} billing data:`,
+        error
+      );
+      throw error;
+    }
   }
 }
