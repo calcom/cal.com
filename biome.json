@@ -238,7 +238,7 @@
                     "message": "features package should not import from trpc to avoid circular dependencies."
                   },
                   {
-                    "group": ["@calcom/web/**"],
+                    "group": ["@calcom/web", "@calcom/web/**"],
                     "message": "features package should not import from @calcom/web to avoid circular dependencies."
                   },
                   {
