@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import { bootstrap } from "../app";
+import { bootstrap } from "../bootstrap";
 import { createNestApp } from "../main";
 import { generateSwaggerForApp } from "../swagger/generate-swagger";
 

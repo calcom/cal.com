@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 // Assuming this is your main app bootstrapper
 import { AppModule } from "@/app.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";

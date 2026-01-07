@@ -7,7 +7,7 @@ import "dotenv/config";
 import { WinstonModule } from "nest-winston";
 import * as qs from "qs";
 
-import { bootstrap } from "./app";
+import { bootstrap } from "./bootstrap";
 import { AppModule } from "./app.module";
 import { loggerConfig } from "./lib/logger";
 import { generateSwaggerForApp } from "./swagger/generate-swagger";
