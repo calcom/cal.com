@@ -16,7 +16,7 @@ const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendar = async (
   credential: CredentialForCalendarService | null,
-  mode?: CalendarFetchMode
+  mode: CalendarFetchMode
 ): Promise<Calendar | null> => {
   if (!credential || !credential.key) return null;
   let { type: calendarType } = credential;
@@ -49,9 +49,8 @@ export const getCalendar = async (
   // - "slots": Check feature flags and use cache when available (for getting actual calendar availability)
   // - "overlay": Don't use cache (for overlay calendar availability)
   // - "booking": Don't use cache (for booking confirmation)
-  // - undefined: Same as "slots" for backwards compatibility
   let shouldServeCache = false;
-  if (mode === "slots" || mode === undefined) {
+  if (mode === "slots") {
     const featuresRepository = new FeaturesRepository(prisma);
     const [isCalendarSubscriptionCacheEnabled, isCalendarSubscriptionCacheEnabledForUser] = await Promise.all(
       [

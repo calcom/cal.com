@@ -205,7 +205,7 @@ export class UserAvailabilityService {
 
     for (const credential of delegatedCredentials) {
       try {
-        const calendar = await getCalendar(credential);
+        const calendar = await getCalendar(credential, "slots");
         if (calendar && "getMainTimeZone" in calendar && typeof calendar.getMainTimeZone === "function") {
           const timezone = await calendar.getMainTimeZone();
           if (timezone && timezone !== "UTC") {
