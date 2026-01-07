@@ -1,7 +1,5 @@
 import { ConfigService } from "@nestjs/config";
 
-import { UsersService } from "@/modules/users/services/users.service";
-
 import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
 
 jest.mock("@calcom/platform-libraries/organizations", () => ({
@@ -13,20 +11,9 @@ jest.mock("@calcom/platform-libraries/organizations", () => ({
 
 describe("OutputEventTypesService_2024_06_14", () => {
   let service: OutputEventTypesService_2024_06_14;
-  let usersService: jest.Mocked<UsersService>;
   let configService: jest.Mocked<ConfigService>;
 
   beforeEach(() => {
-    usersService = {
-      getUserMainProfile: jest.fn((user: any) => {
-        return (
-          user?.movedToProfile ||
-          user.profiles?.find((p: any) => p.organizationId === user.organizationId) ||
-          user.profiles?.[0]
-        );
-      }),
-    } as any;
-
     configService = {
       get: jest.fn((key: string, defaultValue?: string) => {
         if (key === "app.baseUrl") return "https://cal.com";
@@ -34,7 +21,7 @@ describe("OutputEventTypesService_2024_06_14", () => {
       }),
     } as any;
 
-    service = new OutputEventTypesService_2024_06_14(usersService, configService);
+    service = new OutputEventTypesService_2024_06_14(configService);
   });
 
   describe("buildBookingUrl", () => {

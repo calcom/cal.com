@@ -41,12 +41,11 @@ import {
   transformRequiresConfirmationInternalToApi,
   transformSeatsInternalToApi,
 } from "@/ee/event-types/event-types_2024_06_14/transformers";
-import { UsersService } from "@/modules/users/services/users.service";
 
 type UserProfile = {
   username: string | null;
   organizationId: number | null;
-  organization: Pick<Team, "id" | "slug" | "name" | "isPlatform"> | null;
+  organization: { id: number; slug: string | null; name: string; isPlatform: boolean } | null;
 };
 
 type EventTypeUser = {
@@ -128,10 +127,7 @@ type Input = Pick<
 
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly configService: ConfigService
-  ) {}
+  constructor(private readonly configService: ConfigService) {}
 
   getResponseEventType(
     ownerId: number,
@@ -416,7 +412,7 @@ export class OutputEventTypesService_2024_06_14 {
       return "";
     }
 
-    const profile = this.usersService.getUserMainProfile(user as any);
+    const profile = this.getUserMainProfile(user);
     const username = profile?.username ?? user.username;
 
     if (!username) {
@@ -429,6 +425,14 @@ export class OutputEventTypesService_2024_06_14 {
     const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
 
     return `${normalizedBaseUrl}/${username}/${slug}`;
+  }
+
+  private getUserMainProfile(user: EventTypeUser): UserProfile | undefined {
+    return (
+      user.movedToProfile ||
+      user.profiles?.find((p) => p.organizationId === user.organizationId) ||
+      user.profiles?.[0]
+    );
   }
 
   getResponseEventTypesWithoutHiddenFields(
