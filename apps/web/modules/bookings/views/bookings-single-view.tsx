@@ -21,7 +21,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { Price } from "@calcom/features/bookings/components/event-meta/Price";
+import { Price } from "@calcom/web/modules/bookings/components/event-meta/Price";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
 import { isWithinMinimumRescheduleNotice as isWithinMinimumRescheduleNoticeUtil } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
@@ -79,6 +79,7 @@ const querySchema = z.object({
   seatReferenceUid: z.string().optional(),
   rating: z.string().optional(),
   noShow: stringToBoolean,
+  redirect_status: z.string().optional(),
 });
 
 const useBrandColors = ({
@@ -120,6 +121,7 @@ export default function Success(props: PageProps) {
     seatReferenceUid,
     noShow,
     rating,
+    redirect_status,
   } = querySchema.parse(routerQuery);
 
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
@@ -148,7 +150,10 @@ export default function Success(props: PageProps) {
   const status = bookingInfo?.status;
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = bookingInfo.cancellationReason || bookingInfo.rejectionReason;
-  const isAwaitingPayment = props.paymentStatus && !props.paymentStatus.success;
+
+  const isPaymentSucceededFromRedirect = redirect_status === "succeeded";
+  const isAwaitingPayment =
+    props.paymentStatus && !props.paymentStatus.success && !isPaymentSucceededFromRedirect;
 
   const attendees = bookingInfo?.attendees;
 
