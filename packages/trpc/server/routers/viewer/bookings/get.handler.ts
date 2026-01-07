@@ -185,7 +185,15 @@ function getChannelFromAction(action: WorkflowActions): "EMAIL" | "SMS" | "WHATS
   return "EMAIL";
 }
 
-// Helper function to determine status with precedence rules
+function parseUtcTimestamp(input: string | Date): number {
+  if (input instanceof Date) {
+    return input.getTime();
+  }
+
+  // If timezone is missing, force UTC
+  return Date.parse(!/[zZ]|[+-]\d\d:\d\d$/.test(input) ? `${input}Z` : input);
+}
+
 function resolveWorkflowStepStatus(
   workflowInsight: {
     status: WorkflowStatus;
@@ -206,18 +214,15 @@ function resolveWorkflowStepStatus(
     if (workflowReminder.cancelled) {
       return "CANCELLED";
     }
-    if (workflowReminder.scheduled && workflowReminder.scheduledDate > new Date()) {
-      return "QUEUED";
-    }
-    if (workflowReminder.scheduled && workflowReminder.scheduledDate <= new Date()) {
-      return "DELIVERED";
+
+    if (workflowReminder.scheduled) {
+      return parseUtcTimestamp(workflowReminder.scheduledDate) > Date.now() ? "QUEUED" : "DELIVERED";
     }
   }
 
   // 3. Default to QUEUED
   return "QUEUED";
 }
-
 export async function getBookings({
   user,
   prisma,
