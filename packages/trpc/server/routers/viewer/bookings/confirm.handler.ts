@@ -34,6 +34,7 @@ import type { Ensure } from "@calcom/types/utils";
 import type { TrpcSessionUser } from "../../../types";
 import type { TConfirmInputSchema } from "./confirm.schema";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 
 type ConfirmOptions = {
   ctx: {
@@ -44,7 +45,7 @@ type ConfirmOptions = {
     traceContext: TraceContext;
   };
   // Make actionSource required here because API V2 or webapp must pass it.
-  input: Ensure<TConfirmInputSchema, "actionSource">;
+  input: TConfirmInputSchema & { actionSource: ValidActionSource; actor: Actor };
 };
 
 async function fireRejectionEvent({

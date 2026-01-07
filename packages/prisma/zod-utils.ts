@@ -385,11 +385,6 @@ export const bookingConfirmPatchBodySchema = z.object({
   reason: z.string().optional(),
   emailsEnabled: z.boolean().default(true),
   platformClientParams: PlatformClientParamsSchema.optional(),
-  // TODO: IDeally we shouldn't allow action source through trpc request, it must be derived at backend
-  // But, at MAGIC_LINK places, we are currently calling TRPC endpoint fn directly, so we need to allow it here.
-  // We need to switch to calling the handler and not the trpc fn directly.
-  actionSource: ValidActionSourceSchema.optional(),
-  actor: ActorSchema,
 });
 
 export const bookingCancelSchema = z.object({
