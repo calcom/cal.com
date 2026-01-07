@@ -8,7 +8,6 @@ import type {
   GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
-  SelectedCalendarEventTypeIds,
 } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["CalendarTelemetryWrapper"] });
@@ -192,19 +191,5 @@ export class CalendarTelemetryWrapper implements Calendar {
 
   testDelegationCredentialSetup?(): Promise<boolean> {
     return this.deps.originalCalendar.testDelegationCredentialSetup?.() || Promise.resolve(false);
-  }
-
-  watchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<unknown> {
-    return this.deps.originalCalendar.watchCalendar?.(options) || Promise.resolve();
-  }
-
-  unwatchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<void> {
-    return this.deps.originalCalendar.unwatchCalendar?.(options) || Promise.resolve();
   }
 }
