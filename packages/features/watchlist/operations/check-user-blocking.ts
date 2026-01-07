@@ -1,9 +1,9 @@
 import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
-import type { Logger } from "@calcom/lib/logger";
 import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 
-const log: Logger = logger.getSubLogger({ prefix: ["watchlist", "check-user-blocking"] });
+const log: ReturnType<typeof logger.getSubLogger> = logger.getSubLogger({
+  prefix: ["watchlist", "check-user-blocking"],
+});
 
 /**
  * Minimal user shape required for blocking checks.
@@ -58,8 +58,12 @@ export async function checkWatchlistBlocking(
   } catch (error) {
     // Fail-open: If watchlist check fails, allow booking to proceed
     // This ensures availability even if watchlist service is down
+    let errorMessage = "Unknown error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     log.error("Watchlist check failed, allowing users through (fail-open)", {
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: errorMessage,
       emailCount: emails.length,
       organizationId,
     });
