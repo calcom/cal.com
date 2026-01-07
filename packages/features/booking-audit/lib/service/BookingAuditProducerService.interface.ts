@@ -210,6 +210,7 @@ export interface BookingAuditProducerService {
                 organizationId: number | null;
                 source: ActionSource;
                 operationId?: string | null;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         queueBulkRescheduledAudit(params: {
@@ -221,6 +222,7 @@ export interface BookingAuditProducerService {
                 organizationId: number | null;
                 source: ActionSource;
                 operationId?: string | null;
+                context?: BookingAuditContext;
         }): Promise<void>;
 }
 
