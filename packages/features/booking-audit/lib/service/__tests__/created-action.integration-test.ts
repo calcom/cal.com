@@ -1,210 +1,23 @@
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 
-import type { FeatureId } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { prisma } from "@calcom/prisma";
-import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
+import type { BookingStatus } from "@calcom/prisma/enums";
+import prisma from "@calcom/prisma";
+import type { BookingAuditTaskConsumer } from "../BookingAuditTaskConsumer";
+import type { BookingAuditViewerService } from "../BookingAuditViewerService";
+import { makeUserActor } from "../../makeActor";
+import { getBookingAuditTaskConsumer } from "../../../di/BookingAuditTaskConsumer.container";
+import { getBookingAuditViewerService } from "../../../di/BookingAuditViewerService.container";
+import {
+  createTestUser,
+  createTestOrganization,
+  createTestMembership,
+  createTestEventType,
+  createTestBooking,
+  enableFeatureForOrganization,
+  cleanupTestData,
+} from "./integration-utils";
 
-import type { BookingAuditTaskConsumer } from "./BookingAuditTaskConsumer";
-import type { BookingAuditViewerService } from "./BookingAuditViewerService";
-import { makeUserActor } from "../makeActor";
-import { getBookingAuditTaskConsumer } from "../../di/BookingAuditTaskConsumer.container";
-import { getBookingAuditViewerService } from "../../di/BookingAuditViewerService.container";
-import type { BookingAuditTaskConsumer } from "./BookingAuditTaskConsumer";
-import type { BookingAuditViewerService } from "./BookingAuditViewerService";
-
-const generateUniqueId = () => {
-  const timestamp = Date.now();
-  const randomSuffix = Math.random().toString(36).substring(7);
-  return `${timestamp}-${randomSuffix}`;
-};
-
-const createTestUser = async (overrides?: {
-  email?: string;
-  username?: string;
-  name?: string;
-}) => {
-  const uniqueId = generateUniqueId();
-  return prisma.user.create({
-    data: {
-      email: overrides?.email || `test-user-${uniqueId}@example.com`,
-      username: overrides?.username || `testuser-${uniqueId}`,
-      name: overrides?.name || "Test User",
-    },
-  });
-};
-
-const createTestOrganization = async (overrides?: {
-  name?: string;
-  slug?: string;
-}) => {
-  const uniqueId = generateUniqueId();
-  return prisma.team.create({
-    data: {
-      name: overrides?.name || `Test Org ${uniqueId}`,
-      slug: overrides?.slug || `test-org-${uniqueId}`,
-      isOrganization: true,
-    },
-  });
-};
-
-const createTestMembership = async (
-  userId: number,
-  teamId: number,
-  overrides?: { role?: MembershipRole; accepted?: boolean }
-) => {
-  return prisma.membership.create({
-    data: {
-      userId,
-      teamId,
-      role: overrides?.role || MembershipRole.ADMIN,
-      accepted: overrides?.accepted ?? true,
-    },
-  });
-};
-
-const createTestEventType = async (
-  userId: number,
-  overrides?: { title?: string; slug?: string; length?: number }
-) => {
-  const uniqueId = generateUniqueId();
-  return prisma.eventType.create({
-    data: {
-      title: overrides?.title || "Test Event Type",
-      slug: overrides?.slug || `test-event-${uniqueId}`,
-      length: overrides?.length || 60,
-      userId,
-    },
-  });
-};
-
-const createTestBooking = async (
-  userId: number,
-  eventTypeId: number,
-  overrides?: {
-    uid?: string;
-    title?: string;
-    startTime?: Date;
-    endTime?: Date;
-    status?: BookingStatus;
-    attendees?: Array<{ email: string; name: string; timeZone: string }>;
-  }
-) => {
-  const uniqueId = generateUniqueId();
-  const startTime = overrides?.startTime || new Date();
-  const endTime =
-    overrides?.endTime || new Date(startTime.getTime() + 60 * 60 * 1000);
-
-  return prisma.booking.create({
-    data: {
-      uid: overrides?.uid || `test-booking-${uniqueId}`,
-      title: overrides?.title || "Test Booking",
-      startTime,
-      endTime,
-      userId,
-      eventTypeId,
-      status: overrides?.status || BookingStatus.ACCEPTED,
-      attendees: {
-        create: overrides?.attendees || [],
-      },
-    },
-  });
-};
-
-const enableFeatureForOrganization = async (
-  organizationId: number,
-  featureSlug: string
-) => {
-  await prisma.feature.upsert({
-    where: { slug: featureSlug },
-    create: {
-      slug: featureSlug,
-      enabled: true,
-      description: `Test feature: ${featureSlug}`,
-    },
-    update: {
-      enabled: true,
-    },
-  });
-
-  const featuresRepository = new FeaturesRepository(prisma);
-  await featuresRepository.setTeamFeatureState({
-    teamId: organizationId,
-    featureId: featureSlug as FeatureId,
-    state: "enabled",
-    assignedBy: "test-system",
-  });
-};
-
-const cleanupTestData = async (testData: {
-  bookingUid?: string;
-  userUuids?: string[];
-  attendeeEmails?: string[];
-  eventTypeId?: number;
-  organizationId?: number;
-  userIds?: number[];
-  featureSlug?: string;
-}) => {
-  if (testData.bookingUid) {
-    await prisma.bookingAudit.deleteMany({
-      where: { bookingUid: testData.bookingUid },
-    });
-  }
-
-  if (testData.userUuids?.length || testData.attendeeEmails?.length) {
-    await prisma.auditActor.deleteMany({
-      where: {
-        OR: [
-          ...(testData.userUuids?.map((uuid) => ({ userUuid: uuid })) || []),
-          ...(testData.attendeeEmails?.map((email) => ({ email })) || []),
-        ],
-      },
-    });
-  }
-
-  if (testData.attendeeEmails?.length) {
-    await prisma.attendee.deleteMany({
-      where: { email: { in: testData.attendeeEmails } },
-    });
-  }
-
-  if (testData.bookingUid) {
-    await prisma.booking.deleteMany({
-      where: { uid: testData.bookingUid },
-    });
-  }
-
-  if (testData.eventTypeId) {
-    await prisma.eventType.deleteMany({
-      where: { id: testData.eventTypeId },
-    });
-  }
-
-  if (testData.organizationId) {
-    if (testData.featureSlug) {
-      const featuresRepository = new FeaturesRepository(prisma);
-      await featuresRepository.setTeamFeatureState({
-        teamId: testData.organizationId,
-        featureId: testData.featureSlug as FeatureId,
-        state: "inherit",
-      });
-    }
-    await prisma.membership.deleteMany({
-      where: { teamId: testData.organizationId },
-    });
-    await prisma.team.deleteMany({
-      where: { id: testData.organizationId },
-    });
-  }
-
-  if (testData.userIds?.length) {
-    await prisma.user.deleteMany({
-      where: { id: { in: testData.userIds } },
-    });
-  }
-};
-
-describe("Booking Audit Integration", () => {
+describe("Created Action Integration", () => {
   let bookingAuditTaskConsumer: BookingAuditTaskConsumer;
   let bookingAuditViewerService: BookingAuditViewerService;
 
@@ -213,12 +26,7 @@ describe("Booking Audit Integration", () => {
     attendee: { id: number; email: string };
     organization: { id: number };
     eventType: { id: number };
-    booking: {
-      uid: string;
-      startTime: Date;
-      endTime: Date;
-      status: BookingStatus;
-    };
+    booking: { uid: string; startTime: Date; endTime: Date; status: BookingStatus };
   };
 
   beforeEach(async () => {
@@ -265,9 +73,7 @@ describe("Booking Audit Integration", () => {
       attendeeEmails: testData.attendee?.email ? [testData.attendee.email] : [],
       eventTypeId: testData.eventType?.id,
       organizationId: testData.organization?.id,
-      userIds: [testData.owner?.id, testData.attendee?.id].filter(
-        (id): id is number => id !== undefined
-      ),
+      userIds: [testData.owner?.id, testData.attendee?.id].filter((id): id is number => id !== undefined),
       featureSlug: "booking-audit",
     });
   });
@@ -310,15 +116,11 @@ describe("Booking Audit Integration", () => {
       expect(displayData).toBeDefined();
       expect(displayData.startTime).toBeDefined();
       expect(typeof displayData.startTime).toBe("string");
-      expect(displayData.startTime).toMatch(
-        /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
-      );
+      expect(displayData.startTime).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
 
       expect(displayData.endTime).toBeDefined();
       expect(typeof displayData.endTime).toBe("string");
-      expect(displayData.endTime).toMatch(
-        /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
-      );
+      expect(displayData.endTime).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
 
       expect(displayData.status).toBe(testData.booking.status);
     });
@@ -413,14 +215,13 @@ describe("Booking Audit Integration", () => {
         timestamp: Date.now(),
       });
 
-      const ownerResult =
-        await bookingAuditViewerService.getAuditLogsForBooking({
-          bookingUid: testData.booking.uid,
-          userId: testData.owner.id,
-          userEmail: testData.owner.email,
-          userTimeZone: "UTC",
-          organizationId: testData.organization.id,
-        });
+      const ownerResult = await bookingAuditViewerService.getAuditLogsForBooking({
+        bookingUid: testData.booking.uid,
+        userId: testData.owner.id,
+        userEmail: testData.owner.email,
+        userTimeZone: "UTC",
+        organizationId: testData.organization.id,
+      });
       expect(ownerResult.auditLogs).toHaveLength(1);
 
       const unauthorizedUserId = 999999;
@@ -440,33 +241,25 @@ describe("Booking Audit Integration", () => {
 
   describe("when multiple bookings are created in bulk", () => {
     it("should create audit records for all bookings with same operation ID", async () => {
-      const booking2 = await createTestBooking(
-        testData.owner.id,
-        testData.eventType.id,
-        {
-          attendees: [
-            {
-              email: testData.attendee.email,
-              name: "Test Attendee",
-              timeZone: "UTC",
-            },
-          ],
-        }
-      );
+      const booking2 = await createTestBooking(testData.owner.id, testData.eventType.id, {
+        attendees: [
+          {
+            email: testData.attendee.email,
+            name: "Test Attendee",
+            timeZone: "UTC",
+          },
+        ],
+      });
 
-      const booking3 = await createTestBooking(
-        testData.owner.id,
-        testData.eventType.id,
-        {
-          attendees: [
-            {
-              email: testData.attendee.email,
-              name: "Test Attendee",
-              timeZone: "UTC",
-            },
-          ],
-        }
-      );
+      const booking3 = await createTestBooking(testData.owner.id, testData.eventType.id, {
+        attendees: [
+          {
+            email: testData.attendee.email,
+            name: "Test Attendee",
+            timeZone: "UTC",
+          },
+        ],
+      });
 
       const actor = makeUserActor(testData.owner.uuid);
       const operationId = `bulk-op-${Date.now()}`;
