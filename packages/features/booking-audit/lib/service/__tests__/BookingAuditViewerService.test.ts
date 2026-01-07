@@ -10,7 +10,12 @@ import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.s
 
 import { BookingAuditViewerService } from "../BookingAuditViewerService";
 import { BookingAuditPermissionError, BookingAuditErrorCode } from "../BookingAuditAccessService";
-import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../../repository/IBookingAuditRepository";
+import type {
+  IBookingAuditRepository,
+  BookingAuditWithActor,
+  BookingAuditAction,
+  BookingAuditType,
+} from "../../repository/IBookingAuditRepository";
 import type { AuditActorType } from "../../repository/IAuditActorRepository";
 import type { BookingAuditContext } from "../../dto/types";
 
@@ -31,14 +36,13 @@ const createMockTeamBooking = (overrides?: {
     email: "test@example.com",
   },
   eventType: {
-    teamId: (overrides && "teamId" in overrides ? overrides.teamId : overrides?.teamId ?? 100) ?? null,
+    teamId: (overrides && "teamId" in overrides ? overrides.teamId : (overrides?.teamId ?? 100)) ?? null,
     parent: (overrides?.parentTeamId ? { teamId: overrides.parentTeamId } : undefined) ?? null,
     hosts: [],
     users: [],
   },
   attendees: [],
 });
-
 
 const createMockAuditLog = (
   overrides?: Partial<{
@@ -65,14 +69,19 @@ const createMockAuditLog = (
   createdAt: overrides?.createdAt ?? new Date("2024-01-15T10:00:00Z"),
   updatedAt: overrides?.updatedAt ?? new Date("2024-01-15T10:00:00Z"),
   actorId: overrides?.actorId ?? "actor-1",
-  data: overrides?.data ?? { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED" } },
+  data: overrides?.data ?? {
+    version: 1,
+    fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED" },
+  },
   source: "WEBAPP" as const,
   operationId: "operation-id-123",
   context: (overrides && "context" in overrides ? overrides.context : null) as BookingAuditContext | null,
   actor: {
     id: overrides?.actorId ?? "actor-1",
-    type: overrides?.actorType ?? "USER" as const,
-    userUuid: (overrides && "actorUserUuid" in overrides ? overrides.actorUserUuid : "user-uuid-123") as string | null,
+    type: overrides?.actorType ?? ("USER" as const),
+    userUuid: (overrides && "actorUserUuid" in overrides ? overrides.actorUserUuid : "user-uuid-123") as
+      | string
+      | null,
     attendeeId: null,
     credentialId: null,
     name: (overrides && "actorName" in overrides ? overrides.actorName : "John Doe") as string | null,
@@ -80,7 +89,9 @@ const createMockAuditLog = (
   },
 });
 
-const createMockUser = (overrides?: Partial<{ id: number; name: string | null; email: string; avatarUrl: string | null }>) => ({
+const createMockUser = (
+  overrides?: Partial<{ id: number; name: string | null; email: string; avatarUrl: string | null }>
+) => ({
   id: overrides?.id ?? 123,
   name: (overrides && "name" in overrides ? overrides.name : "John Doe") as string | null,
   email: overrides?.email ?? "john@example.com",
@@ -157,11 +168,21 @@ describe("BookingAuditViewerService - Integration Tests", () => {
       error: vi.fn(),
     };
 
-    vi.mocked(BookingRepository).mockImplementation(function () { return mockBookingRepository as unknown as BookingRepository; });
-    vi.mocked(UserRepository).mockImplementation(function () { return mockUserRepository as unknown as UserRepository; });
-    vi.mocked(MembershipRepository).mockImplementation(function () { return mockMembershipRepository as unknown as MembershipRepository; });
-    vi.mocked(PermissionCheckService).mockImplementation(function () { return mockPermissionCheckService as unknown as PermissionCheckService; });
-    vi.mocked(CredentialRepository).mockImplementation(function () { return mockCredentialRepository as unknown as CredentialRepository; });
+    vi.mocked(BookingRepository).mockImplementation(function () {
+      return mockBookingRepository as unknown as BookingRepository;
+    });
+    vi.mocked(UserRepository).mockImplementation(function () {
+      return mockUserRepository as unknown as UserRepository;
+    });
+    vi.mocked(MembershipRepository).mockImplementation(function () {
+      return mockMembershipRepository as unknown as MembershipRepository;
+    });
+    vi.mocked(PermissionCheckService).mockImplementation(function () {
+      return mockPermissionCheckService as unknown as PermissionCheckService;
+    });
+    vi.mocked(CredentialRepository).mockImplementation(function () {
+      return mockCredentialRepository as unknown as CredentialRepository;
+    });
 
     service = new BookingAuditViewerService({
       bookingAuditRepository: mockBookingAuditRepository as unknown as IBookingAuditRepository,
@@ -260,13 +281,16 @@ describe("BookingAuditViewerService - Integration Tests", () => {
             id: "log-1",
             action: "CREATED",
             timestamp: new Date("2024-01-15T10:00:00Z"),
-            data: { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED" } }
+            data: {
+              version: 1,
+              fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED" },
+            },
           }),
           createMockAuditLog({
             id: "log-2",
             action: "ACCEPTED",
             timestamp: new Date("2024-01-15T11:00:00Z"),
-            data: { version: 1, fields: { status: { old: "PENDING", new: "ACCEPTED" } } }
+            data: { version: 1, fields: { status: { old: "PENDING", new: "ACCEPTED" } } },
           }),
           createMockAuditLog({
             id: "log-3",
@@ -276,10 +300,10 @@ describe("BookingAuditViewerService - Integration Tests", () => {
               version: 1,
               fields: {
                 status: { old: "ACCEPTED", new: "CANCELLED" },
-                cancellationReason: { old: null, new: "User requested" },
-                cancelledBy: { old: null, new: "user-123" },
-              }
-            }
+                cancellationReason: "User requested",
+                cancelledBy: "user-123",
+              },
+            },
           }),
         ];
 
@@ -357,7 +381,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
       it("should use email as display name when user name is null", async () => {
         const mockLog = createMockAuditLog({
           actorType: "USER",
-          actorName: null
+          actorName: null,
         });
         const mockUser = createMockUser({ name: null, email: "user@example.com" });
 

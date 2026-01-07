@@ -110,7 +110,7 @@
         "rules": {
           "nursery": {
             "useQwikValidLexicalScope": "off",
-            "useExplicitType": "warn",
+            "useExplicitType": "info",
             "noReactForwardRef": "warn",
             "noTernary": "warn",
             "noUnresolvedImports": "warn"
