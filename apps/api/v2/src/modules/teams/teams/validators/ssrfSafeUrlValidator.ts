@@ -12,7 +12,7 @@ import { validateUrlForSSRFSync } from "@calcom/platform-libraries";
 @ValidatorConstraint({ name: "ssrfSafeUrl", async: false })
 export class SSRFSafeUrlValidator implements ValidatorConstraintInterface {
   validate(url: string): boolean {
-    // Allow empty/null values (handled by @IsOptional)
+    // Allow empty values (handled by @IsOptional + @IsString)
     if (!url) return true;
 
     const result = validateUrlForSSRFSync(url);

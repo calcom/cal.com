@@ -18,7 +18,7 @@ const ssrfSafeOptionalUrl: z.ZodEffects<
   .optional()
   .refine(
     (url) => {
-      if (!url) return true;
+      if (url == null) return true;
       return validateUrlForSSRFSync(url).isValid;
     },
     { message: "URL is not allowed for security reasons" }

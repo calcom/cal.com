@@ -31,7 +31,7 @@ export const optionalSsrfSafeUrlSchema: z.ZodEffects<
   .optional()
   .refine(
     (url) => {
-      if (!url) return true; // null/undefined allowed
+      if (url == null) return true; // null/undefined allowed
       return validateUrlForSSRFSync(url).isValid;
     },
     { message: "URL is not allowed for security reasons" }

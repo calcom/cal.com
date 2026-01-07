@@ -51,6 +51,7 @@ describe("isPrivateIP", () => {
 
 describe("isBlockedHostname", () => {
   it.each([
+    "localhost", // loopback hostname
     "169.254.169.254", // AWS/Azure/DigitalOcean
     "metadata.google.internal", // GCP
     "169.254.169.254.", // trailing dot normalization
@@ -79,6 +80,7 @@ describe("validateUrlForSSRFSync", () => {
     ["data:text/html,<script>alert(1)</script>", "Non-image data URL"],
     ["https://127.0.0.1/logo.png", "Private IP address"],
     ["https://169.254.169.254/latest/meta-data/", "Blocked hostname"],
+    ["https://localhost/logo.png", "Blocked hostname"],
     ["not-a-url", "Invalid URL format"],
   ])("blocks %s", (url, expectedError) => {
     const result = validateUrlForSSRFSync(url);

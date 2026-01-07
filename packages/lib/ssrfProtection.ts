@@ -38,6 +38,7 @@ const PRIVATE_IPV6_PATTERNS: RegExp[] = [
 
 // Cloud metadata endpoints and other blocked hostnames
 const BLOCKED_HOSTNAMES: string[] = [
+  "localhost", // loopback hostname
   "169.254.169.254", // AWS/Azure/DigitalOcean/Oracle metadata
   "169.254.169.253", // Azure alternate
   "metadata.google.internal", // GCP metadata
