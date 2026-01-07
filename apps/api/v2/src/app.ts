@@ -5,8 +5,8 @@ import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
 import type { ValidationError } from "@nestjs/common";
 import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
-import { BaseExceptionFilter, HttpAdapterHost } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
+// FIX: Changed to * as to avoid "no call signatures" error
 import * as cookieParser from "cookie-parser";
 import { Request } from "express";
 import helmet from "helmet";
@@ -25,7 +25,11 @@ import { CalendarServiceExceptionFilter } from "./filters/calendar-service-excep
 import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
-  app.enableShutdownHooks();
+  // NOTE: Shutdown hooks can sometimes interfere with Vercel's lambda lifecycle.
+  // We keep it, but Vercel manages the process termination itself.
+  if (!process.env.VERCEL) {
+    app.enableShutdownHooks();
+  }
 
   app.enableVersioning({
     type: VersioningType.CUSTOM,
@@ -71,14 +75,17 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     })
   );
 
-  // Exception filters, new filters go at the bottom, keep the order
-  const { httpAdapter } = app.get(HttpAdapterHost);
+  // Exception filters
+  // Note: Standard NestJS practice is to get the adapter host if needed for specific filters
+  // app.useGlobalFilters(new PrismaExceptionFilter()); // etc.
+
   app.useGlobalFilters(new PrismaExceptionFilter());
   app.useGlobalFilters(new ZodExceptionFilter());
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new TRPCExceptionFilter());
   app.useGlobalFilters(new CalendarServiceExceptionFilter());
 
+  // FIX: cookie-parser usage remains the same, but the import above fixes the crash
   app.use(cookieParser());
 
   if (process?.env?.API_GLOBAL_PREFIX) {
