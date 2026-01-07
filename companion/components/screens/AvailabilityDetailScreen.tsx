@@ -1,10 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
-import { GlassView } from "expo-glass-effect";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Switch, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Platform,
+  ScrollView,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
+import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
+
 import { FullScreenModal } from "@/components/FullScreenModal";
 import { TIMEZONES } from "@/constants/timezones";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
@@ -475,6 +485,18 @@ export const AvailabilityDetailScreen = forwardRef<
     setShowOverrideModal(false);
   };
 
+  const renderHeaderRight = () => (
+    <HeaderButtonWrapper side="right">
+      <AppPressable
+        onPress={handleSave}
+        disabled={saving}
+        className={`px-2 py-2 ${saving ? "opacity-50" : ""}`}
+      >
+        <Text className="text-[16px] font-semibold text-[#007AFF]">Save</Text>
+      </AppPressable>
+    </HeaderButtonWrapper>
+  );
+
   const formatDateForDisplay = (dateStr: string): string => {
     if (!dateStr) return "";
     const date = new Date(`${dateStr}T00:00:00`);
@@ -496,59 +518,33 @@ export const AvailabilityDetailScreen = forwardRef<
 
   return (
     <View className="flex-1 bg-[#f8f9fa]">
-      {/* Glass Header - only show when not using native header */}
-      {!useNativeHeader && (
-        <GlassView
-          style={[
-            {
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 1000,
-              paddingHorizontal: 16,
-              paddingBottom: 12,
-              paddingTop: insets.top + 8,
-            },
-          ]}
-          glassEffectStyle="clear"
-        >
-          <View className="min-h-[44px] flex-row items-center justify-between">
-            <AppPressable
-              className="h-10 w-10 items-start justify-center"
-              onPress={() => router.back()}
-            >
-              <Ionicons name="chevron-back" size={24} color="#000" />
-            </AppPressable>
-
-            <Text
-              className="mx-2.5 flex-1 text-center text-lg font-semibold text-black"
-              numberOfLines={1}
-            >
-              Edit Availability
-            </Text>
-
-            <AppPressable
-              className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${
-                saving ? "opacity-60" : ""
-              }`}
-              onPress={handleSave}
-              disabled={saving}
-            >
-              <Text className="text-base font-semibold text-white">Save</Text>
-            </AppPressable>
-          </View>
-        </GlassView>
-      )}
+      <Stack.Screen
+        options={{
+          headerShown: Platform.OS !== "ios",
+          title: "Edit Availability",
+          headerTitleStyle: {
+            color: "#000000",
+            fontSize: 17,
+            fontWeight: "600",
+          },
+          headerRight: renderHeaderRight,
+          headerTintColor: "#007AFF",
+          headerStyle: {
+            backgroundColor: "#f8f9fa",
+          },
+          headerTransparent: Platform.OS === "ios",
+          headerShadowVisible: false,
+        }}
+      />
 
       <ScrollView
         className="flex-1"
-        style={{ paddingTop: useNativeHeader ? 0 : insets.top + 70 }}
         contentContainerStyle={{ padding: 16, paddingBottom: 200 }}
+        contentInsetAdjustmentBehavior="automatic"
       >
-        <View className="gap-4">
+        <View className="gap-3">
           {/* Availability Name */}
-          <View className="rounded-2xl bg-white p-6">
+          <View className="rounded-2xl bg-white p-5">
             <Text className="mb-3 text-base font-semibold text-[#333]">Availability Name</Text>
             <TextInput
               value={scheduleName}
@@ -560,7 +556,7 @@ export const AvailabilityDetailScreen = forwardRef<
           </View>
 
           {/* Working Hours Display */}
-          <View className="rounded-2xl bg-white p-6">
+          <View className="rounded-2xl bg-white p-5">
             <Text className="mb-3 text-xl font-bold text-[#333]">Working Hours</Text>
             {Object.keys(availability).length > 0 ? (
               <View>
@@ -576,7 +572,7 @@ export const AvailabilityDetailScreen = forwardRef<
           </View>
 
           {/* Availability Schedule */}
-          <View className="rounded-2xl bg-white p-6">
+          <View className="rounded-2xl bg-white p-5">
             <Text className="mb-4 text-xl font-bold text-[#333]">Availability</Text>
             {DAYS.map((day, dayIndex) => {
               const daySlots = availability[dayIndex] || [];
@@ -704,7 +700,7 @@ export const AvailabilityDetailScreen = forwardRef<
           </View>
 
           {/* Timezone */}
-          <View className="rounded-2xl bg-white p-6">
+          <View className="rounded-2xl bg-white p-5">
             <Text className="mb-3 text-xl font-bold text-[#333]">Timezone</Text>
             <AppPressable
               onPress={() => setShowTimezoneModal(true)}
@@ -716,7 +712,7 @@ export const AvailabilityDetailScreen = forwardRef<
           </View>
 
           {/* Date Overrides */}
-          <View className="rounded-2xl bg-white p-6">
+          <View className="rounded-2xl bg-white p-5">
             <Text className="mb-2 text-xl font-bold text-[#333]">Date overrides</Text>
             <Text className="mb-4 text-base text-[#666]">
               Add dates when your availability changes from your daily hours.
@@ -767,7 +763,7 @@ export const AvailabilityDetailScreen = forwardRef<
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <GlassView
+      <View
         style={{
           position: "absolute",
           bottom: 0,
@@ -780,7 +776,6 @@ export const AvailabilityDetailScreen = forwardRef<
           borderTopColor: "#E5E5EA",
           paddingBottom: insets.bottom + 12,
         }}
-        glassEffectStyle="clear"
       >
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">
@@ -795,20 +790,17 @@ export const AvailabilityDetailScreen = forwardRef<
           </View>
 
           <View className="flex-row items-center gap-3">
-            <GlassView
-              className="overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]"
-              glassEffectStyle="clear"
-            >
+            <View className="overflow-hidden rounded-full">
               <AppPressable
-                className="h-11 w-11 items-center justify-center"
+                className="h-11 w-11 items-center justify-center rounded-full bg-[#FFE5E5]"
                 onPress={handleDelete}
               >
                 <Ionicons name="trash-outline" size={20} color="#800020" />
               </AppPressable>
-            </GlassView>
+            </View>
           </View>
         </View>
-      </GlassView>
+      </View>
 
       {/* Timezone Modal */}
       <FullScreenModal
