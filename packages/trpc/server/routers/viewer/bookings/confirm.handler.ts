@@ -2,6 +2,8 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
@@ -52,7 +54,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     confirmed,
     emailsEnabled,
     platformClientParams,
+    actionSource: inputActionSource,
   } = input;
+
+  const actionSource = inputActionSource ?? "WEBAPP";
 
   const booking = await prisma.booking.findUniqueOrThrow({
     where: {
@@ -327,10 +332,15 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       recurringEventId,
       prisma,
       bookingId,
-      booking,
+      booking: {
+        ...booking,
+        status: booking.status,
+      },
       emailsEnabled,
       platformClientParams,
       traceContext,
+      actionSource,
+      userUuid: ctx.user.uuid,
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -380,6 +390,25 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     });
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+
+    // Audit logging for booking rejection
+    try {
+      const bookingEventHandlerService = getBookingEventHandlerService();
+      const actor = makeUserActor(ctx.user.uuid);
+
+      await bookingEventHandlerService.onBookingRejected({
+        bookingUid: booking.uid,
+        actor,
+        organizationId: orgId ?? null,
+        auditData: {
+          rejectionReason: { old: null, new: rejectionReason ?? null },
+          status: { old: booking.status, new: BookingStatus.REJECTED },
+        },
+        source: actionSource,
+      });
+    } catch (error) {
+      console.error("Error while logging booking rejection audit:", error);
+    }
 
     // send BOOKING_REJECTED webhooks
     const subscriberOptions: GetSubscriberOptions = {

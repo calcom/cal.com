@@ -1,6 +1,9 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -30,6 +33,7 @@ import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@cal
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import { v4 as uuidv4 } from "uuid";
 
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
@@ -72,12 +76,15 @@ export async function handleConfirmation(args: {
     smsReminderNumber: string | null;
     userId: number | null;
     location: string | null;
+    status: string;
   };
   paid?: boolean;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
   traceContext: TraceContext;
-}) {
+  actionSource?: ActionSource;
+  userUuid?: string;
+}){
   const {
     user,
     evt,
@@ -89,6 +96,8 @@ export async function handleConfirmation(args: {
     emailsEnabled = true,
     platformClientParams,
     traceContext,
+    actionSource,
+    userUuid,
   } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
@@ -337,6 +346,53 @@ export async function handleConfirmation(args: {
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
   const bookerUrl = await getBookerBaseUrl(orgId ?? null);
+
+  // Audit logging for booking acceptance
+  try {
+    const resolvedActionSource = actionSource ?? "UNKNOWN";
+    if (resolvedActionSource === "UNKNOWN") {
+      log.warn("handleConfirmation called with unknown actionSource", { bookingUid: booking.uid });
+    }
+
+    if (userUuid) {
+      const bookingEventHandlerService = getBookingEventHandlerService();
+      const actor = makeUserActor(userUuid);
+
+      if (updatedBookings.length > 1) {
+        // Bulk acceptance for recurring bookings
+        const operationId = uuidv4();
+        await bookingEventHandlerService.onBulkBookingsAccepted({
+          bookings: updatedBookings.map((updatedBooking) => ({
+            bookingUid: updatedBooking.uid,
+            auditData: {
+              status: { old: booking.status, new: BookingStatus.ACCEPTED },
+            },
+          })),
+          actor,
+          organizationId: orgId ?? null,
+          operationId,
+          source: resolvedActionSource,
+        });
+      } else if (updatedBookings.length === 1) {
+        // Single booking acceptance
+        await bookingEventHandlerService.onBookingAccepted({
+          bookingUid: updatedBookings[0].uid,
+          actor,
+          organizationId: orgId ?? null,
+          auditData: {
+            status: { old: booking.status, new: BookingStatus.ACCEPTED },
+          },
+          source: resolvedActionSource,
+        });
+      }
+    } else {
+      log.warn("handleConfirmation called without userUuid, skipping audit logging", {
+        bookingUid: booking.uid,
+      });
+    }
+  } catch (error) {
+    log.error("Error while logging booking acceptance audit", safeStringify(error));
+  }
 
   //Workflows - set reminders for confirmed events
   try {
