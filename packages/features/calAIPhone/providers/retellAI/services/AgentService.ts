@@ -2,7 +2,6 @@ import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { v4 as uuidv4 } from "uuid";
 
 import { PrismaApiKeyRepository } from "@calcom/features/ee/api-keys/repositories/PrismaApiKeyRepository";
-import { replaceEventTypePlaceholders } from "@calcom/features/ee/workflows/components/agent-configuration/utils/promptUtils";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { RETELL_AI_TEST_MODE, RETELL_AI_TEST_EVENT_TYPE_MAP } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
@@ -22,6 +21,7 @@ import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumbe
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
 import type { RetellAIRepository, Language } from "../types";
 import { getLlmId } from "../types";
+import { replaceEventTypePlaceholders } from "../utils/promptUtils";
 
 type Dependencies = {
   retellRepository: RetellAIRepository;
