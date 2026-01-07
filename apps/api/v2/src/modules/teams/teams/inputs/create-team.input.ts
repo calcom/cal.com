@@ -21,6 +21,7 @@ export class CreateTeamInput {
   readonly slug?: string;
 
   @IsOptional()
+  @IsString()
   @Validate(SSRFSafeUrlValidator)
   @ApiPropertyOptional({
     type: String,
@@ -30,16 +31,19 @@ export class CreateTeamInput {
   readonly logoUrl?: string;
 
   @IsOptional()
+  @IsString()
   @Validate(SSRFSafeUrlValidator)
   @ApiPropertyOptional()
   readonly calVideoLogo?: string;
 
   @IsOptional()
+  @IsString()
   @Validate(SSRFSafeUrlValidator)
   @ApiPropertyOptional()
   readonly appLogo?: string;
 
   @IsOptional()
+  @IsString()
   @Validate(SSRFSafeUrlValidator)
   @ApiPropertyOptional()
   readonly appIconLogo?: string;
@@ -90,6 +94,7 @@ export class CreateTeamInput {
   readonly darkBrandColor?: string;
 
   @IsOptional()
+  @IsString()
   @Validate(SSRFSafeUrlValidator)
   @ApiPropertyOptional({
     type: String,

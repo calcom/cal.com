@@ -22,6 +22,7 @@ const PRIVATE_IPV4_PATTERNS: RegExp[] = [
   /^192\.168\./, // 192.168.0.0/16 private
   /^169\.254\./, // 169.254.0.0/16 link-local
   /^0\./, // 0.0.0.0/8
+  /^100\.(6[4-9]|[7-9]\d|1[0-1]\d|12[0-7])\./, // 100.64.0.0/10 shared
 ];
 
 // Private IPv6 patterns

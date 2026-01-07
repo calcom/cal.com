@@ -16,6 +16,8 @@ describe("isPrivateIP", () => {
     "192.168.0.1",
     "169.254.169.254", // AWS metadata
     "0.0.0.0",
+    "100.64.0.1", // RFC 6598 CGNAT start
+    "100.127.255.254", // RFC 6598 CGNAT end
   ])("blocks private IPv4 %s", (ip) => {
     expect(isPrivateIP(ip)).toBe(true);
   });
@@ -25,6 +27,8 @@ describe("isPrivateIP", () => {
     "172.32.0.0", // just outside 172.16.0.0/12
     "8.8.8.8",
     "203.0.113.1",
+    "100.63.255.255", // just below RFC 6598
+    "100.128.0.0", // just above RFC 6598
   ])("allows public IPv4 %s", (ip) => {
     expect(isPrivateIP(ip)).toBe(false);
   });

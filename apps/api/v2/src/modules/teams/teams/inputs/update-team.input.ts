@@ -17,6 +17,7 @@ export class UpdateTeamDto {
   readonly slug?: string;
 
   @IsOptional()
+  @IsString()
   @Validate(SSRFSafeUrlValidator)
   @ApiPropertyOptional({
     type: String,
@@ -26,16 +27,19 @@ export class UpdateTeamDto {
   readonly logoUrl?: string;
 
   @IsOptional()
+  @IsString()
   @Validate(SSRFSafeUrlValidator)
   @ApiPropertyOptional()
   readonly calVideoLogo?: string;
 
   @IsOptional()
+  @IsString()
   @Validate(SSRFSafeUrlValidator)
   @ApiPropertyOptional()
   readonly appLogo?: string;
 
   @IsOptional()
+  @IsString()
   @Validate(SSRFSafeUrlValidator)
   @ApiPropertyOptional()
   readonly appIconLogo?: string;
@@ -86,6 +90,7 @@ export class UpdateTeamDto {
   readonly darkBrandColor?: string;
 
   @IsOptional()
+  @IsString()
   @Validate(SSRFSafeUrlValidator)
   @ApiPropertyOptional({
     type: String,
