@@ -10,6 +10,21 @@ export class OAuthClientRepository {
       },
       select: {
         redirectUri: true,
+        clientType: true,
+        name: true,
+        logo: true,
+        clientId: true,
+        isTrusted: true,
+      },
+    });
+  }
+
+  async findByClientIdWithSecret(clientId: string) {
+    return this.prisma.oAuthClient.findUnique({
+      where: { clientId },
+      select: {
+        clientId: true,
+        redirectUri: true,
         clientSecret: true,
         clientType: true,
       },
