@@ -58,11 +58,7 @@ async function getTeamHostsFromDB({
   limit?: number;
   excludeUserId?: number;
 }): Promise<TeamHostsResult> {
-  const queryWhere = buildHostQueryWhere(
-    eventTypeId,
-    excludeUserId,
-    searchTerm
-  );
+  const queryWhere = buildHostQueryWhere(eventTypeId, excludeUserId, searchTerm);
   const [totalCount, _hosts] = await Promise.all([
     prisma.host.count({ where: queryWhere }),
     prisma.host.findMany({
@@ -136,8 +132,7 @@ async function processHostsQueryResult(
   }));
   let nextCursor: number | null;
   if (hasNextPage) {
-    nextCursor = (hostsSubset[hostsSubset.length - 1].user as { id: number })
-      .id;
+    nextCursor = (hostsSubset[hostsSubset.length - 1].user as { id: number }).id;
   } else {
     nextCursor = null;
   }
@@ -179,10 +174,7 @@ async function getAvailableUsers(
       gettingRoundRobinHostsToReassignLogger
     );
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message === ErrorCode.NoAvailableUsersFound
-    ) {
+    if (error instanceof Error && error.message === ErrorCode.NoAvailableUsersFound) {
       return [];
     }
     gettingRoundRobinHostsToReassignLogger.error(error);
@@ -290,8 +282,12 @@ function adjustPaginationForFiltering(
   nextCursor: number | null,
   itemsLength: number
 ): { adjustedTotalCount: number; adjustedNextCursor: number | null } {
-  if (isTeamAdminOrOwner || userHostGroupIds.length === 0) {
+  if (isTeamAdminOrOwner) {
     return { adjustedTotalCount: totalCount, adjustedNextCursor: nextCursor };
+  }
+  // Non-admin users without host group membership get empty results
+  if (userHostGroupIds.length === 0) {
+    return { adjustedTotalCount: 0, adjustedNextCursor: null };
   }
   return { adjustedTotalCount: itemsLength, adjustedNextCursor: null };
 }
@@ -327,9 +323,7 @@ async function fetchBookingWithEventType(
 }
 
 type FilteredHostsResult = {
-  filteredHosts: Awaited<
-    ReturnType<typeof enrichUsersWithDelegationCredentials>
-  >;
+  filteredHosts: Awaited<ReturnType<typeof enrichUsersWithDelegationCredentials>>;
   isTeamAdminOrOwner: boolean;
   userHostGroupIds: string[];
 };
@@ -340,18 +334,10 @@ async function getFilteredHostsForReassign(
   booking: BookingWithEventType,
   hosts: Awaited<ReturnType<typeof enrichUsersWithDelegationCredentials>>
 ): Promise<FilteredHostsResult> {
-  const isTeamAdminOrOwner = await checkIsTeamAdminOrOwner(
-    prisma,
-    userId,
-    booking.eventType?.teamId
-  );
+  const isTeamAdminOrOwner = await checkIsTeamAdminOrOwner(prisma, userId, booking.eventType?.teamId);
   let userHostGroupIds: string[] = [];
   if (!isTeamAdminOrOwner) {
-    userHostGroupIds = await getUserHostGroupIds(
-      prisma,
-      userId,
-      booking.eventTypeId
-    );
+    userHostGroupIds = await getUserHostGroupIds(prisma, userId, booking.eventTypeId);
   }
   const filteredHosts = await filterHostsByGroup(
     prisma,
@@ -363,9 +349,7 @@ async function getFilteredHostsForReassign(
   return { filteredHosts, isTeamAdminOrOwner, userHostGroupIds };
 }
 
-function getExcludeUserIdForReassign(
-  booking: BookingWithEventType
-): number | undefined {
+function getExcludeUserIdForReassign(booking: BookingWithEventType): number | undefined {
   const hostGroupCount = booking.eventType?._count?.hostGroups ?? 0;
   if (hostGroupCount > 1) {
     return undefined;
@@ -399,8 +383,12 @@ export const getRoundRobinHostsToReassign = async ({
     excludeUserId,
   });
 
-  const { filteredHosts, isTeamAdminOrOwner, userHostGroupIds } =
-    await getFilteredHostsForReassign(prisma, user.id, booking, hosts);
+  const { filteredHosts, isTeamAdminOrOwner, userHostGroupIds } = await getFilteredHostsForReassign(
+    prisma,
+    user.id,
+    booking,
+    hosts
+  );
 
   const availableUsers = await getAvailableUsers(
     filteredHosts as IsFixedAwareUser[],
@@ -411,14 +399,13 @@ export const getRoundRobinHostsToReassign = async ({
 
   const availableUserIds = new Set(availableUsers.map((u) => u.id));
   const items = buildResponseItems(filteredHosts, availableUserIds);
-  const { adjustedTotalCount, adjustedNextCursor } =
-    adjustPaginationForFiltering(
-      isTeamAdminOrOwner,
-      userHostGroupIds,
-      totalCount,
-      nextCursor,
-      items.length
-    );
+  const { adjustedTotalCount, adjustedNextCursor } = adjustPaginationForFiltering(
+    isTeamAdminOrOwner,
+    userHostGroupIds,
+    totalCount,
+    nextCursor,
+    items.length
+  );
 
   return {
     items,
