@@ -1,4 +1,6 @@
 {
+  "workflow_status": "ওয়ার্কফ্লো স্ট্যাটাস",
+  "workflow_reminders": "ওয়ার্কফ্লো অটোমেশন",
   "pw_check_least_char": "কমপক্ষে 7 অক্ষর",
   "pw_check_mix_case": "বড় হাতের এবং ছোট হাতের মিশ্রণ",
   "pw_check_number": "কমপক্ষে একটি নম্বর",
@@ -3584,9 +3586,11 @@
   "workflow_trends": "কর্মপ্রবাহ ট্রেন্ড",
   "workflow_type": "কর্মপ্রবাহের ধরন",
   "workflows_triggered": "মোট কর্মপ্রবাহ ট্রিগার হয়েছে",
+  "workflows_queued": "ওয়ার্কফ্লো সারিবদ্ধ",
   "workflows_sent": "কর্মপ্রবাহ পাঠানো হয়েছে",
   "workflows_read": "কর্মপ্রবাহ পড়া হয়েছে",
   "workflows_failed": "কর্মপ্রবাহ ব্যর্থ হয়েছে",
+  "workflows_cancelled": "ওয়ার্কফ্লো বাতিল হয়েছে",
   "others": "অন্যান্য",
   "upload_logo_description": "আপনার পাবলিক পৃষ্ঠার জন্য একটি লোগো আপলোড করুন",
   "team_appearance_theme_title": "বুকিং পৃষ্ঠা থিম",
