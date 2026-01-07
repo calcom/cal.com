@@ -64,6 +64,7 @@
     "./dist/index.d.ts": "./dist/index.d.ts",
     "./event-types/wrappers/EventTypeWebWrapper": "./event-types/wrappers/EventTypeWebWrapper.tsx",
     "./globals.min.css": "./globals.min.css",
+    "./hooks/bookings/useBookings": "./hooks/bookings/useBookings.ts",
     "./hooks/bookings/useHandleBookEvent": "./hooks/bookings/useHandleBookEvent.ts",
     "./hooks/useAtomsContext": "./hooks/useAtomsContext.ts",
     "./hooks/useIsPlatform": "./hooks/useIsPlatform.ts",
