@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction, JSX } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import type { Control, ControllerRenderProps } from "react-hook-form";
 import { Controller, useForm } from "react-hook-form";
 
