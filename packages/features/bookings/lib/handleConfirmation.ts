@@ -65,8 +65,12 @@ async function fireBookingAcceptedEvent({
     status: BookingStatus;
   }[];
 }) {
-  const bookingEventHandlerService = getBookingEventHandlerService();
   const actor = getActor({ userUuid, actor: null });
+  // Skip audit logging if we don't have a valid actor
+  if (!actor) {
+    return;
+  }
+  const bookingEventHandlerService = getBookingEventHandlerService();
   if (updatedBookings.length > 1) {
     const operationId = uuidv4();
     await bookingEventHandlerService.onBulkBookingsAccepted({
