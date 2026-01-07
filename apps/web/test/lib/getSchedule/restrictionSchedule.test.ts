@@ -5,7 +5,7 @@ import {
   Timezones,
   TestData,
   type ScenarioData,
-} from "../../utils/bookingScenario/bookingScenario";
+} from "../../../../../tests/libs/bookingScenario/bookingScenario";
 
 import { describe, test, vi } from "vitest";
 import type { z } from "zod";

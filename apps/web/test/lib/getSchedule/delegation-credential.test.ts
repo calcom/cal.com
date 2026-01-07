@@ -7,8 +7,8 @@ import {
   createDelegationCredential,
   createOrganization,
   getOrganizer,
-} from "../../utils/bookingScenario/bookingScenario";
-import { expectNoAttemptToGetAvailability } from "../../utils/bookingScenario/expects";
+} from "../../../../../tests/libs/bookingScenario/bookingScenario";
+import { expectNoAttemptToGetAvailability } from "../../../../../tests/libs/bookingScenario/expects";
 
 import { describe, test } from "vitest";
 
