@@ -261,8 +261,9 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
  * - "slots": For getting actual calendar availability (uses cache when available)
  * - "overlay": For getting overlay calendar availability (does not use cache)
  * - "booking": For booking confirmation (does not use cache)
+ * - "none": For operations that don't use getAvailability (e.g., deleteEvent, listCalendars)
  */
-export type CalendarFetchMode = "slots" | "overlay" | "booking";
+export type CalendarFetchMode = "slots" | "overlay" | "booking" | "none";
 
 /**
  * Parameters for getAvailability and getAvailabilityWithTimeZones methods
