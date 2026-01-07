@@ -16,10 +16,10 @@ import {
   getBooker,
   getScenarioData,
   mockCalendar,
-} from "../../../../../../tests/libs/bookingScenario/bookingScenario";
-import { expectBookingToBeInDatabase } from "../../../../../../tests/libs/bookingScenario/expects";
-import { getMockRequestDataForDynamicGroupBooking } from "../../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "../../../../../../tests/libs/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/libs/bookingScenario/bookingScenario";
+import { expectBookingToBeInDatabase } from "@calcom/testing/libs/bookingScenario/expects";
+import { getMockRequestDataForDynamicGroupBooking } from "@calcom/testing/libs/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/libs/bookingScenario/setupAndTeardown";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -27,7 +27,7 @@ import { describe, expect } from "vitest";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "../../../../../../tests/libs/fixtures/fixtures";
+import { test } from "@calcom/testing/libs/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 

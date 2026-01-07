@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "@calcom/testing/libs/__mocks__/prisma";
 
 import {
   getBooker,
@@ -12,11 +12,11 @@ import {
   BookingLocations,
   getDate,
   getMockBookingAttendee,
-} from "../../../../../../tests/libs/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "../../../../../../tests/libs/bookingScenario/createMockNextJsRequest";
-import { getMockRequestDataForBooking } from "../../../../../../tests/libs/bookingScenario/getMockRequestDataForBooking";
-import { getMockRequestDataForCancelBooking } from "../../../../../../tests/libs/bookingScenario/getMockRequestDataForCancelBooking";
-import { setupAndTeardown } from "../../../../../../tests/libs/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/libs/bookingScenario/bookingScenario";
+import { createMockNextJsRequest } from "@calcom/testing/libs/bookingScenario/createMockNextJsRequest";
+import { getMockRequestDataForBooking } from "@calcom/testing/libs/bookingScenario/getMockRequestDataForBooking";
+import { getMockRequestDataForCancelBooking } from "@calcom/testing/libs/bookingScenario/getMockRequestDataForCancelBooking";
+import { setupAndTeardown } from "@calcom/testing/libs/bookingScenario/setupAndTeardown";
 
 import { describe, test, vi, expect } from "vitest";
 

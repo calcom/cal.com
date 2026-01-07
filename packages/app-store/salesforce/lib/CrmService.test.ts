@@ -1,4 +1,4 @@
-import { setupAndTeardown } from "../../../../tests/libs/bookingScenario/setupAndTeardown";
+import { setupAndTeardown } from "@calcom/testing/libs/bookingScenario/setupAndTeardown";
 
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import type { z } from "zod";

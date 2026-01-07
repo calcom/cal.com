@@ -3,8 +3,8 @@ import {
   Timezones,
   createBookingScenario,
   replaceDates,
-} from "../../../../../tests/libs/bookingScenario/bookingScenario";
-import type { ScenarioData } from "../../../../../tests/libs/bookingScenario/bookingScenario";
+} from "@calcom/testing/libs/bookingScenario/bookingScenario";
+import type { ScenarioData } from "@calcom/testing/libs/bookingScenario/bookingScenario";
 
 import { describe, expect, vi, test } from "vitest";
 

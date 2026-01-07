@@ -5,7 +5,7 @@ import {
   TestData,
   mockCalendarToHaveNoBusySlots,
   type ScenarioData,
-} from "../../../../../tests/libs/bookingScenario/bookingScenario";
+} from "@calcom/testing/libs/bookingScenario/bookingScenario";
 
 import type { IncomingMessage } from "node:http";
 import { describe, test, beforeEach, vi } from "vitest";
