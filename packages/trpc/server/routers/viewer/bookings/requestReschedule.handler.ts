@@ -1,10 +1,13 @@
-import type { TFunction } from "i18next";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { getDelegationCredentialOrRegularCredential } from "@calcom/app-store/delegationCredential";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import {
+  getDelegationCredentialOrRegularCredential,
+  getUsersCredentialsIncludeServiceAccountKey,
+} from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails/email-manager";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
@@ -13,8 +16,8 @@ import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/W
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
-  deleteWebhookScheduledTriggers,
   cancelNoShowTasksForBooking,
+  deleteWebhookScheduledTriggers,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
@@ -27,12 +30,12 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingWebhookFactory } from "@calcom/lib/server/service/BookingWebhookFactory";
 import { prisma } from "@calcom/prisma";
 import type { BookingReference, EventType } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { Person } from "@calcom/types/Calendar";
-
 import { TRPCError } from "@trpc/server";
+import type { TFunction } from "i18next";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TRequestRescheduleInputSchema } from "./requestReschedule.schema";
@@ -305,4 +308,20 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     })
   );
   await Promise.all(promises);
+
+  // Audit logging for reschedule request
+  const actionSource: ActionSource = "WEBAPP";
+  const actor = makeUserActor(user.uuid);
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  await bookingEventHandlerService.onRescheduleRequested({
+    bookingUid: bookingToReschedule.uid,
+    actor,
+    organizationId: orgId ?? null,
+    source: actionSource,
+    auditData: {
+      cancellationReason: { old: null, new: cancellationReason ?? null },
+      cancelledBy: { old: null, new: user.email },
+      rescheduled: { old: null, new: true },
+    },
+  });
 };
