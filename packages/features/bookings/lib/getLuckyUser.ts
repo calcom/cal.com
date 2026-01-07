@@ -1,7 +1,8 @@
-import { acrossQueryValueCompatiblity } from "@calcom/app-store/_utils/raqb/raqbUtils";
+import { acrossQueryValueCompatiblity } from "@calcom/app-store/_utils/raqb/raqbUtils.server";
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
+import type { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 import type { HostRepository } from "@calcom/features/host/repositories/HostRepository";
@@ -11,7 +12,6 @@ import type { UserRepository } from "@calcom/features/users/repositories/UserRep
 import logger from "@calcom/lib/logger";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import type { Prisma } from "@calcom/prisma/client";
 import type { User, Booking, SelectedCalendar } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
@@ -502,10 +502,10 @@ export class LuckyUserService implements ILuckyUserService {
         type?: string | undefined;
         properties?:
           | {
-              field?: string;
-              operator?: string;
-              value?: string[][];
-              valueSrc?: string;
+              field?: string | null;
+              operator?: string | null;
+              value?: (string | string[])[];
+              valueSrc?: string[];
             }
           | undefined;
       }
@@ -524,8 +524,9 @@ export class LuckyUserService implements ILuckyUserService {
       const allRRHostsWeights = new Map<number, number[]>();
 
       if (attributeId === attributeWithWeights.id && obj.value) {
-        obj.value.forEach((arrayobj: string[]) => {
-          arrayobj.forEach((attributeOption: string) => {
+        obj.value.forEach((valueItem) => {
+          const attributeOptions = Array.isArray(valueItem) ? valueItem : [valueItem];
+          attributeOptions.forEach((attributeOption: string) => {
             const attributeOptionWithUsers = attributeWithWeights.options.find(
               (option) => option.value.toLowerCase() === attributeOption.toLowerCase()
             );
@@ -570,10 +571,10 @@ export class LuckyUserService implements ILuckyUserService {
         type?: string | undefined;
         properties?:
           | {
-              field?: string;
-              operator?: string;
-              value?: string[][];
-              valueSrc?: string;
+              field?: string | null;
+              operator?: string | null;
+              value?: (string | string[])[];
+              valueSrc?: string[];
             }
           | undefined;
       }
@@ -591,8 +592,9 @@ export class LuckyUserService implements ILuckyUserService {
       const attributeId = obj.field;
 
       if (attributeId === attributeWithWeights.id && obj.value) {
-        obj.value.some((arrayobj: string[]) => {
-          arrayobj.some((attributeOptionId: string) => {
+        obj.value.some((valueItem) => {
+          const attributeOptionIds = Array.isArray(valueItem) ? valueItem : [valueItem];
+          return attributeOptionIds.some((attributeOptionId: string) => {
             const content = attributeOptionId.slice(1, -1);
 
             const routingFormFieldId = content.includes("field:") ? content.split("field:")[1] : null;
@@ -602,6 +604,7 @@ export class LuckyUserService implements ILuckyUserService {
               selectionOptions = { fieldId: routingFormFieldId, selectedOptionIds: fieldResponse.value };
               return true;
             }
+            return false;
           });
         });
       }

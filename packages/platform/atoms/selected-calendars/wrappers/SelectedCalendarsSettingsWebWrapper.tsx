@@ -1,8 +1,8 @@
 import Link from "next/link";
 import React from "react";
 
-import AppListCard from "@calcom/features/apps/components/AppListCard";
-import CredentialActionsDropdown from "@calcom/features/apps/components/CredentialActionsDropdown";
+import AppListCard from "@calcom/web/modules/apps/components/AppListCard";
+import CredentialActionsDropdown from "@calcom/web/modules/apps/components/CredentialActionsDropdown";
 import AdditionalCalendarSelector from "@calcom/features/calendars/AdditionalCalendarSelector";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
