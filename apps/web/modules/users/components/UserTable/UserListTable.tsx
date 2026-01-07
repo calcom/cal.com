@@ -49,7 +49,7 @@ import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
 import type { UserTableState, UserTableAction, UserTableUser } from "./types";
-import type { MemberPermissions } from "@calcom/types/MemberPermissions";
+import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 
 const initialState: UserTableState = {
   changeMemberRole: {
