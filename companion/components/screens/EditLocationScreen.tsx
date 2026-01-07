@@ -29,8 +29,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useUpdateLocation } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
-import { CalComAPIService } from "@/services/calcom";
 import { safeLogError } from "@/utils/safeLogger";
 
 export const LOCATION_TYPES = {
@@ -113,7 +113,9 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
     const [selectedType, setSelectedType] = useState<LocationTypeId>("link");
     const [inputValue, setInputValue] = useState("");
     const [showTypePicker, setShowTypePicker] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
+
+    // Use React Query mutation for automatic cache invalidation
+    const { mutate: updateLocation, isPending: isSaving } = useUpdateLocation();
 
     // Detect location type from current location but don't pre-fill the input
     useEffect(() => {
@@ -130,7 +132,7 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
 
     const selectedTypeConfig = LOCATION_TYPES[selectedType];
 
-    const handleSubmit = useCallback(async () => {
+    const handleSubmit = useCallback(() => {
       if (!booking || isSaving) return;
 
       const trimmedValue = inputValue.trim();
@@ -164,19 +166,24 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
           locationPayload = { type: "address", address: trimmedValue };
       }
 
-      setIsSaving(true);
-      try {
-        await CalComAPIService.updateLocationV2(booking.uid, locationPayload);
-        Alert.alert("Success", "Location updated successfully", [
-          { text: "OK", onPress: onSuccess },
-        ]);
-        setIsSaving(false);
-      } catch (error) {
-        safeLogError("[EditLocationScreen] Failed to update location:", error);
-        Alert.alert("Error", "Failed to update location. Please try again.");
-        setIsSaving(false);
-      }
-    }, [booking, selectedType, inputValue, onSuccess, isSaving]);
+      updateLocation(
+        {
+          uid: booking.uid,
+          location: locationPayload,
+        },
+        {
+          onSuccess: () => {
+            Alert.alert("Success", "Location updated successfully", [
+              { text: "OK", onPress: onSuccess },
+            ]);
+          },
+          onError: (error) => {
+            safeLogError("[EditLocationScreen] Failed to update location:", error);
+            Alert.alert("Error", "Failed to update location. Please try again.");
+          },
+        }
+      );
+    }, [booking, selectedType, inputValue, onSuccess, isSaving, updateLocation]);
 
     useImperativeHandle(
       ref,

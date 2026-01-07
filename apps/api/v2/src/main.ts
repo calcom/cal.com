@@ -5,6 +5,7 @@ import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import "dotenv/config";
 import { WinstonModule } from "nest-winston";
+import * as qs from "qs";
 
 import { bootstrap } from "./app";
 import { AppModule } from "./app.module";
@@ -35,8 +36,12 @@ async function run() {
 }
 
 export async function createNestApp() {
-  return NestFactory.create<NestExpressApplication>(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger(loggerConfig()),
     bodyParser: false,
   });
+
+  app.set("query parser", (str: string) => qs.parse(str, { arrayLimit: 1000 }));
+
+  return app;
 }
