@@ -141,6 +141,7 @@ export const handleNewRecurringBooking = async function (this: RecurringBookingS
       actorUserUuid: input.userUuid ?? null,
       rescheduledBy: firstBooking.rescheduledBy ?? null,
       creationSource,
+      impersonatedByUserUuid: input.impersonatedByUserUuid,
     });
   }
 
@@ -158,7 +159,7 @@ export interface IRecurringBookingServiceDependencies {
 export class RecurringBookingService implements IBookingService {
   constructor(private readonly deps: IRecurringBookingServiceDependencies) { }
 
-  async fireBookingEvents({ createdBookings, eventTypeId, rescheduleUid, actorUserUuid, rescheduledBy, creationSource }: { createdBookings: BookingResponse[], eventTypeId: number, rescheduleUid: string | null, actorUserUuid: string | null, rescheduledBy: string | null, creationSource: CreationSource | undefined }) {
+  async fireBookingEvents({ createdBookings, eventTypeId, rescheduleUid, actorUserUuid, rescheduledBy, creationSource, impersonatedByUserUuid }: { createdBookings: BookingResponse[], eventTypeId: number, rescheduleUid: string | null, actorUserUuid: string | null, rescheduledBy: string | null, creationSource: CreationSource | undefined, impersonatedByUserUuid?: string }) {
     type ValidBooking = BookingResponse & { uid: string; startTime: Date; endTime: Date; status: BookingStatus; userUuid: string | null };
     type ValidRescheduledBooking = ValidBooking & { previousBooking: ValidBooking & { status: BookingStatus } };
 
@@ -205,6 +206,9 @@ export class RecurringBookingService implements IBookingService {
       )
     }
 
+    // Build the audit context with impersonation information if available
+    const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
+
     if (isReschedule) {
       const bulkRescheduledBookings = createdBookings
         .filter(isValidRescheduledBooking)
@@ -220,6 +224,7 @@ export class RecurringBookingService implements IBookingService {
           organizationId: eventOrganizationId,
           operationId,
           source: actionSource,
+          context: auditContext,
         });
       }
     } else {
@@ -238,6 +243,7 @@ export class RecurringBookingService implements IBookingService {
           organizationId: eventOrganizationId,
           operationId,
           source: actionSource,
+          context: auditContext,
         });
       }
     }
