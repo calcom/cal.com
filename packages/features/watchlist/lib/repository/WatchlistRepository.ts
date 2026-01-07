@@ -169,6 +169,17 @@ export class WatchlistRepository implements IWatchlistRepository {
       | null;
     auditHistory: WatchlistAuditEntry[];
   }> {
+    const bookingReportSelect = {
+      select: {
+        booking: {
+          select: {
+            uid: true,
+            title: true,
+          },
+        },
+      },
+    } as const;
+
     const entry = await this.prismaClient.watchlist.findUnique({
       where: { id },
       select: {
@@ -181,16 +192,8 @@ export class WatchlistRepository implements IWatchlistRepository {
         isGlobal: true,
         source: true,
         lastUpdatedAt: true,
-        bookingReports: {
-          select: {
-            booking: {
-              select: {
-                uid: true,
-                title: true,
-              },
-            },
-          },
-        },
+        bookingReports: bookingReportSelect,
+        globalBookingReports: bookingReportSelect,
         audits: {
           select: {
             id: true,
@@ -209,6 +212,11 @@ export class WatchlistRepository implements IWatchlistRepository {
       },
     });
 
+    const allBookingReports = [
+      ...(entry?.bookingReports ?? []),
+      ...(entry?.globalBookingReports ?? []),
+    ];
+
     return {
       entry: entry
         ? {
@@ -221,7 +229,7 @@ export class WatchlistRepository implements IWatchlistRepository {
             isGlobal: entry.isGlobal,
             source: entry.source,
             lastUpdatedAt: entry.lastUpdatedAt,
-            bookingReports: entry.bookingReports,
+            bookingReports: allBookingReports,
           }
         : null,
       auditHistory: entry?.audits || [],

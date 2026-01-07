@@ -4006,6 +4006,7 @@
   "booker_email": "Booker Email",
   "email_slash_domain": "Email/Domain",
   "related_booking": "Related booking",
+  "related_bookings": "Related bookings",
   "dont_block": "Don't block",
   "block_this_email": "Email only",
   "block_all_from_domain": "All from this domain",

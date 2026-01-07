@@ -76,6 +76,11 @@ export interface BookingReportWithDetails {
   } | null;
 }
 
+export interface GroupedBookingReportWithDetails extends BookingReportWithDetails {
+  reportCount: number;
+  reports: BookingReportWithDetails[];
+}
+
 export interface IBookingReportRepository {
   createReport(input: CreateBookingReportInput): Promise<{ id: string }>;
 
@@ -87,6 +92,18 @@ export interface IBookingReportRepository {
     filters?: ListBookingReportsFilters;
   }): Promise<{
     rows: BookingReportWithDetails[];
+    meta: { totalRowCount: number };
+  }>;
+
+  findGroupedReportedBookings(params: {
+    organizationId?: number;
+    skip?: number;
+    take?: number;
+    searchTerm?: string;
+    filters?: ListBookingReportsFilters;
+    systemFilters?: SystemBookingReportsFilters;
+  }): Promise<{
+    rows: GroupedBookingReportWithDetails[];
     meta: { totalRowCount: number };
   }>;
 
