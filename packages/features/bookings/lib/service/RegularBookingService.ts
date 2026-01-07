@@ -1,7 +1,10 @@
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import { getAuditActionSource } from "../handleNewBooking/getAuditActionSource";
-import { buildBookingCreatedAuditData, buildBookingRescheduledAuditData } from "../handleNewBooking/buildBookingEventAuditData";
+import {
+  buildBookingCreatedAuditData,
+  buildBookingRescheduledAuditData,
+} from "../handleNewBooking/buildBookingEventAuditData";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
@@ -615,9 +618,9 @@ async function handler(
     userId: userId ?? null,
     eventType: eventType
       ? {
-        seatsPerTimeSlot: eventType.seatsPerTimeSlot,
-        minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
-      }
+          seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+          minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
+        }
       : null,
   });
 
@@ -799,11 +802,13 @@ async function handler(
         paymentUid: firstPayment?.uid,
         paymentId: firstPayment?.id,
         organizationId: eventOrganizationId,
-        previousBooking: originalRescheduledBooking ? {
-          uid: originalRescheduledBooking.uid,
-          startTime: originalRescheduledBooking.startTime,
-          endTime: originalRescheduledBooking.endTime,
-        } : null,
+        previousBooking: originalRescheduledBooking
+          ? {
+              uid: originalRescheduledBooking.uid,
+              startTime: originalRescheduledBooking.startTime,
+              endTime: originalRescheduledBooking.endTime,
+            }
+          : null,
       };
     }
   }
@@ -1274,7 +1279,7 @@ async function handler(
 
   // If the team member is requested then they should be the organizer
   const organizerUser = reqBody.teamMemberEmail
-    ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
+    ? (users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0])
     : users[0];
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
@@ -1392,9 +1397,9 @@ async function handler(
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
     ? {
-      bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-      conferenceCredentialId: undefined,
-    }
+        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+        conferenceCredentialId: undefined,
+      }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   tracingLogger.info("locationBodyString", locationBodyString);
@@ -1517,7 +1522,7 @@ async function handler(
       platformBookingUrl,
     })
     .withOrganization(organizerOrganizationId)
-    .withHashedLink(hasHashedBookingLink ? reqBody.hashedLink ?? null : null)
+    .withHashedLink(hasHashedBookingLink ? (reqBody.hashedLink ?? null) : null)
     .build();
 
   if (!builtEvt) {
@@ -1699,15 +1704,21 @@ async function handler(
       seatReferenceUid: undefined,
       isShortCircuitedBooking: true,
       organizationId: eventOrganizationId,
-      previousBooking: originalRescheduledBooking ? {
-        uid: originalRescheduledBooking.uid,
-        startTime: originalRescheduledBooking.startTime,
-        endTime: originalRescheduledBooking.endTime,
-      } : null,
+      previousBooking: originalRescheduledBooking
+        ? {
+            uid: originalRescheduledBooking.uid,
+            startTime: originalRescheduledBooking.startTime,
+            endTime: originalRescheduledBooking.endTime,
+          }
+        : null,
     };
   }
 
-  const actionSource = getAuditActionSource({ creationSource: input.bookingData.creationSource, eventTypeId, rescheduleUid: originalRescheduledBooking?.uid ?? null });
+  const actionSource = getAuditActionSource({
+    creationSource: input.bookingData.creationSource,
+    eventTypeId,
+    rescheduleUid: originalRescheduledBooking?.uid ?? null,
+  });
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
@@ -1725,6 +1736,7 @@ async function handler(
       tAttendees,
       bookingSeat,
       reqUserId: input.userId,
+      reqUserUuid: userUuid,
       rescheduleReason,
       reqBodyUser: reqBody.user,
       noEmail,
@@ -1748,7 +1760,7 @@ async function handler(
       organizationId: eventOrganizationId,
       actionSource,
       traceContext,
-      deps
+      deps,
     });
 
     if (newBooking) {
@@ -1766,11 +1778,13 @@ async function handler(
         ...bookingResponse,
         ...luckyUserResponse,
         organizationId: eventOrganizationId,
-        previousBooking: originalRescheduledBooking ? {
-          uid: originalRescheduledBooking.uid,
-          startTime: originalRescheduledBooking.startTime,
-          endTime: originalRescheduledBooking.endTime,
-        } : null,
+        previousBooking: originalRescheduledBooking
+          ? {
+              uid: originalRescheduledBooking.uid,
+              startTime: originalRescheduledBooking.startTime,
+              endTime: originalRescheduledBooking.endTime,
+            }
+          : null,
       };
     } else {
       // Rescheduling logic for the original seated event was handled in handleSeats
@@ -2081,14 +2095,14 @@ async function handler(
     }
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
-        evt,
-        originalRescheduledBooking.uid,
-        undefined,
-        changedOrganizer,
-        previousHostDestinationCalendar,
-        isBookingRequestedReschedule,
-        skipDeleteEventsAndMeetings
-      )
+          evt,
+          originalRescheduledBooking.uid,
+          undefined,
+          changedOrganizer,
+          previousHostDestinationCalendar,
+          isBookingRequestedReschedule,
+          skipDeleteEventsAndMeetings
+        )
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -2152,7 +2166,7 @@ async function handler(
 
           const googleHangoutLink = Array.isArray(googleCalResult?.updatedEvent)
             ? googleCalResult.updatedEvent[0]?.hangoutLink
-            : googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink;
+            : (googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink);
 
           if (googleHangoutLink) {
             results.push({
@@ -2182,7 +2196,7 @@ async function handler(
         }
         const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
           ? results[0]?.updatedEvent[0]
-          : results[0]?.updatedEvent ?? results[0]?.createdEvent;
+          : (results[0]?.updatedEvent ?? results[0]?.createdEvent);
         metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
         metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
         metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
@@ -2389,8 +2403,8 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-      videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-    }
+        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+      }
     : undefined;
 
   await this.fireBookingEvents({
@@ -2400,7 +2414,7 @@ async function handler(
     },
     organizerUser,
     // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
-    hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
+    hashedLink: hasHashedBookingLink ? (reqBody.hashedLink ?? null) : null,
     isDryRun,
     eventOrganizationId,
     bookerEmail,
@@ -2476,9 +2490,9 @@ async function handler(
         ...eventType,
         metadata: eventType.metadata
           ? {
-            ...eventType.metadata,
-            apps: eventType.metadata?.apps as Prisma.JsonValue,
-          }
+              ...eventType.metadata,
+              apps: eventType.metadata?.apps as Prisma.JsonValue,
+            }
           : {},
       },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
@@ -2566,11 +2580,13 @@ async function handler(
       isDryRun,
       ...(isDryRun ? { troubleshooterData } : {}),
       organizationId: eventOrganizationId,
-      previousBooking: originalRescheduledBooking ? {
-        uid: originalRescheduledBooking.uid,
-        startTime: originalRescheduledBooking.startTime,
-        endTime: originalRescheduledBooking.endTime,
-      } : null,
+      previousBooking: originalRescheduledBooking
+        ? {
+            uid: originalRescheduledBooking.uid,
+            startTime: originalRescheduledBooking.startTime,
+            endTime: originalRescheduledBooking.endTime,
+          }
+        : null,
     };
   }
 
@@ -2814,11 +2830,13 @@ async function handler(
     seatReferenceUid: evt.attendeeSeatId,
     videoCallUrl: metadata?.videoCallUrl,
     organizationId: eventOrganizationId,
-    previousBooking: originalRescheduledBooking ? {
-      uid: originalRescheduledBooking.uid,
-      startTime: originalRescheduledBooking.startTime,
-      endTime: originalRescheduledBooking.endTime,
-    } : null,
+    previousBooking: originalRescheduledBooking
+      ? {
+          uid: originalRescheduledBooking.uid,
+          startTime: originalRescheduledBooking.startTime,
+          endTime: originalRescheduledBooking.endTime,
+        }
+      : null,
   };
 }
 
@@ -2828,7 +2846,7 @@ async function handler(
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) { }
+  constructor(private readonly deps: IBookingServiceDependencies) {}
 
   async fireBookingEvents({
     booking,
@@ -2882,18 +2900,22 @@ export class RegularBookingService implements IBookingService {
 
     const bookingEventHandler = this.deps.bookingEventHandler;
     const bookerAttendeeId = booking.attendees?.find((attendee) => attendee.email === bookerEmail)?.id;
-    const rescheduledByAttendeeId = booking.attendees?.find((attendee) => attendee.email === rescheduledBy)?.id;
+    const rescheduledByAttendeeId = booking.attendees?.find(
+      (attendee) => attendee.email === rescheduledBy
+    )?.id;
     const rescheduledByUserUuid = booking.userEmail === rescheduledBy ? booking.userUuid : null;
     const auditActor = getBookingAuditActorForNewBooking({
       bookerAttendeeId: bookerAttendeeId ?? null,
       actorUserUuid,
       bookerEmail,
       bookerName,
-      rescheduledBy: rescheduledBy ? {
-        attendeeId: rescheduledByAttendeeId ?? null,
-        userUuid: rescheduledByUserUuid ?? null,
-        email: rescheduledBy,
-      } : null,
+      rescheduledBy: rescheduledBy
+        ? {
+            attendeeId: rescheduledByAttendeeId ?? null,
+            userUuid: rescheduledByUserUuid ?? null,
+            email: rescheduledBy,
+          }
+        : null,
       logger: tracingLogger,
     });
 
@@ -2911,7 +2933,10 @@ export class RegularBookingService implements IBookingService {
         await bookingEventHandler.onBookingRescheduled({
           payload: bookingRescheduledPayload,
           actor: auditActor,
-          auditData: buildBookingRescheduledAuditData({ oldBooking: originalRescheduledBooking, newBooking: booking }),
+          auditData: buildBookingRescheduledAuditData({
+            oldBooking: originalRescheduledBooking,
+            newBooking: booking,
+          }),
           source: actionSource,
           operationId: null,
         });
