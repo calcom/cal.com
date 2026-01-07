@@ -1,4 +1,9 @@
 import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
+import type { Logger } from "@calcom/lib/logger";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+
+const log: Logger = logger.getSubLogger({ prefix: ["watchlist", "check-user-blocking"] });
 
 /**
  * Minimal user shape required for blocking checks.
@@ -29,26 +34,37 @@ export async function checkWatchlistBlocking(
   emails: string[],
   organizationId?: number | null
 ): Promise<Map<string, boolean>> {
-  const watchlist = await getWatchlistFeature();
+  try {
+    const watchlist = await getWatchlistFeature();
 
-  // Batch check - single DB query for all emails
-  const globalBlockedMap = await watchlist.globalBlocking.areBlocked(emails);
+    // Batch check - single DB query for all emails
+    const globalBlockedMap = await watchlist.globalBlocking.areBlocked(emails);
 
-  let orgBlockedMap: Map<string, { isBlocked: boolean }> | null = null;
-  if (organizationId) {
-    orgBlockedMap = await watchlist.orgBlocking.areBlocked(emails, organizationId);
+    let orgBlockedMap: Map<string, { isBlocked: boolean }> | null = null;
+    if (organizationId) {
+      orgBlockedMap = await watchlist.orgBlocking.areBlocked(emails, organizationId);
+    }
+
+    const result = new Map<string, boolean>();
+    for (const email of emails) {
+      const normalizedEmail = email.trim().toLowerCase();
+      const globalResult = globalBlockedMap.get(normalizedEmail);
+      const orgResult = orgBlockedMap?.get(normalizedEmail);
+
+      result.set(normalizedEmail, !!(globalResult?.isBlocked || orgResult?.isBlocked));
+    }
+
+    return result;
+  } catch (error) {
+    // Fail-open: If watchlist check fails, allow booking to proceed
+    // This ensures availability even if watchlist service is down
+    log.error("Watchlist check failed, allowing users through (fail-open)", {
+      error: safeStringify(error),
+      emailCount: emails.length,
+      organizationId,
+    });
+    return new Map(emails.map((e) => [e.trim().toLowerCase(), false]));
   }
-
-  const result = new Map<string, boolean>();
-  for (const email of emails) {
-    const normalizedEmail = email.trim().toLowerCase();
-    const globalResult = globalBlockedMap.get(normalizedEmail);
-    const orgResult = orgBlockedMap?.get(normalizedEmail);
-
-    result.set(normalizedEmail, !!(globalResult?.isBlocked || orgResult?.isBlocked));
-  }
-
-  return result;
 }
 
 /**
