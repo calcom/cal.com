@@ -15,6 +15,16 @@ import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/conf
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 
+const mockOnBookingAccepted = vi.fn().mockResolvedValue(undefined);
+const mockOnBulkBookingsAccepted = vi.fn().mockResolvedValue(undefined);
+
+vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container", () => ({
+  getBookingEventHandlerService: vi.fn().mockReturnValue({
+    onBookingAccepted: mockOnBookingAccepted,
+    onBulkBookingsAccepted: mockOnBulkBookingsAccepted,
+  }),
+}));
+
 describe("confirmHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -117,5 +127,107 @@ describe("confirmHandler", () => {
 
     expect(calendarEvent.hideCalendarNotes).toBe(true);
     expect(calendarEvent.hideCalendarEventDetails).toBe(true);
+  });
+
+  it("should call BookingEventHandlerService.onBookingAccepted with correct arguments when confirming a booking", async () => {
+    vi.setSystemTime("2050-01-07T00:00:00Z");
+
+    const attendeeUser = getOrganizer({
+      email: "test@example.com",
+      name: "test name",
+      id: 102,
+      schedules: [TestData.schedules.IstWorkHours],
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+    });
+
+    const uidOfBooking = "testBooking123";
+    const iCalUID = `${uidOfBooking}@Cal.com`;
+
+    const plus1DateString = "2050-01-08";
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 15,
+            length: 15,
+            locations: [],
+            requiresConfirmation: true,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            id: 101,
+            uid: uidOfBooking,
+            eventTypeId: 1,
+            status: BookingStatus.PENDING,
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:15:00.000Z`,
+            references: [],
+            iCalUID,
+            location: "integrations:daily",
+            attendees: [attendeeUser],
+            responses: { name: attendeeUser.name, email: attendeeUser.email },
+            user: { id: organizer.id },
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    mockSuccessfulVideoMeetingCreation({
+      metadataLookupKey: "dailyvideo",
+    });
+
+    const testUserUuid = "test-uuid-101";
+    const ctx = {
+      user: {
+        id: organizer.id,
+        name: organizer.name,
+        timeZone: organizer.timeZone,
+        username: organizer.username,
+        uuid: testUserUuid,
+      } as NonNullable<TrpcSessionUser>,
+      traceContext: distributedTracing.createTrace("test_confirm_handler"),
+    };
+
+    const actor = makeUserActor(ctx.user.uuid);
+
+    const res = await confirmHandler({
+      ctx,
+      input: {
+        bookingId: 101,
+        confirmed: true,
+        reason: "",
+        emailsEnabled: true,
+        actor,
+        actionSource: "WEBAPP",
+      },
+    });
+
+    expect(res?.status).toBe(BookingStatus.ACCEPTED);
+    expect(mockOnBookingAccepted).toHaveBeenCalledTimes(1);
+
+    const callArgs = mockOnBookingAccepted.mock.calls[0][0];
+    expect(callArgs.bookingUid).toBe(uidOfBooking);
+    expect(callArgs.actor).toEqual(actor);
+    expect(callArgs.auditData).toEqual({
+      status: { old: BookingStatus.PENDING, new: BookingStatus.ACCEPTED },
+    });
+    expect(callArgs.source).toBe("WEBAPP");
+    expect(callArgs.organizationId).toBeNull();
   });
 });
