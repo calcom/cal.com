@@ -266,8 +266,9 @@ async function filterHostsByGroup<T extends { id: number }>(
   if (isTeamAdminOrOwner) {
     return hosts;
   }
+  // Non-admin users must be hosts of this event type to access reassignment
   if (userHostGroupIds.length === 0) {
-    return hosts;
+    return [];
   }
   const hostsWithGroups = await prisma.host.findMany({
     where: {
