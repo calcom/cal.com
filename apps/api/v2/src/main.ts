@@ -38,7 +38,9 @@ async function run() {
     const configService = app.get(ConfigService<AppConfig, true>);
     const port = configService.get("api.port", { infer: true }) || 3000;
 
-    generateSwaggerForApp(app);
+    if (process.env.NODE_ENV !== "production") {
+      generateSwaggerForApp(app);
+    }
     await app.listen(port);
 
     logger.log(`Application started locally on port: ${port}`);
