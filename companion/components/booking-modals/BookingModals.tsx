@@ -1,19 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useMemo } from "react";
+import type React from "react";
+import { useMemo } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
   ActivityIndicator,
   Alert,
   ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-
-import type { Booking, EventType } from "../../services/calcom";
-import { getBookingActions, type BookingActionsResult } from "../../utils/booking-actions";
-import { FullScreenModal } from "../FullScreenModal";
-import { BookingActionsModal } from "../BookingActionsModal";
+import { BookingActionsModal } from "@/components/BookingActionsModal";
+import { FullScreenModal } from "@/components/FullScreenModal";
+import type { Booking, EventType } from "@/services/calcom";
+import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 
 // Empty actions result for when no booking is selected
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -40,7 +40,7 @@ interface BookingModalsProps {
   rejectReason: string;
   isDeclining: boolean;
   onRejectClose: () => void;
-  onRejectSubmit: () => void;
+  onRejectSubmit: (reason?: string) => void;
   onRejectReasonChange: (reason: string) => void;
 
   // Filter modal props (optional for iOS)
@@ -70,11 +70,11 @@ interface BookingModalsProps {
 }
 
 export const BookingModals: React.FC<BookingModalsProps> = ({
-  showRescheduleModal,
-  rescheduleBooking,
-  isRescheduling,
-  onRescheduleClose,
-  onRescheduleSubmit,
+  showRescheduleModal: _showRescheduleModal,
+  rescheduleBooking: _rescheduleBooking,
+  isRescheduling: _isRescheduling,
+  onRescheduleClose: _onRescheduleClose,
+  onRescheduleSubmit: _onRescheduleSubmit,
   showRejectModal,
   rejectReason,
   isDeclining,
@@ -150,7 +150,9 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
                       onPress={() => onEventTypeSelect(eventType.id, eventType.title)}
                     >
                       <Text
-                        className={`text-base text-[#333] ${selectedEventTypeId === eventType.id ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedEventTypeId === eventType.id ? "font-semibold" : ""
+                        }`}
                       >
                         {eventType.title}
                       </Text>
@@ -272,7 +274,7 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
                 {/* Reject Button */}
                 <TouchableOpacity
                   className="rounded-md bg-gray-900 px-4 py-2"
-                  onPress={onRejectSubmit}
+                  onPress={() => onRejectSubmit()}
                   disabled={isDeclining}
                   style={{ opacity: isDeclining ? 0.5 : 1 }}
                 >

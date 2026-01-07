@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
@@ -65,7 +65,6 @@ function WorkflowsPage({ filteredList }: PageProps) {
               <CreateButtonWithTeamsList
                 subtitle={t("new_workflow_subtitle").toUpperCase()}
                 createFunction={openDialog}
-                disableMobileButton={true}
                 onlyShowWithNoTeams={true}
                 includeOrg={true}
                 withPermission={{
@@ -83,7 +82,6 @@ function WorkflowsPage({ filteredList }: PageProps) {
                   <CreateButtonWithTeamsList
                     subtitle={t("new_workflow_subtitle").toUpperCase()}
                     createFunction={openDialog}
-                    disableMobileButton={true}
                     onlyShowWithTeams={true}
                     includeOrg={true}
                     withPermission={{

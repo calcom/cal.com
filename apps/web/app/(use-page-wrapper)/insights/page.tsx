@@ -2,7 +2,7 @@ import { _generateMetadata } from "app/_utils";
 
 import prisma from "@calcom/prisma";
 
-import InsightsPage from "~/insights/insights-view";
+import InsightsPage from "~/insights/views/insights-view";
 
 import { checkInsightsPagePermission } from "./checkInsightsPagePermission";
 

@@ -48,6 +48,7 @@ export interface BookerLayouts {
 }
 
 export interface ConfirmationPolicy {
+  type?: "always";
   noticeThreshold?: {
     count: number;
     unit: "hours" | "minutes";
@@ -216,6 +217,16 @@ export interface EventType {
     userId: number;
     isFixed: boolean;
   }>;
+  users?: Array<{
+    id: number;
+    name?: string;
+    username?: string;
+    avatarUrl?: string;
+    brandColor?: string | null;
+    darkBrandColor?: string | null;
+    weekStart?: string;
+    metadata?: Record<string, unknown>;
+  }>;
 
   // Metadata
   metadata?: Record<string, unknown>;
@@ -225,6 +236,18 @@ export interface EventType {
   disableCancelling?: boolean;
   minimumRescheduleNotice?: number;
   allowReschedulingPastBookings?: boolean;
+
+  // Additional properties from API responses
+  hideCalendarEventDetails?: boolean;
+  hideOrganizerEmail?: boolean;
+  allowReschedulingCancelledBookings?: boolean;
+  customReplyToEmail?: string;
+  color?: {
+    lightThemeHex?: string;
+    darkThemeHex?: string;
+  };
+  sendCalVideoTranscription?: boolean;
+  autoTranslate?: boolean;
 }
 
 export interface CreateEventTypeInput {
