@@ -4186,5 +4186,7 @@
   "audit_logs_permission_denied": "You do not have permission to view audit logs for this booking.",
   "audit_logs_permission_check_error": "An error occurred while checking permissions.",
   "account_already_exists_please_login": "An account with this email already exists. Please log in to accept the invitation.",
+  "hubspot_set_organizer_as_owner": "Set organizer as contact owner",
+  "hubspot_overwrite_contact_owner": "Overwrite existing contact owner",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

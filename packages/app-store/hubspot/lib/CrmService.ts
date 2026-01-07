@@ -63,26 +63,27 @@ export default class HubspotCalendarService implements CRM {
       })
       .join("<br><br>");
 
-    const organizerName = event.organizer.name || event.organizer.email;
-    const organizerInfo = `<b>${event.organizer.language.translate("organizer")}:</b> ${organizerName} (${event.organizer.email
-      })`;
-
-    return `${organizerInfo}<br><br><b>${event.organizer.language.translate("invitee_timezone")}:</b> ${event.attendees[0].timeZone
-      }<br><br>${event.additionalNotes
-        ? `<b>${event.organizer.language.translate("share_additional_notes")}</b><br>${event.additionalNotes
-        }<br><br>`
+    return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
+      event.attendees[0].timeZone
+    }<br><br>${
+      event.additionalNotes
+        ? `<b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
+            event.additionalNotes
+          }<br><br>`
         : ""
-      }
+    }
     ${userFieldsHtml}<br><br>
     <b>${event.organizer.language.translate("where")}:</b> ${location}<br><br>
     ${plainText ? `<b>${event.organizer.language.translate("description")}</b><br>${plainText}` : ""}
   `;
   };
 
+  // biome-ignore lint/nursery/useExplicitType: Return type is inferred from HubSpot API
   private async ensureFieldsExistOnMeeting(fieldsToTest: string[]) {
     const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnMeeting]`] });
     const fieldSet = new Set(fieldsToTest);
-    const foundFields: Array<{ name: string; type: string;[key: string]: any }> = [];
+    // biome-ignore lint/suspicious/noExplicitAny: HubSpot Property type requires index signature
+    const foundFields: Array<{ name: string; type: string; [key: string]: any }> = [];
 
     try {
       const properties = await this.hubspotClient.crm.properties.coreApi.getAll("meetings");
@@ -105,6 +106,7 @@ export default class HubspotCalendarService implements CRM {
       }
 
       return foundFields;
+    // biome-ignore lint/suspicious/noExplicitAny: Error type needs to be any for logging
     } catch (e: any) {
       log.error(`Error ensuring fields ${fieldsToTest} exist on Meeting object with error ${e}`);
       // Return empty array to gracefully degrade - meeting creation will proceed without custom field validation
@@ -276,27 +278,20 @@ export default class HubspotCalendarService implements CRM {
     return confirmedCustomFieldInputs;
   }
 
-  private hubspotCreateMeeting = async (event: CalendarEvent, hubspotOwnerId?: string) => {
+  private hubspotCreateMeeting = async (event: CalendarEvent) => {
     const writeToMeetingRecord = await this.generateWriteToMeetingBody(event);
 
-    const properties: Record<string, string> = {
-      hs_timestamp: Date.now().toString(),
-      hs_meeting_title: event.title,
-      hs_meeting_body: this.getHubspotMeetingBody(event),
-      hs_meeting_location: getLocation(event),
-      hs_meeting_start_time: new Date(event.startTime).toISOString(),
-      hs_meeting_end_time: new Date(event.endTime).toISOString(),
-      hs_meeting_outcome: "SCHEDULED",
-      ...writeToMeetingRecord,
-    };
-
-    if (hubspotOwnerId) {
-      properties.hubspot_owner_id = hubspotOwnerId;
-      this.log.debug("hubspot:meeting:setting_owner", { hubspotOwnerId });
-    }
-
     const simplePublicObjectInput: SimplePublicObjectInput = {
-      properties,
+      properties: {
+        hs_timestamp: Date.now().toString(),
+        hs_meeting_title: event.title,
+        hs_meeting_body: this.getHubspotMeetingBody(event),
+        hs_meeting_location: getLocation(event),
+        hs_meeting_start_time: new Date(event.startTime).toISOString(),
+        hs_meeting_end_time: new Date(event.endTime).toISOString(),
+        hs_meeting_outcome: "SCHEDULED",
+        ...writeToMeetingRecord,
+      },
     };
 
     return this.hubspotClient.crm.objects.meetings.basicApi.create(simplePublicObjectInput);
@@ -347,33 +342,6 @@ export default class HubspotCalendarService implements CRM {
     return this.hubspotClient.crm.objects.meetings.basicApi.archive(uid);
   };
 
-  private getHubspotOwnerIdByEmail = async (email: string): Promise<string | undefined> => {
-    try {
-      const ownersResponse = await this.hubspotClient.crm.owners.ownersApi.getPage(
-        email,
-        undefined,
-        100,
-        false
-      );
-
-      if (ownersResponse.results && ownersResponse.results.length > 0) {
-        const matchingOwner = ownersResponse.results.find(
-          (owner) => owner.email?.toLowerCase() === email.toLowerCase()
-        );
-
-        if (matchingOwner) {
-          this.log.debug("hubspot:owner:found", { ownerId: matchingOwner.id });
-          return matchingOwner.id;
-        }
-      }
-
-      this.log.debug("hubspot:owner:not_found");
-      return undefined;
-    } catch (error) {
-      this.log.error("hubspot:owner:lookup_error", { error });
-      return undefined;
-    }
-  };
 
   private hubspotAuth = async (credential: CredentialPayload) => {
     const appKeys = await getAppKeysFromSlug("hubspot");
@@ -437,17 +405,29 @@ export default class HubspotCalendarService implements CRM {
   async handleMeetingCreation(event: CalendarEvent, contacts: Contact[]) {
     const contactIds: { id?: string }[] = contacts.map((contact) => ({ id: contact.id }));
 
-    const organizerEmail = event.organizer.email;
-    this.log.debug("hubspot:meeting:fetching_owner");
-
-    const hubspotOwnerId = await this.getHubspotOwnerIdByEmail(organizerEmail);
-
-    const meetingEvent = await this.hubspotCreateMeeting(event, hubspotOwnerId);
+    const meetingEvent = await this.hubspotCreateMeeting(event);
     if (meetingEvent) {
-      this.log.debug("meeting:creation:ok", { meetingId: meetingEvent.id, hubspotOwnerId });
+      this.log.debug("meeting:creation:ok", { meetingEvent });
       const associatedMeeting = await this.hubspotAssociate(meetingEvent, contactIds as any);
       if (associatedMeeting) {
         this.log.debug("association:creation:ok", { associatedMeeting });
+
+        const appOptions = this.getAppOptions();
+        if (appOptions?.setOrganizerAsOwner) {
+          const organizerEmail = event.organizer.email;
+          const ownerId = await this.getHubspotOwnerIdFromEmail(organizerEmail);
+          if (ownerId) {
+            const firstContact = contacts[0];
+            if (firstContact?.id) {
+              await this.maybeSetContactOwner(
+                firstContact.id,
+                ownerId,
+                appOptions?.overwriteContactOwner ?? false
+              );
+            }
+          }
+        }
+
         return Promise.resolve({
           uid: meetingEvent.id,
           id: meetingEvent.id,
@@ -565,5 +545,54 @@ export default class HubspotCalendarService implements CRM {
 
   async handleAttendeeNoShow() {
     console.log("Not implemented");
+  }
+
+  private async getHubspotOwnerIdFromEmail(email: string): Promise<string | null> {
+    try {
+      const ownersResponse = await this.hubspotClient.crm.owners.ownersApi.getPage();
+      const owner = ownersResponse.results.find((o) => o.email?.toLowerCase() === email.toLowerCase());
+      return owner?.id ?? null;
+    } catch (error) {
+      this.log.error("Error fetching HubSpot owner:", error);
+      return null;
+    }
+  }
+
+  private async setContactOwner(contactId: string, ownerId: string): Promise<void> {
+    try {
+      await this.hubspotClient.crm.contacts.basicApi.update(contactId, {
+        properties: { hubspot_owner_id: ownerId },
+      });
+    } catch (error) {
+      this.log.error("Error setting contact owner:", error);
+    }
+  }
+
+  private async getContactOwnerId(contactId: string): Promise<string | null> {
+    try {
+      const contact = await this.hubspotClient.crm.contacts.basicApi.getById(contactId, [
+        "hubspot_owner_id",
+      ]);
+      return contact.properties.hubspot_owner_id ?? null;
+    } catch (error) {
+      this.log.error("Error fetching contact owner:", error);
+      return null;
+    }
+  }
+
+  private async maybeSetContactOwner(
+    contactId: string,
+    ownerId: string,
+    overwriteContactOwner: boolean
+  ): Promise<void> {
+    if (overwriteContactOwner) {
+      await this.setContactOwner(contactId, ownerId);
+      return;
+    }
+
+    const currentOwnerId = await this.getContactOwnerId(contactId);
+    if (!currentOwnerId) {
+      await this.setContactOwner(contactId, ownerId);
+    }
   }
 }
