@@ -123,13 +123,23 @@ export interface IUpdateAttributeSyncInput {
 }
 
 export interface IIntegrationAttributeSyncRepository {
-  getByOrganizationId(organizationId: number): Promise<IntegrationAttributeSync[]>;
+  getByOrganizationId(
+    organizationId: number
+  ): Promise<IntegrationAttributeSync[]>;
   getById(id: string): Promise<IntegrationAttributeSync | null>;
-  getSyncFieldMappings(integrationAttributeSyncId: string): Promise<AttributeSyncFieldMapping[]>;
-  create(params: IIntegrationAttributeSyncCreateParams): Promise<IntegrationAttributeSync>;
-  updateTransactionWithRuleAndMappings(params: IIntegrationAttributeSyncUpdateParams): Promise<void>;
+  getSyncFieldMappings(
+    integrationAttributeSyncId: string
+  ): Promise<AttributeSyncFieldMapping[]>;
+  create(
+    params: IIntegrationAttributeSyncCreateParams
+  ): Promise<IntegrationAttributeSync>;
+  updateTransactionWithRuleAndMappings(
+    params: IIntegrationAttributeSyncUpdateParams
+  ): Promise<void>;
   deleteById(id: string): Promise<void>;
-  getAllByCredentialId(credentialId: number): Promise<IntegrationAttributeSync[]>;
+  getAllByCredentialId(
+    credentialId: number
+  ): Promise<IntegrationAttributeSync[]>;
 }
 
 export interface IIntegrationAttributeSyncUpdateParams {
