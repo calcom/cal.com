@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Актуализирано неявяване на участник",
     "type": "Тип назначаване",
     "assignmentType_manual": "Ръчно назначаване",
-    "assignmentType_roundRobin": "Назначаване по round robin"
+    "assignmentType_roundRobin": "Назначаване по round robin",
+    "actor_impersonated_by": "Представящ се като",
+    "source": "Източник"
   },
   "error_loading_booking_logs": "Грешка при зареждане на логовете на резервацията",
   "no_audit_logs_found": "Не са намерени одит логове",
