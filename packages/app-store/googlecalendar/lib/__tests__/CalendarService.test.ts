@@ -109,6 +109,7 @@ describe("getAvailability", () => {
       "2024-01-01",
       "2024-01-02",
       [],
+      "slots",
       true
     );
 
@@ -118,6 +119,7 @@ describe("getAvailability", () => {
       "2024-01-01",
       "2024-01-02",
       [],
+      "slots",
       false
     );
 
