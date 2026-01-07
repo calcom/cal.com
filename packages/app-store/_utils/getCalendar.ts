@@ -2,8 +2,10 @@ import { CalendarSubscriptionService } from "@calcom/features/calendar-subscript
 import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository";
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import { CalendarCacheWrapper } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheWrapper";
+import { CalendarTelemetryWrapper } from "@calcom/features/calendar-subscription/lib/telemetry/CalendarTelemetryWrapper";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
+import { isTelemetryEnabled } from "@calcom/lib/sentryWrapper";
 import { prisma } from "@calcom/prisma";
 import type { Calendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -57,21 +59,47 @@ export const getCalendar = async (
       ]
     );
     shouldServeCache = isCalendarSubscriptionCacheEnabled && isCalendarSubscriptionCacheEnabledForUser;
+    log.debug("Cache feature flag check", {
+      credentialId: credential.id,
+      userId: credential.userId,
+      isCalendarSubscriptionCacheEnabled,
+      isCalendarSubscriptionCacheEnabledForUser,
+      shouldServeCache,
+    });
   }
-  if (CalendarCacheEventService.isCalendarTypeSupported(calendarType) && shouldServeCache) {
-    log.info(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const originalCalendar = new CalendarService(credential as any);
-    if (originalCalendar) {
-      // return cacheable calendar
-      const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
-      return new CalendarCacheWrapper({
-        originalCalendar,
-        calendarCacheEventRepository,
-      });
-    }
+  const isCacheSupported = CalendarCacheEventService.isCalendarTypeSupported(calendarType);
+
+  const originalCalendar = new CalendarService(credential as any);
+
+  // Determine if we should use cache
+  const useCache = isCacheSupported && shouldServeCache;
+
+  // Build the calendar chain: original -> cache (if enabled) -> telemetry (if enabled)
+  let calendar: Calendar = originalCalendar;
+
+  if (useCache) {
+    log.info(`Calendar Cache is enabled, using CalendarCacheWrapper for credential ${credential.id}`);
+    const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
+    calendar = new CalendarCacheWrapper({
+      originalCalendar: calendar,
+      calendarCacheEventRepository,
+    });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new CalendarService(credential as any);
+  // Wrap ALL calendars with telemetry when telemetry is enabled
+  // This provides consistent metrics for all calendar types
+  if (isTelemetryEnabled()) {
+    log.info(
+      `Using CalendarTelemetryWrapper for credential ${credential.id} (cacheSupported: ${isCacheSupported}, cacheEnabled: ${useCache})`
+    );
+    calendar = new CalendarTelemetryWrapper({
+      originalCalendar: calendar,
+      calendarType,
+      cacheSupported: isCacheSupported,
+      cacheEnabled: useCache,
+      credentialId: credential.id,
+    });
+  }
+
+  return calendar;
 };

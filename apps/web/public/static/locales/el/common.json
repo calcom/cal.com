@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Ενημερώθηκε η μη εμφάνιση συμμετέχοντα",
     "type": "Τύπος ανάθεσης",
     "assignmentType_manual": "Χειροκίνητη ανάθεση",
-    "assignmentType_roundRobin": "Ανάθεση round robin"
+    "assignmentType_roundRobin": "Ανάθεση round robin",
+    "actor_impersonated_by": "Προσωποποιητής",
+    "source": "Πηγή"
   },
   "error_loading_booking_logs": "Σφάλμα κατά τη φόρτωση των αρχείων καταγραφής κράτησης",
   "no_audit_logs_found": "Δεν βρέθηκαν αρχεία καταγραφής ελέγχου",

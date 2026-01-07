@@ -274,7 +274,6 @@ describe("getCalendarsEvents", () => {
         "2010-12-01",
         "2010-12-04",
         [selectedCalendar],
-        undefined,
         false
       );
       expect(result).toEqual([
@@ -345,14 +344,12 @@ describe("getCalendarsEvents", () => {
         "2010-12-01",
         "2010-12-04",
         [selectedGoogleCalendar],
-        undefined,
         false
       );
       expect(getOfficeAvailabilitySpy).toHaveBeenCalledWith(
         "2010-12-01",
         "2010-12-04",
         [selectedOfficeCalendar],
-        undefined,
         false
       );
       expect(result).toEqual([
@@ -396,7 +393,7 @@ describe("getCalendarsEvents", () => {
 
       const result = await getCalendarsEvents(credentials, startDate, endDate, []);
 
-      expect(getAvailabilitySpy).toHaveBeenCalledWith(startDate, endDate, [], undefined, true);
+      expect(getAvailabilitySpy).toHaveBeenCalledWith(startDate, endDate, [], true);
       expect(result).toEqual([[]]);
     });
   });
