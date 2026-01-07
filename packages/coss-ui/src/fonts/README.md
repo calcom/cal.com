@@ -27,7 +27,7 @@ export default function RootLayout({ children }) {
 
 ## Adding New Fonts
 
-1. Place the font file in this directory (`packages/ui/src/fonts/`)
+1. Place the font file in this directory (`packages/coss-ui/src/fonts/`)
 2. Add a new font configuration in `index.ts`:
 
 ```typescript

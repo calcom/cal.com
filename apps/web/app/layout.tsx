@@ -106,7 +106,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
       data-nextjs-router="app">
       <body
-        className={`${fontSans.variable} ${fontHeading.variable} font-sans dark:bg-default bg-subtle antialiased"`}
+        className={`${fontSans.variable} ${fontHeading.variable} font-sans dark:bg-default bg-subtle antialiased`}
         style={
           isEmbed
             ? {
