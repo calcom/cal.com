@@ -531,6 +531,7 @@ export class MembershipRepository {
           select: {
             id: true,
             parentId: true,
+            isOrganization: true,
           },
         },
       },

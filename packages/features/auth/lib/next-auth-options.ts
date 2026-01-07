@@ -284,6 +284,7 @@ type SamlIdpUser = {
   name: string;
   email_verified: boolean;
   profile: UserProfile;
+  samlTenant?: string;
 };
 
 if (IS_GOOGLE_LOGIN_ENABLED) {
@@ -335,6 +336,13 @@ if (isSAMLLoginEnabled) {
       };
     }) => {
       log.debug("BoxyHQ:profile", safeStringify({ profile }));
+      if (!profile.email) {
+        log.warn("saml:profile - email missing from IdP response", {
+          hasFirstName: !!profile.firstName,
+          hasLastName: !!profile.lastName,
+          tenant: profile.requested?.tenant,
+        });
+      }
       const userRepo = new UserRepository(prisma);
       const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
@@ -349,7 +357,7 @@ if (isSAMLLoginEnabled) {
         locale: profile.locale,
         // Pass SAML tenant for domain authority checks in signIn callback
         samlTenant: profile.requested?.tenant,
-        ...(user ? { profile: user.allProfiles[0] } : {}),
+        ...(user && { profile: user.allProfiles[0] }),
       };
     },
     options: {
@@ -370,12 +378,14 @@ if (isSAMLLoginEnabled) {
       async authorize(credentials): Promise<SamlIdpUser | null> {
         log.debug("CredentialsProvider:saml-idp:authorize", safeStringify({ credentials }));
         if (!credentials) {
+          log.warn("saml-idp:authorize - missing credentials object");
           return null;
         }
 
         const { code } = credentials;
 
         if (!code) {
+          log.warn("saml-idp:authorize - missing code in credentials");
           return null;
         }
 
@@ -391,16 +401,18 @@ if (isSAMLLoginEnabled) {
         });
 
         if (!access_token) {
+          log.warn("saml-idp:authorize - failed to obtain access_token from oauthController.token");
           return null;
         }
         // Fetch user info
         const userInfo = await oauthController.userInfo(access_token);
 
         if (!userInfo) {
+          log.warn("saml-idp:authorize - failed to obtain userInfo from oauthController.userInfo");
           return null;
         }
 
-        const { id, firstName, lastName } = userInfo;
+        const { id, firstName, lastName, requested } = userInfo;
         const email = userInfo.email.toLowerCase();
         const userRepo = new UserRepository(prisma);
         let user = !email ? undefined : await userRepo.findByEmailAndIncludeProfilesAndPassword({ email });
@@ -425,7 +437,13 @@ if (isSAMLLoginEnabled) {
               });
             }
           }
-          if (!user) throw new Error(ErrorCode.UserNotFound);
+          if (!user) {
+            log.warn("saml-idp:authorize - user not found and could not be auto-provisioned", {
+              emailDomain: email.split("@")[1],
+              hostedCal: Boolean(HOSTED_CAL_FEATURES),
+            });
+            throw new Error(ErrorCode.UserNotFound);
+          }
         }
         const [userProfile] = user?.allProfiles ?? [];
         return {
@@ -440,6 +458,8 @@ if (isSAMLLoginEnabled) {
           name: `${firstName} ${lastName}`.trim(),
           email_verified: true,
           profile: userProfile,
+          // Pass SAML tenant for domain authority checks in signIn callback (IdP-initiated flow)
+          samlTenant: requested?.tenant,
         };
       },
     })
@@ -770,8 +790,8 @@ export const getOptions = ({
         return await autoMergeIdentities();
       }
 
-      log.info(
-        "callbacks:jwt:accountType:unknown",
+      log.warn(
+        "callbacks:jwt - unknown account type",
         safeStringify({ accountType: account.type, accountProvider: account.provider })
       );
       return token;
@@ -817,6 +837,19 @@ export const getOptions = ({
 
       log.debug("callbacks:signin", safeStringify(params));
 
+      // Extract samlTenant from user (credentials/saml-idp) or profile (oauth/saml)
+      const getSamlTenant = (): string | undefined => {
+        // Primary: user.samlTenant is set in authorize/profile callbacks (type-safe via NextAuth User extension)
+        if (user.samlTenant) return user.samlTenant;
+
+        // Fallback for OAuth SAML: raw BoxyHQ profile contains requested.tenant
+        // (NextAuth adapter doesn't pass custom fields through)
+        if (account?.provider === "saml") {
+          return (profile as { requested?: { tenant?: string } } | undefined)?.requested?.tenant;
+        }
+        return undefined;
+      };
+
       if (account?.provider === "email") {
         return true;
       }
@@ -829,14 +862,20 @@ export const getOptions = ({
         }
 
         if (account?.type !== "oauth") {
+          log.warn("callbacks:signIn - unsupported account type for non-saml-idp provider", {
+            accountType: account?.type,
+            provider: account?.provider,
+          });
           return false;
         }
       }
       if (!user.email) {
+        log.warn("callbacks:signIn - user email is missing", { provider: account?.provider });
         return false;
       }
 
       if (!user.name) {
+        log.warn("callbacks:signIn - user name is missing", { emailDomain: user.email.split("@")[1], provider: account?.provider });
         return false;
       }
       if (account?.provider) {
@@ -978,7 +1017,7 @@ export const getOptions = ({
           ) {
             // Verify SAML IdP is authoritative before auto-merge
             if (idP === IdentityProvider.SAML) {
-              const samlTenant = (user as { samlTenant?: string }).samlTenant;
+              const samlTenant = getSamlTenant();
               const validation = await validateSamlAccountConversion(samlTenant, user.email, "SelfHosted→SAML");
               if (!validation.allowed) {
                 return validation.errorUrl;
@@ -1000,7 +1039,7 @@ export const getOptions = ({
           ) {
             // Verify SAML IdP is authoritative before claiming invited user
             if (idP === IdentityProvider.SAML) {
-              const samlTenant = (user as { samlTenant?: string }).samlTenant;
+              const samlTenant = getSamlTenant();
               const validation = await validateSamlAccountConversion(samlTenant, user.email, "Invite→SAML");
               if (!validation.allowed) {
                 return validation.errorUrl;
@@ -1038,7 +1077,7 @@ export const getOptions = ({
           ) {
             // Verify SAML IdP is authoritative before converting account
             if (idP === IdentityProvider.SAML) {
-              const samlTenant = (user as { samlTenant?: string }).samlTenant;
+              const samlTenant = getSamlTenant();
               const validation = await validateSamlAccountConversion(samlTenant, user.email, "CAL→SAML");
               if (!validation.allowed) {
                 return validation.errorUrl;
@@ -1072,7 +1111,7 @@ export const getOptions = ({
             idP === IdentityProvider.SAML
           ) {
             // Verify SAML IdP is authoritative before converting account
-            const samlTenant = (user as { samlTenant?: string }).samlTenant;
+            const samlTenant = getSamlTenant();
             const validation = await validateSamlAccountConversion(samlTenant, user.email, "Google→SAML");
             if (!validation.allowed) {
               return validation.errorUrl;
@@ -1186,6 +1225,10 @@ export const getOptions = ({
         }
       }
 
+      log.warn("callbacks:signIn - no matching provider or condition, denying access", {
+        provider: account?.provider,
+        accountType: account?.type,
+      });
       return false;
     },
     /**
