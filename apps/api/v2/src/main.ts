@@ -10,7 +10,6 @@ import * as qs from "qs";
 import { bootstrap } from "./bootstrap";
 import { AppModule } from "./app.module";
 import { loggerConfig } from "./lib/logger";
-import { generateSwaggerForApp } from "./swagger/generate-swagger";
 
 const logger = new Logger("App");
 
@@ -38,9 +37,6 @@ async function run() {
     const configService = app.get(ConfigService<AppConfig, true>);
     const port = configService.get("api.port", { infer: true }) || 3000;
 
-    if (process.env.CALCOM_ENV !== "production") {
-      generateSwaggerForApp(app);
-    }
     await app.listen(port);
 
     logger.log(`Application started locally on port: ${port}`);
