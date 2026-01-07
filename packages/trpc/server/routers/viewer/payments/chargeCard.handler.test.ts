@@ -39,12 +39,12 @@ describe("chargeCardHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(BookingAccessService).mockImplementation(
-      () => mockBookingAccessService as unknown as InstanceType<typeof BookingAccessService>
-    );
-    vi.mocked(BookingRepository).mockImplementation(
-      () => mockBookingRepository as unknown as InstanceType<typeof BookingRepository>
-    );
+    vi.mocked(BookingAccessService).mockImplementation(function () {
+      return mockBookingAccessService;
+    });
+    vi.mocked(BookingRepository).mockImplementation(function () {
+      return mockBookingRepository;
+    });
   });
 
   describe("authorization", () => {
@@ -121,7 +121,7 @@ describe("chargeCardHandler", () => {
         })
       ).rejects.toMatchObject({
         code: "BAD_REQUEST",
-        message: "The no show fee has already been charged",
+        message: "The no show fee for booking 123 has already been charged",
       });
 
       expect(handleNoShowFee).not.toHaveBeenCalled();
@@ -165,7 +165,7 @@ describe("chargeCardHandler", () => {
         })
       ).rejects.toMatchObject({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to charge no show fee",
+        message: "Failed to charge no show fee for booking 123",
       });
     });
   });

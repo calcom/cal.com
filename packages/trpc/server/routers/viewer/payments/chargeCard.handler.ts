@@ -41,7 +41,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
   if (booking.payment[0].success) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "The no show fee has already been charged",
+      message: `The no show fee for booking ${booking.id} has already been charged`,
     });
   }
 
@@ -54,7 +54,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     console.error(error);
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: "Failed to charge no show fee",
+      message: `Failed to charge no show fee for booking ${booking.id}`,
     });
   }
 };
