@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "参与者未到已更新",
     "type": "分配类型",
     "assignmentType_manual": "手动分配",
-    "assignmentType_roundRobin": "轮流分配"
+    "assignmentType_roundRobin": "轮流分配",
+    "actor_impersonated_by": "模拟者",
+    "source": "来源"
   },
   "error_loading_booking_logs": "加载预约日志时出错",
   "no_audit_logs_found": "未找到审计日志",

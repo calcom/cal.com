@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "تم تحديث عدم حضور الحاضر",
     "type": "نوع التعيين",
     "assignmentType_manual": "تعيين يدوي",
-    "assignmentType_roundRobin": "تعيين دوري"
+    "assignmentType_roundRobin": "تعيين دوري",
+    "actor_impersonated_by": "المنتحل",
+    "source": "المصدر"
   },
   "error_loading_booking_logs": "خطأ في تحميل سجلات الحجز",
   "no_audit_logs_found": "لم يتم العثور على سجلات تدقيق",
