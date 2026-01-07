@@ -7,6 +7,7 @@ import { Button } from "@calcom/ui/components/button";
 import { PanelCard } from "@calcom/ui/components/card";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import type { TFunction } from "i18next";
 import type { ReactElement } from "react";
 import { useState } from "react";
 
@@ -100,7 +101,7 @@ function StatusRow({ label, configured, configuredLabel, notConfiguredLabel }: S
   );
 }
 
-function getEmailProviderLabel(provider: "sendgrid" | "smtp" | "none", t: (key: string) => string): string {
+function getEmailProviderLabel(provider: "sendgrid" | "smtp" | "none", t: TFunction): string {
   if (provider === "sendgrid") {
     return "SendGrid";
   }
@@ -112,7 +113,7 @@ function getEmailProviderLabel(provider: "sendgrid" | "smtp" | "none", t: (key: 
 
 type EmailProviderBadgeProps = {
   provider: "sendgrid" | "smtp" | "none";
-  t: (key: string) => string;
+  t: TFunction;
 };
 
 function EmailProviderBadge({ provider, t }: EmailProviderBadgeProps): ReactElement {
@@ -129,7 +130,7 @@ function EmailProviderBadge({ provider, t }: EmailProviderBadgeProps): ReactElem
 
 type ApiHealthBadgeProps = {
   status: ApiHealthStatus;
-  t: (key: string) => string;
+  t: TFunction;
 };
 
 function ApiHealthBadge({ status, t }: ApiHealthBadgeProps): ReactElement {
@@ -152,7 +153,7 @@ function ApiHealthBadge({ status, t }: ApiHealthBadgeProps): ReactElement {
   );
 }
 
-type DatabaseSectionProps = { database: HealthCheckData["database"]; t: (key: string) => string };
+type DatabaseSectionProps = { database: HealthCheckData["database"]; t: TFunction };
 
 function DatabaseSection({ database, t }: DatabaseSectionProps): ReactElement {
   return (
@@ -175,7 +176,7 @@ function DatabaseSection({ database, t }: DatabaseSectionProps): ReactElement {
   );
 }
 
-type ApiHealthSectionProps = { apiV1: ApiHealthStatus; apiV2: ApiHealthStatus; t: (key: string) => string };
+type ApiHealthSectionProps = { apiV1: ApiHealthStatus; apiV2: ApiHealthStatus; t: TFunction };
 
 function ApiHealthSection({ apiV1, apiV2, t }: ApiHealthSectionProps): ReactElement {
   return (
@@ -202,7 +203,7 @@ function ApiHealthSection({ apiV1, apiV2, t }: ApiHealthSectionProps): ReactElem
   );
 }
 
-type LicenseSectionProps = { license: LicenseStatus; t: (key: string) => string };
+type LicenseSectionProps = { license: LicenseStatus; t: TFunction };
 
 function LicenseSection({ license, t }: LicenseSectionProps): ReactElement {
   return (
@@ -237,7 +238,7 @@ type EmailSectionProps = {
   userEmail?: string;
   isSendingTestEmail: boolean;
   onSendTestEmail?: () => Promise<void>;
-  t: (key: string) => string;
+  t: TFunction;
 };
 
 function EmailSection({
