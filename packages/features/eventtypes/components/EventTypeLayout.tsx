@@ -103,13 +103,15 @@ function EventTypeSingleLayout({
     <Shell
       backPath={teamId ? `/event-types?teamId=${teamId}` : "/event-types"}
       title={`${eventType.title} | ${t("event_type")}`}
-      heading={eventType.title}
-      beforeCTAactions={
-        team?.name ? (
-          <Badge className="ml-4 hidden text-xs md:flex" variant="gray">
-            {team.name}
-          </Badge>
-        ) : null
+      heading={
+        <div className="flex items-center gap-2">
+          <span>{eventType.title}</span>
+          {team?.name && (
+            <Badge className="text-xs" variant="gray">
+              {team.name}
+            </Badge>
+          )}
+        </div>
       }
       CTA={
         <div className="flex items-center justify-end">
