@@ -7,8 +7,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
 import posthog from "posthog-js";
 
-import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
-import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
+import { BulkEditDefaultForEventsModal } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
+import type { BulkUpdatParams } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
 import { NewScheduleButton } from "@calcom/features/schedules/components/NewScheduleButton";
 import { ScheduleListItem } from "@calcom/features/schedules/components/ScheduleListItem";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -96,7 +96,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
         onSuccess: () => {
           utils.viewer.availability.list.invalidate();
           revalidateAvailabilityList();
-          showToast(t("success"), "success");
+          showToast(t("bulk_updated_schedule_successfully"), "success");
           callback();
         },
       }

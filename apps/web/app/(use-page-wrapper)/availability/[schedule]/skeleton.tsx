@@ -1,7 +1,8 @@
 "use client";
 
-import Shell from "@calcom/features/shell/Shell";
 import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui/components/skeleton";
+
+import Shell from "~/shell/Shell";
 
 export function AvailabilityScheduleSkeleton() {
   return (
@@ -106,7 +107,7 @@ export function AvailabilityScheduleSkeleton() {
               </div>
 
               {/* Sidebar - only visible on desktop */}
-              <div className="min-w-40 col-span-3 hidden stack-y-2 md:block lg:col-span-1 xl:w-[25%]">
+              <div className="min-w-40 stack-y-2 col-span-3 hidden md:block lg:col-span-1 xl:w-[25%]">
                 <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
                   <div>
                     <SkeletonText className="mb-1 h-4 w-24 text-sm" /> {/* Timezone */}

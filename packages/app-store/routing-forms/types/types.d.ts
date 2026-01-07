@@ -2,7 +2,7 @@ import type { ImmutableTree, Config } from "react-awesome-query-builder";
 import type z from "zod";
 
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
-import type { AttributeType } from "@calcom/prisma/client";
+import type { AttributeType, AttributeToUser, AttributeOption } from "@calcom/prisma/client";
 import type { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 import type QueryBuilderInitialConfig from "../components/react-awesome-query-builder/config/config";
@@ -76,6 +76,38 @@ export type Attribute = {
     value: string;
     slug: string;
   }[];
+};
+
+export type AttributeName = string;
+export type AttributeId = string;
+export type BulkAttributeAssigner =
+  | {
+      dsyncId: string;
+    }
+  | {
+      userId: number;
+    };
+
+export type AttributeOptionAssignment = AttributeToUser & {
+  attributeOption: Pick<AttributeOption, "slug"> & {
+    label: string;
+    attribute: {
+      id: string;
+      type: AttributeType;
+      isLocked: boolean;
+    };
+  };
+};
+
+export type AttributeOptionValue = {
+  isGroup: boolean;
+  value: string;
+  contains: { id: string; value: string; slug: string }[];
+};
+
+export type AttributeOptionValueWithType = {
+  type: AttributeType;
+  attributeOption: AttributeOptionValue | AttributeOptionValue[];
 };
 
 export type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
