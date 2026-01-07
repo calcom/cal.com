@@ -23,6 +23,13 @@ export const checkForVerifiedOrgDomainHandler = async ({
     return null;
   }
 
+  // Only show banner for users with verified email addresses
+  // This prevents attackers from creating accounts with unverified emails
+  // and triggering join request emails to org admins
+  if (!user.emailVerified) {
+    return null;
+  }
+
   // Extract domain from user's email
   const emailDomain = user.email.split("@").at(-1);
   if (!emailDomain) {

@@ -25,6 +25,16 @@ export const requestOrgMembershipHandler = async ({ ctx, input }: RequestOrgMemb
     });
   }
 
+  // User must have a verified email address
+  // This prevents attackers from creating accounts with unverified emails
+  // and triggering join request emails to org admins
+  if (!user.emailVerified) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You must verify your email address before requesting to join an organization",
+    });
+  }
+
   const organizationRepository = getOrganizationRepository();
 
   // Verify the organization exists and is verified
