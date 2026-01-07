@@ -1,0 +1,18 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Lever",
+  "slug": "lever",
+  "type": "lever_crm",
+  "logo": "icon.svg",
+  "url": "https://www.lever.co",
+  "variant": "crm",
+  "categories": ["crm"],
+  "extendsFeature": "EventType",
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "Lever is a modern talent acquisition suite that makes it easy to source, nurture, and manage candidates. This integration creates candidates and logs activities in Lever when bookings are made.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic",
+  "dirName": "lever"
+}
