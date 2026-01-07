@@ -6,7 +6,10 @@
   "exports": {
     ".": "./src/index.ts",
     "./setupVitest": "./src/setupVitest.ts",
-    "./lib/*": "./src/lib/*"
+    "./lib/*": "./src/lib/*",
+    "./lib/__mocks__/*": "./src/lib/__mocks__/*",
+    "./lib/bookingScenario/*": "./src/lib/bookingScenario/*",
+    "./lib/fixtures/*": "./src/lib/fixtures/*"
   },
   "scripts": {
     "lint": "biome lint .",
