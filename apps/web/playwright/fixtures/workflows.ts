@@ -33,22 +33,18 @@ export function createWorkflowPageFixture(page: Page) {
       await fillNameInput(name);
     }
 
+    // Select trigger (defaults to BEFORE_EVENT, so selecting marks form dirty)
+    const selectedTrigger = trigger ?? WorkflowTriggerEvents.BEFORE_EVENT;
     await page.locator("#trigger-select").click();
-    await page.getByTestId(`select-option-${WorkflowTriggerEvents.AFTER_EVENT}`).click();
+    await page.getByTestId(`select-option-${selectedTrigger}`).click();
 
-    if (trigger && trigger !== WorkflowTriggerEvents.AFTER_EVENT) {
-      await page.locator("#trigger-select").click();
-      await page.getByTestId(`select-option-${trigger}`).click();
-    }
-
-    // Select event types if provided, otherwise apply to all event types
+    // Select event types to associate workflow with (required for reminders to work)
     if (eventTypeNames && eventTypeNames.length > 0) {
       await page.getByTestId("multi-select-check-boxes").click();
       for (const eventTypeName of eventTypeNames) {
         await page.getByText(eventTypeName, { exact: true }).click();
       }
     } else {
-      // Use "Apply to all" checkbox - matches various workflow types
       await page.getByText(/Apply to all/i).first().click();
     }
 

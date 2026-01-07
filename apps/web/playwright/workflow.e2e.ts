@@ -24,8 +24,6 @@ test.describe("Workflow Tab - Event Type", () => {
 
         await editSelectedWorkflow("Test Workflow");
         await fillNameInput("Edited Workflow");
-        await page.locator("#trigger-select").click();
-        await page.getByTestId(`select-option-${WorkflowTriggerEvents.AFTER_EVENT}`).click();
         await saveWorkflow();
         await page.getByTestId("go-back-button").click();
         await page.getByTestId("workflow-list").waitFor();
