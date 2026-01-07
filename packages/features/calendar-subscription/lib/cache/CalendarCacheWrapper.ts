@@ -56,14 +56,6 @@ export class CalendarCacheWrapper implements Calendar {
    * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
    * - Calendars **without** one of them → fetched directly from the original calendar.
    * - Results are merged into a single array.
-   *
-   * @param params - Parameters for availability retrieval
-   * @param params.dateFrom - Start date (ISO string)
-   * @param params.dateTo - End date (ISO string)
-   * @param params.selectedCalendars - List of calendars to retrieve availability from
-   * @param params.mode - Calendar fetch mode (slots, overlay, booking)
-   * @param params.fallbackToPrimary - Whether to fallback to primary calendar
-   * @returns Combined array of busy date ranges
    */
   async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
@@ -154,13 +146,6 @@ export class CalendarCacheWrapper implements Calendar {
    * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
    * - Calendars **without** one of them → fetched directly from the original calendar.
    * - Results are merged into a single array with `{ start, end, timeZone }` format.
-   *
-   * @param params - Parameters for availability retrieval
-   * @param params.dateFrom - Start date (ISO string)
-   * @param params.dateTo - End date (ISO string)
-   * @param params.selectedCalendars - List of calendars to retrieve availability from
-   * @param params.fallbackToPrimary - Whether to fallback to primary calendar
-   * @returns Combined array of time-zone-aware availability ranges
    */
   async getAvailabilityWithTimeZones(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;

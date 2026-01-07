@@ -53,17 +53,6 @@ export class CalendarTelemetryWrapper implements Calendar {
     return this.deps.originalCalendar.deleteEvent(uid, event, externalCalendarId);
   }
 
-  /**
-   * Retrieves availability with telemetry tracking when cache is disabled.
-   *
-   * @param params - Parameters for availability retrieval
-   * @param params.dateFrom - Start date (ISO string)
-   * @param params.dateTo - End date (ISO string)
-   * @param params.selectedCalendars - List of calendars to retrieve availability from
-   * @param params.mode - Calendar fetch mode (slots, overlay, booking)
-   * @param params.fallbackToPrimary - Whether to fallback to primary calendar
-   * @returns Array of busy date ranges
-   */
   async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
     return withSpan(
@@ -115,16 +104,6 @@ export class CalendarTelemetryWrapper implements Calendar {
     );
   }
 
-  /**
-   * Retrieves availability with time zones and telemetry tracking when cache is disabled.
-   *
-   * @param params - Parameters for availability retrieval
-   * @param params.dateFrom - Start date (ISO string)
-   * @param params.dateTo - End date (ISO string)
-   * @param params.selectedCalendars - List of calendars to retrieve availability from
-   * @param params.fallbackToPrimary - Whether to fallback to primary calendar
-   * @returns Array of time-zone-aware availability ranges
-   */
   async getAvailabilityWithTimeZones(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
     // Check if the original calendar supports this method
