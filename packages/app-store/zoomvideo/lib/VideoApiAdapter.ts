@@ -78,18 +78,65 @@ const meetingPasswordRequirementSchema = z
 
 export type MeetingPasswordRequirement = z.infer<typeof meetingPasswordRequirementSchema>;
 
-function hasInvalidConsecutiveChars(password: string, consecutiveLength: number | undefined): boolean {
+export function hasInvalidConsecutiveChars(
+  password: string,
+  consecutiveLength: number | undefined
+): boolean {
   if (!consecutiveLength || consecutiveLength < 4) return false;
 
   const maxRun = consecutiveLength - 1;
-  let run = 1;
+  const lowerPassword = password.toLowerCase();
 
+  // Define QWERTY keyboard sequences (both rows and columns)
+  const qwertySequences = [
+    "qwertyuiop",
+    "asdfghjkl",
+    "zxcvbnm",
+    "qwertyuiop".split("").reverse().join(""),
+    "asdfghjkl".split("").reverse().join(""),
+    "zxcvbnm".split("").reverse().join(""),
+  ];
+
+  // Check for keyboard sequences
+  for (const sequence of qwertySequences) {
+    for (let i = 0; i <= sequence.length - consecutiveLength; i++) {
+      const seq = sequence.substring(i, i + consecutiveLength);
+      if (lowerPassword.includes(seq)) {
+        return true;
+      }
+    }
+  }
+
+  // Check for repetitive characters (e.g., "11111", "aaaaa")
+  let repetitiveRun = 1;
+  for (let i = 1; i < password.length; i++) {
+    if (password[i] === password[i - 1]) {
+      repetitiveRun++;
+      if (repetitiveRun > maxRun) return true;
+    } else {
+      repetitiveRun = 1;
+    }
+  }
+
+  // Check for sequential characters (ascending: "12345", "abcde")
+  let ascendingRun = 1;
   for (let i = 1; i < password.length; i++) {
     if (password.charCodeAt(i) === password.charCodeAt(i - 1) + 1) {
-      run++;
-      if (run > maxRun) return true;
+      ascendingRun++;
+      if (ascendingRun > maxRun) return true;
     } else {
-      run = 1;
+      ascendingRun = 1;
+    }
+  }
+
+  // Check for sequential characters (descending: "54321", "edcba")
+  let descendingRun = 1;
+  for (let i = 1; i < password.length; i++) {
+    if (password.charCodeAt(i) === password.charCodeAt(i - 1) - 1) {
+      descendingRun++;
+      if (descendingRun > maxRun) return true;
+    } else {
+      descendingRun = 1;
     }
   }
 
