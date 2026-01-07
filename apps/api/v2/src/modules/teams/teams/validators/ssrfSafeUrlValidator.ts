@@ -1,7 +1,7 @@
 import { ValidatorConstraint } from "class-validator";
 import type { ValidatorConstraintInterface } from "class-validator";
 
-import { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
+import { validateUrlForSSRFSync } from "@calcom/platform-libraries";
 
 /**
  * Validates that a URL is safe for server-side fetching

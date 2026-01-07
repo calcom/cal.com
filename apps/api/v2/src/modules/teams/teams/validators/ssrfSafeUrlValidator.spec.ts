@@ -6,7 +6,7 @@ import { SSRFSafeUrlValidator } from "./ssrfSafeUrlValidator";
 const mockValidateUrlForSSRFSync: jest.Mock = jest.fn();
 
 // Mock with minimal logic - actual validation tested in packages/lib
-jest.mock("@calcom/lib/ssrfProtection", () => ({
+jest.mock("@calcom/platform-libraries", () => ({
   validateUrlForSSRFSync: (url: string) => mockValidateUrlForSSRFSync(url),
 }));
 

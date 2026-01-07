@@ -14,8 +14,8 @@ const ssrfSafeOptionalUrl: z.ZodEffects<
   string | null | undefined
 > = z
   .string()
-  .optional()
   .nullable()
+  .optional()
   .refine(
     (url) => {
       if (!url) return true;
