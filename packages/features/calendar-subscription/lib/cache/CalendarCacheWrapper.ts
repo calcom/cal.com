@@ -9,7 +9,6 @@ import type {
   GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
-  SelectedCalendarEventTypeIds,
 } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["CachedCalendarWrapper"] });
@@ -101,7 +100,12 @@ export class CalendarCacheWrapper implements Calendar {
             new Date(dateTo)
           );
           const cacheDurationMs = performance.now() - cacheStartTime;
-          results.push(...cached);
+          results.push(
+            ...cached.map((event) => ({
+              ...event,
+              timeZone: event.timeZone ?? undefined,
+            }))
+          );
 
           span.setAttribute("cachedCalendarCount", withSync.length);
           span.setAttribute("cacheFetchDurationMs", cacheDurationMs);
@@ -252,19 +256,5 @@ export class CalendarCacheWrapper implements Calendar {
 
   testDelegationCredentialSetup?(): Promise<boolean> {
     return this.deps.originalCalendar.testDelegationCredentialSetup?.() || Promise.resolve(false);
-  }
-
-  watchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<unknown> {
-    return this.deps.originalCalendar.watchCalendar?.(options) || Promise.resolve();
-  }
-
-  unwatchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<void> {
-    return this.deps.originalCalendar.unwatchCalendar?.(options) || Promise.resolve();
   }
 }

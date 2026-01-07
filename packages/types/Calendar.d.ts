@@ -310,15 +310,6 @@ export interface Calendar {
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
   testDelegationCredentialSetup?(): Promise<boolean>;
-
-  watchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<unknown>;
-  unwatchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<void>;
 }
 
 /**

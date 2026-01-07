@@ -75,7 +75,10 @@ export const getCalendarsEventsWithTimezones = async (
         fallbackToPrimary: allowFallbackToPrimary,
       })) || [];
 
-    return eventBusyDates;
+    return eventBusyDates.map((event) => ({
+      ...event,
+      timeZone: event.timeZone || "UTC",
+    }));
   });
   const awaitedResults = await Promise.all(results);
   return awaitedResults;
