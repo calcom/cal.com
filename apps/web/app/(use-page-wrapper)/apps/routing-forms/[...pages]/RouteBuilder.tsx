@@ -19,7 +19,6 @@ import {
   withRaqbSettingsAndWidgets,
   ConfigFor,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/config/uiConfig";
-import { RoutingPages } from "@calcom/app-store/routing-forms/lib/RoutingPages";
 import { createFallbackRoute } from "@calcom/app-store/routing-forms/lib/createFallbackRoute";
 import getEventTypeAppMetadata from "@calcom/app-store/routing-forms/lib/getEventTypeAppMetadata";
 import {
@@ -30,14 +29,16 @@ import {
   isDynamicOperandField,
 } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
-import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import { RoutingPages } from "@calcom/app-store/routing-forms/lib/RoutingPages";
+import { validateVariablesNotInQueryParams } from "@calcom/app-store/routing-forms/lib/validateRedirectUrl";
 import type {
+  Attribute,
+  AttributeRoutingConfig,
+  EditFormRoute,
   GlobalRoute,
   LocalRoute,
+  RoutingFormWithResponseCount,
   SerializableRoute,
-  Attribute,
-  EditFormRoute,
-  AttributeRoutingConfig,
 } from "@calcom/app-store/routing-forms/types/types";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -52,10 +53,13 @@ import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
-import { SelectWithValidation as Select, TextArea } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { SelectField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import {
+  SelectWithValidation as Select,
+  SelectField,
+  Switch,
+  TextArea,
+  TextField,
+} from "@calcom/ui/components/form";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Icon } from "@calcom/ui/components/icon";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
@@ -398,8 +402,10 @@ const Route = ({
   const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>(() => {
     const isCustom =
       !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
-    return isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "";
+    return isCustom && !isRouter(route) ? (route.action.value.split("/").pop() ?? "") : "";
   });
+
+  const [customUrlValidationError, setCustomUrlValidationError] = useState<string | null>(null);
 
   useEnsureEventTypeIdInRedirectUrlAction({
     route,
@@ -765,21 +771,43 @@ const Route = ({
                             required
                             value={customEventTypeSlug}
                             onChange={(e) => {
-                              setCustomEventTypeSlug(e.target.value);
+                              const newValue = e.target.value;
+                              const validation = validateVariablesNotInQueryParams(newValue);
+                              if (!validation.isValid) {
+                                setCustomUrlValidationError(
+                                  t("variables_not_allowed_in_query_params", {
+                                    variables: validation.invalidVariables.map((v) => `{${v}}`).join(", "),
+                                  })
+                                );
+                              } else {
+                                setCustomUrlValidationError(null);
+                              }
+                              setCustomEventTypeSlug(newValue);
                               setRoute(route.id, {
-                                action: { ...route.action, value: `${eventTypePrefix}${e.target.value}` },
+                                action: { ...route.action, value: `${eventTypePrefix}${newValue}` },
                               });
                             }}
                             placeholder="event-url"
                           />
-                          <div className="mt-2 ">
-                            <p className="text-subtle text-xs">
-                              {fieldIdentifiers.length
-                                ? t("field_identifiers_as_variables_with_example", {
-                                    variable: `{${fieldIdentifiers[0]}}`,
-                                  })
-                                : t("field_identifiers_as_variables")}
-                            </p>
+                          <div className="mt-2">
+                            {customUrlValidationError ? (
+                              <p className="text-error text-xs">{customUrlValidationError}</p>
+                            ) : (
+                              <p className="text-subtle text-xs">
+                                {fieldIdentifiers.length
+                                  ? t("field_identifiers_as_variables_with_example", {
+                                      variable: `{${fieldIdentifiers[0]}}`,
+                                    })
+                                  : t("field_identifiers_as_variables")}{" "}
+                                <a
+                                  href="https://cal.com/help/routing/connect-routing-form-to-booking-questions"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-emphasis underline">
+                                  {t("learn_more")}
+                                </a>
+                              </p>
+                            )}
                           </div>
                         </>
                       ) : (
@@ -901,21 +929,43 @@ const Route = ({
                               required
                               value={customEventTypeSlug}
                               onChange={(e) => {
-                                setCustomEventTypeSlug(e.target.value);
+                                const newValue = e.target.value;
+                                const validation = validateVariablesNotInQueryParams(newValue);
+                                if (!validation.isValid) {
+                                  setCustomUrlValidationError(
+                                    t("variables_not_allowed_in_query_params", {
+                                      variables: validation.invalidVariables.map((v) => `{${v}}`).join(", "),
+                                    })
+                                  );
+                                } else {
+                                  setCustomUrlValidationError(null);
+                                }
+                                setCustomEventTypeSlug(newValue);
                                 setRoute(route.id, {
-                                  action: { ...route.action, value: `${eventTypePrefix}${e.target.value}` },
+                                  action: { ...route.action, value: `${eventTypePrefix}${newValue}` },
                                 });
                               }}
                               placeholder="event-url"
                             />
-                            <div className="mt-2 ">
-                              <p className="text-subtle text-xs">
-                                {fieldIdentifiers.length
-                                  ? t("field_identifiers_as_variables_with_example", {
-                                      variable: `{${fieldIdentifiers[0]}}`,
-                                    })
-                                  : t("field_identifiers_as_variables")}
-                              </p>
+                            <div className="mt-2">
+                              {customUrlValidationError ? (
+                                <p className="text-error text-xs">{customUrlValidationError}</p>
+                              ) : (
+                                <p className="text-subtle text-xs">
+                                  {fieldIdentifiers.length
+                                    ? t("field_identifiers_as_variables_with_example", {
+                                        variable: `{${fieldIdentifiers[0]}}`,
+                                      })
+                                    : t("field_identifiers_as_variables")}{" "}
+                                  <a
+                                    href="https://cal.com/help/routing/connect-routing-form-to-booking-questions"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-emphasis underline">
+                                    {t("learn_more")}
+                                  </a>
+                                </p>
+                              )}
                             </div>
                           </>
                         ) : (
