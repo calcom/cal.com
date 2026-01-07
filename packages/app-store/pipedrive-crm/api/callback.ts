@@ -3,11 +3,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import appConfig from "../config.json";
+import { getPipedriveAppKeys } from "../lib/getPipedriveAppKeys";
 
 export interface PipedriveToken {
   access_token: string;
@@ -32,16 +32,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
-  let clientId = "";
-  let clientSecret = "";
-  const appKeys = await getAppKeysFromSlug(appConfig.slug);
-  if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
-  if (typeof appKeys.client_secret === "string") clientSecret = appKeys.client_secret;
-  if (!clientId) return res.status(400).json({ message: "Pipedrive client id missing." });
-  if (!clientSecret) return res.status(400).json({ message: "Pipedrive client secret missing." });
+  const { client_id, client_secret } = await getPipedriveAppKeys();
 
   const redirectUri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/pipedrive-crm/callback`;
-  const authHeader = `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`;
+  const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
 
   const tokenResponse = await fetch("https://oauth.pipedrive.com/oauth/token", {
     method: "POST",

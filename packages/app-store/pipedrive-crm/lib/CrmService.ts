@@ -1,5 +1,12 @@
+import {
+  APP_CREDENTIAL_SHARING_ENABLED,
+  CREDENTIAL_SYNC_ENDPOINT,
+  CREDENTIAL_SYNC_SECRET,
+  CREDENTIAL_SYNC_SECRET_HEADER_NAME,
+} from "@calcom/lib/constants";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   CalendarEvent,
   EventBusyDate,
@@ -9,9 +16,13 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { ContactCreateInput, CRM, Contact } from "@calcom/types/CrmService";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import { invalidateCredential } from "../../_utils/invalidateCredential";
+import { OAuthManager } from "../../_utils/oauth/OAuthManager";
+import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
+import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
 import { updateTokenObjectInDb } from "../../_utils/oauth/updateTokenObject";
 import appConfig from "../config.json";
+import { getPipedriveAppKeys } from "./getPipedriveAppKeys";
 
 type PipedriveContact = {
   id: number;
@@ -33,92 +44,122 @@ type PipedriveActivity = {
 };
 
 export default class PipedriveCrmService implements CRM {
+  private credential: CredentialPayload;
   private log: typeof logger;
-  private accessToken: string;
+  private auth: OAuthManager;
   private apiDomain: string;
-  private refreshToken: string;
-  private expiryDate: number;
-  private credentialId: number;
 
   constructor(credential: CredentialPayload) {
+    this.credential = credential;
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${appConfig.slug}`] });
 
-    const key = credential.key as any;
-    this.accessToken = key.access_token;
-    this.apiDomain = key.api_domain;
-    this.refreshToken = key.refresh_token;
-    this.expiryDate = key.expiryDate;
-    this.credentialId = credential.id;
+    const tokenResponse = getTokenObjectFromCredential(credential);
+    // Pipedrive stores api_domain in the token object
+    const key = credential.key as { api_domain?: string };
+    this.apiDomain = key.api_domain || "";
+
+    this.auth = new OAuthManager({
+      credentialSyncVariables: {
+        APP_CREDENTIAL_SHARING_ENABLED: APP_CREDENTIAL_SHARING_ENABLED,
+        CREDENTIAL_SYNC_ENDPOINT: CREDENTIAL_SYNC_ENDPOINT,
+        CREDENTIAL_SYNC_SECRET: CREDENTIAL_SYNC_SECRET,
+        CREDENTIAL_SYNC_SECRET_HEADER_NAME: CREDENTIAL_SYNC_SECRET_HEADER_NAME,
+      },
+      resourceOwner: {
+        type: credential.teamId ? "team" : "user",
+        id: credential.teamId ?? credential.userId,
+      },
+      appSlug: appConfig.slug,
+      currentTokenObject: tokenResponse,
+      fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
+        if (!refreshToken) {
+          return null;
+        }
+        const { client_id, client_secret } = await getPipedriveAppKeys();
+        const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
+        return fetch("https://oauth.pipedrive.com/oauth/token", {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            grant_type: "refresh_token",
+            refresh_token: refreshToken,
+          }),
+        });
+      },
+      isTokenObjectUnusable: async function (response) {
+        const myLog = logger.getSubLogger({ prefix: ["pipedrive-crm:isTokenObjectUnusable"] });
+        myLog.debug(safeStringify({ status: response.status, ok: response.ok }));
+        if (!response.ok) {
+          let responseBody;
+          try {
+            responseBody = await response.clone().json();
+          } catch {
+            return null;
+          }
+          myLog.debug(safeStringify({ responseBody }));
+          // Pipedrive returns "invalid_grant" when refresh token is invalid
+          if (responseBody.error === "invalid_grant") {
+            return { reason: responseBody.error };
+          }
+        }
+        return null;
+      },
+      isAccessTokenUnusable: async function (response) {
+        const myLog = logger.getSubLogger({ prefix: ["pipedrive-crm:isAccessTokenUnusable"] });
+        myLog.debug(safeStringify({ status: response.status, ok: response.ok }));
+        if (!response.ok && response.status === 401) {
+          let responseBody;
+          try {
+            responseBody = await response.clone().json();
+          } catch {
+            return null;
+          }
+          myLog.debug(safeStringify({ responseBody }));
+          // Pipedrive returns 401 with error when access token is invalid
+          if (responseBody.error) {
+            return { reason: responseBody.error };
+          }
+        }
+        return null;
+      },
+      invalidateTokenObject: () => invalidateCredential(credential.id),
+      expireAccessToken: () => markTokenAsExpired(credential),
+      updateTokenObject: async (newTokenObject) => {
+        // Update api_domain in instance if it changed
+        if (newTokenObject.api_domain) {
+          this.apiDomain = newTokenObject.api_domain as string;
+        }
+        await updateTokenObjectInDb({
+          authStrategy: "oauth",
+          credentialId: credential.id,
+          tokenObject: newTokenObject,
+        });
+      },
+    });
   }
 
-  private async getValidAccessToken(): Promise<string> {
-    if (Date.now() < this.expiryDate) {
-      return this.accessToken;
-    }
+  private async requestPipedrive<T = unknown>(endpoint: string, options?: RequestInit): Promise<T> {
+    // Ensure we have a valid token and get the latest api_domain
+    const { token } = await this.auth.getTokenObjectOrFetch();
+    const apiDomain = (token as { api_domain?: string }).api_domain || this.apiDomain;
 
-    try {
-      const appKeys = await getAppKeysFromSlug(appConfig.slug);
-      let clientId = "";
-      let clientSecret = "";
-      if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
-      if (typeof appKeys.client_secret === "string") clientSecret = appKeys.client_secret;
+    const { json } = await this.auth.request({
+      url: `${apiDomain}/api/v1/${endpoint}`,
+      options: {
+        method: "GET",
+        ...options,
+      },
+    });
 
-      if (!clientId || !clientSecret) {
-        throw new Error("Pipedrive client credentials missing for token refresh");
-      }
-
-      const authHeader = `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`;
-
-      const tokenResponse = await fetch("https://oauth.pipedrive.com/oauth/token", {
-        method: "POST",
-        headers: {
-          Authorization: authHeader,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          grant_type: "refresh_token",
-          refresh_token: this.refreshToken,
-        }),
-      });
-
-      if (!tokenResponse.ok) {
-        throw new Error(`Token refresh failed: ${tokenResponse.status} ${tokenResponse.statusText}`);
-      }
-
-      const refreshedToken = await tokenResponse.json();
-
-      this.accessToken = refreshedToken.access_token;
-      this.expiryDate = Math.round(Date.now() + refreshedToken.expires_in * 1000);
-
-      const updatedTokenObject = {
-        access_token: refreshedToken.access_token,
-        refresh_token: refreshedToken.refresh_token || this.refreshToken,
-        api_domain: refreshedToken.api_domain || this.apiDomain,
-        expires_in: refreshedToken.expires_in,
-        expiryDate: this.expiryDate,
-        token_type: refreshedToken.token_type,
-        scope: refreshedToken.scope,
-      };
-
-      await updateTokenObjectInDb({
-        authStrategy: "oauth",
-        credentialId: this.credentialId,
-        tokenObject: updatedTokenObject,
-      });
-
-      this.log.debug("Token refreshed and updated in database successfully");
-      return this.accessToken;
-    } catch (error) {
-      this.log.error("Error refreshing access token:", error);
-      throw new Error("Failed to refresh access token");
-    }
+    return json as T;
   }
 
   async createContacts(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
-    const accessToken = await this.getValidAccessToken();
-
     const result = contactsToCreate.map(async (attendee) => {
-      const [firstName, lastName] = !!attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
+      const [firstName, lastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
 
       const bodyData = {
         name: attendee.name || attendee.email,
@@ -128,18 +169,19 @@ export default class PipedriveCrmService implements CRM {
       };
 
       try {
-        const response = await fetch(`${this.apiDomain}/api/v1/persons`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(bodyData),
-        });
+        const response = await this.requestPipedrive<{ success: boolean; data: PipedriveContact }>(
+          "persons",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(bodyData),
+          }
+        );
 
-        const result = await response.json();
-        if (result.success && result.data) {
-          const contact = result.data as PipedriveContact;
+        if (response.success && response.data) {
+          const contact = response.data;
           return {
             id: contact.id.toString(),
             email: contact.email[0]?.value || attendee.email,
@@ -159,24 +201,18 @@ export default class PipedriveCrmService implements CRM {
   }
 
   async getContacts({ emails }: { emails: string | string[] }): Promise<Contact[]> {
-    const accessToken = await this.getValidAccessToken();
     const emailArray = Array.isArray(emails) ? emails : [emails];
 
     const result = emailArray.map(async (email) => {
       try {
-        const response = await fetch(
-          `${this.apiDomain}/api/v1/persons/search?term=${encodeURIComponent(email)}&fields=email`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const response = await this.requestPipedrive<{
+          success: boolean;
+          data: { items: Array<{ item: PipedriveContact }> };
+        }>(`persons/search?term=${encodeURIComponent(email)}&fields=email`);
 
-        const result = await response.json();
-        if (result.success && result.data?.items) {
-          return result.data.items.map((item: any) => {
-            const contact = item.item as PipedriveContact;
+        if (response.success && response.data?.items) {
+          return response.data.items.map((item) => {
+            const contact = item.item;
             return {
               id: contact.id.toString(),
               email: contact.email[0]?.value || email,
@@ -204,8 +240,6 @@ export default class PipedriveCrmService implements CRM {
   };
 
   private createPipedriveActivity = async (event: CalendarEvent, contacts: Contact[]) => {
-    const accessToken = await this.getValidAccessToken();
-
     const startDate = new Date(event.startTime);
     const endDate = new Date(event.endTime);
     const duration = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60));
@@ -221,21 +255,16 @@ export default class PipedriveCrmService implements CRM {
       person_id: parseInt(contacts[0].id),
     };
 
-    const response = await fetch(`${this.apiDomain}/api/v1/activities`, {
+    return this.requestPipedrive<{ success: boolean; data: PipedriveActivity }>("activities", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(activityPayload),
     });
-
-    return response;
   };
 
   private updateActivity = async (uid: string, event: CalendarEvent) => {
-    const accessToken = await this.getValidAccessToken();
-
     const startDate = new Date(event.startTime);
     const endDate = new Date(event.endTime);
     const duration = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60));
@@ -249,34 +278,23 @@ export default class PipedriveCrmService implements CRM {
       location: getLocation(event),
     };
 
-    const response = await fetch(`${this.apiDomain}/api/v1/activities/${uid}`, {
+    return this.requestPipedrive<{ success: boolean; data: PipedriveActivity }>(`activities/${uid}`, {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(activityPayload),
     });
-
-    return response;
   };
 
   private deleteActivity = async (uid: string) => {
-    const accessToken = await this.getValidAccessToken();
-
-    const response = await fetch(`${this.apiDomain}/api/v1/activities/${uid}`, {
+    return this.requestPipedrive<{ success: boolean }>(`activities/${uid}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
     });
-
-    return response;
   };
 
   async handleEventCreation(event: CalendarEvent, contacts: Contact[]) {
-    const response = await this.createPipedriveActivity(event, contacts);
-    const meetingEvent = await response.json();
+    const meetingEvent = await this.createPipedriveActivity(event, contacts);
 
     if (meetingEvent.success && meetingEvent.data) {
       this.log.debug("event:creation:ok", { meetingEvent });
@@ -299,8 +317,7 @@ export default class PipedriveCrmService implements CRM {
   }
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
-    const response = await this.updateActivity(uid, event);
-    const meetingEvent = await response.json();
+    const meetingEvent = await this.updateActivity(uid, event);
 
     if (meetingEvent.success && meetingEvent.data) {
       this.log.debug("event:updation:ok", { meetingEvent });
