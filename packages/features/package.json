@@ -27,6 +27,7 @@
     "date-fns-tz": "3.2.0",
     "framer-motion": "10.12.8",
     "p-limit": "6.2.0",
+    "react-awesome-query-builder": "5.1.2",
     "react-select": "5.8.0",
     "react-sticky-box": "2.0.4",
     "recharts": "3.0.2",

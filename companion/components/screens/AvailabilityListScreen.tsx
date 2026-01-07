@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Activity, useMemo, useState } from "react";
 import {
-  ActionSheetIOS,
   Alert,
   FlatList,
   Platform,
@@ -106,75 +105,6 @@ export function AvailabilityListScreen({
     onSearchChange(query);
   };
 
-  const handleScheduleLongPress = (schedule: Schedule) => {
-    if (Platform.OS !== "ios") {
-      // Fallback for non-iOS platforms (Android Alert supports max 3 buttons)
-      const options: {
-        text: string;
-        onPress: () => void;
-        style?: "destructive" | "cancel" | "default";
-      }[] = [];
-      if (!schedule.isDefault) {
-        options.push({
-          text: "Set as default",
-          onPress: () => handleSetAsDefault(schedule),
-        });
-      }
-      options.push(
-        { text: "Duplicate", onPress: () => handleDuplicate(schedule) },
-        {
-          text: "Delete",
-          style: "destructive" as const,
-          onPress: () => handleDelete(schedule),
-        }
-      );
-      // Android Alert automatically adds cancel, so we don't need to include it explicitly
-      Alert.alert(schedule.name, "", options);
-      return;
-    }
-
-    const options = ["Cancel"];
-    if (!schedule.isDefault) {
-      options.push("Set as default");
-    }
-    options.push("Duplicate", "Delete");
-
-    const destructiveButtonIndex = options.length - 1; // Delete button
-    const cancelButtonIndex = 0;
-
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options,
-        destructiveButtonIndex,
-        cancelButtonIndex,
-        title: schedule.name,
-      },
-      (buttonIndex) => {
-        if (buttonIndex === cancelButtonIndex) {
-          return;
-        }
-
-        if (!schedule.isDefault) {
-          // Options: ["Cancel", "Set as default", "Duplicate", "Delete"]
-          if (buttonIndex === 1) {
-            handleSetAsDefault(schedule);
-          } else if (buttonIndex === 2) {
-            handleDuplicate(schedule);
-          } else if (buttonIndex === 3) {
-            handleDelete(schedule);
-          }
-        } else {
-          // Options: ["Cancel", "Duplicate", "Delete"]
-          if (buttonIndex === 1) {
-            handleDuplicate(schedule);
-          } else if (buttonIndex === 2) {
-            handleDelete(schedule);
-          }
-        }
-      }
-    );
-  };
-
   const handleSetAsDefault = (schedule: Schedule) => {
     setAsDefaultMutation(schedule.id, {
       onError: () => {
@@ -230,7 +160,7 @@ export function AvailabilityListScreen({
 
   const handleSchedulePress = (schedule: Schedule) => {
     router.push({
-      pathname: "/availability-detail",
+      pathname: "/(tabs)/(availability)/availability-detail",
       params: { id: schedule.id.toString() },
     });
   };
@@ -287,7 +217,7 @@ export function AvailabilityListScreen({
 
           // Navigate to edit the newly created schedule
           router.push({
-            pathname: "/availability-detail",
+            pathname: "/(tabs)/(availability)/availability-detail",
             params: {
               id: newSchedule.id.toString(),
             },
@@ -433,9 +363,6 @@ export function AvailabilityListScreen({
                 item={item}
                 index={index}
                 handleSchedulePress={handleSchedulePress}
-                handleScheduleLongPress={handleScheduleLongPress}
-                setSelectedSchedule={setSelectedSchedule}
-                setShowActionsModal={setShowActionsModal}
                 onDuplicate={handleDuplicate}
                 onDelete={handleDelete}
                 onSetAsDefault={handleSetAsDefault}

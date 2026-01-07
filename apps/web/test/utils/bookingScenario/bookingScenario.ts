@@ -2208,7 +2208,6 @@ export function mockCrmApp(
   }[] = [];
   const eventsCreated: boolean[] = [];
 
-  // Mock the CrmServiceMap directly instead of using the old app-store index approach
   vi.doMock("@calcom/app-store/crm.apps.generated", async (importOriginal) => {
     const original = await importOriginal<typeof import("@calcom/app-store/crm.apps.generated")>();
 
@@ -2220,16 +2219,17 @@ export function mockCrmApp(
       createContact() {
         if (crmData?.createContacts) {
           contactsCreated = crmData.createContacts;
-          return Promise.resolve(crmData?.createContacts);
+          return Promise.resolve(crmData.createContacts);
         }
         return Promise.resolve([]);
       }
 
       getContacts(email: string) {
         if (crmData?.getContacts) {
-          contactsQueried = crmData?.getContacts;
-          const contactsOfEmail = contactsQueried.filter((contact) => contact.email === email);
-          return Promise.resolve(contactsOfEmail);
+          contactsQueried = crmData.getContacts;
+          return Promise.resolve(
+            contactsQueried.filter((c) => c.email === email)
+          );
         }
         return Promise.resolve([]);
       }
@@ -2244,19 +2244,27 @@ export function mockCrmApp(
       ...original,
       CrmServiceMap: {
         ...original.CrmServiceMap,
-        [metadataLookupKey]: Promise.resolve({
+        // ✅ IMPORTANT: no Promise here
+        [metadataLookupKey]: {
           default: MockCrmService,
-        }),
+        },
       },
     };
   });
 
   return {
-    contactsCreated,
-    contactsQueried,
-    eventsCreated,
+    get contactsCreated() {
+      return contactsCreated;
+    },
+    get contactsQueried() {
+      return contactsQueried;
+    },
+    get eventsCreated() {
+      return eventsCreated;
+    },
   };
 }
+
 
 export function getBooker({
   name,

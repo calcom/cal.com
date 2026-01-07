@@ -60,7 +60,7 @@ export default function Availability() {
                 onSuccess: (newSchedule) => {
                   // Navigate to edit the newly created schedule
                   router.push({
-                    pathname: "/availability-detail",
+                    pathname: "/(tabs)/(availability)/availability-detail",
                     params: {
                       id: newSchedule.id.toString(),
                     },
@@ -94,7 +94,7 @@ export default function Availability() {
       <Stack.Header
         style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
         blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
-        hidden={Platform.OS === "android"}
+        hidden={Platform.OS === "android" || Platform.OS === "web"}
       >
         <Stack.Header.Title large>Availability</Stack.Header.Title>
         <Stack.Header.Right>
