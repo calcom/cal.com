@@ -7,19 +7,19 @@ const {
   resetPrismaMock,
   createPrismaMock,
 } = (await vi.hoisted(
-  async () => await import("./mocks/prisma.mocks")
-)) as Awaited<typeof import("./mocks/prisma.mocks")>;
+  async () => await import("@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks")
+)) as Awaited<typeof import("@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks")>;
 
 const { createNextServerMock } = (await vi.hoisted(
-  async () => await import("./mocks/next.mocks")
-)) as Awaited<typeof import("./mocks/next.mocks")>;
+  async () => await import("@calcom/features/auth/signup/handlers/__tests__/mocks/next.mocks")
+)) as Awaited<typeof import("@calcom/features/auth/signup/handlers/__tests__/mocks/next.mocks")>;
 
 const {
   createMockTeam,
   createMockFoundToken,
 } = (await vi.hoisted(
-  async () => await import("./mocks/signup.factories")
-)) as Awaited<typeof import("./mocks/signup.factories")>;
+  async () => await import("@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories")
+)) as Awaited<typeof import("@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories")>;
 
 const mockFindTokenByToken: Mock = vi.fn();
 const mockValidateAndGetCorrectedUsernameForTeam: Mock = vi.fn();
@@ -39,17 +39,17 @@ vi.mock("@calcom/features/auth/signup/utils/createOrUpdateMemberships", () => ({
 vi.mock("@calcom/features/auth/signup/utils/validateUsername", () => ({
   validateAndGetCorrectedUsernameAndEmail: vi.fn().mockResolvedValue({ isValid: true, username: "testuser" }),
 }));
-vi.mock("../../utils/organization", () => ({ joinAnyChildTeamOnOrgInvite: vi.fn() }));
-vi.mock("../../utils/prefillAvatar", () => ({ prefillAvatar: vi.fn() }));
-vi.mock("../../utils/token", () => ({
+vi.mock("@calcom/features/auth/signup/utils/organization", () => ({ joinAnyChildTeamOnOrgInvite: vi.fn() }));
+vi.mock("@calcom/features/auth/signup/utils/prefillAvatar", () => ({ prefillAvatar: vi.fn() }));
+vi.mock("@calcom/features/auth/signup/utils/token", () => ({
   findTokenByToken: (...args: unknown[]) => mockFindTokenByToken(...args),
   throwIfTokenExpired: vi.fn(),
   validateAndGetCorrectedUsernameForTeam: (...args: unknown[]) => mockValidateAndGetCorrectedUsernameForTeam(...args),
 }));
 
 // Import after mocks
-import handler from "../selfHostedHandler";
-import { runP2002TestSuite } from "./p2002.test-suite";
+import handler from "./selfHostedHandler";
+import { runP2002TestSuite } from "@calcom/features/auth/signup/handlers/__tests__/p2002.test-suite";
 
 function callHandler(body: Record<string, string | undefined>): ReturnType<typeof handler> {
   return handler(body as Record<string, string>);
