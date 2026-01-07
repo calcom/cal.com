@@ -56,7 +56,10 @@ export const bookingsRouter = router({
 
     return confirmHandler({
       ctx,
-      input,
+      input: {
+        ...input,
+        actionSource: "WEBAPP",
+      }
     });
   }),
 

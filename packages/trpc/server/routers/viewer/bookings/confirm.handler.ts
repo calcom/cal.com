@@ -29,12 +29,15 @@ import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
+import logger from "@calcom/lib/logger";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TConfirmInputSchema } from "./confirm.schema";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
+const log = logger.getSubLogger({ prefix: ["[confirmHandler]"] });
 type ConfirmOptions = {
   ctx: {
     user: Pick<
@@ -46,6 +49,35 @@ type ConfirmOptions = {
   input: TConfirmInputSchema;
 };
 
+async function fireRejectionEvent({
+  bookingUid,
+  userUuid,
+  organizationId,
+  actionSource,
+  rejectionReason,
+  currentBookingStatus,
+}: {
+  bookingUid: string;
+  userUuid: string;
+  organizationId: number | null;
+  actionSource: ActionSource;
+  rejectionReason: string | null;
+  currentBookingStatus: BookingStatus;
+}) {
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  const actor = makeUserActor(userUuid);
+  await bookingEventHandlerService.onBookingRejected({
+    bookingUid,
+    actor,
+    organizationId,
+    auditData: {
+      rejectionReason: rejectionReason ?? null,
+      status: { old: currentBookingStatus, new: BookingStatus.REJECTED },
+    },
+    source: actionSource,
+  });
+}
+
 export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   const {
     bookingId,
@@ -54,10 +86,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     confirmed,
     emailsEnabled,
     platformClientParams,
-    actionSource: inputActionSource,
+    actionSource,
   } = input;
-
-  const actionSource = inputActionSource ?? "WEBAPP";
 
   const booking = await prisma.booking.findUniqueOrThrow({
     where: {
@@ -246,8 +276,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     destinationCalendar: booking.destinationCalendar
       ? [booking.destinationCalendar]
       : booking.user?.destinationCalendar
-      ? [booking.user?.destinationCalendar]
-      : [],
+        ? [booking.user?.destinationCalendar]
+        : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     hideCalendarNotes: booking.eventType?.hideCalendarNotes,
@@ -332,15 +362,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       recurringEventId,
       prisma,
       bookingId,
-      booking: {
-        ...booking,
-        status: booking.status,
-      },
+      booking,
       emailsEnabled,
       platformClientParams,
       traceContext,
       actionSource,
       userUuid: ctx.user.uuid,
+      actor: null,
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -391,24 +419,14 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
 
-    // Audit logging for booking rejection
-    try {
-      const bookingEventHandlerService = getBookingEventHandlerService();
-      const actor = makeUserActor(ctx.user.uuid);
-
-      await bookingEventHandlerService.onBookingRejected({
-        bookingUid: booking.uid,
-        actor,
-        organizationId: orgId ?? null,
-        auditData: {
-          rejectionReason: { old: null, new: rejectionReason ?? null },
-          status: { old: booking.status, new: BookingStatus.REJECTED },
-        },
-        source: actionSource,
-      });
-    } catch (error) {
-      console.error("Error while logging booking rejection audit:", error);
-    }
+    await fireRejectionEvent({
+      bookingUid: booking.uid,
+      userUuid: ctx.user.uuid,
+      actionSource,
+      rejectionReason: rejectionReason ?? null,
+      currentBookingStatus: booking.status,
+      organizationId: orgId ?? null,
+    });
 
     // send BOOKING_REJECTED webhooks
     const subscriberOptions: GetSubscriberOptions = {

@@ -3,7 +3,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import {
+  eventTypeMetaDataSchemaWithTypedApps,
+  eventTypeAppMetadataOptionalSchema,
+} from "@calcom/app-store/zod-utils";
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails/email-manager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
@@ -23,6 +26,8 @@ import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { makeAppActor, makeAppActorUsingSlug } from "@calcom/features/booking-audit/lib/makeActor";
+import { ActorIdentification } from "booking-audit/lib/dto/types";
 
 const log = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
 
@@ -31,6 +36,20 @@ export const config = {
     bodyParser: false,
   },
 };
+
+function getActor({credentialId}: {credentialId: number | null}) {
+  let actor: ActorIdentification;
+  if (credentialId) {
+    actor = makeAppActor({ credentialId });
+  } else {
+    actor = makeAppActorUsingSlug({ appSlug: "stripe", name: "Stripe" });
+  }
+
+  if (!credentialId) {
+    log.warn("Missing Stripe credentialId in event type metadata, using appSlug fallback");
+  }
+  return actor;
+}
 
 export async function handleStripePaymentSuccess(event: Stripe.Event, traceContext: TraceContext) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
@@ -50,7 +69,12 @@ export async function handleStripePaymentSuccess(event: Stripe.Event, traceConte
   }
   if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
-  await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
+  await handlePaymentSuccess({
+    paymentId: payment.id,
+    bookingId: payment.bookingId,
+    appSlug: "stripe",
+    traceContext,
+  });
 }
 
 const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContext) => {
@@ -124,6 +148,9 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
   // If the card information was already captured in the same customer. Delete the previous payment method
 
   if (!requiresConfirmation) {
+    const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+    const credentialId = apps?.stripe?.credentialId;
+    const actor = getActor({credentialId: credentialId ?? null});
     await handleConfirmation({
       user: { ...user, credentials: allCredentials },
       evt,
@@ -133,6 +160,9 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
       paid: true,
       platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
       traceContext: updatedTraceContext,
+      actionSource: "WEBHOOK",
+      userUuid: null,
+      actor,
     });
   } else if (areEmailsEnabled) {
     await sendOrganizerRequestEmail({ ...evt }, eventType.metadata);

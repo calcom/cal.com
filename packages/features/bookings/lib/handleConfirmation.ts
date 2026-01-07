@@ -2,6 +2,7 @@ import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils"
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import type { ActorIdentification } from "@calcom/features/booking-audit/lib/dto/types";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
@@ -37,54 +38,123 @@ import { v4 as uuidv4 } from "uuid";
 
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
+import type { AuditActor } from "@calcom/prisma/client";
+import { AppActorBySlug } from "booking-audit/lib/dto/types";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
-export async function handleConfirmation(args: {
-  user: EventManagerUser & { username: string | null };
-  evt: CalendarEvent;
-  recurringEventId?: string;
-  prisma: PrismaClient;
-  bookingId: number;
-  booking: {
-    startTime: Date;
-    id: number;
+function getActor({ userUuid, actor }: { userUuid: string | null; actor: AuditActor | null }) {
+  if (actor) {
+    return actor;
+  }
+
+  if (userUuid) {
+    return makeUserActor(userUuid);
+  }
+}
+
+async function fireBookingAcceptedEvent({
+  userUuid,
+  organizationId,
+  actionSource,
+  updatedBookings,
+}: {
+  userUuid: string | null;
+  organizationId: number | null;
+  actionSource: ActionSource;
+  updatedBookings: {
     uid: string;
-    eventType: {
-      currency: string;
-      description: string | null;
-      id: number;
-      length: number;
-      price: number;
-      requiresConfirmation: boolean;
-      metadata?: Prisma.JsonValue;
-      title: string;
-      team?: {
-        parentId: number | null;
-      } | null;
-      teamId?: number | null;
-      parentId?: number | null;
-      parent?: {
-        teamId: number | null;
-      } | null;
-      workflows?: {
-        workflow: Workflow;
-      }[];
-    } | null;
-    metadata?: Prisma.JsonValue;
-    eventTypeId: number | null;
-    smsReminderNumber: string | null;
-    userId: number | null;
-    location: string | null;
     status: BookingStatus;
-  };
-  paid?: boolean;
-  emailsEnabled?: boolean;
-  platformClientParams?: PlatformClientParams;
-  traceContext: TraceContext;
-  actionSource?: ActionSource;
-  userUuid?: string;
-}){
+  }[];
+}) {
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  const actor = await getActor(userUuid);
+  if (updatedBookings.length > 1) {
+    const operationId = uuidv4();
+    await bookingEventHandlerService.onBulkBookingsAccepted({
+      bookings: updatedBookings.map((updatedBooking) => ({
+        bookingUid: updatedBooking.uid,
+        auditData: {
+          status: { old: updatedBooking.status, new: BookingStatus.ACCEPTED },
+        },
+      })),
+      actor,
+      organizationId,
+      operationId,
+      source: actionSource,
+    });
+  } else if (updatedBookings.length === 1) {
+    const updatedBooking = updatedBookings[0];
+    // Single booking acceptance
+    await bookingEventHandlerService.onBookingAccepted({
+      bookingUid: updatedBooking.uid,
+      actor,
+      organizationId,
+      auditData: {
+        status: { old: updatedBooking.status, new: BookingStatus.ACCEPTED },
+      },
+      source: actionSource,
+    });
+  }
+}
+
+// Allows specifying actor either by userUuid or by ActorIdentification itself
+type SimplifiedActorIdentifier =
+  | {
+      userUuid: null;
+      actor: ActorIdentification;
+    }
+  | {
+      userUuid: string;
+      actor: null;
+    };
+
+export async function handleConfirmation(
+  args: {
+    user: EventManagerUser & { username: string | null };
+    evt: CalendarEvent;
+    recurringEventId?: string;
+    prisma: PrismaClient;
+    bookingId: number;
+    booking: {
+      startTime: Date;
+      id: number;
+      uid: string;
+      eventType: {
+        currency: string;
+        description: string | null;
+        id: number;
+        length: number;
+        price: number;
+        requiresConfirmation: boolean;
+        metadata?: Prisma.JsonValue;
+        title: string;
+        team?: {
+          parentId: number | null;
+        } | null;
+        teamId?: number | null;
+        parentId?: number | null;
+        parent?: {
+          teamId: number | null;
+        } | null;
+        workflows?: {
+          workflow: Workflow;
+        }[];
+      } | null;
+      metadata?: Prisma.JsonValue;
+      eventTypeId: number | null;
+      smsReminderNumber: string | null;
+      userId: number | null;
+      location: string | null;
+      status: BookingStatus;
+    };
+    paid?: boolean;
+    emailsEnabled?: boolean;
+    platformClientParams?: PlatformClientParams;
+    traceContext: TraceContext;
+    actionSource: ActionSource;
+  } & SimplifiedActorIdentifier
+) {
   const {
     user,
     evt,
@@ -161,6 +231,7 @@ export async function handleConfirmation(args: {
   }
   let updatedBookings: {
     id: number;
+    status: BookingStatus;
     description: string | null;
     location: string | null;
     attendees: {
@@ -251,6 +322,7 @@ export async function handleConfirmation(args: {
               },
             },
           },
+          status: true,
           description: true,
           cancellationReason: true,
           attendees: true,
@@ -315,6 +387,7 @@ export async function handleConfirmation(args: {
           },
         },
         uid: true,
+        status: true,
         startTime: true,
         responses: true,
         title: true,
@@ -347,52 +420,12 @@ export async function handleConfirmation(args: {
 
   const bookerUrl = await getBookerBaseUrl(orgId ?? null);
 
-  // Audit logging for booking acceptance
-  try {
-    const resolvedActionSource = actionSource ?? "UNKNOWN";
-    if (resolvedActionSource === "UNKNOWN") {
-      log.warn("handleConfirmation called with unknown actionSource", { bookingUid: booking.uid });
-    }
-
-    if (userUuid) {
-      const bookingEventHandlerService = getBookingEventHandlerService();
-      const actor = makeUserActor(userUuid);
-
-      if (updatedBookings.length > 1) {
-        // Bulk acceptance for recurring bookings
-        const operationId = uuidv4();
-        await bookingEventHandlerService.onBulkBookingsAccepted({
-          bookings: updatedBookings.map((updatedBooking) => ({
-            bookingUid: updatedBooking.uid,
-            auditData: {
-              status: { old: booking.status, new: BookingStatus.ACCEPTED },
-            },
-          })),
-          actor,
-          organizationId: orgId ?? null,
-          operationId,
-          source: resolvedActionSource,
-        });
-      } else if (updatedBookings.length === 1) {
-        // Single booking acceptance
-        await bookingEventHandlerService.onBookingAccepted({
-          bookingUid: updatedBookings[0].uid,
-          actor,
-          organizationId: orgId ?? null,
-          auditData: {
-            status: { old: booking.status, new: BookingStatus.ACCEPTED },
-          },
-          source: resolvedActionSource,
-        });
-      }
-    } else {
-      log.warn("handleConfirmation called without userUuid, skipping audit logging", {
-        bookingUid: booking.uid,
-      });
-    }
-  } catch (error) {
-    log.error("Error while logging booking acceptance audit", safeStringify(error));
-  }
+  fireBookingAcceptedEvent({
+    userUuid: userUuid ?? null,
+    updatedBookings,
+    organizationId: orgId ?? null,
+    actionSource,
+  });
 
   //Workflows - set reminders for confirmed events
   try {

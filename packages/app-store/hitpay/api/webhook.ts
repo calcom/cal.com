@@ -113,7 +113,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const traceContext = distributedTracing.createTrace("hitpay_webhook", {
       meta: { paymentId: payment.id, bookingId: payment.bookingId },
     });
-    return await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
+    return await handlePaymentSuccess({
+      paymentId: payment.id,
+      bookingId: payment.bookingId,
+      appSlug: "hitpay",
+      traceContext,
+    });
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);

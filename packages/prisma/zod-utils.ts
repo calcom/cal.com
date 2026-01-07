@@ -379,7 +379,7 @@ export const bookingConfirmPatchBodySchema = z.object({
   reason: z.string().optional(),
   emailsEnabled: z.boolean().default(true),
   platformClientParams: PlatformClientParamsSchema.optional(),
-  actionSource: z.enum(["WEBAPP", "API_V1", "API_V2", "WEBHOOK", "UNKNOWN"]).optional(),
+  actionSource: z.enum(["WEBAPP", "API_V1", "API_V2", "WEBHOOK"]),
 });
 
 export const bookingCancelSchema = z.object({
