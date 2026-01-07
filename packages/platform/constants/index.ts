@@ -1,3 +1,3 @@
-export * from "./permissions";
-export * from "./api";
-export * from "./apps";
+export * from "./src/permissions";
+export * from "./src/api";
+export * from "./src/apps";

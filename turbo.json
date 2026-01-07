@@ -508,11 +508,11 @@
     },
     "type-check": {
       "cache": false,
-      "dependsOn": ["@calcom/trpc#build"]
+      "dependsOn": ["@calcom/trpc#build", "@calcom/platform-constants#build", "@calcom/platform-types#build"]
     },
     "type-check:ci": {
       "cache": false,
-      "dependsOn": ["@calcom/trpc#build"]
+      "dependsOn": ["@calcom/trpc#build", "@calcom/platform-constants#build", "@calcom/platform-types#build"]
     },
     "@calcom/prisma#db-reset": {
       "cache": false,

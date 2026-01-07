@@ -18,7 +18,7 @@ import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 
-import { SUCCESS_STATUS } from "../../../constants/api";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { useCheck } from "../../hooks/connect/useCheck";
 import { useSaveCalendarCredentials } from "../../hooks/connect/useConnect";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
