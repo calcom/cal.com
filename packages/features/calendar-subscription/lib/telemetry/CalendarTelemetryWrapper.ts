@@ -126,9 +126,7 @@ export class CalendarTelemetryWrapper implements Calendar {
    * @param params.fallbackToPrimary - Whether to fallback to primary calendar
    * @returns Array of time-zone-aware availability ranges
    */
-  async getAvailabilityWithTimeZones(
-    params: GetAvailabilityParams
-  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
+  async getAvailabilityWithTimeZones(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
     // Check if the original calendar supports this method
     if (!this.deps.originalCalendar.getAvailabilityWithTimeZones) {

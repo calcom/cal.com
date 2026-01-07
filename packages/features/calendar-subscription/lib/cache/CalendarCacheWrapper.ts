@@ -158,9 +158,7 @@ export class CalendarCacheWrapper implements Calendar {
    * @param params.fallbackToPrimary - Whether to fallback to primary calendar
    * @returns Combined array of time-zone-aware availability ranges
    */
-  async getAvailabilityWithTimeZones(
-    params: GetAvailabilityParams
-  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
+  async getAvailabilityWithTimeZones(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
     return withSpan(
       {
@@ -183,7 +181,7 @@ export class CalendarCacheWrapper implements Calendar {
         const withSync = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
         const withoutSync = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
 
-        const results: { start: Date | string; end: Date | string; timeZone: string }[] = [];
+        const results: EventBusyDate[] = [];
 
         // Fetch from cache for synced calendars
         if (withSync.length) {

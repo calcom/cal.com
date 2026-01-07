@@ -57,6 +57,7 @@ export type EventBusyDate = {
   start: Date | string;
   end: Date | string;
   source?: string | null;
+  timeZone?: string;
 };
 
 export type EventBusyDetails = EventBusyDate & {
@@ -302,11 +303,7 @@ export interface Calendar {
   getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]>;
 
   // for OOO calibration (only google calendar for now)
-  getAvailabilityWithTimeZones?(params: GetAvailabilityParams): Promise<{
-    start: Date | string;
-    end: Date | string;
-    timeZone: string;
-  }[]>;
+  getAvailabilityWithTimeZones?(params: GetAvailabilityParams): Promise<EventBusyDate[]>;
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
