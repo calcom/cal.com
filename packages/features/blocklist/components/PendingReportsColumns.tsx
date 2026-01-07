@@ -14,16 +14,16 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { Checkbox } from "@calcom/ui/components/form";
 
-import type { BookingReport, BlocklistScope } from "../types";
+import type { GroupedBookingReport, BlocklistScope } from "../types";
 
-interface UsePendingReportsColumnsProps<T extends BookingReport> {
+interface UsePendingReportsColumnsProps<T extends GroupedBookingReport> {
   t: (key: string) => string;
   scope: BlocklistScope;
   enableRowSelection?: boolean;
   onViewDetails: (entry: T) => void;
 }
 
-export function usePendingReportsColumns<T extends BookingReport>({
+export function usePendingReportsColumns<T extends GroupedBookingReport>({
   t,
   scope,
   enableRowSelection = false,
@@ -66,12 +66,17 @@ export function usePendingReportsColumns<T extends BookingReport>({
       enableHiding: false,
       size: isSystem ? 200 : 250,
       cell: ({ row }) => {
-        const email = row.original.bookerEmail;
+        const { bookerEmail, reportCount } = row.original;
         return (
-          <div className="flex flex-col">
+          <div className="flex items-center gap-2">
             <span className={`text-emphasis ${isSystem ? "break-words text-sm" : ""} font-medium`}>
-              {email}
+              {bookerEmail}
             </span>
+            {reportCount > 1 && (
+              <Badge variant="gray" size="sm">
+                {reportCount}
+              </Badge>
+            )}
           </div>
         );
       },

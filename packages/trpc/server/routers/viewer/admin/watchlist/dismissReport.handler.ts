@@ -17,8 +17,8 @@ export const dismissReportHandler = async ({ input }: DismissReportOptions) => {
   const service = getAdminWatchlistOperationsService();
 
   try {
-    return await service.dismissReport({
-      reportId: input.reportId,
+    return await service.bulkDismissReports({
+      reportIds: input.reportIds,
     });
   } catch (error) {
     if (error instanceof WatchlistError) {
@@ -43,7 +43,7 @@ export const dismissReportHandler = async ({ input }: DismissReportOptions) => {
 
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: "Failed to dismiss report",
+      message: "Failed to dismiss report(s)",
     });
   }
 };

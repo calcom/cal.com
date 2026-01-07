@@ -91,14 +91,16 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
       throw WatchlistErrors.alreadyInWatchlist("All selected reports are already in the global blocklist");
     }
 
-    const normalizedValues = new Map<string, string>();
+    const reportsByNormalizedValue = new Map<string, typeof reportsToAdd>();
     try {
       for (const report of reportsToAdd) {
         const value =
           input.type === WatchlistType.EMAIL
             ? normalizeEmail(report.bookerEmail)
             : extractDomainFromEmail(report.bookerEmail);
-        normalizedValues.set(report.id, value);
+        const existing = reportsByNormalizedValue.get(value) ?? [];
+        existing.push(report);
+        reportsByNormalizedValue.set(value, existing);
       }
     } catch (error) {
       this.adminLog.error("Email normalization failed", {
@@ -108,28 +110,24 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
       throw WatchlistErrors.invalidEmail(error instanceof Error ? error.message : "Invalid email format");
     }
 
-    const results = await Promise.all(
-      reportsToAdd.map(async (report) => {
-        const normalizedValue = normalizedValues.get(report.id);
-        if (!normalizedValue) {
-          throw new Error("Unable to process the selected report. Please try again.");
-        }
+    const results: Array<{ reportId: string; watchlistId: string }> = [];
+    for (const [normalizedValue, reports] of reportsByNormalizedValue) {
+      const { watchlistEntry } = await this.deps.watchlistRepo.createEntryFromReport({
+        type: input.type,
+        value: normalizedValue,
+        organizationId: scope.organizationId,
+        isGlobal: scope.isGlobal,
+        userId: input.userId,
+        description: input.description,
+      });
 
-        const { watchlistEntry } = await this.deps.watchlistRepo.createEntryFromReport({
-          type: input.type,
-          value: normalizedValue,
-          organizationId: scope.organizationId,
-          isGlobal: scope.isGlobal,
-          userId: input.userId,
-          description: input.description,
-        });
-
-        return {
+      for (const report of reports) {
+        results.push({
           reportId: report.id,
           watchlistId: watchlistEntry.id,
-        };
-      })
-    );
+        });
+      }
+    }
 
     await this.deps.bookingReportRepo.bulkLinkGlobalWatchlistWithSystemStatus({
       links: results.map((r) => ({ reportId: r.reportId, globalWatchlistId: r.watchlistId })),

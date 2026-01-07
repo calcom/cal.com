@@ -174,8 +174,8 @@ function SystemBlocklistContent() {
           onAddToBlocklist={(reportIds, type, onSuccess) =>
             addToWatchlist.mutate({ reportIds, type }, { onSuccess })
           }
-          onDismiss={(reportId, onSuccess) =>
-            dismissReport.mutate({ reportId }, { onSuccess })
+          onDismiss={(reportIds, onSuccess) =>
+            dismissReport.mutate({ reportIds }, { onSuccess })
           }
           isAddingToBlocklist={addToWatchlist.isPending}
           isDismissing={dismissReport.isPending}

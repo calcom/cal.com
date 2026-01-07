@@ -6,12 +6,76 @@ import type {
   IBookingReportRepository,
   CreateBookingReportInput,
   BookingReportWithDetails,
+  GroupedBookingReportWithDetails,
   ListBookingReportsFilters,
   SystemBookingReportsFilters,
 } from "./IBookingReportRepository";
 
 export class PrismaBookingReportRepository implements IBookingReportRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
+
+  private buildWhereClause(params: {
+    organizationId?: number;
+    searchTerm?: string;
+    filters?: ListBookingReportsFilters;
+    systemFilters?: SystemBookingReportsFilters;
+  }): Prisma.BookingReportWhereInput {
+    const where: Prisma.BookingReportWhereInput = {};
+
+    if (params.organizationId) {
+      where.organizationId = params.organizationId;
+    }
+
+    if (params.searchTerm) {
+      where.OR = [
+        { bookerEmail: { contains: params.searchTerm, mode: "insensitive" } },
+        { reportedBy: { email: { contains: params.searchTerm, mode: "insensitive" } } },
+      ];
+    }
+
+    if (params.filters?.hasWatchlist !== undefined) {
+      where.watchlistId = params.filters.hasWatchlist ? { not: null } : null;
+    }
+
+    if (params.filters?.reason && params.filters.reason.length > 0) {
+      where.reason = { in: params.filters.reason };
+    }
+
+    if (params.filters?.cancelled !== undefined) {
+      where.cancelled = params.filters.cancelled;
+    }
+
+    if (params.filters?.status && params.filters.status.length > 0) {
+      where.status = { in: params.filters.status };
+    }
+
+    if (params.systemFilters?.systemStatus && params.systemFilters.systemStatus.length > 0) {
+      where.systemStatus = { in: params.systemFilters.systemStatus };
+    }
+
+    return where;
+  }
+
+  private readonly reportSelect = {
+    id: true,
+    bookingUid: true,
+    bookerEmail: true,
+    reportedById: true,
+    reason: true,
+    description: true,
+    cancelled: true,
+    createdAt: true,
+    status: true,
+    systemStatus: true,
+    watchlistId: true,
+    globalWatchlistId: true,
+    organizationId: true,
+    reportedBy: { select: { id: true, email: true, name: true } },
+    booking: { select: { id: true, uid: true, title: true, startTime: true, endTime: true } },
+    watchlist: { select: { id: true, type: true, value: true, action: true, description: true } },
+    globalWatchlist: { select: { id: true, type: true, value: true, action: true, description: true } },
+    organization: { select: { id: true, name: true, slug: true } },
+  } as const;
 
   async createReport(input: CreateBookingReportInput): Promise<{ id: string }> {
     const report = await this.prismaClient.bookingReport.create({
@@ -40,127 +104,81 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     rows: BookingReportWithDetails[];
     meta: { totalRowCount: number };
   }> {
-    const where: Prisma.BookingReportWhereInput = {};
-
-    if (params.organizationId) {
-      where.organizationId = params.organizationId;
-    }
-
-    if (params.searchTerm) {
-      where.OR = [
-        { bookerEmail: { contains: params.searchTerm, mode: "insensitive" } },
-        {
-          reportedBy: {
-            email: { contains: params.searchTerm, mode: "insensitive" },
-          },
-        },
-      ];
-    }
-
-    if (params.filters?.hasWatchlist !== undefined) {
-      where.watchlistId = params.filters.hasWatchlist ? { not: null } : null;
-    }
-
-    if (params.filters?.reason && params.filters.reason.length > 0) {
-      where.reason = { in: params.filters.reason };
-    }
-
-    if (params.filters?.cancelled !== undefined) {
-      where.cancelled = params.filters.cancelled;
-    }
-
-    if (params.filters?.status && params.filters.status.length > 0) {
-      where.status = { in: params.filters.status };
-    }
-
-    if (params.systemFilters?.systemStatus && params.systemFilters.systemStatus.length > 0) {
-      where.systemStatus = { in: params.systemFilters.systemStatus };
-    }
+    const where = this.buildWhereClause(params);
 
     const [reports, totalCount] = await Promise.all([
       this.prismaClient.bookingReport.findMany({
         where,
         skip: params.skip,
         take: params.take,
-        select: {
-          id: true,
-          bookingUid: true,
-          bookerEmail: true,
-          reportedById: true,
-          reason: true,
-          description: true,
-          cancelled: true,
-          createdAt: true,
-          status: true,
-          systemStatus: true,
-          watchlistId: true,
-          globalWatchlistId: true,
-          organizationId: true,
-          reportedBy: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-            },
-          },
-          booking: {
-            select: {
-              id: true,
-              uid: true,
-              title: true,
-              startTime: true,
-              endTime: true,
-            },
-          },
-          watchlist: {
-            select: {
-              id: true,
-              type: true,
-              value: true,
-              action: true,
-              description: true,
-            },
-          },
-          globalWatchlist: {
-            select: {
-              id: true,
-              type: true,
-              value: true,
-              action: true,
-              description: true,
-            },
-          },
-          organization: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-        },
+        select: this.reportSelect,
         orderBy: { createdAt: "desc" },
       }),
       this.prismaClient.bookingReport.count({ where }),
     ]);
 
-    const rows = reports.map((report) => ({
-      ...report,
-      reporter: report.reportedBy,
-    }));
+    const rows = reports.map((report) => ({ ...report, reporter: report.reportedBy }));
 
-    return {
-      rows,
-      meta: { totalRowCount: totalCount },
-    };
+    return { rows, meta: { totalRowCount: totalCount } };
+  }
+
+  async findGroupedReportedBookings(params: {
+    organizationId?: number;
+    skip?: number;
+    take?: number;
+    searchTerm?: string;
+    filters?: ListBookingReportsFilters;
+    systemFilters?: SystemBookingReportsFilters;
+  }): Promise<{
+    rows: GroupedBookingReportWithDetails[];
+    meta: { totalRowCount: number };
+  }> {
+    const where = this.buildWhereClause(params);
+
+    const groupedEmails = await this.prismaClient.bookingReport.groupBy({
+      by: ["bookerEmail"],
+      where,
+      _count: { bookerEmail: true },
+      _max: { createdAt: true },
+      orderBy: { _max: { createdAt: "desc" } },
+    });
+
+    const totalRowCount = groupedEmails.length;
+    const paginatedEmails = groupedEmails.slice(params.skip ?? 0, (params.skip ?? 0) + (params.take ?? 25));
+    const emailList = paginatedEmails.map((g) => g.bookerEmail);
+
+    if (emailList.length === 0) {
+      return { rows: [], meta: { totalRowCount: 0 } };
+    }
+
+    const reports = await this.prismaClient.bookingReport.findMany({
+      where: { ...where, bookerEmail: { in: emailList } },
+      select: this.reportSelect,
+      orderBy: { createdAt: "asc" },
+    });
+
+    const reportsByEmail = new Map<string, BookingReportWithDetails[]>();
+    for (const report of reports) {
+      const mapped: BookingReportWithDetails = { ...report, reporter: report.reportedBy };
+      const existing = reportsByEmail.get(report.bookerEmail) || [];
+      existing.push(mapped);
+      reportsByEmail.set(report.bookerEmail, existing);
+    }
+
+    const rows: GroupedBookingReportWithDetails[] = paginatedEmails.map((group) => {
+      const emailReports = reportsByEmail.get(group.bookerEmail) || [];
+      const firstReport = emailReports[0];
+      return { ...firstReport, reportCount: group._count.bookerEmail, reports: emailReports };
+    });
+
+    return { rows, meta: { totalRowCount } };
   }
 
   async findReportsByIds(params: {
     reportIds: string[];
     organizationId?: number;
   }): Promise<BookingReportWithDetails[]> {
-    const where: Prisma.BookingReportWhereInput = {
-      id: { in: params.reportIds },
-    };
+    const where: Prisma.BookingReportWhereInput = { id: { in: params.reportIds } };
 
     if (params.organizationId) {
       where.organizationId = params.organizationId;
@@ -168,68 +186,10 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
 
     const reports = await this.prismaClient.bookingReport.findMany({
       where,
-      select: {
-        id: true,
-        bookingUid: true,
-        bookerEmail: true,
-        reportedById: true,
-        reason: true,
-        description: true,
-        cancelled: true,
-        createdAt: true,
-        status: true,
-        systemStatus: true,
-        watchlistId: true,
-        globalWatchlistId: true,
-        organizationId: true,
-        reportedBy: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-        booking: {
-          select: {
-            id: true,
-            uid: true,
-            title: true,
-            startTime: true,
-            endTime: true,
-          },
-        },
-        watchlist: {
-          select: {
-            id: true,
-            type: true,
-            value: true,
-            action: true,
-            description: true,
-          },
-        },
-        globalWatchlist: {
-          select: {
-            id: true,
-            type: true,
-            value: true,
-            action: true,
-            description: true,
-          },
-        },
-        organization: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-      },
+      select: this.reportSelect,
     });
 
-    return reports.map((report) => ({
-      ...report,
-      reporter: report.reportedBy,
-    }));
+    return reports.map((report) => ({ ...report, reporter: report.reportedBy }));
   }
 
   async linkWatchlistToReport(params: { reportId: string; watchlistId: string }): Promise<void> {
