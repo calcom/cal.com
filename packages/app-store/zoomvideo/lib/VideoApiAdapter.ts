@@ -72,7 +72,6 @@ const meetingPasswordRequirementSchema = z
     have_upper_and_lower_characters: z.boolean().optional(),
     only_allow_numeric: z.boolean().optional(),
     consecutive_characters_length: z.number().optional(),
-    weak_enhance_detection: z.boolean().optional(),
   })
   .passthrough()
   .optional();
