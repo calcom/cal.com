@@ -236,6 +236,14 @@
                   {
                     "group": ["../trpc/**"],
                     "message": "features package should not import from trpc to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["@calcom/web/**"],
+                    "message": "features package should not import from @calcom/web to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["../../apps/web/**"],
+                    "message": "features package should not import from apps/web to avoid circular dependencies."
                   }
                 ]
               }
