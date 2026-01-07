@@ -649,4 +649,66 @@ describe("Monthly Proration - Full Integration Flow", () => {
 
     console.log("\n=== Subscription Quantity Update Test Complete ===\n");
   });
+
+  it("should not charge for seat removals on annual plans", async () => {
+    console.log("\n=== Starting Seat Removal Test ===\n");
+
+    console.log("Step 1: Start with 5 seats on annual plan...");
+    const initialSubscription = await stripe.subscriptions.retrieve(stripeSubscription.id);
+    const initialQuantity = initialSubscription.items.data[0].quantity;
+    expect(initialQuantity).toBe(5);
+    console.log(`✓ Initial subscription quantity: ${initialQuantity} seats`);
+
+    console.log("\nStep 2: Add 3 seats, then remove 5 (net: -2)...");
+    const seatTracker = new SeatChangeTrackingService();
+
+    await seatTracker.logSeatAddition({
+      teamId: testTeam.id,
+      userId: testUser.id,
+      triggeredBy: testUser.id,
+      seatCount: 3,
+      monthKey,
+    });
+
+    await seatTracker.logSeatRemoval({
+      teamId: testTeam.id,
+      userId: testUser.id,
+      triggeredBy: testUser.id,
+      seatCount: 5,
+      monthKey,
+    });
+    console.log("✓ Logged 3 additions and 5 removals");
+
+    console.log("\nStep 3: Calculate monthly changes...");
+    const changes = await seatTracker.getMonthlyChanges({
+      teamId: testTeam.id,
+      monthKey,
+    });
+
+    expect(changes.additions).toBe(3);
+    expect(changes.removals).toBe(5);
+    expect(changes.netChange).toBe(0);
+    console.log(`✓ Net change capped at 0 (${changes.additions} added, ${changes.removals} removed)`);
+
+    console.log("\nStep 4: Attempt to create proration...");
+    const prorationService = new MonthlyProrationService();
+    const proration = await prorationService.createProrationForTeam({
+      teamId: testTeam.id,
+      monthKey,
+    });
+
+    expect(proration).toBeNull();
+    console.log("✓ No proration created (net change = 0, no charge/credit issued)");
+
+    console.log("\nStep 5: Verify subscription quantity unchanged...");
+    const finalSubscription = await stripe.subscriptions.retrieve(stripeSubscription.id);
+    const finalQuantity = finalSubscription.items.data[0].quantity;
+    expect(finalQuantity).toBe(5);
+    console.log(`✓ Subscription quantity unchanged: ${finalQuantity} seats`);
+
+    console.log("\n✓ Seat removals on annual plans don't create credits or reduce subscription");
+    console.log("✓ Reduction will take effect at next annual renewal");
+
+    console.log("\n=== Seat Removal Test Complete ===\n");
+  });
 });

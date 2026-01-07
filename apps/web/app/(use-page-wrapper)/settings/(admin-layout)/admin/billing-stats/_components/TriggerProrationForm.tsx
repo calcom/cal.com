@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
-
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
 
 import { processAllProrations, triggerProrationForTeam } from "../actions";
 
@@ -22,7 +21,7 @@ export function TriggerProrationForm() {
     setLoading(true);
 
     try {
-      const result = await triggerProrationForTeam(parseInt(teamId), monthKey);
+      const result = await triggerProrationForTeam(parseInt(teamId, 10), monthKey);
 
       if (result.success) {
         showToast(result.message, "success");
@@ -30,7 +29,7 @@ export function TriggerProrationForm() {
       } else {
         showToast(result.message, "error");
       }
-    } catch (error) {
+    } catch (_error) {
       showToast("Failed to trigger proration", "error");
     } finally {
       setLoading(false);
@@ -48,7 +47,7 @@ export function TriggerProrationForm() {
       } else {
         showToast(result.message, "error");
       }
-    } catch (error) {
+    } catch (_error) {
       showToast("Failed to process prorations", "error");
     } finally {
       setLoading(false);
