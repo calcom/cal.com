@@ -779,6 +779,7 @@ const Route = ({
                                     variables: validation.invalidVariables.map((v) => `{${v}}`).join(", "),
                                   })
                                 );
+                                return;
                               } else {
                                 setCustomUrlValidationError(null);
                               }
@@ -937,6 +938,7 @@ const Route = ({
                                       variables: validation.invalidVariables.map((v) => `{${v}}`).join(", "),
                                     })
                                   );
+                                  return;
                                 } else {
                                   setCustomUrlValidationError(null);
                                 }

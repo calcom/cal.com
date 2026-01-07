@@ -21,7 +21,12 @@ export const validateVariablesNotInQueryParams = (
     return { isValid: true, invalidVariables: [] };
   }
 
-  const queryString = url.substring(queryStringIndex + 1);
+  let queryString = url.substring(queryStringIndex + 1);
+
+  const fragmentIndex = queryString.indexOf("#");
+  if (fragmentIndex !== -1) {
+    queryString = queryString.substring(0, fragmentIndex);
+  }
 
   const variableRegex = /\{([^}]+)\}/g;
   const matches = queryString.match(variableRegex);
