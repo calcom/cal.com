@@ -256,6 +256,35 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
 }
 
 /**
+ * Mode for calendar fetch operations to control caching behavior:
+ * - "slots": For getting actual calendar availability (uses cache when available)
+ * - "overlay": For getting overlay calendar availability (does not use cache)
+ * - "booking": For booking confirmation (does not use cache)
+ */
+export type CalendarFetchMode = "slots" | "overlay" | "booking";
+
+/**
+ * Parameters for getAvailability method
+ */
+export interface GetAvailabilityParams {
+  dateFrom: string;
+  dateTo: string;
+  selectedCalendars: IntegrationCalendar[];
+  mode: CalendarFetchMode;
+  fallbackToPrimary?: boolean;
+}
+
+/**
+ * Parameters for getAvailabilityWithTimeZones method
+ */
+export interface GetAvailabilityWithTimeZonesParams {
+  dateFrom: string;
+  dateTo: string;
+  selectedCalendars: IntegrationCalendar[];
+  fallbackToPrimary?: boolean;
+}
+
+/**
  * null is to refer to user-level SelectedCalendar
  */
 export type SelectedCalendarEventTypeIds = (number | null)[];
@@ -280,21 +309,14 @@ export interface Calendar {
 
   deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown>;
 
-  getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    mode?: CalendarFetchMode,
-    fallbackToPrimary?: boolean
-  ): Promise<EventBusyDate[]>;
+  getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]>;
 
   // for OOO calibration (only google calendar for now)
-  getAvailabilityWithTimeZones?(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    fallbackToPrimary?: boolean
-  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]>;
+  getAvailabilityWithTimeZones?(params: GetAvailabilityWithTimeZonesParams): Promise<{
+    start: Date | string;
+    end: Date | string;
+    timeZone: string;
+  }[]>;
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
@@ -323,11 +345,3 @@ export type SelectedCalendar = Pick<
   _SelectedCalendar,
   "userId" | "integration" | "externalId" | "credentialId"
 >;
-
-/**
- * Mode for calendar fetch operations to control caching behavior:
- * - "slots": For getting actual calendar availability (uses cache when available)
- * - "overlay": For getting overlay calendar availability (does not use cache)
- * - "booking": For booking confirmation (does not use cache)
- */
-export type CalendarFetchMode = "slots" | "overlay" | "booking";

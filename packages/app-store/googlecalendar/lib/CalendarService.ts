@@ -17,10 +17,12 @@ import type {
   CalendarServiceEvent,
   CalendarEvent,
   EventBusyDate,
+  GetAvailabilityParams,
+  GetAvailabilityWithTimeZonesParams,
   IntegrationCalendar,
   NewCalendarEventType,
+  SelectedCalendarEventTypeIds,
 } from "@calcom/types/Calendar";
-import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
@@ -492,14 +494,9 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async getAvailabilityWithTimeZones(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    /**
-     * If true, we will fallback to the primary calendar if no valid selected calendars are found
-     */
-    fallbackToPrimary?: boolean
+    params: GetAvailabilityWithTimeZonesParams
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
+    const { dateFrom, dateTo, selectedCalendars, fallbackToPrimary } = params;
     const calendar = await this.authedCalendar();
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
@@ -665,22 +662,8 @@ export default class GoogleCalendarService implements Calendar {
     return busyData;
   }
 
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    /**
-     * The mode of the calendar fetch request. Used by the cache layer to determine if cache should be used.
-     * - "slots": Check feature flags and use cache when available (for getting actual calendar availability)
-     * - "overlay": Don't use cache (for overlay calendar availability)
-     * - "booking": Don't use cache (for booking confirmation)
-     */
-    _mode?: "slots" | "overlay" | "booking",
-    /**
-     * If true, we will fallback to the primary calendar if no valid selected calendars are found
-     */
-    fallbackToPrimary?: boolean
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars, fallbackToPrimary } = params;
     this.log.debug("Getting availability", safeStringify({ dateFrom, dateTo, selectedCalendars }));
 
     const selectedCalendarIds = selectedCalendars

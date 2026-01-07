@@ -7,6 +7,7 @@ import type {
   CalendarServiceEvent,
   CalendarEvent,
   EventBusyDate,
+  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
@@ -270,12 +271,8 @@ export default class FeishuCalendarService implements Calendar {
     }
   }
 
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    _mode?: "slots" | "overlay" | "booking"
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
       .map((e) => e.externalId)

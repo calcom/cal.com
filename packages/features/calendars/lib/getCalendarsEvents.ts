@@ -67,12 +67,12 @@ export const getCalendarsEventsWithTimezones = async (
     }
     /** We extract external Ids so we don't cache too much */
     const eventBusyDates =
-      (await c.getAvailabilityWithTimeZones?.(
+      (await c.getAvailabilityWithTimeZones?.({
         dateFrom,
         dateTo,
-        passedSelectedCalendars,
-        allowFallbackToPrimary
-      )) || [];
+        selectedCalendars: passedSelectedCalendars,
+        fallbackToPrimary: allowFallbackToPrimary,
+      })) || [];
 
     return eventBusyDates;
   });
@@ -147,13 +147,13 @@ const getCalendarsEvents = async (
         selectedCalendars: passedSelectedCalendars.map(getPiiFreeSelectedCalendar),
       })
     );
-    const eventBusyDates = await calendarService.getAvailability(
+    const eventBusyDates = await calendarService.getAvailability({
       dateFrom,
       dateTo,
-      passedSelectedCalendars,
-      mode,
-      allowFallbackToPrimary
-    );
+      selectedCalendars: passedSelectedCalendars,
+      mode: mode ?? "slots",
+      fallbackToPrimary: allowFallbackToPrimary,
+    });
     performance.mark("eventBusyDatesEnd");
     performance.measure(
       `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,

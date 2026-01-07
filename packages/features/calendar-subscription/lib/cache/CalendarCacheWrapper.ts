@@ -6,6 +6,8 @@ import type {
   CalendarEvent,
   CalendarServiceEvent,
   EventBusyDate,
+  GetAvailabilityParams,
+  GetAvailabilityWithTimeZonesParams,
   IntegrationCalendar,
   NewCalendarEventType,
   SelectedCalendarEventTypeIds,
@@ -57,16 +59,16 @@ export class CalendarCacheWrapper implements Calendar {
    * - Calendars **without** one of them → fetched directly from the original calendar.
    * - Results are merged into a single array.
    *
-   * @param dateFrom - Start date (ISO string)
-   * @param dateTo - End date (ISO string)
-   * @param selectedCalendars - List of calendars to retrieve availability from
+   * @param params - Parameters for availability retrieval
+   * @param params.dateFrom - Start date (ISO string)
+   * @param params.dateTo - End date (ISO string)
+   * @param params.selectedCalendars - List of calendars to retrieve availability from
+   * @param params.mode - Calendar fetch mode (slots, overlay, booking)
+   * @param params.fallbackToPrimary - Whether to fallback to primary calendar
    * @returns Combined array of busy date ranges
    */
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     return withSpan(
       {
         name: "CalendarCacheWrapper.getAvailability",
@@ -115,7 +117,13 @@ export class CalendarCacheWrapper implements Calendar {
         // Fetch from original calendar for unsynced ones
         if (withoutSync.length) {
           const originalStartTime = performance.now();
-          const original = await this.deps.originalCalendar.getAvailability(dateFrom, dateTo, withoutSync);
+          const original = await this.deps.originalCalendar.getAvailability({
+            dateFrom,
+            dateTo,
+            selectedCalendars: withoutSync,
+            mode: params.mode,
+            fallbackToPrimary: params.fallbackToPrimary,
+          });
           const originalDurationMs = performance.now() - originalStartTime;
           results.push(...original);
 
@@ -144,16 +152,17 @@ export class CalendarCacheWrapper implements Calendar {
    * - Calendars **without** one of them → fetched directly from the original calendar.
    * - Results are merged into a single array with `{ start, end, timeZone }` format.
    *
-   * @param dateFrom - Start date (ISO string)
-   * @param dateTo - End date (ISO string)
-   * @param selectedCalendars - List of calendars to retrieve availability from
+   * @param params - Parameters for availability retrieval
+   * @param params.dateFrom - Start date (ISO string)
+   * @param params.dateTo - End date (ISO string)
+   * @param params.selectedCalendars - List of calendars to retrieve availability from
+   * @param params.fallbackToPrimary - Whether to fallback to primary calendar
    * @returns Combined array of time-zone-aware availability ranges
    */
   async getAvailabilityWithTimeZones(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    params: GetAvailabilityWithTimeZonesParams
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     return withSpan(
       {
         name: "CalendarCacheWrapper.getAvailabilityWithTimeZones",
@@ -208,11 +217,12 @@ export class CalendarCacheWrapper implements Calendar {
         // Fetch from original calendar for unsynced ones
         if (withoutSync.length) {
           const originalStartTime = performance.now();
-          const original = await this.deps.originalCalendar.getAvailabilityWithTimeZones?.(
+          const original = await this.deps.originalCalendar.getAvailabilityWithTimeZones?.({
             dateFrom,
             dateTo,
-            withoutSync
-          );
+            selectedCalendars: withoutSync,
+            fallbackToPrimary: params.fallbackToPrimary,
+          });
           const originalDurationMs = performance.now() - originalStartTime;
           if (original?.length) results.push(...original);
 

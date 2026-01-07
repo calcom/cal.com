@@ -8,7 +8,7 @@ import type {
   Calendar,
   CalendarEvent,
   EventBusyDate,
-  IntegrationCalendar,
+  GetAvailabilityParams,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -87,11 +87,7 @@ export default class CloseComCalendarService implements Calendar {
     return Promise.resolve();
   }
 
-  async getAvailability(
-    _dateFrom: string,
-    _dateTo: string,
-    _selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(_params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     return Promise.resolve([]);
   }
 
