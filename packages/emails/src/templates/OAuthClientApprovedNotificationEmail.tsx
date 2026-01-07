@@ -9,16 +9,14 @@ type OAuthClientApprovedNotification = {
   userName: string | null;
   clientName: string;
   clientId: string;
-  clientSecret?: string;
 };
 
 export const OAuthClientApprovedNotificationEmail = ({
   userName,
   clientName,
   clientId,
-  clientSecret,
   language,
-}: OAuthClientApprovedNotification) => {
+}: OAuthClientApprovedNotification): JSX.Element => {
   return (
     <BaseEmailHtml
       subject={language("oauth_client_approved_email_subject", { clientName, appName: APP_NAME })}
@@ -35,10 +33,10 @@ export const OAuthClientApprovedNotificationEmail = ({
           fontSize: "24px",
           lineHeight: "38px",
         }}>
-        <>{language("oauth_client_approved_email_title", { clientName })}</>
+        {language("oauth_client_approved_email_title", { clientName })}
       </p>
       <p style={{ fontWeight: 400 }}>
-        <>{language("hi_user", { name: userName || language("there") })}!</>
+        {language("hi_user", { name: userName || language("there") })}!
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>{language("oauth_client_approved_email_body")}</p>
       <table
@@ -71,39 +69,16 @@ export const OAuthClientApprovedNotificationEmail = ({
             <td
               style={{
                 padding: "12px",
-                borderBottom: clientSecret ? "1px solid #e5e7eb" : undefined,
                 fontWeight: 600,
               }}>
               {language("client_id")}
             </td>
-            <td style={{ padding: "12px", borderBottom: clientSecret ? "1px solid #e5e7eb" : undefined }}>
+            <td style={{ padding: "12px" }}>
               <code style={{ fontSize: "12px" }}>{clientId}</code>
             </td>
           </tr>
-          {clientSecret && (
-            <tr style={{ lineHeight: "24px" }}>
-              <td style={{ padding: "12px", fontWeight: 600 }}>{language("client_secret")}</td>
-              <td style={{ padding: "12px" }}>
-                <code style={{ fontSize: "12px" }}>{clientSecret}</code>
-              </td>
-            </tr>
-          )}
         </tbody>
       </table>
-      {clientSecret && (
-        <p
-          style={{
-            fontWeight: 400,
-            lineHeight: "24px",
-            marginTop: "12px",
-            padding: "12px",
-            backgroundColor: "#fef3c7",
-            borderRadius: "6px",
-            border: "1px solid #f59e0b",
-          }}>
-          {language("oauth_client_secret_one_time_warning")}
-        </p>
-      )}
       <p style={{ fontWeight: 400, lineHeight: "24px", marginTop: "20px" }}>
         {language("oauth_client_approved_email_footer")}
       </p>

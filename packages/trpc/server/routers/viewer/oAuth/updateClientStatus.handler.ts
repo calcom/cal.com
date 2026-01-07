@@ -4,6 +4,7 @@ import { sendOAuthClientApprovedNotification } from "@calcom/emails/oauth-email-
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OAuthClientRepository } from "@calcom/lib/server/repository/oAuthClient";
 import { UserPermissionRole } from "@calcom/prisma/enums";
+import type { OAuthClientApprovalStatus } from "@calcom/prisma/enums";
 
 import type { TUpdateClientStatusInputSchema } from "./updateClientStatus.schema";
 
@@ -17,7 +18,17 @@ type UpdateClientStatusOptions = {
   input: TUpdateClientStatusInputSchema;
 };
 
-export const updateClientStatusHandler = async ({ ctx, input }: UpdateClientStatusOptions) => {
+type UpdateClientStatusOutput = {
+  clientId: string;
+  name: string;
+  approvalStatus: OAuthClientApprovalStatus;
+  clientSecret: string | undefined;
+};
+
+export const updateClientStatusHandler = async ({
+  ctx,
+  input,
+}: UpdateClientStatusOptions): Promise<UpdateClientStatusOutput> => {
   const { clientId, status } = input;
 
   // Defense-in-depth: Only instance admins can update OAuth client status
@@ -54,7 +65,6 @@ export const updateClientStatusHandler = async ({ ctx, input }: UpdateClientStat
       userName: clientWithUser.user.name,
       clientName: updatedClient.name,
       clientId: updatedClient.clientId,
-      clientSecret,
     });
   }
 
