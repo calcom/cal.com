@@ -4181,5 +4181,7 @@
   "audit_logs_owner_not_in_organization": "The booking owner is not a member of your organization.",
   "audit_logs_permission_denied": "You do not have permission to view audit logs for this booking.",
   "audit_logs_permission_check_error": "An error occurred while checking permissions.",
+  "billing_stats": "Billing Stats",
+  "admin_billing_stats_description": "View monthly proration and seat change statistics",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

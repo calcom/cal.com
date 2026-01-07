@@ -1,13 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import process from "node:process";
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import Stripe from "stripe";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { BillingPeriodService } from "../service/billingPeriod/BillingPeriodService";
 import { MonthlyProrationService } from "../service/proration/MonthlyProrationService";
 import { SeatChangeTrackingService } from "../service/seatTracking/SeatChangeTrackingService";
-import { BillingPeriodService } from "../service/billingPeriod/BillingPeriodService";
 
 /**
  * Integration test for monthly proration flow using real Stripe test resources.
@@ -182,7 +181,31 @@ describe("Monthly Proration - Full Integration Flow", () => {
   });
 
   afterEach(async () => {
-    console.log("Cleaning up Stripe test resources...");
+    console.log("Cleaning up test resources...");
+
+    try {
+      if (testTeam) {
+        const memberships = await prisma.membership.findMany({
+          where: { teamId: testTeam.id },
+          select: { userId: true },
+        });
+        const userIds = memberships.map((m) => m.userId);
+
+        await prisma.seatChangeLog.deleteMany({ where: { teamId: testTeam.id } });
+        await prisma.monthlyProration.deleteMany({ where: { teamId: testTeam.id } });
+        await prisma.teamBilling.deleteMany({ where: { teamId: testTeam.id } });
+        await prisma.membership.deleteMany({ where: { teamId: testTeam.id } });
+        await prisma.team.delete({ where: { id: testTeam.id } });
+        console.log(`Deleted team and related data: ${testTeam.id}`);
+
+        if (userIds.length > 0) {
+          await prisma.user.deleteMany({ where: { id: { in: userIds } } });
+          console.log(`Deleted ${userIds.length} users`);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to delete team data:", error);
+    }
 
     try {
       if (stripeSubscription) {
@@ -524,6 +547,18 @@ describe("Monthly Proration - Full Integration Flow", () => {
       console.log(`✓ Cleaned up test subscription: ${metadataSubscription.id}`);
     } catch (error) {
       console.error("Failed to cancel metadata test subscription:", error);
+    }
+
+    try {
+      await prisma.seatChangeLog.deleteMany({ where: { teamId: metadataTestTeam.id } });
+      await prisma.monthlyProration.deleteMany({ where: { teamId: metadataTestTeam.id } });
+      await prisma.teamBilling.deleteMany({ where: { teamId: metadataTestTeam.id } });
+      await prisma.membership.deleteMany({ where: { teamId: metadataTestTeam.id } });
+      await prisma.team.delete({ where: { id: metadataTestTeam.id } });
+      await prisma.user.delete({ where: { id: metadataTestUser.id } });
+      console.log(`✓ Cleaned up metadata test team and user`);
+    } catch (error) {
+      console.error("Failed to cleanup metadata test data:", error);
     }
 
     console.log("\n=== Metadata Fallback Test Complete ===\n");
