@@ -1629,13 +1629,17 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                                 <Button
                                                   color="minimal"
                                                   size="sm"
-                                                  onClick={() =>
-                                                    window.open(
-                                                      `https://business.facebook.com/latest/whatsapp_manager/message_templates`,
+                                                  onClick={() => {
+                                                    const phone = whatsAppPhones?.find(
+                                                      (phone) => phone.id === step.metaTemplatePhoneNumberId
+                                                    );
+
+                                                    return window.open(
+                                                      `https://business.facebook.com/latest/whatsapp_manager/message_templates?asset_id=${phone?.wabaId}`,
                                                       "_blank"
-                                                    )
-                                                  }
-                                                  className="flex items-center gap-1 text-xs border-none underline underline-offset-2">
+                                                    );
+                                                  }}
+                                                  className="flex items-center gap-1 border-none text-xs underline underline-offset-2">
                                                   <Icon name="external-link" className="h-3 w-3" />
 
                                                   {t("create_templates")}
