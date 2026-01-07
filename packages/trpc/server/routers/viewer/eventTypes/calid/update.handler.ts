@@ -267,7 +267,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.bookingLimits = bookingLimits;
   }
 
-  if (maxActiveBookingsPerBooker) {
+  if (maxActiveBookingsPerBooker || maxActiveBookingsPerBooker === null) {
     if (maxActiveBookingsPerBooker && maxActiveBookingsPerBooker < 1) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Booker booking limit must be greater than 0." });
     }
@@ -287,6 +287,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
 
     data.maxActiveBookingsPerBooker = maxActiveBookingsPerBooker;
+    if (maxActiveBookingsPerBooker === null) {
+      data.maxActiveBookingPerBookerOfferReschedule = false;
+    }
   }
 
   if (durationLimits) {
@@ -477,6 +480,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
       select: {
         steps: true,
+        trigger: true,
       },
     });
 
