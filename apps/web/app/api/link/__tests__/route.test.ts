@@ -1,5 +1,9 @@
 import type { NextRequest } from "next/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
+import type { Mock } from "vitest";
+
+const mockConfirmHandler = confirmHandler as unknown as Mock<typeof confirmHandler>;
 
 vi.mock("app/api/defaultResponderForAppDir", () => ({
   defaultResponderForAppDir:
@@ -36,44 +40,47 @@ vi.mock("@calcom/lib/crypto", () => ({
   ),
 }));
 
-vi.mock("@calcom/prisma", () => ({
-  default: {
+vi.mock("@calcom/prisma", () => {
+  const mockBookingFindUniqueOrThrow = vi.fn().mockResolvedValue({
+    id: 1,
+    uid: "test-booking-uid",
+    recurringEventId: null,
+  });
+  const mockUserFindUniqueOrThrow = vi.fn().mockResolvedValue({
+    id: 1,
+    uuid: "user-uuid",
+    email: "test@example.com",
+    username: "testuser",
+    role: "USER",
+    destinationCalendar: null,
+  });
+  const mockPrismaObj = {
     booking: {
-      findUniqueOrThrow: vi.fn().mockResolvedValue({
-        id: 1,
-        uid: "test-booking-uid",
-        recurringEventId: null,
-      }),
+      findUniqueOrThrow: mockBookingFindUniqueOrThrow,
     },
     user: {
-      findUniqueOrThrow: vi.fn().mockResolvedValue({
-        id: 1,
-        locale: "en",
-      }),
+      findUniqueOrThrow: mockUserFindUniqueOrThrow,
     },
+  };
+  return {
+    default: mockPrismaObj,
+    prisma: mockPrismaObj,
+  };
+});
+
+vi.mock("@calcom/trpc/server/routers/viewer/bookings/confirm.handler", () => ({
+  confirmHandler: vi.fn(),
+}));
+
+vi.mock("@calcom/lib/tracing/factory", () => ({
+  distributedTracing: {
+    createTrace: vi.fn().mockReturnValue({}),
   },
-}));
-
-vi.mock("@calcom/trpc/server/createContext", () => ({
-  createContext: vi.fn().mockResolvedValue({}),
-}));
-
-vi.mock("@calcom/trpc/server/routers/viewer/bookings/_router", () => ({
-  bookingsRouter: {},
-}));
-
-vi.mock("@calcom/trpc/server/trpc", () => ({
-  createCallerFactory: vi.fn().mockReturnValue(() => ({
-    confirm: vi.fn().mockResolvedValue({}),
-  })),
-}));
-
-vi.mock("@lib/buildLegacyCtx", () => ({
-  buildLegacyRequest: vi.fn().mockReturnValue({}),
 }));
 
 // Import after mocks are set up
 import { GET } from "../route";
+import prisma from "@calcom/prisma";
 
 const createMockRequest = (url: string): NextRequest => {
   const urlObj = new URL(url);
@@ -160,14 +167,11 @@ describe("link route", () => {
   });
 
   describe("GET handler - error handling", () => {
-    it("should redirect with error message when TRPC throws an error", async () => {
+    it("should redirect with error message when confirmHandler throws a TRPCError", async () => {
       const { TRPCError } = await import("@trpc/server");
 
-      // Mock createCallerFactory to throw a TRPCError
-      const { createCallerFactory } = await import("@calcom/trpc/server/trpc");
-      vi.mocked(createCallerFactory).mockReturnValue(() => ({
-        confirm: vi.fn().mockRejectedValue(new TRPCError({ code: "BAD_REQUEST", message: "Custom error" })),
-      }));
+      // Mock confirmHandler to throw a TRPCError
+      mockConfirmHandler.mockRejectedValueOnce(new TRPCError({ code: "BAD_REQUEST", message: "Custom error" }));
 
       const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
@@ -186,11 +190,8 @@ describe("link route", () => {
     it("should preserve origin in error redirect URL", async () => {
       const { TRPCError } = await import("@trpc/server");
 
-      // Mock createCallerFactory to throw a TRPCError
-      const { createCallerFactory } = await import("@calcom/trpc/server/trpc");
-      vi.mocked(createCallerFactory).mockReturnValue(() => ({
-        confirm: vi.fn().mockRejectedValue(new TRPCError({ code: "INTERNAL_SERVER_ERROR" })),
-      }));
+      // Mock confirmHandler to throw a TRPCError
+      mockConfirmHandler.mockRejectedValueOnce(new TRPCError({ code: "INTERNAL_SERVER_ERROR" }));
 
       const baseUrl = "https://self-hosted.company.org/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
