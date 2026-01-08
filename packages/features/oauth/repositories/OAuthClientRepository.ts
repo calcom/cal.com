@@ -7,10 +7,6 @@ import type { OAuthClientApprovalStatus } from "@calcom/prisma/enums";
 export class OAuthClientRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
-  static async withGlobalPrisma() {
-    return new OAuthClientRepository((await import("@calcom/prisma")).prisma);
-  }
-
   async findByClientId(clientId: string) {
     return await this.prisma.oAuthClient.findFirst({
       where: {

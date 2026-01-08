@@ -27,10 +27,11 @@ export const oAuthRouter = router({
     });
   }),
 
-  addClient: authedAdminProcedure.input(ZAddClientInputSchema).mutation(async ({ input }) => {
+  addClient: authedAdminProcedure.input(ZAddClientInputSchema).mutation(async ({ ctx, input }) => {
     const { addClientHandler } = await import("./addClient.handler");
 
     return addClientHandler({
+      ctx,
       input,
     });
   }),
@@ -53,10 +54,11 @@ export const oAuthRouter = router({
     });
   }),
 
-  listClients: authedAdminProcedure.input(ZListClientsInputSchema).query(async ({ input }) => {
+  listClients: authedAdminProcedure.input(ZListClientsInputSchema).query(async ({ ctx, input }) => {
     const { listClientsHandler } = await import("./listClients.handler");
 
     return listClientsHandler({
+      ctx,
       input,
     });
   }),

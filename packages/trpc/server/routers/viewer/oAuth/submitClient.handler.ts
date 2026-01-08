@@ -2,6 +2,8 @@ import { sendAdminOAuthClientNotification } from "@calcom/emails/oauth-email-ser
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 
+import type { PrismaClient } from "@calcom/prisma";
+
 import type { TSubmitClientInputSchema } from "./submitClient.schema";
 
 type SubmitClientOptions = {
@@ -11,6 +13,7 @@ type SubmitClientOptions = {
       email: string;
       name: string | null;
     };
+    prisma: PrismaClient;
   };
   input: TSubmitClientInputSchema;
 };
@@ -19,7 +22,7 @@ export const submitClientHandler = async ({ ctx, input }: SubmitClientOptions) =
   const { name, redirectUri, logo, websiteUrl, enablePkce } = input;
   const userId = ctx.user.id;
 
-  const oAuthClientRepository = await OAuthClientRepository.withGlobalPrisma();
+  const oAuthClientRepository = new OAuthClientRepository(ctx.prisma);
 
   const client = await oAuthClientRepository.create({
     name,
