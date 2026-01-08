@@ -3,12 +3,22 @@
 import classNames from "classnames";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
+
+// Helper function to darken a hex color
+const darkenColor = (hex: string, amount: number): string => {
+  const num = parseInt(hex.replace("#", ""), 16);
+  const r = Math.max(0, Math.min(255, ((num >> 16) & 0xff) * (1 - amount)));
+  const g = Math.max(0, Math.min(255, ((num >> 8) & 0xff) * (1 - amount)));
+  const b = Math.max(0, Math.min(255, (num & 0xff) * (1 - amount)));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
+};
 
 type OnboardingOrganizationBrowserViewProps = {
   avatar?: string | null;
@@ -16,6 +26,7 @@ type OnboardingOrganizationBrowserViewProps = {
   bio?: string;
   slug?: string;
   bannerUrl?: string | null;
+  brandColor?: string;
 };
 
 export const OnboardingOrganizationBrowserView = ({
@@ -24,11 +35,22 @@ export const OnboardingOrganizationBrowserView = ({
   bio,
   slug,
   bannerUrl,
+  brandColor,
 }: OnboardingOrganizationBrowserViewProps) => {
   const { t } = useLocale();
   const pathname = usePathname();
-  const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
-  const displayUrl = `${webappUrl}/${slug || ""}`;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const displayUrl = slug ? `${slug}.${subdomainSuffix()}` : subdomainSuffix();
+
+  // Update CSS variables when brandColor changes
+  useEffect(() => {
+    if (brandColor && containerRef.current) {
+      containerRef.current.style.setProperty("--cal-brand", brandColor);
+      // Set brand-emphasis as a slightly darker version for hover states
+      const darkerColor = darkenColor(brandColor, 0.1);
+      containerRef.current.style.setProperty("--cal-brand-emphasis", darkerColor);
+    }
+  }, [brandColor]);
 
   // Animation variants for entry and exit
   const containerVariants = {
@@ -79,7 +101,9 @@ export const OnboardingOrganizationBrowserView = ({
   ];
 
   return (
-    <div className="bg-default border-subtle hidden h-full w-full flex-col overflow-hidden rounded-l-2xl border-y border-s xl:flex">
+    <div
+      ref={containerRef}
+      className="bg-default border-subtle hidden h-full w-full flex-col overflow-hidden rounded-l-2xl border-y border-s xl:flex">
       {/* Browser header */}
       <div className="border-subtle bg-default flex min-w-0 shrink-0 items-center gap-3 rounded-t-2xl border-b p-3">
         {/* Navigation buttons */}
@@ -164,7 +188,7 @@ export const OnboardingOrganizationBrowserView = ({
                       </div>
                       <p className="text-subtle text-sm font-medium leading-tight">{event.description}</p>
                     </div>
-                    <Button color="secondary" size="sm" EndIcon="arrow-right" tabIndex={-1}>
+                    <Button color="primary" size="sm" EndIcon="arrow-right" tabIndex={-1}>
                       {t("book_now")}
                     </Button>
                   </div>

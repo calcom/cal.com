@@ -4,6 +4,7 @@ import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
 import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/create-event-type.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
@@ -3077,6 +3078,102 @@ describe("Bookings Endpoints 2024-08-13", () => {
         "recurringBookingUid" in data
       );
     }
+
+    describe("Meeting sessions", () => {
+      it("should get cal video sessions for a booking", async () => {
+        const mockSessions = [
+          {
+            id: "session-123",
+            room: "daily-room-123",
+            start_time: 1678901234,
+            duration: 3600,
+            ongoing: false,
+            max_participants: 10,
+            participants: [
+              {
+                user_id: "user-1",
+                participant_id: "participant-1",
+                user_name: "John Doe",
+                join_time: 1678901234,
+                duration: 3600,
+              },
+            ],
+          },
+        ];
+
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `test-video-session-${randomString()}`,
+          title: "Test Video Session Booking",
+          description: "",
+          startTime: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)),
+          endTime: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)),
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          references: {
+            create: [
+              {
+                type: "daily_video",
+                uid: `daily-room-123-${randomString()}`,
+                meetingId: "daily-room-123",
+                meetingPassword: "test-password",
+                meetingUrl: "https://daily.co/daily-room-123",
+              },
+            ],
+          },
+        });
+
+        const calVideoService = app.get(CalVideoService);
+        jest
+          .spyOn(calVideoService, "getVideoSessions")
+          .mockResolvedValue([
+            {
+              id: mockSessions[0].id,
+              room: mockSessions[0].room,
+              startTime: mockSessions[0].start_time,
+              duration: mockSessions[0].duration,
+              ongoing: mockSessions[0].ongoing,
+              maxParticipants: mockSessions[0].max_participants,
+              participants: mockSessions[0].participants.map((p) => ({
+                userId: p.user_id,
+                userName: p.user_name,
+                joinTime: p.join_time,
+                duration: p.duration,
+              })),
+            },
+          ]);
+
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${booking.uid}/conferencing-sessions`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        expect(response.body.status).toEqual(SUCCESS_STATUS);
+        expect(response.body.data).toBeDefined();
+        expect(Array.isArray(response.body.data)).toBe(true);
+        expect(response.body.data.length).toBe(1);
+        expect(response.body.data[0].id).toEqual(mockSessions[0].id);
+        expect(response.body.data[0].room).toEqual(mockSessions[0].room);
+        expect(response.body.data[0].startTime).toEqual(mockSessions[0].start_time);
+        expect(response.body.data[0].duration).toEqual(mockSessions[0].duration);
+        expect(response.body.data[0].ongoing).toEqual(mockSessions[0].ongoing);
+        expect(response.body.data[0].maxParticipants).toEqual(mockSessions[0].max_participants);
+        expect(response.body.data[0].participants.length).toBe(1);
+        expect(response.body.data[0].participants[0].userId).toEqual(mockSessions[0].participants[0].user_id);
+        expect(response.body.data[0].participants[0].userName).toEqual(
+          mockSessions[0].participants[0].user_name
+        );
+
+        await bookingsRepositoryFixture.deleteById(booking.id);
+      });
+    });
 
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);

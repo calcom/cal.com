@@ -1,4 +1,4 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { expect, test, vi, describe } from "vitest";
 
@@ -34,7 +34,7 @@ vi.mock("../../_utils/getParsedAppKeysFromSlug", () => ({
 
 const mockRequestRaw = vi.fn();
 vi.mock("../../_utils/oauth/OAuthManager", () => ({
-  OAuthManager: vi.fn().mockImplementation(() => {
+  OAuthManager: vi.fn().mockImplementation(function() {
     return { requestRaw: mockRequestRaw };
   }),
 }));
