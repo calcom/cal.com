@@ -107,28 +107,34 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 
 export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) {
   // Wait for the booker to be ready before interacting
-  await page.getByTestId("incrementMonth").waitFor();
-  await page.getByTestId("incrementMonth").click();
+  const incrementMonth = page.getByTestId("incrementMonth");
+  await incrementMonth.waitFor();
+  await incrementMonth.click();
 
   // Wait for available day to appear after month increment
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+  const firstAvailableDay = page.locator('[data-testid="day"][data-disabled="false"]').nth(0);
+  await firstAvailableDay.waitFor();
+  await firstAvailableDay.click();
 
-  await page.locator('[data-testid="time"]').nth(0).waitFor();
-  await page.locator('[data-testid="time"]').nth(0).click();
+  const firstTimeSlot = page.locator('[data-testid="time"]').nth(0);
+  await firstTimeSlot.waitFor();
+  await firstTimeSlot.click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // Wait for the booker to be ready before interacting
-  await page.getByTestId("incrementMonth").waitFor();
-  await page.getByTestId("incrementMonth").click();
+  const incrementMonth = page.getByTestId("incrementMonth");
+  await incrementMonth.waitFor();
+  await incrementMonth.click();
 
   // Wait for available day to appear after month increment
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).waitFor();
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
+  const secondAvailableDay = page.locator('[data-testid="day"][data-disabled="false"]').nth(1);
+  await secondAvailableDay.waitFor();
+  await secondAvailableDay.click();
 
-  await page.locator('[data-testid="time"]').nth(0).waitFor();
-  await page.locator('[data-testid="time"]').nth(0).click();
+  const firstTimeSlot = page.locator('[data-testid="time"]').nth(0);
+  await firstTimeSlot.waitFor();
+  await firstTimeSlot.click();
 }
 
 export async function bookEventOnThisPage(page: Page) {
