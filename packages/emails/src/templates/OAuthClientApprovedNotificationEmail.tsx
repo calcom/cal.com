@@ -16,7 +16,7 @@ export const OAuthClientApprovedNotificationEmail = ({
   clientName,
   clientId,
   language,
-}: OAuthClientApprovedNotification): JSX.Element => {
+}: OAuthClientApprovedNotification) => {
   return (
     <BaseEmailHtml
       subject={language("oauth_client_approved_email_subject", { clientName, appName: APP_NAME })}
