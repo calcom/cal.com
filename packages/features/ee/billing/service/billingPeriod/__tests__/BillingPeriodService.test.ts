@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 
 import { BillingPeriodService } from "../BillingPeriodService";
@@ -33,6 +34,7 @@ describe("BillingPeriodService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(FeaturesRepository.prototype, "checkIfFeatureIsEnabledGlobally").mockResolvedValue(true);
     service = new BillingPeriodService();
   });
 
@@ -42,11 +44,14 @@ describe("BillingPeriodService", () => {
         id: 1,
         isOrganization: false,
         teamBilling: {
+          id: 1,
           billingPeriod: "ANNUALLY",
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: null,
           pricePerSeat: 100,
+          paidSeats: 5,
+          subscriptionId: "sub_123",
         },
         organizationBilling: null,
       } as any);
@@ -60,11 +65,14 @@ describe("BillingPeriodService", () => {
         id: 1,
         isOrganization: false,
         teamBilling: {
+          id: 1,
           billingPeriod: "MONTHLY",
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: null,
           pricePerSeat: 100,
+          paidSeats: 5,
+          subscriptionId: "sub_123",
         },
         organizationBilling: null,
       } as any);
@@ -95,11 +103,14 @@ describe("BillingPeriodService", () => {
         id: 1,
         isOrganization: false,
         teamBilling: {
+          id: 1,
           billingPeriod: "ANNUALLY",
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: futureDate,
           pricePerSeat: 100,
+          paidSeats: 5,
+          subscriptionId: "sub_123",
         },
         organizationBilling: null,
       } as any);
@@ -116,11 +127,14 @@ describe("BillingPeriodService", () => {
         id: 1,
         isOrganization: false,
         teamBilling: {
+          id: 1,
           billingPeriod: "ANNUALLY",
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: pastDate,
           pricePerSeat: 100,
+          paidSeats: 5,
+          subscriptionId: "sub_123",
         },
         organizationBilling: null,
       } as any);
@@ -134,11 +148,14 @@ describe("BillingPeriodService", () => {
         id: 1,
         isOrganization: false,
         teamBilling: {
+          id: 1,
           billingPeriod: "ANNUALLY",
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: null,
           pricePerSeat: 100,
+          paidSeats: 5,
+          subscriptionId: "sub_123",
         },
         organizationBilling: null,
       } as any);
@@ -154,11 +171,14 @@ describe("BillingPeriodService", () => {
         id: 1,
         isOrganization: false,
         teamBilling: {
+          id: 1,
           billingPeriod: "ANNUALLY",
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: null,
           pricePerSeat: 100,
+          paidSeats: 5,
+          subscriptionId: "sub_123",
         },
         organizationBilling: null,
       } as any);
@@ -172,11 +192,14 @@ describe("BillingPeriodService", () => {
         id: 1,
         isOrganization: false,
         teamBilling: {
+          id: 1,
           billingPeriod: "MONTHLY",
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: null,
           pricePerSeat: 100,
+          paidSeats: 5,
+          subscriptionId: "sub_123",
         },
         organizationBilling: null,
       } as any);
@@ -193,11 +216,14 @@ describe("BillingPeriodService", () => {
         id: 1,
         isOrganization: false,
         teamBilling: {
+          id: 1,
           billingPeriod: "ANNUALLY",
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: futureDate,
           pricePerSeat: 100,
+          paidSeats: 5,
+          subscriptionId: "sub_123",
         },
         organizationBilling: null,
       } as any);
@@ -235,11 +261,14 @@ describe("BillingPeriodService", () => {
         id: 1,
         isOrganization: false,
         teamBilling: {
+          id: 1,
           billingPeriod: "ANNUALLY",
           subscriptionStart,
           subscriptionEnd,
           subscriptionTrialEnd: null,
           pricePerSeat: 100,
+          paidSeats: 5,
+          subscriptionId: "sub_123",
         },
         organizationBilling: null,
       } as any);
@@ -265,11 +294,14 @@ describe("BillingPeriodService", () => {
         isOrganization: true,
         teamBilling: null,
         organizationBilling: {
+          id: 1,
           billingPeriod: "ANNUALLY",
           subscriptionStart,
           subscriptionEnd: new Date("2027-01-01"),
           subscriptionTrialEnd: null,
           pricePerSeat: 200,
+          paidSeats: 10,
+          subscriptionId: "sub_456",
         },
       } as any);
 
