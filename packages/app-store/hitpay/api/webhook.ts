@@ -9,6 +9,7 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 
+import appConfig from "../config.json";
 import type { hitpayCredentialKeysSchema } from "../lib/hitpayCredentialKeysSchema";
 
 export const config = {
@@ -116,7 +117,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return await handlePaymentSuccess({
       paymentId: payment.id,
       bookingId: payment.bookingId,
-      appSlug: "hitpay",
+      appSlug: appConfig.slug,
       traceContext,
     });
   } catch (_err) {

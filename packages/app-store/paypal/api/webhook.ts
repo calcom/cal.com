@@ -11,6 +11,8 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 
+import appConfig from "../config.json";
+
 export const config = {
   api: {
     bodyParser: false,
@@ -69,7 +71,7 @@ export async function handlePaypalPaymentSuccess(
   return await handlePaymentSuccess({
     paymentId: payment.id,
     bookingId: payment.bookingId,
-    appSlug: "paypal",
+    appSlug: appConfig.slug,
     traceContext,
   });
 }

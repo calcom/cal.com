@@ -233,7 +233,7 @@ describe("handlePaymentSuccess", () => {
     await expect(
       handlePaymentSuccess({
         paymentId: mockPaymentId,
-        appSlug: "test-event",
+        appSlug: "stripe",
         bookingId: mockBookingId,
         traceContext: mockTraceContext,
       })
