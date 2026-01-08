@@ -6,12 +6,16 @@ import type { EventType } from "@/services/types/event-types.types";
 
 interface EventTypeTitleProps {
   title: string;
+  username?: string;
+  slug: string;
 }
 
-export function EventTypeTitle({ title }: EventTypeTitleProps) {
+export function EventTypeTitle({ title, username, slug }: EventTypeTitleProps) {
+  const linkText = username ? `/${username}/${slug}` : `/${slug}`;
   return (
-    <View className="mb-1 flex-row items-center">
-      <Text className="flex-1 text-base font-semibold text-cal-text">{title}</Text>
+    <View className="mb-1 flex-row flex-wrap items-baseline">
+      <Text className="text-base font-semibold text-cal-text">{title}</Text>
+      <Text className="ml-1 text-sm text-cal-text-secondary">{linkText}</Text>
     </View>
   );
 }
@@ -29,39 +33,133 @@ export function EventTypeDescription({ normalizedDescription }: EventTypeDescrip
   );
 }
 
-interface DurationBadgeProps {
+interface EventTypeLinkProps {
+  username?: string;
+  slug: string;
+}
+
+export function EventTypeLink({ username, slug }: EventTypeLinkProps) {
+  const linkText = username ? `/${username}/${slug}` : `/${slug}`;
+  return <Text className="mb-1 mt-0.5 text-sm text-cal-text-secondary">{linkText}</Text>;
+}
+
+interface EventTypeBadgesProps {
   formattedDuration: string;
-}
-
-export function DurationBadge({ formattedDuration }: DurationBadgeProps) {
-  return (
-    <View className="mt-2 flex-row items-center self-start rounded-lg border border-cal-border bg-cal-border px-2 py-1">
-      <Ionicons name="time-outline" size={14} color="#000000" />
-      <Text className="ml-1.5 text-xs font-semibold text-cal-brand-black">{formattedDuration}</Text>
-    </View>
-  );
-}
-
-interface PriceAndConfirmationBadgesProps {
+  hidden?: boolean;
+  seats?: {
+    disabled?: boolean;
+    seatsPerTimeSlot?: number;
+    showAttendeeInfo?: boolean;
+    showAvailabilityCount?: boolean;
+  };
   hasPrice: boolean;
   formattedPrice: string | null;
-  requiresConfirmation?: boolean;
+  confirmationPolicy?: EventType["confirmationPolicy"];
+  recurrence?: {
+    disabled?: boolean;
+    interval?: number;
+    occurrences?: number;
+    frequency?: string;
+  } | null;
 }
 
-export function PriceAndConfirmationBadges({
+export function EventTypeBadges({
+  formattedDuration,
+  hidden,
+  seats,
   hasPrice,
   formattedPrice,
-  requiresConfirmation,
-}: PriceAndConfirmationBadgesProps) {
-  if (!hasPrice && !requiresConfirmation) return null;
+  confirmationPolicy,
+  recurrence,
+}: EventTypeBadgesProps) {
+  const hasSeats = seats && !seats.disabled && seats.seatsPerTimeSlot && seats.seatsPerTimeSlot > 0;
+
+  const requiresConfirmation =
+    confirmationPolicy &&
+    !("disabled" in confirmationPolicy && confirmationPolicy.disabled) &&
+    "type" in confirmationPolicy &&
+    confirmationPolicy.type === "always";
+
+  const hasRecurrence = recurrence && !recurrence.disabled && recurrence.occurrences;
+
+  // Render nothing if we seemingly have no badges (Duration is usually always present though)
+  // But checking just in case
+  if (
+    !formattedDuration &&
+    !hidden &&
+    !hasSeats &&
+    (!hasPrice || !formattedPrice) &&
+    !hasRecurrence &&
+    !requiresConfirmation
+  ) {
+    return null;
+  }
+
   return (
-    <View className="mt-2 flex-row items-center gap-3">
+    <View className="mt-2 flex-row flex-wrap items-center gap-2" style={{ width: "100%" }}>
+      {/* Duration Badge */}
+      <View
+        className="rounded-md border border-cal-border bg-cal-border"
+        style={{ height: 24, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}
+      >
+        <Ionicons name="time-outline" size={14} color="#000000" />
+        <Text className="ml-1.5 text-xs font-semibold text-cal-brand-black">
+          {formattedDuration}
+        </Text>
+      </View>
+
+      {/* Hidden Badge */}
+      {hidden ? (
+        <View
+          className="rounded-md border border-cal-border bg-cal-border"
+          style={{ height: 24, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}
+        >
+          <Ionicons name="eye-off-outline" size={14} color="#000000" />
+          <Text className="ml-1.5 text-xs font-medium text-cal-brand-black">Hidden</Text>
+        </View>
+      ) : null}
+
+      {/* Seats Badge */}
+      {hasSeats ? (
+        <View
+          className="rounded-md border border-cal-border bg-cal-border"
+          style={{ height: 24, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}
+        >
+          <Ionicons name="people-outline" size={14} color="#000000" />
+          <Text className="ml-1.5 text-xs font-medium text-cal-brand-black">
+            {seats.seatsPerTimeSlot} seats
+          </Text>
+        </View>
+      ) : null}
+
+      {/* Price Badge */}
       {hasPrice && formattedPrice ? (
         <Text className="text-sm font-medium text-cal-accent-success">{formattedPrice}</Text>
       ) : null}
+
+      {/* Repeats Badge */}
+      {hasRecurrence ? (
+        <View
+          className="rounded-md border border-cal-border bg-cal-border"
+          style={{ height: 24, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}
+        >
+          <Ionicons name="repeat-outline" size={14} color="#000000" />
+          <Text className="ml-1.5 text-xs font-medium text-cal-brand-black">
+            {recurrence.occurrences} times
+          </Text>
+        </View>
+      ) : null}
+
+      {/* Requires Confirmation Badge */}
       {requiresConfirmation ? (
-        <View className="rounded bg-cal-accent-warning px-2 py-0.5">
-          <Text className="text-xs font-medium text-white">Requires Confirmation</Text>
+        <View
+          className="rounded-md border border-cal-border bg-cal-border"
+          style={{ height: 24, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}
+        >
+          <Ionicons name="checkmark-circle-outline" size={14} color="#000000" />
+          <Text className="ml-1.5 text-xs font-medium text-cal-brand-black">
+            Requires confirmation
+          </Text>
         </View>
       ) : null}
     </View>

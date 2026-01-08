@@ -19,7 +19,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { DisplayInfo } from "@calcom/web/modules/users/components/UserTable/EditSheet/DisplayInfo";
 import { SheetFooterControls } from "@calcom/web/modules/users/components/UserTable/EditSheet/SheetFooterControls";
 import { useEditMode } from "@calcom/web/modules/users/components/UserTable/EditSheet/store";
-import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
+import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 
 import { updateRoleInCache, getUpdatedUser } from "./MemberChangeRoleModal";
 import type { Action, State, User } from "./MemberList";

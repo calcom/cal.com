@@ -3,6 +3,7 @@
  *
  * Screen content for rescheduling a booking.
  * Used with the reschedule route that has native Stack.Header.
+ * This is the web/extension fallback - uses native HTML inputs on web.
  */
 
 import { Ionicons } from "@expo/vector-icons";
@@ -19,17 +20,18 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRescheduleBooking } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
-import { CalComAPIService } from "@/services/calcom";
 import { safeLogError, safeLogInfo } from "@/utils/safeLogger";
 
-// Note: @expo/ui DateTimePicker components are not yet stable
-// Using a simple inline picker approach instead
+const isWeb = Platform.OS === "web";
 
 export interface RescheduleScreenProps {
   booking: Booking | null;
   onSuccess: () => void;
   onSavingChange?: (isSaving: boolean) => void;
+  transparentBackground?: boolean;
+  useNativeHeader?: boolean;
 }
 
 // Handle type for parent component to call submit
@@ -38,14 +40,20 @@ export interface RescheduleScreenHandle {
 }
 
 export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScreenProps>(
-  function RescheduleScreen({ booking, onSuccess, onSavingChange }, ref) {
-    "use no memo";
+  function RescheduleScreen(
+    { booking, onSuccess, onSavingChange, transparentBackground = false },
+    ref
+  ) {
     const insets = useSafeAreaInsets();
+    const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
+    const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
     const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [reason, setReason] = useState("");
-    const [isSaving, setIsSaving] = useState(false);
+
+    // Use React Query mutation for automatic cache invalidation
+    const { mutate: rescheduleBooking, isPending: isSaving } = useRescheduleBooking();
 
     // Pre-fill with current booking date/time
     useEffect(() => {
@@ -63,8 +71,8 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
       onSavingChange?.(isSaving);
     }, [isSaving, onSavingChange]);
 
-    const handleSubmit = useCallback(async () => {
-      if (!booking) return;
+    const handleSubmit = useCallback(() => {
+      if (!booking || isSaving) return;
 
       // Validate the date is in the future
       if (selectedDateTime <= new Date()) {
@@ -72,22 +80,38 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
         return;
       }
 
-      setIsSaving(true);
-      try {
-        await CalComAPIService.rescheduleBooking(booking.uid, {
-          start: selectedDateTime.toISOString(),
-          reschedulingReason: reason.trim() || undefined,
-        });
-        Alert.alert("Success", "Booking rescheduled successfully", [
-          { text: "OK", onPress: onSuccess },
-        ]);
-        setIsSaving(false);
-      } catch (error) {
-        safeLogError("[RescheduleScreen] Failed to reschedule:", error);
-        Alert.alert("Error", "Failed to reschedule booking. Please try again.");
-        setIsSaving(false);
-      }
-    }, [booking, selectedDateTime, reason, onSuccess]);
+      // Extract conditional values for React Compiler optimization
+      const trimmedReason = reason.trim();
+      const reschedulingReason = trimmedReason.length > 0 ? trimmedReason : undefined;
+      const startTime = selectedDateTime.toISOString();
+
+      rescheduleBooking(
+        {
+          uid: booking.uid,
+          start: startTime,
+          reschedulingReason,
+        },
+        {
+          onSuccess: () => {
+            Alert.alert("Success", "Booking rescheduled successfully", [
+              { text: "OK", onPress: onSuccess },
+            ]);
+          },
+          onError: (error) => {
+            safeLogError("[RescheduleScreen] Failed to reschedule:", error);
+            Alert.alert("Error", "Failed to reschedule booking. Please try again.");
+          },
+        }
+      );
+    }, [booking, selectedDateTime, reason, onSuccess, isSaving, rescheduleBooking]);
+
+    // Helper function to format date as YYYY-MM-DD in local timezone (avoids UTC conversion issues)
+    const formatLocalDate = (date: Date) => {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(date.getDate()).padStart(2, "0")}`;
+    };
 
     // Format date for display
     const formattedDate = selectedDateTime.toLocaleDateString(undefined, {
@@ -125,7 +149,10 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
 
     // Generate time options (every 15 minutes)
     const timeOptions = React.useMemo(() => {
-      const options: { label: string; value: { hour: number; minute: number } }[] = [];
+      const options: {
+        label: string;
+        value: { hour: number; minute: number };
+      }[] = [];
       for (let hour = 0; hour < 24; hour++) {
         for (let minute = 0; minute < 60; minute += 15) {
           const time = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
@@ -149,7 +176,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
 
     if (!booking) {
       return (
-        <View className="flex-1 items-center justify-center bg-[#F2F2F7]">
+        <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
           <Text className="text-gray-500">No booking data</Text>
         </View>
       );
@@ -159,91 +186,204 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
       <>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1 bg-[#F2F2F7]"
+          className={`flex-1 ${backgroundStyle}`}
         >
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16 }}
+            contentContainerStyle={{
+              padding: 16,
+              paddingBottom: insets.bottom + 16,
+            }}
             keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={!transparentBackground}
           >
             {/* Booking Title Card */}
-            <View className="mb-4 flex-row items-start rounded-xl bg-white p-4">
-              <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
-                <Ionicons name="calendar" size={20} color="#6B7280" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-[13px] font-medium text-gray-500">Rescheduling</Text>
-                <Text className="mt-0.5 text-[17px] font-medium text-[#000]" numberOfLines={2}>
-                  {booking.title}
-                </Text>
-              </View>
-            </View>
-
-            {/* Form Card */}
-            <View className="mb-4 overflow-hidden rounded-xl bg-white">
-              {/* Date picker */}
-              <TouchableOpacity
-                className="border-b border-gray-100 px-4 py-3"
-                onPress={() => {
-                  safeLogInfo("[RescheduleScreen] Opening date picker");
-                  setShowDatePicker(true);
-                }}
-                disabled={isSaving}
-                activeOpacity={0.7}
-              >
-                <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Date</Text>
-                <View className="flex-row items-center justify-between">
-                  <Text className="h-10 text-[17px] text-[#000]" style={{ lineHeight: 40 }}>
-                    {formattedDate}
-                  </Text>
-                  <Ionicons name="calendar-outline" size={20} color="#007AFF" />
+            {!transparentBackground && (
+              <View className="mb-4 flex-row items-start rounded-xl bg-white p-4">
+                <View
+                  className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}
+                >
+                  <Ionicons name="calendar" size={20} color="#6B7280" />
                 </View>
-              </TouchableOpacity>
-
-              {/* Time picker */}
-              <TouchableOpacity
-                className="border-b border-gray-100 px-4 py-3"
-                onPress={() => {
-                  safeLogInfo("[RescheduleScreen] Opening time picker");
-                  setShowTimePicker(true);
-                }}
-                disabled={isSaving}
-                activeOpacity={0.7}
-              >
-                <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Time</Text>
-                <View className="flex-row items-center justify-between">
-                  <Text className="h-10 text-[17px] text-[#000]" style={{ lineHeight: 40 }}>
-                    {formattedTime}
+                <View className="flex-1">
+                  <Text className="text-[13px] font-medium text-gray-500">Rescheduling</Text>
+                  <Text className="mt-0.5 text-[17px] font-medium text-[#000]" numberOfLines={2}>
+                    {booking.title}
                   </Text>
-                  <Ionicons name="time-outline" size={20} color="#007AFF" />
                 </View>
-              </TouchableOpacity>
-
-              {/* Reason input */}
-              <View className="px-4 py-3">
-                <Text className="mb-1.5 text-[13px] font-medium text-gray-500">
-                  Reason (optional)
-                </Text>
-                <TextInput
-                  className="min-h-[80px] text-[17px] text-[#000]"
-                  placeholder="Enter reason for rescheduling..."
-                  placeholderTextColor="#9CA3AF"
-                  value={reason}
-                  onChangeText={setReason}
-                  multiline
-                  textAlignVertical="top"
-                  editable={!isSaving}
-                />
               </View>
-            </View>
+            )}
 
-            {/* Info note */}
-            <View className="flex-row items-start rounded-xl bg-[#E3F2FD] p-4">
-              <Ionicons name="information-circle" size={20} color="#1976D2" />
-              <Text className="ml-3 flex-1 text-[15px] leading-5 text-[#1565C0]">
-                Attendees will receive an email notification about the new time.
-              </Text>
-            </View>
+            {/* Form - Separate cards for transparent mode, grouped for non-transparent */}
+            {transparentBackground ? (
+              <>
+                {/* Date picker - pill button */}
+                {!isWeb && (
+                  <View className="mb-3 flex-row items-center">
+                    <Text className="mr-3 text-[15px] font-medium text-gray-600">Date</Text>
+                    <TouchableOpacity
+                      className="rounded-xl border border-gray-300/40 bg-white/60 px-4 py-2.5"
+                      onPress={() => {
+                        safeLogInfo("[RescheduleScreen] Opening date picker");
+                        setShowDatePicker(true);
+                      }}
+                      disabled={isSaving}
+                      activeOpacity={0.7}
+                    >
+                      <Text className="text-[17px] font-medium text-[#000]">{formattedDate}</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Time picker - pill button */}
+                {!isWeb && (
+                  <View className="mb-3 flex-row items-center">
+                    <Text className="mr-3 text-[15px] font-medium text-gray-600">Time</Text>
+                    <TouchableOpacity
+                      className="rounded-xl border border-gray-300/40 bg-white/60 px-4 py-2.5"
+                      onPress={() => {
+                        safeLogInfo("[RescheduleScreen] Opening time picker");
+                        setShowTimePicker(true);
+                      }}
+                      disabled={isSaving}
+                      activeOpacity={0.7}
+                    >
+                      <Text className="text-[17px] font-medium text-[#000]">{formattedTime}</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Reason input */}
+                <View className="mb-3 overflow-hidden rounded-xl border border-gray-300/40 bg-white/60 px-4 py-3">
+                  <TextInput
+                    className="min-h-[80px] text-[17px] text-[#000]"
+                    placeholder="Reason for rescheduling (optional)..."
+                    placeholderTextColor="#9CA3AF"
+                    value={reason}
+                    onChangeText={setReason}
+                    multiline
+                    textAlignVertical="top"
+                    editable={!isSaving}
+                  />
+                </View>
+              </>
+            ) : (
+              <View className="mb-4 overflow-hidden rounded-xl bg-white">
+                {/* Date picker */}
+                {isWeb ? (
+                  <View className="border-b border-gray-100 px-4 py-3">
+                    <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Date</Text>
+                    <input
+                      type="date"
+                      value={formatLocalDate(selectedDateTime)}
+                      onChange={(e) => {
+                        const [year, month, day] = e.target.value.split("-").map(Number);
+                        if (!Number.isNaN(year) && !Number.isNaN(month) && !Number.isNaN(day)) {
+                          const newDate = new Date(selectedDateTime);
+                          newDate.setFullYear(year, month - 1, day);
+                          safeLogInfo("[RescheduleScreen] Date selected:", newDate);
+                          setSelectedDateTime(newDate);
+                        }
+                      }}
+                      disabled={isSaving}
+                      style={{
+                        width: "100%",
+                        height: 40,
+                        fontSize: 17,
+                        border: "none",
+                        outline: "none",
+                        backgroundColor: "transparent",
+                        color: "#000",
+                      }}
+                      min={formatLocalDate(new Date())}
+                    />
+                  </View>
+                ) : (
+                  <View className="border-b border-gray-100 px-4 py-3">
+                    <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Date</Text>
+                    <TouchableOpacity
+                      className={`self-start rounded-lg px-4 py-2 ${pillStyle}`}
+                      onPress={() => {
+                        safeLogInfo("[RescheduleScreen] Opening date picker");
+                        setShowDatePicker(true);
+                      }}
+                      disabled={isSaving}
+                      activeOpacity={0.7}
+                    >
+                      <Text className="text-[17px] font-medium text-[#000]">{formattedDate}</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Time picker */}
+                {isWeb ? (
+                  <View className="border-b border-gray-100 px-4 py-3">
+                    <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Time</Text>
+                    <input
+                      type="time"
+                      value={`${String(selectedDateTime.getHours()).padStart(2, "0")}:${String(
+                        selectedDateTime.getMinutes()
+                      ).padStart(2, "0")}`}
+                      onChange={(e) => {
+                        const [hours, minutes] = e.target.value.split(":").map(Number);
+                        if (!Number.isNaN(hours) && !Number.isNaN(minutes)) {
+                          safeLogInfo("[RescheduleScreen] Time selected:", {
+                            hours,
+                            minutes,
+                          });
+                          const newDate = new Date(selectedDateTime);
+                          newDate.setHours(hours);
+                          newDate.setMinutes(minutes);
+                          setSelectedDateTime(newDate);
+                        }
+                      }}
+                      disabled={isSaving}
+                      style={{
+                        width: "100%",
+                        height: 40,
+                        fontSize: 17,
+                        border: "none",
+                        outline: "none",
+                        backgroundColor: "transparent",
+                        color: "#000",
+                      }}
+                    />
+                  </View>
+                ) : (
+                  <View className="border-b border-gray-100 px-4 py-3">
+                    <Text className="mb-1.5 text-[13px] font-medium text-gray-500">New Time</Text>
+                    <TouchableOpacity
+                      className={`self-start rounded-lg px-4 py-2 ${pillStyle}`}
+                      onPress={() => {
+                        safeLogInfo("[RescheduleScreen] Opening time picker");
+                        setShowTimePicker(true);
+                      }}
+                      disabled={isSaving}
+                      activeOpacity={0.7}
+                    >
+                      <Text className="text-[17px] font-medium text-[#000]">{formattedTime}</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Reason input */}
+                <View className="px-4 py-3">
+                  <Text className="mb-1.5 text-[13px] font-medium text-gray-500">
+                    Reason (optional)
+                  </Text>
+                  <TextInput
+                    className="min-h-[80px] text-[17px] text-[#000]"
+                    placeholder="Enter reason for rescheduling..."
+                    placeholderTextColor="#9CA3AF"
+                    value={reason}
+                    onChangeText={setReason}
+                    multiline
+                    textAlignVertical="top"
+                    editable={!isSaving}
+                  />
+                </View>
+              </View>
+            )}
           </ScrollView>
         </KeyboardAvoidingView>
 

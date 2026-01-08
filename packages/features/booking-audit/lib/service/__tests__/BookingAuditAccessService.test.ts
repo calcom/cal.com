@@ -130,9 +130,9 @@ describe("BookingAuditAccessService - Permission Checks", () => {
       checkPermission: vi.fn(),
     };
 
-    vi.mocked(BookingRepository).mockImplementation(() => mockBookingRepository as unknown as BookingRepository);
-    vi.mocked(MembershipRepository).mockImplementation(() => mockMembershipRepository as unknown as MembershipRepository);
-    vi.mocked(PermissionCheckService).mockImplementation(() => mockPermissionCheckService as unknown as PermissionCheckService);
+    vi.mocked(BookingRepository).mockImplementation(function() { return mockBookingRepository as unknown as BookingRepository; });
+    vi.mocked(MembershipRepository).mockImplementation(function() { return mockMembershipRepository as unknown as MembershipRepository; });
+    vi.mocked(PermissionCheckService).mockImplementation(function() { return mockPermissionCheckService as unknown as PermissionCheckService; });
 
     service = new BookingAuditAccessService({
       bookingRepository: mockBookingRepository as unknown as BookingRepository,

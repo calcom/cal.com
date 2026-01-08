@@ -3,11 +3,12 @@ import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { Image } from "expo-image";
 import { Stack, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
-  ActionSheetIOS,
   Alert,
+  Pressable,
   RefreshControl,
   ScrollView,
   Share,
@@ -17,25 +18,27 @@ import {
 } from "react-native";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { EventTypeListItem } from "@/components/event-type-list-item/EventTypeListItem";
-import { FullScreenModal } from "@/components/FullScreenModal";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
   useCreateEventType,
   useDeleteEventType,
   useDuplicateEventType,
   useEventTypes,
+  useUserProfile,
 } from "@/hooks";
+import { useEventTypeFilter } from "@/hooks/useEventTypeFilter";
 import { CalComAPIService, type EventType } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
+import { getAvatarUrl } from "@/utils/getAvatarUrl";
 import { getEventDuration } from "@/utils/getEventDuration";
 import { offlineAwareRefresh } from "@/utils/network";
-import { normalizeMarkdown } from "@/utils/normalizeMarkdown";
 import { slugify } from "@/utils/slugify";
 
 export default function EventTypesIOS() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: userProfile } = useUserProfile();
 
   // No modal state needed for iOS - using native Alert.prompt
 
@@ -52,7 +55,7 @@ export default function EventTypesIOS() {
   const refreshing = isFetching && !loading;
 
   const { mutate: createEventTypeMutation } = useCreateEventType();
-  const { mutate: deleteEventTypeMutation, isPending: isDeleting } = useDeleteEventType();
+  const { mutate: deleteEventTypeMutation } = useDeleteEventType();
   const { mutate: duplicateEventTypeMutation } = useDuplicateEventType();
 
   // Convert query error to string
@@ -64,25 +67,39 @@ export default function EventTypesIOS() {
     queryError?.message?.includes("401");
   const error = queryError && !isAuthError && __DEV__ ? "Failed to load event types." : null;
 
-  // Modal state for delete confirmation
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [eventTypeToDelete, setEventTypeToDelete] = useState<EventType | null>(null);
+  // No modal state needed for iOS - using native Alert for delete confirmation
 
   // Handle pull-to-refresh (offline-aware)
   const onRefresh = () => offlineAwareRefresh(refetch);
 
-  // Filter event types based on search query
+  // Event type filter and sort hook
+  const {
+    sortBy,
+    filters,
+    setSortBy,
+    toggleFilter,
+    resetFilters,
+    filteredAndSortedEventTypes,
+    activeFilterCount,
+  } = useEventTypeFilter();
+
+  // Filter event types based on search query and filter/sort options
   const filteredEventTypes = useMemo(() => {
-    if (searchQuery.trim() === "") {
-      return eventTypes;
+    // First apply filter/sort from the hook
+    let filtered = filteredAndSortedEventTypes(eventTypes);
+
+    // Then apply search query filter
+    if (searchQuery.trim() !== "") {
+      const searchLower = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (eventType) =>
+          eventType.title.toLowerCase().includes(searchLower) ||
+          eventType.description?.toLowerCase().includes(searchLower)
+      );
     }
-    const searchLower = searchQuery.toLowerCase();
-    return eventTypes.filter(
-      (eventType) =>
-        eventType.title.toLowerCase().includes(searchLower) ||
-        eventType.description?.toLowerCase().includes(searchLower)
-    );
-  }, [eventTypes, searchQuery]);
+
+    return filtered;
+  }, [eventTypes, searchQuery, filteredAndSortedEventTypes]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -90,34 +107,6 @@ export default function EventTypesIOS() {
 
   const handleEventTypePress = (eventType: EventType) => {
     handleEdit(eventType);
-  };
-
-  const handleEventTypeLongPress = (eventType: EventType) => {
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: ["Cancel", "Edit", "Duplicate", "Delete"],
-        destructiveButtonIndex: 3, // Delete button
-        cancelButtonIndex: 0,
-        title: eventType.title,
-        message: eventType.description ? normalizeMarkdown(eventType.description) : undefined,
-      },
-      (buttonIndex) => {
-        switch (buttonIndex) {
-          case 1: // Edit
-            handleEdit(eventType);
-            break;
-          case 2: // Duplicate
-            handleDuplicate(eventType);
-            break;
-          case 3: // Delete
-            handleDelete(eventType);
-            break;
-          default:
-            // Cancel - do nothing
-            break;
-        }
-      }
-    );
   };
 
   const handleCopyLink = async (eventType: EventType) => {
@@ -159,30 +148,35 @@ export default function EventTypesIOS() {
   };
 
   const handleDelete = (eventType: EventType) => {
-    setEventTypeToDelete(eventType);
-    setShowDeleteModal(true);
-  };
-
-  const confirmDelete = () => {
-    if (!eventTypeToDelete) return;
-
-    deleteEventTypeMutation(eventTypeToDelete.id, {
-      onSuccess: () => {
-        // Close modal and reset state
-        setShowDeleteModal(false);
-        setEventTypeToDelete(null);
-        Alert.alert("Success", "Event type deleted successfully");
-      },
-      onError: (deleteError) => {
-        const message = deleteError instanceof Error ? deleteError.message : String(deleteError);
-        console.error("Failed to delete event type", message);
-        if (__DEV__) {
-          const stack = deleteError instanceof Error ? deleteError.stack : undefined;
-          console.debug("[EventTypes] deleteEventType failed", { message, stack });
-        }
-        showErrorAlert("Error", "Failed to delete event type. Please try again.");
-      },
-    });
+    // Use native iOS Alert for confirmation
+    Alert.alert(
+      "Delete Event Type",
+      `Are you sure you want to delete "${eventType.title}"? This action cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            deleteEventTypeMutation(eventType.id, {
+              onSuccess: () => {
+                Alert.alert("Success", "Event type deleted successfully");
+              },
+              onError: (deleteError) => {
+                const message =
+                  deleteError instanceof Error ? deleteError.message : String(deleteError);
+                console.error("Failed to delete event type", message);
+                if (__DEV__) {
+                  const stack = deleteError instanceof Error ? deleteError.stack : undefined;
+                  console.debug("[EventTypes] deleteEventType failed", { message, stack });
+                }
+                showErrorAlert("Error", "Failed to delete event type. Please try again.");
+              },
+            });
+          },
+        },
+      ]
+    );
   };
 
   const handleDuplicate = (eventType: EventType) => {
@@ -216,7 +210,10 @@ export default function EventTypesIOS() {
           console.error("Failed to duplicate event type", message);
           if (__DEV__) {
             const stack = duplicateError instanceof Error ? duplicateError.stack : undefined;
-            console.debug("[EventTypes] duplicateEventType failed", { message, stack });
+            console.debug("[EventTypes] duplicateEventType failed", {
+              message,
+              stack,
+            });
           }
           showErrorAlert("Error", "Failed to duplicate event type. Please try again.");
         },
@@ -287,7 +284,10 @@ export default function EventTypesIOS() {
                   console.error("Failed to create event type", message);
                   if (__DEV__) {
                     const stack = createError instanceof Error ? createError.stack : undefined;
-                    console.debug("[EventTypes] createEventType failed", { message, stack });
+                    console.debug("[EventTypes] createEventType failed", {
+                      message,
+                      stack,
+                    });
                   }
                   showErrorAlert("Error", "Failed to create event type. Please try again.");
                 },
@@ -302,16 +302,21 @@ export default function EventTypesIOS() {
     );
   };
 
-  // Sort by menu handler (dummy for now)
-  const handleSortByOption = (option: string) => {
-    console.log("Sort by:", option);
-    // TODO: Implement actual sorting logic
+  // Sort by menu handler
+  const handleSortByOption = (option: "alphabetical" | "newest" | "duration") => {
+    setSortBy(option);
   };
 
-  // Filter menu handler (dummy for now)
-  const handleFilterOption = (option: string) => {
-    console.log("Filter by:", option);
-    // TODO: Implement actual filtering logic
+  // Filter menu handler - toggle filters
+  const handleFilterToggle = (
+    filterKey:
+      | "hiddenOnly"
+      | "paidOnly"
+      | "seatedOnly"
+      | "requiresConfirmationOnly"
+      | "recurringOnly"
+  ) => {
+    toggleFilter(filterKey);
   };
 
   if (loading) {
@@ -378,46 +383,84 @@ export default function EventTypesIOS() {
             {/* Sort by Submenu - opens as separate submenu */}
             <Stack.Header.Menu title="Sort by">
               <Stack.Header.MenuAction
-                icon="textformat.abc"
+                icon={sortBy === "alphabetical" ? "checkmark.circle.fill" : "textformat.abc"}
                 onPress={() => handleSortByOption("alphabetical")}
               >
                 Alphabetical
               </Stack.Header.MenuAction>
               <Stack.Header.MenuAction
-                icon="calendar.badge.clock"
+                icon={sortBy === "newest" ? "checkmark.circle.fill" : "calendar.badge.clock"}
                 onPress={() => handleSortByOption("newest")}
               >
                 Newest First
               </Stack.Header.MenuAction>
-              <Stack.Header.MenuAction icon="clock" onPress={() => handleSortByOption("duration")}>
+              <Stack.Header.MenuAction
+                icon={sortBy === "duration" ? "checkmark.circle.fill" : "clock"}
+                onPress={() => handleSortByOption("duration")}
+              >
                 By Duration
               </Stack.Header.MenuAction>
             </Stack.Header.Menu>
 
-            {/* Filter Submenu - opens as separate submenu */}
-            <Stack.Header.Menu title="Filter">
+            {/* Filter Submenu - multi-select toggles */}
+            <Stack.Header.Menu
+              title={`Filter${activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}`}
+            >
               <Stack.Header.MenuAction
-                icon="checkmark.circle"
-                onPress={() => handleFilterOption("all")}
+                icon={filters.hiddenOnly ? "checkmark.circle.fill" : "eye.slash"}
+                onPress={() => handleFilterToggle("hiddenOnly")}
               >
-                All Event Types
-              </Stack.Header.MenuAction>
-              <Stack.Header.MenuAction icon="eye" onPress={() => handleFilterOption("active")}>
-                Active Only
+                Hidden Only
               </Stack.Header.MenuAction>
               <Stack.Header.MenuAction
-                icon="dollarsign.circle"
-                onPress={() => handleFilterOption("paid")}
+                icon={filters.paidOnly ? "checkmark.circle.fill" : "dollarsign.circle"}
+                onPress={() => handleFilterToggle("paidOnly")}
               >
                 Paid Events
               </Stack.Header.MenuAction>
+              <Stack.Header.MenuAction
+                icon={filters.seatedOnly ? "checkmark.circle.fill" : "person.2"}
+                onPress={() => handleFilterToggle("seatedOnly")}
+              >
+                Seated Events
+              </Stack.Header.MenuAction>
+              <Stack.Header.MenuAction
+                icon={
+                  filters.requiresConfirmationOnly ? "checkmark.circle.fill" : "checkmark.shield"
+                }
+                onPress={() => handleFilterToggle("requiresConfirmationOnly")}
+              >
+                Requires Confirmation
+              </Stack.Header.MenuAction>
+              <Stack.Header.MenuAction
+                icon={filters.recurringOnly ? "checkmark.circle.fill" : "repeat"}
+                onPress={() => handleFilterToggle("recurringOnly")}
+              >
+                Recurring
+              </Stack.Header.MenuAction>
+              {activeFilterCount > 0 && (
+                <Stack.Header.MenuAction icon="xmark.circle" onPress={resetFilters}>
+                  Clear All Filters
+                </Stack.Header.MenuAction>
+              )}
             </Stack.Header.Menu>
           </Stack.Header.Menu>
 
           {/* Profile Button - Opens bottom sheet */}
-          <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
-            <Stack.Header.Icon sf="person.circle.fill" />
-          </Stack.Header.Button>
+          {userProfile?.avatarUrl ? (
+            <Stack.Header.View>
+              <Pressable onPress={() => router.push("/profile-sheet")}>
+                <Image
+                  source={{ uri: getAvatarUrl(userProfile.avatarUrl) }}
+                  style={{ width: 32, height: 32, borderRadius: 16 }}
+                />
+              </Pressable>
+            </Stack.Header.View>
+          ) : (
+            <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
+              <Stack.Header.Icon sf="person.circle.fill" />
+            </Stack.Header.Button>
+          )}
         </Stack.Header.Right>
 
         {/* Search Bar */}
@@ -445,6 +488,17 @@ export default function EventTypesIOS() {
               description="Try searching with different keywords"
             />
           </View>
+        ) : filteredEventTypes.length === 0 && activeFilterCount > 0 ? (
+          <View className="flex-1 items-center justify-center bg-white p-5 pt-20">
+            <EmptyScreen
+              icon="filter-outline"
+              headline="No event types match your filters"
+              description="Try adjusting your filter criteria or clear all filters to see all event types"
+              buttonText="Clear Filters"
+              onButtonPress={resetFilters}
+              className="border-0"
+            />
+          </View>
         ) : (
           <View className="px-2 pt-4 md:px-4">
             <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
@@ -454,9 +508,7 @@ export default function EventTypesIOS() {
                   item={item}
                   index={index}
                   filteredEventTypes={filteredEventTypes}
-                  copiedEventTypeId={null}
                   handleEventTypePress={handleEventTypePress}
-                  handleEventTypeLongPress={handleEventTypeLongPress}
                   handleCopyLink={handleCopyLink}
                   handlePreview={handlePreview}
                   onEdit={handleEdit}
@@ -492,69 +544,6 @@ export default function EventTypesIOS() {
           </ContextMenu>
         </Host>
       </View>
-
-      {/* Delete Confirmation Modal */}
-      <FullScreenModal
-        visible={showDeleteModal}
-        animationType="fade"
-        onRequestClose={() => {
-          if (!isDeleting) {
-            setShowDeleteModal(false);
-            setEventTypeToDelete(null);
-          }
-        }}
-      >
-        <View className="flex-1 items-center justify-center bg-black/50 p-4">
-          <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
-            {/* Header with icon and title */}
-            <View className="p-6">
-              <View className="flex-row">
-                {/* Danger icon */}
-                <View className="mr-3 self-start rounded-full bg-red-50 p-2">
-                  <Ionicons name="alert-circle" size={20} color="#800000" />
-                </View>
-
-                {/* Title and description */}
-                <View className="flex-1">
-                  <Text className="mb-2 text-xl font-semibold text-gray-900">
-                    Delete Event Type
-                  </Text>
-                  <Text className="text-sm leading-5 text-gray-600">
-                    {eventTypeToDelete ? (
-                      <>
-                        This will permanently delete the "{eventTypeToDelete.title}" event type.
-                        This action cannot be undone.
-                      </>
-                    ) : null}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Footer with buttons */}
-            <View className="flex-row-reverse gap-2 px-6 pb-6 pt-2">
-              <TouchableOpacity
-                className={`rounded-lg bg-gray-900 px-4 py-2.5 ${isDeleting ? "opacity-50" : ""}`}
-                onPress={confirmDelete}
-                disabled={isDeleting}
-              >
-                <Text className="text-center text-base font-medium text-white">Delete</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2.5"
-                onPress={() => {
-                  setShowDeleteModal(false);
-                  setEventTypeToDelete(null);
-                }}
-                disabled={isDeleting}
-              >
-                <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </FullScreenModal>
     </>
   );
 }
