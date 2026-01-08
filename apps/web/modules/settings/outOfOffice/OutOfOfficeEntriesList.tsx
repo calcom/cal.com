@@ -182,7 +182,7 @@ function OutOfOfficeEntriesListContent({
                     return emailName.charAt(0).toUpperCase() + emailName.slice(1);
                   })();
                 return (
-                  <div className="flex items-center gap-2 p-2">
+                  <div className="flex items-center gap-2">
                     <Avatar
                       size="sm"
                       alt={username || email}
