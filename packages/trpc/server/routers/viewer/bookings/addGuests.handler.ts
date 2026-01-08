@@ -2,6 +2,7 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
@@ -32,12 +33,18 @@ type AddGuestsOptions = {
   };
   input: TAddGuestsInputSchema;
   emailsEnabled?: boolean;
+  actionSource?: ActionSource;
 };
 
 type Booking = NonNullable<Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>>;
 type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
 
-export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: AddGuestsOptions) => {
+export const addGuestsHandler = async ({
+  ctx,
+  input,
+  emailsEnabled = true,
+  actionSource = "WEBAPP",
+}: AddGuestsOptions) => {
   const { user } = ctx;
   const { bookingId, guests } = input;
 
@@ -89,7 +96,7 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
     bookingUid: booking.uid,
     actor: makeUserActor(user.uuid),
     organizationId: user.organizationId ?? null,
-    source: "WEBAPP",
+    source: actionSource,
     auditData: {
       attendees: { old: oldAttendeeEmails, new: newAttendeeEmails },
     },
