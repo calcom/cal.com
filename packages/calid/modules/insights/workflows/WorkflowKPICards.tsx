@@ -29,7 +29,7 @@ export const WorkflowKPICards = () => {
 
   const categories: {
     title: string;
-    index: "total" | "sentCount" | "readCount" | "failedCount" | "queuedCount" | "cancelledCount";
+    index: "total" | "deliveredCount" | "readCount" | "failedCount" | "queuedCount" | "cancelledCount";
   }[] = [
     {
       title: t("workflows_triggered"),
@@ -40,8 +40,8 @@ export const WorkflowKPICards = () => {
       index: "queuedCount",
     },
     {
-      title: t("workflows_sent"),
-      index: "sentCount",
+      title: t("workflows_delivered"),
+      index: "deliveredCount",
     },
     {
       title: t("workflows_read"),
