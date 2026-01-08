@@ -5,7 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@calcom/ui/components/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -144,9 +144,7 @@ const BillingView = () => {
 
       <Dialog open={showSkipTrialDialog} onOpenChange={setShowSkipTrialDialog}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("skip_trial_confirmation_title")}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader title={t("skip_trial_confirmation_title")} />
           <p className="text-subtle text-sm">{t("skip_trial_confirmation_description")}</p>
           <DialogFooter>
             <Button color="minimal" onClick={() => setShowSkipTrialDialog(false)}>
