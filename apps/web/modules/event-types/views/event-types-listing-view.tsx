@@ -335,7 +335,7 @@ function SortableEventTypeItem({
 
   return (
     <li ref={setNodeRef} style={style} key={type.id}>
-      <div className="hover:bg-cal-muted flex w-full items-center justify-between transition">
+      <div className="hover:bg-cal-muted flex w-full items-center justify-between">
         <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
           <DragButton listeners={listeners} attributes={attributes} />
           <MemoizedItem type={type} group={group} readOnly={readOnly} />

@@ -80,7 +80,7 @@ function SortableWorkflowItem({
       data-testid={dataTestId}
       className="group flex w-full max-w-full items-center justify-between overflow-hidden">
       <DragButton listeners={listeners} attributes={attributes} />
-      <div className="first-line:group hover:bg-cal-muted flex w-full items-center justify-between p-4 transition sm:px-6">
+      <div className="first-line:group hover:bg-cal-muted flex w-full items-center justify-between p-4 sm:px-6">
         <Link href={`/workflows/${workflow.id}`} className="grow cursor-pointer">
           <div className="rtl:space-x-reverse">
             <div className="flex">
