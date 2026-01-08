@@ -129,7 +129,7 @@ export type GetUserAvailabilityInitialData = {
     allSelectedCalendars: SelectedCalendar[];
     userLevelSelectedCalendars: SelectedCalendar[];
     travelSchedules: TravelSchedule[];
-  };
+  } | null;
   eventType?: EventType;
   currentSeats?: CurrentSeats;
   rescheduleUid?: string | null;
@@ -147,7 +147,7 @@ export type GetUserAvailabilityInitialData = {
     toUser: Pick<User, "id" | "username" | "name"> | null;
     reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
   })[];
-  busyTimesFromLimitsBookings: EventBusyDetails[];
+  busyTimesFromLimitsBookings?: EventBusyDetails[];
   busyTimesFromLimits?: Map<number, EventBusyDetails[]>;
   eventTypeForLimits?: {
     id: number;
