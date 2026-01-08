@@ -6,6 +6,7 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails/email-manager";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
@@ -45,9 +46,10 @@ type RequestRescheduleOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TRequestRescheduleInputSchema;
+  source: ActionSource;
 };
 const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
-export const requestRescheduleHandler = async ({ ctx, input }: RequestRescheduleOptions) => {
+export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRescheduleOptions) => {
   const { user } = ctx;
   const { bookingUid, rescheduleReason: cancellationReason } = input;
   log.debug("Started", safeStringify({ bookingUid }));
@@ -308,17 +310,15 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   );
   await Promise.all(promises);
 
-  // Audit logging for reschedule request
   const bookingEventHandlerService = getBookingEventHandlerService();
   await bookingEventHandlerService.onRescheduleRequested({
     bookingUid: bookingToReschedule.uid,
     actor: makeUserActor(user.uuid),
     organizationId: orgId ?? null,
-    source: "WEBAPP",
+    source,
     auditData: {
-      cancellationReason: { old: null, new: cancellationReason ?? null },
-      cancelledBy: { old: null, new: user.email },
-      rescheduled: { old: false, new: true },
+      rescheduleReason: cancellationReason ?? null,
+      rescheduledRequestedBy: user.email,
     },
   });
 };
