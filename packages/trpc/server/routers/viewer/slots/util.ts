@@ -11,6 +11,7 @@ import type {
   IToUser,
   UserAvailabilityService,
 } from "@calcom/features/availability/lib/getUserAvailability";
+import type { IOutOfOfficeData } from "@calcom/features/availability/lib/getUserAvailability";
 import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
@@ -62,6 +63,16 @@ import type { GetScheduleOptions } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
+const ROUND_ROBIN_USER_BATCH_SIZE = 20;
+const ROUND_ROBIN_CHUNK_THRESHOLD = 100;
+
+const chunkArray = <T>(items: T[], size: number) => {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+};
 
 type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
@@ -86,9 +97,22 @@ export interface IGetAvailableSlots {
   troubleshooter?: any;
 }
 
-export type GetAvailableSlotsResponse = Awaited<
-  ReturnType<(typeof AvailableSlotsService)["prototype"]["_getAvailableSlots"]>
->;
+type AvailableSlotsServiceInstance = InstanceType<typeof AvailableSlotsService>;
+type BusyTimesServiceInstance = ReturnType<typeof getBusyTimesService>;
+
+export type GetAvailableSlotsResponse = Awaited<ReturnType<AvailableSlotsServiceInstance["_getAvailableSlots"]>>;
+
+type AggregatedAvailabilityInput = Parameters<typeof getAggregatedAvailability>[0];
+type AggregatedAvailabilityEntry = AggregatedAvailabilityInput[number] & {
+  datesOutOfOffice?: IOutOfOfficeData;
+  timeZone: string;
+};
+
+type HostsAvailabilityResult = {
+  allUsersAvailability: AggregatedAvailabilityEntry[];
+  usersWithCredentials: GetAvailabilityUserWithDelegationCredentials[];
+  currentSeats: CurrentSeats | undefined;
+};
 
 export interface IAvailableSlotsService {
   oooRepo: PrismaOOORepository;
@@ -789,17 +813,14 @@ export class AvailableSlotsService {
     mode,
   }: {
     input: TGetScheduleInputSchema;
-    eventType: Exclude<
-      Awaited<ReturnType<(typeof AvailableSlotsService)["prototype"]["getRegularOrDynamicEventType"]>>,
-      null
-    >;
+    eventType: NonNullable<Awaited<ReturnType<AvailableSlotsServiceInstance["getRegularOrDynamicEventType"]>>>;
     hosts: {
       isFixed?: boolean;
       groupId?: string | null;
       user: GetAvailabilityUserWithDelegationCredentials;
     }[];
     loggerWithEventDetails: Logger<unknown>;
-    startTime: ReturnType<(typeof AvailableSlotsService)["prototype"]["getStartTime"]>;
+    startTime: ReturnType<AvailableSlotsServiceInstance["getStartTime"]>;
     endTime: Dayjs;
     bypassBusyCalendarTimes: boolean;
     silentCalendarFailures: boolean;
@@ -854,7 +875,7 @@ export class AvailableSlotsService {
         : null;
 
     let busyTimesFromLimitsBookingsAllUsers: Awaited<
-      ReturnType<typeof getBusyTimesService.prototype.getBusyTimesForLimitChecks>
+      ReturnType<BusyTimesServiceInstance["getBusyTimesForLimitChecks"]>
     > = [];
 
     if (eventType && (bookingLimits || durationLimits)) {
@@ -979,6 +1000,87 @@ export class AvailableSlotsService {
     };
   }
 
+  private async calculateAvailabilityWithRoundRobinChunks({
+    hosts,
+    eventType,
+    chunkSize = ROUND_ROBIN_USER_BATCH_SIZE,
+    ...rest
+  }: {
+    hosts: {
+      isFixed?: boolean;
+      groupId?: string | null;
+      user: GetAvailabilityUserWithDelegationCredentials;
+    }[];
+    eventType: NonNullable<Awaited<ReturnType<AvailableSlotsServiceInstance["getRegularOrDynamicEventType"]>>>;
+    chunkSize?: number;
+    input: TGetScheduleInputSchema;
+    loggerWithEventDetails: Logger<unknown>;
+    startTime: ReturnType<AvailableSlotsServiceInstance["getStartTime"]>;
+    endTime: Dayjs;
+    bypassBusyCalendarTimes: boolean;
+    silentCalendarFailures: boolean;
+    mode?: CalendarFetchMode;
+  }): Promise<
+    HostsAvailabilityResult & {
+      aggregatedAvailability: ReturnType<typeof getAggregatedAvailability>;
+    }
+  > {
+    const rrLog = rest.loggerWithEventDetails ?? log;
+
+    const calculateForHosts = async (currentHosts: typeof hosts) => {
+      const result = await this.calculateHostsAndAvailabilities({
+        ...rest,
+        hosts: currentHosts,
+        eventType,
+      });
+
+      return {
+        ...result,
+        aggregatedAvailability: getAggregatedAvailability(result.allUsersAvailability, eventType.schedulingType),
+      };
+    };
+
+    const nonFixedHosts = hosts.filter((host) => host.isFixed !== true);
+    rrLog.info(
+      `RR chunking check for eventType=${eventType.id}: totalHosts=${hosts.length}, nonFixedHosts=${nonFixedHosts.length}, weightsEnabled=${eventType.isRRWeightsEnabled}`
+    );
+
+    const shouldChunk =
+      eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+      eventType.isRRWeightsEnabled &&
+      nonFixedHosts.length > ROUND_ROBIN_CHUNK_THRESHOLD;
+
+    if (!shouldChunk) {
+      return await calculateForHosts(hosts);
+    }
+
+    rrLog.info(
+      `RR chunking enabled for eventType=${eventType.id} (team=${eventType.team?.id ?? "N/A"}): processing ${nonFixedHosts.length} hosts in batches of ${chunkSize}`
+    );
+
+    const fixedHosts = hosts.filter((host) => host.isFixed);
+    let lastResult: Awaited<ReturnType<typeof calculateForHosts>> | null = null;
+    let chunkIndex = 0;
+
+    for (const hostChunk of chunkArray(nonFixedHosts, chunkSize)) {
+      chunkIndex += 1;
+      const hostsForChunk = [...hostChunk, ...fixedHosts];
+      lastResult = await calculateForHosts(hostsForChunk);
+      rrLog.info(
+        `RR chunk ${chunkIndex} checked: hosts=${hostChunk.length}, slotsFound=${lastResult.aggregatedAvailability.length}`
+      );
+      if (lastResult.aggregatedAvailability.length > 0) {
+        return lastResult;
+      }
+    }
+
+    if (lastResult) {
+      return lastResult;
+    }
+
+    return await calculateForHosts(fixedHosts);
+  }
+
   private async checkRestrictionScheduleEnabled(teamId?: number): Promise<boolean> {
     if (!teamId) {
       return false;
@@ -1097,6 +1199,8 @@ export class AvailableSlotsService {
         rrHostSubsetIds: input.rrHostSubsetIds ?? undefined,
       });
 
+    console.log(qualifiedRRHosts)
+
     // Filter out blocked hosts BEFORE calculating availability (batched - single DB query)
     const organizationId = eventType.parent?.team?.parentId ?? eventType.team?.parentId ?? null;
 
@@ -1124,8 +1228,12 @@ export class AvailableSlotsService {
     const hasFallbackRRHosts =
       eligibleFallbackRRHosts.length > 0 && eligibleFallbackRRHosts.length > eligibleQualifiedRRHosts.length;
 
-    let { allUsersAvailability, usersWithCredentials, currentSeats } =
-      await this.calculateHostsAndAvailabilities({
+    let {
+      allUsersAvailability,
+      usersWithCredentials,
+      currentSeats,
+      aggregatedAvailability,
+    } = await this.calculateAvailabilityWithRoundRobinChunks({
         input,
         eventType,
         hosts: allHosts,
@@ -1145,8 +1253,6 @@ export class AvailableSlotsService {
         mode,
       });
 
-    let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
-
     // Fairness and Contact Owner have fallbacks because we check for within 2 weeks
     if (hasFallbackRRHosts) {
       let diff = 0;
@@ -1160,7 +1266,7 @@ export class AvailableSlotsService {
         // if start time is not within first two weeks, check if there are any available slots
         if (!aggregatedAvailability.length) {
           // if no available slots check if first two weeks are available, otherwise fallback
-          const firstTwoWeeksAvailabilities = await this.calculateHostsAndAvailabilities({
+          const firstTwoWeeksAvailabilities = await this.calculateAvailabilityWithRoundRobinChunks({
             input,
             eventType,
             hosts: [...eligibleQualifiedRRHosts, ...eligibleFixedHosts],
@@ -1171,12 +1277,7 @@ export class AvailableSlotsService {
             silentCalendarFailures,
             mode,
           });
-          if (
-            !getAggregatedAvailability(
-              firstTwoWeeksAvailabilities.allUsersAvailability,
-              eventType.schedulingType
-            ).length
-          ) {
+          if (!firstTwoWeeksAvailabilities.aggregatedAvailability.length) {
             diff = 1;
           }
         }
@@ -1195,8 +1296,12 @@ export class AvailableSlotsService {
 
       if (diff > 0) {
         // if the first available slot is more than 2 weeks from now, round robin as normal
-        ({ allUsersAvailability, usersWithCredentials, currentSeats } =
-          await this.calculateHostsAndAvailabilities({
+        ({
+          allUsersAvailability,
+          usersWithCredentials,
+          currentSeats,
+          aggregatedAvailability,
+        } = await this.calculateAvailabilityWithRoundRobinChunks({
             input,
             eventType,
             hosts: [...eligibleFallbackRRHosts, ...eligibleFixedHosts],
@@ -1207,7 +1312,6 @@ export class AvailableSlotsService {
             silentCalendarFailures,
             mode,
           }));
-        aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
       }
     }
 
