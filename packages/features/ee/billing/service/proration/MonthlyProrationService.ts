@@ -85,8 +85,6 @@ export class MonthlyProrationService {
 
     const currentSeatCount = teamWithBilling.memberCount;
 
-    // Calculate chargeable seats based on high-water mark (paidSeats)
-    // Lazy-load paidSeats from Stripe if not set
     const paidSeats = billing.paidSeats ?? (await this.getSubscriptionQuantity(billing.subscriptionId));
     const chargeableSeats = Math.max(0, currentSeatCount - paidSeats);
 
@@ -134,14 +132,12 @@ export class MonthlyProrationService {
       return proration;
     }
 
-    // No charge, but still update subscription quantity for future renewals
     await this.updateSubscriptionQuantity(
       proration.subscriptionId,
       proration.subscriptionItemId,
       proration.seatsAtEnd
     );
 
-    // Update paidSeats even when no charge (member count dropped but still under high-water mark)
     await this.teamRepository.updatePaidSeats(
       teamId,
       teamWithBilling.isOrganization,
@@ -242,7 +238,6 @@ export class MonthlyProrationService {
       proration.seatsAtEnd
     );
 
-    // Update paidSeats to new high-water mark
     const billingId = proration.teamBillingId || proration.organizationBillingId;
     if (billingId) {
       const isOrganization = !!proration.organizationBillingId;

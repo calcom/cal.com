@@ -74,8 +74,6 @@ export class SeatChangeTrackingService {
 
     const { additions, removals } = await this.repository.getMonthlyChanges({ teamId, monthKey });
 
-    // Cap net change at 0 - we only charge for seat additions on annual plans
-    // Removals are tracked but don't create credits; they take effect at renewal
     const netChange = Math.max(0, additions - removals);
 
     return {
