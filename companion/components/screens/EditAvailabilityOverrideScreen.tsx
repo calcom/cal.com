@@ -445,7 +445,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
             onPress={() => setShowTimePicker(null)}
           >
             <TouchableOpacity
-              className="max-h-[80%] w-full max-w-[500px] overflow-hidden rounded-2xl bg-white"
+              className="max-h-[80%] w-full max-w-[500px] overflow-hidden rounded-2xl bg-white p-2"
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
               style={shadows.xl()}
@@ -454,7 +454,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
             </TouchableOpacity>
           </TouchableOpacity>
         ) : (
-          <View className="flex-1 bg-white">{renderTimePickerContent()}</View>
+          <View className="flex-1 bg-white p-2">{renderTimePickerContent()}</View>
         )}
       </FullScreenModal>
     </ScrollView>

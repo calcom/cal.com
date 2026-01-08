@@ -183,7 +183,7 @@ export const EditAvailabilityDayScreen = forwardRef<
   // Render modal content
   const renderTimePickerContent = () => (
     <>
-      <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
+      <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-4">
         <Text className="text-[17px] font-semibold">
           Select {showTimePicker?.type === "start" ? "Start" : "End"} Time
         </Text>
@@ -204,9 +204,11 @@ export const EditAvailabilityDayScreen = forwardRef<
             <AppPressable
               key={time}
               onPress={() => handleTimeSelect(time)}
-              className={`border-b border-gray-100 px-4 py-3.5 ${isSelected ? "bg-blue-50" : ""}`}
+              className={`border-b border-gray-100 px-4 py-4 active:bg-gray-50 ${
+                isSelected ? "bg-blue-50" : ""
+              }`}
             >
-              <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center justify-between p-2">
                 <Text
                   className={`text-[17px] ${
                     isSelected ? "font-medium text-[#007AFF]" : "text-black"
@@ -440,7 +442,7 @@ export const EditAvailabilityDayScreen = forwardRef<
             onPress={() => setShowTimePicker(null)}
           >
             <TouchableOpacity
-              className="max-h-[80%] w-full max-w-[500px] overflow-hidden rounded-2xl bg-white"
+              className="max-h-[80%] w-full max-w-[500px] overflow-hidden rounded-2xl bg-white p-2"
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
               style={shadows.xl()}
@@ -449,7 +451,7 @@ export const EditAvailabilityDayScreen = forwardRef<
             </TouchableOpacity>
           </TouchableOpacity>
         ) : (
-          <View className="flex-1 bg-white">{renderTimePickerContent()}</View>
+          <View className="flex-1 bg-white p-2">{renderTimePickerContent()}</View>
         )}
       </FullScreenModal>
     </ScrollView>
