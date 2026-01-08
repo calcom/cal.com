@@ -6,9 +6,9 @@ import type {
   CalendarEvent,
   CalendarServiceEvent,
   EventBusyDate,
+  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
-  SelectedCalendarEventTypeIds,
 } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["CachedCalendarWrapper"] });
@@ -56,17 +56,9 @@ export class CalendarCacheWrapper implements Calendar {
    * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
    * - Calendars **without** one of them → fetched directly from the original calendar.
    * - Results are merged into a single array.
-   *
-   * @param dateFrom - Start date (ISO string)
-   * @param dateTo - End date (ISO string)
-   * @param selectedCalendars - List of calendars to retrieve availability from
-   * @returns Combined array of busy date ranges
    */
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     return withSpan(
       {
         name: "CalendarCacheWrapper.getAvailability",
@@ -100,7 +92,12 @@ export class CalendarCacheWrapper implements Calendar {
             new Date(dateTo)
           );
           const cacheDurationMs = performance.now() - cacheStartTime;
-          results.push(...cached);
+          results.push(
+            ...cached.map((event) => ({
+              ...event,
+              timeZone: event.timeZone ?? undefined,
+            }))
+          );
 
           span.setAttribute("cachedCalendarCount", withSync.length);
           span.setAttribute("cacheFetchDurationMs", cacheDurationMs);
@@ -115,7 +112,13 @@ export class CalendarCacheWrapper implements Calendar {
         // Fetch from original calendar for unsynced ones
         if (withoutSync.length) {
           const originalStartTime = performance.now();
-          const original = await this.deps.originalCalendar.getAvailability(dateFrom, dateTo, withoutSync);
+          const original = await this.deps.originalCalendar.getAvailability({
+            dateFrom,
+            dateTo,
+            selectedCalendars: withoutSync,
+            mode: params.mode,
+            fallbackToPrimary: params.fallbackToPrimary,
+          });
           const originalDurationMs = performance.now() - originalStartTime;
           results.push(...original);
 
@@ -143,17 +146,9 @@ export class CalendarCacheWrapper implements Calendar {
    * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
    * - Calendars **without** one of them → fetched directly from the original calendar.
    * - Results are merged into a single array with `{ start, end, timeZone }` format.
-   *
-   * @param dateFrom - Start date (ISO string)
-   * @param dateTo - End date (ISO string)
-   * @param selectedCalendars - List of calendars to retrieve availability from
-   * @returns Combined array of time-zone-aware availability ranges
    */
-  async getAvailabilityWithTimeZones(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
+  async getAvailabilityWithTimeZones(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     return withSpan(
       {
         name: "CalendarCacheWrapper.getAvailabilityWithTimeZones",
@@ -175,7 +170,7 @@ export class CalendarCacheWrapper implements Calendar {
         const withSync = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
         const withoutSync = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
 
-        const results: { start: Date | string; end: Date | string; timeZone: string }[] = [];
+        const results: EventBusyDate[] = [];
 
         // Fetch from cache for synced calendars
         if (withSync.length) {
@@ -208,11 +203,13 @@ export class CalendarCacheWrapper implements Calendar {
         // Fetch from original calendar for unsynced ones
         if (withoutSync.length) {
           const originalStartTime = performance.now();
-          const original = await this.deps.originalCalendar.getAvailabilityWithTimeZones?.(
+          const original = await this.deps.originalCalendar.getAvailabilityWithTimeZones?.({
             dateFrom,
             dateTo,
-            withoutSync
-          );
+            selectedCalendars: withoutSync,
+            mode: params.mode,
+            fallbackToPrimary: params.fallbackToPrimary,
+          });
           const originalDurationMs = performance.now() - originalStartTime;
           if (original?.length) results.push(...original);
 
@@ -244,19 +241,5 @@ export class CalendarCacheWrapper implements Calendar {
 
   testDelegationCredentialSetup?(): Promise<boolean> {
     return this.deps.originalCalendar.testDelegationCredentialSetup?.() || Promise.resolve(false);
-  }
-
-  watchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<unknown> {
-    return this.deps.originalCalendar.watchCalendar?.(options) || Promise.resolve();
-  }
-
-  unwatchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<void> {
-    return this.deps.originalCalendar.unwatchCalendar?.(options) || Promise.resolve();
   }
 }
