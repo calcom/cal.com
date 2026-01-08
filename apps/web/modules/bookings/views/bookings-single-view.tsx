@@ -47,6 +47,7 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
+import { CalIdMembershipRole } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
@@ -416,15 +417,44 @@ export default function Success(props: PageProps) {
 
   window.dataLayer = window.dataLayer || [];
 
-  const gtmEvent = {
-    event: "booking_success",
-    booker_email_address: bookingInfo.user?.name,
-    booker_team_id: eventType?.teamId,
-    booker_id: bookingInfo.user?.id,
-    booking_id: bookingInfo.uid,
-  };
+  try {
+    const gtmEvent = {
+      event: "booking_success",
 
-  window.dataLayer.push(gtmEvent);
+      host_participants: [
+        ...props.teamMembers
+          .filter((member) =>
+            [...bookingInfo.attendees.map((attendee) => attendee.email), bookingInfo.user?.email].includes(
+              member.user.email
+            )
+          )
+          .map((member) => member.user.email),
+      ],
+
+      attendee_participants: bookingInfo.responses
+        ? [
+            bookingInfo.responses.email,
+            ...(Array.isArray(bookingInfo.responses.guests) ? bookingInfo.responses.guests : []),
+          ]
+        : bookingInfo.attendees.map((attendee) => {
+            const { email, name, phoneNumber } = attendee;
+            return { email, name, phoneNumber };
+          }),
+
+      event_team_id: eventType?.calIdTeamId,
+      event_owner_id:
+        bookingInfo.user?.id ??
+        props.teamMembers.filter((member) => member.role === CalIdMembershipRole.OWNER)[0]?.user.id,
+      booking_id: bookingInfo.uid,
+      event_start_time: bookingInfo.startTime,
+    };
+
+    console.log("Gtm event: ", gtmEvent);
+
+    window.dataLayer.push(gtmEvent);
+  } catch (e) {
+    console.error("Error pushing to dataLayer: ", e);
+  }
 
   useEffect(() => {
     if (faviconUrl) {
