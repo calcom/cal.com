@@ -614,10 +614,10 @@ const BookerComponent = ({
                   <Button
                     color="minimal"
                     StartIcon="arrow-left"
+                    className="mb-4 w-[40px]"
                     onClick={() =>
                       setIsEnableTwoStepSlotSelectionVisible(false)
                     }
-                    className="pb-4"
                   ></Button>
                   <AvailableTimeSlots
                     onAvailableTimeSlotSelect={onAvailableTimeSlotSelect}
