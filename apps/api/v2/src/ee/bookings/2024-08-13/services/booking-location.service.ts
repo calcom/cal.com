@@ -1,5 +1,4 @@
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type {
   BookingInputLocation_2024_08_13,
   UpdateBookingInputLocation_2024_08_13,
@@ -11,6 +10,7 @@ import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/reposito
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { BookingEventHandlerService } from "@/lib/services/booking-event-handler.service";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
 import { UsersRepository } from "@/modules/users/users.repository";
@@ -25,7 +25,8 @@ export class BookingLocationService_2024_08_13 {
     private readonly usersRepository: UsersRepository,
     private readonly inputService: InputBookingsService_2024_08_13,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly eventTypeAccessService: EventTypeAccessService
+    private readonly eventTypeAccessService: EventTypeAccessService,
+    private readonly bookingEventHandlerService: BookingEventHandlerService
   ) {}
 
   async updateBookingLocation(
@@ -98,8 +99,7 @@ export class BookingLocationService_2024_08_13 {
       responses: updatedBookingResponses,
     });
 
-    const bookingEventHandlerService = getBookingEventHandlerService();
-    await bookingEventHandlerService.onLocationChanged({
+    await this.bookingEventHandlerService.onLocationChanged({
       bookingUid: existingBooking.uid,
       actor: makeUserActor(user.uuid),
       organizationId: existingBookingHost.organizationId ?? null,
