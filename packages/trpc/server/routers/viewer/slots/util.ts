@@ -52,7 +52,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
+import type { CalendarFetchMode, EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import { TRPCError } from "@trpc/server";
 import type { Logger } from "tslog";
@@ -786,7 +786,7 @@ export class AvailableSlotsService {
     endTime,
     bypassBusyCalendarTimes,
     silentCalendarFailures,
-    shouldServeCache,
+    mode,
   }: {
     input: TGetScheduleInputSchema;
     eventType: Exclude<
@@ -803,7 +803,7 @@ export class AvailableSlotsService {
     endTime: Dayjs;
     bypassBusyCalendarTimes: boolean;
     silentCalendarFailures: boolean;
-    shouldServeCache?: boolean;
+    mode?: CalendarFetchMode;
   }) {
     const usersWithCredentials = this.getUsersWithCredentials({
       hosts,
@@ -940,7 +940,7 @@ export class AvailableSlotsService {
         returnDateOverrides: false,
         bypassBusyCalendarTimes,
         silentlyHandleCalendarFailures: silentCalendarFailures,
-        shouldServeCache,
+        mode,
       },
       initialData: {
         eventType,
@@ -1032,7 +1032,8 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const shouldServeCache = false;
+    // Use "slots" mode to enable cache when available for getting calendar availability
+    const mode: CalendarFetchMode = "slots";
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
     }
@@ -1141,7 +1142,7 @@ export class AvailableSlotsService {
             : endTime,
         bypassBusyCalendarTimes,
         silentCalendarFailures,
-        shouldServeCache,
+        mode,
       });
 
     let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
@@ -1168,7 +1169,7 @@ export class AvailableSlotsService {
             endTime: twoWeeksFromNow,
             bypassBusyCalendarTimes,
             silentCalendarFailures,
-            shouldServeCache,
+            mode,
           });
           if (
             !getAggregatedAvailability(
@@ -1204,7 +1205,7 @@ export class AvailableSlotsService {
             endTime,
             bypassBusyCalendarTimes,
             silentCalendarFailures,
-            shouldServeCache,
+            mode,
           }));
         aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
       }
