@@ -3296,6 +3296,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/testing@workspace:packages/testing":
+  version: 0.0.0-use.local
+  resolution: "@calcom/testing@workspace:packages/testing"
+  dependencies:
+    "@biomejs/biome": "npm:2.3.10"
+    "@calcom/lib": "workspace:*"
+    "@calcom/prisma": "workspace:*"
+    "@calcom/tsconfig": "workspace:*"
+    prismock: "npm:1.35.3"
+    vitest: "npm:4.0.16"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/trpc@workspace:*, @calcom/trpc@workspace:packages/trpc":
   version: 0.0.0-use.local
   resolution: "@calcom/trpc@workspace:packages/trpc"
