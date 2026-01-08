@@ -1,19 +1,18 @@
-import { type TFunction } from "i18next";
-
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { getBillingEntityId, trackSeatAdditions } from "@calcom/features/ee/billing/helpers/trackSeatChanges";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { isOrganisationOwner } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { isOrganisationOwner } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
+import type { TFunction } from "i18next";
 
 import type { TInviteMemberInputSchema } from "./inviteMember.schema";
 import type { TeamWithParent } from "./types";
@@ -50,18 +49,21 @@ function getOrgConnectionInfoGroupedByUsernameOrEmail({
   team: Pick<TeamWithParent, "parentId" | "id">;
   isOrg: boolean;
 }) {
-  return uniqueInvitations.reduce((acc, invitation) => {
-    return {
-      ...acc,
-      [invitation.usernameOrEmail]: getOrgConnectionInfo({
-        orgVerified: orgState.orgVerified,
-        orgAutoAcceptDomain: orgState.autoAcceptEmailDomain,
-        email: invitation.usernameOrEmail,
-        team,
-        isOrg: isOrg,
-      }),
-    };
-  }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
+  return uniqueInvitations.reduce(
+    (acc, invitation) => {
+      return {
+        ...acc,
+        [invitation.usernameOrEmail]: getOrgConnectionInfo({
+          orgVerified: orgState.orgVerified,
+          orgAutoAcceptDomain: orgState.autoAcceptEmailDomain,
+          email: invitation.usernameOrEmail,
+          team,
+          isOrg: isOrg,
+        }),
+      };
+    },
+    {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>
+  );
 }
 
 function getInvitationsForNewUsers({
@@ -232,6 +234,36 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
   const teamBillingServiceFactory = getTeamBillingServiceFactory();
   const teamBillingService = teamBillingServiceFactory.init(team);
   await teamBillingService.updateQuantity();
+
+  // Track seat additions for monthly proration
+  const totalInvitedUsers = invitableExistingUsers.length + invitationsForNewUsers.length;
+  if (totalInvitedUsers > 0) {
+    const billingEntityId = getBillingEntityId(team);
+
+    // Get all invited user IDs
+    const invitedUserIds: number[] = [
+      ...invitableExistingUsers.map((user) => user.id),
+      // For new users, we'll track them when they accept the invitation
+      // since they don't have a user ID yet
+    ];
+
+    if (invitedUserIds.length > 0) {
+      // Use the first invitable user's ID as triggeredBy since we don't have inviter context here
+      // This is a limitation of inviteMembersWithNoInviterPermissionCheck
+      const triggeredBy = invitedUserIds[0];
+
+      await trackSeatAdditions({
+        billingEntityId,
+        userIds: invitedUserIds,
+        triggeredBy,
+        metadata: {
+          source: "inviteMembersWithNoInviterPermissionCheck",
+          creationSource,
+          isDirectUserAction,
+        },
+      });
+    }
+  }
 
   return {
     // TODO: Better rename it to invitations only maybe?
