@@ -401,22 +401,22 @@ export const AvailabilityDetailScreen = forwardRef<
         </View>
 
         {/* Date Overrides Card - Navigable */}
-        <View className="mb-4 overflow-hidden rounded-xl bg-white">
-          <AppPressable
-            onPress={() => router.push(`/edit-availability-override?id=${id}` as never)}
-          >
-            <View className="flex-row items-center justify-between px-4 py-3.5">
-              <Text className="text-[17px] text-black">Date Overrides</Text>
-              <View className="flex-row items-center">
-                <Text className="mr-1 text-[17px] text-[#8E8E93]">
-                  {overrides.length} {overrides.length === 1 ? "override" : "overrides"}
-                </Text>
-                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+        {overrides.length > 0 && (
+          <View className="mb-4 overflow-hidden rounded-xl bg-white">
+            <AppPressable
+              onPress={() => router.push(`/edit-availability-override?id=${id}` as never)}
+            >
+              <View className="flex-row items-center justify-between px-4 py-3.5">
+                <Text className="text-[17px] text-black">Date Overrides</Text>
+                <View className="flex-row items-center">
+                  <Text className="mr-1 text-[17px] text-[#8E8E93]">
+                    {overrides.length} {overrides.length === 1 ? "override" : "overrides"}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+                </View>
               </View>
-            </View>
 
-            {/* Expanded Overrides List */}
-            {overrides.length > 0 && (
+              {/* Expanded Overrides List */}
               <View className="border-t border-[#E5E5EA] px-4 py-2.5">
                 {overrides.map((override, index) => (
                   <View
@@ -437,9 +437,9 @@ export const AvailabilityDetailScreen = forwardRef<
                   </View>
                 ))}
               </View>
-            )}
-          </AppPressable>
-        </View>
+            </AppPressable>
+          </View>
+        )}
 
         {/* No Overrides Message */}
         {overrides.length === 0 && (
