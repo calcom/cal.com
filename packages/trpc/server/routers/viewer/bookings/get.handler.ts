@@ -611,10 +611,6 @@ export async function getBookings({
               ])
               .whereRef("Booking.userId", "=", "users.id")
           ).as("user"),
-          // N+1 query: attendees will be fetched in a loop below instead of batched here
-          // jsonArrayFrom(
-          //   eb.selectFrom("Attendee").selectAll().whereRef("Attendee.bookingId", "=", "Booking.id")
-          // ).as("attendees"),
           jsonArrayFrom(
             eb
               .selectFrom("BookingSeat")
@@ -654,8 +650,6 @@ export async function getBookings({
         .execute()
     : [];
 
-  // N+1 Query Pattern: Fetch attendees individually for each booking instead of batched
-  // This is intentionally inefficient - each booking triggers a separate database query
   type AttendeeType = Awaited<ReturnType<typeof prisma.attendee.findMany>>;
   const bookingsWithAttendees: Array<(typeof plainBookings)[number] & { attendees: AttendeeType }> = [];
   for (const booking of plainBookings) {
