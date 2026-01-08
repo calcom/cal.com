@@ -1379,7 +1379,7 @@ describe("TeamService.removeMembers Integration Tests", () => {
 
       expect(updatedSegment).toBeDefined();
 
-      if (updatedSegment !== null) expect(filterSegment).toMatchObject(updatedSegment);
+      if (updatedSegment !== null) expect(updatedSegment).toMatchObject(filterSegment);
       await cleanupTestData([subTeam2.id], [orgAdmin.id]);
     });
   });

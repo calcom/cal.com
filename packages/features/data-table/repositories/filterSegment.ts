@@ -143,6 +143,11 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
 
   async findByUserIds(userIds: number[]) {
     return prisma.filterSegment.findMany({
+      select: {
+        id: true,
+        userId: true,
+        activeFilters: true,
+      },
       where: {
         userId: { in: userIds },
         AND: [{ activeFilters: { not: [] } }, { activeFilters: { not: Prisma.DbNull } }],
@@ -319,6 +324,9 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
       data: {
         activeFilters,
       },
+      select: {
+        id: true,
+      }
     });
   }
 

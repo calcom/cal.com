@@ -415,7 +415,6 @@ export class TeamService {
     type UpdateResult = Prisma.FilterSegmentGetPayload<{
       select: {
         id: true;
-        activeFilters: true;
       };
     }>;
 
