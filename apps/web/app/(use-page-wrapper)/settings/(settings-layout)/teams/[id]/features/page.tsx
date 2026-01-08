@@ -1,4 +1,5 @@
 import { _generateMetadata } from "app/_utils";
+import { notFound } from "next/navigation";
 
 import TeamFeaturesView from "~/settings/teams/[id]/features-view";
 
@@ -13,7 +14,13 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
 
 const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
-  return <TeamFeaturesView teamId={Number(id)} />;
+  const teamId = Number(id);
+
+  if (Number.isNaN(teamId)) {
+    return notFound();
+  }
+
+  return <TeamFeaturesView teamId={teamId} />;
 };
 
 export default Page;
