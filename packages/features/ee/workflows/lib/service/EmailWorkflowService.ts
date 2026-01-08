@@ -344,7 +344,12 @@ export class EmailWorkflowService {
     // If customized, use saved body with customTemplate() to preserve user edits
     let matchedTemplate: WorkflowTemplates | null = null;
 
-    if (emailBody) {
+    // If emailBody is empty but template is specified, use that template type
+    if (!emailBody && template === WorkflowTemplates.REMINDER) {
+      matchedTemplate = WorkflowTemplates.REMINDER;
+    } else if (!emailBody && template === WorkflowTemplates.RATING) {
+      matchedTemplate = WorkflowTemplates.RATING;
+    } else if (emailBody) {
       const tEn = await getTranslation("en", "common");
 
       // Check against REMINDER default
