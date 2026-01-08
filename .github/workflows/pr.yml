@@ -92,7 +92,18 @@ jobs:
               return;
             }
 
-            // Check 3: Was 'run-ci' label added AFTER this SHA was pushed by someone with write access?
+            // Check 3: Was this push made by someone with write access?
+            // This handles cases where a maintainer merges main into a community PR
+            const sender = context.payload.sender;
+            if (sender && sender.login !== pr.user.login) {
+              if (await hasWriteAccess(sender.login)) {
+                console.log(`Push made by maintainer: ${sender.login}`);
+                core.setOutput('is-trusted', true);
+                return;
+              }
+            }
+
+            // Check 4: Was 'run-ci' label added AFTER this SHA was pushed by someone with write access?
             // This enables re-runs triggered by the run-ci.yml workflow
             // NOTE: We use workflow run created_at instead of commit timestamp because
             // git commit timestamps can be arbitrarily backdated by attackers
