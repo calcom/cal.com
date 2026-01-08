@@ -1,0 +1,84 @@
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { TRPCError } from "@trpc/server";
+
+import type { TrpcSessionUser } from "../../../types";
+import type { TGetSubscriptionStatusInputSchema } from "./getSubscriptionStatus.schema";
+
+const log = logger.getSubLogger({ prefix: ["getSubscriptionStatus"] });
+
+type GetSubscriptionStatusOptions = {
+  ctx: {
+    user: NonNullable<TrpcSessionUser>;
+  };
+  input: TGetSubscriptionStatusInputSchema;
+};
+
+export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscriptionStatusOptions) => {
+  if (IS_SELF_HOSTED) {
+    return { status: null, isTrialing: false };
+  }
+
+  const { teamId } = input;
+
+  const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+    userId: ctx.user.id,
+    teamId,
+  });
+
+  if (!membership || !membership.accepted) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You are not a member of this team",
+    });
+  }
+
+  if (membership.role !== MembershipRole.OWNER && membership.role !== MembershipRole.ADMIN) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Only team owners and admins can view subscription status",
+    });
+  }
+
+  try {
+    const teams = await MembershipRepository.findAllAcceptedTeamMemberships(ctx.user.id, {
+      role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] },
+    });
+
+    const team = teams.find((t) => t.id === teamId);
+
+    if (!team) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Team not found or you don't have permission",
+      });
+    }
+
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = teamBillingServiceFactory.init(team);
+
+    const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
+
+    log.debug(`Subscription status for team ${teamId}: ${subscriptionStatus}`);
+
+    return {
+      status: subscriptionStatus,
+      isTrialing: subscriptionStatus === SubscriptionStatus.TRIALING,
+    };
+  } catch (error) {
+    if (error instanceof TRPCError) {
+      throw error;
+    }
+    log.error("Error getting subscription status", error);
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to get subscription status",
+    });
+  }
+};
+
+export default getSubscriptionStatusHandler;
