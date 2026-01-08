@@ -33,7 +33,7 @@ type AddGuestsOptions = {
   };
   input: TAddGuestsInputSchema;
   emailsEnabled?: boolean;
-  actionSource?: ActionSource;
+  actionSource: ActionSource;
 };
 
 type Booking = NonNullable<Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>>;
@@ -43,7 +43,7 @@ export const addGuestsHandler = async ({
   ctx,
   input,
   emailsEnabled = true,
-  actionSource = "WEBAPP",
+  actionSource,
 }: AddGuestsOptions) => {
   const { user } = ctx;
   const { bookingId, guests } = input;
@@ -67,9 +67,6 @@ export const addGuestsHandler = async ({
 
   const uniqueGuestEmails = uniqueGuests.map((guest) => guest.email);
 
-  // Capture old attendee emails before update for audit logging
-  const oldAttendeeEmails = booking.attendees.map((attendee) => attendee.email);
-
   const bookingAttendees = await updateBookingAttendees(
     bookingId,
     newGuestsDetails,
@@ -90,7 +87,6 @@ export const addGuestsHandler = async ({
     await sendGuestNotifications(evt, booking, uniqueGuestEmails);
   }
 
-  // Audit logging for attendee added
   const bookingEventHandlerService = getBookingEventHandlerService();
   await bookingEventHandlerService.onAttendeeAdded({
     bookingUid: booking.uid,
@@ -98,7 +94,7 @@ export const addGuestsHandler = async ({
     organizationId: user.organizationId ?? null,
     source: actionSource,
     auditData: {
-      attendees: { old: oldAttendeeEmails, new: newAttendeeEmails },
+      added: uniqueGuestEmails,
     },
   });
 
@@ -313,8 +309,8 @@ async function buildCalendarEvent(
     destinationCalendar: booking?.destinationCalendar
       ? [booking?.destinationCalendar]
       : booking?.user?.destinationCalendar
-      ? [booking?.user?.destinationCalendar]
-      : [],
+        ? [booking?.user?.destinationCalendar]
+        : [],
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
