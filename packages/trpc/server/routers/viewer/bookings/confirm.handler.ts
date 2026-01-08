@@ -43,7 +43,6 @@ type ConfirmOptions = {
     >;
     traceContext: TraceContext;
   };
-  // Make actionSource required here because API V2 or webapp must pass it.
   input: TConfirmInputSchema & { actionSource: ValidActionSource; actor: Actor };
 };
 
@@ -94,7 +93,7 @@ async function fireRejectionEvent({
   }
 }
 /**
- * It is called by API V2 as well directly
+ * TODO: Convert it to a service as this fn is the single point of entry across trpc, magic-links, and API v2
  */
 export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   const {
