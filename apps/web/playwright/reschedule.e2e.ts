@@ -513,14 +513,13 @@ test.describe("Reschedule Tests", async () => {
       const orgSlug = org.slug!;
       const booking = await bookings.create(orgMember.id, orgMember.username, eventType.id);
 
-      const result = await goToUrlWithErrorHandling({ url: `/reschedule/${booking.uid}`, page });
-
       await doOnOrgDomain(
         {
           orgSlug: orgSlug,
           page,
         },
-        async ({ page }) => {
+        async ({ page, goToUrlWithErrorHandling }) => {
+          const result = await goToUrlWithErrorHandling(`/reschedule/${booking.uid}`);
           await page.goto(getNonOrgUrlFromOrgUrl(result.url, orgSlug));
           await expectSuccessfulReschedule(page, orgSlug);
         }

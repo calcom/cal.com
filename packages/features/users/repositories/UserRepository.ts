@@ -339,6 +339,7 @@ export class UserRepository {
         locked: true,
         role: true,
         id: true,
+        uuid: true,
         username: true,
         name: true,
         email: true,
@@ -1177,6 +1178,7 @@ export class UserRepository {
     return this.prismaClient.user.findMany({
       where,
       select: {
+        locked: true,
         allowDynamicBooking: true,
         ...availabilityUserSelect,
         credentials: {
