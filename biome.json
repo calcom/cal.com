@@ -112,7 +112,7 @@
             "useQwikValidLexicalScope": "off",
             "useExplicitType": "info",
             "noReactForwardRef": "warn",
-            "noTernary": "warn",
+            "noTernary": "info",
             "noUnresolvedImports": "warn"
           },
           "correctness": {
@@ -130,7 +130,8 @@
           "style": {
             "useExportsLast": "warn",
             "noProcessEnv": "warn",
-            "useNodejsImportProtocol": "error"
+            "useNodejsImportProtocol": "error",
+            "noNestedTernary": "warn"
           },
           "complexity": {
             "noExcessiveLinesPerFunction": "warn"
