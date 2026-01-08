@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import type { ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSwitch";
+import type { ICalendarSwitchProps } from "@calcom/web/modules/calendars/components/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { CALENDARS } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";

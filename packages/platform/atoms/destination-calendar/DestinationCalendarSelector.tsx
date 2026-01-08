@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 
-import { SingleValueComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
-import { OptionComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
+import { SingleValueComponent } from "@calcom/web/modules/calendars/components/DestinationCalendarSelector";;
+import { OptionComponent } from "@calcom/web/modules/calendars/components/DestinationCalendarSelector";;
 import type { ConnectedDestinationCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";

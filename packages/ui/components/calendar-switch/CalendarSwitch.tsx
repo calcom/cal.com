@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { type ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSwitch";
+import { type ICalendarSwitchProps } from "@calcom/web/modules/calendars/components/CalendarSwitch";
 import classNames from "@calcom/ui/classNames";
 
 import { Icon } from "../icon";

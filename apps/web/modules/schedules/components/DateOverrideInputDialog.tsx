@@ -15,7 +15,7 @@ import { Switch } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-import DatePicker from "@calcom/features/calendars/DatePicker";
+import DatePicker from "@calcom/web/modules/calendars/components/DatePicker";
 import type { TimeRange } from "./Schedule";
 import { DayRanges } from "./Schedule";
 
