@@ -13,16 +13,8 @@ import { loggerConfig } from "./lib/logger";
 
 const logger = new Logger("App");
 
-/**
- * CACHE: This allows the Nest app to persist across multiple
- * serverless "warm" invocations, significantly reducing latency.
- */
 let cachedServer: any;
 
-/**
- * LOCAL DEVELOPMENT
- * Only call run() if we are not in a Vercel/Production environment.
- */
 if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
   run().catch((error: Error) => {
     console.error("Failed to start Cal Platform API", { error: error.stack });
@@ -47,23 +39,29 @@ async function run() {
 
 /**
  * VERCEL SERVERLESS HANDLER
- * This is the entry point Vercel will call.
  */
 export default async (req: any, res: any) => {
   if (!cachedServer) {
     try {
       const app = await createNestApp();
       bootstrap(app);
-
-      // We initialize but DO NOT call .listen()
       await app.init();
-
       cachedServer = app.getHttpAdapter().getInstance();
     } catch (error) {
       console.error("Failed to initialize Nest app for Serverless", error);
       res.status(500).send("Internal Server Error during initialization");
       return;
     }
+  }
+
+  /**
+   * FIX: Vercel pre-parses req.query.
+   * We force a re-parse of the raw query string using 'qs' to ensure
+   * that 'routedTeamMemberIds[]' is correctly mapped to 'routedTeamMemberIds' as an array.
+   */
+  const urlParts = req.url.split("?");
+  if (urlParts.length > 1) {
+    req.query = qs.parse(urlParts[1], { arrayLimit: 1000, comma: true });
   }
 
   return cachedServer(req, res);
@@ -75,10 +73,10 @@ export default async (req: any, res: any) => {
 export async function createNestApp() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger(loggerConfig()),
-    bodyParser: false, // Required if using webhooks or specific body parsers in bootstrap()
+    bodyParser: false,
   });
 
-  // Custom query parser to match Cal.com's requirements
+  // Custom query parser for local/standard deployments
   app.set("query parser", (str: string) => qs.parse(str, { arrayLimit: 1000, comma: true }));
 
   return app;

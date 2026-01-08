@@ -141,12 +141,10 @@ export class GetAvailableSlotsInput_2024_04_15 {
 
   @IsOptional()
   @Transform(({ value }) => {
-    // 1. Ensure we always have an array (handles single vs multiple entries)
-    const array = Array.isArray(value) ? value : [value];
-
-    // 2. Map everything to a Number. class-validator @IsNumber
-    // needs the actual type to be 'number', not 'string'.
-    return array.map((val) => (typeof val === "string" ? parseInt(val, 10) : val)).filter((n) => !isNaN(n)); // Clean out any bad data
+    if (Array.isArray(value)) {
+      return value.map((s: string) => parseInt(s));
+    }
+    return value;
   })
   @IsArray()
   @IsNumber({}, { each: true })
