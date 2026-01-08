@@ -30,6 +30,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 type FormValues = {
   name: string;
@@ -90,14 +91,6 @@ export default function OAuthClientsAdminView() {
         "success"
       );
       utils.viewer.oAuth.listClients.invalidate();
-      // Show client secret dialog if a secret was generated during approval
-      if (data.clientSecret) {
-        setApprovedClient({
-          clientId: data.clientId,
-          clientSecret: data.clientSecret,
-          name: data.name,
-        });
-      }
     },
     onError: (error) => {
       showToast(`${t("oauth_client_status_update_error")}: ${error.message}`, "error");
@@ -149,14 +142,22 @@ export default function OAuthClientsAdminView() {
     return <OAuthClientsAdminSkeleton />;
   }
 
-  return (
-    <div>
-      <div className="mb-4 flex justify-end">
-        <Button color="primary" StartIcon="plus" onClick={() => setShowAddDialog(true)}>
-          {t("add_oauth_client")}
-        </Button>
-      </div>
+  const NewOAuthClientButton = () => (
+    <Button
+      color="secondary"
+      StartIcon="plus"
+      size="sm"
+      variant="fab"
+      onClick={() => setShowAddDialog(true)}>
+      {t("new")}
+    </Button>
+  );
 
+  return (
+    <SettingsHeader
+      title={t("oauth_clients_admin")}
+      description={t("oauth_clients_admin_description")}
+      CTA={oAuthClients && oAuthClients.length > 0 ? <NewOAuthClientButton /> : null}>
       {oAuthClients && oAuthClients.length > 0 ? (
         <div className="border-subtle overflow-hidden rounded-lg border">
           <table className="w-full">
@@ -266,9 +267,7 @@ export default function OAuthClientsAdminView() {
           headline={t("no_oauth_clients")}
           description={t("no_oauth_clients_admin_description")}
           buttonRaw={
-            <Button color="primary" StartIcon="plus" onClick={() => setShowAddDialog(true)}>
-              {t("add_oauth_client")}
-            </Button>
+            <NewOAuthClientButton />
           }
         />
       )}
@@ -276,6 +275,7 @@ export default function OAuthClientsAdminView() {
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent
           type="creation"
+          enableOverflow
           title={createdClient ? t("oauth_client_created") : t("add_oauth_client")}
           description={
             createdClient ? t("oauth_client_created_description") : t("add_oauth_client_description")
@@ -462,6 +462,6 @@ export default function OAuthClientsAdminView() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </SettingsHeader>
   );
 }

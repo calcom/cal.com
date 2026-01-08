@@ -3,7 +3,6 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -27,9 +26,7 @@ const Page = async () => {
   }
 
   return (
-    <SettingsHeader title={t("oauth_clients")} description={t("oauth_clients_description")}>
-      <OAuthClientsView />
-    </SettingsHeader>
+    <OAuthClientsView />
   );
 };
 

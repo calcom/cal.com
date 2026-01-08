@@ -5,7 +5,7 @@ import { ZAddClientInputSchema } from "./addClient.schema";
 import { ZGenerateAuthCodeInputSchema } from "./generateAuthCode.schema";
 import { ZGetClientInputSchema } from "./getClient.schema";
 import { ZListClientsInputSchema } from "./listClients.schema";
-import { ZSubmitClientInputSchema } from "./submitClient.schema";
+import { ZSubmitClientInputSchema, ZSubmitClientOutputSchema } from "./submitClient.schema";
 import { ZUpdateClientStatusInputSchema } from "./updateClientStatus.schema";
 
 type _OAuthRouterHandlerCache = {
@@ -45,14 +45,17 @@ export const oAuthRouter = router({
     });
   }),
 
-  submitClient: authedProcedure.input(ZSubmitClientInputSchema).mutation(async ({ ctx, input }) => {
-    const { submitClientHandler } = await import("./submitClient.handler");
+  submitClient: authedProcedure
+    .input(ZSubmitClientInputSchema)
+    .output(ZSubmitClientOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { submitClientHandler } = await import("./submitClient.handler");
 
-    return submitClientHandler({
-      ctx,
-      input,
-    });
-  }),
+      return submitClientHandler({
+        ctx,
+        input,
+      });
+    }),
 
   listClients: authedAdminProcedure.input(ZListClientsInputSchema).query(async ({ ctx, input }) => {
     const { listClientsHandler } = await import("./listClients.handler");

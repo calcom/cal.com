@@ -48,6 +48,7 @@ export const submitClientHandler = async ({ ctx, input }: SubmitClientOptions) =
   return {
     clientId: client.clientId,
     name: client.name,
+    clientSecret: client.clientSecret,
     redirectUri: client.redirectUri,
     logo: client.logo,
     clientType: client.clientType,

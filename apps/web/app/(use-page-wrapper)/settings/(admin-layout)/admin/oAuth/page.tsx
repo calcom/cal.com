@@ -1,7 +1,5 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-
 import OAuthClientsAdminView from "~/settings/admin/oauth-clients-admin-view";
 
 export const generateMetadata = async () =>
@@ -15,11 +13,7 @@ export const generateMetadata = async () =>
 
 const Page = async () => {
   const t = await getTranslate();
-  return (
-    <SettingsHeader title={t("oauth_clients_admin")} description={t("oauth_clients_admin_description")}>
-      <OAuthClientsAdminView />
-    </SettingsHeader>
-  );
+  return <OAuthClientsAdminView />;
 };
 
 export default Page;

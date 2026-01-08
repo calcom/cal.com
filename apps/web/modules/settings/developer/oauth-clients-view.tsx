@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-
-import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
@@ -17,6 +16,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import { OAuthClientsSkeleton } from "./oauth-clients-skeleton";
 
@@ -26,6 +26,13 @@ type FormValues = {
   websiteUrl: string;
   logo: string;
   enablePkce: boolean;
+};
+
+type SubmitClientMutationResult = {
+  clientId: string;
+  name: string;
+  isPkceEnabled?: boolean;
+  clientSecret?: string;
 };
 
 const OAuthClientsView = () => {
@@ -38,6 +45,7 @@ const OAuthClientsView = () => {
   const [submittedClient, setSubmittedClient] = useState<{
     clientId: string;
     name: string;
+    clientSecret?: string;
     isPkceEnabled?: boolean;
   } | null>(null);
   const [selectedClient, setSelectedClient] = useState<{
@@ -61,10 +69,11 @@ const OAuthClientsView = () => {
   const { data: oAuthClients, isLoading } = trpc.viewer.oAuth.listUserClients.useQuery();
 
   const submitMutation = trpc.viewer.oAuth.submitClient.useMutation({
-    onSuccess: async (data) => {
+    onSuccess: async (data: SubmitClientMutationResult) => {
       setSubmittedClient({
         clientId: data.clientId,
         name: data.name,
+        clientSecret: data.clientSecret,
         isPkceEnabled: data.isPkceEnabled,
       });
       showToast(t("oauth_client_submitted"), "success");
@@ -76,15 +85,10 @@ const OAuthClientsView = () => {
   });
 
   const handleSubmit = (values: FormValues) => {
-    if (!values.logo) {
-      setLogoError(true);
-      return;
-    }
-    setLogoError(false);
     submitMutation.mutate({
-      name: values.name,
-      redirectUri: values.redirectUri,
-      websiteUrl: values.websiteUrl,
+      name: values.name.trim() || "",
+      redirectUri: values.redirectUri.trim() || "",
+      websiteUrl: values.websiteUrl.trim() || "",
       logo: values.logo,
       enablePkce: values.enablePkce,
     });
@@ -118,14 +122,22 @@ const OAuthClientsView = () => {
     return <OAuthClientsSkeleton />;
   }
 
-  return (
-    <div>
-      <div className="mb-4 flex justify-end">
-        <Button color="primary" StartIcon="plus" onClick={() => setShowDialog(true)}>
-          {t("new_oauth_client")}
-        </Button>
-      </div>
+  const NewOAuthClientButton = () => (
+    <Button
+      color="secondary"
+      StartIcon="plus"
+      size="sm"
+      variant="fab"
+      onClick={() => setShowDialog(true)}>
+      {t("new")}
+    </Button>
+  );
 
+  return (
+    <SettingsHeader
+      title={t("oauth_clients")}
+      description={t("oauth_clients_description")}
+      CTA={<NewOAuthClientButton />}>
       {oAuthClients && oAuthClients.length > 0 ? (
         <div className="border-subtle rounded-lg border">
           {oAuthClients.map((client, index) => (
@@ -167,15 +179,22 @@ const OAuthClientsView = () => {
           headline={t("no_oauth_clients")}
           description={t("no_oauth_clients_description")}
           buttonRaw={
-            <Button color="primary" StartIcon="plus" onClick={() => setShowDialog(true)}>
-              {t("new_oauth_client")}
-            </Button>
+            <NewOAuthClientButton />
           }
         />
       )}
 
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+      <Dialog
+        open={showDialog}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCloseDialog();
+            return;
+          }
+          setShowDialog(open);
+        }}>
         <DialogContent
+          enableOverflow
           type="creation"
           title={submittedClient ? t("oauth_client_submitted") : t("new_oauth_client")}
           description={
@@ -185,14 +204,24 @@ const OAuthClientsView = () => {
             <Form form={oAuthForm} handleSubmit={handleSubmit} className="space-y-4">
               <TextField
                 {...oAuthForm.register("name", { required: true })}
-                label={t("client_name")}
+                label={t("name")}
                 type="text"
                 id="name"
                 placeholder={t("client_name_placeholder")}
                 required
               />
               <TextField
-                {...oAuthForm.register("redirectUri", { required: true })}
+                {...oAuthForm.register("redirectUri", {
+                  required: true,
+                  validate: (value) => {
+                    try {
+                      new URL(value);
+                      return true;
+                    } catch {
+                      return t("invalid_url");
+                    }
+                  },
+                })}
                 label={t("redirect_uri")}
                 type="url"
                 id="redirectUri"
@@ -200,14 +229,23 @@ const OAuthClientsView = () => {
                 required
               />
 
-              <TextField
-                {...oAuthForm.register("websiteUrl", { required: true })}
-                label={t("website_url")}
-                type="url"
-                id="websiteUrl"
-                placeholder="https://example.com"
-                required
-              />
+                <TextField
+                  {...oAuthForm.register("websiteUrl", {
+                    validate: (value) => {
+                      if (!value) return true;
+                      try {
+                        new URL(value);
+                        return true;
+                      } catch {
+                        return t("invalid_url");
+                      }
+                    },
+                  })}
+                  label={t("website_url")}
+                  type="url"
+                  id="websiteUrl"
+                  placeholder="https://example.com"
+                />
 
               <div>
                 <Label className="text-emphasis mb-2 block text-sm font-medium">
@@ -224,7 +262,7 @@ const OAuthClientsView = () => {
 
               <div>
                 <Label className="text-emphasis mb-2 block text-sm font-medium">
-                  {t("logo")} <span className="text-error">*</span>
+                  {t("logo")}
                 </Label>
                 <div className="flex items-center gap-4">
                   <Avatar
@@ -245,7 +283,6 @@ const OAuthClientsView = () => {
                     imageSrc={logo}
                   />
                 </div>
-                {logoError && <p className="text-error mt-2 text-sm">{t("logo_required")}</p>}
               </div>
 
               <DialogFooter>
@@ -268,6 +305,7 @@ const OAuthClientsView = () => {
                     onClick={() => {
                       copyToClipboard(submittedClient.clientId, {
                         onSuccess: () => showToast(t("client_id_copied"), "success"),
+                        onFailure: () => showToast(t("error"), "error"),
                       });
                     }}
                     type="button"
@@ -278,6 +316,36 @@ const OAuthClientsView = () => {
                   </Button>
                 </Tooltip>
               </div>
+
+              {submittedClient.clientSecret ? (
+                <div className="mt-4">
+                  <div className="text-subtle mb-1 text-sm">{t("client_secret")}</div>
+                  <div className="flex">
+                    <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
+                      {submittedClient.clientSecret}
+                    </code>
+                    <Tooltip side="top" content={t("copy_to_clipboard")}>
+                      <Button
+                        onClick={() => {
+                          copyToClipboard(submittedClient.clientSecret ?? "", {
+                            onSuccess: () => showToast(t("client_secret_copied"), "success"),
+                            onFailure: () => showToast(t("error"), "error"),
+                          });
+                        }}
+                        type="button"
+                        size="sm"
+                        className="rounded-l-none"
+                        StartIcon="clipboard">
+                        {t("copy")}
+                      </Button>
+                    </Tooltip>
+                  </div>
+                  <div className="text-subtle mt-2 text-sm">
+                    {t("oauth_client_client_secret_one_time_warning")}
+                  </div>
+                </div>
+              ) : null}
+
               <div className="text-subtle mt-4 text-sm">{t("oauth_client_pending_approval")}</div>
               <DialogFooter className="mt-6">
                 <Button onClick={handleCloseDialog}>{t("done")}</Button>
@@ -316,6 +384,7 @@ const OAuthClientsView = () => {
                       onClick={() => {
                         copyToClipboard(selectedClient.clientId, {
                           onSuccess: () => showToast(t("client_id_copied"), "success"),
+                          onFailure: () => showToast(t("error"), "error"),
                         });
                       }}
                       type="button"
@@ -347,7 +416,7 @@ const OAuthClientsView = () => {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </SettingsHeader>
   );
 };
 
