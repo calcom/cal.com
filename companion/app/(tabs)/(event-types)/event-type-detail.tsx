@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { Activity, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   Animated,
@@ -49,8 +49,9 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 // Type definitions for extended EventType fields not in the base type
 interface EventTypeExtended {
   lengthInMinutesOptions?: number[];
-  disableCancelling?: boolean;
-  disableRescheduling?: boolean;
+  // API V2 format - these can be objects or booleans from older data
+  disableCancelling?: boolean | { disabled: boolean };
+  disableRescheduling?: boolean | { disabled: boolean; minutesBefore?: number };
   sendCalVideoTranscription?: boolean;
   autoTranslate?: boolean;
   lockedTimeZone?: string;
@@ -60,6 +61,12 @@ interface EventTypeExtended {
     lightThemeHex?: string;
     darkThemeHex?: string;
   };
+  // API V2 new fields
+  calVideoSettings?: {
+    sendTranscriptionEmails?: boolean;
+  };
+  interfaceLanguage?: string;
+  showOptimizedSlots?: boolean;
 }
 
 interface BookerActiveBookingsLimitExtended {
@@ -199,7 +206,7 @@ export default function EventTypeDetail() {
   const [requiresConfirmation, setRequiresConfirmation] = useState(false);
   const [disableCancelling, setDisableCancelling] = useState(false);
   const [disableRescheduling, setDisableRescheduling] = useState(false);
-  const [sendCalVideoTranscription, setSendCalVideoTranscription] = useState(false);
+  const [sendCalVideoTranscription, setSendCalVideoTranscription] = useState(true);
   const [autoTranslate, setAutoTranslate] = useState(false);
   const [requiresBookerEmailVerification, setRequiresBookerEmailVerification] = useState(false);
   const [hideCalendarNotes, setHideCalendarNotes] = useState(false);
@@ -215,6 +222,8 @@ export default function EventTypeDetail() {
   const [customReplyToEmail, setCustomReplyToEmail] = useState("");
   const [eventTypeColorLight, setEventTypeColorLight] = useState("#292929");
   const [eventTypeColorDark, setEventTypeColorDark] = useState("#FAFAFA");
+  const [interfaceLanguage, setInterfaceLanguage] = useState("");
+  const [showOptimizedSlots, setShowOptimizedSlots] = useState(false);
 
   const [seatsEnabled, setSeatsEnabled] = useState(false);
   const [seatsPerTimeSlot, setSeatsPerTimeSlot] = useState("2");
@@ -594,19 +603,40 @@ export default function EventTypeDetail() {
 
     const metadata = eventType.metadata;
 
-    if (eventTypeExt.disableCancelling !== undefined) {
-      setDisableCancelling(eventTypeExt.disableCancelling);
+    // Handle disableCancelling - can be boolean or object { disabled: boolean }
+    const disableCancellingValue = eventTypeExt.disableCancelling;
+    if (disableCancellingValue !== undefined) {
+      if (typeof disableCancellingValue === "boolean") {
+        setDisableCancelling(disableCancellingValue);
+      } else if (
+        typeof disableCancellingValue === "object" &&
+        "disabled" in disableCancellingValue
+      ) {
+        setDisableCancelling(disableCancellingValue.disabled);
+      }
     } else if (metadata?.disableCancelling) {
       setDisableCancelling(true);
     }
 
-    if (eventTypeExt.disableRescheduling !== undefined) {
-      setDisableRescheduling(eventTypeExt.disableRescheduling);
+    // Handle disableRescheduling - can be boolean or object { disabled: boolean, minutesBefore?: number }
+    const disableReschedulingValue = eventTypeExt.disableRescheduling;
+    if (disableReschedulingValue !== undefined) {
+      if (typeof disableReschedulingValue === "boolean") {
+        setDisableRescheduling(disableReschedulingValue);
+      } else if (
+        typeof disableReschedulingValue === "object" &&
+        "disabled" in disableReschedulingValue
+      ) {
+        setDisableRescheduling(disableReschedulingValue.disabled);
+      }
     } else if (metadata?.disableRescheduling) {
       setDisableRescheduling(true);
     }
 
-    if (eventTypeExt.sendCalVideoTranscription !== undefined) {
+    // Handle calVideoSettings.sendTranscriptionEmails (API V2) or sendCalVideoTranscription (legacy)
+    if (eventTypeExt.calVideoSettings?.sendTranscriptionEmails !== undefined) {
+      setSendCalVideoTranscription(eventTypeExt.calVideoSettings.sendTranscriptionEmails);
+    } else if (eventTypeExt.sendCalVideoTranscription !== undefined) {
       setSendCalVideoTranscription(eventTypeExt.sendCalVideoTranscription);
     } else if (metadata?.sendCalVideoTranscription) {
       setSendCalVideoTranscription(true);
@@ -616,6 +646,16 @@ export default function EventTypeDetail() {
       setAutoTranslate(eventTypeExt.autoTranslate);
     } else if (metadata?.autoTranslate) {
       setAutoTranslate(true);
+    }
+
+    // Load interface language (API V2)
+    if (eventTypeExt.interfaceLanguage !== undefined) {
+      setInterfaceLanguage(eventTypeExt.interfaceLanguage);
+    }
+
+    // Load showOptimizedSlots (API V2)
+    if (eventTypeExt.showOptimizedSlots !== undefined) {
+      setShowOptimizedSlots(eventTypeExt.showOptimizedSlots);
     }
 
     if (metadata) {
@@ -1078,6 +1118,8 @@ export default function EventTypeDetail() {
         disableRescheduling,
         sendCalVideoTranscription,
         autoTranslate,
+        interfaceLanguage,
+        showOptimizedSlots,
 
         // Seats
         seatsEnabled,
@@ -1898,6 +1940,17 @@ export default function EventTypeDetail() {
               setShowAvailabilityCount={setShowAvailabilityCount}
               // Event type ID for private links
               eventTypeId={id}
+              // New API V2 props
+              disableCancelling={disableCancelling}
+              setDisableCancelling={setDisableCancelling}
+              disableRescheduling={disableRescheduling}
+              setDisableRescheduling={setDisableRescheduling}
+              sendCalVideoTranscription={sendCalVideoTranscription}
+              setSendCalVideoTranscription={setSendCalVideoTranscription}
+              interfaceLanguage={interfaceLanguage}
+              setInterfaceLanguage={setInterfaceLanguage}
+              showOptimizedSlots={showOptimizedSlots}
+              setShowOptimizedSlots={setShowOptimizedSlots}
             />
           ) : null}
 

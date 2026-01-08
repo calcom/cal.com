@@ -125,6 +125,8 @@ interface EventTypeFormState {
   disableRescheduling: boolean;
   sendCalVideoTranscription: boolean;
   autoTranslate: boolean;
+  interfaceLanguage: string;
+  showOptimizedSlots: boolean;
 
   // Seats
   seatsEnabled: boolean;
@@ -728,31 +730,59 @@ export function buildPartialUpdatePayload(
   const metadataChanges: Record<string, unknown> = {};
   const originalMetadata = original.metadata || {};
 
-  if (
-    currentState.disableCancelling !==
-    (originalMetadata.disableCancelling || original.disableCancelling || false)
-  ) {
+  // Disable Cancelling - Send BOTH new API format and metadata for compatibility
+  const originalDisableCancelling =
+    typeof original.disableCancelling === "object"
+      ? original.disableCancelling.disabled
+      : original.disableCancelling || false;
+
+  if (currentState.disableCancelling !== originalDisableCancelling) {
+    payload.disableCancelling = { disabled: currentState.disableCancelling };
     metadataChanges.disableCancelling = currentState.disableCancelling;
   }
 
-  if (
-    currentState.disableRescheduling !==
-    (originalMetadata.disableRescheduling || original.disableRescheduling || false)
-  ) {
+  // Disable Rescheduling - Send BOTH new API format and metadata for compatibility
+  const originalDisableRescheduling =
+    typeof original.disableRescheduling === "object"
+      ? original.disableRescheduling.disabled
+      : original.disableRescheduling || false;
+
+  if (currentState.disableRescheduling !== originalDisableRescheduling) {
+    payload.disableRescheduling = { disabled: currentState.disableRescheduling };
     metadataChanges.disableRescheduling = currentState.disableRescheduling;
   }
 
+  // Cal Video Settings - Send BOTH new API format and metadata for compatibility
+  const originalSendTranscription = original.calVideoSettings?.sendTranscriptionEmails ?? true;
+
+  // Check against metadata too in case it was loaded from there
+  const originalMetadataSendTranscription =
+    originalMetadata.sendCalVideoTranscription !== undefined
+      ? originalMetadata.sendCalVideoTranscription
+      : originalSendTranscription;
+
   if (
-    currentState.sendCalVideoTranscription !==
-    (originalMetadata.sendCalVideoTranscription || original.sendCalVideoTranscription || false)
+    currentState.sendCalVideoTranscription !== originalSendTranscription ||
+    currentState.sendCalVideoTranscription !== originalMetadataSendTranscription
   ) {
+    payload.calVideoSettings = {
+      sendTranscriptionEmails: currentState.sendCalVideoTranscription,
+    };
     metadataChanges.sendCalVideoTranscription = currentState.sendCalVideoTranscription;
   }
 
-  if (
-    currentState.autoTranslate !==
-    (originalMetadata.autoTranslate || original.autoTranslate || false)
-  ) {
+  // Interface Language (API V2)
+  if (currentState.interfaceLanguage !== (original.interfaceLanguage || "")) {
+    payload.interfaceLanguage = currentState.interfaceLanguage || null;
+  }
+
+  // Show Optimized Slots (API V2)
+  if (currentState.showOptimizedSlots !== (original.showOptimizedSlots || false)) {
+    payload.showOptimizedSlots = currentState.showOptimizedSlots;
+  }
+
+  // AutoTranslate still uses metadata (not yet a top-level API field)
+  if (currentState.autoTranslate !== (originalMetadata.autoTranslate || false)) {
     metadataChanges.autoTranslate = currentState.autoTranslate;
   }
 
