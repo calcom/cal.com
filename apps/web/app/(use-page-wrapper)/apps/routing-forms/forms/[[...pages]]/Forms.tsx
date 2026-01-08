@@ -9,6 +9,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
   arrayMove,
   SortableContext,
@@ -16,7 +17,6 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import posthog from "posthog-js";
 import { useCallback, useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -32,6 +32,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
@@ -89,14 +90,12 @@ interface SortableFormItemProps {
 }
 
 function SortableFormItem({ form, readOnly, appUrl, t }: SortableFormItemProps): JSX.Element | null {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
     id: form.id,
   });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+    transform: transform ? `translateY(${transform.y}px)` : undefined,
   };
 
   const description = form.description || "";
@@ -108,7 +107,10 @@ function SortableFormItem({ form, readOnly, appUrl, t }: SortableFormItemProps):
     <div
       ref={setNodeRef}
       style={style}
-      className="group flex w-full max-w-full items-center justify-between overflow-hidden"
+      className={classNames(
+        "group flex w-full max-w-full items-center justify-between overflow-hidden",
+        isDragging && "border-emphasis rounded-md border-2"
+      )}
       key={form.id}>
       <DragButton listeners={listeners} attributes={attributes} />
       <ListLinkItem
@@ -251,11 +253,19 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
 
       const reorderedForms = arrayMove(forms, oldIndex, newIndex);
 
+      utils.viewer.appRoutingForms.forms.setData({ filters }, (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          filtered: reorderedForms,
+        };
+      });
+
       mutation.mutate({
         ids: reorderedForms.map((f) => f.form?.id).filter((id): id is string => id !== undefined),
       });
     },
-    [forms, mutation]
+    [forms, mutation, utils, filters]
   );
 
   const formIds = forms?.map((f) => f.form?.id).filter((id): id is string => id !== undefined) ?? [];
@@ -349,7 +359,11 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                 }
                 SkeletonLoader={SkeletonLoaderTeamList}>
                 <div className="bg-default mb-16 overflow-hidden">
-                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                      modifiers={[restrictToVerticalAxis]}>
                     <SortableContext items={formIds} strategy={verticalListSortingStrategy}>
                       <List data-testid="routing-forms-list">
                         {forms?.map(({ form, readOnly, hasError }) => {

@@ -9,6 +9,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
   arrayMove,
   SortableContext,
@@ -16,7 +17,6 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
@@ -308,14 +308,12 @@ function SortableEventTypeItem({
   t,
   copyToClipboard,
 }: SortableEventTypeItemProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
     id: type.id,
   });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+    transform: transform ? `translateY(${transform.y}px)` : undefined,
   };
 
   const embedLink = `${group.profile.slug}/${type.slug}`;
@@ -334,7 +332,11 @@ function SortableEventTypeItem({
     type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
 
   return (
-    <li ref={setNodeRef} style={style} key={type.id}>
+    <li
+      ref={setNodeRef}
+      style={style}
+      key={type.id}
+      className={classNames(isDragging && "border-emphasis rounded-md border-2")}>
       <div className="hover:bg-cal-muted flex w-full items-center justify-between transition">
         <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
           <DragButton listeners={listeners} attributes={attributes} />
@@ -868,7 +870,11 @@ export const InfiniteEventTypeList = ({
 
     return (
       <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-md border">
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+          modifiers={[restrictToVerticalAxis]}>
           <SortableContext items={eventTypeIds} strategy={verticalListSortingStrategy}>
             <ul className="divide-subtle static! w-full divide-y" data-testid="event-types">
               {allEventTypes.map((type) => (

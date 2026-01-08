@@ -7,6 +7,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
   arrayMove,
   SortableContext,
@@ -14,7 +15,6 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -60,14 +60,12 @@ function SortableWorkflowItem({
   router,
   t,
 }: SortableWorkflowItemProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
     id: workflow.id,
   });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+    transform: transform ? `translateY(${transform.y}px)` : undefined,
   };
 
   const dataTestId = `workflow-${workflow.name.toLowerCase().replaceAll(" ", "-")}`;
@@ -78,7 +76,10 @@ function SortableWorkflowItem({
       style={style}
       key={workflow.id}
       data-testid={dataTestId}
-      className="group flex w-full max-w-full items-center justify-between overflow-hidden">
+      className={classNames(
+        "group flex w-full max-w-full items-center justify-between overflow-hidden",
+        isDragging && "border-emphasis rounded-md border-2"
+      )}>
       <DragButton listeners={listeners} attributes={attributes} />
       <div className="first-line:group hover:bg-cal-muted flex w-full items-center justify-between p-4 transition sm:px-6">
         <Link href={`/workflows/${workflow.id}`} className="grow cursor-pointer">
@@ -313,11 +314,19 @@ export default function WorkflowListPage({ workflows }: Props) {
 
       const reorderedWorkflows = arrayMove(workflows, oldIndex, newIndex);
 
+      utils.viewer.workflows.filteredList.setData(undefined, (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          workflows: reorderedWorkflows,
+        };
+      });
+
       mutation.mutate({
         ids: reorderedWorkflows.map((wf) => wf.id),
       });
     },
-    [workflows, mutation]
+    [workflows, mutation, utils]
   );
 
   const workflowIds = workflows?.map((wf) => wf.id) ?? [];
@@ -326,7 +335,11 @@ export default function WorkflowListPage({ workflows }: Props) {
     <>
       {workflows && workflows.length > 0 ? (
         <div className="bg-default border-subtle overflow-hidden rounded-md border sm:mx-0">
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+              modifiers={[restrictToVerticalAxis]}>
             <SortableContext items={workflowIds} strategy={verticalListSortingStrategy}>
               <ul className="divide-subtle static! w-full divide-y" data-testid="workflow-list">
                 {workflows.map((workflow) => (
