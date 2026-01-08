@@ -413,26 +413,18 @@ const handleMarkNoShow = async ({
     }
 
     if (noShowHost) {
-      // Get the old noShowHost value before updating for audit logging
-      const bookingBeforeUpdate = await prisma.booking.findUnique({
+      // Get booking info for audit logging (organization ID)
+      const bookingForAudit = await prisma.booking.findUnique({
         where: { uid: bookingUid },
         select: {
-          noShowHost: true,
           eventType: {
             select: {
               teamId: true,
               userId: true,
-              team: {
-                select: {
-                  parentId: true,
-                },
-              },
             },
           },
         },
       });
-
-      const oldNoShowHost = bookingBeforeUpdate?.noShowHost ?? null;
 
       await prisma.booking.update({
         where: {
@@ -445,11 +437,12 @@ const handleMarkNoShow = async ({
 
       // Get organization ID for audit logging
       const orgId = await getOrgIdFromMemberOrTeamId({
-        memberId: bookingBeforeUpdate?.eventType?.userId,
-        teamId: bookingBeforeUpdate?.eventType?.teamId,
+        memberId: bookingForAudit?.eventType?.userId,
+        teamId: bookingForAudit?.eventType?.teamId,
       });
 
       // Log host no-show audit
+      // Note: old value is always null/false since hosts can only be marked as no-show, not unmarked
       const bookingEventHandlerService = getBookingEventHandlerService();
       await bookingEventHandlerService.onHostNoShowUpdated({
         bookingUid,
@@ -457,7 +450,7 @@ const handleMarkNoShow = async ({
         organizationId: orgId ?? null,
         source,
         auditData: {
-          noShowHost: { old: oldNoShowHost, new: true },
+          noShowHost: { old: null, new: true },
         },
       });
 
