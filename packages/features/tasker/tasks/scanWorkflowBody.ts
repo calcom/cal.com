@@ -201,13 +201,21 @@ export async function scanWorkflowBody(payload: string) {
 
   const isOrg = !!workflow?.team?.isOrganization;
 
-  // Re-fetch workflow steps to get the latest verifiedAt values from the database
-  // This ensures we don't schedule notifications for steps that are pending URL scanning
   const updatedWorkflowSteps = await prisma.workflowStep.findMany({
     where: {
       id: {
         in: stepIdsToScan,
       },
+    },
+    select: {
+      id: true,
+      action: true,
+      sendTo: true,
+      emailSubject: true,
+      reminderBody: true,
+      template: true,
+      sender: true,
+      verifiedAt: true,
     },
   });
 
