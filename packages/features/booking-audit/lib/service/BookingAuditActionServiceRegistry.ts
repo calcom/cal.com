@@ -1,4 +1,3 @@
-import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { IAuditActionService } from "../actions/IAuditActionService";
 import type { BookingAuditAction } from "../repository/IBookingAuditRepository";
 
@@ -44,16 +43,12 @@ export type AuditActionData =
  * Provides a single source of truth for action service mapping and eliminates
  * code duplication between consumer and viewer services.
  */
-interface BookingAuditActionServiceRegistryDeps {
-    userRepository: UserRepository;
-}
-
 export class BookingAuditActionServiceRegistry {
     private readonly actionServices: Map<BookingAuditAction, IAuditActionService>;
 
-    constructor(private deps: BookingAuditActionServiceRegistryDeps) {
+    constructor() {
         const services: Array<[BookingAuditAction, IAuditActionService]> = [
-            ["CREATED", new CreatedAuditActionService(deps)],
+            ["CREATED", new CreatedAuditActionService()],
             ["CANCELLED", new CancelledAuditActionService()],
             ["RESCHEDULED", new RescheduledAuditActionService()],
             ["ACCEPTED", new AcceptedAuditActionService()],
@@ -62,7 +57,7 @@ export class BookingAuditActionServiceRegistry {
             ["HOST_NO_SHOW_UPDATED", new HostNoShowUpdatedAuditActionService()],
             ["REJECTED", new RejectedAuditActionService()],
             ["ATTENDEE_REMOVED", new AttendeeRemovedAuditActionService()],
-            ["REASSIGNMENT", new ReassignmentAuditActionService(deps.userRepository)],
+            ["REASSIGNMENT", new ReassignmentAuditActionService()],
             ["LOCATION_CHANGED", new LocationChangedAuditActionService()],
             ["ATTENDEE_NO_SHOW_UPDATED", new AttendeeNoShowUpdatedAuditActionService()],
             ["SEAT_BOOKED", new SeatBookedAuditActionService()],

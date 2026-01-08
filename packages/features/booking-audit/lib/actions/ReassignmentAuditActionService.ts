@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { StringChangeSchema, NumberChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, BaseStoredAuditData } from "./IAuditActionService";
+import type { DataRequirements } from "../service/EnrichmentDataStore";
 
 /**
  * Reassignment Audit Action Service
@@ -38,7 +38,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
         typeof ReassignmentAuditActionService.storedDataSchema
     >;
 
-    constructor(private userRepository: UserRepository) {
+    constructor() {
         this.helper = new AuditActionServiceHelper({
             latestVersion: this.VERSION,
             latestFieldsSchema: ReassignmentAuditActionService.latestFieldsSchema,
@@ -64,9 +64,16 @@ export class ReassignmentAuditActionService implements IAuditActionService {
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
+    getDataRequirements(storedData: BaseStoredAuditData): DataRequirements {
         const { fields } = this.parseStored(storedData);
-        const user = await this.userRepository.findById({ id: fields.assignedToId.new });
+        return {
+            userIds: [fields.assignedToId.new],
+        };
+    }
+
+    async getDisplayTitle({ storedData, dbStore }: GetDisplayTitleParams): Promise<TranslationWithParams> {
+        const { fields } = this.parseStored(storedData);
+        const user = dbStore.getUserById(fields.assignedToId.new);
         const reassignedToName = user?.name || "Unknown";
         return {
             key: "booking_audit_action.booking_reassigned_to_host",

@@ -58,7 +58,7 @@ export class AttendeeAddedAuditActionService implements IAuditActionService {
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
+    async getDisplayTitle(_params: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.attendee_added" };
     }
 

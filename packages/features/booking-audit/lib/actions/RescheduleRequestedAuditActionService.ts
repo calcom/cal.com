@@ -60,7 +60,7 @@ export class RescheduleRequestedAuditActionService implements IAuditActionServic
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
+    async getDisplayTitle(_params: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.reschedule_requested" };
     }
 
