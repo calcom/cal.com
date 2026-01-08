@@ -209,6 +209,16 @@ export async function scanWorkflowBody(payload: string) {
         in: stepIdsToScan,
       },
     },
+    select: {
+      id: true,
+      action: true,
+      sendTo: true,
+      emailSubject: true,
+      reminderBody: true,
+      template: true,
+      sender: true,
+      verifiedAt: true,
+    },
   });
 
   await scheduleWorkflowNotifications({
