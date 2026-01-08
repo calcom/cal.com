@@ -20,8 +20,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRescheduleBooking } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
-import { CalComAPIService } from "@/services/calcom";
 import { safeLogError, safeLogInfo } from "@/utils/safeLogger";
 
 const isWeb = Platform.OS === "web";
@@ -51,7 +51,9 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [reason, setReason] = useState("");
-    const [isSaving, setIsSaving] = useState(false);
+
+    // Use React Query mutation for automatic cache invalidation
+    const { mutate: rescheduleBooking, isPending: isSaving } = useRescheduleBooking();
 
     // Pre-fill with current booking date/time
     useEffect(() => {
@@ -69,7 +71,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
       onSavingChange?.(isSaving);
     }, [isSaving, onSavingChange]);
 
-    const handleSubmit = useCallback(async () => {
+    const handleSubmit = useCallback(() => {
       if (!booking || isSaving) return;
 
       // Validate the date is in the future
@@ -78,27 +80,30 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
         return;
       }
 
-      // Extract conditional values before try/catch for React Compiler optimization
+      // Extract conditional values for React Compiler optimization
       const trimmedReason = reason.trim();
       const reschedulingReason = trimmedReason.length > 0 ? trimmedReason : undefined;
       const startTime = selectedDateTime.toISOString();
 
-      setIsSaving(true);
-      try {
-        await CalComAPIService.rescheduleBooking(booking.uid, {
+      rescheduleBooking(
+        {
+          uid: booking.uid,
           start: startTime,
           reschedulingReason,
-        });
-        Alert.alert("Success", "Booking rescheduled successfully", [
-          { text: "OK", onPress: onSuccess },
-        ]);
-        setIsSaving(false);
-      } catch (error) {
-        safeLogError("[RescheduleScreen] Failed to reschedule:", error);
-        Alert.alert("Error", "Failed to reschedule booking. Please try again.");
-        setIsSaving(false);
-      }
-    }, [booking, selectedDateTime, reason, onSuccess, isSaving]);
+        },
+        {
+          onSuccess: () => {
+            Alert.alert("Success", "Booking rescheduled successfully", [
+              { text: "OK", onPress: onSuccess },
+            ]);
+          },
+          onError: (error) => {
+            safeLogError("[RescheduleScreen] Failed to reschedule:", error);
+            Alert.alert("Error", "Failed to reschedule booking. Please try again.");
+          },
+        }
+      );
+    }, [booking, selectedDateTime, reason, onSuccess, isSaving, rescheduleBooking]);
 
     // Helper function to format date as YYYY-MM-DD in local timezone (avoids UTC conversion issues)
     const formatLocalDate = (date: Date) => {
