@@ -3,7 +3,7 @@
 import { signOut, useSession } from "next-auth/react";
 import { CheckIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { ParsedUrlQuery } from "querystring";
+import type { ParsedUrlQuery } from "node:querystring";
 import { useEffect, useState } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";

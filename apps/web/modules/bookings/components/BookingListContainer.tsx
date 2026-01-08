@@ -9,10 +9,9 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import dayjs from "@calcom/dayjs";
 import {
   useDataTable,
-  DataTableFilters,
-  DataTableSegment,
   useDisplayedFilterCount,
 } from "@calcom/features/data-table";
+import { DataTableSegment, DataTableFilters } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -73,6 +72,7 @@ interface BookingListContainerProps {
     canReadOthersBookings: boolean;
   };
   bookingsV3Enabled: boolean;
+  bookingAuditEnabled: boolean;
 }
 
 interface BookingListInnerProps extends BookingListContainerProps {
@@ -89,6 +89,7 @@ function BookingListInner({
   permissions,
   bookings,
   bookingsV3Enabled,
+  bookingAuditEnabled,
   data,
   isPending,
   hasError,
@@ -223,6 +224,7 @@ function BookingListInner({
           userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
           userId={user?.id}
           userEmail={user?.email}
+          bookingAuditEnabled={bookingAuditEnabled}
         />
       )}
     </>

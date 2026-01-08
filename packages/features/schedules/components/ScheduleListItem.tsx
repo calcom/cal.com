@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { CopyIcon, EllipsisIcon, GlobeIcon, StarIcon, TrashIcon } from "lucide-react";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
@@ -17,6 +17,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 export function ScheduleListItem({
@@ -41,6 +43,9 @@ export function ScheduleListItem({
   redirectUrl: string;
 }) {
   const { t, i18n } = useLocale();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  type AvailabilityItem = (typeof schedule.availability)[number];
 
   return (
     <li key={schedule.id}>
@@ -57,24 +62,31 @@ export function ScheduleListItem({
             </div>
             <p className="text-subtle mt-1">
               {schedule.availability
-                .filter((availability) => !!availability.days.length)
-                .map((availability) =>
+                .filter(
+                  (availability: AvailabilityItem) => !!availability.days.length
+                )
+                .map((availability: AvailabilityItem) =>
                   availabilityAsString(availability, {
                     locale: i18n.language,
                     hour12: displayOptions?.hour12,
                   })
                 )
                 // sort the availability strings as per user's weekstart (settings)
-                .sort(sortAvailabilityStrings(i18n.language, displayOptions?.weekStart))
-                .map((availabilityString, index) => (
-                  <Fragment key={index}>
+                .sort(
+                  sortAvailabilityStrings(
+                    i18n.language,
+                    displayOptions?.weekStart
+                  )
+                )
+                .map((availabilityString: string) => (
+                  <Fragment key={availabilityString}>
                     {availabilityString}
                     <br />
                   </Fragment>
                 ))}
               {(schedule.timeZone || displayOptions?.timeZone) && (
                 <span className="my-1 flex items-center first-letter:text-xs">
-                  <GlobeIcon className="h-3.5 w-3.5" />
+                  <Icon name="globe" className="h-3.5 w-3.5" />
                   &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
                 </span>
               )}
@@ -88,7 +100,7 @@ export function ScheduleListItem({
               type="button"
               variant="icon"
               color="secondary"
-              StartIcon={EllipsisIcon}
+              StartIcon="ellipsis"
             />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
@@ -96,7 +108,7 @@ export function ScheduleListItem({
               <DropdownMenuItem className="min-w-40 focus:ring-muted">
                 <DropdownItem
                   type="button"
-                  StartIcon={StarIcon}
+                  StartIcon="star"
                   onClick={() => {
                     updateDefault({
                       scheduleId: schedule.id,
@@ -111,7 +123,7 @@ export function ScheduleListItem({
               <DropdownItem
                 type="button"
                 data-testid={`schedule-duplicate${schedule.id}`}
-                StartIcon={CopyIcon}
+                StartIcon="copy"
                 onClick={() => {
                   duplicateFunction({
                     scheduleId: schedule.id,
@@ -124,16 +136,14 @@ export function ScheduleListItem({
               <DropdownItem
                 type="button"
                 color="destructive"
-                StartIcon={TrashIcon}
+                StartIcon="trash"
                 data-testid="delete-schedule"
                 className="rounded-t-none"
                 onClick={() => {
                   if (!isDeletable) {
                     showToast(t("requires_at_least_one_schedule"), "error");
                   } else {
-                    deleteFunction({
-                      scheduleId: schedule.id,
-                    });
+                    setIsDeleteDialogOpen(true);
                   }
                 }}>
                 {t("delete")}
@@ -141,6 +151,21 @@ export function ScheduleListItem({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </Dropdown>
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <ConfirmationDialogContent
+            variety="danger"
+            title={t("delete_schedule")}
+            confirmBtnText={t("delete")}
+            loadingText={t("delete")}
+            onConfirm={(e) => {
+              e.preventDefault();
+              deleteFunction({
+                scheduleId: schedule.id,
+              });
+            }}>
+            {t("delete_schedule_description")}
+          </ConfirmationDialogContent>
+        </Dialog>
       </div>
     </li>
   );

@@ -1,22 +1,16 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { ChartBarIcon, CircleCheckIcon, CodeIcon, CopyIcon, DownloadIcon, ExternalLinkIcon, FileTextIcon, GitMergeIcon, LinkIcon, MailIcon, MenuIcon, MessageCircleIcon, PencilIcon, ShuffleIcon, TrashIcon } from "lucide-react";
+import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import posthog from "posthog-js";
 
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import { useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
-import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { ShellMain } from "@calcom/features/shell/Shell";
-import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -27,6 +21,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Icon } from "@calcom/ui/components/icon";
 import { List, ListLinkItem } from "@calcom/ui/components/list";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import type {
@@ -38,6 +33,12 @@ import {
   FormActionsDropdown,
   FormActionsProvider,
 } from "@calcom/web/components/apps/routing-forms/FormActions";
+
+import { useHasPaidPlan } from "~/billing/hooks/useHasPaidPlan";
+import SkeletonLoaderTeamList from "~/ee/teams/components/SkeletonloaderTeamList";
+import { CreateButtonWithTeamsList } from "~/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import { ShellMain } from "~/shell/Shell";
+import { UpgradeTip } from "~/shell/UpgradeTip";
 
 function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {
   const { t } = useLocale();
@@ -91,32 +92,32 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const forms = queryRes.data?.filtered;
   const features = [
     {
-      icon: <FileTextIcon className="h-5 w-5 text-orange-500" />,
+      icon: <Icon name="file-text" className="h-5 w-5 text-orange-500" />,
       title: t("create_your_first_form"),
       description: t("create_your_first_form_description"),
     },
     {
-      icon: <ShuffleIcon className="h-5 w-5 text-lime-500" />,
+      icon: <Icon name="shuffle" className="h-5 w-5 text-lime-500" />,
       title: t("create_your_first_route"),
       description: t("route_to_the_right_person"),
     },
     {
-      icon: <ChartBarIcon className="h-5 w-5 text-blue-500" />,
+      icon: <Icon name="chart-bar" className="h-5 w-5 text-blue-500" />,
       title: t("reporting"),
       description: t("reporting_feature"),
     },
     {
-      icon: <CircleCheckIcon className="h-5 w-5 text-teal-500" />,
+      icon: <Icon name="circle-check" className="h-5 w-5 text-teal-500" />,
       title: t("test_routing_form"),
       description: t("test_preview_description"),
     },
     {
-      icon: <MailIcon className="h-5 w-5 text-yellow-500" />,
+      icon: <Icon name="mail" className="h-5 w-5 text-yellow-500" />,
       title: t("routing_forms_send_email_owner"),
       description: t("routing_forms_send_email_owner_description"),
     },
     {
-      icon: <DownloadIcon className="h-5 w-5 text-violet-500" />,
+      icon: <Icon name="download" className="h-5 w-5 text-violet-500" />,
       title: t("download_responses"),
       description: t("download_responses_description"),
     },
@@ -186,7 +187,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                 queryRes={queryRes}
                 emptyScreen={
                   <EmptyScreen
-                    Icon={GitMergeIcon}
+                    Icon="git-merge"
                     headline={t("create_your_first_form")}
                     description={t("create_your_first_form_description")}
                     buttonRaw={<NewFormButton setNewFormDialogState={setNewFormDialogState} />}
@@ -194,7 +195,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                 }
                 noResultsScreen={
                   <EmptyScreen
-                    Icon={GitMergeIcon}
+                    Icon="git-merge"
                     headline={t("no_results_for_filter")}
                     description={t("change_filter_common")}
                   />
@@ -255,7 +256,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       action="preview"
                                       routingForm={form}
                                       target="_blank"
-                                      StartIcon={ExternalLinkIcon}
+                                      StartIcon="external-link"
                                       color="secondary"
                                       variant="icon"
                                     />
@@ -265,7 +266,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                     action="copyLink"
                                     color="secondary"
                                     variant="icon"
-                                    StartIcon={LinkIcon}
+                                    StartIcon="link"
                                     tooltip={t("copy_link_to_form")}
                                   />
                                   <FormAction
@@ -273,7 +274,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                     action="embed"
                                     color="secondary"
                                     variant="icon"
-                                    StartIcon={CodeIcon}
+                                    StartIcon="code"
                                     tooltip={t("embed")}
                                   />
                                   <FormActionsDropdown disabled={readOnly}>
@@ -282,14 +283,14 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       routingForm={form}
                                       color="minimal"
                                       className="flex!"
-                                      StartIcon={PencilIcon}>
+                                      StartIcon="pencil">
                                       {t("edit")}
                                     </FormAction>
                                     <FormAction
                                       action="download"
                                       routingForm={form}
                                       color="minimal"
-                                      StartIcon={DownloadIcon}>
+                                      StartIcon="download">
                                       {t("download_responses")}
                                     </FormAction>
                                     <FormAction
@@ -297,7 +298,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       routingForm={form}
                                       color="minimal"
                                       className="w-full"
-                                      StartIcon={CopyIcon}>
+                                      StartIcon="copy">
                                       {t("duplicate")}
                                     </FormAction>
                                     <FormAction
@@ -305,7 +306,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       routingForm={form}
                                       color="destructive"
                                       className="w-full"
-                                      StartIcon={TrashIcon}>
+                                      StartIcon="trash">
                                       {t("delete")}
                                     </FormAction>
                                   </FormActionsDropdown>
@@ -313,13 +314,13 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                               </>
                             }>
                             <div className="flex flex-wrap gap-1">
-                              <Badge variant="gray" startIcon={MenuIcon}>
+                              <Badge variant="gray" startIcon="menu">
                                 {fields.length} {fields.length === 1 ? "field" : "fields"}
                               </Badge>
-                              <Badge variant="gray" startIcon={GitMergeIcon}>
+                              <Badge variant="gray" startIcon="git-merge">
                                 {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
                               </Badge>
-                              <Badge variant="gray" startIcon={MessageCircleIcon}>
+                              <Badge variant="gray" startIcon="message-circle">
                                 {form._count.responses}{" "}
                                 {form._count.responses === 1 ? "response" : "responses"}
                               </Badge>

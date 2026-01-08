@@ -1,6 +1,5 @@
 "use client";
 
-import { EyeOffIcon, EyeIcon, SearchIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import React, { forwardRef, useCallback, useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -9,18 +8,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import { Alert } from "../../alert";
+import { Icon } from "../../icon";
 import { Tooltip } from "../../tooltip";
 import { Input, InputField, inputStyles } from "../inputs/TextField";
 import { Label } from "./Label";
 import type { InputFieldProps } from "./types";
-
-export function InputLeading(props: JSX.IntrinsicElements["div"]) {
-  return (
-    <span className="bg-cal-muted border-default text-subtle inline-flex shrink-0 items-center rounded-l-sm border px-3 ltr:border-r-0 rtl:border-l-0 sm:text-sm sm:leading-4">
-      {props.children}
-    </span>
-  );
-}
 
 export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
   props,
@@ -52,9 +44,9 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
             type="button"
             onClick={() => toggleIsPasswordVisible()}>
             {isPasswordVisible ? (
-              <EyeOffIcon className="h-4 w-4 stroke-[2.5px]" />
+              <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
             ) : (
-              <EyeIcon className="h-4 w-4 stroke-[2.5px]" />
+              <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
             )}
             <span className="sr-only">{textLabel}</span>
           </button>
@@ -148,24 +140,6 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   );
 });
 
-export function FieldsetLegend(props: JSX.IntrinsicElements["legend"]) {
-  return (
-    <legend {...props} className={classNames("text-default text-sm font-medium leading-4", props.className)}>
-      {props.children}
-    </legend>
-  );
-}
-
-export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
-  return (
-    <div
-      {...props}
-      className={classNames("bg-default border-default stack-y-2 rounded-sm border p-2", props.className)}>
-      {props.children}
-    </div>
-  );
-}
-
 export const NumberInput = forwardRef<HTMLInputElement, InputFieldProps>(function NumberInput(props, ref) {
   return (
     <Input
@@ -187,7 +161,7 @@ export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(f
   return (
     <InputField
       ref={ref}
-      addOnLeading={<SearchIcon className="h-4 w-4 stroke-[2.5px]" data-testid="search-icon" />}
+      addOnLeading={<Icon name="search" className="h-4 w-4 stroke-[2.5px]" data-testid="search-icon" />}
       placeholder="Search"
       containerClassName="mt-1"
       {...props}

@@ -5,7 +5,6 @@ import { CalendarIcon, PlusIcon, TriangleAlertIcon } from "lucide-react";
 
 import dayjs from "@calcom/dayjs";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { OutOfOfficeToggleGroup } from "@calcom/features/settings/outOfOffice/OutOfOfficeToggleGroup";
 import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -16,6 +15,8 @@ import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+
+import { OutOfOfficeToggleGroup } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
 
 function HolidaysCTA() {
   const { t } = useLocale();

@@ -7,9 +7,9 @@
  * - Profile update mutations with cache invalidation
  */
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CalComAPIService, UserProfile } from "../services/calcom";
-import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CACHE_CONFIG, queryKeys } from "@/config/cache.config";
+import { CalComAPIService, type UserProfile } from "@/services/calcom";
 
 /**
  * User profile update input type
@@ -114,7 +114,12 @@ export function useUpdateUserProfile() {
       if (context?.previousProfile) {
         queryClient.setQueryData(queryKeys.userProfile.current(), context.previousProfile);
       }
-      console.error("Failed to update user profile:", error);
+      console.error("Failed to update user profile");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[useUpdateUserProfile] failed", { message, stack });
+      }
     },
     onSettled: () => {
       // Always refetch after error or success

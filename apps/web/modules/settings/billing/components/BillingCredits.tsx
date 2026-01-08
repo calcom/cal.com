@@ -9,7 +9,6 @@ import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { MemberInvitationModalWithoutMembers } from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
@@ -23,6 +22,8 @@ import { TextField, Label, InputError } from "@calcom/ui/components/form";
 import { ProgressBar } from "@calcom/ui/components/progress-bar";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import { MemberInvitationModalWithoutMembers } from "~/ee/teams/components/MemberInvitationModal";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
 

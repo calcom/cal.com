@@ -24,7 +24,7 @@ export default function SelectGifInput(props: ISelectGifInput) {
           <img alt="Selected Gif Image" src={selectedGif} />
         </div>
       )}
-      <div className="flex">
+      <div className="flex gap-2">
         {selectedGif ? (
           <Button
             color="minimal"

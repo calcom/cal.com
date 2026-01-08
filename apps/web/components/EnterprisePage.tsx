@@ -1,43 +1,44 @@
 "use client";
 
-import Shell from "@calcom/features/shell/Shell";
-import { GlobeIcon, ChartBarIcon, PaintbrushIcon, UsersIcon, CreditCardIcon, LockIcon } from "lucide-react";
-import { UpgradeTip } from "@calcom/features/tips";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { Icon } from "@calcom/ui/components/icon";
+
+import Shell from "~/shell/Shell";
+import { UpgradeTip } from "~/shell/UpgradeTip";
 
 export default function EnterprisePage() {
   const { t } = useLocale();
 
   const features = [
     {
-      icon: <GlobeIcon className="h-5 w-5 text-red-500" />,
+      icon: <Icon name="globe" className="h-5 w-5 text-red-500" />,
       title: t("branded_subdomain"),
       description: t("branded_subdomain_description"),
     },
     {
-      icon: <ChartBarIcon className="h-5 w-5 text-blue-500" />,
+      icon: <Icon name="chart-bar" className="h-5 w-5 text-blue-500" />,
       title: t("org_insights"),
       description: t("org_insights_description"),
     },
     {
-      icon: <PaintbrushIcon className="h-5 w-5 text-pink-500" />,
+      icon: <Icon name="paintbrush" className="h-5 w-5 text-pink-500" />,
       title: t("extensive_whitelabeling"),
       description: t("extensive_whitelabeling_description"),
     },
     {
-      icon: <UsersIcon className="h-5 w-5 text-orange-500" />,
+      icon: <Icon name="users" className="h-5 w-5 text-orange-500" />,
       title: t("unlimited_teams"),
       description: t("unlimited_teams_description"),
     },
     {
-      icon: <CreditCardIcon className="h-5 w-5 text-green-500" />,
+      icon: <Icon name="credit-card" className="h-5 w-5 text-green-500" />,
       title: t("unified_billing"),
       description: t("advanced_managed_events_description"),
     },
     {
-      icon: <LockIcon className="h-5 w-5 text-purple-500" />,
+      icon: <Icon name="lock" className="h-5 w-5 text-purple-500" />,
       title: t("advanced_managed_events"),
       description: t("advanced_managed_events_description"),
     },

@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";

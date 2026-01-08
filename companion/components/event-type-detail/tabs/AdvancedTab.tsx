@@ -1,8 +1,7 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity, Switch, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Alert, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-import { openInAppBrowser } from "../../../utils/browser";
+import { openInAppBrowser } from "@/utils/browser";
 
 interface ConfigureOnWebCardProps {
   title: string;
@@ -321,7 +320,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 className={`mr-3 h-5 w-5 items-center justify-center rounded border ${
                   props.showAttendeeInfo
                     ? "border-[#111827] bg-[#111827]"
-                    : "border-[#D1D5DB] bg-white"
+                    : "border-gray-300 bg-white"
                 }`}
               >
                 {props.showAttendeeInfo && <Ionicons name="checkmark" size={14} color="#fff" />}
@@ -339,7 +338,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 className={`mr-3 h-5 w-5 items-center justify-center rounded border ${
                   props.showAvailabilityCount
                     ? "border-[#111827] bg-[#111827]"
-                    : "border-[#D1D5DB] bg-white"
+                    : "border-gray-300 bg-white"
                 }`}
               >
                 {props.showAvailabilityCount ? (
