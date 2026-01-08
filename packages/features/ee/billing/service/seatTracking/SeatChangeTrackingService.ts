@@ -1,8 +1,8 @@
 import type { Logger } from "tslog";
 
+import { SeatChangeLogRepository } from "@calcom/features/ee/billing/repository/seatChangeLogs/SeatChangeLogRepository";
 import logger from "@calcom/lib/logger";
 import type { Prisma } from "@calcom/prisma/client";
-import { prisma } from "@calcom/prisma";
 import type { SeatChangeType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["SeatChangeTrackingService"] });
@@ -24,29 +24,29 @@ export interface MonthlyChanges {
 
 export class SeatChangeTrackingService {
   private logger: Logger<unknown>;
+  private repository: SeatChangeLogRepository;
 
-  constructor(customLogger?: Logger<unknown>) {
+  constructor(customLogger?: Logger<unknown>, repository?: SeatChangeLogRepository) {
     this.logger = customLogger || log;
+    this.repository = repository || new SeatChangeLogRepository();
   }
 
   async logSeatAddition(params: SeatChangeLogParams): Promise<void> {
     const { teamId, userId, triggeredBy, seatCount = 1, metadata, monthKey: providedMonthKey } = params;
     const monthKey = providedMonthKey || this.calculateMonthKey(new Date());
 
-    const { teamBillingId, organizationBillingId } = await this.getBillingIds(teamId);
+    const { teamBillingId, organizationBillingId } = await this.repository.getTeamBillingIds(teamId);
 
-    await prisma.seatChangeLog.create({
-      data: {
-        teamId,
-        changeType: "ADDITION" as SeatChangeType,
-        seatCount,
-        userId,
-        triggeredBy,
-        monthKey,
-        metadata: (metadata || {}) as Prisma.InputJsonValue,
-        teamBillingId,
-        organizationBillingId,
-      },
+    await this.repository.create({
+      teamId,
+      changeType: "ADDITION" as SeatChangeType,
+      seatCount,
+      userId,
+      triggeredBy,
+      monthKey,
+      metadata: (metadata || {}) as Prisma.InputJsonValue,
+      teamBillingId,
+      organizationBillingId,
     });
   }
 
@@ -54,40 +54,25 @@ export class SeatChangeTrackingService {
     const { teamId, userId, triggeredBy, seatCount = 1, metadata, monthKey: providedMonthKey } = params;
     const monthKey = providedMonthKey || this.calculateMonthKey(new Date());
 
-    const { teamBillingId, organizationBillingId } = await this.getBillingIds(teamId);
+    const { teamBillingId, organizationBillingId } = await this.repository.getTeamBillingIds(teamId);
 
-    await prisma.seatChangeLog.create({
-      data: {
-        teamId,
-        changeType: "REMOVAL" as SeatChangeType,
-        seatCount,
-        userId,
-        triggeredBy,
-        monthKey,
-        metadata: (metadata || {}) as Prisma.InputJsonValue,
-        teamBillingId,
-        organizationBillingId,
-      },
+    await this.repository.create({
+      teamId,
+      changeType: "REMOVAL" as SeatChangeType,
+      seatCount,
+      userId,
+      triggeredBy,
+      monthKey,
+      metadata: (metadata || {}) as Prisma.InputJsonValue,
+      teamBillingId,
+      organizationBillingId,
     });
   }
 
   async getMonthlyChanges(params: { teamId: number; monthKey: string }): Promise<MonthlyChanges> {
     const { teamId, monthKey } = params;
 
-    const changes = await prisma.seatChangeLog.groupBy({
-      by: ["changeType"],
-      where: {
-        teamId,
-        monthKey,
-        processedInProrationId: null,
-      },
-      _sum: {
-        seatCount: true,
-      },
-    });
-
-    const additions = changes.find((c) => c.changeType === "ADDITION")?._sum.seatCount || 0;
-    const removals = changes.find((c) => c.changeType === "REMOVAL")?._sum.seatCount || 0;
+    const { additions, removals } = await this.repository.getMonthlyChanges({ teamId, monthKey });
 
     // Cap net change at 0 - we only charge for seat additions on annual plans
     // Removals are tracked but don't create credits; they take effect at renewal
@@ -103,64 +88,18 @@ export class SeatChangeTrackingService {
   async getUnprocessedChanges(params: { teamId: number; monthKey: string }) {
     const { teamId, monthKey } = params;
 
-    return await prisma.seatChangeLog.findMany({
-      where: {
-        teamId,
-        monthKey,
-        processedInProrationId: null,
-      },
-      orderBy: {
-        changeDate: "asc",
-      },
-    });
+    return await this.repository.getUnprocessedChanges({ teamId, monthKey });
   }
 
   async markAsProcessed(params: { teamId: number; monthKey: string; prorationId: string }): Promise<number> {
     const { teamId, monthKey, prorationId } = params;
 
-    const result = await prisma.seatChangeLog.updateMany({
-      where: {
-        teamId,
-        monthKey,
-        processedInProrationId: null,
-      },
-      data: {
-        processedInProrationId: prorationId,
-      },
-    });
-
-    return result.count;
+    return await this.repository.markAsProcessed({ teamId, monthKey, prorationId });
   }
 
   private calculateMonthKey(date: Date): string {
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, "0");
     return `${year}-${month}`;
-  }
-
-  private async getBillingIds(
-    teamId: number
-  ): Promise<{ teamBillingId: string | null; organizationBillingId: string | null }> {
-    const team = await prisma.team.findUnique({
-      where: { id: teamId },
-      select: {
-        isOrganization: true,
-        teamBilling: {
-          select: { id: true },
-        },
-        organizationBilling: {
-          select: { id: true },
-        },
-      },
-    });
-
-    if (!team) {
-      throw new Error(`Team ${teamId} not found`);
-    }
-
-    return {
-      teamBillingId: team.teamBilling?.id || null,
-      organizationBillingId: team.organizationBilling?.id || null,
-    };
   }
 }

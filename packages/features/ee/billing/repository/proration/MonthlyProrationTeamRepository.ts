@@ -155,6 +155,40 @@ export class MonthlyProrationTeamRepository {
     }
   }
 
+  async createOrganizationBilling(data: {
+    teamId: number;
+    subscriptionId: string;
+    subscriptionItemId: string;
+    customerId: string;
+    status: string;
+    planName: string;
+    billingPeriod: "MONTHLY" | "ANNUALLY";
+    pricePerSeat: number;
+    paidSeats: number;
+    subscriptionStart: Date | null;
+    subscriptionEnd: Date | null;
+    subscriptionTrialEnd: Date | null;
+  }) {
+    return await prisma.organizationBilling.create({ data });
+  }
+
+  async createTeamBilling(data: {
+    teamId: number;
+    subscriptionId: string;
+    subscriptionItemId: string;
+    customerId: string;
+    status: string;
+    planName: string;
+    billingPeriod: "MONTHLY" | "ANNUALLY";
+    pricePerSeat: number;
+    paidSeats: number;
+    subscriptionStart: Date | null;
+    subscriptionEnd: Date | null;
+    subscriptionTrialEnd: Date | null;
+  }) {
+    return await prisma.teamBilling.create({ data });
+  }
+
   private extractBillingFromMetadata(metadata: unknown): BillingInfo | null {
     const parsed = teamMetadataSchema.parse(metadata);
 
