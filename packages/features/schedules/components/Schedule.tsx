@@ -279,34 +279,32 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 />
               )}
             />
-            {index === 0 && (
-              <Button
-                disabled={disabled}
-                data-testid="add-time-availability"
-                tooltip={labels?.addTime ?? t("add_time_availability")}
-                className="text-default"
-                type="button"
-                color="minimal"
-                variant="icon"
-                StartIcon="plus"
-                onClick={() => {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const slotRange: any = getDateSlotRange(
-                    getValues(`${name}.${fields.length - 1}`),
-                    getValues(`${name}.0`)
-                  );
+            <Button
+              disabled={disabled}
+              data-testid="add-time-availability"
+              tooltip={labels?.addTime ?? t("add_time_availability")}
+              className="text-default"
+              type="button"
+              color="minimal"
+              variant="icon"
+              StartIcon="plus"
+              onClick={() => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const slotRange: any = getDateSlotRange(
+                  getValues(`${name}.${fields.length - 1}`),
+                  getValues(`${name}.0`)
+                );
 
-                  if (slotRange?.append) {
-                    append(slotRange.append);
-                  }
+                if (slotRange?.append) {
+                  append(slotRange.append);
+                }
 
-                  if (slotRange?.prepend) {
-                    prepend(slotRange.prepend);
-                  }
-                }}
-              />
-            )}
-            {index !== 0 && (
+                if (slotRange?.prepend) {
+                  prepend(slotRange.prepend);
+                }
+              }}
+            />
+            {fields.length > 1 && (
               <RemoveTimeButton index={index} remove={remove} className="text-default border-none" />
             )}
           </div>
