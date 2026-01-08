@@ -972,8 +972,6 @@ export async function addUsers(users: InputUser[]) {
 
     prismaUsersCreate.push(newUser);
   }
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-expect-error
   return await addUsersToDb(prismaUsersCreate);
 }
 
@@ -1457,8 +1455,6 @@ export const TestData = {
   apps: {
     "google-calendar": {
       ...appStoreMetadata.googlecalendar,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         client_id: "client_id",
@@ -1468,8 +1464,6 @@ export const TestData = {
     },
     "office365-calendar": {
       ...appStoreMetadata.office365calendar,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         client_id: "client_id",
@@ -1478,8 +1472,6 @@ export const TestData = {
     },
     "google-meet": {
       ...appStoreMetadata.googlevideo,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         client_id: "client_id",
@@ -1489,8 +1481,6 @@ export const TestData = {
     },
     "daily-video": {
       ...appStoreMetadata.dailyvideo,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         api_key: "",
@@ -1502,8 +1492,6 @@ export const TestData = {
     },
     zoomvideo: {
       ...appStoreMetadata.zoomvideo,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         api_key: "",
@@ -1515,8 +1503,6 @@ export const TestData = {
     },
     "stripe-payment": {
       ...appStoreMetadata.stripepayment,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-expect-error
       keys: {
         expiry_date: Infinity,
         api_key: "",
