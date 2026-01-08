@@ -470,7 +470,7 @@ export const EditAvailabilityDayScreen = forwardRef<
 
           {/* Add Slot Button */}
           <AppPressable onPress={handleAddSlot}>
-            <View className="flex-row items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 py-4 active:bg-gray-100">
+            <View className="flex-row items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 py-4">
               <Ionicons name="add-circle" size={22} color="#007AFF" />
               <Text className="ml-2 text-[17px] font-medium text-[#007AFF]">Add Time Slot</Text>
             </View>

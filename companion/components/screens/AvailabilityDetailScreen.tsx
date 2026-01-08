@@ -114,8 +114,6 @@ export const AvailabilityDetailScreen = forwardRef<
       endTime: string;
     }[]
   >([]);
-  const [daysExpanded, setDaysExpanded] = useState(true);
-  const [overridesExpanded, setOverridesExpanded] = useState(true);
 
   const processScheduleData = useCallback(
     (scheduleData: NonNullable<Awaited<ReturnType<typeof CalComAPIService.getScheduleById>>>) => {
@@ -327,42 +325,20 @@ export const AvailabilityDetailScreen = forwardRef<
           </View>
         </View>
 
-        {/* Working Hours Summary Card */}
+        {/* Weekly Schedule Card - Navigable */}
         <View className="mb-4 overflow-hidden rounded-xl bg-white">
-          <View className="px-4 py-3.5">
-            {Object.keys(availability).length > 0 ? (
-              <View>
-                {formatAvailabilityDisplay(availability).map((line) => (
-                  <Text key={line} className="mb-1 text-[17px] text-black">
-                    {line}
-                  </Text>
-                ))}
-              </View>
-            ) : (
-              <Text className="text-[17px] text-[#8E8E93]">No availability set</Text>
-            )}
-          </View>
-        </View>
-
-        {/* Weekly Schedule Card - Expandable */}
-        <View className="mb-4 overflow-hidden rounded-xl bg-white">
-          <AppPressable onPress={() => setDaysExpanded(!daysExpanded)}>
+          <AppPressable onPress={() => router.push(`/edit-availability-hours?id=${id}` as never)}>
             <View className="flex-row items-center justify-between px-4 py-3.5">
               <Text className="text-[17px] text-black">Weekly Schedule</Text>
               <View className="flex-row items-center">
                 <Text className="mr-1 text-[17px] text-[#8E8E93]">
                   {enabledDaysCount} {enabledDaysCount === 1 ? "day" : "days"}
                 </Text>
-                <Ionicons
-                  name={daysExpanded ? "chevron-down" : "chevron-forward"}
-                  size={18}
-                  color="#C7C7CC"
-                />
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
               </View>
             </View>
-          </AppPressable>
 
-          {daysExpanded && (
+            {/* Expanded Day List */}
             <View className="border-t border-[#E5E5EA] px-4 py-2.5">
               {DAYS.map((day, dayIndex) => {
                 const daySlots = availability[dayIndex] || [];
@@ -408,37 +384,39 @@ export const AvailabilityDetailScreen = forwardRef<
                 );
               })}
             </View>
-          )}
+          </AppPressable>
         </View>
 
-        {/* Timezone Card */}
+        {/* Timezone Card - Navigable */}
         <View className="mb-4 overflow-hidden rounded-xl bg-white">
-          <View className="flex-row items-center justify-between px-4 py-3.5">
-            <Text className="text-[17px] text-black">Timezone</Text>
-            <Text className="text-[17px] text-[#8E8E93]">{timeZone}</Text>
-          </View>
+          <AppPressable onPress={() => router.push(`/edit-availability-name?id=${id}` as never)}>
+            <View className="flex-row items-center justify-between px-4 py-3.5">
+              <Text className="text-[17px] text-black">Timezone</Text>
+              <View className="flex-row items-center">
+                <Text className="mr-1 text-[17px] text-[#8E8E93]">{timeZone}</Text>
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+              </View>
+            </View>
+          </AppPressable>
         </View>
 
-        {/* Date Overrides Card - Expandable */}
-        {overrides.length > 0 && (
-          <View className="mb-4 overflow-hidden rounded-xl bg-white">
-            <AppPressable onPress={() => setOverridesExpanded(!overridesExpanded)}>
-              <View className="flex-row items-center justify-between px-4 py-3.5">
-                <Text className="text-[17px] text-black">Date Overrides</Text>
-                <View className="flex-row items-center">
-                  <Text className="mr-1 text-[17px] text-[#8E8E93]">
-                    {overrides.length} {overrides.length === 1 ? "override" : "overrides"}
-                  </Text>
-                  <Ionicons
-                    name={overridesExpanded ? "chevron-down" : "chevron-forward"}
-                    size={18}
-                    color="#C7C7CC"
-                  />
-                </View>
+        {/* Date Overrides Card - Navigable */}
+        <View className="mb-4 overflow-hidden rounded-xl bg-white">
+          <AppPressable
+            onPress={() => router.push(`/edit-availability-override?id=${id}` as never)}
+          >
+            <View className="flex-row items-center justify-between px-4 py-3.5">
+              <Text className="text-[17px] text-black">Date Overrides</Text>
+              <View className="flex-row items-center">
+                <Text className="mr-1 text-[17px] text-[#8E8E93]">
+                  {overrides.length} {overrides.length === 1 ? "override" : "overrides"}
+                </Text>
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
               </View>
-            </AppPressable>
+            </View>
 
-            {overridesExpanded && (
+            {/* Expanded Overrides List */}
+            {overrides.length > 0 && (
               <View className="border-t border-[#E5E5EA] px-4 py-2.5">
                 {overrides.map((override, index) => (
                   <View
@@ -460,8 +438,8 @@ export const AvailabilityDetailScreen = forwardRef<
                 ))}
               </View>
             )}
-          </View>
-        )}
+          </AppPressable>
+        </View>
 
         {/* No Overrides Message */}
         {overrides.length === 0 && (
