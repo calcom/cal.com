@@ -263,6 +263,23 @@
           }
         }
       }
+    },
+    {
+      "includes": ["**/*.test.{ts,tsx,js,jsx}", "**/*.spec.{ts,tsx,js,jsx}"],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "useQwikValidLexicalScope": "off",
+            "useExplicitType": "off"
+          },
+          "complexity": {
+            "noExcessiveLinesPerFunction": "off"
+          },
+          "suspicious": {
+            "noReactSpecificProps": "off"
+          }
+        }
+      }
     }
   ]
 }
