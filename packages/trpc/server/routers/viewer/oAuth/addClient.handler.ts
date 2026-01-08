@@ -1,5 +1,6 @@
-import { randomBytes, createHash } from "node:crypto";
+import { randomBytes } from "node:crypto";
 
+import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -44,8 +45,3 @@ export const addClientHandler = async ({ input }: AddClientOptions) => {
     isPkceEnabled: enablePkce,
   };
 };
-
-const hashSecretKey = (apiKey: string): string => createHash("sha256").update(apiKey).digest("hex");
-
-// Generate a random secret
-export const generateSecret = (secret = randomBytes(32).toString("hex")) => [hashSecretKey(secret), secret];

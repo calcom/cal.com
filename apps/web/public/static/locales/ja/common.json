@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "出席者不参加が更新されました",
     "type": "割り当てタイプ",
     "assignmentType_manual": "手動割り当て",
-    "assignmentType_roundRobin": "ラウンドロビン割り当て"
+    "assignmentType_roundRobin": "ラウンドロビン割り当て",
+    "actor_impersonated_by": "なりすまし実行者",
+    "source": "ソース"
   },
   "error_loading_booking_logs": "予約ログの読み込みエラー",
   "no_audit_logs_found": "監査ログが見つかりません",

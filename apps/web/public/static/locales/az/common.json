@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "İştirakçının Gəlməməsi Yeniləndi",
     "type": "Təyinat Növü",
     "assignmentType_manual": "Manual Təyinat",
-    "assignmentType_roundRobin": "Round Robin Təyinatı"
+    "assignmentType_roundRobin": "Round Robin Təyinatı",
+    "actor_impersonated_by": "İmitasiya edən",
+    "source": "Mənbə"
   },
   "error_loading_booking_logs": "Rezervasiya jurnallarının yüklənməsində xəta",
   "no_audit_logs_found": "Audit jurnalları tapılmadı",

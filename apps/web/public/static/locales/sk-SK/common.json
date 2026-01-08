@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Neúčasť účastníka aktualizovaná",
     "type": "Typ priradenia",
     "assignmentType_manual": "Manuálne priradenie",
-    "assignmentType_roundRobin": "Round Robin priradenie"
+    "assignmentType_roundRobin": "Round Robin priradenie",
+    "actor_impersonated_by": "Impersonátor",
+    "source": "Zdroj"
   },
   "error_loading_booking_logs": "Chyba pri načítavaní záznamov rezervácie",
   "no_audit_logs_found": "Neboli nájdené žiadne audítorské záznamy",
