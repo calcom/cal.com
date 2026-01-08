@@ -3,6 +3,7 @@
 import type { IconName } from "@calid/features/ui/components/icon/Icon";
 import type { HorizontalTabItemProps } from "@calid/features/ui/components/navigation";
 import { HorizontalTabs } from "@calid/features/ui/components/navigation";
+import type { ReactNode } from "react";
 import React from "react";
 import { useMemo } from "react";
 
@@ -10,7 +11,7 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
-export const TeamEditLayout = ({ teamId, children }: { teamId: number; children: React.node }) => {
+export const TeamEditLayout = ({ teamId, children }: { teamId: number; children: ReactNode }) => {
   const { t } = useLocale();
 
   const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
