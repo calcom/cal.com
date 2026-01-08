@@ -117,7 +117,7 @@ export class OAuthClientRepository {
     websiteUrl?: string;
     enablePkce?: boolean;
     userId?: number;
-    approvalStatus?: OAuthClientApprovalStatus;
+    approvalStatus: OAuthClientApprovalStatus;
   }) {
     const { name, redirectUri, logo, websiteUrl, enablePkce, userId, approvalStatus } = data;
 
