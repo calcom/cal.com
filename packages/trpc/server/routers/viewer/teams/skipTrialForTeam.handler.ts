@@ -1,7 +1,7 @@
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
@@ -19,7 +19,7 @@ type SkipTrialForTeamOptions = {
 };
 
 export const skipTrialForTeamHandler = async ({ ctx, input }: SkipTrialForTeamOptions) => {
-  if (IS_SELF_HOSTED) return { success: true };
+  if (!IS_TEAM_BILLING_ENABLED) return { success: true };
 
   const { teamId } = input;
 
