@@ -109,18 +109,19 @@ function SortableFormItem({ form, readOnly, appUrl, t }: SortableFormItemProps):
       ref={setNodeRef}
       style={style}
       className={classNames(
-        "group flex w-full max-w-full cursor-grab items-center justify-between active:cursor-grabbing",
+        "group flex w-full max-w-full items-center justify-between",
+        isDragging ? "cursor-grabbing" : "cursor-grab",
         isDragging && "bg-cal-muted border-subtle border-t"
       )}
       key={form.id}
       {...listeners}
       {...attributes}>
       <ListLinkItem
+        className={classNames("space-x-2 rtl:space-x-reverse", isDragging && "pointer-events-none")}
         href={`${appUrl}/form-edit/${form.id}`}
         heading={form.name}
         readOnly={readOnly}
         subHeading={description}
-        className="space-x-2 rtl:space-x-reverse"
         actions={
           <>
             {form.team?.name && (

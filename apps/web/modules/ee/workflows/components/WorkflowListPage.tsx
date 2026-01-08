@@ -78,12 +78,17 @@ function SortableWorkflowItem({
       key={workflow.id}
       data-testid={dataTestId}
       className={classNames(
-        "group flex w-full max-w-full cursor-grab items-center justify-between active:cursor-grabbing",
+        "group flex w-full max-w-full items-center justify-between",
+        isDragging ? "cursor-grabbing" : "cursor-grab",
         isDragging && "bg-cal-muted border-subtle border-t"
       )}
       {...listeners}
       {...attributes}>
-      <div className="first-line:group hover:bg-cal-muted flex w-full items-center justify-between overflow-hidden p-4 sm:px-6">
+      <div
+        className={classNames(
+          "first-line:group hover:bg-cal-muted flex w-full items-center justify-between overflow-hidden p-4 sm:px-6",
+          isDragging && "pointer-events-none"
+        )}>
         <Link href={`/workflows/${workflow.id}`} className="grow cursor-pointer">
           <div className="rtl:space-x-reverse">
             <div className="flex">

@@ -338,12 +338,16 @@ function SortableEventTypeItem({
       style={style}
       key={type.id}
       className={classNames(
-        "cursor-grab active:cursor-grabbing",
+        isDragging ? "cursor-grabbing" : "cursor-grab",
         isDragging && "bg-cal-muted border-subtle border-t"
       )}
       {...listeners}
       {...attributes}>
-      <div className="hover:bg-cal-muted group flex w-full items-center justify-between">
+      <div
+        className={classNames(
+          "hover:bg-cal-muted group flex w-full items-center justify-between",
+          isDragging && "pointer-events-none"
+        )}>
         <div className="flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
           <MemoizedItem type={type} group={group} readOnly={readOnly} />
           <div className="mt-4 hidden sm:mt-0 sm:flex">
