@@ -1,15 +1,7 @@
-import { randomBytes, createHash } from "node:crypto";
-
+import { randomBytes } from "node:crypto";
+import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import type { PrismaClient } from "@calcom/prisma";
 import type { OAuthClientApprovalStatus } from "@calcom/prisma/enums";
-
-const hashSecretKey = (apiKey: string): string => createHash("sha256").update(apiKey).digest("hex");
-
-// Generate a random secret - exported for backward compatibility
-export const generateSecret = (secret = randomBytes(32).toString("hex")): [string, string] => [
-  hashSecretKey(secret),
-  secret,
-];
 
 export class OAuthClientRepository {
   constructor(private prismaClient: PrismaClient) {}

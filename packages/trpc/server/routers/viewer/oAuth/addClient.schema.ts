@@ -4,6 +4,7 @@ export type TAddClientInputSchemaInput = {
   name: string;
   redirectUri: string;
   logo: string;
+  websiteUrl?: string;
   enablePkce?: boolean;
 };
 
@@ -11,6 +12,7 @@ export type TAddClientInputSchema = {
   name: string;
   redirectUri: string;
   logo: string;
+  websiteUrl?: string;
   enablePkce: boolean;
 };
 

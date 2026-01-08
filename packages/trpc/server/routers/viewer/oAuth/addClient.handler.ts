@@ -1,14 +1,6 @@
-import { OAuthClientRepository, generateSecret } from "@calcom/lib/server/repository/oAuthClient";
-import { randomBytes } from "node:crypto";
-
-import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
-import { prisma } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import { OAuthClientRepository } from "@calcom/lib/server/repository/oAuthClient";
 
 import type { TAddClientInputSchema } from "./addClient.schema";
-
-// Re-export generateSecret for backward compatibility
-export { generateSecret };
 
 type AddClientOptions = {
   input: TAddClientInputSchema;
@@ -19,7 +11,6 @@ export const addClientHandler = async ({ input }: AddClientOptions) => {
 
   const oAuthClientRepository = await OAuthClientRepository.withGlobalPrisma();
 
-  // Admin-created clients are auto-approved
   const client = await oAuthClientRepository.create({
     name,
     redirectUri,
