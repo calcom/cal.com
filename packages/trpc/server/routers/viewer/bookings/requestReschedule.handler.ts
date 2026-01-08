@@ -46,10 +46,14 @@ type RequestRescheduleOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TRequestRescheduleInputSchema;
-  source: ActionSource;
+  source?: ActionSource;
 };
 const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
-export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRescheduleOptions) => {
+export const requestRescheduleHandler = async ({
+  ctx,
+  input,
+  source = "WEBAPP",
+}: RequestRescheduleOptions) => {
   const { user } = ctx;
   const { bookingUid, rescheduleReason: cancellationReason } = input;
   log.debug("Started", safeStringify({ bookingUid }));
