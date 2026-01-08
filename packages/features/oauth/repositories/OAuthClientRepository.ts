@@ -139,7 +139,7 @@ export class OAuthClientRepository {
         clientType: enablePkce ? "PUBLIC" : "CONFIDENTIAL",
         logo,
         websiteUrl,
-        approvalStatus: approvalStatus || "PENDING",
+        approvalStatus: approvalStatus,
         clientSecret: hashedSecret,
         ...(userId && {
           user: {
