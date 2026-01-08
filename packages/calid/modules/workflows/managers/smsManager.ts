@@ -434,7 +434,7 @@ export const deleteScheduledSMSReminder = async (
 ): Promise<void> => {
   try {
     await prisma.calIdWorkflowReminder.update({
-      where: { id: reminderIdentifier },
+      where: { id: reminderIdentifier, scheduledDate: { gt: new Date() } },
       data: { cancelled: true },
     });
   } catch (exception) {
