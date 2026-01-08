@@ -35,10 +35,9 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Checkbox } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
-const MAX_BADGES_TO_SHOW = 2;
+import { LimitedBadges } from "~/insights/components/ResponseValueCell";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DynamicLink } from "./BulkActions/DynamicLink";
@@ -222,56 +221,43 @@ function UserListTableContent({
               );
               if (!attributeValues || attributeValues.length === 0) return null;
 
-              const visibleValues = attributeValues.slice(0, MAX_BADGES_TO_SHOW);
-              const hiddenValues = attributeValues.slice(MAX_BADGES_TO_SHOW);
-              const hasHiddenValues = hiddenValues.length > 0;
-
-              const renderBadge = (attributeValue: (typeof attributeValues)[number]) => {
-                const isAGroupOption = attributeValue.contains?.length > 0;
-                const suffix = attribute.isWeightsEnabled
-                  ? `${attributeValue.weight || 100}%`
-                  : undefined;
-                return (
-                  <div className="mr-1 inline-flex shrink-0" key={attributeValue.id}>
-                    <Badge
-                      variant={isAGroupOption ? "orange" : "gray"}
-                      className={classNames(suffix && "rounded-r-none")}>
-                      {attributeValue.value}
-                    </Badge>
-
-                    {suffix ? (
-                      <Badge
-                        variant={isAGroupOption ? "orange" : "gray"}
-                        style={{
-                          backgroundColor: "color-mix(in hsl, var(--cal-bg-emphasis), black 5%)",
-                        }}
-                        className="rounded-l-none">
-                        {suffix}
-                      </Badge>
-                    ) : null}
-                  </div>
-                );
-              };
-
               return (
-                <div className={classNames(isNumber ? "flex w-full justify-center" : "flex flex-wrap")}>
-                  {visibleValues.map(renderBadge)}
-                  {hasHiddenValues && (
-                    <Tooltip
-                      content={
-                        <div className="flex flex-col gap-1">
-                          {hiddenValues.map((attributeValue) => (
-                            <span key={attributeValue.id}>
-                              {attributeValue.value}
-                              {attribute.isWeightsEnabled ? ` (${attributeValue.weight || 100}%)` : ""}
-                            </span>
-                          ))}
-                        </div>
-                      }>
-                      <Badge variant="gray">+{hiddenValues.length}</Badge>
-                    </Tooltip>
+                <LimitedBadges
+                  items={attributeValues}
+                  className={classNames(isNumber ? "flex w-full justify-center" : "flex flex-wrap")}
+                  renderBadge={(attributeValue) => {
+                    const isAGroupOption = attributeValue.contains?.length > 0;
+                    const suffix = attribute.isWeightsEnabled
+                      ? `${attributeValue.weight || 100}%`
+                      : undefined;
+                    return (
+                      <div className="mr-1 inline-flex shrink-0" key={attributeValue.id}>
+                        <Badge
+                          variant={isAGroupOption ? "orange" : "gray"}
+                          className={classNames(suffix && "rounded-r-none")}>
+                          {attributeValue.value}
+                        </Badge>
+
+                        {suffix ? (
+                          <Badge
+                            variant={isAGroupOption ? "orange" : "gray"}
+                            style={{
+                              backgroundColor: "color-mix(in hsl, var(--cal-bg-emphasis), black 5%)",
+                            }}
+                            className="rounded-l-none">
+                            {suffix}
+                          </Badge>
+                        ) : null}
+                      </div>
+                    );
+                  }}
+                  renderOverflowItem={(attributeValue) => (
+                    <span key={attributeValue.id} className="text-default text-sm">
+                      {attributeValue.value}
+                      {attribute.isWeightsEnabled ? ` (${attributeValue.weight || 100}%)` : ""}
+                    </span>
                   )}
-                </div>
+                />
               );
             },
           };
@@ -370,9 +356,6 @@ function UserListTableContent({
         },
         cell: ({ row, table }) => {
           const { teams, accepted, email, username } = row.original;
-          const visibleTeams = teams.slice(0, MAX_BADGES_TO_SHOW);
-          const hiddenTeams = teams.slice(MAX_BADGES_TO_SHOW);
-          const hasHiddenTeams = hiddenTeams.length > 0;
 
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
@@ -389,29 +372,25 @@ function UserListTableContent({
                 </Badge>
               )}
 
-              {visibleTeams.map((team) => (
-                <Badge
-                  key={team.id}
-                  variant="gray"
-                  onClick={() => {
-                    table.getColumn("teams")?.setFilterValue([team.name]);
-                  }}>
-                  {team.name}
-                </Badge>
-              ))}
-
-              {hasHiddenTeams && (
-                <Tooltip
-                  content={
-                    <div className="flex flex-col gap-1">
-                      {hiddenTeams.map((team) => (
-                        <span key={team.id}>{team.name}</span>
-                      ))}
-                    </div>
-                  }>
-                  <Badge variant="gray">+{hiddenTeams.length}</Badge>
-                </Tooltip>
-              )}
+              <LimitedBadges
+                items={teams}
+                className="flex flex-wrap items-center gap-2"
+                renderBadge={(team) => (
+                  <Badge
+                    key={team.id}
+                    variant="gray"
+                    onClick={() => {
+                      table.getColumn("teams")?.setFilterValue([team.name]);
+                    }}>
+                    {team.name}
+                  </Badge>
+                )}
+                renderOverflowItem={(team) => (
+                  <span key={team.id} className="text-default text-sm">
+                    {team.name}
+                  </span>
+                )}
+              />
             </div>
           );
         },
