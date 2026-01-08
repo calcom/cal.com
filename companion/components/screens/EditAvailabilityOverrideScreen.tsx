@@ -1,12 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
-import { Alert, ScrollView, Switch, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  Platform,
+  ScrollView,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import { FullScreenModal } from "@/components/FullScreenModal";
 import type { Schedule } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
+import { shadows } from "@/utils/shadows";
 
 // Generate time options (15-minute intervals)
 const generateTimeOptions = () => {
@@ -77,6 +87,45 @@ export const EditAvailabilityOverrideScreen = forwardRef<
   const [showTimePicker, setShowTimePicker] = useState<{
     type: "start" | "end";
   } | null>(null);
+
+  // Render modal content
+  const renderTimePickerContent = () => (
+    <>
+      <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
+        <Text className="text-[17px] font-semibold">
+          Select {showTimePicker?.type === "start" ? "Start" : "End"} Time
+        </Text>
+        <AppPressable onPress={() => setShowTimePicker(null)}>
+          <Ionicons name="close" size={24} color="#8E8E93" />
+        </AppPressable>
+      </View>
+      <ScrollView>
+        {TIME_OPTIONS.map((time) => {
+          const currentTime = showTimePicker?.type === "start" ? startTime : endTime;
+          const isSelected = currentTime === time;
+
+          return (
+            <AppPressable
+              key={time}
+              onPress={() => handleTimeSelect(time)}
+              className={`border-b border-gray-100 px-4 py-3.5 ${isSelected ? "bg-blue-50" : ""}`}
+            >
+              <View className="flex-row items-center justify-between">
+                <Text
+                  className={`text-[17px] ${
+                    isSelected ? "font-medium text-[#007AFF]" : "text-black"
+                  }`}
+                >
+                  {formatTime12Hour(time)}
+                </Text>
+                {isSelected && <Ionicons name="checkmark" size={20} color="#007AFF" />}
+              </View>
+            </AppPressable>
+          );
+        })}
+      </ScrollView>
+    </>
+  );
 
   // Initialize from existing override if editing
   useEffect(() => {
@@ -386,46 +435,27 @@ export const EditAvailabilityOverrideScreen = forwardRef<
       {/* Time Picker Modal */}
       <FullScreenModal
         visible={!!showTimePicker}
-        animationType="slide"
+        animationType={Platform.OS === "web" ? "fade" : "slide"}
         onRequestClose={() => setShowTimePicker(null)}
       >
-        <View className="flex-1 bg-white">
-          <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
-            <Text className="text-[17px] font-semibold">
-              Select {showTimePicker?.type === "start" ? "Start" : "End"} Time
-            </Text>
-            <AppPressable onPress={() => setShowTimePicker(null)}>
-              <Ionicons name="close" size={24} color="#8E8E93" />
-            </AppPressable>
-          </View>
-          <ScrollView>
-            {TIME_OPTIONS.map((time) => {
-              const currentTime = showTimePicker?.type === "start" ? startTime : endTime;
-              const isSelected = currentTime === time;
-
-              return (
-                <AppPressable
-                  key={time}
-                  onPress={() => handleTimeSelect(time)}
-                  className={`border-b border-gray-100 px-4 py-3.5 ${
-                    isSelected ? "bg-blue-50" : ""
-                  }`}
-                >
-                  <View className="flex-row items-center justify-between">
-                    <Text
-                      className={`text-[17px] ${
-                        isSelected ? "font-medium text-[#007AFF]" : "text-black"
-                      }`}
-                    >
-                      {formatTime12Hour(time)}
-                    </Text>
-                    {isSelected && <Ionicons name="checkmark" size={20} color="#007AFF" />}
-                  </View>
-                </AppPressable>
-              );
-            })}
-          </ScrollView>
-        </View>
+        {Platform.OS === "web" ? (
+          <TouchableOpacity
+            className="flex-1 items-center justify-center bg-black/50 p-4"
+            activeOpacity={1}
+            onPress={() => setShowTimePicker(null)}
+          >
+            <TouchableOpacity
+              className="max-h-[80%] w-full max-w-[500px] overflow-hidden rounded-2xl bg-white"
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+              style={shadows.xl()}
+            >
+              {renderTimePickerContent()}
+            </TouchableOpacity>
+          </TouchableOpacity>
+        ) : (
+          <View className="flex-1 bg-white">{renderTimePickerContent()}</View>
+        )}
       </FullScreenModal>
     </ScrollView>
   );

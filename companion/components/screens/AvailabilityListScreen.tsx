@@ -9,6 +9,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
@@ -290,13 +291,13 @@ export function AvailabilityListScreen({
             autoCorrect={false}
             clearButtonMode="while-editing"
           />
-          <AppPressable
+          <TouchableOpacity
             className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
             onPress={handleCreateNew}
           >
             <Ionicons name="add" size={18} color="#fff" />
             <Text className="text-base font-semibold text-white">New</Text>
-          </AppPressable>
+          </TouchableOpacity>
         </View>
       </Activity>
 
@@ -439,12 +440,12 @@ export function AvailabilityListScreen({
           animationType="fade"
           onRequestClose={() => onShowCreateModalChange(false)}
         >
-          <AppPressable
+          <TouchableOpacity
             className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
             activeOpacity={1}
             onPress={() => onShowCreateModalChange(false)}
           >
-            <AppPressable
+            <TouchableOpacity
               className="w-[90%] max-w-[500px] rounded-2xl bg-white"
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
@@ -452,15 +453,18 @@ export function AvailabilityListScreen({
             >
               {/* Header */}
               <View className="px-8 pb-4 pt-6">
-                <Text className="text-2xl font-semibold text-[#111827]">Add a new schedule</Text>
+                <Text className="mb-2 text-2xl font-semibold text-[#111827]">
+                  Add a new schedule
+                </Text>
+                <Text className="text-sm text-[#6B7280]">Create a new availability schedule.</Text>
               </View>
 
               {/* Content */}
               <View className="px-8 pb-6">
-                <View className="mb-1">
+                <View className="mb-4">
                   <Text className="mb-2 text-sm font-medium text-[#374151]">Name</Text>
                   <TextInput
-                    className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827]"
+                    className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827] focus:border-black focus:ring-2 focus:ring-black"
                     placeholder="Working Hours"
                     placeholderTextColor="#9CA3AF"
                     value={newScheduleName}
@@ -476,8 +480,8 @@ export function AvailabilityListScreen({
               {/* Footer */}
               <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4">
                 <View className="flex-row justify-end gap-2 space-x-2">
-                  <AppPressable
-                    className="rounded-xl border border-[#D1D5DB] bg-white px-2 py-2 md:px-4"
+                  <TouchableOpacity
+                    className="rounded-xl border border-[#D1D5DB] bg-white px-4 py-2"
                     onPress={() => {
                       onShowCreateModalChange(false);
                       setNewScheduleName("");
@@ -485,20 +489,18 @@ export function AvailabilityListScreen({
                     disabled={creating}
                   >
                     <Text className="text-base font-medium text-[#374151]">Close</Text>
-                  </AppPressable>
-                  <AppPressable
-                    className={`rounded-xl bg-[#111827] px-2 py-2 md:px-4 ${
-                      creating ? "opacity-60" : ""
-                    }`}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className={`rounded-xl bg-[#111827] px-4 py-2 ${creating ? "opacity-60" : ""}`}
                     onPress={handleCreateSchedule}
                     disabled={creating}
                   >
                     <Text className="text-base font-medium text-white">Continue</Text>
-                  </AppPressable>
+                  </TouchableOpacity>
                 </View>
               </View>
-            </AppPressable>
-          </AppPressable>
+            </TouchableOpacity>
+          </TouchableOpacity>
         </FullScreenModal>
       )}
 
