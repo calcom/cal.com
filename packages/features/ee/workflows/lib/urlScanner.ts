@@ -20,6 +20,16 @@ interface CloudflareScanSubmitResponse {
   };
 }
 
+interface CloudflareBulkScanItem {
+  url: string;
+  uuid?: string;
+  api?: string;
+  result?: string;
+  visibility?: string;
+}
+
+type CloudflareBulkScanResponse = CloudflareBulkScanItem[];
+
 interface CloudflareScanResultResponse {
   success: boolean;
   errors: Array<{ code: number; message: string }>;
@@ -174,6 +184,83 @@ async function submitUrlForScanning(url: string): Promise<{ scanId: string } | {
 }
 
 /**
+ * Processes the bulk scan response and populates the results map.
+ */
+function processBulkScanResponse(
+  data: CloudflareBulkScanResponse,
+  results: Map<string, { scanId: string } | { error: string }>
+): void {
+  for (const item of data) {
+    if (item.uuid) {
+      results.set(item.url, { scanId: item.uuid });
+      log.info(`Submitted URL for bulk scanning`, { url: item.url, scanId: item.uuid });
+    } else {
+      const errorMessage = item.result || "Unknown error submitting URL for bulk scanning";
+      results.set(item.url, { error: errorMessage });
+      log.error(`Failed to submit URL for bulk scanning: ${errorMessage}`, { url: item.url });
+    }
+  }
+}
+
+/**
+ * Submits multiple URLs to Cloudflare URL Scanner for bulk scanning.
+ * Uses the bulk endpoint to reduce API quota usage.
+ * @param urls - Array of URLs to scan (max 100 per request)
+ * @returns Map of URL to scanId, or error for each URL
+ */
+async function submitUrlsForBulkScanning(
+  urls: string[]
+): Promise<Map<string, { scanId: string } | { error: string }>> {
+  const results = new Map<string, { scanId: string } | { error: string }>();
+
+  if (urls.length === 0) {
+    return results;
+  }
+
+  // biome-ignore lint/style/noProcessEnv lint/correctness/noProcessGlobal: Server-side only, credentials from env
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  // biome-ignore lint/style/noProcessEnv lint/correctness/noProcessGlobal: Server-side only, credentials from env
+  const apiToken = process.env.CLOUDFLARE_URL_SCANNER_API_TOKEN;
+
+  if (!accountId || !apiToken) {
+    for (const url of urls) {
+      results.set(url, { error: "Cloudflare URL Scanner credentials not configured" });
+    }
+    return results;
+  }
+
+  try {
+    // Cloudflare bulk endpoint accepts up to 100 URLs per request
+    const MAX_BULK_SIZE = 100;
+    const batches: string[][] = [];
+    for (let i = 0; i < urls.length; i += MAX_BULK_SIZE) {
+      batches.push(urls.slice(i, i + MAX_BULK_SIZE));
+    }
+
+    for (const batch of batches) {
+      const requestBody = batch.map((url) => ({ url, visibility: "Unlisted" }));
+      const response = await fetch(`${CLOUDFLARE_API_BASE}/accounts/${accountId}/urlscanner/v2/bulk`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+      const data = (await response.json()) as CloudflareBulkScanResponse;
+      processBulkScanResponse(data, results);
+    }
+  } catch (error) {
+    const errorMessage = getErrorMessage(error);
+    log.error(`Error submitting URLs for bulk scanning: ${errorMessage}`);
+    for (const url of urls) {
+      if (!results.has(url)) {
+        results.set(url, { error: errorMessage });
+      }
+    }
+  }
+
+  return results;
+}
+
+/**
  * Parses the scan result response from Cloudflare API.
  */
 function parseScanResultResponse(scanId: string, data: CloudflareScanResultResponse): UrlScanResult {
@@ -238,6 +325,7 @@ async function getScanResult(scanId: string): Promise<UrlScanResult | null> {
 /**
  * Scans multiple URLs and returns results.
  * This is a synchronous scan that polls for results.
+ * Uses bulk scanning endpoint to reduce API quota usage.
  * For async scanning, use submitUrlForScanning and getScanResult separately.
  */
 async function scanUrls(urls: string[]): Promise<UrlScanResult[]> {
@@ -248,9 +336,10 @@ async function scanUrls(urls: string[]): Promise<UrlScanResult[]> {
   const results: UrlScanResult[] = [];
   const pendingScans: Map<string, { url: string; attempts: number }> = new Map();
 
-  // Submit all URLs for scanning
-  for (const url of urls) {
-    const submitResult = await submitUrlForScanning(url);
+  // Submit all URLs for bulk scanning
+  const bulkResults = await submitUrlsForBulkScanning(urls);
+
+  for (const [url, submitResult] of Array.from(bulkResults.entries())) {
     if ("error" in submitResult) {
       results.push({
         url,
@@ -344,6 +433,7 @@ export type { UrlScanResult };
 export {
   extractUrlsFromHtml,
   submitUrlForScanning,
+  submitUrlsForBulkScanning,
   getScanResult,
   scanUrls,
   checkUrlsAndLockIfMalicious,
