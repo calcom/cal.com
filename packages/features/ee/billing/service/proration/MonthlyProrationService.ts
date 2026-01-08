@@ -1,6 +1,5 @@
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
 import type { Logger } from "tslog";
 import { MonthlyProrationRepository } from "../../repository/proration/MonthlyProrationRepository";
 import type { BillingInfo } from "../../repository/proration/MonthlyProrationTeamRepository";
@@ -333,39 +332,24 @@ export class MonthlyProrationService {
 
       if (needsCreation) {
         const paidSeats = subscription.items.data[0]?.quantity || 0;
+        const billingData = {
+          teamId,
+          subscriptionId: billing.subscriptionId,
+          subscriptionItemId,
+          customerId,
+          status: subscription.status.toUpperCase(),
+          planName: isOrganization ? "ORGANIZATION" : "TEAM",
+          billingPeriod,
+          pricePerSeat,
+          paidSeats,
+          subscriptionStart,
+          subscriptionEnd,
+          subscriptionTrialEnd,
+        };
+
         const createdBilling = isOrganization
-          ? await prisma.organizationBilling.create({
-              data: {
-                teamId,
-                subscriptionId: billing.subscriptionId,
-                subscriptionItemId,
-                customerId,
-                status: subscription.status.toUpperCase(),
-                planName: "ORGANIZATION",
-                billingPeriod,
-                pricePerSeat,
-                paidSeats,
-                subscriptionStart,
-                subscriptionEnd,
-                subscriptionTrialEnd,
-              },
-            })
-          : await prisma.teamBilling.create({
-              data: {
-                teamId,
-                subscriptionId: billing.subscriptionId,
-                subscriptionItemId,
-                customerId,
-                status: subscription.status.toUpperCase(),
-                planName: "TEAM",
-                billingPeriod,
-                pricePerSeat,
-                paidSeats,
-                subscriptionStart,
-                subscriptionEnd,
-                subscriptionTrialEnd,
-              },
-            });
+          ? await this.teamRepository.createOrganizationBilling(billingData)
+          : await this.teamRepository.createTeamBilling(billingData);
 
         billing.id = createdBilling.id;
         billing.customerId = customerId;
