@@ -4,7 +4,6 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      /* A `package` should never import from `apps` ↓ */
       "@prisma/client/*": ["@calcom/prisma/client/*"],
       "@calcom/testing/*": ["../testing/src/*"]
     },
