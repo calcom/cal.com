@@ -4,6 +4,7 @@ import {
   type IAttributeSyncRule,
   type ITeamCondition,
   type IAttributeCondition,
+  RuleOperatorEnum,
 } from "../repositories/IIntegrationAttributeSyncRepository";
 import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
@@ -24,7 +25,7 @@ export class AttributeSyncRuleService {
   }: {
     user: { id: number; organizationId: number };
     attributeSyncRule: IAttributeSyncRule;
-  }) {
+  }): Promise<boolean> {
     const { operator: ruleOperator, conditions } = attributeSyncRule;
 
     const teamConditions = conditions.filter(isTeamCondition);
@@ -35,7 +36,13 @@ export class AttributeSyncRuleService {
       this.handleAttributeConditions({ user, attributeConditions }),
     ]);
 
-    return;
+    const conditionChecksFlattened = conditionChecks.flat();
+
+    if (ruleOperator === RuleOperatorEnum.AND) {
+      return !conditionChecksFlattened.some((condition) => !condition);
+    } else {
+      return conditionChecksFlattened.some((condition) => condition);
+    }
   }
 
   private async handleTeamConditions({
