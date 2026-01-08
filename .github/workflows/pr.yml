@@ -98,7 +98,7 @@ jobs:
             // git commit timestamps can be arbitrarily backdated by attackers
             if (pr.labels?.some(l => l.name === 'run-ci')) {
               // Skip stale check if this is a re-run (run_attempt > 1)
-              // Re-runs are explicitly triggered by maintainers via the run-ci.yml workflow
+              // Re-runs are explicitly triggered by maintainers
               const runAttempt = parseInt(process.env.GITHUB_RUN_ATTEMPT || '1', 10);
               if (runAttempt > 1) {
                 console.log(`Re-run detected (attempt ${runAttempt}), trusting existing 'run-ci' label`);
