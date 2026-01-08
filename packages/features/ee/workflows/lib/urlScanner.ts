@@ -284,7 +284,8 @@ async function scanUrls(urls: string[]): Promise<UrlScanResult[]> {
         // Still pending
         pendingScans.set(scanId, { url, attempts: attempts + 1 });
       } else {
-        results.push(result);
+        // Preserve URL context in case getScanResult returned an error with empty URL
+        results.push({ ...result, url: result.url || url });
         pendingScans.delete(scanId);
       }
     }

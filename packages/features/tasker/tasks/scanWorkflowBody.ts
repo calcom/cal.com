@@ -201,13 +201,20 @@ export async function scanWorkflowBody(payload: string) {
 
   const isOrg = !!workflow?.team?.isOrganization;
 
+  // Re-fetch workflow steps to get the latest verifiedAt values from the database
+  // This ensures we don't schedule notifications for steps that are pending URL scanning
+  const updatedWorkflowSteps = await prisma.workflowStep.findMany({
+    where: {
+      id: {
+        in: stepIdsToScan,
+      },
+    },
+  });
+
   await scheduleWorkflowNotifications({
     activeOn: workflow.activeOn.map((activeOn) => activeOn.eventTypeId) ?? [],
     isOrg,
-    workflowSteps: workflowSteps.map((step) => ({
-      ...step,
-      verifiedAt: new Date(),
-    })),
+    workflowSteps: updatedWorkflowSteps,
     time: workflow.time,
     timeUnit: workflow.timeUnit,
     trigger: workflow.trigger,

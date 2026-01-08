@@ -210,12 +210,16 @@ export async function submitWorkflowStepForUrlScanning(
   whitelistWorkflows?: boolean
 ): Promise<void> {
   if (!isUrlScanningEnabled()) {
+    // URL scanning is disabled, mark as verified since there's nothing to scan
+    await markWorkflowStepVerified(workflowStepId);
     return;
   }
 
   const urls = extractUrlsFromHtml(reminderBody);
   if (urls.length === 0) {
-    log.info("No URLs found in workflow step body", { workflowStepId });
+    // No URLs found, mark as verified since there's nothing to scan
+    log.info("No URLs found in workflow step body, marking as verified", { workflowStepId });
+    await markWorkflowStepVerified(workflowStepId);
     return;
   }
 
@@ -238,7 +242,8 @@ export async function submitWorkflowStepForUrlScanning(
 export async function submitUrlForUrlScanning(
   url: string,
   userId: number,
-  eventTypeId: number
+  eventTypeId: number,
+  whitelistWorkflows?: boolean
 ): Promise<void> {
   if (!isUrlScanningEnabled()) {
     return;
@@ -250,5 +255,6 @@ export async function submitUrlForUrlScanning(
     userId,
     eventTypeId,
     urls: [url],
+    whitelistWorkflows,
   });
 }
