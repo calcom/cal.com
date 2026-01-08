@@ -88,6 +88,62 @@ describe("validateUrlForSSRFSync", () => {
   });
 });
 
+describe("validateUrlForSSRFSync with allowHttp option", () => {
+  it("allows HTTP URLs when allowHttp is true", () => {
+    expect(validateUrlForSSRFSync("http://example.com/webhook", { allowHttp: true }).isValid).toBe(true);
+  });
+
+  it("still blocks HTTP by default", () => {
+    expect(validateUrlForSSRFSync("http://example.com/webhook").isValid).toBe(false);
+    expect(validateUrlForSSRFSync("http://example.com/webhook", {}).isValid).toBe(false);
+    expect(validateUrlForSSRFSync("http://example.com/webhook", { allowHttp: false }).isValid).toBe(false);
+  });
+
+  it("still blocks private IPs even with allowHttp", () => {
+    expect(validateUrlForSSRFSync("http://127.0.0.1/internal", { allowHttp: true })).toEqual({
+      isValid: false,
+      error: "Private IP address",
+    });
+    expect(validateUrlForSSRFSync("http://192.168.1.1/internal", { allowHttp: true })).toEqual({
+      isValid: false,
+      error: "Private IP address",
+    });
+    expect(validateUrlForSSRFSync("http://10.0.0.1/internal", { allowHttp: true })).toEqual({
+      isValid: false,
+      error: "Private IP address",
+    });
+  });
+
+  it("still blocks cloud metadata endpoints even with allowHttp", () => {
+    expect(validateUrlForSSRFSync("http://169.254.169.254/latest/meta-data/", { allowHttp: true })).toEqual({
+      isValid: false,
+      error: "Blocked hostname",
+    });
+    expect(validateUrlForSSRFSync("http://metadata.google.internal/computeMetadata/v1/", { allowHttp: true })).toEqual({
+      isValid: false,
+      error: "Blocked hostname",
+    });
+  });
+
+  it("still blocks localhost even with allowHttp", () => {
+    expect(validateUrlForSSRFSync("http://localhost/internal", { allowHttp: true })).toEqual({
+      isValid: false,
+      error: "Blocked hostname",
+    });
+  });
+
+  it("still blocks non-HTTP schemes even with allowHttp", () => {
+    expect(validateUrlForSSRFSync("ftp://example.com/file", { allowHttp: true })).toEqual({
+      isValid: false,
+      error: "Only HTTPS URLs are allowed",
+    });
+    expect(validateUrlForSSRFSync("file:///etc/passwd", { allowHttp: true })).toEqual({
+      isValid: false,
+      error: "Only HTTPS URLs are allowed",
+    });
+  });
+});
+
 describe("isTrustedInternalUrl", () => {
   const webappUrl = "https://app.cal.com";
 

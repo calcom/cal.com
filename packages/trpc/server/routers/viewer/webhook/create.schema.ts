@@ -3,11 +3,12 @@ import { z } from "zod";
 import { TIME_UNIT } from "@calcom/features/ee/workflows/lib/constants";
 import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
 import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+import { ssrfSafeUrlSchema } from "@calcom/lib/zod/ssrfSafeUrl";
 
 import { webhookIdAndEventTypeIdSchema } from "./types";
 
 export const ZCreateInputSchema = webhookIdAndEventTypeIdSchema.extend({
-  subscriberUrl: z.string().url(),
+  subscriberUrl: ssrfSafeUrlSchema,
   eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array(),
   active: z.boolean(),
   payloadTemplate: z.string().nullable(),

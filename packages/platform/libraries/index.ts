@@ -137,6 +137,7 @@ export { getTasker } from "@calcom/features/tasker/tasker-factory";
 export type { Tasker } from "@calcom/features/tasker/tasker";
 
 export { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
+export type { SSRFValidationOptions } from "@calcom/lib/ssrfProtection";
 
 export { verifyCodeChallenge } from "@calcom/lib/pkce";
 export { generateSecret } from "@calcom/features/oauth/utils/generateSecret";

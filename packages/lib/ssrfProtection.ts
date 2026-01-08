@@ -95,11 +95,21 @@ export interface SSRFValidationResult {
   error?: string;
 }
 
+export interface SSRFValidationOptions {
+  /** Allow HTTP URLs (default: false, only HTTPS allowed) */
+  allowHttp?: boolean;
+}
+
 /**
  * Core validation logic shared by sync and async versions
  * Returns SSRFValidationResult if validation completes, or { url } if DNS check is needed
  */
-function validateUrlCore(urlString: string): SSRFValidationResult | { url: URL } {
+function validateUrlCore(
+  urlString: string,
+  options: SSRFValidationOptions = {}
+): SSRFValidationResult | { url: URL } {
+  const { allowHttp = false } = options;
+
   // Data URLs with image/* are safe (no network fetch)
   if (urlString.startsWith("data:image/")) {
     return { isValid: true };
@@ -116,7 +126,8 @@ function validateUrlCore(urlString: string): SSRFValidationResult | { url: URL }
     return { isValid: false, error: ERRORS.INVALID_URL };
   }
 
-  if (url.protocol !== "https:") {
+  // Check protocol: HTTPS always allowed, HTTP only if allowHttp is true
+  if (url.protocol !== "https:" && !(allowHttp && url.protocol === "http:")) {
     return { isValid: false, error: ERRORS.HTTPS_ONLY };
   }
 
@@ -135,8 +146,11 @@ function validateUrlCore(urlString: string): SSRFValidationResult | { url: URL }
  * Async SSRF validation with DNS rebinding protection
  * Resolves hostname and checks all IPs against private ranges
  */
-export async function validateUrlForSSRF(urlString: string): Promise<SSRFValidationResult> {
-  const result = validateUrlCore(urlString);
+export async function validateUrlForSSRF(
+  urlString: string,
+  options: SSRFValidationOptions = {}
+): Promise<SSRFValidationResult> {
+  const result = validateUrlCore(urlString, options);
 
   if ("isValid" in result) {
     return result;
@@ -161,8 +175,11 @@ export async function validateUrlForSSRF(urlString: string): Promise<SSRFValidat
  * Sync SSRF validation for Zod schemas (no DNS check)
  * Does not protect against DNS rebinding - use async version when possible
  */
-export function validateUrlForSSRFSync(urlString: string): SSRFValidationResult {
-  const result = validateUrlCore(urlString);
+export function validateUrlForSSRFSync(
+  urlString: string,
+  options: SSRFValidationOptions = {}
+): SSRFValidationResult {
+  const result = validateUrlCore(urlString, options);
 
   if ("isValid" in result) {
     return result;
