@@ -37,7 +37,7 @@ import { Checkbox } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
-import { LimitedBadges } from "~/insights/components/ResponseValueCell";
+import { LimitedBadges } from "@calcom/web/components/ui/LimitedBadges";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DynamicLink } from "./BulkActions/DynamicLink";
