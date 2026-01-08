@@ -110,7 +110,7 @@ function SortableFormItem({ form, readOnly, appUrl, t }: SortableFormItemProps):
       ref={setNodeRef}
       style={style}
       className={classNames(
-        "group flex w-full max-w-full items-center justify-between overflow-hidden",
+        "group flex w-full max-w-full items-center justify-between",
         isDragging && "bg-cal-muted border-subtle border-t"
       )}
       key={form.id}>

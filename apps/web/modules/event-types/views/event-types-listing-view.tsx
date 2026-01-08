@@ -339,9 +339,9 @@ function SortableEventTypeItem({
       style={style}
       key={type.id}
       className={classNames(isDragging && "bg-cal-muted border-subtle border-t")}>
-      <div className="hover:bg-cal-muted flex w-full items-center justify-between">
-        <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
-          <DragButton listeners={listeners} attributes={attributes} />
+      <div className="hover:bg-cal-muted group flex w-full items-center justify-between">
+        <DragButton listeners={listeners} attributes={attributes} />
+        <div className="flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
           <MemoizedItem type={type} group={group} readOnly={readOnly} />
           <div className="mt-4 hidden sm:mt-0 sm:flex">
             <div className="flex justify-between space-x-2 rtl:space-x-reverse">
