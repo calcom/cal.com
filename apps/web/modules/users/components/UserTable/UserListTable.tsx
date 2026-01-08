@@ -23,7 +23,7 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import {
   generateCsvRawForMembersTable,
   generateHeaderFromReactTable,
-} from "@calcom/features/users/lib/UserListTableUtils";
+} from "@calcom/web/modules/users/lib/UserListTableUtils";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -48,7 +48,8 @@ import { EditUserSheet } from "./EditSheet/EditUserSheet";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
-import type { UserTableState, UserTableAction, UserTableUser, MemberPermissions } from "./types";
+import type { UserTableState, UserTableAction, UserTableUser } from "./types";
+import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 
 const initialState: UserTableState = {
   changeMemberRole: {
