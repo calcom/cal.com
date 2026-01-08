@@ -102,7 +102,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
-  const ns = "common";
+  const ns = h.get("x-cal-i18n-ns") ?? "common";
   const translations = await loadTranslations(locale, ns);
 
   return (
