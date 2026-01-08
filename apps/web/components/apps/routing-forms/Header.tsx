@@ -1,5 +1,6 @@
 "use client";
 
+import { MenuIcon, PencilIcon, WaypointsIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -9,7 +10,6 @@ import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/t
 import { Button } from "@calcom/ui/components/button";
 import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { FormAction, FormActionsDropdown } from "./FormActions";
@@ -297,9 +297,9 @@ export function Header({
                 variant="icon"
                 color="minimal"
                 onClick={() => setIsEditing(true)}
-                CustomStartIcon={
-                  <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
-                }>
+                                CustomStartIcon={
+                                  <PencilIcon className="text-subtle group-hover:text-default h-3 w-3" />
+                                }>
                 <span className="sr-only">Edit</span>
               </Button>
             </div>
@@ -319,14 +319,14 @@ export function Header({
               {
                 value: "form-edit",
                 label: <span className="sr-only sm:not-sr-only">{t("form")}</span>,
-                iconLeft: <Icon name="menu" className="h-3 w-3" />,
-                dataTestId: "toggle-group-item-form-edit",
-              },
-              {
-                value: "route-builder",
-                label: <span className="sr-only sm:not-sr-only">{t("routing")}</span>,
-                iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
-              },
+                              iconLeft: <MenuIcon className="h-3 w-3" />,
+                              dataTestId: "toggle-group-item-form-edit",
+                            },
+                            {
+                              value: "route-builder",
+                              label: <span className="sr-only sm:not-sr-only">{t("routing")}</span>,
+                              iconLeft: <WaypointsIcon className="h-3 w-3" />,
+                            },
             ]}
           />
         </div>
@@ -355,18 +355,18 @@ export function Header({
             {
               value: "form-edit",
               label: <span className="sr-only sm:not-sr-only">{t("form")}</span>,
-              iconLeft: <Icon name="menu" className="h-3 w-3" />,
-            },
-            {
-              value: "route-builder",
-              label: <span className="sr-only sm:not-sr-only">{t("routing")}</span>,
-              iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
-            },
-          ]}
-        />
-      </div>
+                    iconLeft: <MenuIcon className="h-3 w-3" />,
+                  },
+                  {
+                    value: "route-builder",
+                    label: <span className="sr-only sm:not-sr-only">{t("routing")}</span>,
+                    iconLeft: <WaypointsIcon className="h-3 w-3" />,
+                  },
+                ]}
+              />
+            </div>
 
-      {/* Desktop layout - Actions in right column */}
+            {/* Desktop layout - Actions in right column */}
       <div className="border-muted hidden justify-end border-b px-3 py-3 lg:flex lg:px-4">
         <Actions
           form={routingForm}
