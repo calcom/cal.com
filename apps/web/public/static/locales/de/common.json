@@ -688,7 +688,7 @@
   "sunday": "Sonntag",
   "all_booked_today": "Alle Termine bereits vergeben.",
   "slots_load_fail": "Die verfügbaren Zeitfenster konnten nicht geladen werden.",
-  "additional_guests": "+ Weitere Gäste",
+  "additional_guests": "Weitere Gäste",
   "your_name": "Ihr Name",
   "your_full_name": "Ihr vollständiger Name",
   "no_name": "Kein Name",
