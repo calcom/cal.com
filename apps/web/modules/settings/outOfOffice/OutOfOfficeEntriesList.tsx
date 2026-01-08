@@ -364,10 +364,10 @@ function OutOfOfficeEntriesListContent({
         rowClassName={selectedTab === OutOfOfficeTab.MINE ? "hidden" : ""}
         table={table}
         isPending={isPending}
+        hasNextPage={hasNextPage}
         totalRowCount={totalRowCount}
         tableContainerRef={tableContainerRef}
         paginationMode="infinite"
-        variant="compact"
         ToolbarLeft={
           <>
             <DataTableToolbar.SearchBar />
