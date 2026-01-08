@@ -30,44 +30,107 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type {
   Booking,
-  Prisma,
+  User,
   OutOfOfficeEntry,
   OutOfOfficeReason,
-  User,
   EventType as PrismaEventType,
+  Availability,
+  SelectedCalendar,
+  TravelSchedule,
 } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarFetchMode, EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
-
-import { findUsersForAvailabilityCheck } from "./findUsersForAvailabilityCheck";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
-const availabilitySchema = z
-  .object({
-    dateFrom: stringToDayjsZod,
-    dateTo: stringToDayjsZod,
-    eventTypeId: z.number().optional(),
-    username: z.string().optional(),
-    userId: z.number().optional(),
-    afterEventBuffer: z.number().optional(),
-    beforeEventBuffer: z.number().optional(),
-    duration: z.number().optional(),
-    withSource: z.boolean().optional(),
-    returnDateOverrides: z.boolean(),
-    bypassBusyCalendarTimes: z.boolean().optional(),
-    silentlyHandleCalendarFailures: z.boolean().optional(),
-    mode: z.enum(["slots", "overlay", "booking"]).optional(),
-  })
-  .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
+
+type GetUsersAvailabilityQuery = {
+  dateFrom: string;
+  dateTo: string;
+  eventTypeId?: number;
+  afterEventBuffer?: number;
+  beforeEventBuffer?: number;
+  duration?: number;
+  withSource?: boolean;
+  returnDateOverrides: boolean;
+  bypassBusyCalendarTimes?: boolean;
+  silentlyHandleCalendarFailures?: boolean;
+  mode?: string;
+};
+
+const availabilitySchema: z.ZodType<GetUserAvailabilityParams, z.ZodTypeDef, unknown> = z.object({
+  dateFrom: stringToDayjsZod,
+  dateTo: stringToDayjsZod,
+  eventTypeId: z.number().optional(),
+  afterEventBuffer: z.number().optional(),
+  beforeEventBuffer: z.number().optional(),
+  duration: z.number().optional(),
+  withSource: z.boolean().optional(),
+  returnDateOverrides: z.boolean(),
+  bypassBusyCalendarTimes: z.boolean().optional(),
+  silentlyHandleCalendarFailures: z.boolean().optional(),
+  shouldServeCache: z.boolean().optional(),
+  mode: z.enum(["slots", "overlay", "booking", "none"]).default("none"),
+});
+
+type GetUserAvailabilityParams = {
+  withSource?: boolean;
+  username?: string;
+  userId?: number;
+  dateFrom: Dayjs;
+  dateTo: Dayjs;
+  eventTypeId?: number;
+  afterEventBuffer?: number;
+  beforeEventBuffer?: number;
+  duration?: number;
+  returnDateOverrides: boolean;
+  bypassBusyCalendarTimes?: boolean;
+  silentlyHandleCalendarFailures?: boolean;
+  mode?: CalendarFetchMode;
+};
+
+interface GetUserAvailabilityParamsDTO {
+  availability: (DateOverride | WorkingHours)[];
+}
+
+type GetUsersAvailabilityProps = {
+  users: (GetAvailabilityUser & {
+    currentBookings?: GetUserAvailabilityInitialData["currentBookings"];
+    outOfOfficeDays?: GetUserAvailabilityInitialData["outOfOfficeDays"];
+  })[];
+  query: GetUsersAvailabilityQuery;
+  initialData?: Omit<GetUserAvailabilityInitialData, "user">;
+};
 
 export type EventType = Awaited<ReturnType<(typeof UserAvailabilityService)["prototype"]["_getEventType"]>>;
 
-type GetUser = Awaited<ReturnType<(typeof UserAvailabilityService)["prototype"]["_getUser"]>>;
-
 export type GetUserAvailabilityInitialData = {
-  user?: GetUser;
+  user: {
+    isFixed?: boolean;
+    groupId?: string | null;
+    username: string | null;
+    id: number;
+    email: string;
+    bufferTime: number;
+    startTime: number;
+    endTime: number;
+    timeZone: string;
+    availability: Availability[];
+    timeFormat: number | null;
+    defaultScheduleId: number | null;
+    isPlatformManaged: boolean;
+    schedules: {
+      availability: { days: number[]; startTime: Date; endTime: Date; date: Date | null }[];
+      timeZone: string | null;
+      id: number;
+    }[];
+    credentials: CredentialForCalendarService[];
+    allSelectedCalendars: SelectedCalendar[];
+    userLevelSelectedCalendars: SelectedCalendar[];
+    travelSchedules: TravelSchedule[];
+  } | null;
   eventType?: EventType;
   currentSeats?: CurrentSeats;
   rescheduleUid?: string | null;
@@ -85,7 +148,7 @@ export type GetUserAvailabilityInitialData = {
     toUser: Pick<User, "id" | "username" | "name"> | null;
     reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
   })[];
-  busyTimesFromLimitsBookings: EventBusyDetails[];
+  busyTimesFromLimitsBookings?: EventBusyDetails[];
   busyTimesFromLimits?: Map<number, EventBusyDetails[]>;
   eventTypeForLimits?: {
     id: number;
@@ -100,23 +163,7 @@ export type GetUserAvailabilityInitialData = {
   } | null;
 };
 
-export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
-
-type GetUserAvailabilityQuery = {
-  withSource?: boolean;
-  username?: string;
-  userId?: number;
-  dateFrom: string;
-  dateTo: string;
-  eventTypeId?: number;
-  afterEventBuffer?: number;
-  beforeEventBuffer?: number;
-  duration?: number;
-  returnDateOverrides: boolean;
-  bypassBusyCalendarTimes: boolean;
-  silentlyHandleCalendarFailures?: boolean;
-  mode?: CalendarFetchMode;
-};
+export type GetAvailabilityUser = GetUserAvailabilityInitialData["user"];
 
 export type CurrentSeats = Awaited<
   ReturnType<(typeof UserAvailabilityService)["prototype"]["_getCurrentSeats"]>
@@ -125,10 +172,6 @@ export type CurrentSeats = Awaited<
 export type GetUserAvailabilityResult = Awaited<
   ReturnType<(typeof UserAvailabilityService)["prototype"]["_getUserAvailability"]>
 >;
-
-interface GetUserAvailabilityParamsDTO {
-  availability: (DateOverride | WorkingHours)[];
-}
 
 export interface IFromUser {
   id: number;
@@ -152,15 +195,6 @@ export interface IOutOfOfficeData {
   };
 }
 
-type GetUsersAvailabilityProps = {
-  users: (GetAvailabilityUser & {
-    currentBookings?: GetUserAvailabilityInitialData["currentBookings"];
-    outOfOfficeDays?: GetUserAvailabilityInitialData["outOfOfficeDays"];
-  })[];
-  query: Omit<GetUserAvailabilityQuery, "userId" | "username">;
-  initialData?: Omit<GetUserAvailabilityInitialData, "user">;
-};
-
 export interface IUserAvailabilityService {
   eventTypeRepo: EventTypeRepository;
   oooRepo: PrismaOOORepository;
@@ -173,7 +207,7 @@ export class UserAvailabilityService {
   constructor(public readonly dependencies: IUserAvailabilityService) {}
 
   // Fetch timezones from outlook or google using delegated credentials (formely known as domain wide delegatiion)
-  async getTimezoneFromDelegatedCalendars(user: GetAvailabilityUser): Promise<string | null> {
+  async getTimezoneFromDelegatedCalendars(user: NonNullable<GetAvailabilityUser>): Promise<string | null> {
     if (!user.credentials || user.credentials.length === 0) {
       return null;
     }
@@ -242,11 +276,6 @@ export class UserAvailabilityService {
 
   getEventType = withReporting(this._getEventType.bind(this), "getEventType");
 
-  async _getUser(where: Prisma.UserWhereInput) {
-    return findUsersForAvailabilityCheck({ where });
-  }
-  getUser = withReporting(this._getUser.bind(this), "getUser");
-
   async _getCurrentSeats(
     eventType: {
       id?: number;
@@ -291,7 +320,10 @@ export class UserAvailabilityService {
   getCurrentSeats = withReporting(this._getCurrentSeats.bind(this), "getCurrentSeats");
 
   /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
-  async _getUserAvailability(query: GetUserAvailabilityQuery, initialData?: GetUserAvailabilityInitialData) {
+  async _getUserAvailability(
+    params: GetUserAvailabilityParams,
+    initialData?: GetUserAvailabilityInitialData
+  ) {
     const {
       username,
       userId,
@@ -304,25 +336,16 @@ export class UserAvailabilityService {
       returnDateOverrides,
       bypassBusyCalendarTimes = false,
       silentlyHandleCalendarFailures = false,
-      mode,
-    } = availabilitySchema.parse(query);
+      mode = "none",
+    } = params;
 
     log.debug(
       `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Called with: ${safeStringify({
-        query,
+        params,
       })}`
     );
 
-    if (!dateFrom.isValid() || !dateTo.isValid()) {
-      throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
-    }
-
-    const where: Prisma.UserWhereInput = {};
-    if (username) where.username = username;
-    if (userId) where.id = userId;
-
-    const user = initialData?.user || (await this.getUser(where));
-
+    const user = initialData?.user || null;
     if (!user) {
       throw new HttpError({ statusCode: 404, message: "No user found in getUserAvailability" });
     }
@@ -364,8 +387,8 @@ export class UserAvailabilityService {
     const potentialSchedule = eventType?.schedule
       ? eventType.schedule
       : hostSchedule
-      ? hostSchedule
-      : userSchedule;
+        ? hostSchedule
+        : userSchedule;
 
     // if no schedules set by or for a user, use fallbackSchedule
     const schedule = potentialSchedule ?? fallbackSchedule;
@@ -489,7 +512,7 @@ export class UserAvailabilityService {
         start: dayjs(a.start).toISOString(),
         end: dayjs(a.end).toISOString(),
         title: a.title,
-        source: query.withSource ? a.source : undefined,
+        source: params.withSource ? a.source : undefined,
       })),
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
@@ -575,20 +598,34 @@ export class UserAvailabilityService {
       }
     }
 
+    const travelSchedules: {
+      startDate: dayjs.Dayjs;
+      endDate?: dayjs.Dayjs;
+      timeZone: string;
+    }[] = [];
+
+    if (isDefaultSchedule) {
+      travelSchedules.push(
+        ...user.travelSchedules.map((schedule) => {
+          let endDate: Dayjs | undefined;
+          if (schedule.endDate) {
+            endDate = dayjs(schedule.endDate);
+          }
+          return {
+            startDate: dayjs(schedule.startDate),
+            endDate,
+            timeZone: schedule.timeZone,
+          };
+        })
+      );
+    }
+
     const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
       dateFrom,
       dateTo,
       availability,
       timeZone: finalTimezone,
-      travelSchedules: isDefaultSchedule
-        ? user.travelSchedules.map((schedule) => {
-            return {
-              startDate: dayjs(schedule.startDate),
-              endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
-              timeZone: schedule.timeZone,
-            };
-          })
-        : [],
+      travelSchedules,
       outOfOffice: datesOutOfOffice,
     });
 
@@ -655,17 +692,26 @@ export class UserAvailabilityService {
           if (!flattenDays?.includes(dayNumberOnWeek)) {
             continue; // Skip to the next iteration if day not found in flattenDays
           }
+          // null notes if not to be shown publicly
+          if (!showNotePublicly) {
+            notes = null;
+          }
+
+          let toUserData = null;
+          if (toUser) {
+            toUserData = { id: toUser.id, displayName: toUser.name, username: toUser.username };
+          }
 
           acc[date.format("YYYY-MM-DD")] = {
             // @TODO:  would be good having start and end availability time here, but for now should be good
             // you can obtain that from user availability defined outside of here
             fromUser: { id: user.id, displayName: user.name },
             // optional chaining destructuring toUser
-            toUser: toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
-            reason: reason ? reason.reason : null,
-            emoji: reason ? reason.emoji : null,
-            notes: showNotePublicly ? notes || null : null,
-            showNotePublicly: showNotePublicly ?? false,
+            toUser: toUserData,
+            reason: reason?.reason || null,
+            emoji: reason?.emoji || null,
+            notes,
+            showNotePublicly,
           };
         }
 
@@ -682,11 +728,18 @@ export class UserAvailabilityService {
         `High-load warning: Attempting to fetch availability for ${users.length} users. User IDs: [${userIds}], EventTypeId: [${query.eventTypeId}]`
       );
     }
+
+    const params = availabilitySchema.parse(query);
+
+    if (!params.dateFrom.isValid() || !params.dateTo.isValid()) {
+      throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
+    }
+
     return await Promise.all(
       users.map((user) =>
         this._getUserAvailability(
           {
-            ...query,
+            ...params,
             userId: user.id,
             username: user.username || "",
           },

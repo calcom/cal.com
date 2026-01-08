@@ -1256,46 +1256,6 @@ export default function EventTypeDetail() {
           contentContainerStyle={{ padding: 16, paddingBottom: 200 }}
           contentInsetAdjustmentBehavior="automatic"
         >
-          {/* Horizontal tabs only shown on web; Android uses header dropdown menu */}
-          <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
-            <View
-              style={{
-                paddingBottom: 12,
-              }}
-            >
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 12, gap: 4 }}
-              >
-                {tabs.map((tab) => (
-                  <TouchableOpacity
-                    key={tab.id}
-                    className={`min-w-[90px] items-center rounded-[24px] px-3 py-3 md:px-5 ${
-                      activeTab === tab.id ? "bg-[#EEEFF2]" : ""
-                    }`}
-                    onPress={() => setActiveTab(tab.id)}
-                  >
-                    <View className="flex-row items-center gap-2">
-                      <Ionicons
-                        name={tab.icon}
-                        size={18}
-                        color={activeTab === tab.id ? "#007AFF" : "#666"}
-                      />
-                      <Text
-                        className={`text-base font-medium ${
-                          activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"
-                        }`}
-                      >
-                        {tab.label}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          </Activity>
-
           {activeTab === "basics" ? (
             <BasicsTab
               eventTitle={eventTitle}
