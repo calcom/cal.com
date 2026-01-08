@@ -65,7 +65,7 @@ function LimitedBadges({
   const hasHiddenItems = hiddenItems.length > 0;
 
   return (
-    <div className={`flex flex-wrap items-center gap-1 ${className || ""}`}>
+    <div className={`flex flex-wrap items-center gap-x-1 gap-y-1 ${className || ""}`}>
       {visibleItems.map((item) => (
         <Badge key={item.id} variant={item.variant || "gray"} onClick={item.onClick}>
           {item.label}
