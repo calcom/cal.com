@@ -150,29 +150,20 @@ export async function patchHandler(req: NextApiRequest) {
 
   if (hasEmailBeenChanged && newEmail) {
     const secondaryEmail = await userRepository.findSecondaryEmailByUserIdAndEmail({
-      userId: query.userId,
-      email: newEmail,
-    });
+        userId: query.userId,
+        email: newEmail,
+      });
 
     if (emailVerification) {
       if (secondaryEmail && secondaryEmail.emailVerified) {
-        const [, updatedUser] = await prisma.$transaction([
-          prisma.secondaryEmail.update({
-            where: {
-              id: secondaryEmail.id,
-              userId: query.userId,
-            },
-            data: {
-              email: currentUser.email,
-              emailVerified: currentUser.emailVerified,
-            },
-          }),
-          prisma.user.update({
-            where: { id: query.userId },
-            data: prismaData,
-          }),
-        ]);
-        const data = updatedUser;
+        const data = await userRepository.swapPrimaryEmailWithSecondaryEmail({
+          userId: query.userId,
+          secondaryEmailId: secondaryEmail.id,
+          oldPrimaryEmail: currentUser.email,
+          oldPrimaryEmailVerified: currentUser.emailVerified,
+          newPrimaryEmail: newEmail,
+          userUpdateData: prismaData,
+        });
 
         const user = schemaUserReadPublic.parse(data);
         return { user };

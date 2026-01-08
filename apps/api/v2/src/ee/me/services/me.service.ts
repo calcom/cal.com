@@ -1,6 +1,5 @@
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
@@ -17,8 +16,7 @@ export class MeService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly schedulesService: SchedulesService_2024_04_15,
-    private readonly featuresRepository: PrismaFeaturesRepository,
-    private readonly prismaWrite: PrismaWriteService
+    private readonly featuresRepository: PrismaFeaturesRepository
   ) {}
 
   async updateMe(params: {
@@ -50,22 +48,14 @@ export class MeService {
       const secondaryEmail = await this.usersRepository.findVerifiedSecondaryEmail(user.id, newEmail);
 
       if (secondaryEmail && secondaryEmail.emailVerified) {
-        const [, updatedUser] = await this.prismaWrite.prisma.$transaction([
-          this.prismaWrite.prisma.secondaryEmail.update({
-            where: {
-              id: secondaryEmail.id,
-              userId: user.id,
-            },
-            data: {
-              email: user.email,
-              emailVerified: user.emailVerified,
-            },
-          }),
-          this.prismaWrite.prisma.user.update({
-            where: { id: user.id },
-            data: update,
-          }),
-        ]);
+        const updatedUser =
+          await this.usersRepository.swapPrimaryEmailWithSecondaryEmail(
+            user.id,
+            secondaryEmail.id,
+            user.email,
+            user.emailVerified,
+            newEmail
+          );
 
         return {
           updatedUser,
