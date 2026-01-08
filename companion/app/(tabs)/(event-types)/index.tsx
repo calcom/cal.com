@@ -617,8 +617,8 @@ export default function EventTypes() {
             <View>
               <AlertDialogText className="mb-2 text-sm font-medium">Title</AlertDialogText>
               <TextInput
-                className={`rounded-md border bg-white px-3 py-2.5 text-base text-[#111827] ${
-                  titleError ? "border-red-500" : "border-[#D1D5DB]"
+                className={`rounded-md border bg-white px-3 py-2.5 text-base text-gray-900 ${
+                  titleError ? "border-red-500" : "border-gray-300"
                 }`}
                 placeholder="Quick Chat"
                 placeholderTextColor="#9CA3AF"
@@ -668,10 +668,10 @@ export default function EventTypes() {
             >
               {/* Header */}
               <View className="px-8 pb-4 pt-6">
-                <Text className="mb-2 text-2xl font-semibold text-[#111827]">
+                <Text className="mb-2 text-2xl font-semibold text-gray-900">
                   Add a new event type
                 </Text>
-                <Text className="text-sm text-[#6B7280]">
+                <Text className="text-sm text-gray-500">
                   Set up event types to offer different types of meetings.
                 </Text>
               </View>
@@ -680,9 +680,9 @@ export default function EventTypes() {
               <View className="px-8 pb-6">
                 {/* Title */}
                 <View className="mb-4">
-                  <Text className="mb-2 text-sm font-medium text-[#374151]">Title</Text>
+                  <Text className="mb-2 text-sm font-medium text-gray-700">Title</Text>
                   <TextInput
-                    className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827] focus:border-black focus:ring-2 focus:ring-black"
+                    className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-black focus:ring-2 focus:ring-black"
                     placeholder="Quick Chat"
                     placeholderTextColor="#9CA3AF"
                     value={newEventTitle}
@@ -699,11 +699,11 @@ export default function EventTypes() {
               <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4">
                 <View className="flex-row justify-end gap-2 space-x-2">
                   <TouchableOpacity
-                    className="rounded-xl border border-[#D1D5DB] bg-white px-4 py-2"
+                    className="rounded-xl border border-gray-300 bg-white px-4 py-2"
                     onPress={handleCloseCreateModal}
                     disabled={creating}
                   >
-                    <Text className="text-base font-medium text-[#374151]">Close</Text>
+                    <Text className="text-base font-medium text-gray-700">Close</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     className={`rounded-xl bg-[#111827] px-4 py-2 ${creating ? "opacity-60" : ""}`}

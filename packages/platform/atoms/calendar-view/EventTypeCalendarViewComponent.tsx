@@ -10,7 +10,7 @@ import { BookerSection } from "@calcom/web/modules/bookings/components/Section";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
-import { LargeCalendar } from "@calcom/features/calendar-view/LargeCalendar";
+import { LargeCalendar } from "@calcom/web/modules/calendar-view/components/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 
