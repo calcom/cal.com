@@ -48,6 +48,7 @@ export interface BookerLayouts {
 }
 
 export interface ConfirmationPolicy {
+  type?: "always";
   noticeThreshold?: {
     count: number;
     unit: "hours" | "minutes";
@@ -215,6 +216,16 @@ export interface EventType {
   hosts?: Array<{
     userId: number;
     isFixed: boolean;
+  }>;
+  users?: Array<{
+    id: number;
+    name?: string;
+    username?: string;
+    avatarUrl?: string;
+    brandColor?: string | null;
+    darkBrandColor?: string | null;
+    weekStart?: string;
+    metadata?: Record<string, unknown>;
   }>;
 
   // Metadata
