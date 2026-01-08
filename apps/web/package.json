@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "6.0.6",
+  "version": "6.0.8",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -91,7 +91,6 @@
     "classnames": "2.3.2",
     "dompurify": "3.3.1",
     "entities": "4.5.0",
-    "gray-matter": "4.0.3",
     "handlebars": "4.7.7",
     "i18next": "23.2.3",
     "ical.js": "1.5.0",
@@ -138,7 +137,7 @@
     "retell-client-js-sdk": "2.0.7",
     "retell-sdk": "4.41.0",
     "rrule": "2.7.1",
-    "sanitize-html": "2.10.0",
+    "sanitize-html": "2.17.0",
     "schema-dts": "1.1.0",
     "sharp": "0.33.5",
     "short-uuid": "4.2.0",
@@ -153,6 +152,7 @@
     "@babel/core": "7.26.10",
     "@biomejs/biome": "2.3.10",
     "@calcom/config": "workspace:*",
+    "@calcom/testing": "workspace:*",
     "@calcom/types": "workspace:*",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@playwright/test": "1.57.0",
