@@ -89,9 +89,9 @@ export const getCalendar = async (
   // Wrap ALL calendars with telemetry when telemetry is enabled
   // This provides consistent metrics for all calendar types
   if (isTelemetryEnabled()) {
-    log.info(
+    /* log.info(
       `Using CalendarTelemetryWrapper for credential ${credential.id} (cacheSupported: ${isCacheSupported}, cacheEnabled: ${useCache})`
-    );
+    ); */
     calendar = new CalendarTelemetryWrapper({
       originalCalendar: calendar,
       calendarType,
