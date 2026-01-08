@@ -8,10 +8,8 @@ const log: ReturnType<typeof logger.getSubLogger> = logger.getSubLogger({ prefix
 /**
  * SSRF protection helpers for server-side URL fetching
  *
- * This module should be used when fetching user-controlled URLs (e.g. logos, avatars) 
- * to ensure we don't accidentally access internal networks or cloud metadata services
- *
- * Keep this logic permissive enough to avoid breaking common image hosts
+ * Use when fetching user-controlled URLs (logos, avatars, webhooks) to prevent
+ * access to internal networks and cloud metadata services
  */
 
 // Private IPv4 ranges (RFC1918 + special ranges)
@@ -29,23 +27,22 @@ const PRIVATE_IPV4_PATTERNS: RegExp[] = [
 const PRIVATE_IPV6_PATTERNS: RegExp[] = [
   /^::1$/i, // loopback
   /^::$/i, // unspecified address
-  /^::ffff:/i, // IPv4-mapped IPv6 (e.g., ::ffff:127.0.0.1)
+  /^::ffff:/i, // IPv4-mapped (e.g., ::ffff:127.0.0.1)
   /^fc/i, // unique local fc00::/7
   /^fd/i, // unique local
   /^fe80:/i, // link-local
   /^2001:db8:/i, // documentation range
 ];
 
-// Cloud metadata endpoints and other blocked hostnames
+// Cloud metadata endpoints
 const BLOCKED_HOSTNAMES: string[] = [
-  "localhost", // loopback hostname
+  "localhost",
   "169.254.169.254", // AWS/Azure/DigitalOcean/Oracle metadata
   "169.254.169.253", // Azure alternate
   "metadata.google.internal", // GCP metadata
   "metadata.google.com", // GCP alternate
 ];
 
-// Error messages
 const ERRORS = {
   HTTPS_ONLY: "Only HTTPS URLs are allowed",
   PRIVATE_IP: "Private IP address",
@@ -55,12 +52,12 @@ const ERRORS = {
   NON_IMAGE_DATA_URL: "Non-image data URL",
 } as const;
 
-// Normalize hostname by removing trailing dot
+/** Normalize hostname: lowercase and remove trailing dot (FQDN format) */
 function normalizeHostname(hostname: string): string {
   return hostname.toLowerCase().replace(/\.$/, "");
 }
 
-// Extract IPv4 from IPv4-mapped IPv6 address (e.g., ::ffff:127.0.0.1 -> 127.0.0.1)
+// Extracts IPv4 from mapped address (e.g., ::ffff:127.0.0.1 -> 127.0.0.1)
 function extractIPv4FromMappedIPv6(ip: string): string | null {
   const match = ip.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/i);
   if (match) {
@@ -69,7 +66,7 @@ function extractIPv4FromMappedIPv6(ip: string): string | null {
   return null;
 }
 
-// Check if an IP address is private/internal
+/** Check if an IP address belongs to private/internal ranges (RFC1918, link-local, etc.) */
 export function isPrivateIP(ip: string): boolean {
   const mappedIPv4 = extractIPv4FromMappedIPv6(ip);
   if (mappedIPv4) {
@@ -87,7 +84,7 @@ export function isPrivateIP(ip: string): boolean {
   return false;
 }
 
-// Check if a hostname is in the blocked list
+/** Check if hostname is a blocked cloud metadata endpoint or localhost */
 export function isBlockedHostname(hostname: string): boolean {
   const normalized = normalizeHostname(hostname);
   return BLOCKED_HOSTNAMES.includes(normalized);
@@ -99,111 +96,82 @@ export interface SSRFValidationResult {
 }
 
 /**
- * SSRF validation for user-provided URLs that are fetched server-side
- *
- * Async variant: it resolves the hostname and rejects URLs that point to
- * private networks, metadata endpoints, or rebinding targets
+ * Core validation logic shared by sync and async versions
+ * Returns SSRFValidationResult if validation completes, or { url } if DNS check is needed
  */
-export async function validateUrlForSSRF(urlString: string): Promise<SSRFValidationResult> {
-  // Data URLs with image/ content type are safe (no network fetch)
+function validateUrlCore(urlString: string): SSRFValidationResult | { url: URL } {
+  // Data URLs with image/* are safe (no network fetch)
   if (urlString.startsWith("data:image/")) {
     return { isValid: true };
   }
 
-  // Block non-image data URLs
   if (urlString.startsWith("data:")) {
     return { isValid: false, error: ERRORS.NON_IMAGE_DATA_URL };
   }
 
+  let url: URL;
   try {
-    const url = new URL(urlString);
-
-    // Only allow HTTPS (HTTP is insecure for external resources)
-    if (url.protocol !== "https:") {
-      return { isValid: false, error: ERRORS.HTTPS_ONLY };
-    }
-
-    // Check blocked hostnames (with normalization)
-    if (isBlockedHostname(url.hostname)) {
-      return { isValid: false, error: ERRORS.BLOCKED_HOSTNAME };
-    }
-
-    // Check if hostname is a direct IP
-    const ipVersion = net.isIP(url.hostname);
-
-    if (ipVersion !== 0) {
-      // It's an IP address (4 or 6)
-      if (isPrivateIP(url.hostname)) {
-        return { isValid: false, error: ERRORS.PRIVATE_IP };
-      }
-    }
-
-    // DNS rebinding protection: resolve ALL IPs and check each one
-    try {
-      const addresses = await dns.lookup(url.hostname, { all: true });
-      for (const { address } of addresses) {
-        if (isPrivateIP(address)) {
-          return { isValid: false, error: ERRORS.PRIVATE_IP_DNS };
-        }
-      }
-    } catch {
-      // Intentionally allowing DNS failures here to avoid breaking legitimate
-      // third-party image hosts with flaky or slow DNS
-    }
-
-    return { isValid: true };
+    url = new URL(urlString);
   } catch {
     return { isValid: false, error: ERRORS.INVALID_URL };
   }
+
+  if (url.protocol !== "https:") {
+    return { isValid: false, error: ERRORS.HTTPS_ONLY };
+  }
+
+  if (isBlockedHostname(url.hostname)) {
+    return { isValid: false, error: ERRORS.BLOCKED_HOSTNAME };
+  }
+
+  if (net.isIP(url.hostname) !== 0 && isPrivateIP(url.hostname)) {
+    return { isValid: false, error: ERRORS.PRIVATE_IP };
+  }
+
+  return { url };
 }
 
 /**
- * Synchronous version of validateUrlForSSRF (without DNS check)
- *
- * Use this for Zod schemas and other synchronous validation contexts
- * Note: This does not protect against DNS rebinding attacks
+ * Async SSRF validation with DNS rebinding protection
+ * Resolves hostname and checks all IPs against private ranges
  */
-export function validateUrlForSSRFSync(urlString: string): SSRFValidationResult {
-  // Data URLs with image/ content type are safe (no network fetch)
-  if (urlString.startsWith("data:image/")) {
-    return { isValid: true };
+export async function validateUrlForSSRF(urlString: string): Promise<SSRFValidationResult> {
+  const result = validateUrlCore(urlString);
+
+  if ("isValid" in result) {
+    return result;
   }
 
-  // Block non-image data URLs
-  if (urlString.startsWith("data:")) {
-    return { isValid: false, error: ERRORS.NON_IMAGE_DATA_URL };
-  }
-
+  // DNS rebinding protection: resolve ALL IPs and check each one
   try {
-    const url = new URL(urlString);
-
-    // Only allow HTTPS (HTTP is insecure for external resources)
-    if (url.protocol !== "https:") {
-      return { isValid: false, error: ERRORS.HTTPS_ONLY };
-    }
-
-    // Check blocked hostnames (with normalization)
-    if (isBlockedHostname(url.hostname)) {
-      return { isValid: false, error: ERRORS.BLOCKED_HOSTNAME };
-    }
-
-    // Check if hostname is a direct IP address
-    const ipVersion = net.isIP(url.hostname);
-
-    if (ipVersion !== 0) {
-      // It's an IP address (4 or 6)
-      if (isPrivateIP(url.hostname)) {
-        return { isValid: false, error: ERRORS.PRIVATE_IP };
+    const addresses = await dns.lookup(result.url.hostname, { all: true });
+    for (const { address } of addresses) {
+      if (isPrivateIP(address)) {
+        return { isValid: false, error: ERRORS.PRIVATE_IP_DNS };
       }
     }
-
-    return { isValid: true };
   } catch {
-    return { isValid: false, error: ERRORS.INVALID_URL };
+    // Allow DNS failures to avoid breaking legitimate hosts with flaky DNS
   }
+
+  return { isValid: true };
 }
 
-// Check if a URL is a trusted internal URL (same origin as webapp)
+/**
+ * Sync SSRF validation for Zod schemas (no DNS check)
+ * Does not protect against DNS rebinding - use async version when possible
+ */
+export function validateUrlForSSRFSync(urlString: string): SSRFValidationResult {
+  const result = validateUrlCore(urlString);
+
+  if ("isValid" in result) {
+    return result;
+  }
+
+  return { isValid: true };
+}
+
+/** Check if URL belongs to the same origin as the webapp (trusted internal URL) */
 export function isTrustedInternalUrl(url: string, webappUrl: string): boolean {
   try {
     return new URL(url).origin === new URL(webappUrl).origin;
@@ -212,7 +180,7 @@ export function isTrustedInternalUrl(url: string, webappUrl: string): boolean {
   }
 }
 
-// Log a blocked SSRF attempt for security monitoring
+/** Log blocked SSRF attempts for security monitoring and incident response */
 export function logBlockedSSRFAttempt(url: string, reason: string, context?: Record<string, unknown>): void {
   log.warn("SSRF attempt blocked", {
     url: url.substring(0, 100), // Truncate for log safety
