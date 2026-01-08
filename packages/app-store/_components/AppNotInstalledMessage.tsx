@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CircleAlertIcon, ArrowUpRightIcon } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,12 +16,10 @@ export default function AppNotInstalledMessage({ appName }: { appName: string })
         <p className="text-subtle px-1 leading-normal">{t("visit_our_app_store")}</p>
 
         <div className="mt-5">
-          <Link href={`/apps/${appName}`} passHref={true} legacyBehavior>
-            <Button type="button" color="secondary">
-              {t("go_to_app_store")}
-              <ArrowUpRightIcon className="ml-1" size={20} />
-            </Button>
-          </Link>
+          <Button href={`/apps/${appName}`} type="button" color="secondary">
+            {t("go_to_app_store")}
+            <ArrowUpRightIcon className="ml-1" size={20} />
+          </Button>
         </div>
       </div>
     </div>

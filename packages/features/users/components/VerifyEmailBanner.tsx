@@ -2,7 +2,7 @@ import { Mail as MailIcon } from "lucide-react";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 import { TopBanner } from "@calcom/ui/components/top-banner";
 

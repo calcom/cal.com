@@ -136,7 +136,6 @@ export function AdvancedPermissionGroup({
               }
 
               const isChecked = selectedPermissions.includes(permission);
-              const isReadPermission = action === CrudAction.Read;
               const isAutoEnabled = isReadAutoEnabled(action);
 
               return (

@@ -136,7 +136,7 @@ const shouldEnforceCsp = (url: URL) => {
   return url.pathname.startsWith("/auth/login") || url.pathname.startsWith("/login");
 };
 
-const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
+const proxy = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const requestorIp = getIP(req);
   try {
     await checkRateLimitAndThrowError({
@@ -265,8 +265,7 @@ function enrichRequestWithHeaders({ req }: { req: NextRequest }) {
 }
 
 export const config = {
-  runtime: "nodejs",
   matcher: ["/((?!_next(?:/|$)|static(?:/|$)|public(?:/|$)|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$).*)"],
 };
 
-export default middleware;
+export default proxy;

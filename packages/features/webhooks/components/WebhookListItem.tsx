@@ -1,12 +1,13 @@
 "use client";
 
-import { EllipsisIcon, PencilIcon, TrashIcon, ZapIcon } from "lucide-react";
+import { EllipsisIcon, ExternalLinkIcon, PencilIcon, TrashIcon, ZapIcon } from "lucide-react";
+import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 
 import type { Webhook } from "../lib/dto/types";
-import { getWebhookVersionLabel } from "../lib/constants";
+import { getWebhookVersionLabel, getWebhookVersionDocsUrl } from "../lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -95,6 +96,14 @@ export default function WebhookListItem(props: {
                 {getWebhookVersionLabel(webhook.version)}
               </Badge>
             </div>
+          </Tooltip>
+          <Tooltip content={t("webhook_version_docs", { version: getWebhookVersionLabel(webhook.version) })}>
+            <Link
+              href={getWebhookVersionDocsUrl(webhook.version)}
+              target="_blank"
+              className="text-subtle hover:text-emphasis ml-1 flex items-center">
+              <ExternalLinkIcon className="h-4 w-4" />
+            </Link>
           </Tooltip>
         </div>
         <Tooltip content={t("triggers_when")}>
