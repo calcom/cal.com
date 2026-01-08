@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Falta do participante actualizada",
     "type": "Tipo de atribuição",
     "assignmentType_manual": "Atribuição manual",
-    "assignmentType_roundRobin": "Atribuição round robin"
+    "assignmentType_roundRobin": "Atribuição round robin",
+    "actor_impersonated_by": "Representante",
+    "source": "Origem"
   },
   "error_loading_booking_logs": "Erro ao carregar registros da reserva",
   "no_audit_logs_found": "Nenhum registro de auditoria encontrado",

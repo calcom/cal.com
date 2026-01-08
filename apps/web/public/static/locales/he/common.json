@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "עדכון אי-הגעה של משתתף",
     "type": "סוג ההקצאה",
     "assignmentType_manual": "הקצאה ידנית",
-    "assignmentType_roundRobin": "הקצאה לפי תורות"
+    "assignmentType_roundRobin": "הקצאה לפי תורות",
+    "actor_impersonated_by": "מתחזה",
+    "source": "מקור"
   },
   "error_loading_booking_logs": "שגיאה בטעינת יומני ההזמנה",
   "no_audit_logs_found": "לא נמצאו יומני ביקורת",

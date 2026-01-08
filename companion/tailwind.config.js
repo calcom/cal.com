@@ -60,7 +60,7 @@ module.exports = {
             success: "#34C759",
             warning: "#FF9500",
             error: "#FF3B30",
-            destructive: "#DC2626",
+            destructive: "#800020",
           },
           brand: {
             DEFAULT: "#292929",

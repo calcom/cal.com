@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Aktualizováno nedostavení účastníka",
     "type": "Typ přiřazení",
     "assignmentType_manual": "Ruční přiřazení",
-    "assignmentType_roundRobin": "Přiřazení Round Robin"
+    "assignmentType_roundRobin": "Přiřazení Round Robin",
+    "actor_impersonated_by": "Ztotožňovatel",
+    "source": "Zdroj"
   },
   "error_loading_booking_logs": "Chyba při načítání protokolů rezervace",
   "no_audit_logs_found": "Nebyly nalezeny žádné protokoly auditu",
