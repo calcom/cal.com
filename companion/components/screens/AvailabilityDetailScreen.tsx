@@ -330,9 +330,6 @@ export const AvailabilityDetailScreen = forwardRef<
         {/* Working Hours Summary Card */}
         <View className="mb-4 overflow-hidden rounded-xl bg-white">
           <View className="px-4 py-3.5">
-            <Text className="mb-2.5 text-[13px] font-medium uppercase tracking-wide text-[#8E8E93]">
-              Working Hours
-            </Text>
             {Object.keys(availability).length > 0 ? (
               <View>
                 {formatAvailabilityDisplay(availability).map((line) => (
@@ -349,20 +346,19 @@ export const AvailabilityDetailScreen = forwardRef<
 
         {/* Weekly Schedule Card - Expandable */}
         <View className="mb-4 overflow-hidden rounded-xl bg-white">
-          <AppPressable
-            className="flex-row items-center justify-between px-4 py-3.5"
-            onPress={() => setDaysExpanded(!daysExpanded)}
-          >
-            <Text className="text-[17px] text-black">Weekly Schedule</Text>
-            <View className="flex-row items-center">
-              <Text className="mr-1 text-[17px] text-[#8E8E93]">
-                {enabledDaysCount} {enabledDaysCount === 1 ? "day" : "days"}
-              </Text>
-              <Ionicons
-                name={daysExpanded ? "chevron-down" : "chevron-forward"}
-                size={18}
-                color="#C7C7CC"
-              />
+          <AppPressable onPress={() => setDaysExpanded(!daysExpanded)}>
+            <View className="flex-row items-center justify-between px-4 py-3.5">
+              <Text className="text-[17px] text-black">Weekly Schedule</Text>
+              <View className="flex-row items-center">
+                <Text className="mr-1 text-[17px] text-[#8E8E93]">
+                  {enabledDaysCount} {enabledDaysCount === 1 ? "day" : "days"}
+                </Text>
+                <Ionicons
+                  name={daysExpanded ? "chevron-down" : "chevron-forward"}
+                  size={18}
+                  color="#C7C7CC"
+                />
+              </View>
             </View>
           </AppPressable>
 
@@ -426,20 +422,19 @@ export const AvailabilityDetailScreen = forwardRef<
         {/* Date Overrides Card - Expandable */}
         {overrides.length > 0 && (
           <View className="mb-4 overflow-hidden rounded-xl bg-white">
-            <AppPressable
-              className="flex-row items-center justify-between px-4 py-3.5"
-              onPress={() => setOverridesExpanded(!overridesExpanded)}
-            >
-              <Text className="text-[17px] text-black">Date Overrides</Text>
-              <View className="flex-row items-center">
-                <Text className="mr-1 text-[17px] text-[#8E8E93]">
-                  {overrides.length} {overrides.length === 1 ? "override" : "overrides"}
-                </Text>
-                <Ionicons
-                  name={overridesExpanded ? "chevron-down" : "chevron-forward"}
-                  size={18}
-                  color="#C7C7CC"
-                />
+            <AppPressable onPress={() => setOverridesExpanded(!overridesExpanded)}>
+              <View className="flex-row items-center justify-between px-4 py-3.5">
+                <Text className="text-[17px] text-black">Date Overrides</Text>
+                <View className="flex-row items-center">
+                  <Text className="mr-1 text-[17px] text-[#8E8E93]">
+                    {overrides.length} {overrides.length === 1 ? "override" : "overrides"}
+                  </Text>
+                  <Ionicons
+                    name={overridesExpanded ? "chevron-down" : "chevron-forward"}
+                    size={18}
+                    color="#C7C7CC"
+                  />
+                </View>
               </View>
             </AppPressable>
 

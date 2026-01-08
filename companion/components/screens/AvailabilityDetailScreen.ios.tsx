@@ -330,9 +330,6 @@ export const AvailabilityDetailScreen = forwardRef<
         {/* Working Hours Summary Card */}
         <View className="mb-4 overflow-hidden rounded-xl bg-white">
           <View className="px-4 py-3.5">
-            <Text className="mb-2.5 text-[13px] font-medium uppercase tracking-wide text-[#8E8E93]">
-              Working Hours
-            </Text>
             {Object.keys(availability).length > 0 ? (
               <View>
                 {formatAvailabilityDisplay(availability).map((line) => (
