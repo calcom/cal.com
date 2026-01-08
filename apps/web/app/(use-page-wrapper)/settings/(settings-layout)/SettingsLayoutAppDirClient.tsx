@@ -247,7 +247,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         },
         {
           name: "oAuth",
-          href: "/settings/admin/oAuth",
+          href: "/settings/admin/oauth",
           trackingMetadata: { section: "admin", page: "oauth" },
         },
         {

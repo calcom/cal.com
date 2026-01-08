@@ -10,7 +10,7 @@ export const generateMetadata = async () =>
     (t) => t("oauth_clients_admin_description"),
     undefined,
     undefined,
-    "/settings/admin/oAuth"
+    "/settings/admin/oauth"
   );
 
 const Page = async () => {

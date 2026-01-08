@@ -27,7 +27,7 @@ export const AdminOAuthClientNotificationEmail = ({
       callToAction={
         <CallToAction
           label={language("admin_oauth_notification_email_cta")}
-          href={`${WEBAPP_URL}/settings/admin/oAuth`}
+          href={`${WEBAPP_URL}/settings/admin/oauth`}
           endIconName="white-arrow-right"
         />
       }>
