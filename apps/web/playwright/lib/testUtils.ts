@@ -106,21 +106,28 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 }
 
 export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) {
-  // Let current month dates fully render.
+  // Wait for the booker to be ready before interacting
+  await page.getByTestId("incrementMonth").waitFor();
   await page.getByTestId("incrementMonth").click();
 
-  // Waiting for full month increment
+  // Wait for available day to appear after month increment
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
+  await page.locator('[data-testid="time"]').nth(0).waitFor();
   await page.locator('[data-testid="time"]').nth(0).click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
-  // Let current month dates fully render.
+  // Wait for the booker to be ready before interacting
+  await page.getByTestId("incrementMonth").waitFor();
   await page.getByTestId("incrementMonth").click();
 
+  // Wait for available day to appear after month increment
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).waitFor();
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
 
+  await page.locator('[data-testid="time"]').nth(0).waitFor();
   await page.locator('[data-testid="time"]').nth(0).click();
 }
 
