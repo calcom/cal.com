@@ -86,6 +86,20 @@ describe("validateUrlForSSRFSync", () => {
     const result = validateUrlForSSRFSync(url);
     expect(result).toEqual({ isValid: false, error: expectedError });
   });
+
+  it.each([
+    ["https://[::1]/", "Private IP address"],
+    ["https://[fe80::1]/path", "Private IP address"],
+    ["https://[fc00::1]:8080/", "Private IP address"],
+    ["https://[::ffff:127.0.0.1]/", "Private IP address"],
+  ])("blocks IPv6 private addresses with brackets %s", (url, expectedError) => {
+    const result = validateUrlForSSRFSync(url);
+    expect(result).toEqual({ isValid: false, error: expectedError });
+  });
+
+  it("allows public IPv6 addresses", () => {
+    expect(validateUrlForSSRFSync("https://[2001:4860:4860::8888]/").isValid).toBe(true);
+  });
 });
 
 describe("validateUrlForSSRFSync with allowHttp option", () => {

@@ -57,6 +57,14 @@ function normalizeHostname(hostname: string): string {
   return hostname.toLowerCase().replace(/\.$/, "");
 }
 
+/** Strip brackets from IPv6 addresses (e.g., [::1] -> ::1) */
+function stripIPv6Brackets(hostname: string): string {
+  if (hostname.startsWith("[") && hostname.endsWith("]")) {
+    return hostname.slice(1, -1);
+  }
+  return hostname;
+}
+
 // Extracts IPv4 from mapped address (e.g., ::ffff:127.0.0.1 -> 127.0.0.1)
 function extractIPv4FromMappedIPv6(ip: string): string | null {
   const match = ip.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/i);
@@ -135,7 +143,9 @@ function validateUrlCore(
     return { isValid: false, error: ERRORS.BLOCKED_HOSTNAME };
   }
 
-  if (net.isIP(url.hostname) !== 0 && isPrivateIP(url.hostname)) {
+  // Strip brackets for IPv6 check (URL.hostname includes brackets, e.g., [::1])
+  const hostnameForIPCheck = stripIPv6Brackets(url.hostname);
+  if (net.isIP(hostnameForIPCheck) !== 0 && isPrivateIP(hostnameForIPCheck)) {
     return { isValid: false, error: ERRORS.PRIVATE_IP };
   }
 
@@ -197,10 +207,22 @@ export function isTrustedInternalUrl(url: string, webappUrl: string): boolean {
   }
 }
 
+/** Sanitize URL for logging - removes query params and credentials that may contain secrets */
+function sanitizeUrlForLog(urlString: string): string {
+  try {
+    const url = new URL(urlString);
+    // Only log origin + pathname, exclude query params, hash, and credentials
+    return `${url.origin}${url.pathname}`.substring(0, 100);
+  } catch {
+    // If URL parsing fails, truncate and redact potential secrets
+    return urlString.substring(0, 50).replace(/[?#].*$/, "") + "...";
+  }
+}
+
 /** Log blocked SSRF attempts for security monitoring and incident response */
 export function logBlockedSSRFAttempt(url: string, reason: string, context?: Record<string, unknown>): void {
   log.warn("SSRF attempt blocked", {
-    url: url.substring(0, 100), // Truncate for log safety
+    url: sanitizeUrlForLog(url),
     reason,
     ...context,
   });
