@@ -88,7 +88,7 @@ type GetUserAvailabilityParams = {
   returnDateOverrides: boolean;
   bypassBusyCalendarTimes?: boolean;
   silentlyHandleCalendarFailures?: boolean;
-  mode: CalendarFetchMode;
+  mode?: CalendarFetchMode;
 };
 
 interface GetUserAvailabilityParamsDTO {
@@ -336,7 +336,7 @@ export class UserAvailabilityService {
       returnDateOverrides,
       bypassBusyCalendarTimes = false,
       silentlyHandleCalendarFailures = false,
-      mode,
+      mode = "none",
     } = params;
 
     log.debug(
