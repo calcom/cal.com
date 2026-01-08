@@ -321,7 +321,7 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
     user,
   });
 
-  const calendar = await getCalendar(credential, "slots");
+  const calendar = await getCalendar(credential, "none");
 
   if (!calendar) {
     throw new Error("Google Calendar App not found");
