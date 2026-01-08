@@ -14,7 +14,7 @@ import React from "react";
 import { vi } from "vitest";
 
 import "@calcom/dayjs/__mocks__";
-import "@calcom/features/auth/Turnstile";
+import "@calcom/web/modules/auth/components/Turnstile";
 
 import { Booker } from "./Booker";
 import { render, screen } from "@calcom/features/bookings/Booker/__tests__/test-utils";

@@ -9,9 +9,9 @@ import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
+import { SAMLLogin } from "@calcom/web/modules/auth/components/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { LastUsed, useLastUsed } from "@calcom/features/auth/lib/hooks/useLastUsed";
+import { LastUsed, useLastUsed } from "@calcom/web/modules/auth/hooks/useLastUsed";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
