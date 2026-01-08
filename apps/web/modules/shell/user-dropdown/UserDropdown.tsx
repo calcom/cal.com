@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { Icon } from "@calcom/ui/components/icon";
+import { ChevronDownIcon, MoonIcon, SettingsIcon, UserIcon } from "lucide-react";
 // TODO (Platform): we shouldnt be importing from web here
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 import FreshChatProvider from "@calcom/web/modules/ee/support/lib/freshchat/FreshChatProvider";
@@ -114,11 +114,10 @@ export function UserDropdown({ small }: UserDropdownProps) {
                   {isPending ? "Loading..." : user?.name ?? "Nameless User"}
                 </span>
               </span>
-              <Icon
-                name="chevron-down"
-                className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
-                aria-hidden="true"
-              />
+                            <ChevronDownIcon
+                              className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
+                              aria-hidden="true"
+                            />
             </span>
           )}
         </button>
@@ -138,9 +137,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
                   <DropdownMenuItem>
                     <DropdownItem
                       type="button"
-                      CustomStartIcon={
-                        <Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />
-                      }
+                                            CustomStartIcon={
+                                              <UserIcon className="text-default h-4 w-4" aria-hidden="true" />
+                                            }
                       href="/settings/my-account/profile">
                       {t("my_profile")}
                     </DropdownItem>
@@ -148,9 +147,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
                   <DropdownMenuItem>
                     <DropdownItem
                       type="button"
-                      CustomStartIcon={
-                        <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
-                      }
+                                            CustomStartIcon={
+                                              <SettingsIcon className="text-default h-4 w-4" aria-hidden="true" />
+                                            }
                       href="/settings/my-account/general">
                       {t("my_settings")}
                     </DropdownItem>
@@ -158,9 +157,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
                   <DropdownMenuItem>
                     <DropdownItem
                       type="button"
-                      CustomStartIcon={
-                        <Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />
-                      }
+                                            CustomStartIcon={
+                                              <MoonIcon className="text-default h-4 w-4" aria-hidden="true" />
+                                            }
                       href="/settings/my-account/out-of-office">
                       {t("out_of_office")}
                     </DropdownItem>
