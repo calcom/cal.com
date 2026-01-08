@@ -15,6 +15,9 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { TeamService } from "./teamService";
 
 vi.mock("@calcom/ee/billing/di/containers/Billing");
+vi.mock("@calcom/features/ee/billing/helpers/trackSeatChanges");
+vi.mock("@calcom/features/ee/billing/service/billingPeriod/BillingPeriodService");
+vi.mock("@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService");
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
 vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService");
 vi.mock("@calcom/lib/domainManager/organization");
@@ -32,16 +35,48 @@ const mockTeamBilling = {
 const mockTeamBillingFactory = {
   findAndInit: vi.fn().mockResolvedValue(mockTeamBilling),
   findAndInitMany: vi.fn().mockResolvedValue([mockTeamBilling]),
+  init: vi.fn().mockReturnValue(mockTeamBilling),
 };
+
+const mockBillingPeriodService = {
+  shouldApplyMonthlyProration: vi.fn().mockResolvedValue(false),
+};
+
+const mockSeatChangeTrackingService = {
+  logSeatAddition: vi.fn(),
+  logSeatRemoval: vi.fn(),
+};
+
+const mockGetBillingEntityId = vi.fn((team) => team.id);
 
 describe("TeamService", () => {
   beforeEach(async () => {
     vi.resetAllMocks();
     mockTeamBillingFactory.findAndInit.mockResolvedValue(mockTeamBilling);
     mockTeamBillingFactory.findAndInitMany.mockResolvedValue([mockTeamBilling]);
-    
+    mockTeamBillingFactory.init.mockReturnValue(mockTeamBilling);
+    mockBillingPeriodService.shouldApplyMonthlyProration.mockResolvedValue(false);
+    mockGetBillingEntityId.mockImplementation((team) => team.id);
+
     const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
-    vi.mocked(getTeamBillingServiceFactory).mockReturnValue(mockTeamBillingFactory);
+    vi.mocked(getTeamBillingServiceFactory).mockReturnValue(mockTeamBillingFactory as any);
+
+    const { getBillingEntityId } = await import("@calcom/features/ee/billing/helpers/trackSeatChanges");
+    vi.mocked(getBillingEntityId).mockImplementation(mockGetBillingEntityId);
+
+    const { BillingPeriodService } = await import(
+      "@calcom/features/ee/billing/service/billingPeriod/BillingPeriodService"
+    );
+    vi.mocked(BillingPeriodService).mockImplementation(function (this: any) {
+      return mockBillingPeriodService;
+    } as any);
+
+    const { SeatChangeTrackingService } = await import(
+      "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService"
+    );
+    vi.mocked(SeatChangeTrackingService).mockImplementation(function (this: any) {
+      return mockSeatChangeTrackingService;
+    } as any);
   });
 
   afterEach(() => {
@@ -61,7 +96,9 @@ describe("TeamService", () => {
       const mockTeamRepo = {
         deleteById: vi.fn().mockResolvedValue(mockDeletedTeam),
       } as Pick<TeamRepository, "deleteById">;
-      vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepo; });
+      vi.mocked(TeamRepository).mockImplementation(function () {
+        return mockTeamRepo;
+      });
 
       const result = await TeamService.delete({ id: 1 });
 
@@ -131,6 +168,8 @@ describe("TeamService", () => {
         select: { team: true },
       });
       expect(updateNewTeamMemberEventTypes).toHaveBeenCalledWith(1, 1);
+      expect(mockBillingPeriodService.shouldApplyMonthlyProration).toHaveBeenCalledWith(1);
+      expect(mockTeamBilling.updateQuantity).toHaveBeenCalled();
     });
 
     it("should accept membership and create profile for organization", async () => {
@@ -195,7 +234,7 @@ describe("TeamService", () => {
   describe("leaveTeamMembership", () => {
     it("should delete membership when rejecting invitation", async () => {
       const mockMembership = {
-        team: { id: 1, parentId: null },
+        team: { id: 1, parentId: null, isOrganization: false },
       };
 
       prismaMock.membership.delete.mockResolvedValue(mockMembership as Membership & { team: Team });
@@ -209,16 +248,20 @@ describe("TeamService", () => {
         where: { userId_teamId: { userId: 1, teamId: 1 } },
         select: { team: true },
       });
+      expect(mockBillingPeriodService.shouldApplyMonthlyProration).toHaveBeenCalledWith(1);
+      expect(mockTeamBilling.updateQuantity).toHaveBeenCalled();
     });
 
     it("should delete parent membership when rejecting subteam invitation", async () => {
       const mockMembership = {
-        team: { id: 1, parentId: 2 },
+        team: { id: 1, parentId: 2, isOrganization: false },
       };
 
       prismaMock.membership.delete
         .mockResolvedValueOnce(mockMembership as Membership & { team: Team })
         .mockResolvedValueOnce({} as Membership);
+
+      mockGetBillingEntityId.mockReturnValueOnce(2); // Should use parentId for billing
 
       await TeamService.leaveTeamMembership({
         userId: 1,
@@ -229,6 +272,7 @@ describe("TeamService", () => {
       expect(prismaMock.membership.delete).toHaveBeenNthCalledWith(2, {
         where: { userId_teamId: { userId: 1, teamId: 2 } },
       });
+      expect(mockBillingPeriodService.shouldApplyMonthlyProration).toHaveBeenCalledWith(2);
     });
   });
 
