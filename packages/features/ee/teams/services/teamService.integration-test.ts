@@ -1,5 +1,7 @@
+import type { ActiveFilters } from "data-table";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -1031,11 +1033,8 @@ describe("TeamService.removeMembers Integration Tests", () => {
         },
       });
 
-      // Create another user with the username we would try to update to
-      // This will cause the user.update to fail due to unique constraint
-      const conflictingUser = await createTestUser({
-        username: `rollback-test-user-${rollbackTestUser.id}`, // This is what removeMember would try to set
-      });
+      // Throw error in a function to fail the transaction
+      const spy = vi.spyOn(ProfileRepository, "delete").mockRejectedValueOnce(new Error("DB error"));
 
       // This should fail because of username unique constraint violation
       await expect(
@@ -1075,8 +1074,313 @@ describe("TeamService.removeMembers Integration Tests", () => {
       expect(hosts).toHaveLength(1);
 
       // Clean up
+      spy.mockRestore();
       await prisma.eventType.delete({ where: { id: eventType.id } });
-      await cleanupTestData([subTeamForRollback.id], [rollbackTestUser.id, conflictingUser.id]);
+      await cleanupTestData([subTeamForRollback.id], [rollbackTestUser.id]);
+    });
+  });
+
+  describe("Filter Segment Cleanup on Member Removal", () => {
+    it("should remove user from filter segments when removed from team", async () => {
+      const [orgUser1, orgUser2] = orgTestData.members;
+      const teamId = regularTeamTestData.team.id;
+
+      // Create an admin who owns the filter segment
+      const adminUser = await createTestUser();
+      await createTestMembership(adminUser.id, teamId, {
+        role: MembershipRole.ADMIN,
+        accepted: true,
+      });
+
+      const filtersNotToBeChanged: ActiveFilters = [{
+        f: "userId",
+        v: {
+          type: "ms",
+          data: [orgUser2.id, userWithoutOrg.id],
+        },
+      }, {
+        f: "userId",
+        v: {
+          type: "ss",
+          data: userWithoutOrg.id,
+        },
+      }, {
+        f: "attendeeName",
+        v: {
+          type: "t",
+          data: {
+            operand: "user",
+            operator: "equals",
+          }
+        }
+      }]
+
+      // Create filter segment with orgUser1
+      const filterSegment = await prisma.filterSegment.create({
+        data: {
+          userId: adminUser.id,
+          teamId,
+          scope: "TEAM",
+          tableIdentifier: "/bookings/upcoming",
+          name: "Team Bookings Filter",
+          activeFilters: [
+            {
+              f: "userId",
+              v: {
+                type: "ms", // multi-select
+                data: [orgUser1.id, orgUser2.id, userWithoutOrg.id],
+              },
+            },
+            ...filtersNotToBeChanged,
+          ],
+          sorting: [],
+          columnVisibility: {},
+          columnSizing: {},
+          perPage: 10,
+        },
+      });
+
+      // Remove orgUser1 from team
+      await TeamService.removeMembers({
+        teamIds: [teamId],
+        userIds: [orgUser1.id],
+        isOrg: false,
+      });
+
+      // Verify filter segment was updated
+      const updatedSegment = await prisma.filterSegment.findUnique({
+        where: { id: filterSegment.id },
+      });
+
+      const activeFilters = updatedSegment?.activeFilters as ActiveFilters;
+      const userIdFilter = activeFilters[0];
+
+      expect(userIdFilter).toBeDefined();
+      expect(userIdFilter?.v?.data).toEqual(expect.arrayContaining([orgUser2.id, userWithoutOrg.id]));
+      expect(userIdFilter?.v?.data).not.toContain(orgUser1.id);
+
+      // Ensure other filters are unchanged
+      expect(activeFilters.slice(1)).toEqual(filtersNotToBeChanged)
+
+      // Clean up
+      await prisma.filterSegment.delete({ where: { id: filterSegment.id } });
+      await cleanupTestData([], [adminUser.id]);
+    });
+
+    it("should remove entire single-select filter when that user is removed", async () => {
+      const [orgUser1] = orgTestData.members;
+      const teamId = regularTeamTestData.team.id;
+
+      const adminUser = await createTestUser();
+      await createTestMembership(adminUser.id, teamId, {
+        role: MembershipRole.ADMIN,
+        accepted: true,
+      });
+
+      // Create filter segment with orgUser1 as single-select
+      const filterSegment = await prisma.filterSegment.create({
+        data: {
+          userId: adminUser.id,
+          scope: "USER",
+          tableIdentifier: "/bookings/upcoming",
+          name: "Specific User Filter",
+          activeFilters: [
+            {
+              f: "userId",
+              v: {
+                type: "ss",
+                data: orgUser1.id,
+              },
+            },
+            {
+              f: "status",
+              v: {
+                type: "ss",
+                data: "active",
+              },
+            },
+          ],
+          sorting: [],
+          columnVisibility: {},
+          columnSizing: {},
+          perPage: 10,
+        },
+      });
+
+      // Remove orgUser1 from team
+      await TeamService.removeMembers({
+        teamIds: [teamId],
+        userIds: [orgUser1.id],
+        isOrg: false,
+      });
+
+      // Verify userId filter was removed entirely
+      const updatedSegment = await prisma.filterSegment.findUnique({
+        where: { id: filterSegment.id },
+      });
+
+      const activeFilters = updatedSegment?.activeFilters as ActiveFilters;
+      const userIdFilter = activeFilters.find((f) => f.f === "userId");
+
+      expect(userIdFilter).toBeUndefined();
+      // Status filter should remain
+      expect(activeFilters).toHaveLength(1);
+      expect(activeFilters[0].f).toBe("status");
+
+      // Clean up
+      await prisma.filterSegment.delete({ where: { id: filterSegment.id } });
+      await cleanupTestData([], [adminUser.id]);
+    });
+
+    it("should update filter segments when removing user from organization", async () => {
+      const [orgUser1, orgUser2] = orgTestData.members;
+      const subTeam = orgTestData.teams[0].team;
+
+      // Create admin in org
+      const orgAdmin = await createTestUser({ organizationId: orgTestData.team.id });
+      const subTeamAdmin = await createTestUser({ organizationId: orgTestData.team.id });
+
+      await createTestMembership(orgAdmin.id, orgTestData.team.id, {
+        role: MembershipRole.ADMIN,
+        accepted: true,
+      });
+      await createTestMembership(subTeamAdmin.id, subTeam.id, {
+        role: MembershipRole.ADMIN,
+        accepted: true,
+      });
+
+      // Create filter segment at org level
+      const orgFilterSegment = await prisma.filterSegment.create({
+        data: {
+          userId: orgAdmin.id,
+          teamId: orgTestData.team.id,
+          scope: "TEAM",
+          tableIdentifier: "/bookings/upcoming",
+          name: "Org Bookings Filter",
+          activeFilters: [
+            {
+              f: "userId",
+              v: {
+                type: "ms",
+                data: [orgUser1.id, orgUser2.id],
+              },
+            },
+          ],
+          sorting: [],
+          columnVisibility: {},
+          columnSizing: {},
+          perPage: 10,
+        },
+      });
+
+      // Create filter segment at subteam level
+      const subTeamFilterSegment = await prisma.filterSegment.create({
+        data: {
+          userId: subTeamAdmin.id,
+          teamId: subTeam.id,
+          scope: "TEAM",
+          tableIdentifier: "/bookings/upcoming",
+          name: "SubTeam Bookings Filter",
+          activeFilters: [
+            {
+              f: "userId",
+              v: {
+                type: "ms",
+                data: [orgUser1.id, orgUser2.id],
+              },
+            },
+          ],
+          sorting: [],
+          columnVisibility: {},
+          columnSizing: {},
+          perPage: 10,
+        },
+      });
+
+      // Remove orgUser1 from organization (removes from all child teams too)
+      await TeamService.removeMembers({
+        teamIds: [orgTestData.team.id],
+        userIds: [orgUser1.id],
+        isOrg: true,
+      });
+
+      // Verify both filter segments were updated
+      const updatedOrgSegment = await prisma.filterSegment.findUnique({
+        where: { id: orgFilterSegment.id },
+      });
+      const updatedSubTeamSegment = await prisma.filterSegment.findUnique({
+        where: { id: subTeamFilterSegment.id },
+      });
+
+      const orgFilters = updatedOrgSegment?.activeFilters as ActiveFilters;
+      const orgUserIdFilter = orgFilters.find((f) => f.f === "userId");
+      expect(orgUserIdFilter).toBeDefined();
+      expect(orgUserIdFilter?.v?.data).toEqual([orgUser2.id]);
+
+      const subTeamFilters = updatedSubTeamSegment?.activeFilters as ActiveFilters;
+      const subTeamUserIdFilter = subTeamFilters.find((f) => f.f === "userId");
+      expect(subTeamUserIdFilter).toBeDefined();
+      expect(subTeamUserIdFilter?.v?.data).toEqual([orgUser2.id]);
+
+      // Clean up
+      await prisma.filterSegment.deleteMany({
+        where: { id: { in: [orgFilterSegment.id, subTeamFilterSegment.id] } },
+      });
+      await cleanupTestData([], [orgAdmin.id, subTeamAdmin.id]);
+    });
+
+    it("should not change org admin's filter segment if the removed user is still part of a sub-team", async () => {
+      // Two subteams under Org both of which orgUser1 is a part of
+      const subTeam2 = await createTestTeam({ parentId: orgTestData.team.id });
+
+      const orgAdmin = await createTestUser({ organizationId: orgTestData.team.id });
+      const [orgUser1, orgUser2] = orgTestData.members;
+
+      await createTestMembership(orgAdmin.id, orgTestData.team.id, {
+        role: MembershipRole.ADMIN,
+      });
+      await createTestMembership(orgAdmin.id, subTeam2.id, {
+        role: MembershipRole.ADMIN,
+      });
+      await createTestMembership(orgUser1.id, subTeam2.id);
+
+      const filterSegment = await prisma.filterSegment.create({
+        data: {
+          userId: orgAdmin.id,
+          scope: "USER",
+          tableIdentifier: "/bookings/upcoming",
+          name: "Team Bookings Filter",
+          activeFilters: [
+            {
+              f: "userId",
+              v: {
+                type: "ms", // multi-select
+                data: [orgUser1.id, orgUser2.id],
+              },
+            },
+          ],
+          sorting: [],
+          columnVisibility: {},
+          columnSizing: {},
+          perPage: 10,
+        },
+      });
+
+      // Remove orgUser1 from subTeam2
+      await TeamService.removeMembers({
+        teamIds: [subTeam2.id],
+        userIds: [orgUser1.id],
+        isOrg: false,
+      });
+
+      const updatedSegment = await prisma.filterSegment.findUnique({
+        where: { id: filterSegment.id },
+      });
+
+      expect(updatedSegment).toBeDefined();
+
+      if (updatedSegment !== null) expect(filterSegment).toMatchObject(updatedSegment);
+      await cleanupTestData([subTeam2.id], [orgAdmin.id]);
     });
   });
 });
