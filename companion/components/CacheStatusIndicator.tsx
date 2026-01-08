@@ -9,10 +9,9 @@
  * to provide users with transparency about data freshness.
  */
 
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useQueryContext } from "../contexts/QueryContext";
+import { StyleSheet, Text, View } from "react-native";
+import { useQueryContext } from "@/contexts/QueryContext";
 
 /**
  * Props for the CacheStatusIndicator component

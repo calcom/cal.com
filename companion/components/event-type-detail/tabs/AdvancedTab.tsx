@@ -1,8 +1,7 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity, Switch, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Alert, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-import { openInAppBrowser } from "../../../utils/browser";
+import { openInAppBrowser } from "@/utils/browser";
 
 interface ConfigureOnWebCardProps {
   title: string;
@@ -291,7 +290,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
         </View>
 
         {/* Seats Configuration - shown when enabled */}
-        {props.seatsEnabled && (
+        {props.seatsEnabled ? (
           <View className="gap-4 border-t border-[#E5E5EA] p-5">
             {/* Number of seats per booking */}
             <View>
@@ -321,7 +320,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 className={`mr-3 h-5 w-5 items-center justify-center rounded border ${
                   props.showAttendeeInfo
                     ? "border-[#111827] bg-[#111827]"
-                    : "border-[#D1D5DB] bg-white"
+                    : "border-gray-300 bg-white"
                 }`}
               >
                 {props.showAttendeeInfo && <Ionicons name="checkmark" size={14} color="#fff" />}
@@ -339,17 +338,17 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 className={`mr-3 h-5 w-5 items-center justify-center rounded border ${
                   props.showAvailabilityCount
                     ? "border-[#111827] bg-[#111827]"
-                    : "border-[#D1D5DB] bg-white"
+                    : "border-gray-300 bg-white"
                 }`}
               >
-                {props.showAvailabilityCount && (
+                {props.showAvailabilityCount ? (
                   <Ionicons name="checkmark" size={14} color="#fff" />
-                )}
+                ) : null}
               </View>
               <Text className="text-sm text-[#333]">Show the number of available seats</Text>
             </TouchableOpacity>
           </View>
-        )}
+        ) : null}
       </View>
 
       <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
@@ -397,7 +396,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
         </View>
 
         {/* Timezone selector - shown when enabled */}
-        {props.lockTimezone && (
+        {props.lockTimezone ? (
           <View className="border-t border-[#E5E5EA] p-5">
             <Text className="mb-2 text-sm font-medium text-[#333]">Timezone</Text>
             <TouchableOpacity
@@ -423,7 +422,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
               <Ionicons name="chevron-down" size={20} color="#666" />
             </TouchableOpacity>
           </View>
-        )}
+        ) : null}
       </View>
 
       <ConfigureOnWebCard

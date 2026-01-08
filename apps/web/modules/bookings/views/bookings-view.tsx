@@ -10,6 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import { BookingListContainer } from "../components/BookingListContainer";
+import { useBookingsShellHeadingVisibility } from "../hooks/useBookingsShellHeadingVisibility";
 import { useBookingsView } from "../hooks/useBookingsView";
 import type { validStatuses } from "../lib/validStatuses";
 
@@ -26,6 +27,7 @@ type BookingsProps = {
     canReadOthersBookings: boolean;
   };
   bookingsV3Enabled: boolean;
+  bookingAuditEnabled: boolean;
 };
 
 function useSystemSegments(userId?: number) {
@@ -67,8 +69,10 @@ export default function Bookings(props: BookingsProps) {
   );
 }
 
-function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsProps) {
+function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditEnabled }: BookingsProps) {
   const [view] = useBookingsView({ bookingsV3Enabled });
+
+  useBookingsShellHeadingVisibility({ visible: view === "list" });
 
   return (
     <div className={classNames(view === "calendar" && "-mb-8")}>
@@ -77,6 +81,7 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
           status={status}
           permissions={permissions}
           bookingsV3Enabled={bookingsV3Enabled}
+          bookingAuditEnabled={bookingAuditEnabled}
         />
       )}
       {bookingsV3Enabled && view === "calendar" && (

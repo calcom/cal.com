@@ -1,9 +1,9 @@
 import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { createHash } from "crypto";
-import EventEmitter from "events";
-import type { IncomingMessage, ServerResponse } from "http";
-import { createServer } from "http";
+import { createHash } from "node:crypto";
+import EventEmitter from "node:events";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import { createServer } from "node:http";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 import { v4 as uuid } from "uuid";
@@ -109,30 +109,19 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) 
   // Let current month dates fully render.
   await page.getByTestId("incrementMonth").click();
 
-  // Wait for the calendar to update after month increment before clicking
-  const availableDay = page.locator('[data-testid="day"][data-disabled="false"]').nth(0);
-  await availableDay.waitFor({ state: "visible" });
-  await availableDay.click();
+  // Waiting for full month increment
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
 
-  // Wait for time slots to load after selecting a day
-  const timeSlot = page.locator('[data-testid="time"]').nth(0);
-  await timeSlot.waitFor({ state: "visible" });
-  await timeSlot.click();
+  await page.locator('[data-testid="time"]').nth(0).click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // Let current month dates fully render.
   await page.getByTestId("incrementMonth").click();
 
-  // Wait for the calendar to update after month increment before clicking
-  const availableDay = page.locator('[data-testid="day"][data-disabled="false"]').nth(1);
-  await availableDay.waitFor({ state: "visible" });
-  await availableDay.click();
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
 
-  // Wait for time slots to load after selecting a day
-  const timeSlot = page.locator('[data-testid="time"]').nth(0);
-  await timeSlot.waitFor({ state: "visible" });
-  await timeSlot.click();
+  await page.locator('[data-testid="time"]').nth(0).click();
 }
 
 export async function bookEventOnThisPage(page: Page) {
@@ -264,9 +253,8 @@ export async function gotoRoutingLink({
 
   await page.goto(`${previewLink}${queryString ? `?${queryString}` : ""}`);
 
-  // Wait for the form to be fully loaded and stable before interacting
-  // This replaces the previous hardcoded 2s wait with a proper Playwright wait
-  await page.waitForLoadState("networkidle");
+  // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 }
 
 export async function installAppleCalendar(page: Page) {
@@ -286,31 +274,21 @@ export async function getInviteLink(page: Page) {
 export async function getEmailsReceivedByUser({
   emails,
   userEmail,
-  maxRetries = 10,
-  retryIntervalMs = 500,
+  waitForEmailMs = 5000,
 }: {
   emails?: ReturnType<typeof createEmailsFixture>;
   userEmail: string;
-  maxRetries?: number;
-  retryIntervalMs?: number;
+  waitForEmailMs?: number;
 }): Promise<Messages | null> {
   if (!emails) return null;
 
-  // Use retry logic instead of a fixed wait to handle email delivery timing
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    const matchingEmails = await emails.search(userEmail, "to");
-    if (matchingEmails?.total) {
-      return matchingEmails;
-    }
-    // Wait before retrying
-    await new Promise((resolve) => setTimeout(resolve, retryIntervalMs));
-  }
+  // Wait for email to be sent/received
+  await new Promise((resolve) => setTimeout(resolve, waitForEmailMs));
 
-  // Final attempt after all retries
   const matchingEmails = await emails.search(userEmail, "to");
   if (!matchingEmails?.total) {
     console.log(
-      `No emails received by ${userEmail} after ${maxRetries} retries. All emails sent to:`,
+      `No emails received by ${userEmail}. All emails sent to:`,
       (await emails.messages())?.items.map((e) => e.to)
     );
   }
@@ -438,19 +416,32 @@ export async function fillStripeTestCheckout(page: Page) {
 
 export function goToUrlWithErrorHandling({ page, url }: { page: Page; url: string }) {
   return new Promise<{ success: boolean; url: string }>(async (resolve) => {
+    let resolved = false;
     const onRequestFailed = (request: PlaywrightRequest) => {
+      // Only consider it a navigation failure if it's the main document request
+      // Ignore failures for subresources like images, scripts, RSC requests, etc.
+      if (!request.isNavigationRequest() || request.frame() !== page.mainFrame()) {
+        const failedToLoadUrl = request.url();
+        console.log("goToUrlWithErrorHandling: Failed to load URL:", failedToLoadUrl);
+        return;
+      }
+      if (resolved) return;
+      resolved = true;
       const failedToLoadUrl = request.url();
-      console.log("goToUrlWithErrorHandling: Failed to load URL:", failedToLoadUrl);
+      console.log("goToUrlWithErrorHandling: Navigation failed for URL:", failedToLoadUrl);
       resolve({ success: false, url: failedToLoadUrl });
     };
     page.on("requestfailed", onRequestFailed);
     try {
-      await page.goto(url);
+      await page.goto(url, { waitUntil: "domcontentloaded" });
     } catch {
       // do nothing
     }
     page.off("requestfailed", onRequestFailed);
-    resolve({ success: true, url: page.url() });
+    if (!resolved) {
+      resolved = true;
+      resolve({ success: true, url: page.url() });
+    }
   });
 }
 
@@ -502,6 +493,9 @@ export async function gotoBookingPage(page: Page) {
   const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
 
   await page.goto(previewLink ?? "");
+  await page.waitForURL((url) => {
+    return url.searchParams.get("overlayCalendar") === "true";
+  });
 }
 
 export async function saveEventType(page: Page) {

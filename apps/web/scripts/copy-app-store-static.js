@@ -1,7 +1,7 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 const glob = require("glob");
-const crypto = require("crypto");
+const crypto = require("node:crypto");
 
 const copyAppStoreStatic = () => {
   // Get all static files from app-store packages

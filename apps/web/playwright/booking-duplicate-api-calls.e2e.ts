@@ -27,18 +27,25 @@ async function testDuplicateAPICalls(
   });
 
   await page.goto(url);
-  // Wait for the booking page to fully load and time slots to appear instead of fixed 5s wait
-  await page.waitForLoadState("networkidle");
-  // Also wait for the calendar to be visible as a more specific indicator
-  await page.locator('[data-testid="calendar"]').or(page.locator('[data-testid="time"]')).first().waitFor({ state: "visible", timeout: 10000 }).catch(() => {
-    // If neither element appears, the page might have a different structure - continue anyway
-  });
+  await page.waitForTimeout(5000);
 
   return {
     totalCalls: trpcCalls.length + apiV2Calls.length,
     trpcCalls: trpcCalls.length,
     apiV2Calls: apiV2Calls.length,
   };
+}
+
+/**
+ * Creates a stable test date that avoids month boundary issues.
+ * Uses a fixed date in the middle of a month to ensure consistent behavior
+ * regardless of when the test is run.
+ * @param dayOfMonth - The day of the month to use (5 for beginning, 20 for end)
+ */
+function getStableTestDate(dayOfMonth: number): Date {
+  // Use a fixed future date to avoid any issues with past dates or month boundaries
+  // July 2030 is chosen as it's far in the future and has no special calendar quirks
+  return new Date(2030, 6, dayOfMonth, 12, 0, 0);
 }
 
 test.describe("Duplicate API Calls Prevention", () => {
@@ -50,8 +57,7 @@ test.describe("Duplicate API Calls Prevention", () => {
   }) => {
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "30-min");
-    const beginningOfMonth = new Date();
-    beginningOfMonth.setDate(5);
+    const beginningOfMonth = getStableTestDate(5);
 
     const { totalCalls, trpcCalls, apiV2Calls } = await testDuplicateAPICalls(
       page,
@@ -71,8 +77,7 @@ test.describe("Duplicate API Calls Prevention", () => {
   }) => {
     const user = await users.create();
     const eventType = user.eventTypes.find((e) => e.slug === "30-min");
-    const endOfMonth = new Date();
-    endOfMonth.setDate(20);
+    const endOfMonth = getStableTestDate(20);
 
     const { totalCalls, trpcCalls, apiV2Calls } = await testDuplicateAPICalls(
       page,
@@ -97,8 +102,7 @@ test.describe("Duplicate API Calls Prevention", () => {
         teammates: [{ name: "teammate-1" }],
       }
     );
-    const beginningOfMonth = new Date();
-    beginningOfMonth.setDate(5);
+    const beginningOfMonth = getStableTestDate(5);
 
     const { team } = await teamOwner.getFirstTeamMembership();
     const teamEvent = await createTeamEventType(
@@ -137,8 +141,7 @@ test.describe("Duplicate API Calls Prevention", () => {
       { id: team.id },
       { teamEventSlug: "team-event-test", teamEventTitle: "Team Event Test" }
     );
-    const endOfMonth = new Date();
-    endOfMonth.setDate(20);
+    const endOfMonth = getStableTestDate(20);
 
     const { totalCalls, trpcCalls, apiV2Calls } = await testDuplicateAPICalls(
       page,
@@ -174,8 +177,7 @@ test.describe("Duplicate API Calls Prevention", () => {
       { id: team.id },
       { teamEventSlug: "org-team-event", teamEventTitle: "Org Team Event" }
     );
-    const beginningOfMonth = new Date();
-    beginningOfMonth.setDate(5);
+    const beginningOfMonth = getStableTestDate(5);
 
     const { totalCalls, trpcCalls, apiV2Calls } = await testDuplicateAPICalls(
       page,
@@ -211,8 +213,7 @@ test.describe("Duplicate API Calls Prevention", () => {
       { id: team.id },
       { teamEventSlug: "org-team-event", teamEventTitle: "Org Team Event" }
     );
-    const endOfMonth = new Date();
-    endOfMonth.setDate(20);
+    const endOfMonth = getStableTestDate(20);
 
     const { totalCalls, trpcCalls, apiV2Calls } = await testDuplicateAPICalls(
       page,

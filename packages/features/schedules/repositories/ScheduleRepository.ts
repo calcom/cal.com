@@ -112,7 +112,7 @@ export class ScheduleRepository {
     if (!schedule) {
       throw new Error("Schedule not found");
     }
-    const isCurrentUserPartOfTeam = hasReadPermissionsForUserId({ memberId: schedule?.userId, userId });
+    const isCurrentUserPartOfTeam = await hasReadPermissionsForUserId({ memberId: schedule?.userId, userId });
 
     const isCurrentUserOwner = schedule?.userId === userId;
 
