@@ -32,6 +32,14 @@ describe("SSRFSafeUrlValidator", () => {
     expect(mockValidateUrlForSSRFSync).not.toHaveBeenCalled();
   });
 
+  it("validates empty strings (does not skip validation)", () => {
+    mockValidateUrlForSSRFSync.mockReturnValue({ isValid: false });
+
+    const errors = validate("");
+    expect(errors).toHaveLength(1);
+    expect(mockValidateUrlForSSRFSync).toHaveBeenCalledWith("");
+  });
+
   it("delegates to validateUrlForSSRFSync and accepts valid URLs", () => {
     mockValidateUrlForSSRFSync.mockReturnValue({ isValid: true });
 
