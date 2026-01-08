@@ -6,12 +6,12 @@ CREATE TYPE "public"."ProrationStatus" AS ENUM ('PENDING', 'INVOICE_CREATED', 'C
 
 -- AlterTable
 ALTER TABLE "public"."OrganizationBilling" ADD COLUMN     "billingPeriod" "public"."BillingPeriod",
-ADD COLUMN     "pricePerSeat" DOUBLE PRECISION,
+ADD COLUMN     "pricePerSeat" INTEGER,
 ADD COLUMN     "paidSeats" INTEGER;
 
 -- AlterTable
 ALTER TABLE "public"."TeamBilling" ADD COLUMN     "billingPeriod" "public"."BillingPeriod",
-ADD COLUMN     "pricePerSeat" DOUBLE PRECISION,
+ADD COLUMN     "pricePerSeat" INTEGER,
 ADD COLUMN     "paidSeats" INTEGER;
 
 -- CreateTable
@@ -51,8 +51,8 @@ CREATE TABLE "public"."MonthlyProration" (
     "subscriptionStart" TIMESTAMP(3) NOT NULL,
     "subscriptionEnd" TIMESTAMP(3) NOT NULL,
     "remainingDays" INTEGER NOT NULL,
-    "pricePerSeat" DOUBLE PRECISION NOT NULL,
-    "proratedAmount" DOUBLE PRECISION NOT NULL,
+    "pricePerSeat" INTEGER NOT NULL,
+    "proratedAmount" INTEGER NOT NULL,
     "invoiceItemId" TEXT,
     "invoiceId" TEXT,
     "status" "public"."ProrationStatus" NOT NULL DEFAULT 'PENDING',
