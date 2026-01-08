@@ -1,5 +1,12 @@
-import { type TFunction } from "i18next";
-
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
+import {
+  buildActorEmail,
+  getUniqueIdentifier,
+  makeGuestActor,
+  makeUserActor,
+} from "@calcom/features/booking-audit/lib/makeActor";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -12,16 +19,60 @@ import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
+import type { TFunction } from "i18next";
 
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
+const log = logger.getSubLogger({ prefix: ["handleMarkNoShow"] });
+
 export type NoShowAttendees = { email: string; noShow: boolean }[];
+
+/**
+ * Creates an actor for audit logging.
+ * Prefers user actor when userUuid is available (authenticated action).
+ * Falls back to guest actor for unauthenticated actions (e.g., public markHostAsNoShow).
+ */
+function getAuditActor({
+  userUuid,
+  attendeeEmail,
+  bookingUid,
+}: {
+  userUuid: string | null;
+  attendeeEmail: string | null;
+  bookingUid: string;
+}): Actor {
+  if (userUuid) {
+    return makeUserActor(userUuid);
+  }
+
+  // Fallback to guest actor for unauthenticated actions (e.g., attendee marking host as no-show)
+  let actorEmail: string;
+  if (!attendeeEmail) {
+    log.warn(
+      "No attendee email available, creating fallback guest actor for audit",
+      safeStringify({ bookingUid })
+    );
+    actorEmail = buildActorEmail({
+      identifier: getUniqueIdentifier({ prefix: "fallback" }),
+      actorType: "guest",
+    });
+  } else {
+    // Use a unique identifier based on the attendee email to avoid PII in actor email
+    actorEmail = buildActorEmail({
+      identifier: getUniqueIdentifier({ prefix: "attendee" }),
+      actorType: "guest",
+    });
+  }
+
+  return makeGuestActor({ email: actorEmail, name: null });
+}
 
 const buildResultPayload = async (
   bookingUid: string,
@@ -90,17 +141,34 @@ const handleMarkNoShow = async ({
   attendees,
   noShowHost,
   userId,
-  userUuid: _userUuid,
+  userUuid,
   locale,
   platformClientParams,
+  actionSource,
+  attendeeEmail,
 }: TNoShowInputSchema & {
   userId?: number;
   userUuid?: string;
   locale?: string;
   platformClientParams?: PlatformClientParams;
+  actionSource?: ActionSource;
+  attendeeEmail?: string;
 }) => {
   const responsePayload = new ResponsePayload();
   const t = await getTranslation(locale ?? "en", "common");
+
+  // Extract action source once for reuse
+  const source = actionSource ?? "UNKNOWN";
+  if (source === "UNKNOWN") {
+    log.warn("Mark no-show action with unknown actionSource", safeStringify({ bookingUid }));
+  }
+
+  // Get actor for audit logging
+  const actor = getAuditActor({
+    userUuid: userUuid ?? null,
+    attendeeEmail: attendeeEmail ?? null,
+    bookingUid,
+  });
 
   try {
     const attendeeEmails = attendees?.map((attendee) => attendee.email) || [];
@@ -251,8 +319,8 @@ const handleMarkNoShow = async ({
             const destinationCalendar = booking.destinationCalendar
               ? [booking.destinationCalendar]
               : booking.user?.destinationCalendar
-              ? [booking.user?.destinationCalendar]
-              : [];
+                ? [booking.user?.destinationCalendar]
+                : [];
             const team = booking.eventType?.team
               ? {
                   name: booking.eventType.team.name,
@@ -317,15 +385,79 @@ const handleMarkNoShow = async ({
       responsePayload.setMessage(payload.message);
 
       await handleSendingAttendeeNoShowDataToApps(bookingUid, attendees);
+
+      // Log attendee no-show audit for each attendee that was updated
+      if (booking?.eventType) {
+        const attendeeOrgId = await getOrgIdFromMemberOrTeamId({
+          memberId: booking.eventType.owner?.email ? undefined : booking.user?.id,
+          teamId: booking.eventType.teamId,
+        });
+
+        const bookingEventHandlerService = getBookingEventHandlerService();
+
+        // Log audit for each attendee that was marked as no-show
+        for (const attendee of payload.attendees) {
+          await bookingEventHandlerService.onAttendeeNoShowUpdated({
+            bookingUid,
+            actor,
+            organizationId: attendeeOrgId ?? null,
+            source,
+            auditData: {
+              // We don't have the old value easily accessible here, so we use null
+              // The new value is what was set in the update
+              noShowAttendee: { old: null, new: attendee.noShow },
+            },
+          });
+        }
+      }
     }
 
     if (noShowHost) {
+      // Get the old noShowHost value before updating for audit logging
+      const bookingBeforeUpdate = await prisma.booking.findUnique({
+        where: { uid: bookingUid },
+        select: {
+          noShowHost: true,
+          eventType: {
+            select: {
+              teamId: true,
+              userId: true,
+              team: {
+                select: {
+                  parentId: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const oldNoShowHost = bookingBeforeUpdate?.noShowHost ?? null;
+
       await prisma.booking.update({
         where: {
           uid: bookingUid,
         },
         data: {
           noShowHost: true,
+        },
+      });
+
+      // Get organization ID for audit logging
+      const orgId = await getOrgIdFromMemberOrTeamId({
+        memberId: bookingBeforeUpdate?.eventType?.userId,
+        teamId: bookingBeforeUpdate?.eventType?.teamId,
+      });
+
+      // Log host no-show audit
+      const bookingEventHandlerService = getBookingEventHandlerService();
+      await bookingEventHandlerService.onHostNoShowUpdated({
+        bookingUid,
+        actor,
+        organizationId: orgId ?? null,
+        source,
+        auditData: {
+          noShowHost: { old: oldNoShowHost, new: true },
         },
       });
 
@@ -366,10 +498,13 @@ const updateAttendees = async (
     },
   });
 
-  const allAttendeesMap = allAttendees.reduce((acc, attendee) => {
-    acc[attendee.email] = attendee;
-    return acc;
-  }, {} as Record<string, { id: number; email: string }>);
+  const allAttendeesMap = allAttendees.reduce(
+    (acc, attendee) => {
+      acc[attendee.email] = attendee;
+      return acc;
+    },
+    {} as Record<string, { id: number; email: string }>
+  );
 
   const updatePromises = attendees.map((attendee) => {
     const attendeeToUpdate = allAttendeesMap[attendee.email];
