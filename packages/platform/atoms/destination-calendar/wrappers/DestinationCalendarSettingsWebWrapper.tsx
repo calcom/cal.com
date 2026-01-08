@@ -1,6 +1,9 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { ReminderMinutes } from "@calcom/trpc/server/routers/viewer/calendars/setDestinationReminder.schema";
+import {
+  reminderSchema,
+  type ReminderMinutes,
+} from "@calcom/trpc/server/routers/viewer/calendars/setDestinationReminder.schema";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
@@ -41,6 +44,13 @@ export const DestinationCalendarSettingsWebWrapper = () => {
     }
   };
 
+  const validatedReminderValue = reminderSchema.safeParse(
+    calendars.data.destinationCalendar.customCalendarReminder
+  );
+  const reminderValue: ReminderMinutes = validatedReminderValue.success
+    ? validatedReminderValue.data
+    : null;
+
   return (
     <AtomsWrapper>
       <DestinationCalendarSettings
@@ -51,7 +61,7 @@ export const DestinationCalendarSettingsWebWrapper = () => {
         hidePlaceholder
         onChange={mutation.mutate}
         onReminderChange={handleReminderChange}
-        reminderValue={calendars.data.destinationCalendar.customCalendarReminder as ReminderMinutes}
+        reminderValue={reminderValue}
         isReminderPending={reminderMutation.isPending}
       />
     </AtomsWrapper>
