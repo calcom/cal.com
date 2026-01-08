@@ -1,59 +1,57 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import {
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type CellContext,
-  type ColumnDef,
-  type HeaderContext,
-} from "@tanstack/react-table";
-import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
-import { useQueryState, parseAsBoolean } from "nuqs";
-import { useMemo, useReducer, useState } from "react";
-import { createPortal } from "react-dom";
-import posthog from "posthog-js";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import {
-  DataTableProvider,
-  useColumnFilters,
   ColumnFilterType,
   convertFacetedValuesToMap,
-  useDataTable,
+  DataTableProvider,
   type FacetedValue,
+  useColumnFilters,
+  useDataTable,
 } from "@calcom/features/data-table";
-import type { FilterType } from "@calcom/types/data-table";
-import {
-  DataTableWrapper,
-  DataTableToolbar,
-  DataTableFilters,
-  DataTableSegment,
-  DataTableSelectionBar,
-} from "~/data-table/components";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import {
-  generateCsvRawForMembersTable,
-  generateHeaderFromReactTable,
-} from "@calcom/web/modules/users/lib/UserListTableUtils";
+import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import type { FilterType } from "@calcom/types/data-table";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Checkbox } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
-
 import { LimitedBadges } from "@calcom/web/components/ui/LimitedBadges";
-
+import {
+  generateCsvRawForMembersTable,
+  generateHeaderFromReactTable,
+} from "@calcom/web/modules/users/lib/UserListTableUtils";
+import { keepPreviousData } from "@tanstack/react-query";
+import {
+  type CellContext,
+  type ColumnDef,
+  getCoreRowModel,
+  getSortedRowModel,
+  type HeaderContext,
+  useReactTable,
+} from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { parseAsBoolean, useQueryState } from "nuqs";
+import posthog from "posthog-js";
+import { useMemo, useReducer, useState } from "react";
+import { createPortal } from "react-dom";
+import {
+  DataTableFilters,
+  DataTableSegment,
+  DataTableSelectionBar,
+  DataTableToolbar,
+  DataTableWrapper,
+} from "~/data-table/components";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DynamicLink } from "./BulkActions/DynamicLink";
 import { EventTypesList } from "./BulkActions/EventTypesList";
@@ -64,9 +62,8 @@ import { DeleteMemberModal } from "./DeleteMemberModal";
 import { EditUserSheet } from "./EditSheet/EditUserSheet";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
+import type { UserTableAction, UserTableState, UserTableUser } from "./types";
 import { TableActions } from "./UserTableActions";
-import type { UserTableState, UserTableAction, UserTableUser } from "./types";
-import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -257,10 +254,15 @@ function UserListTableContent({
                     }
                     label = `${label}${groupIndicator}`;
 
+                    let variant: "orange" | "gray" = "gray";
+                    if (isAGroupOption) {
+                      variant = "orange";
+                    }
+
                     return {
                       id: attributeValue.id,
                       label,
-                      variant: "gray" as const,
+                      variant,
                     };
                   })}
                   className={classNames(isNumber && "w-full justify-center")}
@@ -341,10 +343,14 @@ function UserListTableContent({
         cell: ({ row, table }: CellContext<UserTableUser, unknown>) => {
           const { role, username, customRole } = row.original;
           const roleName = customRole?.name || role;
+          let roleVariant: "gray" | "blue" = "blue";
+          if (role === "MEMBER") {
+            roleVariant = "gray";
+          }
           return (
             <Badge
               data-testid={`member-${username}-role`}
-              variant={role === "MEMBER" ? "gray" : "blue"}
+              variant={roleVariant}
               onClick={() => {
                 table.getColumn("role")?.setFilterValue([role]);
               }}>
@@ -366,7 +372,7 @@ function UserListTableContent({
 
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
-              {accepted ? null : (
+              {!accepted && (
                 <Badge
                   data-testid2={`member-${username}-pending`}
                   variant="red"
@@ -442,11 +448,13 @@ function UserListTableContent({
         size: 80,
         cell: ({ row }: CellContext<UserTableUser, unknown>) => {
           const { completedOnboarding } = row.original;
-          return (
-            <Badge variant={completedOnboarding ? "green" : "gray"}>
-              {completedOnboarding ? t("yes") : t("no")}
-            </Badge>
-          );
+          let onboardingVariant: "green" | "gray" = "gray";
+          let onboardingText = t("no");
+          if (completedOnboarding) {
+            onboardingVariant = "green";
+            onboardingText = t("yes");
+          }
+          return <Badge variant={onboardingVariant}>{onboardingText}</Badge>;
         },
       },
       {
@@ -462,11 +470,13 @@ function UserListTableContent({
           if (!adminOrOwner || twoFactorEnabled === undefined) {
             return null;
           }
-          return (
-            <Badge variant={twoFactorEnabled ? "green" : "gray"}>
-              {twoFactorEnabled ? t("enabled") : t("disabled")}
-            </Badge>
-          );
+          let twoFaVariant: "green" | "gray" = "gray";
+          let twoFaText = t("disabled");
+          if (twoFactorEnabled) {
+            twoFaVariant = "green";
+            twoFaText = t("enabled");
+          }
+          return <Badge variant={twoFaVariant}>{twoFaText}</Badge>;
         },
       },
       {
@@ -509,7 +519,7 @@ function UserListTableContent({
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch, domain, attributes, org?.canAdminImpersonate, permissions]);
+  }, [session?.user.id, adminOrOwner, domain, attributes, org?.canAdminImpersonate, permissions, t]);
 
   const table = useReactTable({
     data: flatData,
@@ -657,7 +667,7 @@ function UserListTableContent({
             <p className="text-brand-subtle shrink-0 px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
-            {!isPlatformUser ? (
+            {!isPlatformUser && (
               <>
                 {permissions?.canChangeMemberRole && <TeamListBulkAction table={table} />}
                 {numberOfSelectedRows >= 2 && (
@@ -675,7 +685,7 @@ function UserListTableContent({
                   <EventTypesList table={table} orgTeams={teams} />
                 )}
               </>
-            ) : null}
+            )}
             {(permissions?.canRemove ?? adminOrOwner) && (
               <DeleteBulkUsers
                 users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
