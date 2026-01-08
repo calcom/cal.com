@@ -3,6 +3,7 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Platform, View } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
+import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import MarkNoShowScreenComponent from "@/components/screens/MarkNoShowScreen";
 import { type Booking, CalComAPIService } from "@/services/calcom";
 
@@ -62,9 +63,11 @@ export default function MarkNoShow() {
 
   const renderHeaderLeft = useCallback(
     () => (
-      <AppPressable onPress={() => router.back()} className="px-2 py-2">
-        <Ionicons name="close" size={24} color="#007AFF" />
-      </AppPressable>
+      <HeaderButtonWrapper side="left">
+        <AppPressable onPress={() => router.back()} className="px-2 py-2">
+          <Ionicons name="close" size={24} color="#007AFF" />
+        </AppPressable>
+      </HeaderButtonWrapper>
     ),
     [router]
   );

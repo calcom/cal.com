@@ -57,6 +57,7 @@ export type EventBusyDate = {
   start: Date | string;
   end: Date | string;
   source?: string | null;
+  timeZone?: string;
 };
 
 export type EventBusyDetails = EventBusyDate & {
@@ -256,6 +257,26 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
 }
 
 /**
+ * Mode for calendar fetch operations to control caching behavior:
+ * - "slots": For getting actual calendar availability (uses cache when available)
+ * - "overlay": For getting overlay calendar availability (does not use cache)
+ * - "booking": For booking confirmation (does not use cache)
+ * - "none": For operations that don't use getAvailability (e.g., deleteEvent, listCalendars)
+ */
+export type CalendarFetchMode = "slots" | "overlay" | "booking" | "none";
+
+/**
+ * Parameters for getAvailability and getAvailabilityWithTimeZones methods
+ */
+export interface GetAvailabilityParams {
+  dateFrom: string;
+  dateTo: string;
+  selectedCalendars: IntegrationCalendar[];
+  mode: CalendarFetchMode;
+  fallbackToPrimary?: boolean;
+}
+
+/**
  * null is to refer to user-level SelectedCalendar
  */
 export type SelectedCalendarEventTypeIds = (number | null)[];
@@ -280,36 +301,16 @@ export interface Calendar {
 
   deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown>;
 
-  getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    shouldServeCache?: boolean,
-    fallbackToPrimary?: boolean
-  ): Promise<EventBusyDate[]>;
+  getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]>;
 
   // for OOO calibration (only google calendar for now)
-  getAvailabilityWithTimeZones?(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    fallbackToPrimary?: boolean
-  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]>;
+  getAvailabilityWithTimeZones?(params: GetAvailabilityParams): Promise<EventBusyDate[]>;
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
   testDelegationCredentialSetup?(): Promise<boolean>;
-
-  watchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<unknown>;
-  unwatchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<void>;
 }
 
 /**
