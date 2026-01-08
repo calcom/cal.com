@@ -1,60 +1,83 @@
 "use client";
 
-import { useState } from "react";
-
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import { useCallback, useMemo, useState } from "react";
 
 const MAX_VISIBLE_BADGES = 2;
 
-type LimitedBadgesProps<T> = {
-  items: T[];
-  renderBadge: (item: T, index: number) => React.ReactNode;
-  renderOverflowItem: (item: T, index: number) => React.ReactNode;
+type BadgeItem = {
+  id: string | number;
+  label: string;
+  variant?:
+    | "default"
+    | "warning"
+    | "orange"
+    | "success"
+    | "green"
+    | "gray"
+    | "blue"
+    | "red"
+    | "error"
+    | "grayWithoutHover"
+    | "purple";
+  onClick?: () => void;
+};
+
+type LimitedBadgesProps = {
+  items: BadgeItem[];
   maxVisible?: number;
   className?: string;
 };
 
-export function LimitedBadges<T>({
+function LimitedBadges({
   items,
-  renderBadge,
-  renderOverflowItem,
   maxVisible = MAX_VISIBLE_BADGES,
   className,
-}: LimitedBadgesProps<T>) {
+}: LimitedBadgesProps): JSX.Element | null {
   const [isOpen, setIsOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
-  if (items.length === 0) return null;
+  const { visibleItems, hiddenItems } = useMemo(
+    () => ({
+      visibleItems: items.slice(0, maxVisible),
+      hiddenItems: items.slice(maxVisible),
+    }),
+    [items, maxVisible]
+  );
 
-  const visibleItems = items.slice(0, maxVisible);
-  const hiddenItems = items.slice(maxVisible);
-  const hasHiddenItems = hiddenItems.length > 0;
-
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     if (!isMobile) {
       setIsOpen(true);
     }
-  };
+  }, [isMobile]);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     if (!isMobile) {
       setIsOpen(false);
     }
-  };
+  }, [isMobile]);
+
+  if (items.length === 0) return null;
+
+  const hasHiddenItems = hiddenItems.length > 0;
 
   return (
-    <div className={className}>
-      {visibleItems.map((item, index) => renderBadge(item, index))}
+    <div className={`flex flex-wrap items-center gap-1 ${className || ""}`}>
+      {visibleItems.map((item) => (
+        <Badge key={item.id} variant={item.variant || "gray"} onClick={item.onClick}>
+          {item.label}
+        </Badge>
+      ))}
       {hasHiddenItems && (
         <Popover open={isOpen} onOpenChange={setIsOpen}>
           <PopoverTrigger asChild>
             <Button
-              variant="icon"
               color="minimal"
-              className="h-auto p-0"
+              className="h-auto p-0 border-0 hover:border-0"
+              aria-label={`Show ${hiddenItems.length} more items`}
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}>
               <Badge variant="gray">+{hiddenItems.length}</Badge>
@@ -67,7 +90,14 @@ export function LimitedBadges<T>({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}>
             <div className="flex flex-col gap-1">
-              {hiddenItems.map((item, index) => renderOverflowItem(item, index))}
+              {hiddenItems.map((item) => (
+                <span
+                  key={item.id}
+                  className="text-default cursor-pointer text-sm hover:text-emphasis"
+                  onClick={item.onClick}>
+                  {item.label}
+                </span>
+              ))}
             </div>
           </PopoverContent>
         </Popover>
@@ -75,3 +105,6 @@ export function LimitedBadges<T>({
     </div>
   );
 }
+
+export { LimitedBadges };
+export type { BadgeItem };

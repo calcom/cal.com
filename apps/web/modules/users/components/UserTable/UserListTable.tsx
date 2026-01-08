@@ -1,7 +1,14 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type CellContext,
+  type ColumnDef,
+  type HeaderContext,
+} from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
@@ -17,7 +24,13 @@ import {
   convertFacetedValuesToMap,
   useDataTable,
 } from "@calcom/features/data-table";
-import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment, DataTableSelectionBar } from "~/data-table/components";
+import {
+  DataTableWrapper,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSegment,
+  DataTableSelectionBar,
+} from "~/data-table/components";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import {
@@ -109,7 +122,7 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
   }
 }
 
-export type UserListTableProps = {
+type UserListTableProps = {
   org: RouterOutputs["viewer"]["organizations"]["listCurrent"];
   teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
   attributes?: RouterOutputs["viewer"]["attributes"]["list"];
@@ -127,7 +140,7 @@ export type UserListTableProps = {
   permissions?: MemberPermissions;
 };
 
-export function UserListTable(props: UserListTableProps) {
+function UserListTable(props: UserListTableProps): JSX.Element | null {
   const pathname = usePathname();
   if (!pathname) return null;
   return (
@@ -143,7 +156,7 @@ function UserListTableContent({
   teams,
   facetedTeamValues,
   permissions,
-}: UserListTableProps) {
+}: UserListTableProps): JSX.Element {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
@@ -185,7 +198,7 @@ function UserListTableContent({
       canResendInvitation: permissions?.canInvite ?? adminOrOwner,
       canImpersonate: permissions?.canImpersonate ?? adminOrOwner,
     };
-    const generateAttributeColumns = () => {
+    const generateAttributeColumns = (): ColumnDef<UserTableUser>[] => {
       if (!attributes?.length) {
         return [];
       }
@@ -200,13 +213,14 @@ function UserListTableContent({
           const isText = attribute.type === "TEXT";
           const isSingleSelect = attribute.type === "SINGLE_SELECT";
           // const isMultiSelect = attribute.type === "MULTI_SELECT";
-          const filterType = isNumber
-            ? ColumnFilterType.NUMBER
-            : isText
-              ? ColumnFilterType.TEXT
-              : isSingleSelect
-                ? ColumnFilterType.SINGLE_SELECT
-                : ColumnFilterType.MULTI_SELECT;
+          let filterType = ColumnFilterType.MULTI_SELECT;
+          if (isNumber) {
+            filterType = ColumnFilterType.NUMBER;
+          } else if (isText) {
+            filterType = ColumnFilterType.TEXT;
+          } else if (isSingleSelect) {
+            filterType = ColumnFilterType.SINGLE_SELECT;
+          }
 
           return {
             id: attribute.id,
@@ -215,8 +229,9 @@ function UserListTableContent({
               filter: { type: filterType },
             },
             size: 120,
-            accessorFn: (data) => data.attributes?.find((attr) => attr.attributeId === attribute.id)?.value,
-            cell: ({ row }) => {
+            accessorFn: (data: UserTableUser) =>
+              data.attributes?.find((attr) => attr.attributeId === attribute.id)?.value,
+            cell: ({ row }: CellContext<UserTableUser, unknown>) => {
               const attributeValues = row.original.attributes?.filter(
                 (attr) => attr.attributeId === attribute.id
               );
@@ -224,40 +239,29 @@ function UserListTableContent({
 
               return (
                 <LimitedBadges
-                  items={attributeValues}
-                  className={classNames(isNumber ? "flex w-full justify-center" : "flex flex-wrap")}
-                  renderBadge={(attributeValue) => {
+                  items={attributeValues.map((attributeValue) => {
                     const isAGroupOption = attributeValue.contains?.length > 0;
-                    const suffix = attribute.isWeightsEnabled
-                      ? `${attributeValue.weight || 100}%`
-                      : undefined;
-                    return (
-                      <div className="mr-1 inline-flex shrink-0" key={attributeValue.id}>
-                        <Badge
-                          variant={isAGroupOption ? "orange" : "gray"}
-                          className={classNames(suffix && "rounded-r-none")}>
-                          {attributeValue.value}
-                        </Badge>
+                    let weight = "";
+                    if (attribute.isWeightsEnabled) {
+                      weight = `${attributeValue.weight || 100}%`;
+                    }
+                    let groupIndicator = "";
+                    if (isAGroupOption) {
+                      groupIndicator = " (group)";
+                    }
+                    let label = attributeValue.value;
+                    if (weight) {
+                      label = `${label} ${weight}`;
+                    }
+                    label = `${label}${groupIndicator}`;
 
-                        {suffix ? (
-                          <Badge
-                            variant={isAGroupOption ? "orange" : "gray"}
-                            style={{
-                              backgroundColor: "color-mix(in hsl, var(--cal-bg-emphasis), black 5%)",
-                            }}
-                            className="rounded-l-none">
-                            {suffix}
-                          </Badge>
-                        ) : null}
-                      </div>
-                    );
-                  }}
-                  renderOverflowItem={(attributeValue) => (
-                    <span key={attributeValue.id} className="text-default text-sm">
-                      {attributeValue.value}
-                      {attribute.isWeightsEnabled ? ` (${attributeValue.weight || 100}%)` : ""}
-                    </span>
-                  )}
+                    return {
+                      id: attributeValue.id,
+                      label,
+                      variant: "gray" as const,
+                    };
+                  })}
+                  className={classNames(isNumber && "w-full justify-center")}
                 />
               );
             },
@@ -274,17 +278,17 @@ function UserListTableContent({
         enableSorting: false,
         enableResizing: false,
         size: 30,
-        header: ({ table }) => (
+        header: ({ table }: HeaderContext<UserTableUser, unknown>) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            onCheckedChange={(value: boolean | "indeterminate") => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
           />
         ),
-        cell: ({ row }) => (
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => (
           <Checkbox
             checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            onCheckedChange={(value: boolean | "indeterminate") => row.toggleSelected(!!value)}
             aria-label="Select row"
             className="translate-y-[2px]"
           />
@@ -292,12 +296,12 @@ function UserListTableContent({
       },
       {
         id: "member",
-        accessorFn: (data) => data.email,
+        accessorFn: (data: UserTableUser) => data.email,
         enableHiding: false,
         enableColumnFilter: false,
         size: 200,
         header: t("members"),
-        cell: ({ row }) => {
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => {
           const { username, email, avatarUrl } = row.original;
           return (
             <div className="flex items-center gap-2">
@@ -326,13 +330,13 @@ function UserListTableContent({
       },
       {
         id: "role",
-        accessorFn: (data) => data.role,
+        accessorFn: (data: UserTableUser) => data.role,
         header: t("role"),
         size: 100,
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT },
         },
-        cell: ({ row, table }) => {
+        cell: ({ row, table }: CellContext<UserTableUser, unknown>) => {
           const { role, username, customRole } = row.original;
           const roleName = customRole?.name || role;
           return (
@@ -349,13 +353,13 @@ function UserListTableContent({
       },
       {
         id: "teams",
-        accessorFn: (data) => data.teams.map((team) => team.name),
+        accessorFn: (data: UserTableUser) => data.teams.map((team) => team.name),
         header: t("teams"),
         size: 140,
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT },
         },
-        cell: ({ row, table }) => {
+        cell: ({ row, table }: CellContext<UserTableUser, unknown>) => {
           const { teams, accepted, email, username } = row.original;
 
           return (
@@ -374,23 +378,14 @@ function UserListTableContent({
               )}
 
               <LimitedBadges
-                items={teams}
-                className="flex flex-wrap items-center gap-2"
-                renderBadge={(team) => (
-                  <Badge
-                    key={team.id}
-                    variant="gray"
-                    onClick={() => {
-                      table.getColumn("teams")?.setFilterValue([team.name]);
-                    }}>
-                    {team.name}
-                  </Badge>
-                )}
-                renderOverflowItem={(team) => (
-                  <span key={team.id} className="text-default text-sm">
-                    {team.name}
-                  </span>
-                )}
+                items={teams.map((team) => ({
+                  id: team.id,
+                  label: team.name,
+                  variant: "gray" as const,
+                  onClick: () => {
+                    table.getColumn("teams")?.setFilterValue([team.name]);
+                  },
+                }))}
               />
             </div>
           );
@@ -408,7 +403,7 @@ function UserListTableContent({
             type: ColumnFilterType.DATE_RANGE,
           },
         },
-        cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => <div>{row.original.lastActiveAt}</div>,
       },
       {
         id: "createdAt",
@@ -421,7 +416,7 @@ function UserListTableContent({
             type: ColumnFilterType.DATE_RANGE,
           },
         },
-        cell: ({ row }) => <div>{row.original.createdAt || ""}</div>,
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => <div>{row.original.createdAt || ""}</div>,
       },
       {
         id: "updatedAt",
@@ -434,7 +429,7 @@ function UserListTableContent({
             type: ColumnFilterType.DATE_RANGE,
           },
         },
-        cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => <div>{row.original.updatedAt || ""}</div>,
       },
       {
         id: "completedOnboarding",
@@ -443,7 +438,7 @@ function UserListTableContent({
         enableSorting: false,
         enableColumnFilter: false,
         size: 80,
-        cell: ({ row }) => {
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => {
           const { completedOnboarding } = row.original;
           return (
             <Badge variant={completedOnboarding ? "green" : "gray"}>
@@ -460,7 +455,7 @@ function UserListTableContent({
         enableSorting: false,
         enableColumnFilter: false,
         size: 80,
-        cell: ({ row }) => {
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => {
           const { twoFactorEnabled } = row.original;
           if (!adminOrOwner || twoFactorEnabled === undefined) {
             return null;
@@ -478,7 +473,7 @@ function UserListTableContent({
         enableSorting: false,
         enableResizing: false,
         size: 80,
-        cell: ({ row }) => {
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => {
           const user = row.original;
           const permissionsRaw = tablePermissions;
           const isSelf = user.id === session?.user.id;
@@ -535,8 +530,8 @@ function UserListTableContent({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onRowSelectionChange: setRowSelection,
-    getRowId: (row) => `${row.id}`,
-    getFacetedUniqueValues: (_, columnId) => () => {
+    getRowId: (row: UserTableUser) => `${row.id}`,
+    getFacetedUniqueValues: (_: unknown, columnId: string) => (): Map<string, number> => {
       if (facetedTeamValues) {
         switch (columnId) {
           case "role":
@@ -575,7 +570,7 @@ function UserListTableContent({
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
-  const handleDownload = async () => {
+  const handleDownload = async (): Promise<void> => {
     try {
       if (!org?.slug || !org?.name) {
         throw new Error("Org slug or name is missing.");
@@ -727,7 +722,7 @@ function UserListTableContent({
                       showModal: true,
                     },
                   });
-                  posthog.capture("add_organization_member_clicked")
+                  posthog.capture("add_organization_member_clicked");
                 }}
                 data-testid="new-organization-member-button">
                 {t("add")}
@@ -739,3 +734,6 @@ function UserListTableContent({
     </>
   );
 }
+
+export { UserListTable };
+export type { UserListTableProps };
