@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Rezervasiya uğurla yenidən yönləndirildi. Rezervasiya səhifəsinə yönləndirilir",
   "on_booking_write_to_event_object": "Rezervasiya zamanı tədbir obyektinə yaz",
   "field_name": "Sahə adı",
+  "field_name_cannot_be_empty": "Sahə adı boş ola bilməz",
+  "field_already_exists": "Sahə artıq mövcuddur",
   "add_new_field": "Yeni sahə əlavə et",
   "you_dont_have_access_to_reroute_this_booking": "Bu rezervasiyanı yönləndirmək üçün icazəniz yoxdur",
   "form_response_not_found": "Form cavabı tapılmadı",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Rezervasiya sahibi sizin təşkilatın üzvü deyil.",
   "audit_logs_permission_denied": "Bu rezervasiya üçün audit jurnallarına baxmaq icazəniz yoxdur.",
   "audit_logs_permission_check_error": "İcazələr yoxlanılarkən xəta baş verdi.",
+  "account_already_exists_please_login": "Bu e-poçt ünvanı ilə hesab artıq mövcuddur. Dəvəti qəbul etmək üçün daxil olun.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
