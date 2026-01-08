@@ -441,7 +441,10 @@ export default function ToolbarPlugin(props: TextEditorProps) {
     );
   }, [editor, updateToolbar]);
 
-  const insertLink = useCallback(() => {
+  const insertLink = useCallback((e?: React.MouseEvent<HTMLButtonElement>) => {
+    e?.preventDefault(); // stop hash navigation
+    e?.stopPropagation(); // stop page reacting
+
     if (!isLink) {
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, "https://");
     } else {
