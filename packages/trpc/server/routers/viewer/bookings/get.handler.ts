@@ -228,7 +228,6 @@ function resolveWorkflowStepStatus(
   // 3. Default to QUEUED
   return "QUEUED";
 }
-
 export async function getBookings({
   user,
   prisma,
