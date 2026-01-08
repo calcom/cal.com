@@ -47,7 +47,7 @@ export const Switch = (
         className={cx(
           "flex h-auto w-fit flex-row items-center",
           fitToHeight && "h-fit",
-          labelOnLeading && "w-full flex-row-reverse justify-between",
+          labelOnLeading && "flex-row-reverse justify-between",
           padding && "hover:bg-subtle rounded-md p-1.5",
           classNames?.container
         )}>

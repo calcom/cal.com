@@ -2,6 +2,7 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import type { EditAvailabilityDayScreenHandle } from "@/components/screens/EditAvailabilityDayScreen";
 import EditAvailabilityDayScreenComponent from "@/components/screens/EditAvailabilityDayScreen";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
@@ -65,14 +66,16 @@ export default function EditAvailabilityDay() {
         options={{
           title: dayName,
           headerRight: () => (
-            <Text
-              onPress={handleSave}
-              className={`text-[17px] font-semibold ${
-                isSaving ? "text-gray-400" : "text-[#007AFF]"
-              }`}
-            >
-              {isSaving ? "Saving..." : "Save"}
-            </Text>
+            <HeaderButtonWrapper side="right">
+              <Text
+                onPress={handleSave}
+                className={`text-[17px] font-semibold ${
+                  isSaving ? "text-gray-400" : "text-[#007AFF]"
+                }`}
+              >
+                {isSaving ? "Saving..." : "Save"}
+              </Text>
+            </HeaderButtonWrapper>
           ),
         }}
       />
