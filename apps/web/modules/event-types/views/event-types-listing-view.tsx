@@ -314,6 +314,8 @@ function SortableEventTypeItem({
 
   const style = {
     transform: transform ? `translateY(${transform.y}px)` : undefined,
+    zIndex: isDragging ? 50 : undefined,
+    position: isDragging ? ("relative" as const) : undefined,
   };
 
   const embedLink = `${group.profile.slug}/${type.slug}`;
@@ -332,11 +334,7 @@ function SortableEventTypeItem({
     type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
 
   return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      key={type.id}
-      className={classNames(isDragging && "border-emphasis rounded-md border-2")}>
+    <li ref={setNodeRef} style={style} key={type.id}>
       <div className="hover:bg-cal-muted flex w-full items-center justify-between transition">
         <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
           <DragButton listeners={listeners} attributes={attributes} />

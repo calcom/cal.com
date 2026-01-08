@@ -66,6 +66,8 @@ function SortableWorkflowItem({
 
   const style = {
     transform: transform ? `translateY(${transform.y}px)` : undefined,
+    zIndex: isDragging ? 50 : undefined,
+    position: isDragging ? ("relative" as const) : undefined,
   };
 
   const dataTestId = `workflow-${workflow.name.toLowerCase().replaceAll(" ", "-")}`;
@@ -76,10 +78,7 @@ function SortableWorkflowItem({
       style={style}
       key={workflow.id}
       data-testid={dataTestId}
-      className={classNames(
-        "group flex w-full max-w-full items-center justify-between overflow-hidden",
-        isDragging && "border-emphasis rounded-md border-2"
-      )}>
+      className="group flex w-full max-w-full items-center justify-between overflow-hidden">
       <DragButton listeners={listeners} attributes={attributes} />
       <div className="first-line:group hover:bg-cal-muted flex w-full items-center justify-between p-4 transition sm:px-6">
         <Link href={`/workflows/${workflow.id}`} className="grow cursor-pointer">
