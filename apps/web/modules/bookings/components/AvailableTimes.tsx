@@ -11,7 +11,7 @@ import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerSt
 import { OutOfOfficeInSlots } from "./OutOfOfficeInSlots";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
+import type { Slot } from "@calcom/web/modules/schedules/hooks/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";

@@ -22,9 +22,9 @@ import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
-import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
+import type { Slot } from "@calcom/web/modules/schedules/hooks/types";
+import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
+import { useSlotsForDate } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";
 import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
