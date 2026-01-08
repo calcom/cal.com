@@ -52,6 +52,7 @@ import { dub } from "./dub";
 import { validateSamlAccountConversion } from "./samlAccountLinking";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
+import { AccountSanitizationService } from "../services/AccountSanitizationService";
 import { UserProfile } from "@calcom/types/UserProfile";
 
 type UserWithProfiles = NonNullable<
@@ -1084,17 +1085,29 @@ export const getOptions = ({
               }
             }
 
+            // Prevent account pre-hijacking: sanitize unverified accounts before OAuth linking
+            const isUnverifiedAccount = !existingUserWithEmail.emailVerified;
+            if (isUnverifiedAccount) {
+              const sanitizationService = new AccountSanitizationService(prisma);
+              await sanitizationService.sanitizeUnverifiedAccount(existingUserWithEmail.id);
+            }
+
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
-              // also update email to the IdP email
               data: {
                 email: user.email.toLowerCase(),
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
+                ...(isUnverifiedAccount && {
+                  password: { delete: true },
+                  twoFactorEnabled: false,
+                  twoFactorSecret: null,
+                  backupCodes: null,
+                }),
               },
             });
 
-            if (existingUserWithEmail.twoFactorEnabled) {
+            if (existingUserWithEmail.twoFactorEnabled && !isUnverifiedAccount) {
               return loginWithTotp(existingUserWithEmail.email);
             } else {
               return true;
