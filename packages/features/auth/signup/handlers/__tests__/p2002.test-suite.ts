@@ -91,7 +91,7 @@ export function runP2002TestSuite(
       beforeEach(setupMocks);
 
       it("returns 201 when user is created (non-token flow)", async () => {
-        prismaMock.user.create.mockResolvedValue(createMockUser());
+        prismaMock.user.create.mockResolvedValue(createMockUser() as never);
 
         const response = await callHandler(createSignupBody());
 

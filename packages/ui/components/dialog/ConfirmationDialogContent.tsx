@@ -68,8 +68,8 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
           <DialogPrimitive.Title className="font-cal text-emphasis mt-2 text-xl">
             {title}
           </DialogPrimitive.Title>
-          <DialogPrimitive.Description className="text-subtle text-sm">
-            {children}
+          <DialogPrimitive.Description asChild>
+            <div className="text-subtle text-sm">{children}</div>
           </DialogPrimitive.Description>
         </div>
       </div>

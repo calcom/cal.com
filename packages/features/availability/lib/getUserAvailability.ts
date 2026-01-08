@@ -40,7 +40,7 @@ import type {
 } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
+import type { CalendarFetchMode, EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
@@ -57,7 +57,7 @@ type GetUsersAvailabilityQuery = {
   returnDateOverrides: boolean;
   bypassBusyCalendarTimes?: boolean;
   silentlyHandleCalendarFailures?: boolean;
-  shouldServeCache?: boolean;
+  mode?: string;
 };
 
 const availabilitySchema: z.ZodType<GetUserAvailabilityParams, z.ZodTypeDef, unknown> = z.object({
@@ -72,6 +72,7 @@ const availabilitySchema: z.ZodType<GetUserAvailabilityParams, z.ZodTypeDef, unk
   bypassBusyCalendarTimes: z.boolean().optional(),
   silentlyHandleCalendarFailures: z.boolean().optional(),
   shouldServeCache: z.boolean().optional(),
+  mode: z.enum(["slots", "overlay", "booking", "none"]).default("none"),
 });
 
 type GetUserAvailabilityParams = {
@@ -87,7 +88,7 @@ type GetUserAvailabilityParams = {
   returnDateOverrides: boolean;
   bypassBusyCalendarTimes?: boolean;
   silentlyHandleCalendarFailures?: boolean;
-  shouldServeCache?: boolean;
+  mode?: CalendarFetchMode;
 };
 
 interface GetUserAvailabilityParamsDTO {
@@ -238,7 +239,7 @@ export class UserAvailabilityService {
 
     for (const credential of delegatedCredentials) {
       try {
-        const calendar = await getCalendar(credential);
+        const calendar = await getCalendar(credential, "slots");
         if (calendar && "getMainTimeZone" in calendar && typeof calendar.getMainTimeZone === "function") {
           const timezone = await calendar.getMainTimeZone();
           if (timezone && timezone !== "UTC") {
@@ -335,7 +336,7 @@ export class UserAvailabilityService {
       returnDateOverrides,
       bypassBusyCalendarTimes = false,
       silentlyHandleCalendarFailures = false,
-      shouldServeCache,
+      mode,
     } = params;
 
     log.debug(
@@ -489,7 +490,7 @@ export class UserAvailabilityService {
         currentBookings: initialData?.currentBookings,
         bypassBusyCalendarTimes,
         silentlyHandleCalendarFailures,
-        shouldServeCache,
+        mode,
       });
     } catch (error) {
       log.error(`Error fetching busy times for user ${username}:`, error);
