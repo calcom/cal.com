@@ -9,7 +9,6 @@ import { useCallback, useMemo, useState } from "react";
 const MAX_VISIBLE_BADGES = 2;
 
 type BadgeItem = {
-  id: string | number;
   label: string;
   variant?:
     | "default"
@@ -67,7 +66,7 @@ function LimitedBadges({
   return (
     <div className={`flex flex-wrap items-center gap-x-1 gap-y-1 ${className || ""}`}>
       {visibleItems.map((item) => (
-        <Badge key={item.id} variant={item.variant || "gray"} onClick={item.onClick}>
+        <Badge key={item.label} variant={item.variant || "gray"} onClick={item.onClick}>
           {item.label}
         </Badge>
       ))}
@@ -92,7 +91,7 @@ function LimitedBadges({
             <div className="flex flex-col gap-1">
               {hiddenItems.map((item) => (
                 <span
-                  key={item.id}
+                  key={item.label}
                   className="text-default cursor-pointer text-sm hover:text-emphasis"
                   onClick={item.onClick}>
                   {item.label}

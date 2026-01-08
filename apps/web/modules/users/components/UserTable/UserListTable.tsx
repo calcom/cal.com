@@ -260,7 +260,6 @@ function UserListTableContent({
                     }
 
                     return {
-                      id: attributeValue.id,
                       label,
                       variant,
                     };
@@ -387,7 +386,6 @@ function UserListTableContent({
 
               <LimitedBadges
                 items={teams.map((team) => ({
-                  id: team.id,
                   label: team.name,
                   variant: "gray" as const,
                   onClick: () => {
