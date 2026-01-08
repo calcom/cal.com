@@ -14,7 +14,12 @@ const checkRateLimitAndThrowErrorMock = mockDeep<typeof checkRateLimitAndThrowEr
 export const scenarios = {
   fakeRateLimitPassed: () => {
     // It doesn't matter what the implementation is, as long as it resolves without error
-    checkRateLimitAndThrowErrorMock.checkRateLimitAndThrowError.mockResolvedValue(undefined);
+    checkRateLimitAndThrowErrorMock.checkRateLimitAndThrowError.mockResolvedValue({
+      success: true,
+      limit: 10,
+      remaining: 999,
+      reset: 0,
+    });
   },
   fakeRateLimitFailed: () => {
     const error = new Error("FAKE_RATE_LIMIT_ERROR");

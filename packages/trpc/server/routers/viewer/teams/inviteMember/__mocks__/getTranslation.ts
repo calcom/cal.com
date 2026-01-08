@@ -13,8 +13,6 @@ const getTranslationMock = mockDeep<typeof getTranslation>();
 
 export const mock = {
   fakeIdentityFn: () =>
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-expect-error
     getTranslationMock.getTranslation.mockImplementation(async () => (key: string) => key),
 };
 
