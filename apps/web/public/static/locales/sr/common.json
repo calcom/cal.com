@@ -688,7 +688,7 @@
   "sunday": "Nedelja",
   "all_booked_today": "Sve je zakazano.",
   "slots_load_fail": "Problem pri učitavanju dostupnih termina.",
-  "additional_guests": "+ Dodatni Gosti",
+  "additional_guests": "Dodatni Gosti",
   "your_name": "Vaše ime",
   "your_full_name": "Ime i prezime",
   "no_name": "Bez imena",
