@@ -185,7 +185,15 @@ function getChannelFromAction(action: WorkflowActions): "EMAIL" | "SMS" | "WHATS
   return "EMAIL";
 }
 
-// Helper function to determine status with precedence rules
+function parseUtcTimestamp(input: string | Date): number {
+  if (input instanceof Date) {
+    return input.getTime();
+  }
+
+  // If timezone is missing, force UTC
+  return Date.parse(!/[zZ]|[+-]\d\d:\d\d$/.test(input) ? `${input}Z` : input);
+}
+
 function resolveWorkflowStepStatus(
   workflowInsight: {
     status: WorkflowStatus;
@@ -203,14 +211,17 @@ function resolveWorkflowStepStatus(
 
   // 2. Check workflowReminder
   if (workflowReminder) {
+    const parsedScheduledDate = parseUtcTimestamp(workflowReminder.scheduledDate);
+    const currentTime = Date.now();
+
+    if (workflowReminder.scheduled && parsedScheduledDate <= currentTime) {
+      return "DELIVERED";
+    }
     if (workflowReminder.cancelled) {
       return "CANCELLED";
     }
-    if (workflowReminder.scheduled && workflowReminder.scheduledDate > new Date()) {
+    if (workflowReminder.scheduled && parsedScheduledDate > currentTime) {
       return "QUEUED";
-    }
-    if (workflowReminder.scheduled && workflowReminder.scheduledDate <= new Date()) {
-      return "DELIVERED";
     }
   }
 
