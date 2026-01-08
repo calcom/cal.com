@@ -206,7 +206,7 @@ export class UserAvailabilityService {
   constructor(public readonly dependencies: IUserAvailabilityService) {}
 
   // Fetch timezones from outlook or google using delegated credentials (formely known as domain wide delegatiion)
-  async getTimezoneFromDelegatedCalendars(user: GetAvailabilityUser): Promise<string | null> {
+  async getTimezoneFromDelegatedCalendars(user: NonNullable<GetAvailabilityUser>): Promise<string | null> {
     if (!user.credentials || user.credentials.length === 0) {
       return null;
     }
