@@ -36,7 +36,7 @@ type EditLocationOptions = {
     user: NonNullable<TrpcSessionUser>;
   } & BookingsProcedureContext;
   input: TEditLocationInputSchema;
-  actionSource?: ActionSource;
+  actionSource: ActionSource;
   userUuid?: string;
 };
 
@@ -264,13 +264,12 @@ export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
 export async function editLocationHandler({
   ctx,
   input,
-  actionSource: inputActionSource,
+  actionSource,
   userUuid: inputUserUuid,
 }: EditLocationOptions) {
   const { newLocation, credentialId: conferenceCredentialId } = input;
   const { booking, user: loggedInUser } = ctx;
 
-  const actionSource = inputActionSource ?? "WEBAPP";
   const userUuid = inputUserUuid ?? loggedInUser.uuid;
 
   if (actionSource === "UNKNOWN") {
