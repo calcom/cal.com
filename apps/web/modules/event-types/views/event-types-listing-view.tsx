@@ -48,7 +48,6 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { UserAvatarGroup } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
-import { DragButton } from "@calcom/ui/components/drag-button";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
@@ -338,9 +337,13 @@ function SortableEventTypeItem({
       ref={setNodeRef}
       style={style}
       key={type.id}
-      className={classNames(isDragging && "bg-cal-muted border-subtle border-t")}>
+      className={classNames(
+        "cursor-grab active:cursor-grabbing",
+        isDragging && "bg-cal-muted border-subtle border-t"
+      )}
+      {...listeners}
+      {...attributes}>
       <div className="hover:bg-cal-muted group flex w-full items-center justify-between">
-        <DragButton listeners={listeners} attributes={attributes} />
         <div className="flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
           <MemoizedItem type={type} group={group} readOnly={readOnly} />
           <div className="mt-4 hidden sm:mt-0 sm:flex">
@@ -642,7 +645,11 @@ export const InfiniteEventTypeList = ({
   const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<Record<string, number>>({});
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })

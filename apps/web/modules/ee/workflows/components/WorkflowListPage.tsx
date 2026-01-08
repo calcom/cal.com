@@ -29,7 +29,6 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { DragButton } from "@calcom/ui/components/drag-button";
 import {
   Dropdown,
   DropdownItem,
@@ -79,10 +78,11 @@ function SortableWorkflowItem({
       key={workflow.id}
       data-testid={dataTestId}
       className={classNames(
-        "group flex w-full max-w-full items-center justify-between",
+        "group flex w-full max-w-full cursor-grab items-center justify-between active:cursor-grabbing",
         isDragging && "bg-cal-muted border-subtle border-t"
-      )}>
-      <DragButton listeners={listeners} attributes={attributes} />
+      )}
+      {...listeners}
+      {...attributes}>
       <div className="first-line:group hover:bg-cal-muted flex w-full items-center justify-between overflow-hidden p-4 sm:px-6">
         <Link href={`/workflows/${workflow.id}`} className="grow cursor-pointer">
           <div className="rtl:space-x-reverse">
@@ -289,7 +289,11 @@ export default function WorkflowListPage({ workflows }: Props) {
   const router = useRouter();
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })

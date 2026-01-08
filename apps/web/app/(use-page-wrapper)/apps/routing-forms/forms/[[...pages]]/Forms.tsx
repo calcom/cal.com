@@ -36,7 +36,6 @@ import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { DragButton } from "@calcom/ui/components/drag-button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
 import { List, ListLinkItem } from "@calcom/ui/components/list";
@@ -110,11 +109,12 @@ function SortableFormItem({ form, readOnly, appUrl, t }: SortableFormItemProps):
       ref={setNodeRef}
       style={style}
       className={classNames(
-        "group flex w-full max-w-full items-center justify-between",
+        "group flex w-full max-w-full cursor-grab items-center justify-between active:cursor-grabbing",
         isDragging && "bg-cal-muted border-subtle border-t"
       )}
-      key={form.id}>
-      <DragButton listeners={listeners} attributes={attributes} />
+      key={form.id}
+      {...listeners}
+      {...attributes}>
       <ListLinkItem
         href={`${appUrl}/form-edit/${form.id}`}
         heading={form.name}
@@ -214,7 +214,11 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const utils = trpc.useUtils();
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
