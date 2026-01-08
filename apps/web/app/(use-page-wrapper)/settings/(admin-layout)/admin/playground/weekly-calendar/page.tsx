@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { Calendar } from "@calcom/features/calendars/weeklyview";
+import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import type { CalendarComponentProps, Hours } from "@calcom/features/calendars/weeklyview/types/state";
 
