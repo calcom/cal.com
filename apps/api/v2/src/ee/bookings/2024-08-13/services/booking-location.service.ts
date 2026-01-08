@@ -107,7 +107,7 @@ export class BookingLocationService_2024_08_13 {
       auditData: {
         location: {
           old: oldLocation,
-          new: bookingLocation,
+          new: bookingFieldsLocation,
         },
       },
     });

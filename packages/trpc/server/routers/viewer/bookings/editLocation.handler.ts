@@ -3,7 +3,7 @@ import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calc
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
@@ -28,15 +28,13 @@ import type { TrpcSessionUser } from "../../../types";
 import type { TEditLocationInputSchema } from "./editLocation.schema";
 import type { BookingsProcedureContext } from "./util";
 
-const log = logger.getSubLogger({ prefix: ["editLocation"] });
-
 // #region EditLocation Types and Helpers
 type EditLocationOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   } & BookingsProcedureContext;
   input: TEditLocationInputSchema;
-  actionSource: ActionSource;
+  actionSource: ValidActionSource;
   userUuid?: string;
 };
 
@@ -125,6 +123,7 @@ async function updateBookingLocationInDb({
       iCalSequence: (evt.iCalSequence || 0) + 1,
     },
   });
+  return { updatedLocation: evt.location };
 }
 
 async function getAllCredentialsIncludeServiceAccountKey({
@@ -272,10 +271,6 @@ export async function editLocationHandler({
 
   const userUuid = inputUserUuid ?? loggedInUser.uuid;
 
-  if (actionSource === "UNKNOWN") {
-    log.warn("Location change with unknown actionSource", safeStringify({ bookingUid: booking.uid }));
-  }
-
   const oldLocation = booking.location;
 
   const organizer = await new UserRepository(prisma).findByIdOrThrow({ id: booking.userId || 0 });
@@ -312,7 +307,7 @@ export async function editLocationHandler({
 
   const additionalInformation = extractAdditionalInformation(updatedResult.results[0]);
 
-  await updateBookingLocationInDb({
+  const updatedLocation = await updateBookingLocationInDb({
     booking,
     evt: { ...evt, additionalInformation },
     references: updatedResult.referencesToCreate,
@@ -336,7 +331,7 @@ export async function editLocationHandler({
     auditData: {
       location: {
         old: oldLocation,
-        new: newLocationInEvtFormat,
+        new: updatedLocation,
       },
     },
   });
