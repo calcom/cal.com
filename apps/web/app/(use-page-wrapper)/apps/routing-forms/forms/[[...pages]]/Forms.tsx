@@ -32,6 +32,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
@@ -96,7 +97,7 @@ function SortableFormItem({ form, readOnly, appUrl, t }: SortableFormItemProps):
   const style = {
     transform: transform ? `translateY(${transform.y}px)` : undefined,
     zIndex: isDragging ? 50 : undefined,
-    position: isDragging ? ("relative" as const) : undefined,
+    position: "relative" as const,
   };
 
   const description = form.description || "";
@@ -108,7 +109,10 @@ function SortableFormItem({ form, readOnly, appUrl, t }: SortableFormItemProps):
     <div
       ref={setNodeRef}
       style={style}
-      className="group flex w-full max-w-full items-center justify-between overflow-hidden"
+      className={classNames(
+        "group flex w-full max-w-full items-center justify-between overflow-hidden",
+        isDragging && "bg-cal-muted border-subtle border-t"
+      )}
       key={form.id}>
       <DragButton listeners={listeners} attributes={attributes} />
       <ListLinkItem
