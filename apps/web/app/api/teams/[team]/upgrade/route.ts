@@ -44,7 +44,7 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
     const price = subscription.items.data[0]?.price as Stripe.Price | undefined;
     const stripeInterval = price?.recurring?.interval;
     const billingPeriod = stripeInterval === "year" ? BillingPeriod.ANNUALLY : BillingPeriod.MONTHLY;
-    const pricePerSeat = price?.unit_amount ? price.unit_amount / 100 : null;
+    const pricePerSeat = price?.unit_amount ?? null;
     const paidSeats = subscription.items.data[0]?.quantity ?? null;
     const subscriptionStart = subscription.current_period_start
       ? new Date(subscription.current_period_start * 1000)

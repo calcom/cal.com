@@ -2918,7 +2918,7 @@ model TeamBilling {
   status               String
   planName             String
   billingPeriod        BillingPeriod?
-  pricePerSeat         Float?
+  pricePerSeat         Int?
   paidSeats            Int?
   subscriptionStart    DateTime?
   subscriptionTrialEnd DateTime?
