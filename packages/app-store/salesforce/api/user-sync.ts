@@ -1,19 +1,29 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { getAttributeSyncRuleService } from "@calcom/features/ee/integration-attribute-sync/di/AttributeSyncRuleService.container";
 import { getIntegrationAttributeSyncService } from "@calcom/features/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 const log = logger.getSubLogger({ prefix: ["[salesforce/user-sync]"] });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { instanceUrl, orgId, salesforceUserId, email, changedFields, timestamp } = req.body;
+  const {
+    instanceUrl,
+    orgId,
+    salesforceUserId,
+    email,
+    changedFields,
+    timestamp,
+  } = req.body;
 
   log.info("Received user sync request", {
     instanceUrl,
@@ -49,8 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Invalid credential ID" });
   }
 
-  const sfdcOrgId = new URL(salesforceCredentialId).pathname.split("/")[1];
-  console.log(sfdcOrgId);
+  const sfdcOrgId = new URL(salesforceCredentialId).pathname.split("/")[2];
 
   if (sfdcOrgId !== orgId) {
     log.error(`Mismatched orgId ${orgId} for credential ${credential.id}`);
@@ -64,18 +73,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!user) {
-    log.error(`User not found for email ${email} and teamId ${credential.teamId}`);
+    log.error(
+      `User not found for email ${email} and teamId ${credential.teamId}`
+    );
+    return res.status(400).json({ error: "Invalid user" });
+  }
+
+  // TODO: If introducing mutliple orgs for a single user, then we need to handle that here
+  if (user.profiles.length === 0) {
+    log.error(`User ${user.id} is not a part of an organization`);
     return res.status(400).json({ error: "Invalid user" });
   }
 
   const integrationAttributeSyncService = getIntegrationAttributeSyncService();
 
-  const integrationAttributeSyncs = await integrationAttributeSyncService.getAllByCredentialId(credential.id);
-  console.log(integrationAttributeSyncs);
+  const integrationAttributeSyncs =
+    await integrationAttributeSyncService.getAllByCredentialId(credential.id);
+
+  const attributeSyncRuleService = getAttributeSyncRuleService();
 
   await Promise.allSettled(
     integrationAttributeSyncs.map(async (sync) => {
-      console.log(sync);
+      if (sync.attributeSyncRule) {
+        const shouldSyncApplyToUser =
+          await attributeSyncRuleService.shouldSyncApplyToUser({
+            user: {
+              id: user.id,
+              organizationId: user.profiles[0].organizationId,
+            },
+            attributeSyncRule: sync.attributeSyncRule.rule,
+          });
+
+        if (!shouldSyncApplyToUser) return;
+      }
     })
   );
   // TODO: Sync changedFields to Cal.com user
