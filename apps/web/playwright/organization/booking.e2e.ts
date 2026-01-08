@@ -762,6 +762,9 @@ async function bookUserEvent({
   event: { slug: string; title: string };
 }) {
   await page.goto(`/${user.username}/${event.slug}`);
+  await page.waitForURL((url) => {
+    return url.searchParams.get("overlayCalendar") === "true";
+  });
 
   await selectFirstAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);

@@ -75,7 +75,10 @@ test.describe("Onboarding", () => {
       });
 
       await test.step("step 5- User Profile", async () => {
-        await page.locator("button[type=submit]").click();
+        const onboarding = page.getByTestId("onboarding");
+        const form = onboarding.locator("form").first();
+        const submitButton = form.getByRole("button", { name: "Finish setup and get started" });
+        await submitButton.click();
         // should redirect to /event-types after onboarding
         await page.waitForURL("/event-types");
 
