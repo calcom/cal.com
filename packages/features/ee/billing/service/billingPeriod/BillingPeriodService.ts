@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { BillingPeriod } from "@calcom/prisma/enums";
 import type { Logger } from "tslog";
+import { should } from "@prisma/internals/dist/logger";
 
 const log = logger.getSubLogger({ prefix: ["BillingPeriodService"] });
 
@@ -20,6 +21,8 @@ export interface BillingPeriodInfo {
 }
 
 export class BillingPeriodService {
+  private logger: Logger<unknown>;
+
   constructor(customLogger?: Logger<unknown>) {
     this.logger = customLogger || log;
   }
@@ -37,14 +40,33 @@ export class BillingPeriodService {
   async shouldApplyMonthlyProration(teamId: number): Promise<boolean> {
     try {
       const featuresRepository = new FeaturesRepository(prisma);
-      const isFeatureEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
+      const isFeatureEnabled =
+        await featuresRepository.checkIfFeatureIsEnabledGlobally(
+          "monthly-proration"
+        );
 
       if (!isFeatureEnabled) {
         return false;
       }
 
       const info = await this.getOrCreateBillingPeriodInfo(teamId);
-      return info.billingPeriod === "ANNUALLY" && !info.isInTrial && info.subscriptionStart !== null;
+
+      console.log({
+        billingPeriod: info.billingPeriod,
+        isInTrial: info.isInTrial,
+        subscriptionStart: info.subscriptionStart,
+        trialEnd: info.trialEnd,
+        shouldApplyMonthlyProration:
+          info.billingPeriod === "ANNUALLY" &&
+          !info.isInTrial &&
+          info.subscriptionStart !== null,
+      });
+
+      return (
+        info.billingPeriod === "ANNUALLY" &&
+        !info.isInTrial &&
+        info.subscriptionStart !== null
+      );
     } catch (_error) {
       return false;
     }
@@ -55,7 +77,9 @@ export class BillingPeriodService {
    * This method will automatically fetch and persist billing data from Stripe
    * if the team has a subscription but missing billing period information.
    */
-  async getOrCreateBillingPeriodInfo(teamId: number): Promise<BillingPeriodInfo> {
+  async getOrCreateBillingPeriodInfo(
+    teamId: number
+  ): Promise<BillingPeriodInfo> {
     const team = await prisma.team.findUnique({
       where: { id: teamId },
       select: {
@@ -89,7 +113,9 @@ export class BillingPeriodService {
 
     if (!team) throw new Error(`Team ${teamId} not found`);
 
-    const billing = team.isOrganization ? team.organizationBilling : team.teamBilling;
+    const billing = team.isOrganization
+      ? team.organizationBilling
+      : team.teamBilling;
 
     if (!billing) {
       return {
@@ -110,7 +136,9 @@ export class BillingPeriodService {
       );
 
       try {
-        const subscription = await stripe.subscriptions.retrieve(billing.subscriptionId);
+        const subscription = await stripe.subscriptions.retrieve(
+          billing.subscriptionId
+        );
         const { billingPeriod, pricePerSeat, paidSeats } =
           extractBillingDataFromStripeSubscription(subscription);
 
@@ -137,7 +165,9 @@ export class BillingPeriodService {
 
         // Return the backfilled data
         const now = new Date();
-        const isInTrial = billing.subscriptionTrialEnd ? new Date(billing.subscriptionTrialEnd) > now : false;
+        const isInTrial = billing.subscriptionTrialEnd
+          ? new Date(billing.subscriptionTrialEnd) > now
+          : false;
 
         return {
           billingPeriod,
@@ -149,13 +179,18 @@ export class BillingPeriodService {
           isOrganization: team.isOrganization,
         };
       } catch (error) {
-        log.error(`Failed to backfill billing data from Stripe for team ${teamId}`, { error });
+        log.error(
+          `Failed to backfill billing data from Stripe for team ${teamId}`,
+          { error }
+        );
         // Fall through to return existing data
       }
     }
 
     const now = new Date();
-    const isInTrial = billing.subscriptionTrialEnd ? new Date(billing.subscriptionTrialEnd) > now : false;
+    const isInTrial = billing.subscriptionTrialEnd
+      ? new Date(billing.subscriptionTrialEnd) > now
+      : false;
 
     return {
       billingPeriod: billing.billingPeriod,
