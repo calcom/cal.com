@@ -365,6 +365,8 @@ function OutOfOfficeEntriesListContent({
         table={table}
         isPending={isPending}
         hasNextPage={hasNextPage}
+        fetchNextPage={fetchNextPage}
+        isFetching={isFetching}
         totalRowCount={totalRowCount}
         tableContainerRef={tableContainerRef}
         paginationMode="infinite"
