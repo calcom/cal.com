@@ -1,6 +1,8 @@
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
@@ -21,7 +23,7 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
 
-type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId"> &
+type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId" | "uuid"> &
   Partial<Pick<NonNullable<TrpcSessionUser>, "profile">>;
 
 type AddGuestsOptions = {
@@ -58,12 +60,18 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
 
   const uniqueGuestEmails = uniqueGuests.map((guest) => guest.email);
 
+  // Capture old attendee emails before update for audit logging
+  const oldAttendeeEmails = booking.attendees.map((attendee) => attendee.email);
+
   const bookingAttendees = await updateBookingAttendees(
     bookingId,
     newGuestsDetails,
     uniqueGuestEmails,
     booking
   );
+
+  // Capture new attendee emails after update for audit logging
+  const newAttendeeEmails = bookingAttendees.attendees.map((attendee) => attendee.email);
 
   const attendeesList = await prepareAttendeesList(bookingAttendees.attendees);
 
@@ -74,6 +82,18 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
   if (emailsEnabled) {
     await sendGuestNotifications(evt, booking, uniqueGuestEmails);
   }
+
+  // Audit logging for attendee added
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  await bookingEventHandlerService.onAttendeeAdded({
+    bookingUid: booking.uid,
+    actor: makeUserActor(user.uuid),
+    organizationId: user.organizationId ?? null,
+    source: "WEBAPP",
+    auditData: {
+      attendees: { old: oldAttendeeEmails, new: newAttendeeEmails },
+    },
+  });
 
   return { message: "Guests added" };
 };
