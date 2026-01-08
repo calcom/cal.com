@@ -2,7 +2,7 @@ import process from "node:process";
 
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
-import { describe, expect, test, vi, beforeEach } from "vitest";
+import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
 
 import { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents, TimeUnit } from "@calcom/prisma/enums";
 
@@ -449,8 +449,11 @@ describe("scanWorkflowBody", () => {
   });
 
   describe("iffyScanBody", () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
     test("should return flagged status from Iffy API", async () => {
-      // Mock fetch for this test using vi.stubGlobal for proper cleanup
       const mockFetch = vi.fn().mockResolvedValue({
         json: () => Promise.resolve({ flagged: true }),
       });
@@ -472,8 +475,6 @@ describe("scanWorkflowBody", () => {
           body: expect.stringContaining("spam content"),
         })
       );
-
-      vi.unstubAllGlobals();
     });
 
     test("should return false when content is not flagged", async () => {
@@ -487,8 +488,6 @@ describe("scanWorkflowBody", () => {
       const result = await iffyScanBody("normal content", 100);
 
       expect(result).toBe(false);
-
-      vi.unstubAllGlobals();
     });
 
     test("should handle API errors gracefully", async () => {
@@ -501,8 +500,6 @@ describe("scanWorkflowBody", () => {
 
       // Should return undefined on error (fail-open)
       expect(result).toBeUndefined();
-
-      vi.unstubAllGlobals();
     });
   });
 });

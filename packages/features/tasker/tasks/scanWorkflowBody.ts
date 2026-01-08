@@ -152,10 +152,21 @@ export async function scanWorkflowBody(payload: string) {
   if (!process.env.IFFY_API_KEY) {
     log.info("IFFY_API_KEY not set, skipping Iffy spam scan");
 
-    // Even if Iffy is not configured, we should still do URL scanning if enabled
-    // or mark as verified if URL scanning is also disabled
-    for (const workflowStep of workflowSteps) {
-      await handleUrlScanningForStep(workflowStep, userId);
+    if (!URL_SCANNING_ENABLED) {
+      await prisma.workflowStep.updateMany({
+        where: {
+          id: {
+            in: stepIdsToScan,
+          },
+        },
+        data: {
+          verifiedAt: new Date(),
+        },
+      });
+    } else {
+      for (const workflowStep of workflowSteps) {
+        await handleUrlScanningForStep(workflowStep, userId);
+      }
     }
   }
 
