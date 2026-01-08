@@ -2,9 +2,7 @@
   "name": "@calcom/testing",
   "version": "0.0.0",
   "private": true,
-  "main": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts",
     "./setupVitest": "./src/setupVitest.ts",
     "./lib/*": "./src/lib/*",
     "./lib/__mocks__/*": "./src/lib/__mocks__/*",
