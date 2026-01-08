@@ -602,10 +602,7 @@ const BookerComponent = ({
               className="border-subtle sticky top-0 -ml-px h-full md:border-l"
               {...fadeInLeft}
             >
-              <Dialog
-                open={true}
-                onOpenChange={() => console.log("hello world!")}
-              >
+              <Dialog open={isMobile && isEnableTwoStepSlotSelectionVisible}>
                 <DialogContent
                   type={undefined}
                   enableOverflow

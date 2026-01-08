@@ -6,5 +6,5 @@ export const useEnableTwoStepSlotSelection = () => {
 
   if (!isEmbed) return false;
 
-  return embedUiConfig.enableTwoStepSlotSelection;
+  return embedUiConfig.enableTwoStepSlotSelection ?? false;
 };

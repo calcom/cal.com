@@ -468,7 +468,7 @@ export const createBookerStore = () =>
       }
       return set({ layout });
     },
-    selectedDate: null, // getQueryParam("date") || null, // Commented out to start with null initially
+    selectedDate: getQueryParam("date") || null,
     setSelectedDate: ({
       date: selectedDate,
       omitUpdatingParams = false,

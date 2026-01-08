@@ -310,7 +310,7 @@ const Days = ({
       return;
     }
 
-    // Lets's not do something for now in case of multiple selected dates as behaviour is unclear and it's not needed at the moment
+    // Let's not do something for now in case of multiple selected dates as behaviour is unclear and it's not needed at the moment
     if (selected instanceof Array) {
       return;
     }
