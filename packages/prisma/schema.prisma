@@ -484,6 +484,8 @@ model User {
   agents                         Agent[]
   holidaySettings                UserHolidaySettings?
 
+  autoOptInFeatures Boolean @default(false)
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
@@ -614,6 +616,8 @@ model Team {
 
   teamBilling         TeamBilling?         @relation("TeamBilling")
   organizationBilling OrganizationBilling? @relation("OrganizationBilling")
+
+  autoOptInFeatures Boolean @default(false)
 
   // Monthly proration tracking
   seatChangeLogs    SeatChangeLog[]
@@ -2412,7 +2416,7 @@ model Watchlist {
   audits         WatchlistAudit[]
 
   @@unique([type, value, organizationId])
-  @@index([type, value, organizationId, action])
+  @@index([isGlobal, action, organizationId, type, value])
 }
 
 model WatchlistAudit {
@@ -2816,6 +2820,11 @@ model BookingAudit {
   operationId String
 
   data Json?
+
+  // Context for across action types concerns like impersonation, ip, userAgent etc.
+  // This is separate from `data` because it isn't related to action type but makes sense with every action
+  // BookingAuditContextSchema
+  context Json?
 
   @@index([actorId])
   @@index([bookingUid])
