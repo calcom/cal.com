@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
+import { getAppActor } from "@calcom/app-store/_utils/getAppActor";
 import {
   eventTypeMetaDataSchemaWithTypedApps,
   eventTypeAppMetadataOptionalSchema,
@@ -26,8 +27,6 @@ import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { makeAppActor, makeAppActorUsingSlug } from "@calcom/features/booking-audit/lib/makeActor";
-import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 
 const log = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
 
@@ -36,20 +35,6 @@ export const config = {
     bodyParser: false,
   },
 };
-
-function getActor({ credentialId }: { credentialId: number | null }) {
-  let actor: Actor;
-  if (credentialId) {
-    actor = makeAppActor({ credentialId });
-  } else {
-    actor = makeAppActorUsingSlug({ appSlug: "stripe", name: "Stripe" });
-  }
-
-  if (!credentialId) {
-    log.warn("Missing Stripe credentialId in event type metadata, using appSlug fallback");
-  }
-  return actor;
-}
 
 export async function handleStripePaymentSuccess(event: Stripe.Event, traceContext: TraceContext) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
@@ -149,8 +134,7 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
 
   if (!requiresConfirmation) {
     const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
-    const credentialId = apps?.stripe?.credentialId;
-    const actor = getActor({ credentialId: credentialId ?? null });
+    const actor = getAppActor({ appSlug: "stripe", bookingId: booking.id, apps });
     await handleConfirmation({
       user: { ...user, credentials: allCredentials },
       evt,

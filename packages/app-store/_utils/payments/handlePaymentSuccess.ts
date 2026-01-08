@@ -1,6 +1,5 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
-import { makeAppActor, makeAppActorUsingSlug } from "@calcom/features/booking-audit/lib/makeActor";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -29,40 +28,10 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import { getAppNameFromSlug } from "@calcom/features/booking-audit/lib/getAppNameFromSlug";
-import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
-import { safeStringify } from "@calcom/lib/safeStringify";
-import type { z } from "zod";
+
+import { getAppActor } from "../getAppActor";
 
 const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
-function getActor({
-  appSlug,
-  bookingId,
-  apps,
-}: {
-  appSlug: string;
-  bookingId: number;
-  apps: z.infer<typeof eventTypeAppMetadataOptionalSchema>;
-}) {
-  let actor: Actor;
-  const appData = apps?.[appSlug as keyof typeof apps];
-  if (appData?.credentialId) {
-    actor = makeAppActor({ credentialId: appData.credentialId });
-  } else {
-    log.warn(
-      `Missing credentialId for payment app, using appSlug fallback`,
-      safeStringify({
-        bookingId,
-        appSlug,
-      })
-    );
-    actor = makeAppActorUsingSlug({
-      appSlug,
-      name: getAppNameFromSlug({ appSlug }),
-    });
-  }
-  return actor;
-}
 
 export async function handlePaymentSuccess(params: {
   paymentId: number;
@@ -78,7 +47,7 @@ export async function handlePaymentSuccess(params: {
   log.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
-  const actor = getActor({ appSlug, bookingId, apps });
+  const actor = getAppActor({ appSlug, bookingId, apps });
 
   try {
     await tasker.cancelWithReference(booking.uid, "sendAwaitingPaymentEmail");

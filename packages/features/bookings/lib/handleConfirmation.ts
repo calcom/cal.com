@@ -69,7 +69,6 @@ async function fireBookingAcceptedEvent({
     });
   } else if (acceptedBookings.length === 1) {
     const acceptedBooking = acceptedBookings[0];
-    // Single booking acceptance
     await bookingEventHandlerService.onBookingAccepted({
       bookingUid: acceptedBooking.uid,
       actor,
