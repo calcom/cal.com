@@ -450,11 +450,11 @@ describe("scanWorkflowBody", () => {
 
   describe("iffyScanBody", () => {
     test("should return flagged status from Iffy API", async () => {
-      // Mock fetch for this test
+      // Mock fetch for this test using vi.stubGlobal for proper cleanup
       const mockFetch = vi.fn().mockResolvedValue({
         json: () => Promise.resolve({ flagged: true }),
       });
-      global.fetch = mockFetch;
+      vi.stubGlobal("fetch", mockFetch);
 
       process.env.IFFY_API_KEY = "test-api-key";
 
@@ -472,24 +472,28 @@ describe("scanWorkflowBody", () => {
           body: expect.stringContaining("spam content"),
         })
       );
+
+      vi.unstubAllGlobals();
     });
 
     test("should return false when content is not flagged", async () => {
       const mockFetch = vi.fn().mockResolvedValue({
         json: () => Promise.resolve({ flagged: false }),
       });
-      global.fetch = mockFetch;
+      vi.stubGlobal("fetch", mockFetch);
 
       process.env.IFFY_API_KEY = "test-api-key";
 
       const result = await iffyScanBody("normal content", 100);
 
       expect(result).toBe(false);
+
+      vi.unstubAllGlobals();
     });
 
     test("should handle API errors gracefully", async () => {
       const mockFetch = vi.fn().mockRejectedValue(new Error("API error"));
-      global.fetch = mockFetch;
+      vi.stubGlobal("fetch", mockFetch);
 
       process.env.IFFY_API_KEY = "test-api-key";
 
@@ -497,6 +501,8 @@ describe("scanWorkflowBody", () => {
 
       // Should return undefined on error (fail-open)
       expect(result).toBeUndefined();
+
+      vi.unstubAllGlobals();
     });
   });
 });

@@ -22,6 +22,29 @@ export const scanWorkflowBodySchema = z.object({
 
 const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowBody"] });
 
+/**
+ * Helper function to handle URL scanning or verification for a workflow step.
+ * Extracts the duplicated logic from both Iffy-enabled and Iffy-disabled paths.
+ */
+async function handleUrlScanningForStep(
+  workflowStep: { id: number; reminderBody: string | null; workflow: { user: { whitelistWorkflows: boolean } | null } },
+  userId: number
+): Promise<void> {
+  if (URL_SCANNING_ENABLED && workflowStep.reminderBody) {
+    await submitWorkflowStepForUrlScanning(
+      workflowStep.id,
+      workflowStep.reminderBody,
+      userId,
+      workflowStep.workflow.user?.whitelistWorkflows ?? false
+    );
+  } else {
+    await prisma.workflowStep.update({
+      where: { id: workflowStep.id },
+      data: { verifiedAt: new Date() },
+    });
+  }
+}
+
 export async function scanWorkflowBody(payload: string) {
   const { workflowStepIds, userId, createdAt, workflowStepId } = scanWorkflowBodySchema.parse(
     JSON.parse(payload)
@@ -121,25 +144,8 @@ export async function scanWorkflowBody(payload: string) {
         log.warn(`For whitelisted user, workflow step ${workflowStep.id} marked as spam`);
       }
 
-      // If URL scanning is enabled, submit for URL scanning (don't mark as verified yet)
-      // The scanWorkflowUrls task will mark as verified after URL scan completes
-      if (URL_SCANNING_ENABLED && workflowStep.reminderBody) {
-        await submitWorkflowStepForUrlScanning(
-          workflowStep.id,
-          workflowStep.reminderBody,
-          userId,
-          workflowStep.workflow.user?.whitelistWorkflows ?? false
-        );
-      } else {
-        await prisma.workflowStep.update({
-          where: {
-            id: workflowStep.id,
-          },
-          data: {
-            verifiedAt: new Date(),
-          },
-        });
-      }
+      // Handle URL scanning or mark as verified
+      await handleUrlScanningForStep(workflowStep, userId);
     }
   }
 
@@ -147,34 +153,9 @@ export async function scanWorkflowBody(payload: string) {
     log.info("IFFY_API_KEY not set, skipping Iffy spam scan");
 
     // Even if Iffy is not configured, we should still do URL scanning if enabled
-    if (URL_SCANNING_ENABLED) {
-      for (const workflowStep of workflowSteps) {
-        if (workflowStep.reminderBody) {
-          await submitWorkflowStepForUrlScanning(
-            workflowStep.id,
-            workflowStep.reminderBody,
-            userId,
-            workflowStep.workflow.user?.whitelistWorkflows ?? false
-          );
-        } else {
-          await prisma.workflowStep.update({
-            where: { id: workflowStep.id },
-            data: { verifiedAt: new Date() },
-          });
-        }
-      }
-    } else {
-      // Neither Iffy nor URL scanning is enabled, mark all as verified
-      await prisma.workflowStep.updateMany({
-        where: {
-          id: {
-            in: stepIdsToScan,
-          },
-        },
-        data: {
-          verifiedAt: new Date(),
-        },
-      });
+    // or mark as verified if URL scanning is also disabled
+    for (const workflowStep of workflowSteps) {
+      await handleUrlScanningForStep(workflowStep, userId);
     }
   }
 

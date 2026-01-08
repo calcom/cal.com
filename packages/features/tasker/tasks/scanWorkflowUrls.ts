@@ -34,6 +34,19 @@ export const scanWorkflowUrlsSchema = z.object({
 
 const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowUrls"] });
 
+/**
+ * Sanitizes a URL for logging by removing query parameters that may contain sensitive data.
+ */
+function sanitizeUrlForLogging(url: string): string {
+  try {
+    const parsed = new URL(url);
+    // biome-ignore lint/nursery/noTernary: Simple ternary for conditional suffix
+    return `${parsed.protocol}//${parsed.host}${parsed.pathname}${parsed.search ? "[query_params_redacted]" : ""}`;
+  } catch {
+    return "[invalid_url]";
+  }
+}
+
 const MAX_POLL_ATTEMPTS = 10;
 const POLL_DELAY_MS = 15000; // 15 seconds
 
@@ -68,7 +81,7 @@ export async function scanWorkflowUrls(payload: string) {
     for (const url of urls) {
       const result = await submitUrlForScanning(url);
       if ("error" in result) {
-        log.error(`Failed to submit URL for scanning: ${result.error}`, { url });
+        log.error(`Failed to submit URL for scanning: ${result.error}`, { url: sanitizeUrlForLogging(url) });
         failedUrls.push(url);
       } else {
         newPendingScans.push({ url, scanId: result.scanId });
@@ -128,12 +141,12 @@ export async function scanWorkflowUrls(payload: string) {
         // Still pending
         stillPending.push({ url, scanId });
       } else if (result.status === "error") {
-        log.error(`Error getting scan result: ${result.error}`, { url, scanId });
+        log.error(`Error getting scan result: ${result.error}`, { url: sanitizeUrlForLogging(url), scanId });
         // Don't add to stillPending, treat as non-malicious (fail-open for errors)
       } else if (result.malicious) {
         maliciousUrls.push(url);
         log.warn(`Malicious URL detected`, {
-          url,
+          url: sanitizeUrlForLogging(url),
           scanId,
           categories: result.categories,
           userId,
@@ -148,14 +161,14 @@ export async function scanWorkflowUrls(payload: string) {
       if (whitelistWorkflows) {
         log.warn(`Skipping lock for whitelisted user with malicious URLs`, {
           userId,
-          maliciousUrls,
+          maliciousUrlCount: maliciousUrls.length,
           workflowStepId,
           eventTypeId,
         });
       } else {
         log.warn(`Locking user due to malicious URLs`, {
           userId,
-          maliciousUrls,
+          maliciousUrlCount: maliciousUrls.length,
           workflowStepId,
           eventTypeId,
         });
@@ -249,7 +262,11 @@ export async function submitUrlForUrlScanning(
     return;
   }
 
-  log.info(`Submitting event type redirect URL for scanning`, { url, userId, eventTypeId });
+  log.info(`Submitting event type redirect URL for scanning`, {
+    url: sanitizeUrlForLogging(url),
+    userId,
+    eventTypeId,
+  });
 
   await tasker.create("scanWorkflowUrls", {
     userId,
