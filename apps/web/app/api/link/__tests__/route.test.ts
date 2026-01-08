@@ -175,7 +175,9 @@ describe("link route", () => {
       const { TRPCError } = await import("@trpc/server");
 
       // Mock confirmHandler to throw a TRPCError
-      mockConfirmHandler.mockRejectedValueOnce(new TRPCError({ code: "BAD_REQUEST", message: "Custom error" }));
+      mockConfirmHandler.mockRejectedValueOnce(
+        new TRPCError({ code: "BAD_REQUEST", message: "Custom error" })
+      );
 
       const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
