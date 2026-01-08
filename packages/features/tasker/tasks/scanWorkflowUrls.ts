@@ -225,7 +225,7 @@ export async function submitWorkflowStepForUrlScanning(
 
   log.info(`Found ${urls.length} URLs in workflow step body, submitting for scanning`, {
     workflowStepId,
-    urls,
+    urlCount: urls.length,
   });
 
   await tasker.create("scanWorkflowUrls", {
