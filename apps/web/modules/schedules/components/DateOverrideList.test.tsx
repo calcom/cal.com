@@ -6,7 +6,7 @@ import { useFieldArray, useForm, FormProvider } from "react-hook-form";
 import { vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
+import DateOverrideList from "@calcom/web/modules/schedules/components/DateOverrideList";
 import type { TimeRange } from "@calcom/types/schedule";
 
 vi.mock("next/navigation", async (importOriginal) => {

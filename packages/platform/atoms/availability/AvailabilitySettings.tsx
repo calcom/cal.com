@@ -21,11 +21,11 @@ import type {
   EventTypes,
 } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
-import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
-import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
+import DateOverrideInputDialog from "@calcom/web/modules/schedules/components/DateOverrideInputDialog";
+import DateOverrideList from "@calcom/web/modules/schedules/components/DateOverrideList";
 import WebSchedule, {
   ScheduleComponent as PlatformSchedule,
-} from "@calcom/features/schedules/components/Schedule";
+} from "@calcom/web/modules/schedules/components/Schedule";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
