@@ -7,7 +7,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import createNewSeat from "./create/createNewSeat";
 import rescheduleSeatedBooking from "./reschedule/rescheduleSeatedBooking";
@@ -28,7 +28,7 @@ const fireBookingEvents = async ({
   rescheduledBy,
   actionSource,
   actorUserUuid,
-  deps
+  deps,
 }: {
   previousSeatedBooking: SeatedBooking;
   newBooking: NonNullable<HandleSeatsResultBooking>;
@@ -42,78 +42,86 @@ const fireBookingEvents = async ({
   actorUserUuid: string | null;
   deps: {
     bookingEventHandler: BookingEventHandlerService;
-    logger: ISimpleLogger
-  }
+    logger: ISimpleLogger;
+  };
 }) => {
-  const bookerAttendeeId = newBooking.attendees?.find((attendee) => attendee.email === bookerEmail)?.id;
-  const rescheduledByAttendeeId = newBooking.attendees?.find((attendee) => attendee.email === rescheduledBy)?.id;
-  const rescheduledByUserUuid = newBooking.user?.email === rescheduledBy ? newBooking.user?.uuid : null;
+  try {
+    const bookerAttendeeId = newBooking.attendees?.find((attendee) => attendee.email === bookerEmail)?.id;
+    const rescheduledByAttendeeId = newBooking.attendees?.find(
+      (attendee) => attendee.email === rescheduledBy
+    )?.id;
+    const rescheduledByUserUuid = newBooking.user?.email === rescheduledBy ? newBooking.user?.uuid : null;
 
-  const auditActor = getBookingAuditActorForNewBooking({
-    bookerAttendeeId: bookerAttendeeId ?? null,
-    actorUserUuid,
-    bookerEmail,
-    bookerName,
-    rescheduledBy: rescheduledBy ? {
-      attendeeId: rescheduledByAttendeeId ?? null,
-      userUuid: rescheduledByUserUuid ?? null,
-      email: rescheduledBy,
-    } : null,
-    logger: deps.logger,
-  });
-
-  const seatReferenceUid = newBooking.seatReferenceUid;
-  if (!seatReferenceUid) {
-    return;
-  }
-
-  if (rescheduleUid && originalRescheduledBooking) {
-    const movedToDifferentBooking = newBooking.uid && newBooking.uid !== previousSeatedBooking.uid;
-    const newBookingStartTimeMs =
-      movedToDifferentBooking && newBooking.startTime
-        ? newBooking.startTime.getTime()
-        : previousSeatedBooking.startTime.getTime();
-    const newBookingEndTimeMs =
-      movedToDifferentBooking && newBooking.endTime
-        ? newBooking.endTime.getTime()
-        : previousSeatedBooking.endTime.getTime();
-
-    await deps.bookingEventHandler.onSeatRescheduled({
-      bookingUid: previousSeatedBooking.uid,
-      actor: auditActor,
-      organizationId: organizationId ?? null,
-      auditData: {
-        seatReferenceUid,
-        attendeeEmail: bookerEmail,
-        startTime: {
-          old: originalRescheduledBooking.startTime.getTime(),
-          new: newBookingStartTimeMs,
-        },
-        endTime: {
-          old: originalRescheduledBooking.endTime.getTime(),
-          new: newBookingEndTimeMs,
-        },
-        rescheduledToBookingUid: {
-          old: null,
-          new: movedToDifferentBooking ? (newBooking.uid || null) : null,
-        },
-      },
-      source: actionSource,
+    const auditActor = getBookingAuditActorForNewBooking({
+      bookerAttendeeId: bookerAttendeeId ?? null,
+      actorUserUuid,
+      bookerEmail,
+      bookerName,
+      rescheduledBy: rescheduledBy
+        ? {
+            attendeeId: rescheduledByAttendeeId ?? null,
+            userUuid: rescheduledByUserUuid ?? null,
+            email: rescheduledBy,
+          }
+        : null,
+      logger: deps.logger,
     });
-  } else {
-    await deps.bookingEventHandler.onSeatBooked({
-      bookingUid: previousSeatedBooking.uid,
-      actor: auditActor,
-      organizationId: organizationId ?? null,
-      auditData: {
-        seatReferenceUid,
-        attendeeEmail: bookerEmail,
-        attendeeName: bookerName,
-        startTime: previousSeatedBooking.startTime.getTime(),
-        endTime: previousSeatedBooking.endTime.getTime(),
-      },
-      source: actionSource,
-    });
+
+    const seatReferenceUid = newBooking.seatReferenceUid;
+    if (!seatReferenceUid) {
+      return;
+    }
+
+    if (rescheduleUid && originalRescheduledBooking) {
+      const movedToDifferentBooking = newBooking.uid && newBooking.uid !== previousSeatedBooking.uid;
+      const newBookingStartTimeMs =
+        movedToDifferentBooking && newBooking.startTime
+          ? newBooking.startTime.getTime()
+          : previousSeatedBooking.startTime.getTime();
+      const newBookingEndTimeMs =
+        movedToDifferentBooking && newBooking.endTime
+          ? newBooking.endTime.getTime()
+          : previousSeatedBooking.endTime.getTime();
+
+      await deps.bookingEventHandler.onSeatRescheduled({
+        bookingUid: previousSeatedBooking.uid,
+        actor: auditActor,
+        organizationId: organizationId ?? null,
+        auditData: {
+          seatReferenceUid,
+          attendeeEmail: bookerEmail,
+          startTime: {
+            old: originalRescheduledBooking.startTime.getTime(),
+            new: newBookingStartTimeMs,
+          },
+          endTime: {
+            old: originalRescheduledBooking.endTime.getTime(),
+            new: newBookingEndTimeMs,
+          },
+          rescheduledToBookingUid: {
+            old: null,
+            new: movedToDifferentBooking ? newBooking.uid || null : null,
+          },
+        },
+        source: actionSource,
+      });
+    } else {
+      await deps.bookingEventHandler.onSeatBooked({
+        bookingUid: previousSeatedBooking.uid,
+        actor: auditActor,
+        organizationId: organizationId ?? null,
+        auditData: {
+          seatReferenceUid,
+          attendeeEmail: bookerEmail,
+          attendeeName: bookerName,
+          startTime: previousSeatedBooking.startTime.getTime(),
+          endTime: previousSeatedBooking.endTime.getTime(),
+        },
+        source: actionSource,
+      });
+    }
+  } catch (error) {
+    deps.logger.error("Error while firing booking events", safeStringify(error));
   }
 };
 
@@ -143,9 +151,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     fullName,
     traceContext,
     actionSource,
-    deps: {
-      bookingEventHandler,
-    }
+    deps: { bookingEventHandler },
   } = newSeatedBookingObject;
   // TODO: We could allow doing more things to support good dry run for seats
   if (isDryRun) return;
