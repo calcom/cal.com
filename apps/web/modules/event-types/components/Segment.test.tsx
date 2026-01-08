@@ -3,7 +3,7 @@ import React from "react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { Mock } from "vitest";
 
-import { Segment } from "@calcom/features/Segment";
+import { Segment } from "./Segment";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { AttributeType } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";

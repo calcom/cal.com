@@ -6,7 +6,7 @@ import type { Options } from "react-select";
 import { AddMembersWithSwitchPlatformWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchPlatformWrapper";
 import { AddMembersWithSwitchWebWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchWebWrapper";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import { Segment } from "@calcom/features/Segment";
+import { Segment } from "./Segment";
 import type {
   FormValues,
   Host,
