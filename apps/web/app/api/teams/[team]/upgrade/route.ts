@@ -1,3 +1,12 @@
+import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
+import prisma from "@calcom/prisma";
+import { BillingPeriod } from "@calcom/prisma/enums";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import type { Params } from "app/_types";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
@@ -5,16 +14,6 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
-
-import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import stripe from "@calcom/features/ee/payments/server/stripe";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
-import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const querySchema = z.object({
   team: z.string().transform((val) => parseInt(val)),
@@ -30,7 +29,7 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
     });
 
     const checkoutSession = await stripe.checkout.sessions.retrieve(session_id, {
-      expand: ["subscription"],
+      expand: ["subscription", "subscription.items.data.price"],
     });
     if (!checkoutSession) {
       throw new HttpError({ statusCode: 404, message: "Checkout session not found" });
@@ -40,6 +39,20 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
     if (checkoutSession.payment_status !== "paid") {
       throw new HttpError({ statusCode: 402, message: "Payment required" });
     }
+
+    // Extract billing period from Stripe subscription price
+    const price = subscription.items.data[0]?.price as Stripe.Price | undefined;
+    const stripeInterval = price?.recurring?.interval;
+    const billingPeriod = stripeInterval === "year" ? BillingPeriod.ANNUALLY : BillingPeriod.MONTHLY;
+    const pricePerSeat = price?.unit_amount ? price.unit_amount / 100 : null;
+    const paidSeats = subscription.items.data[0]?.quantity ?? null;
+    const subscriptionStart = subscription.current_period_start
+      ? new Date(subscription.current_period_start * 1000)
+      : null;
+    const subscriptionEnd = subscription.current_period_end
+      ? new Date(subscription.current_period_end * 1000)
+      : null;
+    const subscriptionTrialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
 
     let team = await prisma.team.findFirst({
       where: { metadata: { path: ["paymentId"], equals: checkoutSession.id } },
@@ -85,6 +98,36 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
         throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
       }
     }
+
+    // Upsert team billing record with correct billing period from Stripe
+    await prisma.teamBilling.upsert({
+      where: { teamId: team.id },
+      create: {
+        teamId: team.id,
+        subscriptionId: subscription.id,
+        subscriptionItemId: subscription.items.data[0].id,
+        customerId:
+          typeof checkoutSession.customer === "string"
+            ? checkoutSession.customer
+            : checkoutSession.customer?.id || "",
+        status: "ACTIVE",
+        planName: "TEAM",
+        billingPeriod,
+        pricePerSeat,
+        subscriptionStart,
+        subscriptionEnd,
+        subscriptionTrialEnd,
+        paidSeats,
+      },
+      update: {
+        billingPeriod,
+        pricePerSeat,
+        subscriptionStart,
+        subscriptionEnd,
+        subscriptionTrialEnd,
+        paidSeats,
+      },
+    });
 
     const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 

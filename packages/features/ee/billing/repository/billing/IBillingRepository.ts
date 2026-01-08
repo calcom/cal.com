@@ -34,6 +34,11 @@ export interface IBillingRepositoryConstructorArgs {
   isOrganization: boolean;
 }
 
+export enum BillingPeriod {
+  MONTHLY = "MONTHLY",
+  ANNUALLY = "ANNUALLY",
+}
+
 export interface IBillingRepositoryCreateArgs {
   teamId: number;
   subscriptionId: string;
@@ -41,6 +46,9 @@ export interface IBillingRepositoryCreateArgs {
   customerId: string;
   planName: Plan;
   status: SubscriptionStatus;
+  billingPeriod?: BillingPeriod;
+  pricePerSeat?: number;
+  paidSeats?: number;
   subscriptionStart?: Date;
   subscriptionTrialEnd?: Date;
   subscriptionEnd?: Date;

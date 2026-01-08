@@ -2912,11 +2912,14 @@ model TeamBilling {
   teamId Int    @unique
   team   Team?  @relation("TeamBilling", fields: [teamId], references: [id], onDelete: Cascade)
 
-  subscriptionId       String    @unique
+  subscriptionId       String         @unique
   subscriptionItemId   String
   customerId           String
   status               String
   planName             String
+  billingPeriod        BillingPeriod?
+  pricePerSeat         Float?
+  paidSeats            Int?
   subscriptionStart    DateTime?
   subscriptionTrialEnd DateTime?
   subscriptionEnd      DateTime?
