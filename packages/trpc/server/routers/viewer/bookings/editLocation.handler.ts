@@ -1,32 +1,34 @@
-import type { z } from "zod";
-
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { CredentialAccessService } from "@calcom/features/credentials/services/CredentialAccessService";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { Booking, BookingReference } from "@calcom/prisma/client";
-import type { userMetadata } from "@calcom/prisma/zod-utils";
-import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata, userMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { Ensure } from "@calcom/types/utils";
-
 import { TRPCError } from "@trpc/server";
+import type { z } from "zod";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TEditLocationInputSchema } from "./editLocation.schema";
 import type { BookingsProcedureContext } from "./util";
+
+const log = logger.getSubLogger({ prefix: ["editLocation"] });
 
 // #region EditLocation Types and Helpers
 type EditLocationOptions = {
@@ -34,6 +36,8 @@ type EditLocationOptions = {
     user: NonNullable<TrpcSessionUser>;
   } & BookingsProcedureContext;
   input: TEditLocationInputSchema;
+  actionSource?: ActionSource;
+  userUuid?: string;
 };
 
 type UserMetadata = z.infer<typeof userMetadata>;
@@ -257,9 +261,23 @@ export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
   return appLink;
 }
 
-export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
+export async function editLocationHandler({
+  ctx,
+  input,
+  actionSource: inputActionSource,
+  userUuid: inputUserUuid,
+}: EditLocationOptions) {
   const { newLocation, credentialId: conferenceCredentialId } = input;
   const { booking, user: loggedInUser } = ctx;
+
+  const actionSource = inputActionSource ?? "WEBAPP";
+  const userUuid = inputUserUuid ?? loggedInUser.uuid;
+
+  if (actionSource === "UNKNOWN") {
+    log.warn("Location change with unknown actionSource", safeStringify({ bookingUid: booking.uid }));
+  }
+
+  const oldLocation = booking.location;
 
   const organizer = await new UserRepository(prisma).findByIdOrThrow({ id: booking.userId || 0 });
   const organizationId = booking.user?.profiles?.[0]?.organizationId ?? null;
@@ -309,6 +327,20 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   } catch (error) {
     logger.error("Error sending LocationChangeEmails", safeStringify(error));
   }
+
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  await bookingEventHandlerService.onLocationChanged({
+    bookingUid: booking.uid,
+    actor: makeUserActor(userUuid),
+    organizationId,
+    source: actionSource,
+    auditData: {
+      location: {
+        old: oldLocation,
+        new: newLocationInEvtFormat,
+      },
+    },
+  });
 
   return { message: "Location updated" };
 }
