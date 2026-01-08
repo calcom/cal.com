@@ -1,4 +1,5 @@
-import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { Prisma, SeatChangeLog } from "@calcom/prisma/client";
 import type { SeatChangeType } from "@calcom/prisma/enums";
 
@@ -20,8 +21,14 @@ export interface MonthlyChangesResult {
 }
 
 export class SeatChangeLogRepository {
+  private prisma: PrismaClient;
+
+  constructor(prisma?: PrismaClient) {
+    this.prisma = prisma || defaultPrisma;
+  }
+
   async create(data: CreateSeatChangeLogData): Promise<SeatChangeLog> {
-    return await prisma.seatChangeLog.create({
+    return await this.prisma.seatChangeLog.create({
       data,
     });
   }
@@ -29,7 +36,7 @@ export class SeatChangeLogRepository {
   async getMonthlyChanges(params: { teamId: number; monthKey: string }): Promise<MonthlyChangesResult> {
     const { teamId, monthKey } = params;
 
-    const changes = await prisma.seatChangeLog.groupBy({
+    const changes = await this.prisma.seatChangeLog.groupBy({
       by: ["changeType"],
       where: {
         teamId,
@@ -53,7 +60,7 @@ export class SeatChangeLogRepository {
   async getUnprocessedChanges(params: { teamId: number; monthKey: string }): Promise<SeatChangeLog[]> {
     const { teamId, monthKey } = params;
 
-    return await prisma.seatChangeLog.findMany({
+    return await this.prisma.seatChangeLog.findMany({
       where: {
         teamId,
         monthKey,
@@ -68,7 +75,7 @@ export class SeatChangeLogRepository {
   async markAsProcessed(params: { teamId: number; monthKey: string; prorationId: string }): Promise<number> {
     const { teamId, monthKey, prorationId } = params;
 
-    const result = await prisma.seatChangeLog.updateMany({
+    const result = await this.prisma.seatChangeLog.updateMany({
       where: {
         teamId,
         monthKey,
@@ -85,7 +92,7 @@ export class SeatChangeLogRepository {
   async getTeamBillingIds(
     teamId: number
   ): Promise<{ teamBillingId: string | null; organizationBillingId: string | null }> {
-    const team = await prisma.team.findUnique({
+    const team = await this.prisma.team.findUnique({
       where: { id: teamId },
       select: {
         isOrganization: true,

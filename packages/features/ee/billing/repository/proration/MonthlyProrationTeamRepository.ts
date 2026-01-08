@@ -1,4 +1,5 @@
-import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { prisma as defaultPrisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export interface BillingInfo {
@@ -22,8 +23,14 @@ export interface TeamWithBilling {
 }
 
 export class MonthlyProrationTeamRepository {
+  private prisma: PrismaClient;
+
+  constructor(prisma?: PrismaClient) {
+    this.prisma = prisma || defaultPrisma;
+  }
+
   async getTeamWithBilling(teamId: number): Promise<TeamWithBilling | null> {
-    const team = await prisma.team.findUnique({
+    const team = await this.prisma.team.findUnique({
       where: { id: teamId },
       select: {
         id: true,
@@ -79,7 +86,7 @@ export class MonthlyProrationTeamRepository {
   }
 
   async getAnnualTeamsWithSeatChanges(monthKey: string): Promise<number[]> {
-    const teams = await prisma.team.findMany({
+    const teams = await this.prisma.team.findMany({
       where: {
         OR: [
           {
@@ -122,12 +129,12 @@ export class MonthlyProrationTeamRepository {
     if (!billingId) return;
 
     if (isOrganization) {
-      await prisma.organizationBilling.update({
+      await this.prisma.organizationBilling.update({
         where: { id: billingId },
         data,
       });
     } else {
-      await prisma.teamBilling.update({
+      await this.prisma.teamBilling.update({
         where: { id: billingId },
         data,
       });
@@ -143,12 +150,12 @@ export class MonthlyProrationTeamRepository {
     if (!billingId) return;
 
     if (isOrganization) {
-      await prisma.organizationBilling.update({
+      await this.prisma.organizationBilling.update({
         where: { id: billingId },
         data: { paidSeats },
       });
     } else {
-      await prisma.teamBilling.update({
+      await this.prisma.teamBilling.update({
         where: { id: billingId },
         data: { paidSeats },
       });
@@ -169,7 +176,7 @@ export class MonthlyProrationTeamRepository {
     subscriptionEnd: Date | null;
     subscriptionTrialEnd: Date | null;
   }) {
-    return await prisma.organizationBilling.create({ data });
+    return await this.prisma.organizationBilling.create({ data });
   }
 
   async createTeamBilling(data: {
@@ -186,7 +193,7 @@ export class MonthlyProrationTeamRepository {
     subscriptionEnd: Date | null;
     subscriptionTrialEnd: Date | null;
   }) {
-    return await prisma.teamBilling.create({ data });
+    return await this.prisma.teamBilling.create({ data });
   }
 
   private extractBillingFromMetadata(metadata: unknown): BillingInfo | null {

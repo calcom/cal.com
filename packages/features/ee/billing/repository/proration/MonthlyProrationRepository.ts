@@ -1,4 +1,5 @@
-import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { MonthlyProration } from "@calcom/prisma/client";
 import type { ProrationStatus } from "@calcom/prisma/enums";
 
@@ -25,8 +26,14 @@ export interface CreateProrationData {
 }
 
 export class MonthlyProrationRepository {
+  private prisma: PrismaClient;
+
+  constructor(prisma?: PrismaClient) {
+    this.prisma = prisma || defaultPrisma;
+  }
+
   async createProration(data: CreateProrationData): Promise<MonthlyProration> {
-    return await prisma.monthlyProration.create({
+    return await this.prisma.monthlyProration.create({
       data: {
         ...data,
         status: "PENDING" as ProrationStatus,
@@ -46,7 +53,7 @@ export class MonthlyProrationRepository {
       retryCount?: number;
     }
   ): Promise<MonthlyProration> {
-    return await prisma.monthlyProration.update({
+    return await this.prisma.monthlyProration.update({
       where: { id: prorationId },
       data: {
         status,
@@ -56,13 +63,13 @@ export class MonthlyProrationRepository {
   }
 
   async findById(prorationId: string): Promise<MonthlyProration | null> {
-    return await prisma.monthlyProration.findUnique({
+    return await this.prisma.monthlyProration.findUnique({
       where: { id: prorationId },
     });
   }
 
   async findByTeamAndMonth(teamId: number, monthKey: string): Promise<MonthlyProration | null> {
-    return await prisma.monthlyProration.findUnique({
+    return await this.prisma.monthlyProration.findUnique({
       where: {
         teamId_monthKey: {
           teamId,
@@ -73,7 +80,7 @@ export class MonthlyProrationRepository {
   }
 
   async incrementRetryCount(prorationId: string): Promise<MonthlyProration> {
-    return await prisma.monthlyProration.update({
+    return await this.prisma.monthlyProration.update({
       where: { id: prorationId },
       data: {
         retryCount: {

@@ -1,4 +1,5 @@
-import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { BillingPeriod } from "@calcom/prisma/enums";
 
 export interface TeamWithBillingInfo {
@@ -22,8 +23,14 @@ export interface UpdateBillingPeriodData {
 }
 
 export class BillingPeriodRepository {
+  private prisma: PrismaClient;
+
+  constructor(prisma?: PrismaClient) {
+    this.prisma = prisma || defaultPrisma;
+  }
+
   async getTeamWithBillingInfo(teamId: number): Promise<TeamWithBillingInfo | null> {
-    const team = await prisma.team.findUnique({
+    const team = await this.prisma.team.findUnique({
       where: { id: teamId },
       select: {
         isOrganization: true,
@@ -65,21 +72,21 @@ export class BillingPeriodRepository {
   }
 
   async updateOrganizationBillingPeriod(billingId: string, data: UpdateBillingPeriodData): Promise<void> {
-    await prisma.organizationBilling.update({
+    await this.prisma.organizationBilling.update({
       where: { id: billingId },
       data,
     });
   }
 
   async updateTeamBillingPeriod(billingId: string, data: UpdateBillingPeriodData): Promise<void> {
-    await prisma.teamBilling.update({
+    await this.prisma.teamBilling.update({
       where: { id: billingId },
       data,
     });
   }
 
   async getTeamForBillingUpdate(teamId: number) {
-    return await prisma.team.findUnique({
+    return await this.prisma.team.findUnique({
       where: { id: teamId },
       select: {
         isOrganization: true,
