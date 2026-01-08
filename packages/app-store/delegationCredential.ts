@@ -87,6 +87,7 @@ const _buildCommonUserCredential = ({
     userId: user.id,
     user: {
       email: user.email,
+      name: null as string | null,
     },
     key: {
       access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
@@ -320,7 +321,7 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
     user,
   });
 
-  const calendar = await getCalendar(credential);
+  const calendar = await getCalendar(credential, "none");
 
   if (!calendar) {
     throw new Error("Google Calendar App not found");

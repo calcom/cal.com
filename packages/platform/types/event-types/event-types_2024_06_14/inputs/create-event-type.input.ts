@@ -3,6 +3,7 @@ import {
   ApiPropertyOptional as DocsPropertyOptional,
   getSchemaPath,
   ApiExtraModels,
+  ApiHideProperty,
 } from "@nestjs/swagger";
 import { Type, Transform, Expose } from "class-transformer";
 import {
@@ -17,12 +18,16 @@ import {
   ValidateNested,
   ArrayNotEmpty,
   ArrayUnique,
+  IsIn,
 } from "class-validator";
 
+import { SUPPORTED_LOCALES } from "@calcom/platform-constants";
 import { SchedulingType } from "@calcom/platform-enums";
 
 import { RequiresAtLeastOnePropertyWhenNotDisabled } from "../../../utils/RequiresOneOfPropertiesWhenNotDisabled";
 import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
+import { DisableCancelling_2024_06_14 } from "./disable-cancelling.input";
+import { DisableRescheduling_2024_06_14 } from "./disable-rescheduling.input";
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import {
   AddressFieldInput_2024_06_14,
@@ -128,7 +133,9 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   GuestsDefaultFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
   InputOrganizersDefaultApp_2024_06_14,
-  EmailSettings_2024_06_14
+  EmailSettings_2024_06_14,
+  DisableRescheduling_2024_06_14,
+  DisableCancelling_2024_06_14
 )
 export class CalVideoSettings {
   @IsOptional()
@@ -179,6 +186,14 @@ export class CalVideoSettings {
     description: "If true, the organizer will not be able to receive transcription of the meeting",
   })
   disableTranscriptionForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Send emails with the transcription of the Cal Video after the meeting ends.",
+    default: true,
+  })
+  sendTranscriptionEmails?: boolean;
 }
 
 @CantHaveRecurrenceAndBookerActiveBookingsLimit()
@@ -512,13 +527,69 @@ export class BaseCreateEventTypeInput {
       "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type.",
   })
   bookingRequiresAuthentication?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => DisableCancelling_2024_06_14)
+  @DocsPropertyOptional({
+    description: "Settings for disabling cancelling of this event type.",
+    type: DisableCancelling_2024_06_14,
+    example: { disabled: true },
+  })
+  disableCancelling?: DisableCancelling_2024_06_14;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => DisableRescheduling_2024_06_14)
+  @DocsPropertyOptional({
+    description:
+      "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+    type: DisableRescheduling_2024_06_14,
+    example: { disabled: false, minutesBefore: 60 },
+  })
+  disableRescheduling?: DisableRescheduling_2024_06_14;
+
+  @IsOptional()
+  @IsString()
+  @IsIn([...SUPPORTED_LOCALES])
+  @DocsPropertyOptional({
+    description:
+      "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+    enum: SUPPORTED_LOCALES,
+  })
+  interfaceLanguage?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Enabling this option allows for past events to be rescheduled.",
+    default: false,
+  })
+  allowReschedulingPastBookings?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description:
+      "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+    default: false,
+  })
+  allowReschedulingCancelledBookings?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Arrange time slots to optimize availability.",
+    default: false,
+  })
+  showOptimizedSlots?: boolean;
 }
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @IsOptional()
   @ValidateLocations_2024_06_14()
   @DocsPropertyOptional({
     description:
-      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+      "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
     oneOf: [
       { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
       { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
@@ -607,7 +678,7 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   @ValidateTeamLocations_2024_06_14()
   @DocsPropertyOptional({
     description:
-      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+      "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
     oneOf: [
       { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
       { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
@@ -638,4 +709,13 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
     description: "Rescheduled events will be assigned to the same host as initially scheduled.",
   })
   rescheduleWithSameRoundRobinHost?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  /* @DocsPropertyOptional({
+    description:
+      "For round robin event types, enable filtering available hosts to only consider a specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
+  }) */
+  @ApiHideProperty()
+  rrHostSubsetEnabled?: boolean;
 }

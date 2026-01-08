@@ -373,7 +373,7 @@ export const locationKeyToString = (location: LocationObject) => {
   }
   const defaultValueVariable = eventLocationType.defaultValueVariable;
   if (!defaultValueVariable) {
-    console.error(`defaultValueVariable not set for ${location.type}`);
+    logger.error(`defaultValueVariable not set for ${location.type}`);
     return "";
   }
   return location[defaultValueVariable] || eventLocationType.label;
@@ -430,12 +430,12 @@ export const getEventLocationValue = (eventLocations: LocationObject[], bookingL
   }
   const defaultValueVariable = eventLocationType.defaultValueVariable;
   if (!defaultValueVariable) {
-    console.error(`${defaultValueVariable} not set for ${bookingLocation.type}`);
+    logger.error(`${defaultValueVariable} not set for ${bookingLocation.type}`);
     return "";
   }
   const eventLocation = getEventLocationWithType(eventLocations, bookingLocation?.type);
   if (!eventLocation) {
-    console.error(`Could not find eventLocation for ${bookingLocation}`);
+    logger.error(`Could not find eventLocation for ${bookingLocation}`);
     return "";
   }
 
@@ -459,7 +459,7 @@ export function getSuccessPageLocationMessage(
     const isConfirmed = bookingStatus === BookingStatus.ACCEPTED;
 
     if (bookingStatus === BookingStatus.CANCELLED || bookingStatus === BookingStatus.REJECTED) {
-      locationToDisplay == t("web_conference");
+      locationToDisplay = t("web_conference");
     } else if (isConfirmed) {
       locationToDisplay = `${getHumanReadableLocationValue(location, t)}: ${t(
         "meeting_url_in_confirmation_email"

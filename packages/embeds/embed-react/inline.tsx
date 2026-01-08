@@ -50,22 +50,22 @@ function App() {
           callback,
         });
 
-        const availabilityLoadedCallback = (e: EmbedEvent<"availabilityLoaded">) => {
+        const bookerReadyCallback = (e: EmbedEvent<"bookerReady">) => {
           const data = e.detail.data;
-          console.log("availabilityLoaded", {
+          console.log("bookerReady", {
             eventId: data.eventId,
             eventSlug: data.eventSlug,
           });
 
           api("off", {
-            action: "availabilityLoaded",
-            callback: availabilityLoadedCallback,
+            action: "bookerReady",
+            callback: bookerReadyCallback,
           });
         };
 
         api("on", {
-          action: "availabilityLoaded",
-          callback: availabilityLoadedCallback,
+          action: "bookerReady",
+          callback: bookerReadyCallback,
         });
 
         // Also, validates the type of e.detail.data as TS runs on this file

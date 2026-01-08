@@ -2,7 +2,7 @@ import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { redisModule } from "@calcom/features/redis/di/redisModule";
 import { membershipRepositoryModule } from "@calcom/features/users/di/MembershipRepository.module";
 import { prismaModule } from "@calcom/features/di/modules/Prisma";
-import type { NoSlotsNotificationService } from "@calcom/trpc/server/routers/viewer/slots/handleNotificationWhenNoSlots";
+import type { NoSlotsNotificationService } from "@calcom/features/slots/handleNotificationWhenNoSlots";
 
 import { createContainer } from "../di";
 import { noSlotsNotificationModule } from "../modules/NoSlotsNotification";

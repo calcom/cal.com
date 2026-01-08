@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Icon } from "@calcom/ui/components/icon";
@@ -13,6 +13,7 @@ type OnboardingTeamsBrowserViewProps = {
   organizationLogo?: string | null;
   organizationName?: string;
   organizationBanner?: string | null;
+  slug?: string;
 };
 
 export const OnboardingTeamsBrowserView = ({
@@ -20,10 +21,11 @@ export const OnboardingTeamsBrowserView = ({
   organizationLogo,
   organizationName,
   organizationBanner,
+  slug,
 }: OnboardingTeamsBrowserViewProps) => {
   const pathname = usePathname();
   const { t } = useLocale();
-  const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
+  const displayUrl = slug ? `${slug}.${subdomainSuffix()}` : subdomainSuffix();
 
   // Show placeholder if no teams or all teams are empty
   const hasValidTeams = teams.some((team) => team.name && team.name.trim().length > 0);
@@ -54,15 +56,15 @@ export const OnboardingTeamsBrowserView = ({
           <Icon name="arrow-right" className="text-subtle h-4 w-4" />
           <Icon name="rotate-cw" className="text-subtle h-4 w-4" />
         </div>
-        <div className="bg-muted flex w-full items-center gap-2 rounded-[32px] px-3 py-2">
+        <div className="bg-cal-muted flex w-full min-w-0 items-center gap-2 rounded-[32px] px-3 py-2">
           <Icon name="lock" className="text-subtle h-4 w-4" />
-          <p className="text-default text-sm font-medium leading-tight">{webappUrl}/teams</p>
+          <p className="text-default truncate text-sm font-medium leading-tight">{displayUrl}/teams</p>
         </div>
         <Icon name="ellipsis-vertical" className="text-subtle h-4 w-4" />
       </div>
 
       {/* Content */}
-      <div className="bg-muted h-full pl-11 pt-11">
+      <div className="bg-cal-muted h-full pl-11 pt-11">
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}
@@ -108,11 +110,6 @@ export const OnboardingTeamsBrowserView = ({
               {/* Teams Info */}
               <div className="flex flex-col gap-2 px-4 pb-4 pt-12">
                 <h2 className="text-emphasis text-xl font-semibold leading-tight">{t("teams")}</h2>
-                <p className="text-subtle text-sm leading-normal">
-                  {hasValidTeams
-                    ? t("onboarding_teams_browser_view_subtitle")
-                    : t("onboarding_teams_browser_view_placeholder_subtitle")}
-                </p>
               </div>
             </div>
 
@@ -149,7 +146,7 @@ export const OnboardingTeamsBrowserView = ({
                   ))
               ) : (
                 <div className="flex flex-col items-center justify-center gap-3 px-5 py-12">
-                  <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-full">
+                  <div className="bg-cal-muted flex h-16 w-16 items-center justify-center rounded-full">
                     <Icon name="users" className="text-subtle h-8 w-8" />
                   </div>
                   <div className="flex flex-col gap-1 text-center">

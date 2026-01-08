@@ -174,6 +174,20 @@ Here is what you need to be able to run Cal.com.
 yarn dx
 ```
 
+**Default credentials created:**
+
+| Email | Password | Role |
+|-------|----------|------|
+| `free@example.com` | `free` | Free user |
+| `pro@example.com` | `pro` | Pro user |
+| `trial@example.com` | `trial` | Trial user |
+| `admin@example.com` | `ADMINadmin2022!` | Admin user |
+| `onboarding@example.com` | `onboarding` | Onboarding incomplete |
+
+You can use any of these credentials to sign in at [http://localhost:3000](http://localhost:3000)
+
+> **Tip**: To view the full list of seeded users and their details, run `yarn db-studio` and visit [http://localhost:5555](http://localhost:5555)
+
 #### Development tip
 
 1. Add `export NODE_OPTIONS=“--max-old-space-size=16384”` to your shell script to increase the memory limit for the node process. Alternatively, you can run this in your terminal before running the app. Replace 16384 with the amount of RAM you want to allocate to the node process.
@@ -193,7 +207,7 @@ yarn dx
 
    The logger will include all logs that are at the specified level or higher. For example: \
 
-   - If you set `NEXT_PUBLIC_LOGGER_LEVEL=2`, it will log from level 2 (debug) upwards, meaning levels 2 (debug), 3 (info), 4 (warn), 5 (error), and (fatal) will be logged. \
+   - If you set `NEXT_PUBLIC_LOGGER_LEVEL=2`, it will log from level 2 (debug) upwards, meaning levels 2 (debug), 3 (info), 4 (warn), 5 (error), and 6 (fatal) will be logged. \
    - If you set `NEXT_PUBLIC_LOGGER_LEVEL=3`, it will log from level 3 (info) upwards, meaning levels 3 (info), 4 (warn), 5 (error), and 6 (fatal) will be logged, but level 2 (debug) and level 1 (trace) will be ignored. \
 
 ```sh
@@ -836,12 +850,12 @@ following
 
 1. Open [HubSpot Developer](https://developer.hubspot.com/) and sign into your account, or create a new one.
 2. From within the home of the Developer account page, go to "Manage apps".
-3. Click "Create app" button top right.
+3. Click "Create legacy app" button top right and select public app.
 4. Fill in any information you want in the "App info" tab
 5. Go to tab "Auth"
 6. Now copy the Client ID and Client Secret to your `.env` file into the `HUBSPOT_CLIENT_ID` and `HUBSPOT_CLIENT_SECRET` fields.
 7. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/hubspot/callback` replacing Cal.com URL with the URI at which your application runs.
-8. In the "Scopes" section at the bottom of the page, make sure you select "Read" and "Write" for scope called `crm.objects.contacts`
+8. In the "Scopes" section at the bottom of the page, make sure you select "Read" and "Write" for scopes called `crm.objects.contacts` and `crm.lists`.
 9. Click the "Save" button at the bottom footer.
 10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
 

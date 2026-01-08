@@ -4,12 +4,15 @@
   "globalEnv": [
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
+    "AWAITING_PAYMENT_EMAIL_DELAY_MINUTES",
     "API_KEY_PREFIX",
     "ATOMS_E2E_API_URL",
     "ATOMS_E2E_OAUTH_CLIENT_ID",
     "ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED",
     "ATOMS_E2E_OAUTH_CLIENT_SECRET",
     "ATOMS_E2E_ORG_ID",
+    "AXIOM_TOKEN",
+    "AXIOM_DATASET",
     "BASECAMP3_CLIENT_ID",
     "BASECAMP3_CLIENT_SECRET",
     "BASECAMP3_USER_AGENT",
@@ -76,6 +79,7 @@
     "AVATARAPI_PASSWORD",
     "GIPHY_API_KEY",
     "GOOGLE_API_CREDENTIALS",
+    "GOOGLE_CALENDAR_API_KEY",
     "GOOGLE_LOGIN_ENABLED",
     "GOOGLE_WEBHOOK_TOKEN",
     "GOOGLE_WEBHOOK_URL",
@@ -129,7 +133,6 @@
     "NEXT_PUBLIC_VERCEL_ENV",
     "NEXT_PUBLIC_VERCEL_BRANCH_URL",
     "NEXT_PUBLIC_GTM_ID",
-    "NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS",
     "NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW",
     "NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL",
     "NEXT_PUBLIC_WEBSITE_TERMS_URL",
@@ -225,10 +228,6 @@
     "LOCAL_TESTING_DOMAIN_VERCEL",
     "AUTH_BEARER_TOKEN_CLOUDFLARE",
     "CLOUDFLARE_ZONE_ID",
-    "MINTLIFY_CHAT_API_KEY",
-    "NEXT_PUBLIC_CHAT_API_URL",
-    "NEXT_PUBLIC_DOCS_URL",
-    "NEXT_PUBLIC_ENABLE_MINTLIFY_CHAT",
     "CLOUDFLARE_VERCEL_CNAME",
     "CLOUDFLARE_DNS",
     "EMBED_PUBLIC_EMBED_FINGER_PRINT",
@@ -284,6 +283,10 @@
     "ENTERPRISE_SLUGS",
     "PLATFORM_ENTERPRISE_SLUGS",
     "USE_POOL",
+    "TRIGGER_SECRET_KEY",
+    "TRIGGER_API_URL",
+    "TRIGGER_DEV_PROJECT_REF",
+    "ENABLE_ASYNC_TASKER",
     "STRIPE_ORG_PRODUCT_ID",
     "GOOGLE_ADS_ENABLED",
     "LINKEDIN_ADS_ENABLED",
@@ -317,10 +320,11 @@
       "dependsOn": ["@calcom/prisma#db-up"]
     },
     "@calcom/trpc#build": {
+      "dependsOn": ["@calcom/prisma#post-install"],
       "outputs": ["./types"]
     },
     "@calcom/web#build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "copy-app-store-static"],
       "outputs": [".next/**"],
       "env": [
         "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL",
@@ -369,7 +373,7 @@
       "cache": false,
       "dependsOn": []
     },
-    "@calcom/atoms#build": {
+    "@calcom/atoms#build-npm": {
       "outputs": ["dist/**", "globals.min.css"]
     },
     "@calcom/api-v2#build": {
@@ -381,7 +385,8 @@
         "DATABASE_WRITE_URL",
         "LOG_LEVEL",
         "NEXTAUTH_SECRET",
-        "USE_POOL"
+        "USE_POOL",
+        "LOGGER_BRIDGE_LOG_LEVEL"
       ]
     },
     "@calcom/ai#build": {
@@ -449,8 +454,22 @@
       "cache": false,
       "outputs": ["dist/**", "build/**"]
     },
+    "@calcom/web#dev": {
+      "dependsOn": ["@calcom/trpc#build", "//#env-check:common", "//#env-check:app-store"],
+      "cache": false
+    },
     "dev": {
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "cache": false
+    },
+    "dev:trigger": {
+      "inputs": ["./.env"],
+      "env": ["TRIGGER_DEV_PROJECT_REF"],
+      "cache": false
+    },
+    "deploy:trigger": {
+      "inputs": ["./.env"],
+      "env": ["TRIGGER_DEV_PROJECT_REF"],
       "cache": false
     },
     "dx": {
