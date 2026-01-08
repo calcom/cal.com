@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Résztvevő meg nem jelenése frissítve",
     "type": "Hozzárendelés típusa",
     "assignmentType_manual": "Manuális hozzárendelés",
-    "assignmentType_roundRobin": "Körmérkőzéses hozzárendelés"
+    "assignmentType_roundRobin": "Körmérkőzéses hozzárendelés",
+    "actor_impersonated_by": "Megszemélyesítő",
+    "source": "Forrás"
   },
   "error_loading_booking_logs": "Hiba a foglalási naplók betöltésekor",
   "no_audit_logs_found": "Nem találhatók audit naplók",

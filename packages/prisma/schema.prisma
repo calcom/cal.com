@@ -484,6 +484,8 @@ model User {
   agents                         Agent[]
   holidaySettings                UserHolidaySettings?
 
+  autoOptInFeatures Boolean @default(false)
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
@@ -614,6 +616,8 @@ model Team {
 
   teamBilling         TeamBilling?         @relation("TeamBilling")
   organizationBilling OrganizationBilling? @relation("OrganizationBilling")
+
+  autoOptInFeatures Boolean @default(false)
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -2408,7 +2412,7 @@ model Watchlist {
   audits         WatchlistAudit[]
 
   @@unique([type, value, organizationId])
-  @@index([type, value, organizationId, action])
+  @@index([isGlobal, action, organizationId, type, value])
 }
 
 model WatchlistAudit {
