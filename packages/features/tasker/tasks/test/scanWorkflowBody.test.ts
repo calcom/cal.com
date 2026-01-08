@@ -446,20 +446,6 @@ describe("scanWorkflowBody", () => {
         true
       );
     });
-
-    test("should mark all steps as verified when neither Iffy nor URL scanning is enabled", async () => {
-      // Mock URL_SCANNING_ENABLED to false for this test
-      vi.doMock("@calcom/lib/constants", async () => {
-        const actual = (await vi.importActual("@calcom/lib/constants")) as typeof import("@calcom/lib/constants");
-        return {
-          ...actual,
-          URL_SCANNING_ENABLED: false,
-        };
-      });
-
-      // Note: This test is limited because we can't easily change the mocked constant mid-test
-      // The actual behavior is tested through integration tests
-    });
   });
 
   describe("iffyScanBody", () => {
