@@ -1199,8 +1199,6 @@ export class AvailableSlotsService {
         rrHostSubsetIds: input.rrHostSubsetIds ?? undefined,
       });
 
-    console.log(qualifiedRRHosts)
-
     // Filter out blocked hosts BEFORE calculating availability (batched - single DB query)
     const organizationId = eventType.parent?.team?.parentId ?? eventType.team?.parentId ?? null;
 
