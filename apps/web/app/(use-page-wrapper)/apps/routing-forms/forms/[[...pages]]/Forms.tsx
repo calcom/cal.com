@@ -1,6 +1,15 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import {
+  ChartBarIcon,
+  CircleCheckIcon,
+  DownloadIcon,
+  FileTextIcon,
+  GitMergeIcon,
+  MailIcon,
+  ShuffleIcon,
+} from "lucide-react";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -21,7 +30,6 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Icon } from "@calcom/ui/components/icon";
 import { List, ListLinkItem } from "@calcom/ui/components/list";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import type {
@@ -90,38 +98,38 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
 
   const forms = queryRes.data?.filtered;
-  const features = [
-    {
-      icon: <Icon name="file-text" className="h-5 w-5 text-orange-500" />,
-      title: t("create_your_first_form"),
-      description: t("create_your_first_form_description"),
-    },
-    {
-      icon: <Icon name="shuffle" className="h-5 w-5 text-lime-500" />,
-      title: t("create_your_first_route"),
-      description: t("route_to_the_right_person"),
-    },
-    {
-      icon: <Icon name="chart-bar" className="h-5 w-5 text-blue-500" />,
-      title: t("reporting"),
-      description: t("reporting_feature"),
-    },
-    {
-      icon: <Icon name="circle-check" className="h-5 w-5 text-teal-500" />,
-      title: t("test_routing_form"),
-      description: t("test_preview_description"),
-    },
-    {
-      icon: <Icon name="mail" className="h-5 w-5 text-yellow-500" />,
-      title: t("routing_forms_send_email_owner"),
-      description: t("routing_forms_send_email_owner_description"),
-    },
-    {
-      icon: <Icon name="download" className="h-5 w-5 text-violet-500" />,
-      title: t("download_responses"),
-      description: t("download_responses_description"),
-    },
-  ];
+    const features = [
+      {
+        icon: <FileTextIcon className="h-5 w-5 text-orange-500" />,
+        title: t("create_your_first_form"),
+        description: t("create_your_first_form_description"),
+      },
+      {
+        icon: <ShuffleIcon className="h-5 w-5 text-lime-500" />,
+        title: t("create_your_first_route"),
+        description: t("route_to_the_right_person"),
+      },
+      {
+        icon: <ChartBarIcon className="h-5 w-5 text-blue-500" />,
+        title: t("reporting"),
+        description: t("reporting_feature"),
+      },
+      {
+        icon: <CircleCheckIcon className="h-5 w-5 text-teal-500" />,
+        title: t("test_routing_form"),
+        description: t("test_preview_description"),
+      },
+      {
+        icon: <MailIcon className="h-5 w-5 text-yellow-500" />,
+        title: t("routing_forms_send_email_owner"),
+        description: t("routing_forms_send_email_owner_description"),
+      },
+      {
+        icon: <DownloadIcon className="h-5 w-5 text-violet-500" />,
+        title: t("download_responses"),
+        description: t("download_responses_description"),
+      },
+    ];
 
   async function moveRoutingForm(index: number, increment: 1 | -1) {
     const types = forms?.map((type) => {
@@ -187,16 +195,16 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                 queryRes={queryRes}
                 emptyScreen={
                   <EmptyScreen
-                    Icon="git-merge"
-                    headline={t("create_your_first_form")}
+                                        Icon={GitMergeIcon}
+                                        headline={t("create_your_first_form")}
                     description={t("create_your_first_form_description")}
                     buttonRaw={<NewFormButton setNewFormDialogState={setNewFormDialogState} />}
                   />
                 }
                 noResultsScreen={
                   <EmptyScreen
-                    Icon="git-merge"
-                    headline={t("no_results_for_filter")}
+                                        Icon={GitMergeIcon}
+                                        headline={t("no_results_for_filter")}
                     description={t("change_filter_common")}
                   />
                 }
