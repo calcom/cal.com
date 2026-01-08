@@ -1,13 +1,14 @@
+import type { DraggableAttributes } from "@dnd-kit/core";
 import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 
 import { Icon } from "../icon";
 
 export type DragButtonProps = {
   listeners?: SyntheticListenerMap;
-  attributes?: Record<string, unknown>;
+  attributes?: DraggableAttributes;
 };
 
-export function DragButton({ listeners, attributes }: DragButtonProps) {
+export function DragButton({ listeners, attributes }: DragButtonProps): JSX.Element {
   return (
     <button
       type="button"

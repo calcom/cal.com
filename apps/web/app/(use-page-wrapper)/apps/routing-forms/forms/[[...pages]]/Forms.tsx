@@ -22,7 +22,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
-import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import type { RoutingForm, RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
@@ -74,16 +74,21 @@ function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNe
   );
 }
 
+// The form type from the query includes team and _count which are not in RoutingForm
+// We use RoutingForm for FormAction compatibility and add the extra properties
+type QueryForm = RoutingForm & {
+  team?: { name: string; id: number } | null;
+  _count: { responses: number };
+};
+
 interface SortableFormItemProps {
-  form: NonNullable<
-    NonNullable<ReturnType<typeof trpc.viewer.appRoutingForms.forms.useQuery>["data"]>["filtered"]
-  >[number]["form"];
+  form: QueryForm;
   readOnly: boolean;
   appUrl: string;
   t: ReturnType<typeof useLocale>["t"];
 }
 
-function SortableFormItem({ form, readOnly, appUrl, t }: SortableFormItemProps) {
+function SortableFormItem({ form, readOnly, appUrl, t }: SortableFormItemProps): JSX.Element | null {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: form.id,
   });
@@ -356,7 +361,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                           return (
                             <SortableFormItem
                               key={form.id}
-                              form={form}
+                              form={form as QueryForm}
                               readOnly={readOnly}
                               appUrl={appUrl}
                               t={t}
