@@ -24,18 +24,18 @@ test.describe("Onboarding", () => {
       await expect(page.locator('text="Connect your calendar"').first()).toBeVisible(); // Fix race condition
 
       await test.step("step 1 - User Settings", async () => {
-        const submitButton = page
-          .getByTestId("onboarding")
-          .getByTestId("connect-calendar-button");
+        const onboarding = page.getByTestId("onboarding");
+        const form = onboarding.locator("form").first();
+        const submitButton = form.getByTestId("connect-calendar-button");
 
         // Check required fields
         await submitButton.click();
         await expect(page.locator("data-testid=required")).toBeVisible();
 
         // happy path
-        await page.locator("input[name=username]").fill("new user onboarding");
-        await page.locator("input[name=name]").fill("new user 2");
-        await page.locator("input[role=combobox]").click();
+        await form.locator("input[name=username]").fill("new user onboarding");
+        await form.getByLabel("Full name").fill("new user 2");
+        await form.locator("input[role=combobox]").click();
         await page
           .locator("*")
           .filter({ hasText: /^Europe\/London/ })
