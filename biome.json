@@ -236,6 +236,14 @@
                   {
                     "group": ["../trpc/**"],
                     "message": "features package should not import from trpc to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["@calcom/web", "@calcom/web/**"],
+                    "message": "features package should not import from @calcom/web to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["../../apps/web/**"],
+                    "message": "features package should not import from apps/web to avoid circular dependencies."
                   }
                 ]
               }
@@ -256,6 +264,38 @@
                   {
                     "group": ["../apps/web/**"],
                     "message": "trpc package should not import from apps/web to avoid circular dependencies."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/testing/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@calcom/web", "@calcom/web/**"],
+                    "message": "testing package should not import from @calcom/web to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["@calcom/features", "@calcom/features/**"],
+                    "message": "testing package should not import from @calcom/features to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["../../apps/web/**"],
+                    "message": "testing package should not import from apps/web to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["../features/**"],
+                    "message": "testing package should not import from features to avoid circular dependencies."
                   }
                 ]
               }
