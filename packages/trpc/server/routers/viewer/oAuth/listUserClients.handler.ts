@@ -1,4 +1,4 @@
-import { OAuthClientRepository } from "@calcom/lib/server/repository/oAuthClient";
+import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 
 type ListUserClientsOptions = {
   ctx: {

@@ -1,6 +1,6 @@
 import { sendAdminOAuthClientNotification } from "@calcom/emails/oauth-email-service";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { OAuthClientRepository } from "@calcom/lib/server/repository/oAuthClient";
+import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 
 import type { TSubmitClientInputSchema } from "./submitClient.schema";
 
