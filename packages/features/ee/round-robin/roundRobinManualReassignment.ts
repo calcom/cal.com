@@ -1,5 +1,3 @@
-import { cloneDeep } from "lodash";
-
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
@@ -8,6 +6,9 @@ import {
   sendReassignedScheduledEmailsAndSMS,
   sendReassignedUpdatedEmailsAndSMS,
 } from "@calcom/emails/email-manager";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -20,8 +21,8 @@ import AssignmentReasonRecorder, {
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import {
-  scheduleEmailReminder,
   deleteScheduledEmailReminder,
+  scheduleEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -36,6 +37,7 @@ import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { cloneDeep } from "lodash";
 
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
 import type { BookingSelectResult } from "./utils/bookingSelect";
@@ -56,6 +58,8 @@ export const roundRobinManualReassignment = async ({
   reassignedById,
   emailsEnabled = true,
   platformClientParams,
+  actionSource,
+  reassignedByUuid,
 }: {
   bookingId: number;
   newUserId: number;
@@ -64,6 +68,8 @@ export const roundRobinManualReassignment = async ({
   reassignedById: number;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  actionSource?: ActionSource;
+  reassignedByUuid?: string;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
@@ -152,7 +158,7 @@ export const roundRobinManualReassignment = async ({
   let bookingLocation = booking.location;
   let conferenceCredentialId: number | null = null;
 
-  const organizer = hasOrganizerChanged ? newUser : booking.user ?? newUser;
+  const organizer = hasOrganizerChanged ? newUser : (booking.user ?? newUser);
 
   const teamMembers = await getTeamMembers({
     eventTypeHosts,
@@ -455,6 +461,37 @@ export const roundRobinManualReassignment = async ({
       evt: evtWithAdditionalInfo,
       eventType,
       orgId,
+    });
+  }
+
+  // Audit logging for manual reassignment
+  const effectiveActionSource = actionSource ?? "UNKNOWN";
+  if (effectiveActionSource === "UNKNOWN") {
+    roundRobinReassignLogger.warn("Manual reassignment with unknown actionSource", {
+      bookingUid: booking.uid,
+    });
+  }
+
+  if (reassignedByUuid) {
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    await bookingEventHandlerService.onReassignment({
+      bookingUid: booking.uid,
+      actor: makeUserActor(reassignedByUuid),
+      organizationId: orgId,
+      source: effectiveActionSource,
+      auditData: {
+        assignedToId: { old: originalOrganizer.id, new: newUser.id },
+        assignedById: { old: null, new: reassignedById },
+        reassignmentReason: { old: null, new: reassignReason ?? null },
+        reassignmentType: "manual",
+        userPrimaryEmail: { old: originalOrganizer.email, new: newUser.email },
+        title: { old: originalOrganizer.name ?? null, new: newUser.name ?? null },
+      },
+    });
+  } else {
+    roundRobinReassignLogger.warn("Manual reassignment without reassignedByUuid, skipping audit", {
+      bookingUid: booking.uid,
+      reassignedById,
     });
   }
 

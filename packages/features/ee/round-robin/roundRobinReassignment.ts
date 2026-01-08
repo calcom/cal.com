@@ -1,10 +1,8 @@
-import { cloneDeep } from "lodash";
-
 import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
 } from "@calcom/app-store/delegationCredential";
-import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
+import { getLocationValueForDB, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
@@ -12,6 +10,9 @@ import {
   sendReassignedScheduledEmailsAndSMS,
   sendReassignedUpdatedEmailsAndSMS,
 } from "@calcom/emails/email-manager";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -31,9 +32,10 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { cloneDeep } from "lodash";
 
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
 import { handleWorkflowsUpdate } from "./roundRobinManualReassignment";
@@ -47,12 +49,16 @@ export const roundRobinReassignment = async ({
   emailsEnabled = true,
   platformClientParams,
   reassignedById,
+  actionSource,
+  reassignedByUuid,
 }: {
   bookingId: number;
   orgId: number | null;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
   reassignedById: number;
+  actionSource?: ActionSource;
+  reassignedByUuid?: string;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
@@ -506,6 +512,37 @@ export const roundRobinReassignment = async ({
       evt: evtWithAdditionalInfo,
       eventType,
       orgId,
+    });
+  }
+
+  // Audit logging for round robin reassignment
+  const effectiveActionSource = actionSource ?? "UNKNOWN";
+  if (effectiveActionSource === "UNKNOWN") {
+    roundRobinReassignLogger.warn("Round robin reassignment with unknown actionSource", {
+      bookingUid: booking.uid,
+    });
+  }
+
+  if (reassignedByUuid) {
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    await bookingEventHandlerService.onReassignment({
+      bookingUid: booking.uid,
+      actor: makeUserActor(reassignedByUuid),
+      organizationId: orgId,
+      source: effectiveActionSource,
+      auditData: {
+        assignedToId: { old: originalOrganizer.id, new: reassignedRRHost.id },
+        assignedById: { old: null, new: reassignedById },
+        reassignmentReason: { old: null, new: null },
+        reassignmentType: "roundRobin",
+        userPrimaryEmail: { old: originalOrganizer.email, new: reassignedRRHost.email },
+        title: { old: originalOrganizer.name ?? null, new: reassignedRRHost.name ?? null },
+      },
+    });
+  } else {
+    roundRobinReassignLogger.warn("Round robin reassignment without reassignedByUuid, skipping audit", {
+      bookingUid: booking.uid,
+      reassignedById,
     });
   }
 
