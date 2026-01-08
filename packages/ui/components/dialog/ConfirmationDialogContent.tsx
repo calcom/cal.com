@@ -18,6 +18,7 @@ export type ConfirmationDialogContentProps = {
   onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   title: string;
   variety?: "danger" | "warning" | "success";
+  description?: string;
 } & ConfirmBtnType;
 
 export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
@@ -39,6 +40,7 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
     loadingText = t("loading"),
     isPending = false,
     onConfirm,
+    description,
     children,
   } = props;
 
@@ -68,9 +70,16 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
           <DialogPrimitive.Title className="font-cal text-emphasis mt-2 text-xl">
             {title}
           </DialogPrimitive.Title>
-          <DialogPrimitive.Description className="text-subtle text-sm">
-            {children}
-          </DialogPrimitive.Description>
+          {description && (
+            <DialogPrimitive.Description className="text-subtle text-sm">
+              {description}
+            </DialogPrimitive.Description>
+          )}
+          {children && (
+            <DialogPrimitive.Description asChild>
+              <div className="text-subtle text-sm">{children}</div>
+            </DialogPrimitive.Description>
+          )}
         </div>
       </div>
       <div className="my-5 flex flex-row-reverse gap-x-2 sm:my-8">
