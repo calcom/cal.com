@@ -64,7 +64,7 @@ import type { GetScheduleOptions } from "./types";
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
 
-type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+type GetAvailabilityUserWithDelegationCredentials = Omit<NonNullable<GetAvailabilityUser>, "credentials"> & {
   credentials: CredentialForCalendarService[];
 };
 
@@ -157,7 +157,7 @@ export class AvailableSlotsService {
     eventTypeId,
   }: {
     bookerClientUid: string | undefined;
-    usersWithCredentials: GetAvailabilityUser[];
+    usersWithCredentials: NonNullable<GetAvailabilityUser>[];
     eventTypeId: number;
   }) {
     const currentTimeInUtc = dayjs.utc().format();
@@ -200,8 +200,8 @@ export class AvailableSlotsService {
       usernameList: Array.isArray(input.usernameList)
         ? input.usernameList
         : input.usernameList
-        ? [input.usernameList]
-        : [],
+          ? [input.usernameList]
+          : [],
     });
 
     const usersWithOldSelectedCalendars = usersForDynamicEventType.map((user) => withSelectedCalendars(user));
@@ -280,7 +280,7 @@ export class AvailableSlotsService {
    * cause slots from adjacent days to leak into the response.
    */
   private _filterSlotsByRequestedDateRange<
-    T extends Record<string, { time: string; attendees?: number; bookingUid?: string }[]>
+    T extends Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
   >({
     slotsMappedToDate,
     startTime,
@@ -1413,7 +1413,7 @@ export class AvailableSlotsService {
       eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
 
     const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
-    const bookerUtcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
+    const bookerUtcOffset = input.timeZone ? (getUTCOffsetByTimezone(input.timeZone) ?? 0) : 0;
     const periodLimits = calculatePeriodLimits({
       periodType: eventType.periodType,
       periodDays: eventType.periodDays,
