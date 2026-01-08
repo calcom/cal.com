@@ -300,7 +300,7 @@ test.describe("Bookings", () => {
       const org = await orgs.create({
         name: "TestOrg",
       });
-      const teamMatesObj = [{ name: "teammate-1" }, { name: "teammate-2" }];
+      const teamMatesObj = [{ name: "teammate-1" }, { name: "teammate-2" }, { name: "teammate-3" }];
 
       const owner = await users.create(
         {

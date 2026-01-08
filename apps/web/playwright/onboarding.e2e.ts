@@ -24,7 +24,10 @@ test.describe("Onboarding", () => {
       await expect(page.locator('text="Connect your calendar"').first()).toBeVisible(); // Fix race condition
 
       await test.step("step 1 - User Settings", async () => {
-        const submitButton = page.getByTestId("connect-calendar-button");
+        const submitButton = page
+          .getByTestId("onboarding")
+          .getByTestId("connect-calendar-button");
+
         // Check required fields
         await submitButton.click();
         await expect(page.locator("data-testid=required")).toBeVisible();
