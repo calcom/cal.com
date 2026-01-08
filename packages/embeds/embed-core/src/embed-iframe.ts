@@ -578,7 +578,7 @@ function main() {
     disableAutoScroll: shouldDisableAutoScroll,
     // by default enableTwoStepSlotSelection should be false
     enableTwoStepSlotSelection:
-      (enableTwoStepSlotSelectionParam ?? "true") === "true",
+      (enableTwoStepSlotSelectionParam ?? "false") === "true",
   };
 
   actOnColorScheme(embedStore.uiConfig.colorScheme);
