@@ -1,8 +1,24 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import type { DragEndEvent } from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import posthog from "posthog-js";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
@@ -16,10 +32,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { ArrowButton } from "@calcom/ui/components/arrow-button";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { DragButton } from "@calcom/ui/components/drag-button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
 import { List, ListLinkItem } from "@calcom/ui/components/list";
@@ -58,22 +74,148 @@ function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNe
   );
 }
 
+interface SortableFormItemProps {
+  form: NonNullable<
+    NonNullable<ReturnType<typeof trpc.viewer.appRoutingForms.forms.useQuery>["data"]>["filtered"]
+  >[number]["form"];
+  readOnly: boolean;
+  appUrl: string;
+  t: ReturnType<typeof useLocale>["t"];
+}
+
+function SortableFormItem({ form, readOnly, appUrl, t }: SortableFormItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: form.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const description = form.description || "";
+  form.routes = form.routes || [];
+  const fields = form.fields || [];
+  const userRoutes = form.routes.filter((route) => !isFallbackRoute(route));
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="group flex w-full max-w-full items-center justify-between overflow-hidden"
+      key={form.id}>
+      <DragButton listeners={listeners} attributes={attributes} />
+      <ListLinkItem
+        href={`${appUrl}/form-edit/${form.id}`}
+        heading={form.name}
+        readOnly={readOnly}
+        subHeading={description}
+        className="space-x-2 rtl:space-x-reverse"
+        actions={
+          <>
+            {form.team?.name && (
+              <div className="border-subtle border-r-2">
+                <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+                  {form.team.name}
+                </Badge>
+              </div>
+            )}
+            <FormAction disabled={readOnly} className="self-center" action="toggle" routingForm={form} />
+            <ButtonGroup combined>
+              <Tooltip content={t("preview")}>
+                <FormAction
+                  action="preview"
+                  routingForm={form}
+                  target="_blank"
+                  StartIcon="external-link"
+                  color="secondary"
+                  variant="icon"
+                />
+              </Tooltip>
+              <FormAction
+                routingForm={form}
+                action="copyLink"
+                color="secondary"
+                variant="icon"
+                StartIcon="link"
+                tooltip={t("copy_link_to_form")}
+              />
+              <FormAction
+                routingForm={form}
+                action="embed"
+                color="secondary"
+                variant="icon"
+                StartIcon="code"
+                tooltip={t("embed")}
+              />
+              <FormActionsDropdown disabled={readOnly}>
+                <FormAction
+                  action="edit"
+                  routingForm={form}
+                  color="minimal"
+                  className="flex!"
+                  StartIcon="pencil">
+                  {t("edit")}
+                </FormAction>
+                <FormAction action="download" routingForm={form} color="minimal" StartIcon="download">
+                  {t("download_responses")}
+                </FormAction>
+                <FormAction
+                  action="duplicate"
+                  routingForm={form}
+                  color="minimal"
+                  className="w-full"
+                  StartIcon="copy">
+                  {t("duplicate")}
+                </FormAction>
+                <FormAction
+                  action="_delete"
+                  routingForm={form}
+                  color="destructive"
+                  className="w-full"
+                  StartIcon="trash">
+                  {t("delete")}
+                </FormAction>
+              </FormActionsDropdown>
+            </ButtonGroup>
+          </>
+        }>
+        <div className="flex flex-wrap gap-1">
+          <Badge variant="gray" startIcon="menu">
+            {fields.length} {fields.length === 1 ? "field" : "fields"}
+          </Badge>
+          <Badge variant="gray" startIcon="git-merge">
+            {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
+          </Badge>
+          <Badge variant="gray" startIcon="message-circle">
+            {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
+          </Badge>
+        </div>
+      </ListLinkItem>
+    </div>
+  );
+}
+
 export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const { t } = useLocale();
   const { hasPaidPlan } = useHasPaidPlan();
   const routerQuery = useRouterQuery();
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
   const utils = trpc.useUtils();
-  const [parent] = useAutoAnimate<HTMLUListElement>();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const mutation = trpc.viewer.loggedInViewerRouter.routingFormOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
       await utils.viewer.appRoutingForms.forms.cancel();
       await utils.viewer.appRoutingForms.invalidate();
-    },
-    onSettled: () => {
-      utils.viewer.appRoutingForms.invalidate();
     },
   });
 
@@ -90,6 +232,29 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
 
   const forms = queryRes.data?.filtered;
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+
+      if (!over || active.id === over.id || !forms) return;
+
+      const oldIndex = forms.findIndex((f) => f.form?.id === active.id);
+      const newIndex = forms.findIndex((f) => f.form?.id === over.id);
+
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reorderedForms = arrayMove(forms, oldIndex, newIndex);
+
+      mutation.mutate({
+        ids: reorderedForms.map((f) => f.form?.id).filter((id): id is string => id !== undefined),
+      });
+    },
+    [forms, mutation]
+  );
+
+  const formIds = forms?.map((f) => f.form?.id).filter((id): id is string => id !== undefined) ?? [];
+
   const features = [
     {
       icon: <Icon name="file-text" className="h-5 w-5 text-orange-500" />,
@@ -122,29 +287,6 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
       description: t("download_responses_description"),
     },
   ];
-
-  async function moveRoutingForm(index: number, increment: 1 | -1) {
-    const types = forms?.map((type) => {
-      return type.form;
-    });
-
-    if (types?.length) {
-      const newList = [...types];
-
-      const type = types[index];
-      const tmp = types[index + increment];
-      if (tmp) {
-        newList[index] = tmp;
-        newList[index + increment] = type;
-      }
-
-      await utils.viewer.appRoutingForms.forms.cancel();
-
-      mutation.mutate({
-        ids: newList?.map((type) => type.id),
-      });
-    }
-  }
 
   return (
     <LicenseRequired>
@@ -202,134 +344,28 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                 }
                 SkeletonLoader={SkeletonLoaderTeamList}>
                 <div className="bg-default mb-16 overflow-hidden">
-                  <List data-testid="routing-forms-list" ref={parent}>
-                    {forms?.map(({ form, readOnly, hasError }, index) => {
-                      // Make the form read only if it has an error
-                      // TODO: Consider showing error in UI so user can report and get it fixed.
-                      readOnly = readOnly || hasError;
-                      if (!form) {
-                        return null;
-                      }
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={formIds} strategy={verticalListSortingStrategy}>
+                      <List data-testid="routing-forms-list">
+                        {forms?.map(({ form, readOnly, hasError }) => {
+                          readOnly = readOnly || hasError;
+                          if (!form) {
+                            return null;
+                          }
 
-                      const description = form.description || "";
-                      form.routes = form.routes || [];
-                      const fields = form.fields || [];
-                      const userRoutes = form.routes.filter((route) => !isFallbackRoute(route));
-                      const firstItem = forms[0].form;
-                      const lastItem = forms[forms.length - 1].form;
-
-                      return (
-                        <div
-                          className="group flex w-full max-w-full items-center justify-between overflow-hidden"
-                          key={form.id}>
-                          {!(firstItem && firstItem.id === form.id) && (
-                            <ArrowButton onClick={() => moveRoutingForm(index, -1)} arrowDirection="up" />
-                          )}
-
-                          {!(lastItem && lastItem.id === form.id) && (
-                            <ArrowButton onClick={() => moveRoutingForm(index, 1)} arrowDirection="down" />
-                          )}
-                          <ListLinkItem
-                            href={`${appUrl}/form-edit/${form.id}`}
-                            heading={form.name}
-                            readOnly={readOnly}
-                            subHeading={description}
-                            className="space-x-2 rtl:space-x-reverse"
-                            actions={
-                              <>
-                                {form.team?.name && (
-                                  <div className="border-subtle border-r-2">
-                                    <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
-                                      {form.team.name}
-                                    </Badge>
-                                  </div>
-                                )}
-                                <FormAction
-                                  disabled={readOnly}
-                                  className="self-center"
-                                  action="toggle"
-                                  routingForm={form}
-                                />
-                                <ButtonGroup combined>
-                                  <Tooltip content={t("preview")}>
-                                    <FormAction
-                                      action="preview"
-                                      routingForm={form}
-                                      target="_blank"
-                                      StartIcon="external-link"
-                                      color="secondary"
-                                      variant="icon"
-                                    />
-                                  </Tooltip>
-                                  <FormAction
-                                    routingForm={form}
-                                    action="copyLink"
-                                    color="secondary"
-                                    variant="icon"
-                                    StartIcon="link"
-                                    tooltip={t("copy_link_to_form")}
-                                  />
-                                  <FormAction
-                                    routingForm={form}
-                                    action="embed"
-                                    color="secondary"
-                                    variant="icon"
-                                    StartIcon="code"
-                                    tooltip={t("embed")}
-                                  />
-                                  <FormActionsDropdown disabled={readOnly}>
-                                    <FormAction
-                                      action="edit"
-                                      routingForm={form}
-                                      color="minimal"
-                                      className="flex!"
-                                      StartIcon="pencil">
-                                      {t("edit")}
-                                    </FormAction>
-                                    <FormAction
-                                      action="download"
-                                      routingForm={form}
-                                      color="minimal"
-                                      StartIcon="download">
-                                      {t("download_responses")}
-                                    </FormAction>
-                                    <FormAction
-                                      action="duplicate"
-                                      routingForm={form}
-                                      color="minimal"
-                                      className="w-full"
-                                      StartIcon="copy">
-                                      {t("duplicate")}
-                                    </FormAction>
-                                    <FormAction
-                                      action="_delete"
-                                      routingForm={form}
-                                      color="destructive"
-                                      className="w-full"
-                                      StartIcon="trash">
-                                      {t("delete")}
-                                    </FormAction>
-                                  </FormActionsDropdown>
-                                </ButtonGroup>
-                              </>
-                            }>
-                            <div className="flex flex-wrap gap-1">
-                              <Badge variant="gray" startIcon="menu">
-                                {fields.length} {fields.length === 1 ? "field" : "fields"}
-                              </Badge>
-                              <Badge variant="gray" startIcon="git-merge">
-                                {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
-                              </Badge>
-                              <Badge variant="gray" startIcon="message-circle">
-                                {form._count.responses}{" "}
-                                {form._count.responses === 1 ? "response" : "responses"}
-                              </Badge>
-                            </div>
-                          </ListLinkItem>
-                        </div>
-                      );
-                    })}
-                  </List>
+                          return (
+                            <SortableFormItem
+                              key={form.id}
+                              form={form}
+                              readOnly={readOnly}
+                              appUrl={appUrl}
+                              t={t}
+                            />
+                          );
+                        })}
+                      </List>
+                    </SortableContext>
+                  </DndContext>
                 </div>
               </FilterResults>
             </div>

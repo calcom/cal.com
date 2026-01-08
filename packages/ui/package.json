@@ -12,6 +12,7 @@
     "./components/app-list-card": "./components/app-list-card/index.ts",
     "./components/apps": "./components/apps/index.ts",
     "./components/arrow-button": "./components/arrow-button/index.ts",
+    "./components/drag-button": "./components/drag-button/index.ts",
     "./components/avatar": "./components/avatar/index.ts",
     "./components/badge": "./components/badge/index.ts",
     "./components/breadcrumb": "./components/breadcrumb/index.ts",
@@ -74,6 +75,8 @@
   },
   "dependencies": {
     "@calcom/lib": "workspace:*",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
     "@formkit/auto-animate": "1.0.0-beta.5",
     "@lexical/code": "0.9.0",
     "@lexical/html": "0.9.0",
