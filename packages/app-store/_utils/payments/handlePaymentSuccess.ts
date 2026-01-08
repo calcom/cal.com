@@ -31,7 +31,6 @@ import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@cal
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAppNameFromSlug } from "@calcom/features/booking-audit/lib/getAppNameFromSlug";
 import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import type { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
