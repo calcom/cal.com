@@ -79,7 +79,7 @@ export async function createNestApp() {
   });
 
   // Custom query parser to match Cal.com's requirements
-  app.set("query parser", (str: string) => qs.parse(str, { arrayLimit: 1000 }));
+  app.set("query parser", (str: string) => qs.parse(str, { arrayLimit: 1000, comma: true }));
 
   return app;
 }
