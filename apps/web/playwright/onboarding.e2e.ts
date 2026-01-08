@@ -24,8 +24,9 @@ test.describe("Onboarding", () => {
       await expect(page.locator('text="Connect your calendar"').first()).toBeVisible(); // Fix race condition
 
       await test.step("step 1 - User Settings", async () => {
+        const submitButton = page.getByTestId("connect-calendar-button");
         // Check required fields
-        await page.locator("button[type=submit]").click();
+        await submitButton.click();
         await expect(page.locator("data-testid=required")).toBeVisible();
 
         // happy path
@@ -37,7 +38,7 @@ test.describe("Onboarding", () => {
           .filter({ hasText: /^Europe\/London/ })
           .first()
           .click();
-        await page.locator("button[type=submit]").click();
+        await submitButton.click();
 
         await expect(page).toHaveURL(/.*connected-calendar/);
 

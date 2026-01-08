@@ -51,8 +51,9 @@ test.describe("Update Profile", () => {
     const [emailInfo, emailDomain] = user.email.split("@");
     const email = `${emailInfo}-updated@${emailDomain}`;
 
-    await user.apiLogin("/settings/my-account/profile");
+    await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await page.waitForLoadState("networkidle");
 
     const emailInput = page.getByTestId("profile-form-email-0");
 
@@ -217,8 +218,9 @@ test.describe("Update Profile", () => {
 
     const [emailInfo, emailDomain] = user.email.split("@");
 
-    await user.apiLogin("/settings/my-account/profile");
+    await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await page.waitForLoadState("networkidle");
 
     await page.getByTestId("add-secondary-email").click();
 

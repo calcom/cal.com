@@ -8,8 +8,9 @@ test("Can delete user account", async ({ page, users }) => {
   const user = await users.create({
     username: "delete-me",
   });
-  await user.apiLogin("/settings/my-account/profile");
+  await user.apiLogin();
   await page.goto(`/settings/my-account/profile`);
+  await page.waitForLoadState("networkidle");
   await page.waitForSelector("[data-testid=dashboard-shell]");
 
   await page.click("[data-testid=delete-account]");
