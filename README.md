@@ -174,6 +174,20 @@ Here is what you need to be able to run Cal.com.
 yarn dx
 ```
 
+**Default credentials created:**
+
+| Email | Password | Role |
+|-------|----------|------|
+| `free@example.com` | `free` | Free user |
+| `pro@example.com` | `pro` | Pro user |
+| `trial@example.com` | `trial` | Trial user |
+| `admin@example.com` | `ADMINadmin2022!` | Admin user |
+| `onboarding@example.com` | `onboarding` | Onboarding incomplete |
+
+You can use any of these credentials to sign in at [http://localhost:3000](http://localhost:3000)
+
+> **Tip**: To view the full list of seeded users and their details, run `yarn db-studio` and visit [http://localhost:5555](http://localhost:5555)
+
 #### Development tip
 
 1. Add `export NODE_OPTIONS=“--max-old-space-size=16384”` to your shell script to increase the memory limit for the node process. Alternatively, you can run this in your terminal before running the app. Replace 16384 with the amount of RAM you want to allocate to the node process.
@@ -193,7 +207,7 @@ yarn dx
 
    The logger will include all logs that are at the specified level or higher. For example: \
 
-   - If you set `NEXT_PUBLIC_LOGGER_LEVEL=2`, it will log from level 2 (debug) upwards, meaning levels 2 (debug), 3 (info), 4 (warn), 5 (error), and (fatal) will be logged. \
+   - If you set `NEXT_PUBLIC_LOGGER_LEVEL=2`, it will log from level 2 (debug) upwards, meaning levels 2 (debug), 3 (info), 4 (warn), 5 (error), and 6 (fatal) will be logged. \
    - If you set `NEXT_PUBLIC_LOGGER_LEVEL=3`, it will log from level 3 (info) upwards, meaning levels 3 (info), 4 (warn), 5 (error), and 6 (fatal) will be logged, but level 2 (debug) and level 1 (trace) will be ignored. \
 
 ```sh

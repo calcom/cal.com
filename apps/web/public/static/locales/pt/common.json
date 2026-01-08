@@ -688,7 +688,7 @@
   "sunday": "Domingo",
   "all_booked_today": "Tudo reservado.",
   "slots_load_fail": "Não foi possível carregar os horários disponíveis.",
-  "additional_guests": "+ Convidados Adicionais",
+  "additional_guests": "Convidados Adicionais",
   "your_name": "O seu nome",
   "your_full_name": "O seu nome completo",
   "no_name": "Sem nome",
