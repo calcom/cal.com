@@ -403,6 +403,7 @@
   "set_up_later": "Настройте по-късно",
   "current_time": "Текущо време",
   "details": "Детайли",
+  "info": "Информация",
   "welcome": "Добре дошли",
   "welcome_back": "Добре дошли отново",
   "welcome_to_calcom": "Добре дошли в {{appName}}",
@@ -1298,6 +1299,8 @@
   "schedule_deleted_successfully": "Графикът е изтрит успешно",
   "default_schedule_name": "Работно време",
   "new_schedule_heading": "Създай график за достъпност",
+  "no_schedules_created_yet": "Все още не сте създали графици за достъпност. Създайте такъв, за да започнете.",
+  "create_availability_schedule": "Създай график за достъпност",
   "new_schedule_description": "Създаването на графици за достъпност ти позволява да управляваш достъпността за различни типове събития. Те могат да бъдат приложени към един или повече типове събития.",
   "requires_ownership_of_a_token": "Изисква притежание на токен, принадлежащ към следния адрес:",
   "example_name": "Иван Иванов",
@@ -4160,7 +4163,9 @@
     "attendee_no_show_updated": "Актуализирано неявяване на участник",
     "type": "Тип назначаване",
     "assignmentType_manual": "Ръчно назначаване",
-    "assignmentType_roundRobin": "Назначаване по round robin"
+    "assignmentType_roundRobin": "Назначаване по round robin",
+    "actor_impersonated_by": "Представящ се като",
+    "source": "Източник"
   },
   "error_loading_booking_logs": "Грешка при зареждане на логовете на резервацията",
   "no_audit_logs_found": "Не са намерени одит логове",

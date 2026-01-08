@@ -320,7 +320,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 className={`mr-3 h-5 w-5 items-center justify-center rounded border ${
                   props.showAttendeeInfo
                     ? "border-[#111827] bg-[#111827]"
-                    : "border-[#D1D5DB] bg-white"
+                    : "border-gray-300 bg-white"
                 }`}
               >
                 {props.showAttendeeInfo && <Ionicons name="checkmark" size={14} color="#fff" />}
@@ -338,7 +338,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 className={`mr-3 h-5 w-5 items-center justify-center rounded border ${
                   props.showAvailabilityCount
                     ? "border-[#111827] bg-[#111827]"
-                    : "border-[#D1D5DB] bg-white"
+                    : "border-gray-300 bg-white"
                 }`}
               >
                 {props.showAvailabilityCount ? (
