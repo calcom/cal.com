@@ -105,7 +105,7 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
       create: {
         teamId: team.id,
         subscriptionId: subscription.id,
-        subscriptionItemId: subscription.items.data[0].id,
+        subscriptionItemId: subscription.items.data[0]?.id ?? "",
         customerId:
           typeof checkoutSession.customer === "string"
             ? checkoutSession.customer
