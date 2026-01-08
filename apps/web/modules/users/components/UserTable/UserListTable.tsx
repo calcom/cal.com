@@ -23,7 +23,9 @@ import {
   ColumnFilterType,
   convertFacetedValuesToMap,
   useDataTable,
+  type FacetedValue,
 } from "@calcom/features/data-table";
+import type { FilterType } from "@calcom/types/data-table";
 import {
   DataTableWrapper,
   DataTableToolbar,
@@ -213,7 +215,7 @@ function UserListTableContent({
           const isText = attribute.type === "TEXT";
           const isSingleSelect = attribute.type === "SINGLE_SELECT";
           // const isMultiSelect = attribute.type === "MULTI_SELECT";
-          let filterType = ColumnFilterType.MULTI_SELECT;
+          let filterType: FilterType = ColumnFilterType.MULTI_SELECT;
           if (isNumber) {
             filterType = ColumnFilterType.NUMBER;
           } else if (isText) {
@@ -531,7 +533,7 @@ function UserListTableContent({
     getSortedRowModel: getSortedRowModel(),
     onRowSelectionChange: setRowSelection,
     getRowId: (row: UserTableUser) => `${row.id}`,
-    getFacetedUniqueValues: (_: unknown, columnId: string) => (): Map<string, number> => {
+    getFacetedUniqueValues: (_: unknown, columnId: string) => (): Map<FacetedValue, number> => {
       if (facetedTeamValues) {
         switch (columnId) {
           case "role":
