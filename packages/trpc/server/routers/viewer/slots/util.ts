@@ -31,6 +31,7 @@ import type { ISelectedSlotRepository } from "@calcom/features/selectedSlots/rep
 import type { NoSlotsNotificationService } from "@calcom/features/slots/handleNotificationWhenNoSlots";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { filterBlockedHosts } from "@calcom/features/watchlist/operations/filter-blocked-hosts.controller";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
@@ -1098,7 +1099,14 @@ export class AvailableSlotsService {
       });
 
     // Filter out blocked hosts BEFORE calculating availability (batched - single DB query)
-    const organizationId = eventType.parent?.team?.parentId ?? eventType.team?.parentId ?? null;
+    // Get organizationId from eventType (handles org teams and managed events)
+    let organizationId: number | null = eventType.parent?.team?.parentId ?? eventType.team?.parentId ?? null;
+
+    // Fallback: For personal events, use the user's first org membership for org-specific blocking
+    // TODO: When we support multiple orgs, revisit the logic
+    if (!organizationId && eventType.userId) {
+      organizationId = await ProfileRepository.findFirstOrganizationIdForUser({ userId: eventType.userId });
+    }
 
     const { eligibleHosts: eligibleQualifiedRRHosts } = await filterBlockedHosts(
       qualifiedRRHosts,
