@@ -1,7 +1,6 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
-import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
@@ -29,7 +28,7 @@ import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
@@ -37,12 +36,14 @@ import { v4 as uuidv4 } from "uuid";
 
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 
 async function fireBookingAcceptedEvent({
   actor,
   organizationId,
   actionSource,
   acceptedBookings,
+  tracingLogger,
 }: {
   actor: Actor;
   organizationId: number | null;
@@ -51,33 +52,38 @@ async function fireBookingAcceptedEvent({
     uid: string;
     oldStatus: BookingStatus;
   }[];
+  tracingLogger: ISimpleLogger;
 }) {
-  const bookingEventHandlerService = getBookingEventHandlerService();
-  if (acceptedBookings.length > 1) {
-    const operationId = uuidv4();
-    await bookingEventHandlerService.onBulkBookingsAccepted({
-      bookings: acceptedBookings.map((acceptedBooking) => ({
+  try {
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    if (acceptedBookings.length > 1) {
+      const operationId = uuidv4();
+      await bookingEventHandlerService.onBulkBookingsAccepted({
+        bookings: acceptedBookings.map((acceptedBooking) => ({
+          bookingUid: acceptedBooking.uid,
+          auditData: {
+            status: { old: acceptedBooking.oldStatus, new: BookingStatus.ACCEPTED },
+          },
+        })),
+        actor,
+        organizationId,
+        operationId,
+        source: actionSource,
+      });
+    } else if (acceptedBookings.length === 1) {
+      const acceptedBooking = acceptedBookings[0];
+      await bookingEventHandlerService.onBookingAccepted({
         bookingUid: acceptedBooking.uid,
+        actor,
+        organizationId,
         auditData: {
           status: { old: acceptedBooking.oldStatus, new: BookingStatus.ACCEPTED },
         },
-      })),
-      actor,
-      organizationId,
-      operationId,
-      source: actionSource,
-    });
-  } else if (acceptedBookings.length === 1) {
-    const acceptedBooking = acceptedBookings[0];
-    await bookingEventHandlerService.onBookingAccepted({
-      bookingUid: acceptedBooking.uid,
-      actor,
-      organizationId,
-      auditData: {
-        status: { old: acceptedBooking.oldStatus, new: BookingStatus.ACCEPTED },
-      },
-      source: actionSource,
-    });
+        source: actionSource,
+      });
+    }
+  } catch (error) {
+    tracingLogger.error("Error firing booking accepted event", safeStringify(error));
   }
 }
 
@@ -411,6 +417,7 @@ export async function handleConfirmation(args: {
     acceptedBookings,
     organizationId: orgId ?? null,
     actionSource,
+    tracingLogger,
   });
 
   //Workflows - set reminders for confirmed events

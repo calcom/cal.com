@@ -26,6 +26,7 @@ describe("Accepted Action Integration", () => {
     eventType: { id: number };
     booking: { uid: string; startTime: Date; endTime: Date; status: BookingStatus };
   };
+  const additionalBookingUids: string[] = [];
 
   beforeEach(async () => {
     bookingAuditTaskConsumer = getBookingAuditTaskConsumer();
@@ -64,6 +65,13 @@ describe("Accepted Action Integration", () => {
   });
 
   afterEach(async () => {
+    for (const bookingUid of additionalBookingUids) {
+      await cleanupTestData({
+        bookingUid,
+      });
+    }
+    additionalBookingUids.length = 0; // Clear the array for next test
+
     if (!testData) return;
 
     await cleanupTestData({
@@ -157,6 +165,7 @@ describe("Accepted Action Integration", () => {
           },
         ],
       });
+      additionalBookingUids.push(booking2.uid);
 
       const booking3 = await createTestBooking(testData.owner.id, testData.eventType.id, {
         status: BookingStatus.PENDING,
@@ -168,6 +177,7 @@ describe("Accepted Action Integration", () => {
           },
         ],
       });
+      additionalBookingUids.push(booking3.uid);
 
       const actor = makeUserActor(testData.owner.uuid);
       const operationId = `bulk-op-${Date.now()}`;
@@ -242,13 +252,6 @@ describe("Accepted Action Integration", () => {
       expect(result1.auditLogs[0].operationId).toBe(operationId);
       expect(result2.auditLogs[0].operationId).toBe(operationId);
       expect(result3.auditLogs[0].operationId).toBe(operationId);
-
-      await cleanupTestData({
-        bookingUid: booking2.uid,
-      });
-      await cleanupTestData({
-        bookingUid: booking3.uid,
-      });
     });
   });
 });

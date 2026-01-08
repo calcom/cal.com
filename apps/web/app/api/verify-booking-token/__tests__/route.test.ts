@@ -387,6 +387,7 @@ describe("verify-booking-token route", () => {
       const res = await GET(req, { params: Promise.resolve({}) });
 
       expectErrorRedirect(res, "/booking/booking-uid", "Error confirming booking");
+      expect(mockConfirmHandler).not.toHaveBeenCalled();
     });
 
     it("should call confirmHandler with reject action and reason for POST request", async () => {
@@ -422,6 +423,7 @@ describe("verify-booking-token route", () => {
             reason: "test",
             emailsEnabled: true,
             actionSource: "MAGIC_LINK",
+            actor: { type: "user", id: "test-uuid" },
           }),
         })
       );

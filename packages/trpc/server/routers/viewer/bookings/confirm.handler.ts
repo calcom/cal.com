@@ -34,7 +34,9 @@ import type { TrpcSessionUser } from "../../../types";
 import type { TConfirmInputSchema } from "./confirm.schema";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
-
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import logger from "@calcom/lib/logger";
 type ConfirmOptions = {
   ctx: {
     user: Pick<
@@ -52,6 +54,7 @@ async function fireRejectionEvent({
   actionSource,
   rejectedBookings,
   rejectionReason,
+  tracingLogger,
 }: {
   actor: Actor;
   organizationId: number | null;
@@ -61,41 +64,47 @@ async function fireRejectionEvent({
     uid: string;
     oldStatus: BookingStatus;
   }[];
+  tracingLogger: ISimpleLogger;
 }): Promise<void> {
-  const bookingEventHandlerService = getBookingEventHandlerService();
-  if (rejectedBookings.length > 1) {
-    const operationId = uuidv4();
-    await bookingEventHandlerService.onBulkBookingsRejected({
-      bookings: rejectedBookings.map((booking) => ({
+  try {
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    if (rejectedBookings.length > 1) {
+      const operationId = uuidv4();
+      await bookingEventHandlerService.onBulkBookingsRejected({
+        bookings: rejectedBookings.map((booking) => ({
+          bookingUid: booking.uid,
+          auditData: {
+            rejectionReason,
+            status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
+          },
+        })),
+        actor,
+        organizationId,
+        operationId,
+        source: actionSource,
+      });
+    } else if (rejectedBookings.length === 1) {
+      const booking = rejectedBookings[0];
+      await bookingEventHandlerService.onBookingRejected({
         bookingUid: booking.uid,
+        actor,
+        organizationId,
         auditData: {
           rejectionReason,
           status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
         },
-      })),
-      actor,
-      organizationId,
-      operationId,
-      source: actionSource,
-    });
-  } else if (rejectedBookings.length === 1) {
-    const booking = rejectedBookings[0];
-    await bookingEventHandlerService.onBookingRejected({
-      bookingUid: booking.uid,
-      actor,
-      organizationId,
-      auditData: {
-        rejectionReason,
-        status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
-      },
-      source: actionSource,
-    });
+        source: actionSource,
+      });
+    }
+  } catch (error) {
+    tracingLogger.error("Error firing booking rejection event", safeStringify(error));
   }
 }
 /**
  * TODO: Convert it to a service as this fn is the single point of entry across trpc, magic-links, and API v2
  */
 export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
+  const log = logger.getSubLogger({ prefix: ["confirmHandler"] });
   const {
     bookingId,
     recurringEventId,
@@ -471,6 +480,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       organizationId: orgId ?? null,
       rejectionReason: rejectionReason ?? null,
       rejectedBookings,
+      tracingLogger: log,
     });
 
     // send BOOKING_REJECTED webhooks
