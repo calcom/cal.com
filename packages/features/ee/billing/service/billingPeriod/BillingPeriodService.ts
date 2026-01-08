@@ -18,8 +18,6 @@ export interface BillingPeriodInfo {
 }
 
 export class BillingPeriodService {
-  private logger: Logger<unknown>;
-
   constructor(customLogger?: Logger<unknown>) {
     this.logger = customLogger || log;
   }

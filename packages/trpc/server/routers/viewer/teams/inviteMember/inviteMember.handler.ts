@@ -139,6 +139,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     // TODO: Remove `input` and instead pass the required fields directly
     language: string;
     inviterName: string | null;
+    inviterId?: number;
     orgSlug: string | null;
     invitations: {
       usernameOrEmail: string;
@@ -151,7 +152,15 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     isDirectUserAction?: boolean;
   } & TargetTeam
 ) => {
-  const { inviterName, orgSlug, invitations, language, creationSource, isDirectUserAction = true } = data;
+  const {
+    inviterName,
+    inviterId,
+    orgSlug,
+    invitations,
+    language,
+    creationSource,
+    isDirectUserAction = true,
+  } = data;
   const myLog = log.getSubLogger({ prefix: ["inviteMembers"] });
   const translation = await getTranslation(language ?? "en", "common");
   const team = "team" in data ? data.team : await getTeamOrThrow(data.teamId);
@@ -235,29 +244,18 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
   const teamBillingService = teamBillingServiceFactory.init(team);
   await teamBillingService.updateQuantity();
 
-  // Track seat additions for monthly proration
   const totalInvitedUsers = invitableExistingUsers.length + invitationsForNewUsers.length;
   if (totalInvitedUsers > 0) {
     const billingEntityId = getBillingEntityId(team);
+    const invitedUserIds: number[] = [...invitableExistingUsers.map((user) => user.id)];
 
-    // Get all invited user IDs
-    const invitedUserIds: number[] = [
-      ...invitableExistingUsers.map((user) => user.id),
-      // For new users, we'll track them when they accept the invitation
-      // since they don't have a user ID yet
-    ];
-
-    if (invitedUserIds.length > 0) {
-      // Use the first invitable user's ID as triggeredBy since we don't have inviter context here
-      // This is a limitation of inviteMembersWithNoInviterPermissionCheck
-      const triggeredBy = invitedUserIds[0];
-
+    if (invitedUserIds.length > 0 && inviterId) {
       await trackSeatAdditions({
         billingEntityId,
         userIds: invitedUserIds,
-        triggeredBy,
+        triggeredBy: inviterId,
         metadata: {
-          source: "inviteMembersWithNoInviterPermissionCheck",
+          source: "inviteMember",
           creationSource,
           isDirectUserAction,
         },
@@ -268,7 +266,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
   return {
     // TODO: Better rename it to invitations only maybe?
     usernameOrEmail:
-      invitations.length == 1
+      invitations.length === 1
         ? invitations[0].usernameOrEmail
         : invitations.map((invitation) => invitation.usernameOrEmail),
     numUsersInvited: invitableExistingUsers.length + invitationsForNewUsers.length,
@@ -330,6 +328,7 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
   });
   const result = await inviteMembersWithNoInviterPermissionCheck({
     inviterName: inviter.name,
+    inviterId: inviter.id,
     team,
     language: input.language,
     creationSource,
