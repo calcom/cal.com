@@ -151,7 +151,6 @@ const getCalendarsEvents = async (
       dateFrom,
       dateTo,
       passedSelectedCalendars,
-      shouldServeCache,
       allowFallbackToPrimary
     );
     performance.mark("eventBusyDatesEnd");

@@ -1,4 +1,4 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
