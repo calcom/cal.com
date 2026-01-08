@@ -1,8 +1,5 @@
 import { ConfigService } from "@nestjs/config";
 
-import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
-
 import { OutputEventTypesService_2024_06_14 } from "./output-event-types.service";
 
 jest.mock("@calcom/platform-libraries/organizations", () => ({
@@ -15,7 +12,6 @@ jest.mock("@calcom/platform-libraries/organizations", () => ({
 describe("OutputEventTypesService_2024_06_14", () => {
   let service: OutputEventTypesService_2024_06_14;
   let configService: jest.Mocked<ConfigService>;
-  let usersService: jest.Mocked<UsersService>;
 
   beforeEach(() => {
     configService = {
@@ -25,15 +21,7 @@ describe("OutputEventTypesService_2024_06_14", () => {
       }),
     } as any;
 
-    usersService = {
-      getUserMainProfile: jest.fn((user) =>
-        user?.movedToProfile ||
-        user?.profiles?.find((p: any) => p.organizationId === user.organizationId) ||
-        user?.profiles?.[0]
-      ),
-    } as any;
-
-    service = new OutputEventTypesService_2024_06_14(configService, usersService);
+    service = new OutputEventTypesService_2024_06_14(configService);
   });
 
   describe("buildBookingUrl", () => {
@@ -54,7 +42,7 @@ describe("OutputEventTypesService_2024_06_14", () => {
       };
       const slug = "30min";
 
-      const result = service.buildBookingUrl(user as unknown as UserWithProfile, slug);
+      const result = service.buildBookingUrl(user, slug);
 
       expect(result).toBe("https://cal.com/john-doe/30min");
     });
@@ -82,7 +70,7 @@ describe("OutputEventTypesService_2024_06_14", () => {
       };
       const slug = "30min";
 
-      const result = service.buildBookingUrl(user as unknown as UserWithProfile, slug);
+      const result = service.buildBookingUrl(user, slug);
 
       expect(result).toBe("https://acme.cal.com/owner1/30min");
     });
@@ -110,7 +98,7 @@ describe("OutputEventTypesService_2024_06_14", () => {
       };
       const slug = "30min";
 
-      const result = service.buildBookingUrl(user as unknown as UserWithProfile, slug);
+      const result = service.buildBookingUrl(user, slug);
 
       expect(result).toBe("https://i.cal.com/keith/30min");
     });
@@ -147,7 +135,7 @@ describe("OutputEventTypesService_2024_06_14", () => {
       };
       const slug = "consultation";
 
-      const result = service.buildBookingUrl(user as unknown as UserWithProfile, slug);
+      const result = service.buildBookingUrl(user, slug);
 
       expect(result).toBe("https://cal.com/user/consultation");
     });
@@ -178,7 +166,7 @@ describe("OutputEventTypesService_2024_06_14", () => {
       };
       const slug = "30min";
 
-      const result = service.buildBookingUrl(user as unknown as UserWithProfile, slug);
+      const result = service.buildBookingUrl(user, slug);
 
       // Trailing slash should be stripped to avoid double slashes
       expect(result).toBe("https://acme.cal.com/john/30min");
@@ -201,7 +189,7 @@ describe("OutputEventTypesService_2024_06_14", () => {
       };
       const slug = "30min";
 
-      const result = service.buildBookingUrl(user as unknown as UserWithProfile, slug);
+      const result = service.buildBookingUrl(user, slug);
 
       expect(result).toBe("");
     });
@@ -223,7 +211,7 @@ describe("OutputEventTypesService_2024_06_14", () => {
       };
       const slug = "30min";
 
-      const result = service.buildBookingUrl(user as unknown as UserWithProfile, slug);
+      const result = service.buildBookingUrl(user, slug);
 
       expect(result).toBe("");
     });
