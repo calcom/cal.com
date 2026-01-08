@@ -15,16 +15,11 @@ import type {
   OutputUnknownLocation_2024_06_14,
   TransformFutureBookingsLimitSchema_2024_06_14,
 } from "@calcom/platform-types";
-import type {
-  CalVideoSettings,
-  DestinationCalendar,
-  EventType,
-  Prisma,
-  Schedule,
-  Team,
-} from "@calcom/prisma/client";
+import type { CalVideoSettings, DestinationCalendar, EventType, Schedule } from "@calcom/prisma/client";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { UsersService } from "@/modules/users/services/users.service";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   BookingFieldSchema,
   CustomField,
@@ -42,29 +37,8 @@ import {
   transformSeatsInternalToApi,
 } from "@/ee/event-types/event-types_2024_06_14/transformers";
 
-type UserProfile = {
-  username: string | null;
-  organizationId: number | null;
-  organization: { id: number; slug: string | null; name: string; isPlatform: boolean } | null;
-};
-
-type EventTypeUser = {
-  id: number;
-  name: string | null;
-  username: string | null;
-  avatarUrl: string | null;
-  brandColor: string | null;
-  darkBrandColor: string | null;
-  weekStart: string;
-  metadata: Prisma.JsonValue;
-  organizationId: number | null;
-  organization?: { slug: string | null } | null;
-  movedToProfile?: UserProfile | null;
-  profiles?: UserProfile[];
-};
-
 type EventTypeRelations = {
-  users: EventTypeUser[];
+  users: UserWithProfile[];
   schedule: Schedule | null;
   destinationCalendar?: DestinationCalendar | null;
   calVideoSettings?: CalVideoSettings | null;
@@ -135,7 +109,10 @@ type Input = Pick<
 
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly usersService: UsersService
+  ) {}
 
   getResponseEventType(
     ownerId: number,
@@ -375,7 +352,7 @@ export class OutputEventTypesService_2024_06_14 {
     return EventTypeMetaDataSchema.parse(metadata);
   }
 
-  transformUsers(users: EventTypeUser[]) {
+  transformUsers(users: UserWithProfile[]) {
     return users.map((user) => {
       const metadata = user.metadata ? userMetadata.parse(user.metadata) : {};
       return {
@@ -438,12 +415,12 @@ export class OutputEventTypesService_2024_06_14 {
     });
   }
 
-  buildBookingUrl(user: EventTypeUser | undefined, slug: string): string {
+  buildBookingUrl(user: UserWithProfile | undefined, slug: string): string {
     if (!user) {
       return "";
     }
 
-    const profile = this.getUserMainProfile(user);
+    const profile = this.usersService.getUserMainProfile(user);
     const username = profile?.username ?? user.username;
 
     if (!username) {
@@ -456,14 +433,6 @@ export class OutputEventTypesService_2024_06_14 {
     const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
 
     return `${normalizedBaseUrl}/${username}/${slug}`;
-  }
-
-  private getUserMainProfile(user: EventTypeUser): UserProfile | undefined {
-    return (
-      user.movedToProfile ||
-      user.profiles?.find((p) => p.organizationId === user.organizationId) ||
-      user.profiles?.[0]
-    );
   }
 
   getResponseEventTypesWithoutHiddenFields(
