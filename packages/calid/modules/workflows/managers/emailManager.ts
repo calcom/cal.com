@@ -622,6 +622,9 @@ export const deleteScheduledEmailReminder = async (
     await prisma.calIdWorkflowReminder.update({
       where: {
         id: reminderIdentifier,
+        scheduledDate: {
+          gt: new Date(),
+        },
       },
       data: {
         cancelled: true,

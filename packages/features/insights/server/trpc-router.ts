@@ -1,4 +1,7 @@
-import { CalIdWorkflowEventsInsights } from "@calid/features/modules/insights/server/workflow-events";
+import {
+  CalIdWorkflowEventsInsights,
+  parseUtcTimestamp,
+} from "@calid/features/modules/insights/server/workflow-events";
 import type { CalIdMembership, Prisma } from "@prisma/client";
 import { z } from "zod";
 
@@ -1076,14 +1079,14 @@ export const insightsRouter = router({
       const { startDate, endDate, eventTypeId, memberUserId: userId, selectedTeamId: teamId, type } = input;
 
       const stats: {
-        sentCount: number;
+        deliveredCount: number;
         readCount: number;
         failedCount: number;
         queuedCount: number;
         cancelledCount: number;
         total: number;
       } = {
-        sentCount: 0,
+        deliveredCount: 0,
         readCount: 0,
         failedCount: 0,
         queuedCount: 0,
@@ -1190,6 +1193,7 @@ export const insightsRouter = router({
           id: true,
           method: true,
           scheduled: true,
+          scheduledDate: true,
           cancelled: true,
           workflowStepId: true,
           bookingUid: true,
@@ -1204,6 +1208,7 @@ export const insightsRouter = router({
 
       // Create a set of reminder identifiers that have corresponding insights
       const processedReminderKeys = new Set<string>();
+      const currentTime = Date.now();
 
       workflowInsights.forEach((insight) => {
         // Create a key to match reminders with insights
@@ -1214,7 +1219,7 @@ export const insightsRouter = router({
 
         // Count insight statuses
         if (insight.status === WorkflowStatus.DELIVERED || insight.status === WorkflowStatus.SENT) {
-          stats.sentCount += 1;
+          stats.deliveredCount += 1;
         } else if (insight.status === WorkflowStatus.READ) {
           stats.readCount += 1;
         } else if (insight.status === WorkflowStatus.FAILED) {
@@ -1236,12 +1241,13 @@ export const insightsRouter = router({
         if (processedReminderKeys.has(reminderKey)) {
           return;
         }
-
-        // Count reminder statuses
-        if (reminder.cancelled) {
+        const { scheduled, cancelled } = reminder;
+        const parsedScheduledDate = parseUtcTimestamp(reminder.scheduledDate);
+        if (scheduled && parsedScheduledDate <= currentTime) {
+          stats.deliveredCount += 1;
+        } else if (cancelled) {
           stats.cancelledCount += 1;
-        } else if (reminder.scheduled) {
-          // Scheduled reminders without insights are considered QUEUED
+        } else if (scheduled && parsedScheduledDate > currentTime) {
           stats.queuedCount += 1;
         }
       });
@@ -1346,7 +1352,7 @@ export const insightsRouter = router({
           startDate,
           endDate,
           formattedDate: formattedDate,
-          Sent: stats.DELIVERED,
+          Delivered: stats.DELIVERED,
           Read: stats.READ,
           Failed: stats.FAILED,
           Queued: stats.QUEUED,

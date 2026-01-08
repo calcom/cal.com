@@ -3587,7 +3587,7 @@
   "workflow_type": "Workflow Type",
   "workflows_triggered": "Total Workflows Triggered",
   "workflows_queued": "Workflows Queued",
-  "workflows_sent": "Workflows Sent",
+  "workflows_delivered": "Workflows Delivered",
   "workflows_read": "Workflows Read",
   "workflows_failed": "Workflows Failed",
   "workflows_cancelled": "Workflows Cancelled",

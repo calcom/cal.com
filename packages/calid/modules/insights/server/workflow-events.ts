@@ -24,7 +24,6 @@ type WorkflowStatusAggregate = {
   FAILED: number;
   QUEUED: number;
   CANCELLED: number;
-  SENT: number;
   _all: number;
 };
 
@@ -32,6 +31,16 @@ const normalizeTimeZone = (tz: string) => {
   if (tz === "Asia/Calcutta") return "Asia/Kolkata";
   return tz;
 };
+
+// Helper function to parse UTC timestamp
+export function parseUtcTimestamp(input: string | Date): number {
+  if (input instanceof Date) {
+    return input.getTime();
+  }
+
+  // If timezone is missing, force UTC
+  return Date.parse(!/[zZ]|[+-]\d\d:\d\d$/.test(input) ? `${input}Z` : input);
+}
 
 class CalIdWorkflowEventsInsights {
   static countGroupedWorkflowByStatusForRanges = async (
@@ -149,13 +158,14 @@ class CalIdWorkflowEventsInsights {
     ORDER BY "periodStart";
   `;
 
-    // Fetch reminders data with identifying information
+    // Fetch reminders data with identifying information INCLUDING scheduledDate
     const remindersData = await prisma.$queryRaw<
       {
         periodStart: Date;
         remindersCount: number;
         cancelled: boolean;
         scheduled: boolean;
+        scheduledDate: Date;
         bookingUid: string;
         workflowStepId: number;
         seatReferenceId: string | null;
@@ -166,6 +176,7 @@ class CalIdWorkflowEventsInsights {
       CAST(COUNT(*) AS INTEGER) AS "remindersCount",
       "cancelled",
       "scheduled",
+      "scheduledDate",
       "bookingUid",
       "workflowStepId",
       "seatReferenceId"
@@ -174,6 +185,7 @@ class CalIdWorkflowEventsInsights {
         r."scheduledDate" AT TIME ZONE 'UTC' AT TIME ZONE ${safeTimeZone} AS "periodStart",
         r."cancelled",
         r."scheduled",
+        r."scheduledDate",
         r."workflowStepId",
         r."bookingUid",
         r."seatReferenceId"
@@ -181,7 +193,7 @@ class CalIdWorkflowEventsInsights {
       INNER JOIN "Booking" b ON r."bookingUid" = b."uid"
       WHERE ${Prisma.raw(remindersWhereClause)}
     ) AS filtered_reminders
-    GROUP BY "periodStart", "cancelled", "scheduled", "bookingUid", "workflowStepId", "seatReferenceId"
+    GROUP BY "periodStart", "cancelled", "scheduled", "scheduledDate", "bookingUid", "workflowStepId", "seatReferenceId"
     ORDER BY "periodStart";
   `;
 
@@ -197,7 +209,6 @@ class CalIdWorkflowEventsInsights {
         FAILED: 0,
         QUEUED: 0,
         CANCELLED: 0,
-        SENT: 0,
         _all: 0,
       };
     });
@@ -217,7 +228,7 @@ class CalIdWorkflowEventsInsights {
         const insightKey = `${bookingUid}-${workflowStepId}-${bookingSeatReferenceUid || "booking"}`;
         processedInsightKeys.add(insightKey);
 
-        if (statusKey === "DELIVERED" || statusKey === "SENT") {
+        if (statusKey === "DELIVERED") {
           aggregate[key].DELIVERED += Number(insightsCount);
         } else if (aggregate[key].hasOwnProperty(statusKey)) {
           aggregate[key][statusKey] += Number(insightsCount);
@@ -226,6 +237,9 @@ class CalIdWorkflowEventsInsights {
       }
     );
 
+    // Get current time for comparison
+    const currentTime = Date.now();
+
     // Process reminders data (only those without corresponding insights)
     remindersData.forEach(
       ({
@@ -233,6 +247,7 @@ class CalIdWorkflowEventsInsights {
         remindersCount,
         cancelled,
         scheduled,
+        scheduledDate,
         bookingUid,
         workflowStepId,
         seatReferenceId,
@@ -245,22 +260,27 @@ class CalIdWorkflowEventsInsights {
         // Create composite key to check if this reminder has a corresponding insight
         const reminderKey = `${bookingUid}-${workflowStepId}-${seatReferenceId || "booking"}`;
 
-        // Skip if this reminder already has a corresponding insight
+        // 1. If workflowInsight exists, skip (use its status instead)
         if (processedInsightKeys.has(reminderKey)) {
           return;
         }
 
         const key = `${matchingRange.startDate}_${matchingRange.endDate}`;
 
-        // Determine status based on reminder state
-        if (cancelled) {
-          aggregate[key].CANCELLED += Number(remindersCount);
-          aggregate[key]._all += Number(remindersCount);
-        } else if (scheduled) {
-          // Only count as QUEUED if there's no corresponding insight
-          aggregate[key].QUEUED += Number(remindersCount);
-          aggregate[key]._all += Number(remindersCount);
+        // 2. Check workflowReminder and determine status
+        const parsedScheduledDate = parseUtcTimestamp(scheduledDate);
+        let resolvedStatus: "DELIVERED" | "CANCELLED" | "QUEUED" = "QUEUED";
+
+        if (scheduled && parsedScheduledDate <= currentTime) {
+          resolvedStatus = "DELIVERED";
+        } else if (cancelled) {
+          resolvedStatus = "CANCELLED";
+        } else if (scheduled && parsedScheduledDate > currentTime) {
+          resolvedStatus = "QUEUED";
         }
+        // 3. Default to QUEUED (already set above)
+        aggregate[key][resolvedStatus] += Number(remindersCount);
+        aggregate[key]._all += Number(remindersCount);
       }
     );
 
