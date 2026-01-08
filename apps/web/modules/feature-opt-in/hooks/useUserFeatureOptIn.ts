@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { NormalizedFeature, UseFeatureOptInResult } from "./types";
+import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
 
 /**
  * Hook for managing feature opt-in at the user (personal) level.

@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import OrganizationFeaturesView from "~/settings/organizations/features-view";
+import OrganizationFeaturesView from "~/ee/organizations/features-view";
 
 import { validateUserHasOrgAdmin } from "../../actions/validateUserHasOrgAdmin";
 

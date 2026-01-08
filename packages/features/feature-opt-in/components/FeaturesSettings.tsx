@@ -11,7 +11,7 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { getOptInFeatureConfig } from "../config";
-import type { NormalizedFeature, UseFeatureOptInResult } from "../hooks/types";
+import type { NormalizedFeature, UseFeatureOptInResult } from "../types";
 
 interface FeaturesSettingsProps {
   /** The hook result - can be from useUserFeatureOptIn, useTeamFeatureOptIn, or useOrganizationFeatureOptIn */

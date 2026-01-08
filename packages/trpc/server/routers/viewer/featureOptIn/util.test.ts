@@ -12,11 +12,13 @@ import { createTeamPbacProcedure, createOrgPbacProcedure } from "./util";
 // Mock dependencies - use factory functions to avoid hoisting issues
 const mockCheckPermission = vi.fn();
 
-vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
-  PermissionCheckService: vi.fn().mockImplementation(() => ({
-    checkPermission: mockCheckPermission,
-  })),
-}));
+vi.mock("@calcom/features/pbac/services/permission-check.service", () => {
+  return {
+    PermissionCheckService: class {
+      checkPermission = mockCheckPermission;
+    },
+  };
+});
 
 vi.mock("../../../procedures/authedProcedure", () => ({
   default: {
