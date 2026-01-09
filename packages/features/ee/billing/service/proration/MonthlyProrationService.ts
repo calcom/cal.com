@@ -309,9 +309,7 @@ export class MonthlyProrationService {
       const billingPeriod =
         subscription.items.data[0]?.price.recurring?.interval === "year" ? "ANNUALLY" : "MONTHLY";
 
-      const pricePerSeat = subscription.items.data[0]?.price.unit_amount
-        ? subscription.items.data[0].price.unit_amount / 100
-        : 0;
+      const pricePerSeat = subscription.items.data[0]?.price.unit_amount ?? 0;
 
       const subscriptionStart = subscription.current_period_start
         ? new Date(subscription.current_period_start * 1000)
@@ -360,7 +358,7 @@ export class MonthlyProrationService {
       }
 
       this.logger.info(
-        `[${teamId}] ${needsCreation ? "created" : "populated"}: ${billingPeriod}, $${pricePerSeat}/seat`
+        `[${teamId}] ${needsCreation ? "created" : "populated"}: ${billingPeriod}, ${pricePerSeat} cents/seat`
       );
 
       billing.billingPeriod = billingPeriod;

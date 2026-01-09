@@ -169,7 +169,7 @@ describe("MonthlyProrationService Integration Tests", () => {
         subscriptionItemId: `si_test_2_${timestamp}`,
         customerId: `cus_test_2_${timestamp}`,
         billingPeriod: "ANNUALLY",
-        pricePerSeat: 100.0,
+        pricePerSeat: 10000,
         subscriptionStart: new Date("2025-06-01T00:00:00Z"),
         subscriptionEnd: new Date("2026-06-01T00:00:00Z"),
         subscriptionTrialEnd: new Date("2025-06-08T00:00:00Z"),
