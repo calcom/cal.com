@@ -213,7 +213,7 @@ export default async function handler(
     try {
       const parsedPayload = JSON.parse(payload);
       stripeEventId = parsedPayload?.id;
-      console.log(stripeEventId);
+      log.debug("Stripe webhook eventId", { stripeEventId });
     } catch {
       // Ignore parse errors, this is just for debugging
     }
