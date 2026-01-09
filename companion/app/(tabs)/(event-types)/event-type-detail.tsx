@@ -35,7 +35,7 @@ import {
   type Schedule,
 } from "@/services/calcom";
 import type { LocationItem, LocationOptionGroup } from "@/types/locations";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import {
   buildLocationOptions,
@@ -941,7 +941,7 @@ export default function EventTypeDetail() {
       return;
     }
     await Clipboard.setStringAsync(link);
-    Alert.alert("Success", "Link copied!");
+    showSuccessAlert("Success", "Link copied!");
   };
 
   const handleDelete = () => {
@@ -961,12 +961,8 @@ export default function EventTypeDetail() {
           try {
             await CalComAPIService.deleteEventType(eventTypeId);
 
-            Alert.alert("Success", "Event type deleted successfully", [
-              {
-                text: "OK",
-                onPress: () => router.back(),
-              },
-            ]);
+            showSuccessAlert("Success", "Event type deleted successfully");
+            router.back();
           } catch (error) {
             safeLogError("Failed to delete event type:", error);
             showErrorAlert("Error", "Failed to delete event type. Please try again.");
@@ -1143,19 +1139,19 @@ export default function EventTypeDetail() {
 
   const handleSave = async () => {
     if (!id) {
-      Alert.alert("Error", "Event type ID is missing");
+      showErrorAlert("Error", "Event type ID is missing");
       return;
     }
 
     // Validate required fields
     if (!eventTitle || !eventSlug) {
-      Alert.alert("Error", "Title and slug are required");
+      showErrorAlert("Error", "Title and slug are required");
       return;
     }
 
     const durationNum = parseInt(eventDuration, 10);
     if (Number.isNaN(durationNum) || durationNum <= 0) {
-      Alert.alert("Error", "Duration must be a positive number");
+      showErrorAlert("Error", "Duration must be a positive number");
       return;
     }
 
@@ -1164,7 +1160,7 @@ export default function EventTypeDetail() {
       for (const loc of locations) {
         const validation = validateLocationItem(loc);
         if (!validation.valid) {
-          Alert.alert("Error", validation.error || "Invalid location");
+          showErrorAlert("Error", validation.error || "Invalid location");
           return;
         }
       }
@@ -1209,12 +1205,8 @@ export default function EventTypeDetail() {
         setSaving(false);
         return;
       }
-      Alert.alert("Success", "Event type created successfully", [
-        {
-          text: "OK",
-          onPress: () => router.back(),
-        },
-      ]);
+      showSuccessAlert("Success", "Event type created successfully");
+      router.back();
       setSaving(false);
     } else {
       // For UPDATE mode, use partial update - only send changed fields
@@ -1236,7 +1228,7 @@ export default function EventTypeDetail() {
         setSaving(false);
         return;
       }
-      Alert.alert("Success", "Event type updated successfully");
+      showSuccessAlert("Success", "Event type updated successfully");
       // Refresh event type data to sync with server
       await fetchEventTypeData();
       setSaving(false);
@@ -2069,7 +2061,7 @@ export default function EventTypeDetail() {
                 <TouchableOpacity
                   onPress={() => {
                     if (id === "new") {
-                      Alert.alert("Info", "Save the event type first to configure this setting.");
+                      showInfoAlert("Info", "Save the event type first to configure this setting.");
                     } else {
                       openInAppBrowser(
                         `https://app.cal.com/event-types/${id}?tabName=apps`,
@@ -2096,7 +2088,7 @@ export default function EventTypeDetail() {
                 <TouchableOpacity
                   onPress={() => {
                     if (id === "new") {
-                      Alert.alert("Info", "Save the event type first to configure this setting.");
+                      showInfoAlert("Info", "Save the event type first to configure this setting.");
                     } else {
                       openInAppBrowser(
                         `https://app.cal.com/event-types/${id}?tabName=workflows`,
@@ -2123,7 +2115,7 @@ export default function EventTypeDetail() {
                 <TouchableOpacity
                   onPress={() => {
                     if (id === "new") {
-                      Alert.alert("Info", "Save the event type first to configure this setting.");
+                      showInfoAlert("Info", "Save the event type first to configure this setting.");
                     } else {
                       openInAppBrowser(
                         `https://app.cal.com/event-types/${id}?tabName=webhooks`,

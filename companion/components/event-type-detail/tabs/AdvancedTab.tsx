@@ -2,7 +2,6 @@ import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
-  Alert,
   Modal,
   Platform,
   ScrollView,
@@ -13,6 +12,7 @@ import {
   View,
 } from "react-native";
 
+import { showInfoAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 
 // Interface language options matching API V2 enum
@@ -83,7 +83,7 @@ function ConfigureOnWebCard({
               browserTitle
             );
           } else {
-            Alert.alert("Info", "Save the event type first to configure this setting.");
+            showInfoAlert("Info", "Save the event type first to configure this setting.");
           }
         }}
       >

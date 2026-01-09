@@ -16,6 +16,7 @@ import { RecurringBookingListItem } from "@/components/booking-list-item/Recurri
 import { BookingModals } from "@/components/booking-modals/BookingModals";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -370,11 +371,14 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                         },
                         {
                           onSuccess: () => {
-                            Alert.alert("Success", "All remaining bookings have been cancelled.");
+                            showSuccessAlert(
+                              "Success",
+                              "All remaining bookings have been cancelled."
+                            );
                             setIsCancellingAll(false);
                           },
                           onError: () => {
-                            Alert.alert("Error", "Failed to cancel bookings. Please try again.");
+                            showErrorAlert("Error", "Failed to cancel bookings. Please try again.");
                             setIsCancellingAll(false);
                           },
                         }
@@ -405,7 +409,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
       );
 
       if (unconfirmedBookings.length === 0) {
-        Alert.alert("Info", "No unconfirmed bookings to confirm.");
+        showInfoAlert("Info", "No unconfirmed bookings to confirm.");
         return;
       }
 
@@ -448,12 +452,12 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
 
               setIsConfirmingAll(false);
               if (errorCount > 0) {
-                Alert.alert(
+                showInfoAlert(
                   "Partial Success",
                   `Confirmed ${successCount} bookings. Failed to confirm ${errorCount}.`
                 );
               } else {
-                Alert.alert("Success", `All ${successCount} bookings have been confirmed.`);
+                showSuccessAlert("Success", `All ${successCount} bookings have been confirmed.`);
               }
             },
           },
@@ -474,7 +478,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
       );
 
       if (unconfirmedBookings.length === 0) {
-        Alert.alert("Info", "No unconfirmed bookings to reject.");
+        showInfoAlert("Info", "No unconfirmed bookings to reject.");
         return;
       }
 
@@ -539,12 +543,15 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
 
                       setIsDecliningAll(false);
                       if (errorCount > 0) {
-                        Alert.alert(
+                        showInfoAlert(
                           "Partial Success",
                           `Rejected ${successCount} bookings. Failed to reject ${errorCount}.`
                         );
                       } else {
-                        Alert.alert("Success", `All ${successCount} bookings have been rejected.`);
+                        showSuccessAlert(
+                          "Success",
+                          `All ${successCount} bookings have been rejected.`
+                        );
                       }
                     },
                   },
@@ -578,7 +585,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         onMeetingSessionDetails={handleNavigateToMeetingSessionDetails}
         onMarkNoShow={handleNavigateToMarkNoShow}
         onReportBooking={() => {
-          Alert.alert("Report Booking", "Report booking functionality is not yet available");
+          showInfoAlert("Report Booking", "Report booking functionality is not yet available");
         }}
         onCancelBooking={handleCancelBooking}
       />
@@ -612,7 +619,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
           onMeetingSessionDetails={handleNavigateToMeetingSessionDetails}
           onMarkNoShow={handleNavigateToMarkNoShow}
           onReportBooking={() => {
-            Alert.alert("Report Booking", "Report booking functionality is not yet available");
+            showInfoAlert("Report Booking", "Report booking functionality is not yet available");
           }}
           onCancelBooking={handleCancelBooking}
         />
@@ -864,13 +871,13 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                     { uid: cancelAllGroup.recurringBookingUid, reason },
                     {
                       onSuccess: () => {
-                        Alert.alert("Success", "All remaining bookings have been cancelled.");
+                        showSuccessAlert("Success", "All remaining bookings have been cancelled.");
                         setIsCancellingAll(false);
                         setCancelAllGroup(null);
                         setCancelAllReason("");
                       },
                       onError: () => {
-                        Alert.alert("Error", "Failed to cancel bookings. Please try again.");
+                        showErrorAlert("Error", "Failed to cancel bookings. Please try again.");
                         setIsCancellingAll(false);
                       },
                     }
@@ -968,12 +975,12 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                   setRejectAllReason("");
 
                   if (errorCount > 0) {
-                    Alert.alert(
+                    showInfoAlert(
                       "Partial Success",
                       `Rejected ${successCount} bookings. Failed to reject ${errorCount}.`
                     );
                   } else {
-                    Alert.alert("Success", `All ${successCount} bookings have been rejected.`);
+                    showSuccessAlert("Success", `All ${successCount} bookings have been rejected.`);
                   }
                 }}
               >
