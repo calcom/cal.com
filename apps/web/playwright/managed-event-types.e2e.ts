@@ -328,12 +328,11 @@ test.describe("Managed Event Types", () => {
 
     // The per-child hidden toggles should be enabled (not disabled)
     const childHiddenSwitch = page.getByTestId(/child-event-hidden-switch-/);
-    // If there are children, their switches should not be disabled
     const switchCount = await childHiddenSwitch.count();
-    if (switchCount > 0) {
-      const firstSwitch = childHiddenSwitch.first();
-      await expect(firstSwitch).not.toBeDisabled();
-    }
+
+    expect(switchCount).toBeGreaterThan(0);
+    const firstSwitch = childHiddenSwitch.first();
+    await expect(firstSwitch).not.toBeDisabled();
   });
 });
 
