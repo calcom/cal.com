@@ -193,7 +193,7 @@ const availabilitySchema = z
     "Either username or userId or teamId should be filled in."
   );
 
-async function handler(req: NextApiRequest) {
+export async function handler(req: NextApiRequest) {
   const { isSystemWideAdmin, userId: reqUserId } = req;
   const { username, userId, eventTypeId, dateTo, dateFrom, teamId } = availabilitySchema.parse(req.query);
   const userAvailabilityService = getUserAvailabilityService();
