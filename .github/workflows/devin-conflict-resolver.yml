@@ -139,6 +139,12 @@ jobs:
               console.log(`Warning: PR #${manualPrNumber} not found or has no conflicts`);
             }
             
+            const MAX_PRS = 15;
+            if (conflictingPRs.length > MAX_PRS) {
+              console.log(`Warning: Found ${conflictingPRs.length} PRs with conflicts, limiting to ${MAX_PRS} for safety`);
+              conflictingPRs.length = MAX_PRS;
+            }
+            
             console.log(`Found ${conflictingPRs.length} PRs with conflicts that need Devin sessions`);
             
             const fs = require('fs');
