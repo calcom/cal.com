@@ -1,11 +1,17 @@
-import type { Prisma } from "@prisma/client";
-
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import {
+  Resource,
+  CustomAction,
+  PermissionString,
+} from "@calcom/features/pbac/domain/types/permission-registry";
+import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -99,11 +105,23 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
     // PBAC not enabled or error occurred, continue with traditional roles
   }
 
-  const membersWithApps = await Promise.all(
-    teamMembers.map(async (member) => {
-      const user = await new UserRepository(prisma).enrichUserWithItsProfile({
-        user: member.user,
-      });
+  const users = teamMembers.map((member) => member.user);
+  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfileExcludingOrgMetadata(
+    users
+  );
+
+  const enrichedUserMap = new Map<number, (typeof enrichedUsers)[0]>();
+  enrichedUsers.forEach((enrichedUser) => {
+    enrichedUserMap.set(enrichedUser.id, enrichedUser);
+  });
+
+  const membersWithApps = teamMembers
+    .map((member) => {
+      const user = enrichedUserMap.get(member.user.id);
+      if (!user) {
+        return null;
+      }
+
       const { profile, ...restUser } = user;
 
       // Determine the role to display
@@ -134,7 +152,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
           : null,
       };
     })
-  );
+    .filter((member): member is NonNullable<typeof member> => member !== null);
 
   return {
     members: membersWithApps,
@@ -146,42 +164,32 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
 };
 
 const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], teamId: number) => {
-  const isOrgPrivate = ctx.user.profile?.organization?.isPrivate;
-  const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
-  const orgId = ctx.user.organizationId;
   const isTargetingOrg = teamId === ctx.user.organizationId;
 
-  if (isTargetingOrg) {
-    return isOrgAdminOrOwner || !isOrgPrivate;
-  }
+  // Get team info to check if it's private
   const team = await prisma.team.findUnique({
-    where: {
-      id: teamId,
-    },
+    where: { id: teamId },
+    select: { isPrivate: true },
   });
 
   if (!team) return false;
 
-  if (isOrgAdminOrOwner && team?.parentId === orgId) {
-    return true;
-  }
+  // Determine the resource type based on whether this is an org or team
+  const resource = isTargetingOrg ? Resource.Organization : Resource.Team;
+  const targetAction = team.isPrivate ? CustomAction.ListMembersPrivate : CustomAction.ListMembers;
+  const permissionString = `${resource}.${targetAction}` as PermissionString;
 
-  const membership = await prisma.membership.findFirst({
-    where: {
-      teamId,
-      userId: ctx.user.id,
-      accepted: true,
-    },
+  // Check PBAC permissions for listing members
+  const permissionCheckService = new PermissionCheckService();
+
+  return permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId: teamId,
+    permission: permissionString,
+    fallbackRoles: team.isPrivate
+      ? [MembershipRole.ADMIN, MembershipRole.OWNER]
+      : [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
   });
-
-  if (!membership) return false;
-
-  const isTeamAdminOrOwner = checkAdminOrOwner(membership?.role);
-
-  if (team?.isPrivate && !isTeamAdminOrOwner) {
-    return false;
-  }
-  return true;
 };
 
 export default listMembersHandler;

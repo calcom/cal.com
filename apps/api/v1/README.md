@@ -199,7 +199,7 @@ There's some settings that you'll need to setup.
 Under Vercel > Your API Project > Settings
 
 In General > Build & Development Settings
-BUILD COMMAND: `yarn turbo run build --scope=@calcom/api --include-dependencies --no-deps`
+BUILD COMMAND: `yarn turbo run build --filter=@calcom/api --no-deps`
 OUTPUT DIRECTORY: `apps/api/.next`
 
 In Git > Ignored Build Step

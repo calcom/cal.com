@@ -47,7 +47,7 @@ export const Switch = (
         className={cx(
           "flex h-auto w-fit flex-row items-center",
           fitToHeight && "h-fit",
-          labelOnLeading && "flex-row-reverse",
+          labelOnLeading && "flex-row-reverse justify-between",
           padding && "hover:bg-subtle rounded-md p-1.5",
           classNames?.container
         )}>
@@ -65,8 +65,8 @@ export const Switch = (
             className={cx(
               "bg-default data-[state=checked]:bg-brand-accent shadow-switch-thumb pointer-events-none block rounded-full shadow-lg ring-0 transition-transform",
               size === "sm"
-                ? "h-3 w-3 data-[state=checked]:translate-x-3 data-[state=unchecked]:translate-x-0"
-                : "h-5 w-5 data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0",
+                ? "h-3 w-3 data-[state=checked]:translate-x-3 data-[state=unchecked]:translate-x-0 rtl:data-[state=checked]:-translate-x-3"
+                : "h-5 w-5 data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0 rtl:data-[state=checked]:-translate-x-5",
               classNames?.thumb
             )}
           />
@@ -75,8 +75,8 @@ export const Switch = (
           <Label.Root
             htmlFor={id}
             className={cx(
-              "text-emphasis align-text-top font-medium",
-              size === "sm" ? "m-1 text-xs" : "m-2 text-sm",
+              "text-emphasis font-medium",
+              size === "sm" ? "m-1 text-xs" : labelOnLeading ? "mr-2 mt-1 text-sm" : "ml-2 mt-1 text-sm",
               primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer",
               labelOnLeading && "flex-1"
             )}>

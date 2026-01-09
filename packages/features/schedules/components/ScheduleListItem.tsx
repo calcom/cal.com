@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
@@ -16,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -26,6 +28,7 @@ export function ScheduleListItem({
   updateDefault,
   isDeletable,
   duplicateFunction,
+  redirectUrl,
 }: {
   schedule: RouterOutputs["viewer"]["availability"]["list"]["schedules"][number];
   deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
@@ -37,47 +40,55 @@ export function ScheduleListItem({
   isDeletable: boolean;
   updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
   duplicateFunction: ({ scheduleId }: { scheduleId: number }) => void;
+  redirectUrl: string;
 }) {
   const { t, i18n } = useLocale();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  type AvailabilityItem = (typeof schedule.availability)[number];
 
   return (
     <li key={schedule.id}>
-      <div className="hover:bg-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
+      <div className="hover:bg-cal-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
         <div className="group flex w-full items-center justify-between ">
-          <Link
-            href={`/availability/${schedule.id}`}
-            className="flex-grow truncate text-sm"
-            title={schedule.name}>
+          <Link href={redirectUrl} className="grow truncate text-sm" title={schedule.name}>
             <div className="space-x-2 rtl:space-x-reverse">
               <span className="text-emphasis truncate font-medium">{schedule.name}</span>
               {schedule.isDefault && (
-                <Badge variant="success" className="text-xs">
+                <Badge variant="gray" className="text-xs">
                   {t("default")}
                 </Badge>
               )}
             </div>
             <p className="text-subtle mt-1">
               {schedule.availability
-                .filter((availability) => !!availability.days.length)
-                .map((availability) =>
+                .filter(
+                  (availability: AvailabilityItem) => !!availability.days.length
+                )
+                .map((availability: AvailabilityItem) =>
                   availabilityAsString(availability, {
                     locale: i18n.language,
                     hour12: displayOptions?.hour12,
                   })
                 )
                 // sort the availability strings as per user's weekstart (settings)
-                .sort(sortAvailabilityStrings(i18n.language, displayOptions?.weekStart))
-                .map((availabilityString, index) => (
-                  <Fragment key={index}>
+                .sort(
+                  sortAvailabilityStrings(
+                    i18n.language,
+                    displayOptions?.weekStart
+                  )
+                )
+                .map((availabilityString: string) => (
+                  <Fragment key={availabilityString}>
                     {availabilityString}
                     <br />
                   </Fragment>
                 ))}
               {(schedule.timeZone || displayOptions?.timeZone) && (
-                <p className="my-1 flex items-center first-letter:text-xs">
+                <span className="my-1 flex items-center first-letter:text-xs">
                   <Icon name="globe" className="h-3.5 w-3.5" />
                   &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
-                </p>
+                </span>
               )}
             </p>
           </Link>
@@ -132,9 +143,7 @@ export function ScheduleListItem({
                   if (!isDeletable) {
                     showToast(t("requires_at_least_one_schedule"), "error");
                   } else {
-                    deleteFunction({
-                      scheduleId: schedule.id,
-                    });
+                    setIsDeleteDialogOpen(true);
                   }
                 }}>
                 {t("delete")}
@@ -142,6 +151,21 @@ export function ScheduleListItem({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </Dropdown>
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <ConfirmationDialogContent
+            variety="danger"
+            title={t("delete_schedule")}
+            confirmBtnText={t("delete")}
+            loadingText={t("delete")}
+            onConfirm={(e) => {
+              e.preventDefault();
+              deleteFunction({
+                scheduleId: schedule.id,
+              });
+            }}>
+            {t("delete_schedule_description")}
+          </ConfirmationDialogContent>
+        </Dialog>
       </div>
     </li>
   );

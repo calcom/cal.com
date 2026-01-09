@@ -1,4 +1,4 @@
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
+import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 
 import type { GetScheduleOptions } from "./types";
 

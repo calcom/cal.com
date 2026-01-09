@@ -3,7 +3,6 @@ import { label } from "next-api-middleware";
 import { addRequestId } from "./addRequestid";
 import { captureErrors } from "./captureErrors";
 import { captureUserId } from "./captureUserId";
-import { checkIsInMaintenanceMode } from "./checkIsInMaintenanceMode";
 import { extendRequest } from "./extendRequest";
 import {
   HTTP_DELETE,
@@ -26,7 +25,6 @@ const middleware = {
   HTTP_POST,
   HTTP_DELETE,
   addRequestId,
-  checkIsInMaintenanceMode,
   verifyApiKey,
   rateLimitApiKey,
   extendRequest,
@@ -38,16 +36,14 @@ const middleware = {
 
 type Middleware = keyof typeof middleware;
 
-const middlewareOrder = [
-  // The order here, determines the order of execution
-  "checkIsInMaintenanceMode",
+const middlewareOrder: Middleware[] = [
   "extendRequest",
   "captureErrors",
   "verifyApiKey",
   "rateLimitApiKey",
   "addRequestId",
   "captureUserId",
-] as Middleware[]; // <-- Provide a list of middleware to call automatically
+];
 
 const withMiddleware = label(middleware, middlewareOrder);
 

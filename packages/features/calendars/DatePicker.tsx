@@ -4,10 +4,10 @@ import { shallow } from "zustand/shallow";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
+import type { Slots } from "@calcom/features/calendars/lib/types";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/dayjs";
-import type { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import type { PeriodData } from "@calcom/types/Event";
@@ -44,21 +44,12 @@ export type DatePickerProps = {
   /** used to query the multiple selected dates */
   eventSlug?: string;
   /** To identify days that are not available and should display OOO and redirect if toUser exists */
-  slots?: Record<
-    string,
-    {
-      time: string;
-      userIds?: number[];
-      away?: boolean;
-      fromUser?: IFromUser;
-      toUser?: IToUser;
-      reason?: string;
-      emoji?: string;
-    }[]
-  >;
+  slots?: Slots;
   periodData?: PeriodData;
   // Whether this is a compact sidebar view or main monthly view
   isCompact?: boolean;
+  // Whether to show the no availability dialog
+  showNoAvailabilityDialog?: boolean;
 };
 
 const Day = ({
@@ -164,6 +155,7 @@ const Days = ({
   isBookingInPast,
   periodData,
   isCompact,
+  showNoAvailabilityDialog = true,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -224,7 +216,7 @@ const Days = ({
     }
   }
 
-  const [selectedDatesAndTimes] = useBookerStore((state) => [state.selectedDatesAndTimes], shallow);
+  const [selectedDatesAndTimes] = useBookerStoreContext((state) => [state.selectedDatesAndTimes], shallow);
 
   const isActive = (day: dayjs.Dayjs) => {
     // for selecting a range of dates
@@ -268,7 +260,9 @@ const Days = ({
     const isOOOAllDay = daySlots.length > 0 && daySlots.every((slot) => slot.away);
     const away = isOOOAllDay;
 
-    const disabled = away ? !oooInfo?.toUser : isNextMonth ? !hasAvailableSlots : !included || excluded;
+    // OOO dates are selectable only if there's a redirect user OR the note is public
+    const oooIsSelectable = oooInfo?.toUser || oooInfo?.showNotePublicly;
+    const disabled = away ? !oooIsSelectable : isNextMonth ? !hasAvailableSlots : !included || excluded;
 
     return {
       day,
@@ -319,7 +313,7 @@ const Days = ({
             <div key={`e-${idx}`} />
           ) : props.isLoading ? (
             <button
-              className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition"
+              className="bg-cal-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition"
               key={`e-${idx}`}
               disabled>
               <SkeletonText className="h-8 w-9" />
@@ -345,14 +339,18 @@ const Days = ({
           )}
         </div>
       ))}
-      {!props.isLoading && !isBookingInPast && includedDates && includedDates?.length === 0 && (
-        <NoAvailabilityDialog
-          month={month}
-          nextMonthButton={nextMonthButton}
-          browsingDate={browsingDate}
-          periodData={periodData}
-        />
-      )}
+      {!props.isLoading &&
+        !isBookingInPast &&
+        includedDates &&
+        includedDates?.length === 0 &&
+        showNoAvailabilityDialog && (
+          <NoAvailabilityDialog
+            month={month}
+            nextMonthButton={nextMonthButton}
+            browsingDate={browsingDate}
+            periodData={periodData}
+          />
+        )}
     </>
   );
 };
@@ -374,6 +372,7 @@ const DatePicker = ({
     periodType: "UNLIMITED",
   },
   isCompact,
+  showNoAvailabilityDialog,
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
@@ -392,7 +391,7 @@ const DatePicker = ({
     minDate && rawBrowsingDate.valueOf() < minDate.valueOf() ? dayjs(minDate) : rawBrowsingDate;
 
   const { i18n, t } = useLocale();
-  const bookingData = useBookerStore((state) => state.bookingData);
+  const bookingData = useBookerStoreContext((state) => state.bookingData);
   const isBookingInPast = bookingData ? new Date(bookingData.endTime) < new Date() : false;
   const changeMonth = (newMonth: number) => {
     if (onMonthChange) {
@@ -484,6 +483,7 @@ const DatePicker = ({
           isBookingInPast={isBookingInPast}
           periodData={periodData}
           isCompact={isCompact}
+          showNoAvailabilityDialog={showNoAvailabilityDialog}
         />
       </div>
     </div>

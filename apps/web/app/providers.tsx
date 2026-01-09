@@ -8,26 +8,29 @@ import { WebPushProvider } from "@calcom/features/notifications/WebPushContext";
 import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
-import PlainChat from "@lib/plain/dynamicProvider";
+
+import { GeoProvider } from "./GeoContext";
 
 type ProvidersProps = {
   isEmbed: boolean;
   children: React.ReactNode;
   nonce: string | undefined;
+  country: string;
 };
-export function Providers({ isEmbed, children, nonce }: ProvidersProps) {
+export function Providers({ isEmbed, children, country }: ProvidersProps) {
   const isBookingPage = useIsBookingPage();
 
   return (
-    <SessionProvider>
-      <TrpcProvider>
-        {!isBookingPage ? <PlainChat nonce={nonce} /> : null}
-        {!isEmbed && !isBookingPage && <NotificationSoundHandler />}
-        {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
-        <CacheProvider>
-          <WebPushProvider>{children}</WebPushProvider>
-        </CacheProvider>
-      </TrpcProvider>
-    </SessionProvider>
+    <GeoProvider country={country}>
+      <SessionProvider>
+        <TrpcProvider>
+          {!isEmbed && !isBookingPage && <NotificationSoundHandler />}
+          {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
+          <CacheProvider>
+            <WebPushProvider>{children}</WebPushProvider>
+          </CacheProvider>
+        </TrpcProvider>
+      </SessionProvider>
+    </GeoProvider>
   );
 }

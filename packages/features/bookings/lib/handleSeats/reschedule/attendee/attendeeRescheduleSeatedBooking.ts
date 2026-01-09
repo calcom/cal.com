@@ -1,8 +1,8 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { cloneDeep } from "lodash";
 
-import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails";
-import type EventManager from "@calcom/lib/EventManager";
+import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails/email-manager";
+import type EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
@@ -22,6 +22,9 @@ const attendeeRescheduleSeatedBooking = async (
   let { originalRescheduledBooking } = rescheduleSeatedBookingObject;
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
+
+  // Set attendeeSeatId so that reschedule/cancel links in emails use seatUid instead of bookingUid
+  evt.attendeeSeatId = bookingSeat?.referenceUid;
 
   // Update the original calendar event by removing the attendee that is rescheduling
   if (originalBookingEvt && originalRescheduledBooking) {
@@ -50,6 +53,8 @@ const attendeeRescheduleSeatedBooking = async (
 
     // We don't want to trigger rescheduling logic of the original booking
     originalRescheduledBooking = null;
+
+    await sendRescheduledSeatEmailAndSMS(evt, seatAttendee as Person, eventType.metadata);
 
     return null;
   }

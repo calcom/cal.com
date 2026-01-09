@@ -20,7 +20,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange } from "@calcom/types/schedule";
-
 import cn from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
@@ -37,8 +36,21 @@ export type ScheduleLabelsType = {
   deleteTime: string;
 };
 
+export type SelectInnerClassNames = {
+  control?: string;
+  singleValue?: string;
+  valueContainer?: string;
+  input?: string;
+  menu?: string;
+};
+
 export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
-  [Key in FieldPath<TFieldValues>]: FieldPathValue<TFieldValues, Key> extends TValue ? Key : never;
+  [Key in FieldPath<TFieldValues>]: FieldPathValue<
+    TFieldValues,
+    Key
+  > extends TValue
+    ? Key
+    : never;
 }[FieldPath<TFieldValues>];
 
 export const ScheduleDay = <TFieldValues extends FieldValues>({
@@ -106,6 +118,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
               classNames={{
                 dayRanges: classNames?.dayRanges,
                 timeRangeField: classNames?.timeRangeField,
+                timePicker: classNames?.timePicker,
               }}
             />
             {!disabled && <div className="block">{CopyButton}</div>}
@@ -238,7 +251,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   disabled?: boolean;
   labels?: ScheduleLabelsType;
   userTimeFormat: number | null;
-  classNames?: Pick<scheduleClassNames, "dayRanges" | "timeRangeField">;
+  classNames?: Pick<scheduleClassNames, "dayRanges" | "timeRangeField" | "timePicker">;
 }) => {
   const { t } = useLocale();
   const { getValues } = useFormContext();
@@ -261,6 +274,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 <TimeRangeField
                   className={classNames?.timeRangeField}
                   userTimeFormat={userTimeFormat}
+                  timePickerClassNames={classNames?.timePicker}
                   {...field}
                 />
               )}
@@ -336,11 +350,27 @@ const TimeRangeField = ({
   onChange,
   disabled,
   userTimeFormat,
+  timePickerClassNames,
 }: {
   className?: string;
   disabled?: boolean;
   userTimeFormat: number | null;
+  timePickerClassNames?: {
+    container?: string;
+    value?: string;
+    valueContainer?: string;
+    input?: string;
+    dropdown?: string;
+  };
 } & ControllerRenderProps) => {
+  const innerClassNames: SelectInnerClassNames = {
+    control: timePickerClassNames?.container,
+    singleValue: timePickerClassNames?.value,
+    valueContainer: timePickerClassNames?.valueContainer,
+    input: timePickerClassNames?.input,
+    menu: timePickerClassNames?.dropdown,
+  };
+
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
     <div className={cn("flex flex-row gap-2 sm:gap-3", className)}>
@@ -350,6 +380,7 @@ const TimeRangeField = ({
         isDisabled={disabled}
         value={value.start}
         menuPlacement="bottom"
+        innerClassNames={innerClassNames}
         onChange={(option) => {
           const newStart = new Date(option?.value as number);
           if (newStart >= new Date(value.end)) {
@@ -368,6 +399,7 @@ const TimeRangeField = ({
         isDisabled={disabled}
         value={value.end}
         min={value.start}
+        innerClassNames={innerClassNames}
         menuPlacement="bottom"
         onChange={(option) => {
           onChange({ ...value, end: new Date(option?.value as number) });
@@ -377,18 +409,42 @@ const TimeRangeField = ({
   );
 };
 
+export function parseTimeString(
+  input: string,
+  timeFormat: number | null
+): Date | null {
+  if (!input.trim()) return null;
+
+  const formats = timeFormat === 12 ? ["h:mma", "HH:mm"] : ["HH:mm", "h:mma"];
+  const parsed = dayjs(input, formats, true); // strict parsing
+
+  if (!parsed.isValid()) return null;
+
+  const hours = parsed.hour();
+  const minutes = parsed.minute();
+
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    return null;
+  }
+
+  return new Date(new Date().setUTCHours(hours, minutes, 0, 0));
+}
+
 const LazySelect = ({
   value,
   min,
   max,
   userTimeFormat,
   menuPlacement,
+  innerClassNames,
+  onChange,
   ...props
 }: Omit<Props<IOption, false, GroupBase<IOption>>, "value"> & {
   value: ConfigType;
   min?: ConfigType;
   max?: ConfigType;
   userTimeFormat: number | null;
+  innerClassNames?: SelectInnerClassNames;
 }) => {
   // Lazy-loaded options, otherwise adding a field has a noticeable redraw delay.
   const { options, filter } = useOptions(userTimeFormat);
@@ -398,31 +454,100 @@ const LazySelect = ({
   }, [filter, value]);
 
   const [inputValue, setInputValue] = React.useState("");
+  const [timeInputError, setTimeInputError] = React.useState(false);
   const defaultFilter = React.useMemo(() => createFilter(), []);
+
+  const handleInputChange = React.useCallback(
+    (newValue: string, actionMeta: { action: string }) => {
+      setInputValue(newValue);
+
+      if (actionMeta.action === "input-change" && newValue.trim()) {
+        const trimmedValue = newValue.trim();
+
+        const formats =
+          userTimeFormat === 12 ? ["h:mma", "HH:mm"] : ["HH:mm", "h:mma"];
+        const parsedTime = dayjs(trimmedValue, formats, true);
+        const looksLikeTime = /^\d{1,2}:\d{2}(a|p|am|pm)?$/i.test(trimmedValue);
+
+        if (looksLikeTime && !parsedTime.isValid()) {
+          setTimeInputError(true);
+        } else if (parsedTime.isValid()) {
+          const parsedDate = parseTimeString(trimmedValue, userTimeFormat);
+          if (parsedDate) {
+            const parsedDayjs = dayjs(parsedDate);
+            const violatesMin = min ? !parsedDayjs.isAfter(min) : false;
+            const violatesMax = max ? !parsedDayjs.isBefore(max) : false;
+            setTimeInputError(Boolean(violatesMin || violatesMax));
+          } else {
+            setTimeInputError(false);
+          }
+        } else {
+          setTimeInputError(false);
+        }
+      } else {
+        setTimeInputError(false);
+      }
+    },
+    [userTimeFormat, min, max]
+  );
+
   const filteredOptions = React.useMemo(() => {
-    const regex = /^(\d{1,2})(a|p|am|pm)$/i;
-    const match = inputValue.replaceAll(" ", "").match(regex);
-    if (!match) {
-      return options.filter((option) =>
-        defaultFilter({ ...option, data: option.label, value: option.label }, inputValue)
-      );
+    const dropdownOptions = options.filter((option) =>
+      defaultFilter(
+        { ...option, data: option.label, value: option.label },
+        inputValue
+      )
+    );
+
+    const trimmedInput = inputValue.trim();
+    if (trimmedInput) {
+      const parsedTime = parseTimeString(trimmedInput, userTimeFormat);
+
+      if (parsedTime) {
+        const parsedDayjs = dayjs(parsedTime);
+        // Validate against min/max bounds using same logic as filter function
+        const withinBounds =
+          (!min || parsedDayjs.isAfter(min)) &&
+          (!max || parsedDayjs.isBefore(max));
+
+        if (withinBounds) {
+          const parsedTimestamp = parsedTime.valueOf();
+          const existsInOptions = options.some(
+            (option) => option.value === parsedTimestamp
+          );
+
+          if (!existsInOptions) {
+            const manualOption: IOption = {
+              label: dayjs(parsedTime)
+                .utc()
+                .format(userTimeFormat === 12 ? "h:mma" : "HH:mm"),
+              value: parsedTimestamp,
+            };
+            return [manualOption, ...dropdownOptions];
+          }
+        }
+      }
     }
 
-    const [, numberPart, periodPart] = match;
-    const periodLower = periodPart.toLowerCase();
-    const scoredOptions = options
-      .filter((option) => option.label && option.label.toLowerCase().includes(periodLower))
-      .map((option) => {
-        const labelLower = option.label.toLowerCase();
-        const index = labelLower.indexOf(numberPart);
-        const score = index >= 0 ? index + labelLower.length : Infinity;
-        return { score, option };
-      })
-      .sort((a, b) => a.score - b.score);
+    return dropdownOptions;
+  }, [inputValue, options, defaultFilter, userTimeFormat, min, max]);
 
-    const maxScore = scoredOptions[0]?.score;
-    return scoredOptions.filter((item) => item.score === maxScore).map((item) => item.option);
-  }, [inputValue, options, defaultFilter]);
+  const currentValue = dayjs(value).toDate().valueOf();
+  const currentOption =
+    options.find((option) => option.value === currentValue) ||
+    (value
+      ? {
+          value: currentValue,
+          label: dayjs(value)
+            .utc()
+            .format(userTimeFormat === 12 ? "h:mma" : "HH:mm"),
+        }
+      : null);
+
+  const errorInnerClassNames: SelectInnerClassNames = {
+    ...innerClassNames,
+    control: cn(innerClassNames?.control, timeInputError && "!border-error"),
+  };
 
   return (
     <Select
@@ -433,11 +558,16 @@ const LazySelect = ({
         if (!min && !max) filter({ offset: 0, limit: 0 });
       }}
       menuPlacement={menuPlacement}
-      value={options.find((option) => option.value === dayjs(value).toDate().valueOf())}
+      value={currentOption}
       onMenuClose={() => filter({ current: value })}
-      components={{ DropdownIndicator: () => null, IndicatorSeparator: () => null }}
-      onInputChange={setInputValue}
+      components={{
+        DropdownIndicator: () => null,
+        IndicatorSeparator: () => null,
+      }}
+      onInputChange={handleInputChange}
       filterOption={() => true}
+      innerClassNames={errorInnerClassNames}
+      onChange={onChange}
       {...props}
     />
   );
@@ -486,17 +616,34 @@ const useOptions = (timeFormat: number | null) => {
   const filter = useCallback(
     ({ offset, limit, current }: { offset?: ConfigType; limit?: ConfigType; current?: ConfigType }) => {
       if (current) {
-        const currentOption = options.find((option) => option.value === dayjs(current).toDate().valueOf());
-        if (currentOption) setFilteredOptions([currentOption]);
+        const currentValue = dayjs(current).toDate().valueOf();
+        const currentOption = options.find(
+          (option) => option.value === currentValue
+        );
+        if (currentOption) {
+          setFilteredOptions([currentOption]);
+        } else {
+          // Create temporary option for custom time not in predefined options
+          const customOption: IOption = {
+            value: currentValue,
+            label: dayjs(current)
+              .utc()
+              .format(timeFormat === 12 ? "h:mma" : "HH:mm"),
+          };
+          setFilteredOptions([customOption]);
+        }
       } else
         setFilteredOptions(
           options.filter((option) => {
             const time = dayjs(option.value);
-            return (!limit || time.isBefore(limit)) && (!offset || time.isAfter(offset));
+            return (
+              (!limit || time.isBefore(limit)) &&
+              (!offset || time.isAfter(offset))
+            );
           })
         );
     },
-    [options]
+    [options, timeFormat]
   );
 
   return { options: filteredOptions, filter };
@@ -581,10 +728,10 @@ const CopyTimes = ({
   };
 
   return (
-    <div className="space-y-2 py-2">
+    <div className="stack-y-2 py-2">
       <div className="p-2">
         <p className="h6 text-emphasis pb-3 pl-1 text-xs font-medium uppercase">{t("copy_times_to")}</p>
-        <ol className="space-y-2">
+        <ol className="stack-y-2">
           <li key="select all">
             <CheckboxField
               description={t("select_all")}

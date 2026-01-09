@@ -14,6 +14,7 @@ export type Availability = {
 export type WeekdayFormat = "short" | "long";
 
 export type AvailabilityFormValues = {
+  availability: number[][];
   name: string;
   schedule: ScheduleType;
   dateOverrides: { ranges: TimeRange[] }[];
@@ -28,6 +29,13 @@ export type scheduleClassNames = {
   timeRangeField?: string;
   labelAndSwitchContainer?: string;
   scheduleContainer?: string;
+  timePicker?: {
+    container?: string;
+    valueContainer?: string;
+    value?: string;
+    input?: string;
+    dropdown?: string;
+  };
 };
 
 export type AvailabilityFormValidationResult = {

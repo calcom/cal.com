@@ -1,13 +1,14 @@
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
-import { getUserAvailabilityService } from "@calcom/lib/di/containers/get-user-availability";
+import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
+import dayjs from "@calcom/dayjs";
 
 /**
  * @swagger
@@ -190,13 +191,21 @@ const availabilitySchema = z
 
 async function handler(req: NextApiRequest) {
   const { isSystemWideAdmin, userId: reqUserId } = req;
-  const { username, userId, eventTypeId, dateTo, dateFrom, teamId } = availabilitySchema.parse(req.query);
+  const { username, userId, eventTypeId, teamId, dateFrom, dateTo } = availabilitySchema.parse(req.query);
+
+  const dayjsDateFrom = dayjs(dateFrom);
+  const dayjsDateTo = dayjs(dateTo);
+
+  if (!dayjsDateFrom.isValid() || !dayjsDateTo.isValid()) {
+    throw new HttpError({ statusCode: 400, message: "Invalid date range" });
+  }
+
   const userAvailabilityService = getUserAvailabilityService();
   if (!teamId)
     return userAvailabilityService.getUserAvailability({
       username,
-      dateFrom,
-      dateTo,
+      dateFrom: dayjsDateFrom,
+      dateTo: dayjsDateTo,
       eventTypeId,
       userId,
       returnDateOverrides: true,
@@ -224,8 +233,8 @@ async function handler(req: NextApiRequest) {
   }, {} as MemberRoles);
   // check if the user is a team Admin or Owner, if it is a team request, or a system Admin
   const isUserAdminOrOwner =
-    memberRoles[reqUserId] == MembershipRole.ADMIN ||
-    memberRoles[reqUserId] == MembershipRole.OWNER ||
+    memberRoles[reqUserId] === MembershipRole.ADMIN ||
+    memberRoles[reqUserId] === MembershipRole.OWNER ||
     isSystemWideAdmin;
   if (!isUserAdminOrOwner) throw new HttpError({ statusCode: 403, message: "Forbidden" });
   const availabilities = members.map(async (user) => {
@@ -233,8 +242,8 @@ async function handler(req: NextApiRequest) {
       userId: user.id,
       availability: await userAvailabilityService.getUserAvailability({
         userId: user.id,
-        dateFrom,
-        dateTo,
+        dateFrom: dayjsDateFrom,
+        dateTo: dayjsDateTo,
         eventTypeId,
         returnDateOverrides: true,
         bypassBusyCalendarTimes: false,

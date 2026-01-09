@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-import { _DestinationCalendarModel as DestinationCalendar } from "@calcom/prisma/zod";
+import { DestinationCalendarSchema } from "@calcom/prisma/zod/modelSchema/DestinationCalendarSchema";
 
-export const schemaDestinationCalendarBaseBodyParams = DestinationCalendar.pick({
+// Note: bookingId is not a field on DestinationCalendar model in Prisma schema
+export const schemaDestinationCalendarBaseBodyParams = DestinationCalendarSchema.pick({
   integration: true,
   externalId: true,
   eventTypeId: true,
-  bookingId: true,
   userId: true,
 }).partial();
 
@@ -38,11 +38,11 @@ export const schemaDestinationCalendarEditBodyParams = schemaDestinationCalendar
   schemaDestinationCalendarEditParams
 );
 
-export const schemaDestinationCalendarReadPublic = DestinationCalendar.pick({
+// Note: bookingId is not a field on DestinationCalendar model in Prisma schema
+export const schemaDestinationCalendarReadPublic = DestinationCalendarSchema.pick({
   id: true,
   integration: true,
   externalId: true,
   eventTypeId: true,
-  bookingId: true,
   userId: true,
 });

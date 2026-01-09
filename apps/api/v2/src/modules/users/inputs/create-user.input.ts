@@ -1,3 +1,4 @@
+import { CapitalizeTimeZone } from "@/lib/inputs/capitalize-timezone";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Transform } from "class-transformer";
 import {
@@ -112,6 +113,7 @@ export class CreateUserInput {
   @ApiProperty({ type: String, required: false, description: "Time zone", example: "America/New_York" })
   @IsOptional()
   @IsString()
+  @CapitalizeTimeZone()
   @Validate(TimeZoneValidator)
   @Expose()
   timeZone?: string;

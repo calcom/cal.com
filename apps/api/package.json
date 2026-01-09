@@ -10,8 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "connect": "^3.7.0",
-    "http": "^0.0.1-security",
-    "http-proxy-middleware": "^2.0.6"
+    "connect": "3.7.0",
+    "http": "0.0.1-security",
+    "http-proxy-middleware": "2.0.9"
   }
 }

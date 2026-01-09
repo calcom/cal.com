@@ -6,19 +6,17 @@ import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useTransition } from "react";
 import { Toaster } from "sonner";
 import { z } from "zod";
+import posthog from "posthog-js";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import { trpc } from "@calcom/trpc";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { StepCard } from "@calcom/ui/components/card";
 import { Steps } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-
-import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
@@ -43,32 +41,33 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
     subtitle: string[];
     skipText?: string;
   }[] = [
-    {
-      title: t("welcome_to_cal_header", { appName: APP_NAME }),
-      subtitle: [t("we_just_need_basic_info"), t("edit_form_later_subtitle")],
-    },
-    {
-      title: t("connect_your_calendar"),
-      subtitle: [t("connect_your_calendar_instructions")],
-      skipText: t("connect_calendar_later"),
-    },
-    {
-      title: t("connect_your_video_app"),
-      subtitle: [t("connect_your_video_app_instructions")],
-      skipText: t("set_up_later"),
-    },
-    {
-      title: t("set_availability"),
-      subtitle: [
-        t("set_availability_getting_started_subtitle_1"),
-        t("set_availability_getting_started_subtitle_2"),
-      ],
-    },
-    {
-      title: t("nearly_there"),
-      subtitle: [t("nearly_there_instructions")],
-    },
-  ];
+      {
+        title: t("welcome_to_cal_header", { appName: APP_NAME }),
+        subtitle: [t("we_just_need_basic_info")],
+      },
+      {
+        title: t("connect_your_calendar"),
+        subtitle: [t("connect_your_calendar_instructions")],
+        skipText: t("connect_calendar_later"),
+      },
+      {
+        title: t("connect_your_video_app"),
+        subtitle: [t("connect_your_video_app_instructions")],
+        skipText: t("set_up_later"),
+      },
+      {
+        title: t("set_availability"),
+        subtitle: [
+          `${t("set_availability_getting_started_subtitle_1")} ${t(
+            "set_availability_getting_started_subtitle_2"
+          )}`,
+        ],
+      },
+      {
+        title: t("nearly_there"),
+        subtitle: [t("nearly_there_instructions")],
+      },
+    ];
 
   return {
     steps: [...BASE_STEPS],
@@ -85,13 +84,16 @@ const stepRouteSchema = z.object({
   from: z.string().optional(),
 });
 
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+type PageProps = {
+  hasPendingInvites: boolean;
+  user: RouterOutputs["viewer"]["me"]["get"];
+};
+
 const OnboardingPage = (props: PageProps) => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
-
+  const user = props.user;
   const router = useRouter();
-  const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
   const [isNextStepLoading, startTransition] = useTransition();
 
@@ -124,7 +126,20 @@ const OnboardingPage = (props: PageProps) => {
   };
   const currentStepIndex = steps.indexOf(currentStep);
 
-  const goToNextStep = () => {
+  const goToStep = (step: number) => {
+    const newStep = steps[step];
+    startTransition(() => {
+      router.push(`/getting-started/${stepTransform(newStep)}`);
+    });
+  };
+
+  const goToNextStep = (wasSkipped: boolean = false) => {
+    posthog.capture("onboarding_step_completed", {
+      step: currentStep,
+      step_index: currentStepIndex,
+      from: from,
+      was_skipped: wasSkipped,
+    });
     const nextIndex = currentStepIndex + 1;
     const newStep = steps[nextIndex];
     startTransition(() => {
@@ -135,10 +150,11 @@ const OnboardingPage = (props: PageProps) => {
   return (
     <div
       className={classNames(
-        "dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
+        "text-emphasis min-h-screen [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
         "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1]",
         "[--cal-brand-subtle:#9CA3AF]",
-        "[--cal-brand-text:#FFFFFF]  dark:[--cal-brand-text:#000000]"
+        "[--cal-brand-text:#FFFFFF]  dark:[--cal-brand-text:#000000]",
+        "[--cal-brand-accent:#FFFFFF] dark:[--cal-brand-accent:#000000]"
       )}
       data-testid="onboarding"
       key={pathname}>
@@ -147,7 +163,7 @@ const OnboardingPage = (props: PageProps) => {
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
             <div className="mx-auto px-4 sm:max-w-[520px]">
               <header>
-                <p className="font-cal mb-3 text-[28px] font-medium leading-7">
+                <p className="font-heading mb-3 text-[28px] leading-7">
                   {headers[currentStepIndex]?.title || "Undefined title"}
                 </p>
 
@@ -157,25 +173,25 @@ const OnboardingPage = (props: PageProps) => {
                   </p>
                 ))}
               </header>
-              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} nextStep={goToNextStep} />
+              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToStep} />
             </div>
             <StepCard>
               <Suspense fallback={<Icon name="loader" />}>
                 {currentStep === "user-settings" && (
-                  <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} />
+                  <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} user={user} />
                 )}
                 {currentStep === "connected-calendar" && (
                   <ConnectedCalendars nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
                 )}
 
                 {currentStep === "connected-video" && (
-                  <ConnectedVideoStep nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
+                  <ConnectedVideoStep nextStep={goToNextStep} isPageLoading={isNextStepLoading} user={user} />
                 )}
 
                 {currentStep === "setup-availability" && (
                   <SetupAvailability nextStep={goToNextStep} defaultScheduleId={user.defaultScheduleId} />
                 )}
-                {currentStep === "user-profile" && <UserProfile />}
+                {currentStep === "user-profile" && <UserProfile user={user} />}
               </Suspense>
             </StepCard>
 
@@ -186,7 +202,7 @@ const OnboardingPage = (props: PageProps) => {
                   data-testid="skip-step"
                   onClick={(event) => {
                     event.preventDefault();
-                    goToNextStep();
+                    goToNextStep(true);
                   }}
                   className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
                   {headers[currentStepIndex]?.skipText}
@@ -198,7 +214,13 @@ const OnboardingPage = (props: PageProps) => {
             <Button
               color="minimal"
               data-testid="sign-out"
-              onClick={() => signOut({ callbackUrl: "/auth/logout" })}
+              onClick={() => {
+                posthog.capture("onboarding_sign_out_clicked", {
+                  step: currentStep,
+                  step_index: currentStepIndex,
+                });
+                signOut({ callbackUrl: "/auth/logout" });
+              }}
               className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
               {t("sign_out")}
             </Button>

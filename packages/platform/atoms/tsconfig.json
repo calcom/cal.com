@@ -53,10 +53,13 @@
     "../../features/ee/payments",
     "../../features/ee/round-robin",
     "../../features/ee/billing",
-    "../../features/shell",
     "../../features/components",
     "../../features/form-builder",
-    "../../features/data-table"
+    "../../features/data-table",
+    "../../kysely/types.ts",
+    "./prisma-types/index.ts",
+    "./kysely-types/index.ts",
+    "../../lib/intervalLimits/intervalLimitSchema.ts"
   ],
   "exclude": [
     "dist",

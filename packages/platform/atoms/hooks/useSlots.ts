@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
@@ -36,8 +36,8 @@ export const useSlots = (
     handleSlotReservation,
   }: UseSlotsCallbacks & { isBookingDryRun?: boolean } = {}
 ) => {
-  const selectedDuration = useBookerStore((state) => state.selectedDuration);
-  const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
+  const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
+  const [selectedTimeslot, setSelectedTimeslot] = useBookerStoreContext(
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
     shallow
   );
@@ -52,7 +52,7 @@ export const useSlots = (
     onError: onReserveSlotError,
   });
 
-  const seatedEventData = useBookerStore((state) => state.seatedEventData);
+  const seatedEventData = useBookerStoreContext((state) => state.seatedEventData);
 
   const removeSelectedSlot = useDeleteSelectedSlot({
     onSuccess: onDeleteSlotSuccess,
@@ -85,7 +85,7 @@ export const useSlots = (
     }
   };
 
-  const timeslot = useBookerStore((state) => state.selectedTimeslot);
+  const timeslot = useBookerStoreContext((state) => state.selectedTimeslot);
 
   useEffect(() => {
     handleReserveSlot();

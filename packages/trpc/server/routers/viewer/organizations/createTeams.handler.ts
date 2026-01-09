@@ -1,15 +1,16 @@
-import type { Prisma } from "@prisma/client";
-
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -42,24 +43,20 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     throw new NotAuthorizedError();
   }
 
-  // Validate user membership role
-  const userMembershipRole = await prisma.membership.findFirst({
-    where: {
-      userId: organizationOwner.id,
-      teamId: orgId,
-      role: {
-        in: ["OWNER", "ADMIN"],
-      },
-      // @TODO: not sure if this already setup earlier
-      // accepted: true,
-    },
-    select: {
-      role: true,
-    },
+  // Validate user has permission to create teams in the organization
+  const permissionCheckService = new PermissionCheckService();
+  const hasPermission = await permissionCheckService.checkPermission({
+    userId: organizationOwner.id,
+    teamId: orgId,
+    permission: "team.create",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
   });
 
-  if (!userMembershipRole) {
-    log.error("User is not a member of the organization", safeStringify({ orgId, organizationOwner }));
+  if (!hasPermission) {
+    log.error(
+      "User is not authorized to create teams in the organization",
+      safeStringify({ orgId, organizationOwner })
+    );
     throw new NotAuthorizedError();
   }
 
@@ -95,21 +92,18 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     teamNames.map((item) => slugify(item)).includes(slug)
   );
 
-  await Promise.all(
-    moveTeams
-      .filter((team) => team.shouldMove)
-      .map(async ({ id: teamId, newSlug }) => {
-        await moveTeam({
-          teamId,
-          newSlug,
-          org: {
-            ...organization,
-            ownerId: organizationOwner.id,
-          },
-          creationSource,
-        });
-      })
-  );
+  // Process team migrations sequentially to avoid race conditions - Moving a team invites members to the organization again and there are known unique constraints failure in membership and profile creation if done in parallel and a user happens to be part of more than one team
+  for (const team of moveTeams.filter((team) => team.shouldMove)) {
+    await moveTeam({
+      teamId: team.id,
+      newSlug: team.newSlug,
+      org: {
+        ...organization,
+        ownerId: organizationOwner.id,
+      },
+      creationSource,
+    });
+  }
 
   if (duplicatedSlugs.length === teamNames.length) {
     return { duplicatedSlugs };
@@ -237,6 +231,9 @@ async function moveTeam({
         parentId: org.id,
       },
     });
+
+    const creditService = new CreditService();
+    await creditService.moveCreditsFromTeamToOrg({ teamId, orgId: org.id });
   } catch (error) {
     log.error(
       "Error while moving team to organization",
@@ -298,7 +295,7 @@ async function tryToCancelSubscription(subscriptionId: string) {
 }
 
 function getSubscriptionId(metadata: Prisma.JsonValue) {
-  const parsedMetadata = teamMetadataSchema.safeParse(metadata);
+  const parsedMetadata = teamMetadataStrictSchema.safeParse(metadata);
   if (parsedMetadata.success) {
     const subscriptionId = parsedMetadata.data?.subscriptionId;
     if (!subscriptionId) {

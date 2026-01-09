@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-
+import { mapOldToNewCssVars } from "./ui/cssVarsMap";
 import type { Message } from "./embed";
-import { embedStore, EMBED_IFRAME_STATE } from "./embed-iframe/lib/embedStore";
-import { runAsap, isBookerReady, isLinkReady, recordResponseIfQueued } from "./embed-iframe/lib/utils";
+import { embedStore, EMBED_IFRAME_STATE, resetPageData, setReloadInitiated, incrementView } from "./embed-iframe/lib/embedStore";
+import {
+  runAsap,
+  isBookerReady,
+  isLinkReady,
+  recordResponseIfQueued,
+  keepParentInformedAboutDimensionChanges,
+  isPrerendering,
+  isBrowser,
+  log,
+} from "./embed-iframe/lib/utils";
 import { sdkActionManager } from "./sdk-event";
 import type {
   UiConfig,
@@ -18,6 +27,7 @@ import type {
   setNonStylesConfig,
 } from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
+export { useBookerEmbedEvents } from "./embed-iframe/react-hooks";
 
 // We don't import it from Booker/types because the types from this module are published to npm and we can't import packages that aren't published
 type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
@@ -28,9 +38,10 @@ const eventsAllowedInPrerendering = [
   "__iframeReady",
   // so that iframe height is adjusted according to the content, and iframe is ready to be shown when needed
   "__dimensionChanged",
-
   // When this event is fired, the iframe is still in prerender state but is going to be moved out of prerender state
   "__connectInitiated",
+
+  "linkPrerendered",
 
   // For other events, we should consider introducing prerender specific events and not reuse existing events
 ];
@@ -48,7 +59,6 @@ declare global {
 }
 
 let isSafariBrowser = false;
-const isBrowser = typeof window !== "undefined";
 
 if (isBrowser) {
   window.CalEmbed = window?.CalEmbed || {};
@@ -57,24 +67,6 @@ if (isBrowser) {
   isSafariBrowser = ua.includes("safari") && !ua.includes("chrome");
   if (isSafariBrowser) {
     log("Safari Detected: Using setTimeout instead of rAF");
-  }
-}
-
-function log(...args: unknown[]) {
-  if (isBrowser) {
-    const namespace = getNamespace();
-
-    const searchParams = new URL(document.URL).searchParams;
-    const logQueue = (window.CalEmbed.__logQueue = window.CalEmbed.__logQueue || []);
-    args.push({
-      ns: namespace,
-      url: document.URL,
-    });
-    args.unshift("CAL:");
-    logQueue.push(args);
-    if (searchParams.get("debug")) {
-      console.log("Child:", ...args);
-    }
   }
 }
 
@@ -105,15 +97,15 @@ const setEmbedNonStyles = (stylesConfig: EmbedNonStylesConfig) => {
 const registerNewSetter = (
   registration:
     | {
-        elementName: keyof EmbedStyles;
-        setState: SetStyles;
-        styles: true;
-      }
+      elementName: keyof EmbedStyles;
+      setState: SetStyles;
+      styles: true;
+    }
     | {
-        elementName: keyof EmbedNonStylesConfig;
-        setState: setNonStylesConfig;
-        styles: false;
-      }
+      elementName: keyof EmbedNonStylesConfig;
+      setState: setNonStylesConfig;
+      styles: false;
+    }
 ) => {
   // It's possible that 'ui' instruction has already been processed and the registration happened due to some action by the user in iframe.
   // So, we should call the setter immediately with available embedStyles
@@ -195,7 +187,6 @@ export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
 
   useEffect(() => {
     return registerNewSetter({ elementName, setState: setStyles, styles: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const styles = embedStore.styles || {};
   // Always read the data from global embedStore so that even across components, the same data is used.
@@ -207,7 +198,6 @@ export const useEmbedNonStylesConfig = (elementName: keyof EmbedNonStylesConfig)
 
   useEffect(() => {
     return registerNewSetter({ elementName, setState: setNonStyles, styles: false });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Always read the data from global embedStore so that even across components, the same data is used.
@@ -279,8 +269,15 @@ export const useEmbedType = () => {
 };
 
 function makeBodyVisible() {
+  // Guard against test environment teardown where document may no longer exist
+  if (typeof document === "undefined" || !document.body) {
+    return;
+  }
   if (document.body.style.visibility !== "visible") {
     document.body.style.visibility = "visible";
+  }
+  if (document.body.style.opacity !== "1") {
+    document.body.style.opacity = "1";
   }
   // Ensure that it stays visible and not reverted by React
   runAsap(() => {
@@ -341,6 +338,7 @@ async function waitForRenderStateToBeCompleted() {
   });
 }
 
+
 // It is a map of methods that can be called by parent using doInIframe({method: "methodName", arg: "argument"})
 export const methods = {
   ui: function style(uiConfig: UiConfig) {
@@ -367,13 +365,36 @@ export const methods = {
     }
 
     // Merge new values over the old values
+    // For cssVarsPerTheme, we need to merge at the theme level to preserve variables from both old and new configs
+    const oldCssVarsPerTheme = embedStore.uiConfig?.cssVarsPerTheme;
+    const newCssVarsPerTheme = uiConfig.cssVarsPerTheme;
+    let mergedCssVarsPerTheme: UiConfig["cssVarsPerTheme"] | undefined;
+
+    if (oldCssVarsPerTheme || newCssVarsPerTheme) {
+      mergedCssVarsPerTheme = {} as Record<"light" | "dark", Record<string, string>>;
+      const themeKeys = [
+        ...(oldCssVarsPerTheme ? Object.keys(oldCssVarsPerTheme) : []),
+        ...(newCssVarsPerTheme ? Object.keys(newCssVarsPerTheme) : []),
+      ];
+      const themes = Array.from(new Set(themeKeys)) as Array<"light" | "dark">;
+
+      for (const theme of themes) {
+        mergedCssVarsPerTheme[theme] = {
+          ...oldCssVarsPerTheme?.[theme],
+          ...newCssVarsPerTheme?.[theme],
+        };
+      }
+    }
+
     uiConfig = {
       ...embedStore.uiConfig,
       ...uiConfig,
+      ...(mergedCssVarsPerTheme ? { cssVarsPerTheme: mergedCssVarsPerTheme } : {}),
     };
 
     if (uiConfig.cssVarsPerTheme) {
-      window.CalEmbed.applyCssVars(uiConfig.cssVarsPerTheme);
+      const mappedCssVarsPerTheme = mapOldToNewCssVars(uiConfig.cssVarsPerTheme);
+      window.CalEmbed.applyCssVars(mappedCssVarsPerTheme);
     }
 
     if (uiConfig.colorScheme) {
@@ -387,7 +408,6 @@ export const methods = {
     setEmbedStyles(stylesConfig || {});
     setEmbedNonStyles(stylesConfig || {});
   },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
     // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
@@ -398,10 +418,20 @@ export const methods = {
         return;
       }
 
+      // Check page status again before firing linkReady, in case it was set after initialization
+      if (hasPageError()) {
+        handlePageError(window.CalComPageStatus);
+        return;
+      }
+
       makeBodyVisible();
       log("renderState is 'completed'");
       embedStore.renderState = "completed";
-      sdkActionManager?.fire("linkReady", {});
+      if (isPrerendering()) {
+        sdkActionManager?.fire("linkPrerendered", {});
+      } else {
+        sdkActionManager?.fire("linkReady", {});
+      }
     });
   },
   /**
@@ -425,7 +455,7 @@ export const methods = {
       ...queryParamsFromConfig
     } = config;
     // We reset it to allow informing parent again through `__dimensionChanged` event about possibly updated dimensions with changes in config
-    embedStore.parentInformedAboutContentHeight = false;
+    embedStore.providedCorrectHeightToParent = false;
 
     if (noSlotsFetchOnConnect !== "true") {
       log("Method: connect, noSlotsFetchOnConnect is false. Requesting slots re-fetch");
@@ -466,6 +496,10 @@ export const methods = {
       toRemoveParams,
     });
   },
+  __reloadInitiated: function __reloadInitiated(_unused: unknown) {
+    log("Method: __reloadInitiated called");
+    setReloadInitiated(true);
+  },
 };
 
 export type InterfaceWithParent = {
@@ -484,93 +518,6 @@ const messageParent = (data: CustomEvent["detail"]) => {
   );
 };
 
-/**
- * This function is called once the iframe loads.
- * It isn't called on "connect"
- */
-function keepParentInformedAboutDimensionChanges() {
-  let knownIframeHeight: number | null = null;
-  let knownIframeWidth: number | null = null;
-  let isFirstTime = true;
-  let isWindowLoadComplete = false;
-  runAsap(function informAboutScroll() {
-    if (document.readyState !== "complete") {
-      // Wait for window to load to correctly calculate the initial scroll height.
-      runAsap(informAboutScroll);
-      return;
-    }
-    if (!isWindowLoadComplete) {
-      // On Safari, even though document.readyState is complete, still the page is not rendered and we can't compute documentElement.scrollHeight correctly
-      // Postponing to just next cycle allow us to fix this.
-      setTimeout(() => {
-        isWindowLoadComplete = true;
-        informAboutScroll();
-      }, 100);
-      return;
-    }
-
-    if (!embedStore.windowLoadEventFired) {
-      sdkActionManager?.fire("__windowLoadComplete", {});
-    }
-    embedStore.windowLoadEventFired = true;
-
-    // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
-    // It avoids the unwanted padding outside main tag.
-    const mainElement =
-      document.getElementsByClassName("main")[0] ||
-      document.getElementsByTagName("main")[0] ||
-      document.documentElement;
-    const documentScrollHeight = document.documentElement.scrollHeight;
-    const documentScrollWidth = document.documentElement.scrollWidth;
-
-    if (!(mainElement instanceof HTMLElement)) {
-      throw new Error("Main element should be an HTMLElement");
-    }
-
-    const mainElementStyles = getComputedStyle(mainElement);
-    // Use, .height as that gives more accurate value in floating point. Also, do a ceil on the total sum so that whatever happens there is enough iframe size to avoid scroll.
-    const contentHeight = Math.ceil(
-      parseFloat(mainElementStyles.height) +
-        parseFloat(mainElementStyles.marginTop) +
-        parseFloat(mainElementStyles.marginBottom)
-    );
-    const contentWidth = Math.ceil(
-      parseFloat(mainElementStyles.width) +
-        parseFloat(mainElementStyles.marginLeft) +
-        parseFloat(mainElementStyles.marginRight)
-    );
-
-    // During first render let iframe tell parent that how much is the expected height to avoid scroll.
-    // Parent would set the same value as the height of iframe which would prevent scroll.
-    // On subsequent renders, consider html height as the height of the iframe. If we don't do this, then if iframe gets bigger in height, it would never shrink
-    const iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
-    const iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
-
-    if (!iframeHeight || !iframeWidth) {
-      runAsap(informAboutScroll);
-      return;
-    }
-    const isThereAChangeInDimensions = knownIframeHeight !== iframeHeight || knownIframeWidth !== iframeWidth;
-    if (isThereAChangeInDimensions || !embedStore.parentInformedAboutContentHeight) {
-      embedStore.parentInformedAboutContentHeight = true;
-
-      knownIframeHeight = iframeHeight;
-      knownIframeWidth = iframeWidth;
-      // FIXME: This event shouldn't be subscribable by the user. Only by the SDK.
-      sdkActionManager?.fire("__dimensionChanged", {
-        iframeHeight,
-        iframeWidth,
-        isFirstTime,
-      });
-    }
-    isFirstTime = false;
-    // Parent Counterpart would change the dimension of iframe and thus page's dimension would be impacted which is recursive.
-    // It should stop ideally by reaching a hiddenHeight value of 0.
-    // FIXME: If 0 can't be reached we need to just abandon our quest for perfect iframe and let scroll be there. Such case can be logged in the wild and fixed later on.
-    runAsap(informAboutScroll);
-  });
-}
-
 function main() {
   if (!isBrowser) {
     return;
@@ -579,10 +526,13 @@ function main() {
   const url = new URL(document.URL);
   embedStore.theme = window?.getEmbedTheme?.();
 
+  const autoScrollFromParam = url.searchParams.get("ui.autoscroll");
+  const shouldDisableAutoScroll = autoScrollFromParam === "false";
   embedStore.uiConfig = {
     // TODO: Add theme as well here
     colorScheme: url.searchParams.get("ui.color-scheme"),
     layout: url.searchParams.get("layout") as BookerLayouts,
+    disableAutoScroll: shouldDisableAutoScroll,
   };
 
   actOnColorScheme(embedStore.uiConfig.colorScheme);
@@ -622,6 +572,15 @@ function main() {
     }
   });
 
+  sdkActionManager?.on("linkReady", () => {
+    // Even though linkReady isn't fired in prerendering phase, this is a safe guard for future
+    if (isPrerendering()) {
+      return;
+    }
+    resetPageData();
+    incrementView();
+  });
+
   sdkActionManager?.on("*", (e) => {
     if (isPrerendering() && !eventsAllowedInPrerendering.includes(e.detail.type)) {
       return;
@@ -636,6 +595,29 @@ function main() {
   } else {
     log(`Preloaded scenario - Skipping initialization and setup as only assets need to be loaded`);
   }
+}
+
+/**
+ * Checks if there's a page error (non-200 status).
+ * @returns true if an error exists, false otherwise
+ */
+function hasPageError() {
+  const pageStatus = window.CalComPageStatus;
+  return !!(pageStatus && pageStatus != "200");
+}
+
+/**
+ * Handles a page error by firing the linkFailed event.
+ * @param pageStatus - The error status code (e.g., "404", "500", "403")
+ */
+function handlePageError(pageStatus: string) {
+  sdkActionManager?.fire("linkFailed", {
+    code: pageStatus,
+    msg: "Problem loading the link",
+    data: {
+      url: document.URL,
+    },
+  });
 }
 
 function initializeAndSetupEmbed() {
@@ -655,16 +637,12 @@ function initializeAndSetupEmbed() {
   // HACK
   const pageStatus = window.CalComPageStatus;
 
-  if (!pageStatus || pageStatus == "200") {
-    keepParentInformedAboutDimensionChanges();
-  } else
-    sdkActionManager?.fire("linkFailed", {
-      code: pageStatus,
-      msg: "Problem loading the link",
-      data: {
-        url: document.URL,
-      },
-    });
+  if (hasPageError()) {
+    handlePageError(pageStatus);
+    return;
+  } else {
+    keepParentInformedAboutDimensionChanges({ embedStore });
+  }
 }
 
 function runAllUiSetters(uiConfig: UiConfig) {
@@ -716,6 +694,13 @@ async function connectPreloadedEmbed({
         runAsap(tryToFireLinkReady);
         return;
       }
+      // Check page status again before firing linkReady, in case it was set after initialization
+      if (hasPageError()) {
+        handlePageError(window.CalComPageStatus);
+        resolve();
+        return;
+      }
+
       // link is ready now, so we could stop doing it.
       // Also the page is visible to user now.
       stopEnsuringQueryParamsInUrl();
@@ -729,10 +714,6 @@ async function connectPreloadedEmbed({
     stopEnsuringQueryParamsInUrl,
   };
 }
-
-const isPrerendering = () => {
-  return new URL(document.URL).searchParams.get("prerender") === "true";
-};
 
 export function getEmbedBookerState({
   bookerState,

@@ -1,11 +1,10 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
-import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/client";
-import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { prisma } from "@calcom/prisma";
+import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
-import { addFilter, openFilter } from "./filter-helpers";
+import { addFilter } from "./filter-helpers";
 import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
@@ -59,16 +58,14 @@ test.describe("Bookings", () => {
       const firstUpcomingBooking = upcomingBookings.locator('[data-testid="booking-item"]').nth(0);
       const secondUpcomingBooking = upcomingBookings.locator('[data-testid="booking-item"]').nth(1);
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         firstUpcomingBooking.locator(`text=${bookingWhereFirstUserIsAttendee!.title}`)
       ).toBeVisible();
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         secondUpcomingBooking.locator(`text=${bookingWhereFirstUserIsOrganizer!.title}`)
       ).toBeVisible();
     });
 
-    test("Cannot choose date range presets", async ({ page, users, bookings, webhooks }) => {
+    test("Cannot choose date range presets", async ({ page, users }) => {
       const firstUser = await users.create();
       await firstUser.apiLogin();
       const bookingsGetResponse = page.waitForResponse((response) =>
@@ -78,7 +75,6 @@ test.describe("Bookings", () => {
       await bookingsGetResponse;
 
       await addFilter(page, "dateRange");
-      await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeHidden();
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeHidden();
@@ -93,7 +89,7 @@ test.describe("Bookings", () => {
   test.describe("Past bookings", () => {
     test("Mark first guest as no-show", async ({ page, users, bookings, webhooks }) => {
       const firstUser = await users.create();
-      const secondUser = await users.create();
+      await users.create();
 
       const bookingWhereFirstUserIsOrganizerFixture = await createBooking({
         title: "Booking as organizer",
@@ -114,7 +110,6 @@ test.describe("Bookings", () => {
       await page.goto(`/bookings/past`);
       const pastBookings = page.locator('[data-testid="past-bookings"]');
       const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
-      const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
       const firstGuest = firstPastBooking.locator('[data-testid="guest"]').nth(0);
       await firstGuest.click();
       await expect(page.locator('[data-testid="unmark-no-show"]')).toBeHidden();
@@ -144,7 +139,7 @@ test.describe("Bookings", () => {
     });
     test("Mark 3rd attendee as no-show", async ({ page, users, bookings }) => {
       const firstUser = await users.create();
-      const secondUser = await users.create();
+      await users.create();
 
       const bookingWhereFirstUserIsOrganizerFixture = await createBooking({
         title: "Booking as organizer",
@@ -160,23 +155,22 @@ test.describe("Bookings", () => {
           { name: "Fourth", email: "fourth@cal.com", timeZone: "Europe/Berlin" },
         ],
       });
-      const bookingWhereFirstUserIsOrganizer = await bookingWhereFirstUserIsOrganizerFixture.self();
+      await bookingWhereFirstUserIsOrganizerFixture.self();
 
       await firstUser.apiLogin();
       await page.goto(`/bookings/past`);
       const pastBookings = page.locator('[data-testid="past-bookings"]');
       const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
-      const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
       const moreGuests = firstPastBooking.locator('[data-testid="more-guests"]');
       await moreGuests.click();
       const firstGuestInMore = page.getByRole("menuitemcheckbox").nth(0);
-      await expect(firstGuestInMore).toBeChecked({ checked: false });
+      await expect(firstGuestInMore).toHaveAttribute("data-state", "unchecked");
       await firstGuestInMore.click();
-      await expect(firstGuestInMore).toBeChecked({ checked: true });
+      await expect(firstGuestInMore).toHaveAttribute("data-state", "checked");
       const updateNoShow = firstPastBooking.locator('[data-testid="update-no-show"]');
       await updateNoShow.click();
       await moreGuests.click();
-      await expect(firstGuestInMore).toBeChecked({ checked: true });
+      await expect(firstGuestInMore).toHaveAttribute("data-state", "checked");
     });
     test("Team admin/owner can mark first attendee as no-show", async ({
       page,
@@ -201,11 +195,10 @@ test.describe("Bookings", () => {
       });
       const booking = await bookingFixture.self();
       await adminUser.apiLogin();
-      const { webhookReceiver, teamId } = await webhooks.createTeamReceiver();
+      const { webhookReceiver } = await webhooks.createTeamReceiver();
       await page.goto(`/bookings/past`);
       const pastBookings = page.locator('[data-testid="past-bookings"]');
       const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
-      const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
       const firstGuest = firstPastBooking.locator('[data-testid="guest"]').nth(0);
       await firstGuest.click();
       await expect(page.locator('[data-testid="mark-no-show"]')).toBeVisible();
@@ -234,7 +227,7 @@ test.describe("Bookings", () => {
       webhookReceiver.close();
     });
 
-    test("Can choose date range presets", async ({ page, users, bookings, webhooks }) => {
+    test("Can choose date range presets", async ({ page, users }) => {
       const firstUser = await users.create();
       await firstUser.apiLogin();
       const bookingsGetResponse = page.waitForResponse((response) =>
@@ -244,7 +237,6 @@ test.describe("Bookings", () => {
       await bookingsGetResponse;
 
       await addFilter(page, "dateRange");
-      await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeVisible();
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible();
@@ -354,7 +346,6 @@ test.describe("Bookings", () => {
     await bookingsGetResponse;
 
     await addFilter(page, "userId");
-    await openFilter(page, "userId");
 
     const bookingsGetResponse2 = page.waitForResponse(
       (response) => response.url().includes("/api/trpc/bookings/get?batch=1") && response.status() === 200
@@ -378,22 +369,15 @@ test.describe("Bookings", () => {
 
     //verify with the booking titles
     const firstUpcomingBooking = bookingListItems.nth(0);
-    await expect(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      firstUpcomingBooking.locator(`text=${thirdUserOrganizerBooking!.title}`)
-    ).toBeVisible();
+    await expect(firstUpcomingBooking.locator(`text=${thirdUserOrganizerBooking!.title}`)).toBeVisible();
 
     const secondUpcomingBooking = bookingListItems.nth(1);
     await expect(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       secondUpcomingBooking.locator(`text=${thirdUserAttendeeIndividualBooking!.title}`)
     ).toBeVisible();
 
     const thirdUpcomingBooking = bookingListItems.nth(2);
-    await expect(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      thirdUpcomingBooking.locator(`text=${thirdUserAttendeeTeamEvent!.title}`)
-    ).toBeVisible();
+    await expect(thirdUpcomingBooking.locator(`text=${thirdUserAttendeeTeamEvent!.title}`)).toBeVisible();
   });
 
   test("Does not show booking from another user from collective event type when a member is filtered", async ({
@@ -418,7 +402,7 @@ test.describe("Bookings", () => {
 
     const { team } = await owner.getFirstTeamMembership();
     const eventType = await owner.getFirstTeamEvent(team.id);
-    const { id: eventTypeId, title: teamEventTitle, slug: teamEventSlug } = eventType;
+    const { id: eventTypeId } = eventType;
 
     // remove myself from host of this event type
     await prisma.host.delete({
@@ -463,7 +447,6 @@ test.describe("Bookings", () => {
     await bookingsGetResponse1;
 
     await addFilter(page, "userId");
-    await openFilter(page, "userId");
     const bookingsGetResponse2 = page.waitForResponse((response) =>
       /\/api\/trpc\/bookings\/get.*/.test(response.url())
     );
@@ -472,14 +455,13 @@ test.describe("Bookings", () => {
       .click();
     await bookingsGetResponse2;
 
-    await expect(page.locator('[data-testid="booking-item"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="booking-item"]')).toHaveCount(0, { timeout: 0 });
   });
 
   test.describe("Filter Dropdown Item Search", () => {
     const filterItemsConfig = [
       { key: "eventTypeId", name: "Event Type", testId: "add-filter-item-eventTypeId" },
       { key: "teamId", name: "Team", testId: "add-filter-item-teamId" },
-      { key: "userId", name: "Member", testId: "add-filter-item-userId" },
       { key: "attendeeName", name: "Attendees Name", testId: "add-filter-item-attendeeName" },
       { key: "attendeeEmail", name: "Attendee Email", testId: "add-filter-item-attendeeEmail" },
       { key: "dateRange", name: "Date Range", testId: "add-filter-item-dateRange" },
@@ -488,8 +470,16 @@ test.describe("Bookings", () => {
 
     const getFilterItemLocator = (page: Page, testId: string) => page.locator(`[data-testid="${testId}"]`);
 
-    test.beforeEach(async ({ page, users }) => {
-      const user = await users.create();
+    const setup = async ({
+      isAdmin,
+      page,
+      users,
+    }: {
+      isAdmin: boolean;
+      page: Page;
+      users: Fixtures["users"];
+    }) => {
+      const user = isAdmin ? await users.create(undefined, { hasTeam: true }) : await users.create();
       await user.apiLogin();
       const bookingsGetResponse = page.waitForResponse((response) =>
         /\/api\/trpc\/bookings\/get.*/.test(response.url())
@@ -498,9 +488,10 @@ test.describe("Bookings", () => {
       await bookingsGetResponse;
       await page.locator('[data-testid="add-filter-button"]').click();
       await expect(page.locator(searchInputSelector)).toBeVisible();
-    });
+    };
 
-    test("should show all filter items initially and after clearing search", async ({ page }) => {
+    test("should show all filter items initially and after clearing search", async ({ page, users }) => {
+      await setup({ isAdmin: false, page, users });
       const searchInput = page.locator(searchInputSelector);
 
       // Initial check: all defined filter items should be visible
@@ -524,7 +515,18 @@ test.describe("Bookings", () => {
       }
     });
 
-    test("search should be case-insensitive", async ({ page }) => {
+    test("should show admin-only filter", async ({ page, users }) => {
+      await setup({ isAdmin: true, page, users });
+
+      await expect(
+        getFilterItemLocator(page, "add-filter-item-userId"),
+        `Item "Member" should be visible initially`
+      ).toBeVisible();
+    });
+
+    test("search should be case-insensitive", async ({ page, users }) => {
+      await setup({ isAdmin: true, page, users });
+
       const searchInput = page.locator(searchInputSelector);
 
       // Search for "member" (lowercase)
@@ -534,7 +536,8 @@ test.describe("Bookings", () => {
       await expect(getFilterItemLocator(page, "add-filter-item-teamId")).toBeHidden();
     });
 
-    test("should individually find each filter item by its full name", async ({ page }) => {
+    test("should individually find each filter item by its full name", async ({ page, users }) => {
+      await setup({ isAdmin: false, page, users });
       const searchInput = page.locator(searchInputSelector);
 
       for (const targetItem of filterItemsConfig) {
@@ -550,7 +553,8 @@ test.describe("Bookings", () => {
       }
     });
 
-    test("should show no items for a non-matching search term", async ({ page }) => {
+    test("should show no items for a non-matching search term", async ({ page, users }) => {
+      await setup({ isAdmin: false, page, users });
       const searchInput = page.locator(searchInputSelector);
       const nonExistentTerm = "NonExistentFilterXYZ123";
       await searchInput.fill(nonExistentTerm);

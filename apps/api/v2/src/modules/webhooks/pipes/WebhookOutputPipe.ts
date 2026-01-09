@@ -1,5 +1,6 @@
 import { PipeTransform, Injectable } from "@nestjs/common";
-import { Webhook } from "@prisma/client";
+
+import type { Webhook } from "@calcom/prisma/client";
 
 @Injectable()
 export class WebhookOutputPipe implements PipeTransform {

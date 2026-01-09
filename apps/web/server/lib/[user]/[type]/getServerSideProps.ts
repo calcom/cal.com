@@ -6,16 +6,16 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
-import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
-import { EventRepository } from "@calcom/lib/server/repository/event";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
+import { shouldHideBrandingForUserEvent } from "@calcom/features/profile/lib/hideBranding";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
-import { BookingStatus, RedirectType } from "@calcom/prisma/client";
+import { prisma } from "@calcom/prisma";
+import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
 
-import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 
 import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
 
@@ -122,17 +122,17 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const org = isValidOrgDomain ? currentOrgDomain : null;
-  if (!org) {
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: usernames,
-      redirectType: RedirectType.User,
-      eventTypeSlug: slug,
-      currentQuery: context.query,
-    });
 
-    if (redirect) {
-      return redirect;
-    }
+  const redirect = await handleOrgRedirect({
+    slugs: usernames,
+    redirectType: RedirectType.User,
+    eventTypeSlug: slug,
+    context,
+    currentOrgDomain: org,
+  });
+
+  if (redirect) {
+    return redirect;
   }
 
   const userRepo = new UserRepository(prisma);
@@ -220,18 +220,16 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
-  const isOrgContext = currentOrgDomain && isValidOrgDomain;
-  if (!isOrgContext) {
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: usernames,
-      redirectType: RedirectType.User,
-      eventTypeSlug: slug,
-      currentQuery: context.query,
-    });
+  const redirect = await handleOrgRedirect({
+    slugs: usernames,
+    redirectType: RedirectType.User,
+    eventTypeSlug: slug,
+    context,
+    currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
+  });
 
-    if (redirect) {
-      return redirect;
-    }
+  if (redirect) {
+    return redirect;
   }
 
   const [user] = await getUsersInOrgContext([username], isValidOrgDomain ? currentOrgDomain : null);

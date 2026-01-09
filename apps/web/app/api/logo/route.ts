@@ -18,6 +18,7 @@ import {
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { isTrustedInternalUrl, logBlockedSSRFAttempt, validateUrlForSSRF } from "@calcom/lib/ssrfProtection";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -190,28 +191,49 @@ async function getHandler(request: NextRequest) {
   const filteredLogo = teamLogos[logoDefinition.source] ?? logoDefinition.fallback;
 
   try {
-    const response = await fetch(filteredLogo);
+    let response: Response;
+
+    // Internal URLs (fallbacks from WEBAPP_URL) are trusted
+    if (isTrustedInternalUrl(filteredLogo, WEBAPP_URL)) {
+      response = await fetch(filteredLogo);
+    }
+    // External URLs (including data URLs) need SSRF validation
+    else {
+      const validation = await validateUrlForSSRF(filteredLogo);
+      if (!validation.isValid) {
+        logBlockedSSRFAttempt(filteredLogo, validation.error || "Unknown", { subdomain });
+        // Graceful degradation: use default logo instead of error
+        response = await fetch(logoDefinition.fallback);
+      } else {
+        response = await fetch(filteredLogo, {
+          signal: AbortSignal.timeout(10000), // 10s conservative timeout
+        });
+      }
+    }
+
     const arrayBuffer = await response.arrayBuffer();
     let buffer: Buffer = Buffer.from(arrayBuffer);
+    let contentType = response.headers.get("content-type") || "image/png";
 
-    // If we need to resize the team logos (via Next.js' built-in image processing)
+    // Resize the team logos if needed
     if (teamLogos[logoDefinition.source] && logoDefinition.w) {
-      const { detectContentType, optimizeImage } = await import("next/dist/server/image-optimizer");
-
-      buffer = await optimizeImage({
+      const { resizeImage } = await import("@calcom/lib/server/imageUtils");
+      const { buffer: outBuffer, contentType: outContentType } = await resizeImage({
         buffer,
-        contentType: detectContentType(buffer) ?? "image/jpeg",
-        quality: 100,
         width: logoDefinition.w,
-        height: logoDefinition.h, // optional
+        height: logoDefinition.h,
+        quality: 100,
+        contentType,
       });
+      buffer = outBuffer;
+      contentType = outContentType;
     }
 
     // Create a new response with the image buffer
     const imageResponse = new NextResponse(buffer as BodyInit);
 
     // Set the appropriate headers
-    imageResponse.headers.set("Content-Type", response.headers.get("content-type") || "image/png");
+    imageResponse.headers.set("Content-Type", contentType);
     imageResponse.headers.set("Cache-Control", "s-maxage=86400, stale-while-revalidate=60");
 
     return imageResponse;

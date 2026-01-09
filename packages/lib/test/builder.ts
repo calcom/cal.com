@@ -1,10 +1,10 @@
 import { faker } from "@faker-js/faker";
-import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@prisma/client";
 import type { TFunction } from "i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
-import { CreationSource } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@calcom/prisma/client";
+import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+import { CreationSource, BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
 
 export const buildVideoCallData = (callData?: Partial<VideoCallData>): VideoCallData => {
@@ -123,10 +123,12 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
     onlyShowFirstAvailableSlot: false,
+    showOptimizedSlots: false,
     seatsPerTimeSlot: null,
     seatsShowAttendees: null,
     disableCancelling: false,
     disableRescheduling: false,
+    minimumRescheduleNotice: null,
     allowReschedulingCancelledBookings: false,
     seatsShowAvailabilityCount: null,
     maxLeadThreshold: null,
@@ -154,12 +156,17 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     assignRRMembersUsingSegment: false,
     rrSegmentQueryValue: null,
     autoTranslateDescriptionEnabled: false,
+    autoTranslateInstantMeetingTitleEnabled: true,
     useEventLevelSelectedCalendars: false,
     allowReschedulingPastBookings: false,
     hideOrganizerEmail: false,
     customReplyToEmail: null,
     restrictionScheduleId: null,
     useBookerTimezone: false,
+    bookingRequiresAuthentication: false,
+    createdAt: null,
+    updatedAt: null,
+    rrHostSubsetEnabled: false,
     ...eventType,
   };
 };
@@ -180,6 +187,7 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     platformOAuthClientId: null,
     time: null,
     timeUnit: null,
+    version: WebhookVersion.V_2021_10_20,
     ...webhook,
     platform: false,
   };

@@ -7,7 +7,7 @@ import { Injectable } from "@nestjs/common";
 import { SUCCESS_STATUS, APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/platform-constants";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/platform-libraries";
 import { CalendarService } from "@calcom/platform-libraries/app-store";
-import { Credential } from "@calcom/prisma/client";
+import type { Credential } from "@calcom/prisma/client";
 
 @Injectable()
 export class AppleCalendarService implements CredentialSyncCalendarApp {

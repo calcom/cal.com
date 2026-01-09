@@ -1,10 +1,9 @@
 import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { createHash } from "crypto";
-import EventEmitter from "events";
-import type { IncomingMessage, ServerResponse } from "http";
-import { createServer } from "http";
-// eslint-disable-next-line no-restricted-imports
+import { createHash } from "node:crypto";
+import EventEmitter from "node:events";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import { createServer } from "node:http";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 import { v4 as uuid } from "uuid";
@@ -107,22 +106,35 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 }
 
 export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) {
-  // Let current month dates fully render.
-  await page.getByTestId("incrementMonth").click();
+  // Wait for the booker to be ready before interacting
+  const incrementMonth = page.getByTestId("incrementMonth");
+  await incrementMonth.waitFor();
+  await incrementMonth.click();
 
-  // Waiting for full month increment
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+  // Wait for available day to appear after month increment
+  const firstAvailableDay = page.locator('[data-testid="day"][data-disabled="false"]').nth(0);
+  await firstAvailableDay.waitFor();
+  await firstAvailableDay.click();
 
-  await page.locator('[data-testid="time"]').nth(0).click();
+  const firstTimeSlot = page.locator('[data-testid="time"]').nth(0);
+  await firstTimeSlot.waitFor();
+  await firstTimeSlot.click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
-  // Let current month dates fully render.
-  await page.getByTestId("incrementMonth").click();
+  // Wait for the booker to be ready before interacting
+  const incrementMonth = page.getByTestId("incrementMonth");
+  await incrementMonth.waitFor();
+  await incrementMonth.click();
 
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
+  // Wait for available day to appear after month increment
+  const secondAvailableDay = page.locator('[data-testid="day"][data-disabled="false"]').nth(1);
+  await secondAvailableDay.waitFor();
+  await secondAvailableDay.click();
 
-  await page.locator('[data-testid="time"]').nth(0).click();
+  const firstTimeSlot = page.locator('[data-testid="time"]').nth(0);
+  await firstTimeSlot.waitFor();
+  await firstTimeSlot.click();
 }
 
 export async function bookEventOnThisPage(page: Page) {
@@ -155,6 +167,7 @@ export const bookTimeSlot = async (
     title?: string;
     attendeePhoneNumber?: string;
     expectedStatusCode?: number;
+    isRecurringEvent?: boolean;
   }
 ) => {
   // --- fill form
@@ -166,8 +179,9 @@ export const bookTimeSlot = async (
   if (opts?.attendeePhoneNumber) {
     await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
-  await submitAndWaitForResponse(page, "/api/book/event", {
-    action: () => page.locator('[name="email"]').press("Enter"),
+  const url = opts?.isRecurringEvent ? "/api/book/recurring-event" : "/api/book/event";
+  await submitAndWaitForResponse(page, url, {
+    action: () => page.locator('[data-testid="confirm-book-button"]').click(),
     expectedStatusCode: opts?.expectedStatusCode,
   });
 };
@@ -211,7 +225,7 @@ export async function setupManagedEvent({
     addManagedEventToTeamMates: true,
     managedEventUnlockedFields: unlockedFields,
   });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
   const memberUser = users.get().find((u) => u.name === teamMateName)!;
   const { team } = await adminUser.getFirstTeamMembership();
   const managedEvent = await adminUser.getFirstTeamEvent(team.id, SchedulingType.MANAGED);
@@ -222,10 +236,7 @@ export const createNewSeatedEventType = async (page: Page, args: { eventTitle: s
   const eventTitle = args.eventTitle;
   await createNewUserEventType(page, { eventTitle });
   await page.waitForSelector('[data-testid="event-title"]');
-  await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
-    "aria-current",
-    "page"
-  );
+  await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
   await page.locator('[data-testid="vertical-tab-event_advanced_tab_title"]').click();
   await page.locator('[data-testid="offer-seats-toggle"]').click();
   await page.locator('[data-testid="update-eventtype"]').click();
@@ -276,11 +287,17 @@ export async function getInviteLink(page: Page) {
 export async function getEmailsReceivedByUser({
   emails,
   userEmail,
+  waitForEmailMs = 5000,
 }: {
   emails?: ReturnType<typeof createEmailsFixture>;
   userEmail: string;
+  waitForEmailMs?: number;
 }): Promise<Messages | null> {
   if (!emails) return null;
+
+  // Wait for email to be sent/received
+  await new Promise((resolve) => setTimeout(resolve, waitForEmailMs));
+
   const matchingEmails = await emails.search(userEmail, "to");
   if (!matchingEmails?.total) {
     console.log(
@@ -366,7 +383,7 @@ async function createUserWithSeatedEvent(users: Fixtures["users"]) {
       },
     ],
   });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
   const eventType = user.eventTypes.find((e) => e.slug === slug)!;
   return { user, eventType };
 }
@@ -412,17 +429,32 @@ export async function fillStripeTestCheckout(page: Page) {
 
 export function goToUrlWithErrorHandling({ page, url }: { page: Page; url: string }) {
   return new Promise<{ success: boolean; url: string }>(async (resolve) => {
+    let resolved = false;
     const onRequestFailed = (request: PlaywrightRequest) => {
+      // Only consider it a navigation failure if it's the main document request
+      // Ignore failures for subresources like images, scripts, RSC requests, etc.
+      if (!request.isNavigationRequest() || request.frame() !== page.mainFrame()) {
+        const failedToLoadUrl = request.url();
+        console.log("goToUrlWithErrorHandling: Failed to load URL:", failedToLoadUrl);
+        return;
+      }
+      if (resolved) return;
+      resolved = true;
       const failedToLoadUrl = request.url();
-      console.log("goToUrlWithErrorHandling: Failed to load URL:", failedToLoadUrl);
+      console.log("goToUrlWithErrorHandling: Navigation failed for URL:", failedToLoadUrl);
       resolve({ success: false, url: failedToLoadUrl });
     };
     page.on("requestfailed", onRequestFailed);
     try {
-      await page.goto(url);
-    } catch (e) {}
+      await page.goto(url, { waitUntil: "domcontentloaded" });
+    } catch {
+      // do nothing
+    }
     page.off("requestfailed", onRequestFailed);
-    resolve({ success: true, url: page.url() });
+    if (!resolved) {
+      resolved = true;
+      resolve({ success: true, url: page.url() });
+    }
   });
 }
 
@@ -474,10 +506,13 @@ export async function gotoBookingPage(page: Page) {
   const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
 
   await page.goto(previewLink ?? "");
+  await page.waitForURL((url) => {
+    return url.searchParams.get("overlayCalendar") === "true";
+  });
 }
 
 export async function saveEventType(page: Page) {
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),
   });
 }
@@ -589,4 +624,28 @@ export async function setupOrgMember(users: CreateUsersFixture) {
   await orgMember.apiLogin();
 
   return { orgMember, org, team, teamEvent, userEvent };
+}
+
+export async function cancelBookingFromBookingsList({
+  page,
+  nth,
+  reason,
+}: {
+  page: Page;
+  reason: string;
+  nth: number;
+}) {
+  await page.locator('[data-testid="booking-actions-dropdown"]').nth(nth).click();
+  const bookingUid = await page.locator('[data-testid="cancel"]').getAttribute("data-booking-uid");
+  // Click the cancel option in the dropdown
+  await page.locator('[data-testid="cancel"]').click();
+  await page.locator('[data-testid="cancel_reason"]').fill(reason);
+  await page.locator('[data-testid="confirm_cancel"]').click();
+  await expect(
+    page.locator('[data-testid="toast-success"]').filter({ hasText: "Booking Canceled" })
+  ).toBeVisible();
+
+  return {
+    bookingUid,
+  };
 }

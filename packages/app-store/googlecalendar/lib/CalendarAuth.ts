@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { calendar_v3 } from "@googleapis/calendar";
-import type { Prisma } from "@prisma/client";
 import { OAuth2Client, JWT } from "googleapis-common";
 
+import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 import {
   CalendarAppDelegationCredentialClientIdNotAuthorizedError,
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -15,6 +14,7 @@ import {
   CREDENTIAL_SYNC_SECRET_HEADER_NAME,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import type { Prisma } from "@calcom/prisma/client";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import { invalidateCredential } from "../../_utils/invalidateCredential";
@@ -124,20 +124,39 @@ export class CalendarAuth {
     } catch (error) {
       log.error("DelegatedTo: Error authorizing using JWT auth", JSON.stringify(error));
 
-      if ((error as any).response?.data?.error === "unauthorized_client") {
-        throw new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
+      let delegationError: CalendarAppDelegationCredentialError;
+
+      const errorCode = (error as { response?: { data?: { error?: string } } }).response?.data?.error;
+      if (errorCode === "unauthorized_client") {
+        delegationError = new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
           "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
         );
-      }
-
-      if ((error as any).response?.data?.error === "invalid_grant") {
-        throw new CalendarAppDelegationCredentialInvalidGrantError(
+      } else if (errorCode === "invalid_grant") {
+        delegationError = new CalendarAppDelegationCredentialInvalidGrantError(
           `User ${emailToImpersonate} might not exist in Google Workspace`
         );
+      } else {
+        // Catch all error
+        delegationError = new CalendarAppDelegationCredentialError("Error authorizing delegation credential");
       }
 
-      // Catch all error
-      throw new CalendarAppDelegationCredentialError("Error authorizing delegation credential");
+      if (user && user.email && this.credential.appId && this.credential.delegatedToId) {
+        await triggerDelegationCredentialErrorWebhook({
+          error: delegationError,
+          credential: {
+            id: this.credential.id,
+            type: this.credential.type,
+            appId: this.credential.appId,
+          },
+          user: {
+            id: this.credential.userId ?? 0,
+            email: user.email,
+          },
+          delegationCredentialId: this.credential.delegatedToId,
+        });
+      }
+
+      throw delegationError;
     }
   };
 

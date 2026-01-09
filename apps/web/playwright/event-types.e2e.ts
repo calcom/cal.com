@@ -1,8 +1,7 @@
-import type { Page } from "@playwright/test";
-import { expect } from "@playwright/test";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { randomString } from "@calcom/lib/random";
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 import {
@@ -77,10 +76,7 @@ test.describe("Event Types tests", () => {
 
       // fix the race condition
       await page.waitForSelector('[data-testid="event-title"]');
-      await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
-        "aria-current",
-        "page"
-      );
+      await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
 
       await page.click("[data-testid=vertical-tab-recurring]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();
@@ -134,7 +130,7 @@ test.describe("Event Types tests", () => {
       expect(formTitle).toBe(firstTitle);
       expect(formSlug).toContain(firstSlug);
 
-      const submitPromise = page.waitForResponse("/api/trpc/eventTypes/duplicate?batch=1");
+      const submitPromise = page.waitForResponse("/api/trpc/eventTypesHeavy/duplicate?batch=1");
       await page.getByTestId("continue").click();
       const response = await submitPromise;
       expect(response.status()).toBe(200);
@@ -147,7 +143,7 @@ test.describe("Event Types tests", () => {
       await page.waitForURL((url) => {
         return !!url.pathname.match(/\/event-types\/.+/);
       });
-      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
         action: () => page.locator("[data-testid=update-eventtype]").click(),
       });
     });
@@ -170,7 +166,7 @@ test.describe("Event Types tests", () => {
       await page.locator("[data-testid=add-location]").click();
       await fillLocation(page, locationData[2], 2);
 
-      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
         action: () => page.locator("[data-testid=update-eventtype]").click(),
       });
 
@@ -185,6 +181,9 @@ test.describe("Event Types tests", () => {
        * Verify first organizer address
        */
       await page.goto(previewLink ?? "");
+      await page.waitForURL((url) => {
+        return url.searchParams.get("overlayCalendar") === "true";
+      });
       await selectFirstAvailableTimeSlotNextMonth(page);
       await page.locator(`span:has-text("${locationData[0]}")`).click();
       await bookTimeSlot(page);
@@ -215,7 +214,9 @@ test.describe("Event Types tests", () => {
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-        await expect(page.locator("text=+19199999999")).toBeVisible();
+        await expect(page.locator("text=+19199999999")).toHaveCount(2);
+        await expect(page.locator("text=+19199999999").first()).toBeVisible();
+        await expect(page.locator("text=+19199999999").nth(1)).toBeVisible();
       });
 
       test("Can add Organzer Phone Number location and book with it", async ({ page }) => {
@@ -242,7 +243,7 @@ test.describe("Event Types tests", () => {
         await gotoFirstEventType(page);
 
         await page.getByTestId("location-select").click();
-        await page.locator(`text="Cal Video (Global)"`).click();
+        await page.locator(`text="Cal Video (Default)"`).click();
 
         await saveEventType(page);
         await gotoBookingPage(page);
@@ -277,7 +278,6 @@ test.describe("Event Types tests", () => {
       });
 
       // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
-      // eslint-disable-next-line playwright/no-skipped-test
       test.skip("Can remove location from multiple locations that are saved", async ({ page }) => {
         await gotoFirstEventType(page);
 
@@ -285,7 +285,7 @@ test.describe("Event Types tests", () => {
         await selectAttendeePhoneNumber(page);
 
         // Add Cal Video location
-        await addAnotherLocation(page, "Cal Video (Global)");
+        await addAnotherLocation(page, "Cal Video (Default)");
 
         await saveEventType(page);
 
@@ -317,7 +317,7 @@ test.describe("Event Types tests", () => {
         const locationAddress = "New Delhi";
 
         await fillLocation(page, locationAddress, 0, false);
-        await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+        await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
           action: () => page.locator("[data-testid=update-eventtype]").click(),
         });
 
@@ -422,7 +422,6 @@ test.describe("Event Types tests", () => {
     });
     test("should enable timezone lock in event advanced settings and verify disabled timezone selector on booking page", async ({
       page,
-      users,
     }) => {
       await gotoFirstEventType(page);
       await expect(page.locator("[data-testid=event-title]")).toBeVisible();
@@ -432,7 +431,7 @@ test.describe("Event Types tests", () => {
       await page.locator('[aria-label="Timezone Select"]').fill("New York");
       await page.keyboard.press("Enter");
 
-      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
         action: () => page.locator("[data-testid=update-eventtype]").click(),
       });
       await page.goto("/event-types");
@@ -446,6 +445,37 @@ test.describe("Event Types tests", () => {
       await expect(currentTimezone).toBeVisible();
       await expect(currentTimezone).toHaveClass(/cursor-not-allowed/);
       await expect(page.getByText("New York")).toBeVisible();
+    });
+    test("should create recurring event and successfully book multiple occurrences", async ({ page }) => {
+      const nonce = randomString(3);
+      const eventTitle = `Recurring Event Test ${nonce}`;
+
+      await createNewUserEventType(page, { eventTitle });
+
+      await page.waitForSelector('[data-testid="event-title"]');
+      await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
+      await page.click("[data-testid=vertical-tab-recurring]");
+      await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();
+      await page.click("[data-testid=recurring-event-check]");
+      await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeVisible();
+
+      await page.locator("[data-testid=recurring-event-collapsible] input[type=number]").nth(1).fill("3");
+
+      await saveEventType(page);
+
+      await gotoBookingPage(page);
+
+      await expect(page.locator("[data-testid=occurrence-input]")).toHaveValue("3");
+
+      await selectFirstAvailableTimeSlotNextMonth(page);
+
+      await expect(page.locator("[data-testid=recurring-dates]")).toBeVisible();
+
+      await bookTimeSlot(page, { isRecurringEvent: true });
+
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+      await expect(page.locator("text=3 occurrences")).toBeVisible();
     });
   });
 
@@ -468,6 +498,9 @@ test.describe("Event Types tests", () => {
       });
       await test.step("should open first eventType and check Interface Language", async () => {
         await gotoFirstEventType(page);
+        // Go to Advanced tab
+        await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+        await page.click("[data-testid=event-interface-language-toggle]");
         const interfaceLanguageValue = page
           .getByTestId("event-interface-language")
           .locator('div[class$="-singleValue"]');
@@ -490,6 +523,9 @@ test.describe("Event Types tests", () => {
 
       await test.step("should open first eventType and change Interface Language to Deutsche", async () => {
         await gotoFirstEventType(page);
+        // Go to Advanced tab and enable offerSeats
+        await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+        await page.click("[data-testid=event-interface-language-toggle]");
         await page.getByTestId("event-interface-language").click();
         await page.locator(`text="Deutsch"`).click();
         await saveEventType(page);
@@ -513,7 +549,7 @@ test.describe("Event Types tests", () => {
         await expect(page.locator(`text="Ihr Name"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="E-Mail Adresse"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="Zusätzliche Notizen"`).nth(0)).toBeVisible();
-        await expect(page.locator(`text="+ Weitere Gäste"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Weitere Gäste"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="Zurück"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="Bestätigen"`).nth(0)).toBeVisible();
       });
@@ -546,6 +582,9 @@ test.describe("Event Types tests", () => {
         await page.goto("/event-types");
         await page.waitForSelector('[data-testid="event-types"]');
         await gotoFirstEventType(page);
+        // Go to Advanced tab and enable offerSeats
+        await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+        await page.click("[data-testid=event-interface-language-toggle]");
         await page.getByTestId("event-interface-language").click();
         await page.getByTestId("select-option-es").click();
         await saveEventType(page);

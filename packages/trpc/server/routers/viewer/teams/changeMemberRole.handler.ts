@@ -1,8 +1,6 @@
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
-import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -30,9 +28,15 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
   // Create role manager for this organization/team
   const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
 
-  // Check permission to change roles
+  // Check permission to change roles (includes legacy validation for LegacyRoleManager)
   try {
-    await roleManager.checkPermissionToChangeRole(ctx.user.id, organizationId);
+    await roleManager.checkPermissionToChangeRole(
+      ctx.user.id,
+      input.teamId,
+      "team",
+      input.memberId,
+      input.role
+    );
   } catch (error) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -40,59 +44,15 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
     });
   }
 
-  // For traditional role checks, fall back to existing logic
-  if (
-    typeof input.role === "string" &&
-    Object.values(MembershipRole).includes(input.role as MembershipRole)
-  ) {
-    // Traditional role assignment logic
-    if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-    // Only owners can award owner role.
-    if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  const memberships = await prisma.membership.findMany({
+  // Get the target membership for the assignRole method
+  const targetMembership = await prisma.membership.findUnique({
     where: {
-      teamId: input.teamId,
+      userId_teamId: { userId: input.memberId, teamId: input.teamId },
     },
   });
 
-  const targetMembership = memberships.find((m) => m.userId === input.memberId);
-  const myMembership = memberships.find((m) => m.userId === ctx.user.id);
-  const teamOwners = memberships.filter((m) => m.role === MembershipRole.OWNER);
-  const teamHasMoreThanOneOwner = teamOwners.length > 1;
-
   if (!targetMembership) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Target membership not found" });
-  }
-
-  if (myMembership?.role === MembershipRole.ADMIN && targetMembership?.role === MembershipRole.OWNER) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "You can not change the role of an owner if you are an admin.",
-    });
-  }
-
-  if (targetMembership?.role === MembershipRole.OWNER && !teamHasMoreThanOneOwner) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "You can not change the role of the only owner of a team.",
-    });
-  }
-
-  // TODO(SEAN): Remove this logic once PBAC is rolled out as there is no concept of higher roles for custom roles. Only default.
-  if (
-    myMembership?.role === MembershipRole.ADMIN &&
-    input.memberId === ctx.user.id &&
-    typeof input.role === "string" &&
-    Object.values(MembershipRole).includes(input.role as MembershipRole) &&
-    input.role !== MembershipRole.MEMBER
-  ) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "You can not change yourself to a higher role.",
-    });
   }
 
   // Use role manager to assign the role

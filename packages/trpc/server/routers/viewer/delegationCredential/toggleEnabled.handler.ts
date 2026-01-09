@@ -1,11 +1,11 @@
 import type { z } from "zod";
 
-import { sendDelegationCredentialDisabledEmail } from "@calcom/emails/email-manager";
-import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/lib/delegationCredential/server";
+import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/app-store/delegationCredential";
+import { sendDelegationCredentialDisabledEmail } from "@calcom/emails/integration-email-service";
+import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
-import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
 
 import { getAffectedMembersForDisable } from "./getAffectedMembersForDisable.handler";
 import type { DelegationCredentialToggleEnabledSchema } from "./schema";
@@ -53,6 +53,14 @@ export async function toggleDelegationCredentialEnabled(
     throw new Error("Delegation credential not found");
   }
 
+  if (!loggedInUser.organizationId) {
+    throw new Error("You must be part of an organization to toggle a delegation credential");
+  }
+
+  if (currentDelegationCredential.organizationId !== loggedInUser.organizationId) {
+    throw new Error("Delegation credential not found");
+  }
+
   const shouldBeEnabled = input.enabled;
 
   if (shouldBeEnabled === currentDelegationCredential.enabled) {
@@ -80,7 +88,7 @@ export async function toggleDelegationCredentialEnabled(
     if (slug === "google") {
       calendarAppName = "Google Calendar";
       conferencingAppName = "Google Meet";
-    } else if (slug === "microsoft") {
+    } else if (slug === "office365") {
       calendarAppName = "Microsoft 365";
       conferencingAppName = "Microsoft Teams";
     } else {

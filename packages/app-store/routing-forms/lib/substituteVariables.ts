@@ -1,7 +1,6 @@
-import slugify from "@calcom/lib/slugify";
-
 import type { FormResponse, NonRouterRoute, Field } from "../types/types";
 import getFieldIdentifier from "./getFieldIdentifier";
+import { getHumanReadableFieldResponseValue } from "./responseData/getHumanReadableFieldResponseValue";
 
 /**
  * Substitues variables in the target URL identified by routeValue with values from response
@@ -17,7 +16,7 @@ export const substituteVariables = (
   response: FormResponse,
   fields: Field[]
 ) => {
-  const regex = /\{([^\}]+)\}/g;
+  const regex = /\{([^}]+)\}/g;
   const variables: string[] = routeValue.match(regex)?.map((match: string) => match.slice(1, -1)) || [];
 
   let eventTypeUrl = routeValue;
@@ -30,7 +29,13 @@ export const substituteVariables = (
       }
       const identifier = getFieldIdentifier(field);
       if (identifier.toLowerCase() === variable.toLowerCase()) {
-        eventTypeUrl = eventTypeUrl.replace(`{${variable}}`, slugify(response[key].value.toString() || ""));
+        const humanReadableValues = getHumanReadableFieldResponseValue({
+          field,
+          value: response[key].value,
+        });
+        // ['abc', 'def'] ----toString---> 'abc,def' ----encode---> 'abc%2Cdef'
+        const valueToSubstitute = encodeURIComponent(humanReadableValues.toString());
+        eventTypeUrl = eventTypeUrl.replace(`{${variable}}`, valueToSubstitute);
       }
     }
   });
