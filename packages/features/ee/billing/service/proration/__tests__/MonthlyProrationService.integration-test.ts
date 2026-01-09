@@ -68,6 +68,8 @@ describe("MonthlyProrationService Integration Tests", () => {
         subscriptionStart,
         subscriptionEnd,
         subscriptionTrialEnd,
+        status: "ACTIVE",
+        planName: "TEAM",
       },
     });
   });
@@ -173,6 +175,8 @@ describe("MonthlyProrationService Integration Tests", () => {
         subscriptionStart: new Date("2025-06-01T00:00:00Z"),
         subscriptionEnd: new Date("2026-06-01T00:00:00Z"),
         subscriptionTrialEnd: new Date("2025-06-08T00:00:00Z"),
+        status: "ACTIVE",
+        planName: "TEAM",
       },
     });
 
@@ -195,7 +199,7 @@ describe("MonthlyProrationService Integration Tests", () => {
     const prorationService = new MonthlyProrationService();
     const results = await prorationService.processMonthlyProrations({ monthKey });
 
-    const filteredResults = results.filter(r => [testTeam.id, testTeam2.id].includes(r.teamId));
+    const filteredResults = results.filter((r) => [testTeam.id, testTeam2.id].includes(r.teamId));
     expect(filteredResults).toHaveLength(2);
     expect(filteredResults.every((r) => r.status === "INVOICE_CREATED")).toBe(true);
   });
