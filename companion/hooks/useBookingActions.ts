@@ -275,8 +275,8 @@ export const useBookingActions = ({
    * Show alert and cancel booking (iOS Alert.prompt pattern, Android opens modal)
    */
   const handleCancelBooking = (booking: Booking) => {
-    // For Android, open the cancel modal with AlertDialog
-    if (Platform.OS === "android") {
+    // For Android and Web, open the cancel modal (AlertDialog on Android, content-modal on Web)
+    if (Platform.OS === "android" || Platform.OS === "web") {
       handleOpenCancelModal(booking);
       return;
     }

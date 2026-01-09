@@ -74,7 +74,7 @@ export default function EditAvailabilityDay() {
                   isSaving ? "text-gray-400" : "text-[#007AFF]"
                 }`}
               >
-                {isSaving ? "Saving..." : "Save"}
+                Save
               </Text>
             </HeaderButtonWrapper>
           ),

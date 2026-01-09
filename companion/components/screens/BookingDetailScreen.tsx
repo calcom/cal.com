@@ -10,8 +10,10 @@ import {
   ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
+import { FullScreenModal } from "@/components/FullScreenModal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   AlertDialog,
@@ -293,7 +295,7 @@ export function BookingDetailScreen({
   const handleCancelBooking = useCallback(() => {
     if (!booking) return;
 
-    if (Platform.OS === "android") {
+    if (Platform.OS === "android" || Platform.OS === "web") {
       setCancellationReason("");
       setShowCancelDialog(true);
     } else {
@@ -817,6 +819,73 @@ export function BookingDetailScreen({
           </View>
         )}
       </View>
+
+      {/* Web/Extension: Cancel Event Modal */}
+      {Platform.OS === "web" && (
+        <FullScreenModal
+          visible={showCancelDialog}
+          animationType="fade"
+          onRequestClose={handleCloseCancelDialog}
+        >
+          <View className="flex-1 items-center justify-center bg-black/50 p-4">
+            <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+              <View className="p-6">
+                <View className="flex-row">
+                  {/* Danger icon */}
+                  <View className="mr-3 self-start rounded-full bg-red-50 p-2">
+                    <Ionicons name="alert-circle" size={20} color="#800000" />
+                  </View>
+
+                  {/* Title and description */}
+                  <View className="flex-1">
+                    <Text className="mb-2 text-xl font-semibold text-gray-900">Cancel Event</Text>
+                    <Text className="text-sm leading-5 text-gray-600">
+                      Are you sure you want to cancel "{booking?.title}"? Cancellation reason will
+                      be shared with guests.
+                    </Text>
+
+                    {/* Reason Input */}
+                    <View className="mt-4">
+                      <Text className="mb-2 text-sm font-medium text-gray-700">
+                        Reason for cancellation
+                      </Text>
+                      <TextInput
+                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900"
+                        placeholder="Why are you cancelling?"
+                        placeholderTextColor="#9CA3AF"
+                        value={cancellationReason}
+                        onChangeText={setCancellationReason}
+                        multiline
+                        numberOfLines={3}
+                        textAlignVertical="top"
+                        style={{ minHeight: 80 }}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* Buttons */}
+              <View className="flex-row-reverse gap-2 px-6 pb-6 pt-2">
+                <TouchableOpacity
+                  className="rounded-lg px-4 py-2.5"
+                  style={{ backgroundColor: "#111827" }}
+                  onPress={handleConfirmCancel}
+                >
+                  <Text className="text-center text-base font-medium text-white">Cancel Event</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2.5"
+                  onPress={handleCloseCancelDialog}
+                >
+                  <Text className="text-center text-base font-medium text-gray-700">Nevermind</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </FullScreenModal>
+      )}
 
       {/* Cancel Event AlertDialog (Android only) */}
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>

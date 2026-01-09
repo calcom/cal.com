@@ -93,7 +93,7 @@ export default function EditAvailabilityName() {
                   isSaving ? "text-gray-400" : "text-[#007AFF]"
                 }`}
               >
-                {isSaving ? "Saving..." : "Save"}
+                Save
               </Text>
             </HeaderButtonWrapper>
           ),
