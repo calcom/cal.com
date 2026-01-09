@@ -28,7 +28,7 @@ export const deleteClientHandler = async ({ ctx, input }: DeleteClientOptions) =
   const isOwner = existingClient.userId != null && existingClient.userId === ctx.user.id;
 
   if (!isOwner) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "You do not have permission to delete this OAuth client" });
+    throw new TRPCError({ code: "NOT_FOUND", message: "OAuth Client not found" });
   }
 
   await oAuthClientRepository.delete(clientId);

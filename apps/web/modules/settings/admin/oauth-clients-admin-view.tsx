@@ -125,7 +125,7 @@ export default function OAuthClientsAdminView() {
     clientType: client.clientType,
   });
 
-  const NewOAuthClientButton = () => (
+  const newOAuthClientButton = (
     <Button
       color="secondary"
       StartIcon="plus"
@@ -145,7 +145,7 @@ export default function OAuthClientsAdminView() {
     <SettingsHeader
       title={t("oauth_clients_admin")}
       description={t("oauth_clients_admin_description")}
-      CTA={<NewOAuthClientButton />}>
+      CTA={newOAuthClientButton}>
       {hasClients ? (
         <div className="space-y-10">
           <div className="space-y-3">
@@ -180,9 +180,7 @@ export default function OAuthClientsAdminView() {
           Icon="key"
           headline={t("no_oauth_clients")}
           description={t("no_oauth_clients_admin_description")}
-          buttonRaw={
-            <NewOAuthClientButton />
-          }
+          buttonRaw={newOAuthClientButton}
         />
       )}
 

@@ -120,7 +120,7 @@ export const OAuthClientCreateDialog = ({
             <OAuthClientFormFields form={form} logo={logo} setLogo={setLogo} />
 
             <DialogFooter>
-              <DialogClose onClick={handleClose}>{t("close")}</DialogClose>
+              <DialogClose>{t("close")}</DialogClose>
               <Button type="submit" loading={isSubmitting}>
                 {submitLabel}
               </Button>

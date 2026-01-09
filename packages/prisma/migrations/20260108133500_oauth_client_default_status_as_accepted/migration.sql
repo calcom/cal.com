@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "public"."OAuthClient" ALTER COLUMN "approvalStatus" SET DEFAULT 'approved';
+ALTER TABLE "public"."OAuthClient" ALTER COLUMN "approvalStatus" SET DEFAULT 'pending';

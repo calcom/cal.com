@@ -71,7 +71,8 @@ export const updateClientStatusHandler = async ({
     isOwner &&
     ((name !== undefined && name !== existingClient.name) ||
       (logo !== undefined && (logo ?? null) !== (existingClient.logo ?? null)) ||
-      (websiteUrl !== undefined && (websiteUrl ?? null) !== (existingClient.websiteUrl ?? null)));
+      (websiteUrl !== undefined && (websiteUrl ?? null) !== (existingClient.websiteUrl ?? null)) ||
+      (redirectUri !== undefined && redirectUri !== existingClient.redirectUri));
 
   const nextApprovalStatus: OAuthClientApprovalStatus =
     status ?? (triggersReapprovalForOwnerEdit ? "PENDING" : existingClient.approvalStatus);
