@@ -17,9 +17,13 @@ on:
   # in case manual trigger is needed
   workflow_dispatch:
     inputs:
+      BUILD_FROM_BRANCH:
+        description: "Build from the selected branch instead of a tag"
+        type: boolean
+        default: false
       RELEASE_TAG:
-        description: "Tag to build (e.g., v6.0.5)"
-        required: true
+        description: "Tag to build (e.g., v6.0.5) - required if BUILD_FROM_BRANCH is false"
+        required: false
       PUSH_IMAGE:
         description: "Push the Docker image to DockerHub"
         type: boolean
@@ -30,15 +34,28 @@ jobs:
     name: "Release AMD64"
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
+      - name: Validate inputs
+        if: github.event_name == 'workflow_dispatch' && inputs.BUILD_FROM_BRANCH == false && inputs.RELEASE_TAG == ''
+        run: |
+          echo "::error::RELEASE_TAG is required when BUILD_FROM_BRANCH is false"
+          exit 1
+
       - name: checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.RELEASE_TAG || github.ref }}
+          ref: ${{ (github.event_name == 'workflow_dispatch' && inputs.BUILD_FROM_BRANCH) && github.ref || inputs.RELEASE_TAG || github.ref }}
 
       - name: "Determine tag"
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "RELEASE_TAG=${{ inputs.RELEASE_TAG }}" >> $GITHUB_ENV
+            if [ "${{ inputs.BUILD_FROM_BRANCH }}" = "true" ]; then
+              # Extract branch name and short SHA for the tag
+              BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+              SHORT_SHA=$(git rev-parse --short HEAD)
+              echo "RELEASE_TAG=${BRANCH_NAME}-${SHORT_SHA}" >> $GITHUB_ENV
+            else
+              echo "RELEASE_TAG=${{ inputs.RELEASE_TAG }}" >> $GITHUB_ENV
+            fi
           else
             echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           fi
@@ -84,15 +101,28 @@ jobs:
     name: "Release ARM"
     runs-on: ubuntu-24.04-arm
     steps:
+      - name: Validate inputs
+        if: github.event_name == 'workflow_dispatch' && inputs.BUILD_FROM_BRANCH == false && inputs.RELEASE_TAG == ''
+        run: |
+          echo "::error::RELEASE_TAG is required when BUILD_FROM_BRANCH is false"
+          exit 1
+
       - name: checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.RELEASE_TAG || github.ref }}
+          ref: ${{ (github.event_name == 'workflow_dispatch' && inputs.BUILD_FROM_BRANCH) && github.ref || inputs.RELEASE_TAG || github.ref }}
 
       - name: "Determine tag"
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "RELEASE_TAG=${{ inputs.RELEASE_TAG }}" >> $GITHUB_ENV
+            if [ "${{ inputs.BUILD_FROM_BRANCH }}" = "true" ]; then
+              # Extract branch name and short SHA for the tag
+              BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+              SHORT_SHA=$(git rev-parse --short HEAD)
+              echo "RELEASE_TAG=${BRANCH_NAME}-${SHORT_SHA}" >> $GITHUB_ENV
+            else
+              echo "RELEASE_TAG=${{ inputs.RELEASE_TAG }}" >> $GITHUB_ENV
+            fi
           else
             echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           fi
