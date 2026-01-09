@@ -4,10 +4,10 @@ import { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
-import { Calendar } from "@calcom/features/calendars/weeklyview";
+import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
-import { useBanners } from "@calcom/features/shell/banners/useBanners";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
+import { useBanners } from "@calcom/web/modules/shell/banners/useBanners";
 
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";

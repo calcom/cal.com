@@ -2,7 +2,8 @@ import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppD
 import { getTranslate } from "app/_utils";
 
 import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
-import Shell from "@calcom/features/shell/Shell";
+
+import Shell from "~/shell/Shell";
 
 import UpgradeTipWrapper from "./UpgradeTipWrapper";
 
