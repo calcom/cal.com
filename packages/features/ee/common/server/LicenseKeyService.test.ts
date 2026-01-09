@@ -1,8 +1,8 @@
 import "@calcom/testing/lib/__mocks__/prisma";
 
+import process from "node:process";
 import * as cache from "memory-cache";
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getDeploymentKey, getDeploymentSignatureToken } from "../../deployment/lib/getDeploymentKey";
 import { NoopLicenseKeyService } from "./LicenseKeyService";
 import { createSignature, generateNonce } from "./private-api-utils";
@@ -152,7 +152,7 @@ describe("LicenseKeyService", () => {
     it("should fetch license validity from API if not cached", async () => {
       const url = `${baseUrl}/v1/license/${licenseKey}`;
       vi.mocked(cache.get).mockReturnValue(null);
-      const mockResponse = { status: true };
+      const mockResponse = { valid: true };
       const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue({
         json: vi.fn().mockResolvedValue(mockResponse),
       } as any);
