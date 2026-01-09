@@ -141,6 +141,7 @@ function Field({
             <TextField
               disabled={!!router}
               label={t("identifier_url_parameter")}
+              hint={t("identifier_url_parameter_hint")}
               name={`${hookFieldNamespace}.identifier`}
               required
               placeholder={t("identifies_name_field")}
