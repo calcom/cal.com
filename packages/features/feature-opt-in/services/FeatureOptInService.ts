@@ -1,7 +1,8 @@
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
-import { OPT_IN_FEATURES } from "../config";
+import type { OptInFeaturePolicy } from "../config";
+import { getOptInFeatureConfig, OPT_IN_FEATURES } from "../config";
 import { applyAutoOptIn } from "../lib/applyAutoOptIn";
 import type { EffectiveStateReason } from "../lib/computeEffectiveState";
 import { computeEffectiveStateAcrossTeams } from "../lib/computeEffectiveState";
@@ -38,7 +39,6 @@ type ListFeaturesForTeamResult = {
   teamState: FeatureState;
   orgState: FeatureState;
 };
-
 
 function getOrgState(orgId: number | null, teamStatesById: Record<number, FeatureState>): FeatureState {
   if (orgId !== null) {
@@ -165,11 +165,16 @@ export class FeatureOptInService {
       userAutoOptIn,
     });
 
+    // Get the policy for this feature from the config
+    const featureConfig = getOptInFeatureConfig(featureId);
+    const policy: OptInFeaturePolicy = featureConfig?.policy ?? "permissive";
+
     const { enabled: effectiveEnabled, reason: effectiveReason } = computeEffectiveStateAcrossTeams({
       globalEnabled,
       orgState: effectiveOrgState,
       teamStates: effectiveTeamStates,
       userState: effectiveUserState,
+      policy,
     });
 
     return {
