@@ -63,7 +63,10 @@ export default class HubspotCalendarService implements CRM {
       })
       .join("<br><br>");
 
-    return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
+    const organizerName = event.organizer.name || event.organizer.email;
+    const organizerInfo = `<b>${event.organizer.language.translate("organizer")}:</b> ${organizerName} (${event.organizer.email})`;
+
+    return `${organizerInfo}<br><br><b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
       event.attendees[0].timeZone
     }<br><br>${
       event.additionalNotes
