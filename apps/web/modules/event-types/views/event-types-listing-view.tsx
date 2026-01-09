@@ -116,7 +116,7 @@ interface InfiniteTeamsTabProps {
   activeEventTypeGroup: InfiniteEventTypeGroup;
 }
 
-const querySchema: z.ZodType<{ teamId: number | null }> = z.object({
+const querySchema = z.object({
   teamId: z.nullable(z.coerce.number()).optional().default(null),
 });
 
@@ -324,7 +324,7 @@ export const InfiniteEventTypeList = ({
 
   const utils = trpc.useUtils();
   const mutation = trpc.viewer.loggedInViewerRouter.eventTypeOrder.useMutation({
-    onError: async (err: Error): Promise<void> => {
+    onError: async (err) => {
       console.error(err.message);
       // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
@@ -332,12 +332,7 @@ export const InfiniteEventTypeList = ({
   });
 
   const setHiddenMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
-    onMutate: async (data: {
-      id: number;
-      hidden?: boolean;
-    }): Promise<{
-      previousValue: unknown;
-    }> => {
+    onMutate: async (data: { id: number; hidden?: boolean }) => {
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
       const previousValue =
         utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
@@ -377,11 +372,7 @@ export const InfiniteEventTypeList = ({
 
       return { previousValue };
     },
-    onError: async (
-      err: Error,
-      _: { id: number; hidden?: boolean },
-      context: { previousValue: unknown } | undefined
-    ): Promise<void> => {
+    onError: async (err, _, context) => {
       if (context?.previousValue) {
         utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
           {
@@ -389,7 +380,7 @@ export const InfiniteEventTypeList = ({
             searchQuery: debouncedSearchTerm,
             group: { teamId: group?.teamId, parentId: group?.parentId },
           },
-          context.previousValue
+          () => context.previousValue
         );
       }
       console.error(err.message);

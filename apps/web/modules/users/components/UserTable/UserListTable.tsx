@@ -312,7 +312,8 @@ function UserListTableContent({
         size: 200,
         header: t("members"),
         cell: ({ row }: CellContext<UserTableUser, unknown>) => {
-          const { username, email, avatarUrl } = row.original;
+          const { username, name, email, avatarUrl } = row.original;
+          const displayName = name || username || "No username";
           return (
             <div className="flex items-center gap-2">
               <Avatar
