@@ -179,12 +179,6 @@ export class SlotsController_2024_04_15 {
       // Or if explicitly disabled via specific env var
       const shouldUseAvailableSlotsService =
         this.config.get<boolean>("e2e") || !this.config.get<boolean>("enableSlotsWorkers");
-      console.log(
-        "shouldUseAvailableSlotsService",
-        shouldUseAvailableSlotsService,
-        this.config.get<boolean>("e2e"),
-        this.config.get<boolean>("enableSlotsWorkers")
-      );
       const slotsArgs = {
         input: {
           ...query,

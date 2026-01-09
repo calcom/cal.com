@@ -138,8 +138,9 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
   }
 
   /**
-   * Processes the next task in the queue if there are available workers.
-   * Assigns a task to an available worker and sets up 'once' listeners for its specific result.
+   * Converts the request context into a serializable format for worker communication.
+   * @param ctx The context from GetScheduleOptions containing request data.
+   * @returns A serializable context object with cookies and headers, or undefined.
    */
   private getSerializableContext(ctx: GetScheduleOptions["ctx"]): WorkerMessage["ctx"] {
     if (!ctx) {
