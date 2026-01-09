@@ -14,6 +14,17 @@ vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
         currency: "usd",
       }),
     },
+    subscriptions: {
+      retrieve: vi.fn().mockResolvedValue({
+        items: {
+          data: [
+            {
+              quantity: 1,
+            },
+          ],
+        },
+      }),
+    },
   },
 }));
 
