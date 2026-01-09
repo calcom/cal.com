@@ -439,6 +439,14 @@ export function generateNewChildEventTypeDataForDB({
     .pick(unlockedManagedEventTypePropsForZod)
     .parse(eventType);
 
+  // Check if hidden field is locked (not in unlockedFields means it's locked)
+  const unlockedFields = (
+    managedEventTypeValues.metadata as {
+      managedEventConfig?: { unlockedFields?: Record<string, boolean> };
+    } | null
+  )?.managedEventConfig?.unlockedFields;
+  const isHiddenFieldUnlocked = unlockedFields?.hidden === true;
+
   // Calculate if there are new workflows for which assigned members will get too
   const currentWorkflowIds = Array.isArray(eventType.workflows)
     ? eventType.workflows.map((wf) => wf.workflowId)
@@ -462,7 +470,7 @@ export function generateNewChildEventTypeDataForDB({
       },
     }),
     parentId: eventType.id,
-    hidden: false,
+    hidden: isHiddenFieldUnlocked ? false : (eventType.hidden ?? false),
     ...(includeWorkflow && {
       workflows: currentWorkflowIds && {
         create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
