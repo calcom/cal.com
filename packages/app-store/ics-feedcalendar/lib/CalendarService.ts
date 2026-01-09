@@ -9,6 +9,7 @@ import type {
   IntegrationCalendar,
   EventBusyDate,
   CalendarEvent,
+  GetAvailabilityParams,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -134,11 +135,8 @@ export default class ICSFeedCalendarService implements Calendar {
     return selectedCalendars[0].userId || null;
   };
 
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     const startISOString = new Date(dateFrom).toISOString();
 
     const calendars = await this.fetchCalendars();
