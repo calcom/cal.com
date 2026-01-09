@@ -50,9 +50,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     //if UTM INFO in cookie exists and not already set
     if (req.cookies.utm_params && !isPrismaObjOrUndefined(user.metadata)?.utm) {
       const _cookiesFromReq = req.cookies;
+      const parsedUtm = _cookiesFromReq.utm_params && JSON.parse(_cookiesFromReq.utm_params);
       user.metadata = {
         ...(typeof user.metadata === "object" && user.metadata !== null ? user.metadata : {}),
-        utm: _cookiesFromReq.utm_params,
+        ...(parsedUtm && { utm: parsedUtm }),
       };
       await userRepo.updateWhereId({
         whereId: user.id,
