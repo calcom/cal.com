@@ -1,10 +1,11 @@
 import type { User as UserAuth } from "next-auth";
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
-import { IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
+import { IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER, ENABLE_SIDEBAR_TIPS } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserPermissionRole } from "@calcom/prisma/enums";
@@ -22,6 +23,11 @@ import { Navigation } from "./navigation/Navigation";
 import { useBottomNavItems } from "./useBottomNavItems";
 import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";
 import { UserDropdown } from "./user-dropdown/UserDropdown";
+
+// need to import without ssr to prevent hydration errors
+const Tips = dynamic(() => import("./Tips").then((mod) => mod.default), {
+  ssr: false,
+});
 
 export type SideBarContainerProps = {
   bannersHeight: number;
@@ -131,6 +137,11 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
 
         {!isPlatformPages && (
           <div className="md:px-2 md:pb-4 lg:p-0">
+            {ENABLE_SIDEBAR_TIPS && (
+              <div className="overflow-hidden">
+                <Tips />
+              </div>
+            )}
             {bottomNavItems.map((item, index) => (
               <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
                 <ButtonOrLink
