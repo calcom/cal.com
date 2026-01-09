@@ -10,6 +10,7 @@ import type {
   CalendarEvent,
   CalEventResponses,
   Person,
+  RecurringEvent,
   TeamMember,
   VideoCallData,
 } from "@calcom/types/Calendar";
@@ -175,9 +176,9 @@ export const getDescription = (t: TFunction, description?: string | null) => {
 };
 
 export const getLocation = (calEvent: {
-  videoCallData?: VideoCallData;
+  videoCallData?: { type?: string; url?: string };
   additionalInformation?: AdditionalInformation;
-  location?: string;
+  location?: string | null;
   uid?: string | null;
 }) => {
   const meetingUrl = getVideoCallUrlFromCalEvent(calEvent);
@@ -205,7 +206,10 @@ export const getProviderName = (location?: string | null): string => {
 };
 
 export const getUid = (uid?: string | null): string => {
-  return uid ?? translator.fromUUID(uuidv5(JSON.stringify(uid), uuidv5.URL));
+  // If uid is provided, return it. Otherwise generate a random short UUID as fallback.
+  // Note: The original implementation used JSON.stringify(calEvent) for deterministic fallback,
+  // but with narrow inputs we can't do that. In practice, uid should always be set.
+  return uid ?? translator.new();
 };
 
 const getSeatReferenceId = (attendeeSeatId?: string): string => {
@@ -239,7 +243,7 @@ export const getPlatformManageLink = (
     platformCancelUrl?: string | null;
     type: string;
     organizer: Person;
-    recurringEvent?: boolean;
+    recurringEvent?: RecurringEvent | null;
     bookerUrl?: string | null;
     uid?: string | null;
     attendeeSeatId?: string;
@@ -284,7 +288,7 @@ export const getManageLink = (
     platformRescheduleUrl?: string | null;
     type: string;
     organizer: Person;
-    recurringEvent?: boolean;
+    recurringEvent?: RecurringEvent | null;
     bookerUrl?: string | null;
     uid?: string | null;
     attendeeSeatId?: string;
@@ -308,7 +312,7 @@ export const getPlatformCancelLink = (
     platformCancelUrl?: string | null;
     type: string;
     organizer: Person;
-    recurringEvent?: boolean;
+    recurringEvent?: RecurringEvent | null;
     bookerUrl?: string | null;
     uid?: string | null;
     attendeeSeatId?: string;
@@ -340,7 +344,7 @@ export const getCancelLink = (
     platformCancelUrl?: string | null;
     type: string;
     organizer: Person;
-    recurringEvent?: boolean;
+    recurringEvent?: RecurringEvent | null;
     bookerUrl?: string | null;
     uid?: string | null;
     attendeeSeatId?: string;
@@ -455,9 +459,9 @@ type RichDescriptionCalEvent = {
   appsStatus?: AppsStatus[] | null;
   manageLink?: string | null;
   hideOrganizerEmail?: boolean;
-  videoCallData?: VideoCallData;
+  videoCallData?: { type?: string; url?: string };
   additionalInformation?: AdditionalInformation;
-  location?: string;
+  location?: string | null;
   uid?: string | null;
 }
 
@@ -620,16 +624,16 @@ export const getPublicVideoCallUrl = (uid?: string | null): string => {
 };
 
 export const getVideoCallUrlFromCalEvent = (calEvent: {
-  videoCallData?: VideoCallData;
+  videoCallData?: { type?: string; url?: string };
   additionalInformation?: AdditionalInformation;
-  location?: string;
+  location?: string | null;
   uid?: string | null;
 }): string => {
   if (calEvent.videoCallData) {
-    if (isDailyVideoCall(calEvent.videoCallData)) {
+    if (calEvent.videoCallData.type === "daily_video") {
       return getPublicVideoCallUrl(calEvent.uid);
     }
-    return calEvent.videoCallData.url;
+    return calEvent.videoCallData.url ?? "";
   }
   if (calEvent.additionalInformation?.hangoutLink) {
     return calEvent.additionalInformation.hangoutLink;

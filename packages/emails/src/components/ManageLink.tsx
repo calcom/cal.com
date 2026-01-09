@@ -11,7 +11,7 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
       platformCancelUrl: props.calEvent.platformCancelUrl,
       type: props.calEvent.type,
       organizer: props.calEvent.organizer,
-      recurringEvent: props.calEvent.recurringEvent ? true : false,
+      recurringEvent: props.calEvent.recurringEvent,
       bookerUrl: props.calEvent.bookerUrl,
       uid: props.calEvent.uid,
       attendeeSeatId: props.calEvent.attendeeSeatId,
