@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
-import { Alert, ScrollView, Switch, Text, View } from "react-native";
+import { Alert, Platform, ScrollView, Switch, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import { FullScreenModal } from "@/components/FullScreenModal";
@@ -8,6 +8,7 @@ import type { Schedule } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
 import type { ScheduleAvailability } from "@/services/types";
 import { showErrorAlert } from "@/utils/alerts";
+import { shadows } from "@/utils/shadows";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -179,6 +180,57 @@ export const EditAvailabilityDayScreen = forwardRef<
 
   const dayName = DAYS[dayIndex] || "Day";
 
+  // Render modal content
+  const renderTimePickerContent = () => (
+    <>
+      <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-4">
+        <Text className="text-[17px] font-semibold">
+          Select {showTimePicker?.type === "start" ? "Start" : "End"} Time
+        </Text>
+        <AppPressable onPress={() => setShowTimePicker(null)}>
+          <Ionicons name="close" size={24} color="#8E8E93" />
+        </AppPressable>
+      </View>
+      <ScrollView className="px-4 py-3">
+        {TIME_OPTIONS.map((time) => {
+          const slotIndex = showTimePicker?.slotIndex ?? 0;
+          const currentTime =
+            showTimePicker?.type === "start"
+              ? slots[slotIndex]?.startTime
+              : slots[slotIndex]?.endTime;
+          const isSelected = currentTime === time;
+
+          return (
+            <AppPressable key={time} onPress={() => handleTimeSelect(time)}>
+              <View
+                className={`mb-2.5 rounded-xl border-2 px-4 py-4 ${
+                  isSelected
+                    ? "border-[#007AFF] bg-blue-50 shadow-md"
+                    : "border-gray-200 bg-gray-50"
+                }`}
+              >
+                <View className="flex-row items-center justify-between">
+                  <Text
+                    className={`text-[17px] ${
+                      isSelected ? "font-semibold text-[#007AFF]" : "font-medium text-gray-900"
+                    }`}
+                  >
+                    {formatTime12Hour(time)}
+                  </Text>
+                  {isSelected && (
+                    <View className="rounded-full bg-[#007AFF] p-1.5">
+                      <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                    </View>
+                  )}
+                </View>
+              </View>
+            </AppPressable>
+          );
+        })}
+      </ScrollView>
+    </>
+  );
+
   // Initialize from schedule
   useEffect(() => {
     if (schedule) {
@@ -308,7 +360,7 @@ export const EditAvailabilityDayScreen = forwardRef<
       }}
     >
       {/* Enable/Disable Toggle */}
-      <View className="mb-4 flex-row items-center justify-between rounded-lg border border-gray-200 px-4 py-3.5">
+      <View className="mb-4 flex-row items-center justify-between rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3.5">
         <Text className="text-[17px] font-medium text-black">Available on {dayName}</Text>
         <Switch
           value={isEnabled}
@@ -326,59 +378,117 @@ export const EditAvailabilityDayScreen = forwardRef<
           {slots.map((slot, index) => (
             <View
               key={`slot-${slot.startTime}-${slot.endTime}-${index}`}
-              className="mb-3 rounded-lg border border-gray-200 px-4 py-3"
+              className="mb-3 rounded-xl border-2 border-gray-200 bg-white px-4 py-4"
             >
               <View className="flex-row items-center justify-between">
                 <Text className="text-[15px] font-medium text-gray-500">Slot {index + 1}</Text>
                 {slots.length > 1 && (
-                  <AppPressable onPress={() => handleRemoveSlot(index)} className="p-1">
-                    <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                  <AppPressable
+                    onPress={() => handleRemoveSlot(index)}
+                    className="rounded-full bg-red-50 p-2"
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#FF3B30" />
                   </AppPressable>
                 )}
               </View>
 
               <View className="mt-3 flex-row items-center">
-                <AppPressable
-                  className="flex-1 rounded-lg bg-gray-100 px-3 py-2"
-                  onPress={() => setShowTimePicker({ slotIndex: index, type: "start" })}
-                >
-                  <Text className="text-[13px] text-gray-500">Start</Text>
-                  <Text className="text-[17px] text-black">{formatTime12Hour(slot.startTime)}</Text>
-                </AppPressable>
+                {Platform.OS === "web" ? (
+                  <View className="flex-1 rounded-lg bg-gray-50 px-3 py-2.5 border border-gray-100">
+                    <Text className="text-[13px] text-gray-500">Start</Text>
+                    <input
+                      type="time"
+                      value={slot.startTime}
+                      onChange={(e) => {
+                        const newSlots = [...slots];
+                        newSlots[index] = { ...newSlots[index], startTime: e.target.value };
+                        setSlots(newSlots);
+                      }}
+                      style={{
+                        fontSize: 17,
+                        fontWeight: 500,
+                        color: "#000",
+                        backgroundColor: "transparent",
+                        border: "none",
+                        outline: "none",
+                        fontFamily: "inherit",
+                        width: "100%",
+                      }}
+                    />
+                  </View>
+                ) : (
+                  <AppPressable
+                    className="flex-1 rounded-lg bg-gray-50 px-3 py-2.5 border border-gray-100"
+                    onPress={() => setShowTimePicker({ slotIndex: index, type: "start" })}
+                  >
+                    <Text className="text-[13px] text-gray-500">Start</Text>
+                    <Text className="text-[17px] font-medium text-black">
+                      {formatTime12Hour(slot.startTime)}
+                    </Text>
+                  </AppPressable>
+                )}
 
                 <Text className="mx-3 text-[17px] text-gray-400">–</Text>
 
-                <AppPressable
-                  className="flex-1 rounded-lg bg-gray-100 px-3 py-2"
-                  onPress={() => setShowTimePicker({ slotIndex: index, type: "end" })}
-                >
-                  <Text className="text-[13px] text-gray-500">End</Text>
-                  <Text className="text-[17px] text-black">{formatTime12Hour(slot.endTime)}</Text>
-                </AppPressable>
+                {Platform.OS === "web" ? (
+                  <View className="flex-1 rounded-lg bg-gray-50 px-3 py-2.5 border border-gray-100">
+                    <Text className="text-[13px] text-gray-500">End</Text>
+                    <input
+                      type="time"
+                      value={slot.endTime}
+                      onChange={(e) => {
+                        const newSlots = [...slots];
+                        newSlots[index] = { ...newSlots[index], endTime: e.target.value };
+                        setSlots(newSlots);
+                      }}
+                      style={{
+                        fontSize: 17,
+                        fontWeight: 500,
+                        color: "#000",
+                        backgroundColor: "transparent",
+                        border: "none",
+                        outline: "none",
+                        fontFamily: "inherit",
+                        width: "100%",
+                      }}
+                    />
+                  </View>
+                ) : (
+                  <AppPressable
+                    className="flex-1 rounded-lg bg-gray-50 px-3 py-2.5 border border-gray-100"
+                    onPress={() => setShowTimePicker({ slotIndex: index, type: "end" })}
+                  >
+                    <Text className="text-[13px] text-gray-500">End</Text>
+                    <Text className="text-[17px] font-medium text-black">
+                      {formatTime12Hour(slot.endTime)}
+                    </Text>
+                  </AppPressable>
+                )}
               </View>
             </View>
           ))}
 
           {/* Add Slot Button */}
-          <AppPressable
-            onPress={handleAddSlot}
-            className="flex-row items-center justify-center rounded-lg border border-dashed border-gray-300 py-3.5"
-          >
-            <Ionicons name="add-circle" size={20} color="#007AFF" />
-            <Text className="ml-2 text-[15px] font-medium text-[#007AFF]">Add Time Slot</Text>
+          <AppPressable onPress={handleAddSlot}>
+            <View className="flex-row items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 py-4">
+              <Ionicons name="add-circle" size={22} color="#007AFF" />
+              <Text className="ml-2 text-[17px] font-medium text-[#007AFF]">Add Time Slot</Text>
+            </View>
           </AppPressable>
         </>
       )}
 
       {/* Unavailable Message */}
       {!isEnabled && (
-        <View className="items-center rounded-lg border border-gray-200 px-4 py-8">
-          <Ionicons name="moon-outline" size={40} color="#8E8E93" />
-          <Text className="mt-3 text-center text-[17px] text-gray-500">
-            You are unavailable on {dayName}
+        <View className="items-center rounded-xl border-2 border-dashed border-gray-200 px-4 py-12">
+          <View className="items-center justify-center rounded-full bg-gray-50 p-4">
+            <Ionicons name="moon-outline" size={32} color="#9CA3AF" />
+          </View>
+          <Text className="mt-4 text-center text-[17px] font-medium text-gray-900">
+            Unavailable
           </Text>
-          <Text className="mt-1 text-center text-[15px] text-gray-400">
-            Toggle on to set availability
+          <Text className="mt-1 text-center text-[15px] text-gray-500">
+            You are currently unavailable on {dayName}.{"\n"}Toggle the switch above to add hours.
           </Text>
         </View>
       )}
@@ -386,50 +496,27 @@ export const EditAvailabilityDayScreen = forwardRef<
       {/* Time Picker Modal */}
       <FullScreenModal
         visible={!!showTimePicker}
-        animationType="slide"
+        animationType={Platform.OS === "web" ? "fade" : "slide"}
         onRequestClose={() => setShowTimePicker(null)}
       >
-        <View className="flex-1 bg-white">
-          <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
-            <Text className="text-[17px] font-semibold">
-              Select {showTimePicker?.type === "start" ? "Start" : "End"} Time
-            </Text>
-            <AppPressable onPress={() => setShowTimePicker(null)}>
-              <Ionicons name="close" size={24} color="#8E8E93" />
-            </AppPressable>
-          </View>
-          <ScrollView>
-            {TIME_OPTIONS.map((time) => {
-              const slotIndex = showTimePicker?.slotIndex ?? 0;
-              const currentTime =
-                showTimePicker?.type === "start"
-                  ? slots[slotIndex]?.startTime
-                  : slots[slotIndex]?.endTime;
-              const isSelected = currentTime === time;
-
-              return (
-                <AppPressable
-                  key={time}
-                  onPress={() => handleTimeSelect(time)}
-                  className={`border-b border-gray-100 px-4 py-3.5 ${
-                    isSelected ? "bg-blue-50" : ""
-                  }`}
-                >
-                  <View className="flex-row items-center justify-between">
-                    <Text
-                      className={`text-[17px] ${
-                        isSelected ? "font-medium text-[#007AFF]" : "text-black"
-                      }`}
-                    >
-                      {formatTime12Hour(time)}
-                    </Text>
-                    {isSelected && <Ionicons name="checkmark" size={20} color="#007AFF" />}
-                  </View>
-                </AppPressable>
-              );
-            })}
-          </ScrollView>
-        </View>
+        {Platform.OS === "web" ? (
+          <TouchableOpacity
+            className="flex-1 items-center justify-center bg-black/50 p-4"
+            activeOpacity={1}
+            onPress={() => setShowTimePicker(null)}
+          >
+            <TouchableOpacity
+              className="max-h-[80%] w-full max-w-[500px] overflow-hidden rounded-2xl bg-white p-2"
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+              style={shadows.xl()}
+            >
+              {renderTimePickerContent()}
+            </TouchableOpacity>
+          </TouchableOpacity>
+        ) : (
+          <View className="flex-1 bg-white p-2">{renderTimePickerContent()}</View>
+        )}
       </FullScreenModal>
     </ScrollView>
   );
