@@ -515,8 +515,13 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       }
     },
     deleteRecording: async (recordingId: string): Promise<boolean> => {
-      const res = (await fetcher(`/recordings/${recordingId}`, { method: "DELETE" })) as { deleted?: boolean };
-      return res.deleted === true;
+      try {
+        const res = (await fetcher(`/recordings/${recordingId}`, { method: "DELETE" })) as { deleted?: boolean };
+        return res.deleted === true;
+      } catch (err) {
+        console.error("err", err);
+        throw new Error("Something went wrong! Unable to delete recording");
+      }
     },
   };
 };
