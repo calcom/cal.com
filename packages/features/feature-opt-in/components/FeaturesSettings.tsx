@@ -133,8 +133,8 @@ export function FeaturesSettings({ featureOptIn }: FeaturesSettingsProps): React
   if (isLoading) return <LoadingSkeleton />;
 
   const toggleOptions: ToggleOption[] = [
-    { value: "enabled", label: toggleLabels.enabled },
     { value: "disabled", label: toggleLabels.disabled },
+    { value: "enabled", label: toggleLabels.enabled },
     { value: "inherit", label: toggleLabels.inherit },
   ];
 
