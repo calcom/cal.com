@@ -1570,7 +1570,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           {!isCalAIAction(
             form.getValues(`steps.${step.stepNumber - 1}.action`)
           ) && (
-            <div className="bg-cal-muted border-muted mt-3 rounded-2xl border p-3">
+            <div className="bg-cal-muted border-muted mt-3 rounded-2xl border py-1 px-3">
               {isEmailSubjectNeeded && (
                 <div className="mb-6">
                   <div className="flex items-center">
