@@ -89,6 +89,14 @@ type Input = Pick<
   | "maxActiveBookingPerBookerOfferReschedule"
   | "maxActiveBookingsPerBooker"
   | "maxRoundRobinHosts"
+  | "disableCancelling"
+  | "disableRescheduling"
+  | "minimumRescheduleNotice"
+  | "canSendCalVideoTranscriptionEmails"
+  | "interfaceLanguage"
+  | "allowReschedulingPastBookings"
+  | "allowReschedulingCancelledBookings"
+  | "showOptimizedSlots"
   | "rrHostSubsetEnabled"
 >;
 

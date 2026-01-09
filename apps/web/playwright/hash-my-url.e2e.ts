@@ -47,6 +47,9 @@ test.describe("private links creation and usage", () => {
     });
     // book using generated url hash
     await page.goto($url);
+    await page.waitForURL((url) => {
+      return url.searchParams.get("overlayCalendar") === "true";
+    });
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     // Make sure we're navigated to the success page
@@ -176,6 +179,10 @@ test.describe("private links creation and usage", () => {
 
     // book again using generated url hash
     await page.goto($url);
+    await page.waitForURL((url) => {
+      return url.searchParams.get("overlayCalendar") === "true";
+    });
+  
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     // Make sure we're navigated to the success page
