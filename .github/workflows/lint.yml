@@ -1,11 +1,6 @@
 name: Lint
 on:
   workflow_call:
-    inputs:
-      commit-sha:
-        description: "Commit SHA for cache key"
-        required: true
-        type: string
 permissions:
   actions: write
   contents: read
@@ -14,16 +9,12 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
 
     steps:
-      - name: Restore git checkout from cache
-        uses: actions/cache/restore@v4
+      - uses: actions/checkout@v4
         with:
-          path: |
-            .
-            !.git
-            !node_modules
-            !**/node_modules
-          key: git-checkout-${{ inputs.commit-sha }}
-          fail-on-cache-miss: true
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+        with:
+          mode: restore
       - uses: ./.github/actions/yarn-install
       - name: Run Lint
         run: yarn lint

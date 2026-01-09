@@ -1,11 +1,6 @@
 name: Check types
 on:
   workflow_call:
-    inputs:
-      commit-sha:
-        description: "Commit SHA for cache key"
-        required: true
-        type: string
 env:
   NODE_OPTIONS: --max-old-space-size=4096
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -16,16 +11,12 @@ jobs:
   check-types:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - name: Restore git checkout from cache
-        uses: actions/cache/restore@v4
+      - uses: actions/checkout@v4
         with:
-          path: |
-            .
-            !.git
-            !node_modules
-            !**/node_modules
-          key: git-checkout-${{ inputs.commit-sha }}
-          fail-on-cache-miss: true
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+        with:
+          mode: restore
       - uses: ./.github/actions/yarn-install
       - name: Show info
         run: node -e "console.log(require('v8').getHeapStatistics())"

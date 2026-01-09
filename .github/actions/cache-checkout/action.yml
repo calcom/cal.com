@@ -4,9 +4,6 @@ inputs:
   mode:
     description: "Mode of operation: 'save' to cache the checkout, 'restore' to restore from cache"
     required: true
-  commit-sha:
-    description: "The commit SHA to use as cache key"
-    required: true
 
 runs:
   using: "composite"
@@ -21,7 +18,7 @@ runs:
           !.git
           !node_modules
           !**/node_modules
-        key: git-checkout-${{ inputs.commit-sha }}
+        key: git-checkout-${{ github.event.pull_request.head.sha }}
         fail-on-cache-miss: true
 
     - name: Save git checkout to cache
@@ -33,4 +30,4 @@ runs:
           !.git
           !node_modules
           !**/node_modules
-        key: git-checkout-${{ inputs.commit-sha }}
+        key: git-checkout-${{ github.event.pull_request.head.sha }}

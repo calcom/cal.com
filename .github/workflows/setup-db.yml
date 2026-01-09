@@ -8,10 +8,6 @@ on:
         type: string
         default: "false"
         description: "Whether the DB cache was hit (skip yarn-install and cache-db if true)"
-      commit-sha:
-        description: "Commit SHA for cache key"
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -50,16 +46,12 @@ jobs:
         ports:
           - 5432:5432
     steps:
-      - name: Restore git checkout from cache
-        uses: actions/cache/restore@v4
+      - uses: actions/checkout@v4
         with:
-          path: |
-            .
-            !.git
-            !node_modules
-            !**/node_modules
-          key: git-checkout-${{ inputs.commit-sha }}
-          fail-on-cache-miss: true
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+        with:
+          mode: restore
       - uses: ./.github/actions/yarn-install
         if: inputs.DB_CACHE_HIT != 'true'
       - run: yarn prisma generate

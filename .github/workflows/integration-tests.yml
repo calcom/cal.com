@@ -1,11 +1,6 @@
 name: Integration
 on:
   workflow_call:
-    inputs:
-      commit-sha:
-        description: "Commit SHA for cache key"
-        required: true
-        type: string
 permissions:
   contents: read
 env:
@@ -83,16 +78,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Restore git checkout from cache
-        uses: actions/cache/restore@v4
+      - uses: actions/checkout@v4
         with:
-          path: |
-            .
-            !.git
-            !node_modules
-            !**/node_modules
-          key: git-checkout-${{ inputs.commit-sha }}
-          fail-on-cache-miss: true
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+        with:
+          mode: restore
       - uses: ./.github/actions/yarn-install
       - run: yarn prisma generate
       - uses: ./.github/actions/cache-db
