@@ -132,7 +132,7 @@ jobs:
                   isTargetPR
                 };
               } else if (mergeableStatus === 'UNKNOWN') {
-                return { unknown: true };
+                return { unknown: true, isTargetPR };
               } else {
                 console.log(`PR #${pr.number} has no conflicts (mergeable: ${mergeableStatus})`);
                 return { skip: true };
@@ -147,13 +147,7 @@ jobs:
                 if (result.isTargetPR) break;
               } else if (result.unknown) {
                 console.log(`PR #${pr.number} mergeable status is still being computed`);
-                const isTargetPR = manualPrNumber && pr.number === manualPrNumber;
-                if (!pr.isDraft || isTargetPR) {
-                  const hasDevinLabel = pr.labels.nodes.some(label => label.name === 'devin-conflict-resolution');
-                  if (!hasDevinLabel || isTargetPR) {
-                    unknownPRs.push(pr);
-                  }
-                }
+                unknownPRs.push(pr);
               }
             }
             
