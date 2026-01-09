@@ -5,11 +5,7 @@ export interface OptInFeatureConfig {
   slug: FeatureId;
   titleI18nKey: string;
   descriptionI18nKey: string;
-  /**
-   * Policy that determines how feature opt-in states are evaluated.
-   * Defaults to "permissive" if not specified.
-   */
-  policy?: OptInFeaturePolicy;
+  policy: OptInFeaturePolicy;
 }
 
 /**
@@ -22,6 +18,7 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
   //   slug: "bookings-v3",
   //   titleI18nKey: "bookings_v3_title",
   //   descriptionI18nKey: "bookings_v3_description",
+  //   policy: "permissive",
   // },
 ];
 
