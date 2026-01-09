@@ -32,7 +32,7 @@ import { ImageUploader } from "@calcom/ui/components/image-uploader";
 
 import SkeletonLoader from "../components/SkeletonLoader";
 
-const regex = new RegExp("^[a-zA-Z0-9-]*$");
+const regex = new RegExp("^[a-zA-Z0-9.-]*$");
 
 const teamProfileSchema = z.object({
   id: z.number(),
@@ -71,7 +71,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
     },
   });
 
-  const isDisabled = form.formState.isSubmitting;
+  const isDisabled = form.formState.isSubmitting || !form.formState.isDirty;
 
   const {
     data: team,
