@@ -215,6 +215,9 @@ export const SCANNING_WORKFLOW_STEPS = !!(!IS_SELF_HOSTED && process.env.IFFY_AP
 export const IS_DUB_REFERRALS_ENABLED =
   !!process.env.NEXT_PUBLIC_DUB_PROGRAM_ID && process.env.NEXT_PUBLIC_DUB_PROGRAM_ID !== "";
 
+export const DUB_SMS_DOMAIN = process.env.DUB_SMS_DOMAIN;
+export const DUB_SMS_FOLDER_ID = process.env.DUB_SMS_FOLDER_ID;
+
 export const CAL_VIDEO_MEETING_LINK_FOR_TESTING = process.env.CAL_VIDEO_MEETING_LINK_FOR_TESTING;
 
 export const IS_SMS_CREDITS_ENABLED =

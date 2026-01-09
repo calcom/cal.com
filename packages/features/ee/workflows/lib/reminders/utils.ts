@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { urlShortener } from "@calcom/lib/urlShortener";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { DUB_SMS_DOMAIN, DUB_SMS_FOLDER_ID, WEBSITE_URL } from "@calcom/lib/constants";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -31,9 +31,15 @@ export const getSMSMessageWithVariables = async (
   };
 
   const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
-    await urlShortener.shortenMany([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink], {
-      folderId: "fold_wx3NZDKQYbLDbncSubeMu0ss",
-    });
+    await urlShortener.shortenMany(
+      [urls.meetingUrl, urls.cancelLink, urls.rescheduleLink],
+      process.env.DUB_API_KEY
+        ? {
+            domain: DUB_SMS_DOMAIN,
+            folderId: DUB_SMS_FOLDER_ID,
+          }
+        : undefined
+    );
 
   const timeZone =
     action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSMS.timeZone : evt.organizer.timeZone;

@@ -10,6 +10,7 @@ import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { scheduleSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
+import { DUB_SMS_DOMAIN, DUB_SMS_FOLDER_ID } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -137,9 +138,15 @@ export async function handler(req: NextRequest) {
         };
 
         const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
-          await urlShortener.shortenMany([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink], {
-            folderId: "fold_wx3NZDKQYbLDbncSubeMu0ss",
-          });
+          await urlShortener.shortenMany(
+            [urls.meetingUrl, urls.cancelLink, urls.rescheduleLink],
+            process.env.DUB_API_KEY
+              ? {
+                  domain: DUB_SMS_DOMAIN,
+                  folderId: DUB_SMS_FOLDER_ID,
+                }
+              : undefined
+          );
 
         const variables: VariablesType = {
           eventName: reminder.booking?.eventType?.title,

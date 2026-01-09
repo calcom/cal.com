@@ -27,7 +27,7 @@ export class UrlShortener {
         const linksToShorten = urls.filter((link) => link);
         const dubResults = await dub.links.createMany(
           linksToShorten.map((url) => ({
-            domain: options?.domain || "sms.cal.com",
+            domain: options?.domain,
             url,
             folderId: options?.folderId,
           }))
