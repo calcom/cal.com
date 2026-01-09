@@ -370,7 +370,18 @@ export const sendRescheduledSeatEmailAndSMS = async (
   if (!eventTypeDisableHostEmail(eventTypeMetadata))
     emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent })));
   if (!shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.RESCHEDULED))
-    emailsToSend.push(sendEmail(() => new AttendeeRescheduledEmail(clonedCalEvent, attendee)));
+    emailsToSend.push(
+      sendEmail(
+        () =>
+          new AttendeeRescheduledEmail(
+            {
+              ...clonedCalEvent,
+              ...(clonedCalEvent.hideCalendarNotes && { additionalNotes: undefined }),
+            },
+            attendee
+          )
+      )
+    );
 
   const successfullyReScheduledSMS = new EventSuccessfullyReScheduledSMS(calEvent);
   await successfullyReScheduledSMS.sendSMSToAttendee(attendee);
