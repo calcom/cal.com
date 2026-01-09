@@ -7,10 +7,11 @@ import { handleNoShowFee } from "./handleNoShowFee";
 import { processNoShowFeeOnCancellation } from "./processNoShowFeeOnCancellation";
 import { shouldChargeNoShowCancellationFee } from "./shouldChargeNoShowCancellationFee";
 
+const mockFindUniqueByUserIdAndTeamId = vi.fn();
 vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: {
-    findUniqueByUserIdAndTeamId: vi.fn(),
-  },
+  MembershipRepository: vi.fn().mockImplementation(() => ({
+    findUniqueByUserIdAndTeamId: mockFindUniqueByUserIdAndTeamId,
+  })),
 }));
 
 vi.mock("./handleNoShowFee", () => ({
@@ -165,7 +166,7 @@ describe("processNoShowFeeOnCancellation", () => {
         },
       };
 
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockFindUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 999,
         teamId: 1,
@@ -183,7 +184,7 @@ describe("processNoShowFeeOnCancellation", () => {
         cancelledByUserId: 999,
       });
 
-      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(mockFindUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 999,
         teamId: 1,
       });
@@ -200,7 +201,7 @@ describe("processNoShowFeeOnCancellation", () => {
         },
       };
 
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockFindUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 999,
         teamId: 1,
@@ -231,7 +232,7 @@ describe("processNoShowFeeOnCancellation", () => {
         },
       };
 
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
+      mockFindUniqueByUserIdAndTeamId.mockResolvedValue({
         id: 1,
         userId: 999,
         teamId: 1,
@@ -264,7 +265,7 @@ describe("processNoShowFeeOnCancellation", () => {
         cancelledByUserId: 999,
       });
 
-      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(mockFindUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 999,
         teamId: 1,
       });
@@ -281,7 +282,7 @@ describe("processNoShowFeeOnCancellation", () => {
         },
       };
 
-      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue(null);
+      mockFindUniqueByUserIdAndTeamId.mockResolvedValue(null);
       vi.mocked(shouldChargeNoShowCancellationFee).mockReturnValue(true);
       vi.mocked(handleNoShowFee).mockResolvedValue({
         id: 999,

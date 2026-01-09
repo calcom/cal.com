@@ -6,10 +6,12 @@ import { MembershipRepository } from "@calcom/features/membership/repositories/M
 import type { TrpcSessionUser } from "../../../types";
 import getTeam from "./get.handler";
 
+const mockFindUniqueByUserIdAndTeamId = vi.fn();
+
 vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: {
-    findUniqueByUserIdAndTeamId: vi.fn(),
-  },
+  MembershipRepository: vi.fn().mockImplementation(() => ({
+    findUniqueByUserIdAndTeamId: mockFindUniqueByUserIdAndTeamId,
+  })),
 }));
 
 vi.mock("@calcom/features/ee/teams/lib/queries", () => ({
@@ -33,7 +35,7 @@ describe("getTeam", () => {
   });
 
   it("throws UNAUTHORIZED if user is not a member of the team", async () => {
-    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue(null);
+    mockFindUniqueByUserIdAndTeamId.mockResolvedValue(null);
 
     await expect(getTeam({ ctx: { user }, input })).rejects.toMatchObject({
       code: "UNAUTHORIZED",
@@ -42,7 +44,7 @@ describe("getTeam", () => {
   });
 
   it("throws NOT_FOUND if team does not exist", async () => {
-    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue({
+    mockFindUniqueByUserIdAndTeamId.mockResolvedValue({
       role: "member",
       accepted: true,
     });
@@ -60,7 +62,7 @@ describe("getTeam", () => {
       organization: { isOrgAdmin: true },
     };
 
-    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue({
+    mockFindUniqueByUserIdAndTeamId.mockResolvedValue({
       role: "admin",
       accepted: true,
     });
@@ -89,7 +91,7 @@ describe("getTeam", () => {
       description: "A team",
     };
 
-    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue(membershipData);
+    mockFindUniqueByUserIdAndTeamId.mockResolvedValue(membershipData);
     (getTeamWithoutMembers as any).mockResolvedValue(teamData);
 
     const result = await getTeam({ ctx: { user }, input });
@@ -99,7 +101,7 @@ describe("getTeam", () => {
       membership: membershipData,
     });
 
-    expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+    expect(mockFindUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
       userId: user.id,
       teamId: input.teamId,
     });
