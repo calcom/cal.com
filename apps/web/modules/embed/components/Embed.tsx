@@ -21,7 +21,7 @@ import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import DatePicker from "@calcom/web/modules/calendars/components/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components";
 import type { Slot } from "@calcom/web/modules/schedules/hooks/types";
 import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
 import { useSlotsForDate } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";

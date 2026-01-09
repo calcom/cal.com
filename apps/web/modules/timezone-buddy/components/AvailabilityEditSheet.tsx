@@ -1,7 +1,7 @@
 import { useFieldArray, useForm, useFormContext } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components";
 import DateOverrideInputDialog from "@calcom/web/modules/schedules/components/DateOverrideInputDialog";
 import DateOverrideList from "@calcom/web/modules/schedules/components/DateOverrideList";
 import Schedule from "@calcom/web/modules/schedules/components/Schedule";
