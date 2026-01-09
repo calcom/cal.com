@@ -18,13 +18,13 @@ jobs:
       - name: Create Devin session
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          REPO_NAME: ${{ github.repository }}
         run: |
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
-          PR_BRANCH="${{ github.event.pull_request.head.ref }}"
-          
-          FULL_PROMPT="You are completing a stale community PR #${PR_NUMBER} in repository ${{ github.repository }}.
+          FULL_PROMPT="You are completing a stale community PR #${PR_NUMBER} in repository ${REPO_NAME}.
 
           This PR was started by @${PR_AUTHOR} but has become stale. Your job is to complete it.
 
@@ -32,7 +32,7 @@ jobs:
           PR Branch: ${PR_BRANCH}
 
           Your tasks:
-          1. Clone the repository ${{ github.repository }} locally.
+          1. Clone the repository ${REPO_NAME} locally.
           2. Check out the PR branch: ${PR_BRANCH}
           3. Review the current state of the PR and understand what it's trying to accomplish.
           4. Read the PR description and any comments/review feedback on the PR.
@@ -78,11 +78,13 @@ jobs:
       - name: Post comment with Devin session link
         if: env.SESSION_URL != ''
         uses: actions/github-script@v7
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const sessionUrl = process.env.SESSION_URL;
-            const prAuthor = '${{ github.event.pull_request.user.login }}';
+            const prAuthor = process.env.PR_AUTHOR;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
