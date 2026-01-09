@@ -14,6 +14,17 @@ vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
         currency: "usd",
       }),
     },
+    invoices: {
+      create: vi.fn().mockResolvedValue({
+        id: "in_test_123",
+        customer: "cus_test_123",
+        auto_advance: true,
+      }),
+      finalizeInvoice: vi.fn().mockResolvedValue({
+        id: "in_test_123",
+        status: "open",
+      }),
+    },
     subscriptions: {
       retrieve: vi.fn().mockResolvedValue({
         items: {
