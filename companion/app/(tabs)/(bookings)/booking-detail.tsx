@@ -1,9 +1,9 @@
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { Alert } from "react-native";
 import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
 import { useAuth } from "@/contexts/AuthContext";
-import { type Booking, CalComAPIService } from "@/services/calcom";
+import { useBookingByUid } from "@/hooks/useBookings";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 
 // Empty actions result for when no booking is loaded
@@ -33,7 +33,9 @@ export default function BookingDetail() {
   "use no memo";
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const { userInfo } = useAuth();
-  const [booking, setBooking] = useState<Booking | null>(null);
+
+  // Use React Query hook for booking data - single source of truth
+  const { data: booking, isLoading, error, refetch, isRefetching } = useBookingByUid(uid);
 
   // Ref to store action handlers from BookingDetailScreen
   const actionHandlersRef = useRef<ActionHandlers | null>(null);
@@ -42,17 +44,6 @@ export default function BookingDetail() {
   const handleActionsReady = useCallback((handlers: ActionHandlers) => {
     actionHandlersRef.current = handlers;
   }, []);
-
-  // Fetch booking data for the iOS header menu actions
-  useEffect(() => {
-    if (uid) {
-      CalComAPIService.getBookingByUid(uid)
-        .then(setBooking)
-        .catch(() => {
-          // Error handling is done in BookingDetailScreen
-        });
-    }
-  }, [uid]);
 
   // Compute actions using centralized gating (same as BookingDetailScreen)
   const actions = useMemo(() => {
@@ -286,7 +277,14 @@ export default function BookingDetail() {
         </Stack.Header.Right>
       </Stack.Header>
 
-      <BookingDetailScreen uid={uid} onActionsReady={handleActionsReady} />
+      <BookingDetailScreen
+        booking={booking}
+        isLoading={isLoading}
+        error={error ?? null}
+        refetch={refetch}
+        isRefetching={isRefetching}
+        onActionsReady={handleActionsReady}
+      />
 
       {/* Action Modals for iOS header menu */}
     </>

@@ -1,4 +1,5 @@
 import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
+import prisma from "@calcom/prisma";
 
 export const getWhereClauseForAttributeOptionsManagedByCalcom = () => {
   // Neither created nor updated by DSync
@@ -10,7 +11,8 @@ export const getWhereClauseForAttributeOptionsManagedByCalcom = () => {
 };
 
 export const findAssignmentsForMember = async ({ memberId }: { memberId: number }) => {
-  const assignments = await PrismaAttributeToUserRepository.findManyIncludeAttribute({ memberId });
+  const attributeToUserRepo = new PrismaAttributeToUserRepository(prisma);
+  const assignments = await attributeToUserRepo.findManyIncludeAttribute({ memberId });
   return assignments.map((assignment) => ({
     ...assignment,
     attributeOption: {

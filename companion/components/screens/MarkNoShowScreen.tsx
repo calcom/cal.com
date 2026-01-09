@@ -9,8 +9,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useMarkNoShow } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
-import { CalComAPIService } from "@/services/calcom";
 
 interface Attendee {
   id?: number | string;
@@ -53,14 +53,16 @@ export function MarkNoShowScreen({
   onBookingUpdate,
   transparentBackground = false,
 }: MarkNoShowScreenProps) {
-  "use no memo";
   const insets = useSafeAreaInsets();
   const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
   const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
   const safeAttendees = Array.isArray(attendees) ? attendees : [];
   const [processingEmail, setProcessingEmail] = useState<string | null>(null);
 
-  const handleMarkNoShow = async (attendee: Attendee) => {
+  // Mark no-show mutation
+  const markNoShowMutation = useMarkNoShow();
+
+  const handleMarkNoShow = (attendee: Attendee) => {
     if (!booking) return;
 
     const isCurrentlyNoShow = attendee.noShow === true;
@@ -74,65 +76,72 @@ export function MarkNoShowScreen({
         {
           text: "Confirm",
           style: isCurrentlyNoShow ? "default" : "destructive",
-          onPress: async () => {
+          onPress: () => {
             setProcessingEmail(attendee.email);
-            try {
-              const updatedBooking = await CalComAPIService.markAbsent(
-                booking.uid,
-                attendee.email,
-                !isCurrentlyNoShow
-              );
+            markNoShowMutation.mutate(
+              {
+                uid: booking.uid,
+                attendeeEmail: attendee.email,
+                absent: !isCurrentlyNoShow,
+              },
+              {
+                onSuccess: (updatedBooking) => {
+                  // API returns "absent" field, not "noShow"
+                  const updatedAttendees: Attendee[] = [];
+                  if (updatedBooking.attendees && Array.isArray(updatedBooking.attendees)) {
+                    updatedBooking.attendees.forEach(
+                      (att: {
+                        id?: number | string;
+                        email: string;
+                        name?: string;
+                        noShow?: boolean;
+                        absent?: boolean;
+                      }) => {
+                        updatedAttendees.push({
+                          id: att.id,
+                          email: att.email,
+                          name: att.name || att.email,
+                          noShow: att.absent === true || att.noShow === true,
+                        });
+                      }
+                    );
+                  }
 
-              // API returns "absent" field, not "noShow"
-              const updatedAttendees: Attendee[] = [];
-              if (updatedBooking.attendees && Array.isArray(updatedBooking.attendees)) {
-                updatedBooking.attendees.forEach(
-                  (att: {
-                    id?: number | string;
-                    email: string;
-                    name?: string;
-                    noShow?: boolean;
-                    absent?: boolean;
-                  }) => {
-                    updatedAttendees.push({
-                      id: att.id,
-                      email: att.email,
-                      name: att.name || att.email,
-                      noShow: att.absent === true || att.noShow === true,
+                  onUpdate(updatedAttendees);
+
+                  if (onBookingUpdate) {
+                    onBookingUpdate(updatedBooking);
+                  }
+
+                  Alert.alert(
+                    "Success",
+                    `${attendee.name || attendee.email} has been ${
+                      isCurrentlyNoShow ? "unmarked as no-show" : "marked as no-show"
+                    }`
+                  );
+                  setProcessingEmail(null);
+                },
+                onError: (error) => {
+                  console.error("[MarkNoShowScreen] Failed to mark no-show:", error);
+                  if (__DEV__) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    const stack = error instanceof Error ? error.stack : undefined;
+                    console.debug("[MarkNoShowScreen] Error details:", {
+                      message,
+                      stack,
+                      attendeeEmail: maskEmail(attendee.email),
+                      bookingUid: booking.uid,
+                      absent: !isCurrentlyNoShow,
                     });
                   }
-                );
+                  Alert.alert(
+                    "Error",
+                    error instanceof Error ? error.message : `Failed to ${action}`
+                  );
+                  setProcessingEmail(null);
+                },
               }
-
-              onUpdate(updatedAttendees);
-
-              if (onBookingUpdate) {
-                onBookingUpdate(updatedBooking);
-              }
-
-              Alert.alert(
-                "Success",
-                `${attendee.name || attendee.email} has been ${
-                  isCurrentlyNoShow ? "unmarked as no-show" : "marked as no-show"
-                }`
-              );
-              setProcessingEmail(null);
-            } catch (error) {
-              console.error("[MarkNoShowScreen] Failed to mark no-show:", error);
-              if (__DEV__) {
-                const message = error instanceof Error ? error.message : String(error);
-                const stack = error instanceof Error ? error.stack : undefined;
-                console.debug("[MarkNoShowScreen] Error details:", {
-                  message,
-                  stack,
-                  attendeeEmail: maskEmail(attendee.email),
-                  bookingUid: booking.uid,
-                  absent: !isCurrentlyNoShow,
-                });
-              }
-              Alert.alert("Error", error instanceof Error ? error.message : `Failed to ${action}`);
-              setProcessingEmail(null);
-            }
+            );
           },
         },
       ]
@@ -171,7 +180,7 @@ export function MarkNoShowScreen({
         >
           <Text
             className={`text-[16px] font-semibold ${
-              transparentBackground ? "text-white" : isNoShow ? "text-[#DC2626]" : "text-gray-600"
+              transparentBackground ? "text-white" : isNoShow ? "text-[#800020]" : "text-gray-600"
             }`}
           >
             {getInitials(item.name)}
@@ -182,8 +191,8 @@ export function MarkNoShowScreen({
           <Text className="mt-0.5 text-[15px] text-gray-500">{item.email}</Text>
           {isNoShow && (
             <View className="mt-1.5 flex-row items-center">
-              <Ionicons name="eye-off" size={12} color="#DC2626" />
-              <Text className="ml-1 text-[13px] font-medium text-[#DC2626]">Marked as no-show</Text>
+              <Ionicons name="eye-off" size={12} color="#800020" />
+              <Text className="ml-1 text-[13px] font-medium text-[#800020]">Marked as no-show</Text>
             </View>
           )}
         </View>
@@ -201,11 +210,11 @@ export function MarkNoShowScreen({
               <Ionicons
                 name={isNoShow ? "eye" : "eye-off"}
                 size={15}
-                color={isNoShow ? "#16A34A" : "#DC2626"}
+                color={isNoShow ? "#16A34A" : "#800020"}
                 style={{ marginRight: 5 }}
               />
               <Text
-                className={`text-[14px] font-semibold ${isNoShow ? "text-[#16A34A]" : "text-[#DC2626]"}`}
+                className={`text-[14px] font-semibold ${isNoShow ? "text-[#16A34A]" : "text-[#800020]"}`}
               >
                 {isNoShow ? "Unmark" : "Mark"}
               </Text>

@@ -10,8 +10,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import { Alert, KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRescheduleBooking } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
-import { CalComAPIService } from "@/services/calcom";
 import { safeLogError, safeLogInfo } from "@/utils/safeLogger";
 
 export interface RescheduleScreenProps {
@@ -31,12 +31,13 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
     { booking, onSuccess, onSavingChange, transparentBackground = false },
     ref
   ) {
-    "use no memo";
     const insets = useSafeAreaInsets();
     const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
     const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
     const [reason, setReason] = useState("");
-    const [isSaving, setIsSaving] = useState(false);
+
+    // Use React Query mutation for automatic cache invalidation
+    const { mutate: rescheduleBooking, isPending: isSaving } = useRescheduleBooking();
 
     useEffect(() => {
       if (booking?.startTime) {
@@ -52,7 +53,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
       onSavingChange?.(isSaving);
     }, [isSaving, onSavingChange]);
 
-    const handleSubmit = useCallback(async () => {
+    const handleSubmit = useCallback(() => {
       if (!booking || isSaving) return;
 
       if (selectedDateTime <= new Date()) {
@@ -60,22 +61,25 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
         return;
       }
 
-      setIsSaving(true);
-      try {
-        await CalComAPIService.rescheduleBooking(booking.uid, {
+      rescheduleBooking(
+        {
+          uid: booking.uid,
           start: selectedDateTime.toISOString(),
           reschedulingReason: reason.trim() || undefined,
-        });
-        Alert.alert("Success", "Booking rescheduled successfully", [
-          { text: "OK", onPress: onSuccess },
-        ]);
-        setIsSaving(false);
-      } catch (error) {
-        safeLogError("[RescheduleScreen] Failed to reschedule:", error);
-        Alert.alert("Error", "Failed to reschedule booking. Please try again.");
-        setIsSaving(false);
-      }
-    }, [booking, selectedDateTime, reason, onSuccess, isSaving]);
+        },
+        {
+          onSuccess: () => {
+            Alert.alert("Success", "Booking rescheduled successfully", [
+              { text: "OK", onPress: onSuccess },
+            ]);
+          },
+          onError: (error) => {
+            safeLogError("[RescheduleScreen] Failed to reschedule:", error);
+            Alert.alert("Error", "Failed to reschedule booking. Please try again.");
+          },
+        }
+      );
+    }, [booking, selectedDateTime, reason, onSuccess, isSaving, rescheduleBooking]);
 
     const handleDateSelected = useCallback(
       (date: Date) => {
