@@ -25,43 +25,39 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             
-            // Get all open PRs
-            const { data: pullRequests } = await github.rest.pulls.list({
-              owner,
-              repo,
-              state: 'open',
+            // Use GitHub Search API to get open, non-draft PRs
+            // This is more efficient than filtering in the loop
+            const searchQuery = `repo:${owner}/${repo} is:pr is:open draft:false`;
+            const { data: searchResults } = await github.rest.search.issuesAndPullRequests({
+              q: searchQuery,
               per_page: 100
             });
             
-            console.log(`Found ${pullRequests.length} open PRs`);
+            console.log(`Found ${searchResults.total_count} open non-draft PRs`);
             
             const conflictingPRs = [];
             
-            for (const pr of pullRequests) {
-              // Skip draft PRs - they're still work in progress
-              if (pr.draft) {
-                console.log(`PR #${pr.number} is a draft, skipping`);
-                continue;
-              }
+            for (const item of searchResults.items) {
+              const prNumber = item.number;
               
               // Get detailed PR info including mergeable status
               const { data: prDetails } = await github.rest.pulls.get({
                 owner,
                 repo,
-                pull_number: pr.number
+                pull_number: prNumber
               });
               
               // GitHub may need time to compute mergeable status
               // If null, we skip this PR for now (will be checked on next run)
               if (prDetails.mergeable === false && prDetails.mergeable_state === 'dirty') {
-                console.log(`PR #${pr.number} has conflicts (mergeable_state: ${prDetails.mergeable_state})`);
+                console.log(`PR #${prNumber} has conflicts (mergeable_state: ${prDetails.mergeable_state})`);
                 
                 // Check if we've already created a Devin session for this conflict
                 // by looking for our comment on the PR
                 const { data: comments } = await github.rest.issues.listComments({
                   owner,
                   repo,
-                  issue_number: pr.number,
+                  issue_number: prNumber,
                   per_page: 100
                 });
                 
@@ -73,19 +69,19 @@ jobs:
                 
                 if (!hasExistingSession) {
                   conflictingPRs.push({
-                    number: pr.number,
-                    title: pr.title,
-                    head_ref: pr.head.ref,
-                    base_ref: pr.base.ref,
-                    html_url: pr.html_url
+                    number: prNumber,
+                    title: prDetails.title,
+                    head_ref: prDetails.head.ref,
+                    base_ref: prDetails.base.ref,
+                    html_url: prDetails.html_url
                   });
                 } else {
-                  console.log(`PR #${pr.number} already has a Devin session for conflict resolution`);
+                  console.log(`PR #${prNumber} already has a Devin session for conflict resolution`);
                 }
               } else if (prDetails.mergeable === null) {
-                console.log(`PR #${pr.number} mergeable status is still being computed`);
+                console.log(`PR #${prNumber} mergeable status is still being computed`);
               } else {
-                console.log(`PR #${pr.number} has no conflicts (mergeable: ${prDetails.mergeable}, state: ${prDetails.mergeable_state})`);
+                console.log(`PR #${prNumber} has no conflicts (mergeable: ${prDetails.mergeable}, state: ${prDetails.mergeable_state})`);
               }
             }
             
