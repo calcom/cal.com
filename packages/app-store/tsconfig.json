@@ -4,11 +4,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      /* A `package` should never import from `apps` ↓ */
-      "@components/*": ["../../apps/web/components/*"],
-      /* A `package` should never import from `apps` ↓ */
-      "@lib/*": ["../../apps/web/lib/*"],
-      "@prisma/client/*": ["@calcom/prisma/client/*"]
+      "@prisma/client/*": ["@calcom/prisma/client/*"],
+      "@calcom/testing/*": ["../testing/src/*"]
     },
     "resolveJsonModule": true,
     "experimentalDecorators": true
