@@ -12,7 +12,14 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { PartialReference } from "@calcom/types/EventManager";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import {
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogClose,
+  ConfirmationDialogContent,
+} from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
 import RecordingListSkeleton from "./RecordingListSkeleton";
@@ -54,7 +61,6 @@ const getTimeSpan = ({ startTime, endTime, locale, hour12 }: GetTimeSpanProps) =
     minute: "numeric",
     hour12,
   }).format(new Date(endTime));
-
   return `${formattedStartTime} - ${formattedEndTime}`;
 };
 
@@ -99,7 +105,9 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
   const { t } = useLocale();
   const { setRecordingId, isFetching, recordingId } = useRecordingDownload();
   const router = useRouter();
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
+  const utils = trpc.useUtils();
   const { data: recordings } = trpc.viewer.calVideo.getCalVideoRecordings.useQuery(
     { roomName },
     {
@@ -107,9 +115,21 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
     }
   );
 
-  const handleDownloadClick = async (recordingId: string) => {
-    // this would enable the getDownloadLinkOfCalVideoRecordings
-    setRecordingId(recordingId);
+  const deleteMutation = trpc.viewer.calVideo.deleteCalVideoRecording.useMutation({
+    onSuccess: () => {
+      showToast(t("recording_deleted"), "success");
+      utils.viewer.calVideo.getCalVideoRecordings.invalidate({ roomName });
+    },
+    onError: () => {
+      showToast(t("error_deleting_recording"), "error");
+    },
+  });
+
+  const confirmDelete = () => {
+    if (deleteConfirmId) {
+      deleteMutation.mutate({ recordingId: deleteConfirmId });
+      setDeleteConfirmId(null);
+    }
   };
 
   return (
@@ -127,22 +147,30 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
                   </h1>
                   <p className="text-subtle text-sm font-normal">{convertSecondsToMs(recording.duration)}</p>
                 </div>
-                {hasTeamPlan ? (
-                  <Button
-                    StartIcon="download"
-                    className="ml-4 lg:ml-0"
-                    loading={isFetching && recordingId === recording.id}
-                    onClick={() => handleDownloadClick(recording.id)}>
-                    {t("download")}
-                  </Button>
-                ) : (
-                  <Button
-                    tooltip={t("upgrade_to_access_recordings_description")}
-                    className="ml-4 lg:ml-0"
-                    onClick={() => router.push("/teams")}>
-                    {t("upgrade")}
-                  </Button>
-                )}
+                <div className="flex gap-2">
+                  {hasTeamPlan ? (
+                    <>
+                      <Button
+                        StartIcon="download"
+                        loading={isFetching && recordingId === recording.id}
+                        onClick={() => setRecordingId(recording.id)}>
+                        {t("download")}
+                      </Button>
+                      <Button
+                        StartIcon="trash"
+                        color="destructive"
+                        onClick={() => setDeleteConfirmId(recording.id)}>
+                        {t("delete")}
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      tooltip={t("upgrade_to_access_recordings_description")}
+                      onClick={() => router.push("/teams")}>
+                      {t("upgrade")}
+                    </Button>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -152,6 +180,15 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
           <p className="font-semibold">{t("no_recordings_found")}</p>
         )
       )}
+      <Dialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
+        <ConfirmationDialogContent
+          variety="danger"
+          title={t("delete_recording")}
+          confirmBtnText={t("confirm_delete_recording")}
+          onConfirm={confirmDelete}>
+          {t("delete_recording_confirmation")}
+        </ConfirmationDialogContent>
+      </Dialog>
     </>
   );
 };
@@ -201,3 +238,4 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
 };
 
 export default ViewRecordingsDialog;
+

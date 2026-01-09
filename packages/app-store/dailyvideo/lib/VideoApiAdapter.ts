@@ -514,6 +514,10 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         throw new Error("Something went wrong! Unable to get meeting information");
       }
     },
+    deleteRecording: async (recordingId: string): Promise<boolean> => {
+      const res = (await fetcher(`/recordings/${recordingId}`, { method: "DELETE" })) as { deleted?: boolean };
+      return res.deleted === true;
+    },
   };
 };
 

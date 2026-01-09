@@ -2187,6 +2187,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/bigbluebutton@workspace:packages/app-store/bigbluebutton":
+  version: 0.0.0-use.local
+  resolution: "@calcom/bigbluebutton@workspace:packages/app-store/bigbluebutton"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/types": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/bolna@workspace:packages/app-store/bolna":
   version: 0.0.0-use.local
   resolution: "@calcom/bolna@workspace:packages/app-store/bolna"
@@ -2202,6 +2211,16 @@ __metadata:
   dependencies:
     "@calcom/lib": "workspace:*"
     "@calcom/types": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/caldav-generic@workspace:packages/app-store/caldav-generic":
+  version: 0.0.0-use.local
+  resolution: "@calcom/caldav-generic@workspace:packages/app-store/caldav-generic"
+  dependencies:
+    "@calcom/lib": "npm:*"
+    "@calcom/prisma": "npm:*"
+    "@calcom/types": "npm:*"
   languageName: unknown
   linkType: soft
 
@@ -2815,6 +2834,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/lever@workspace:packages/app-store/lever":
+  version: 0.0.0-use.local
+  resolution: "@calcom/lever@workspace:packages/app-store/lever"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/types": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/lib@npm:*, @calcom/lib@workspace:*, @calcom/lib@workspace:packages/lib":
   version: 0.0.0-use.local
   resolution: "@calcom/lib@workspace:packages/lib"
@@ -3084,7 +3112,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/prisma@workspace:*, @calcom/prisma@workspace:packages/prisma":
+"@calcom/prisma@npm:*, @calcom/prisma@workspace:*, @calcom/prisma@workspace:packages/prisma":
   version: 0.0.0-use.local
   resolution: "@calcom/prisma@workspace:packages/prisma"
   dependencies:
