@@ -82,31 +82,32 @@ jobs:
             }
             
             const conflictingPRs = [];
+            const unknownPRs = [];
             
-            for (const pr of allPRs) {
+            function processPR(pr, mergeableStatus) {
               const isTargetPR = manualPrNumber && pr.number === manualPrNumber;
               
               if (!isTargetPR && pr.isDraft) {
                 console.log(`PR #${pr.number} is a draft, skipping`);
-                continue;
+                return { skip: true };
               }
               
               if (!isTargetPR) {
                 const hasDevinLabel = pr.labels.nodes.some(label => label.name === 'devin-conflict-resolution');
                 if (hasDevinLabel) {
                   console.log(`PR #${pr.number} already has devin-conflict-resolution label, skipping`);
-                  continue;
+                  return { skip: true };
                 }
               }
               
-              if (pr.mergeable === 'CONFLICTING' || (isTargetPR && pr.mergeable !== 'MERGEABLE')) {
+              if (mergeableStatus === 'CONFLICTING' || (isTargetPR && mergeableStatus !== 'MERGEABLE')) {
                 const isFork = pr.headRepository?.owner?.login !== owner;
                 const headRepoOwner = pr.headRepository?.owner?.login || owner;
                 const headRepoName = pr.headRepository?.name || repo;
                 
                 if (!isTargetPR && isFork && !pr.maintainerCanModify) {
                   console.log(`PR #${pr.number} is from a fork without maintainer push access, skipping`);
-                  continue;
+                  return { skip: true };
                 }
                 
                 if (isTargetPR) {
@@ -115,23 +116,76 @@ jobs:
                   console.log(`PR #${pr.number} has conflicts${isFork ? ' (from fork)' : ''}`);
                 }
                 
-                conflictingPRs.push({
-                  number: pr.number,
-                  title: pr.title,
-                  head_ref: pr.headRefName,
-                  base_ref: pr.baseRefName,
-                  html_url: pr.url,
-                  is_fork: isFork,
-                  head_repo_owner: headRepoOwner,
-                  head_repo_name: headRepoName,
-                  is_manual: isTargetPR
-                });
-                
-                if (isTargetPR) break;
-              } else if (pr.mergeable === 'UNKNOWN') {
-                console.log(`PR #${pr.number} mergeable status is still being computed`);
+                return {
+                  conflict: true,
+                  data: {
+                    number: pr.number,
+                    title: pr.title,
+                    head_ref: pr.headRefName,
+                    base_ref: pr.baseRefName,
+                    html_url: pr.url,
+                    is_fork: isFork,
+                    head_repo_owner: headRepoOwner,
+                    head_repo_name: headRepoName,
+                    is_manual: isTargetPR
+                  },
+                  isTargetPR
+                };
+              } else if (mergeableStatus === 'UNKNOWN') {
+                return { unknown: true, isTargetPR };
               } else {
-                console.log(`PR #${pr.number} has no conflicts (mergeable: ${pr.mergeable})`);
+                console.log(`PR #${pr.number} has no conflicts (mergeable: ${mergeableStatus})`);
+                return { skip: true };
+              }
+            }
+            
+            for (const pr of allPRs) {
+              const result = processPR(pr, pr.mergeable);
+              
+              if (result.conflict) {
+                conflictingPRs.push(result.data);
+                if (result.isTargetPR) break;
+              } else if (result.unknown) {
+                console.log(`PR #${pr.number} mergeable status is still being computed`);
+                unknownPRs.push(pr);
+              }
+            }
+            
+            if (unknownPRs.length > 0) {
+              console.log(`\n${unknownPRs.length} PRs have UNKNOWN mergeable status, waiting 20 seconds before retrying...`);
+              await new Promise(resolve => setTimeout(resolve, 20000));
+              
+              console.log(`Retrying ${unknownPRs.length} PRs via REST API...`);
+              
+              for (const pr of unknownPRs) {
+                try {
+                  const { data } = await github.rest.pulls.get({
+                    owner,
+                    repo,
+                    pull_number: pr.number
+                  });
+                  
+                  let mergeableStatus;
+                  if (data.mergeable === true) {
+                    mergeableStatus = 'MERGEABLE';
+                  } else if (data.mergeable === false) {
+                    mergeableStatus = 'CONFLICTING';
+                  } else {
+                    mergeableStatus = 'UNKNOWN';
+                  }
+                  
+                  console.log(`PR #${pr.number} retry result: mergeable=${mergeableStatus}`);
+                  
+                  const result = processPR(pr, mergeableStatus);
+                  if (result.conflict) {
+                    conflictingPRs.push(result.data);
+                    if (result.isTargetPR) break;
+                  } else if (result.unknown) {
+                    console.log(`PR #${pr.number} still has UNKNOWN status after retry`);
+                  }
+                } catch (error) {
+                  console.error(`Error retrying PR #${pr.number}: ${error.message}`);
+                }
               }
             }
             
