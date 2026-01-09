@@ -218,8 +218,9 @@ export const AvailabilityDetailScreen = forwardRef<
         onPress: async () => {
           try {
             await CalComAPIService.deleteSchedule(Number(id));
-            showSuccessAlert("Success", "Availability deleted successfully");
-            router.back();
+            Alert.alert("Success", "Availability deleted successfully", [
+              { text: "OK", onPress: () => router.back() },
+            ]);
           } catch {
             showErrorAlert("Error", "Failed to delete availability. Please try again.");
           }

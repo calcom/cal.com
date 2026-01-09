@@ -8,6 +8,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -109,8 +110,14 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
         },
         {
           onSuccess: () => {
-            showSuccessAlert("Success", "Guests added successfully");
-            onSuccess();
+            if (Platform.OS === "web") {
+              showSuccessAlert("Success", "Guests added successfully");
+              onSuccess();
+            } else {
+              Alert.alert("Success", "Guests added successfully", [
+                { text: "OK", onPress: onSuccess },
+              ]);
+            }
           },
           onError: (error) => {
             safeLogError("[AddGuestsScreen] Failed to add guests:", error);

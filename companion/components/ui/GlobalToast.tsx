@@ -28,7 +28,7 @@
  */
 
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Animated, Platform, StyleSheet, Text, View } from "react-native";
 
 import { useGlobalToast, type ToastType } from "@/contexts/ToastContext";
@@ -41,8 +41,8 @@ const ICON_CONFIG: Record<ToastType, { name: keyof typeof Ionicons.glyphMap; col
 
 export function GlobalToast() {
   const { toast } = useGlobalToast();
-  // Use useMemo instead of useRef().current to avoid React Compiler error
-  const fadeAnim = useMemo(() => new Animated.Value(0), []);
+  // Use useState to preserve Animated.Value instance across renders
+  const [fadeAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     if (toast.visible) {
