@@ -32,4 +32,6 @@ export type AppConfig = {
     baseUrl: string;
   };
   e2e: boolean;
+  enableSlotsWorkers: boolean;
+  slotsWorkerPoolSize: number;
 };

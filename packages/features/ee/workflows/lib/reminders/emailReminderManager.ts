@@ -15,6 +15,7 @@ import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import type { WorkflowContextData } from "./reminderScheduler";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate, { transformRoutingFormResponsesToVariableFormat } from "./templates/customTemplate";
+import { replaceCloakedLinksInHtml } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
 
@@ -214,7 +215,7 @@ const scheduleEmailReminderForForm = async (
 
   const mailData = {
     subject: emailContent.emailSubject,
-    html: emailContent.emailBody,
+    html: replaceCloakedLinksInHtml(emailContent.emailBody),
     sender,
   };
 

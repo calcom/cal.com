@@ -6,7 +6,7 @@ on:
 
 jobs:
   cleanup:
-    runs-on: buildjet-2vcpu-ubuntu-2204
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Check out code
         uses: actions/checkout@v4

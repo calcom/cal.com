@@ -26,6 +26,18 @@ export function useBookingListData({
   userTimeZone?: string;
 }) {
   const { t } = useLocale();
+
+  // Build a Map for recurringInfo lookups
+  const recurringInfoMap = useMemo(() => {
+    const map = new Map<string, NonNullable<typeof data>["recurringInfo"][number]>();
+    for (const info of data?.recurringInfo ?? []) {
+      if (info.recurringEventId) {
+        map.set(info.recurringEventId, info);
+      }
+    }
+    return map;
+  }, [data?.recurringInfo]);
+
   /**
    * Transform raw bookings into flat list (excluding today's bookings for "upcoming" status)
    * - Deduplicates recurring bookings for recurring/unconfirmed/cancelled tabs
@@ -70,11 +82,11 @@ export function useBookingListData({
       data?.bookings.filter(filterBookings).map((booking) => ({
         type: "data" as const,
         booking,
-        recurringInfo: data?.recurringInfo.find((info) => info.recurringEventId === booking.recurringEventId),
+        recurringInfo: booking.recurringEventId ? recurringInfoMap.get(booking.recurringEventId) : undefined,
         isToday: false,
       })) || []
     );
-  }, [data, status, userTimeZone]);
+  }, [data?.bookings, recurringInfoMap, status, userTimeZone]);
 
   // Extract today's bookings for the "Today" section (only used in "upcoming" status)
   const bookingsToday = useMemo<BookingRowData[]>(() => {
@@ -88,10 +100,10 @@ export function useBookingListData({
       .map((booking) => ({
         type: "data" as const,
         booking,
-        recurringInfo: data?.recurringInfo.find((info) => info.recurringEventId === booking.recurringEventId),
+        recurringInfo: booking.recurringEventId ? recurringInfoMap.get(booking.recurringEventId) : undefined,
         isToday: true,
       }));
-  }, [data, userTimeZone]);
+  }, [data?.bookings, recurringInfoMap, userTimeZone]);
 
   // Combine data with section separators for "upcoming" tab
   const finalData = useMemo<RowData[]>(() => {

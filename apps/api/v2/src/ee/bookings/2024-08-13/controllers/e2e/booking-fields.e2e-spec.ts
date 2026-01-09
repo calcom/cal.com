@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
@@ -20,7 +20,11 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import { CreateBookingInput_2024_08_13, GetBookingOutput_2024_08_13, GetSeatedBookingOutput_2024_08_13 } from "@calcom/platform-types";
+import {
+  CreateBookingInput_2024_08_13,
+  GetBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+} from "@calcom/platform-types";
 import { BookingOutput_2024_08_13 } from "@calcom/platform-types";
 import type { Booking, PlatformOAuthClient, Team, User, EventType } from "@calcom/prisma/client";
 

@@ -209,15 +209,21 @@ const handleDeleteCredential = async ({
             },
           });
 
-          // Assuming that all bookings under this eventType need to be paid
+          // Only cancel unpaid pending bookings that:
+          // 1. Are in the future (startTime > now) - don't cancel old bookings
+          // 2. Have failed payments associated with the payment app being deleted
           const unpaidBookings = await prisma.booking.findMany({
             where: {
               userId: userId,
               eventTypeId: eventType.id,
               status: "PENDING",
               paid: false,
+              startTime: {
+                gt: new Date(),
+              },
               payment: {
-                every: {
+                some: {
+                  appId: credential.appId,
                   success: false,
                 },
               },
@@ -449,7 +455,7 @@ const handleDeleteCredential = async ({
   // If it's a calendar remove it from the SelectedCalendars
   if (credential.app?.categories.includes(AppCategories.calendar)) {
     try {
-      const calendar = await getCalendar(buildNonDelegationCredential(credential));
+      const calendar = await getCalendar(buildNonDelegationCredential(credential), "slots");
 
       const calendars = await calendar?.listCalendars();
 

@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
@@ -63,9 +63,11 @@ describe("Organizations Event Types Endpoints", () => {
     let collectiveEventType: TeamEventTypeOutput_2024_06_14;
     let managedEventType: TeamEventTypeOutput_2024_06_14;
 
-    const managedEventTypeSlug = `organizations-event-types-managed-${randomString()}`;
+    let managedEventTypeSlug: string;
 
     beforeAll(async () => {
+      // Generate unique slug inside beforeAll to ensure uniqueness across test runs
+      managedEventTypeSlug = `organizations-event-types-managed-${Date.now()}-${randomString()}`;
       const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
@@ -1379,6 +1381,10 @@ describe("Organizations Event Types Endpoints", () => {
     }
 
     afterAll(async () => {
+      await eventTypesRepositoryFixture.deleteAllUserEventTypes(teammate1.id);
+      await eventTypesRepositoryFixture.deleteAllUserEventTypes(teammate2.id);
+      await eventTypesRepositoryFixture.deleteAllTeamEventTypes(team.id);
+      await eventTypesRepositoryFixture.deleteAllTeamEventTypes(falseTestTeam.id);
       await userRepositoryFixture.deleteByEmail(userAdmin.email);
       await userRepositoryFixture.deleteByEmail(teammate1.email);
       await userRepositoryFixture.deleteByEmail(teammate2.email);
