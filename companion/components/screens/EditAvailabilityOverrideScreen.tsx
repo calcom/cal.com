@@ -181,9 +181,13 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         await CalComAPIService.updateSchedule(schedule.id, {
           overrides: newOverrides,
         });
-        showSuccessAlert("Success", successMessage);
-        onSuccess();
         setIsSaving(false);
+        if (Platform.OS === "web") {
+          showSuccessAlert("Success", successMessage);
+          onSuccess();
+        } else {
+          Alert.alert("Success", successMessage, [{ text: "OK", onPress: onSuccess }]);
+        }
       } catch {
         showErrorAlert("Error", "Failed to save override. Please try again.");
         setIsSaving(false);
