@@ -1,6 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
-import { Alert, KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import { FullScreenModal } from "@/components/FullScreenModal";
@@ -8,6 +17,7 @@ import { TIMEZONES as ALL_TIMEZONES } from "@/constants/timezones";
 import type { Schedule } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
+import { shadows } from "@/utils/shadows";
 
 // Format timezones for display
 const TIMEZONES = ALL_TIMEZONES.map((tz) => ({
@@ -84,6 +94,57 @@ export const EditAvailabilityNameScreen = forwardRef<
 
   const selectedTimezoneLabel = TIMEZONES.find((tz) => tz.id === timezone)?.label || timezone;
 
+  // Render timezone list content
+  const renderTimezoneContent = () => (
+    <>
+      <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-4">
+        <Text className="text-[17px] font-semibold">Select Timezone</Text>
+        <AppPressable onPress={() => setShowTimezoneModal(false)}>
+          <Ionicons name="close" size={24} color="#8E8E93" />
+        </AppPressable>
+      </View>
+      <ScrollView className="px-4 py-3">
+        {TIMEZONES.map((tz) => (
+          <AppPressable
+            key={tz.id}
+            onPress={() => {
+              setTimezone(tz.id);
+              setShowTimezoneModal(false);
+            }}
+          >
+            <View
+              className={`mb-2.5 rounded-xl border-2 px-4 py-4 ${
+                tz.id === timezone
+                  ? "border-[#007AFF] bg-blue-50 shadow-md"
+                  : "border-gray-200 bg-gray-50"
+              }`}
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-1">
+                  <Text
+                    className={`text-[17px] ${
+                      tz.id === timezone
+                        ? "font-semibold text-[#007AFF]"
+                        : "font-medium text-gray-900"
+                    }`}
+                  >
+                    {tz.label}
+                  </Text>
+                  <Text className="mt-0.5 text-[13px] text-gray-500">{tz.id}</Text>
+                </View>
+                {tz.id === timezone && (
+                  <View className="rounded-full bg-[#007AFF] p-1.5">
+                    <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                  </View>
+                )}
+              </View>
+            </View>
+          </AppPressable>
+        ))}
+      </ScrollView>
+    </>
+  );
+
   if (!schedule) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
@@ -120,63 +181,49 @@ export const EditAvailabilityNameScreen = forwardRef<
         <Text className="mb-2 text-[13px] font-medium uppercase tracking-wide text-gray-500">
           Timezone
         </Text>
-        <AppPressable
-          className="flex-row items-center justify-between rounded-lg border border-gray-300 bg-gray-50 px-4 py-3"
-          onPress={() => setShowTimezoneModal(true)}
-        >
-          <View className="flex-row items-center">
-            <Ionicons name="globe-outline" size={20} color="#007AFF" style={{ marginRight: 12 }} />
-            <View>
-              <Text className="text-[17px] text-black">{selectedTimezoneLabel}</Text>
-              <Text className="mt-0.5 text-[13px] text-gray-500">{timezone}</Text>
+        <AppPressable onPress={() => setShowTimezoneModal(true)}>
+          <View className="flex-row items-center justify-between rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-4">
+            <View className="flex-row items-center">
+              <Ionicons
+                name="globe-outline"
+                size={20}
+                color="#007AFF"
+                style={{ marginRight: 12 }}
+              />
+              <View>
+                <Text className="text-[17px] text-black">{selectedTimezoneLabel}</Text>
+                <Text className="mt-0.5 text-[13px] text-gray-500">{timezone}</Text>
+              </View>
             </View>
+            <Ionicons name="chevron-down" size={20} color="#C7C7CC" />
           </View>
-          <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
         </AppPressable>
       </ScrollView>
 
       {/* Timezone Modal */}
       <FullScreenModal
         visible={showTimezoneModal}
-        animationType="slide"
+        animationType={Platform.OS === "web" ? "fade" : "slide"}
         onRequestClose={() => setShowTimezoneModal(false)}
       >
-        <View className="flex-1 bg-white">
-          <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
-            <Text className="text-[17px] font-semibold">Select Timezone</Text>
-            <AppPressable onPress={() => setShowTimezoneModal(false)}>
-              <Ionicons name="close" size={24} color="#8E8E93" />
-            </AppPressable>
-          </View>
-          <ScrollView>
-            {TIMEZONES.map((tz) => (
-              <AppPressable
-                key={tz.id}
-                onPress={() => {
-                  setTimezone(tz.id);
-                  setShowTimezoneModal(false);
-                }}
-                className={`border-b border-gray-100 px-4 py-3.5 ${
-                  tz.id === timezone ? "bg-blue-50" : ""
-                }`}
-              >
-                <View className="flex-row items-center justify-between">
-                  <View>
-                    <Text
-                      className={`text-[17px] ${
-                        tz.id === timezone ? "font-medium text-[#007AFF]" : "text-black"
-                      }`}
-                    >
-                      {tz.label}
-                    </Text>
-                    <Text className="text-[13px] text-gray-500">{tz.id}</Text>
-                  </View>
-                  {tz.id === timezone && <Ionicons name="checkmark" size={20} color="#007AFF" />}
-                </View>
-              </AppPressable>
-            ))}
-          </ScrollView>
-        </View>
+        {Platform.OS === "web" ? (
+          <TouchableOpacity
+            className="flex-1 items-center justify-center bg-black/50 p-4"
+            activeOpacity={1}
+            onPress={() => setShowTimezoneModal(false)}
+          >
+            <TouchableOpacity
+              className="max-h-[80%] w-full max-w-[500px] overflow-hidden rounded-2xl bg-white p-2"
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+              style={shadows.xl()}
+            >
+              {renderTimezoneContent()}
+            </TouchableOpacity>
+          </TouchableOpacity>
+        ) : (
+          <View className="flex-1 bg-white p-2">{renderTimezoneContent()}</View>
+        )}
       </FullScreenModal>
     </KeyboardAvoidingView>
   );

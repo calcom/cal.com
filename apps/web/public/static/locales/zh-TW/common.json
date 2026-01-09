@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "成功重新路由預約。正在重新導向到預約頁面",
   "on_booking_write_to_event_object": "預訂時，寫入活動對象",
   "field_name": "欄位名稱",
+  "field_name_cannot_be_empty": "欄位名稱不能為空",
+  "field_already_exists": "欄位已存在",
   "add_new_field": "新增欄位",
   "you_dont_have_access_to_reroute_this_booking": "您沒有權限重新安排此預訂",
   "form_response_not_found": "找不到表單回應",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "預約擁有者不是您組織的成員。",
   "audit_logs_permission_denied": "您沒有權限檢視此預約的稽核記錄。",
   "audit_logs_permission_check_error": "檢查權限時發生錯誤。",
+  "account_already_exists_please_login": "此電子郵件已註冊帳號，請登入以接受邀請。",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

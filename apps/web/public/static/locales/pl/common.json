@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Pomyślnie zmieniono trasę rezerwacji. Przekierowywanie do strony rezerwacji",
   "on_booking_write_to_event_object": "Przy rezerwacji, zapisz do obiektu wydarzenia",
   "field_name": "Nazwa pola",
+  "field_name_cannot_be_empty": "Nazwa pola nie może być pusta",
+  "field_already_exists": "Pole już istnieje",
   "add_new_field": "Dodaj nowe pole",
   "you_dont_have_access_to_reroute_this_booking": "Nie masz dostępu do przekierowania tej rezerwacji",
   "form_response_not_found": "Nie znaleziono odpowiedzi formularza",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Właściciel rezerwacji nie jest członkiem Twojej organizacji.",
   "audit_logs_permission_denied": "Nie masz uprawnień do przeglądania dzienników audytu dla tej rezerwacji.",
   "audit_logs_permission_check_error": "Wystąpił błąd podczas sprawdzania uprawnień.",
+  "account_already_exists_please_login": "Konto z tym adresem e-mail już istnieje. Zaloguj się, aby zaakceptować zaproszenie.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
