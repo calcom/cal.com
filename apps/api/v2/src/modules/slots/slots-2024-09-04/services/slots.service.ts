@@ -82,14 +82,30 @@ export class SlotsService_2024_09_04 {
     }
   }
 
+  /**
+   * Filters slots to only include dates >= the requested start date.
+   * This is needed because rolling window computation may include dates before the requested range.
+   */
+  private filterSlotsByStartDate(
+    slots: Record<string, unknown[]>,
+    startDate: string
+  ): Record<string, unknown[]> {
+    const startDateOnly = startDate.split("T")[0];
+    return Object.fromEntries(Object.entries(slots).filter(([date]) => date >= startDateOnly));
+  }
+
   async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
     const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
-    return this.fetchAndFormatSlots(queryTransformed, query.format);
+    const slots = await this.fetchAndFormatSlots(queryTransformed, query.format);
+    // Filter out slots before the user's requested start date
+    return this.filterSlotsByStartDate(slots as Record<string, unknown[]>, query.start);
   }
 
   async getAvailableSlotsWithRouting(query: GetSlotsInputWithRouting_2024_09_04) {
     const queryTransformed = await this.slotsInputService.transformRoutingGetSlotsQuery(query);
-    return this.fetchAndFormatSlots(queryTransformed, query.format);
+    const slots = await this.fetchAndFormatSlots(queryTransformed, query.format);
+    // Filter out slots before the user's requested start date
+    return this.filterSlotsByStartDate(slots as Record<string, unknown[]>, query.start);
   }
 
   async reserveSlot(input: ReserveSlotInput_2024_09_04, authUserId?: number) {

@@ -40,6 +40,7 @@ import type {
   ReserveSlotOutput_2024_09_04 as ReserveSlotOutputData_2024_09_04,
 } from "@calcom/platform-types";
 import type { EventType, User, Team } from "@calcom/prisma/client";
+import { PeriodType } from "@calcom/prisma/enums";
 
 describe("Slots 2024-09-04 Endpoints", () => {
   describe("User event type slots", () => {
@@ -500,7 +501,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
       const reserveResponseBody: GetReservedSlotOutput_2024_09_04 = reserveResponse.body;
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       const { reservationDuration: _1, ...rest } = reservedSlot;
       expect(reserveResponseBody.data).toEqual(rest);
     });
@@ -1923,9 +1924,107 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
     });
 
+    describe("rolling window adjustment", () => {
+      let rollingWindowEventType: EventType;
+      const rollingWindowUserEmail = `rolling-window-user-${randomString()}@example.com`;
+      let rollingWindowUser: User;
+
+      beforeAll(async () => {
+        rollingWindowUser = await userRepositoryFixture.create({
+          email: rollingWindowUserEmail,
+          name: rollingWindowUserEmail,
+          username: rollingWindowUserEmail,
+        });
+
+        const rollingWindowUserSchedule: CreateScheduleInput_2024_06_11 = {
+          name: `rolling-window-schedule-${randomString()}`,
+          timeZone: "UTC",
+          isDefault: true,
+        };
+        await schedulesService.createUserSchedule(rollingWindowUser.id, rollingWindowUserSchedule);
+
+        rollingWindowEventType = await eventTypesRepositoryFixture.create(
+          {
+            title: "rolling window event",
+            slug: `rolling-window-event-type-${randomString()}`,
+            length: 30,
+            periodType: PeriodType.ROLLING_WINDOW,
+            periodDays: 30,
+            periodCountCalendarDays: true,
+          },
+          rollingWindowUser.id
+        );
+      });
+
+      it("should respect start property and return slots only within requested date range for rolling window event type", async () => {
+        const mockNow = DateTime.fromISO("2050-08-10T12:00:00.000Z", { zone: "UTC" }).toJSDate();
+        advanceTo(mockNow);
+        const startDate = "2050-09-05";
+        const endDate = "2050-09-07";
+
+        const response = await request(app.getHttpServer())
+          .get(
+            `/v2/slots?eventTypeId=${rollingWindowEventType.id}&start=${startDate}&end=${endDate}&timeZone=UTC&format=range`
+          )
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(200);
+
+        const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const slots = responseBody.data;
+
+        expect(slots).toBeDefined();
+        expect(typeof slots).toBe("object");
+
+        const returnedDates = Object.keys(slots);
+        expect(returnedDates.length).toEqual(3);
+
+        returnedDates.forEach((date) => {
+          expect(date >= startDate).toBe(true);
+          expect(date <= endDate).toBe(true);
+        });
+      });
+
+      it("should return no slots when requested dates are beyond rolling window limit", async () => {
+        // Mock "today" to 2050-08-10. Rolling window is 30 days, so max bookable is ~Sep 9.
+        const mockNow = DateTime.fromISO("2050-08-10T12:00:00.000Z", { zone: "UTC" }).toJSDate();
+        advanceTo(mockNow);
+
+        // Request dates in October - well beyond the 30-day rolling window
+        const startDate = "2050-10-15";
+        const endDate = "2050-10-17";
+
+        const response = await request(app.getHttpServer())
+          .get(
+            `/v2/slots?eventTypeId=${rollingWindowEventType.id}&start=${startDate}&end=${endDate}&timeZone=UTC`
+          )
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(200);
+
+        const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const slots = responseBody.data;
+
+        // Should be empty - dates are beyond the rolling window limit
+        expect(Object.keys(slots).length).toEqual(0);
+      });
+
+      afterAll(async () => {
+        try {
+          await userRepositoryFixture.deleteByEmail(rollingWindowUserEmail);
+        } catch {
+          // Ignore if user doesn't exist
+        }
+      });
+    });
+
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
-      await userRepositoryFixture.deleteByEmail(oooTestUserEmail);
+      try {
+        await userRepositoryFixture.deleteByEmail(oooTestUserEmail);
+      } catch {
+        // Ignore if user doesn't exist
+      }
       await userRepositoryFixture.deleteByEmail(unrelatedUser.email);
       await selectedSlotRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
