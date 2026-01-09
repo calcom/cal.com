@@ -1,7 +1,9 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, Alert, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import EditAvailabilityHoursScreenComponent from "@/components/screens/EditAvailabilityHoursScreen";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 
@@ -29,6 +31,10 @@ export default function EditAvailabilityHours() {
     }
   }, [id, router]);
 
+  const handleClose = useCallback(() => {
+    router.back();
+  }, [router]);
+
   const handleDayPress = useCallback(
     (dayIndex: number) => {
       router.push(`/edit-availability-day?id=${id}&day=${dayIndex}` as never);
@@ -42,7 +48,12 @@ export default function EditAvailabilityHours() {
         className="flex-1 items-center justify-center bg-white"
         style={{ paddingBottom: insets.bottom }}
       >
-        <Stack.Screen options={{ title: "Working Hours" }} />
+        <Stack.Screen
+          options={{
+            title: "Working Hours",
+            presentation: "modal",
+          }}
+        />
         <ActivityIndicator size="large" color="#007AFF" />
       </View>
     );
@@ -50,7 +61,25 @@ export default function EditAvailabilityHours() {
 
   return (
     <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
-      <Stack.Screen options={{ title: "Working Hours" }} />
+      <Stack.Screen
+        options={{
+          title: "Working Hours",
+          presentation: "modal",
+          contentStyle: {
+            backgroundColor: "#FFFFFF",
+          },
+          headerStyle: {
+            backgroundColor: "#FFFFFF",
+          },
+          headerLeft: () => (
+            <HeaderButtonWrapper side="left">
+              <TouchableOpacity onPress={handleClose} style={{ padding: 8 }}>
+                <Ionicons name="close" size={24} color="#000" />
+              </TouchableOpacity>
+            </HeaderButtonWrapper>
+          ),
+        }}
+      />
       <EditAvailabilityHoursScreenComponent schedule={schedule} onDayPress={handleDayPress} />
     </View>
   );
