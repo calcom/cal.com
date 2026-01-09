@@ -61,6 +61,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     <input
       {...props}
       ref={ref}
+      aria-required={props.required || undefined}
       className={classNames(inputStyles({ size }), isFullWidth && "w-full", className)}
     />
   );
@@ -177,6 +178,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             id={id}
             type={type}
             placeholder={placeholder}
+            aria-required={passThrough.required || undefined}
             className={classNames(
               "w-full min-w-0 truncate border-0 bg-transparent focus:outline-none focus:ring-0",
               "text-default rounded-lg text-sm font-medium leading-none",
@@ -225,6 +227,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           type={type}
           placeholder={placeholder}
           size={size}
+          aria-required={passThrough.required || undefined}
           className={classNames(
             className,
             "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed"
