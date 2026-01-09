@@ -59,6 +59,10 @@ function createUserBlockedWarningFn(t: TFunction): (feature: NormalizedFeature) 
   };
 }
 
+function isUserBlockedByHigherLevel(feature: NormalizedFeature): boolean {
+  return feature.effectiveReason === "feature_org_disabled" || feature.effectiveReason === "feature_all_teams_disabled";
+}
+
 /**
  * Hook for managing feature opt-in at the user (personal) level.
  */
@@ -97,5 +101,6 @@ export function useUserFeatureOptIn(): UseFeatureOptInResult {
     toggleLabels: { enabled: t("feature_on"), disabled: t("feature_off"), inherit: t("use_default") },
     autoOptInDescription: t("auto_opt_in_experimental_description_personal"),
     getBlockedWarning,
+    isBlockedByHigherLevel: isUserBlockedByHigherLevel,
   };
 }

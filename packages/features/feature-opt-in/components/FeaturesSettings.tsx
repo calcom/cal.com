@@ -57,6 +57,7 @@ function FeatureItem({
   feature,
   toggleOptions,
   getBlockedWarning,
+  isBlockedByHigherLevel,
   autoOptIn,
   setFeatureState,
   t,
@@ -64,6 +65,7 @@ function FeatureItem({
   feature: NormalizedFeature;
   toggleOptions: ToggleOption[];
   getBlockedWarning: (feature: NormalizedFeature) => string | null;
+  isBlockedByHigherLevel: (feature: NormalizedFeature) => boolean;
   autoOptIn: boolean;
   setFeatureState: (slug: string, state: FeatureState) => void;
   t: (key: string) => string;
@@ -72,6 +74,7 @@ function FeatureItem({
   if (!config) return null;
 
   const blockedWarning = getBlockedWarning(feature);
+  const isBlocked = isBlockedByHigherLevel(feature);
   const enabledViaAutoOptInFlag = isEnabledViaAutoOptIn(feature, autoOptIn);
 
   return (
@@ -105,6 +108,7 @@ function FeatureItem({
           value={feature.currentState}
           onValueChange={(val: string | undefined): void => handleValueChange(val, feature.slug, setFeatureState)}
           options={toggleOptions}
+          disabled={isBlocked}
         />
       </div>
     </div>
@@ -123,6 +127,7 @@ export function FeaturesSettings({ featureOptIn }: FeaturesSettingsProps): React
     toggleLabels,
     autoOptInDescription,
     getBlockedWarning,
+    isBlockedByHigherLevel,
   } = featureOptIn;
 
   if (isLoading) return <LoadingSkeleton />;
@@ -145,6 +150,7 @@ export function FeaturesSettings({ featureOptIn }: FeaturesSettingsProps): React
                 feature={feature}
                 toggleOptions={toggleOptions}
                 getBlockedWarning={getBlockedWarning}
+                isBlockedByHigherLevel={isBlockedByHigherLevel}
                 autoOptIn={autoOptIn}
                 setFeatureState={setFeatureState}
                 t={t}

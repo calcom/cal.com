@@ -38,6 +38,10 @@ function getOrgBlockedWarning(): string | null {
   return null;
 }
 
+function isOrgBlockedByHigherLevel(): boolean {
+  return false;
+}
+
 /**
  * Hook for managing feature opt-in at the organization level.
  */
@@ -81,5 +85,6 @@ export function useOrganizationFeatureOptIn(): UseFeatureOptInResult {
     toggleLabels: { enabled: t("allow"), disabled: t("block"), inherit: t("let_users_decide") },
     autoOptInDescription: t("auto_opt_in_experimental_description_org"),
     getBlockedWarning: getOrgBlockedWarning,
+    isBlockedByHigherLevel: isOrgBlockedByHigherLevel,
   };
 }

@@ -49,4 +49,12 @@ export interface UseFeatureOptInResult {
    * Returns null if not blocked or not applicable (team/org scopes).
    */
   getBlockedWarning: (feature: NormalizedFeature) => string | null;
+
+  /**
+   * Returns true if the feature toggle should be disabled because it's blocked by a higher level.
+   * - User scope: blocked by org or all teams
+   * - Team scope: blocked by org
+   * - Org scope: never blocked (top level)
+   */
+  isBlockedByHigherLevel: (feature: NormalizedFeature) => boolean;
 }

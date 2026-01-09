@@ -57,6 +57,15 @@ function createTeamBlockedWarningFn(
   };
 }
 
+function createTeamIsBlockedByHigherLevelFn(
+  blockingStateMap: Map<string, FeatureBlockingState>
+): (feature: NormalizedFeature) => boolean {
+  return (feature: NormalizedFeature): boolean => {
+    const blockingState = blockingStateMap.get(feature.slug);
+    return blockingState?.orgState === "disabled";
+  };
+}
+
 /**
  * Hook for managing feature opt-in at the team level.
  */
@@ -87,6 +96,7 @@ export function useTeamFeatureOptIn(teamId: number): UseFeatureOptInResult {
   const setFeatureState = (slug: string, state: FeatureState): void => setStateMutation.mutate({ teamId, slug, state });
   const setAutoOptIn = (checked: boolean): void => setAutoOptInMutation.mutate({ teamId, autoOptIn: checked });
   const getBlockedWarning = createTeamBlockedWarningFn(featureBlockingState, t);
+  const isBlockedByHigherLevel = createTeamIsBlockedByHigherLevelFn(featureBlockingState);
 
   return {
     features,
@@ -99,5 +109,6 @@ export function useTeamFeatureOptIn(teamId: number): UseFeatureOptInResult {
     toggleLabels: { enabled: t("allow"), disabled: t("block"), inherit: t("let_users_decide") },
     autoOptInDescription: t("auto_opt_in_experimental_description_team"),
     getBlockedWarning,
+    isBlockedByHigherLevel,
   };
 }
