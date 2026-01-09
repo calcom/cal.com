@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import type { AppFlags } from "../config";
+import type { AppFlags } from "@calcom/features/flags/config";
 
 export type TeamFeatures = Record<number, Record<keyof AppFlags, boolean>>;
 
