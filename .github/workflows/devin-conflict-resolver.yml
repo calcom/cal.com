@@ -187,6 +187,10 @@ jobs:
                   })
                 });
                 
+                if (!response.ok) {
+                  throw new Error(`Devin API error: ${response.status} ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 const sessionUrl = data.url || data.session_url;
                 
