@@ -24,6 +24,17 @@ vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
           ],
         },
       }),
+      update: vi.fn().mockResolvedValue({
+        id: "sub_test_123",
+        items: {
+          data: [
+            {
+              id: "si_test_123",
+              quantity: 1,
+            },
+          ],
+        },
+      }),
     },
   },
 }));
