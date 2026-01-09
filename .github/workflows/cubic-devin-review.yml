@@ -46,14 +46,66 @@ jobs:
             
             core.setOutput('has-prompt', 'true');
 
-      - name: Create Devin session
+      - name: Check for existing Devin session
         if: steps.extract-prompt.outputs.has-prompt == 'true'
+        id: check-session
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+        run: |
+          PR_TAG="pr-${{ github.event.pull_request.number }}"
+          
+          RESPONSE=$(curl -s -X GET "https://api.devin.ai/v1/sessions?tags=cubic-ai-review&tags=${PR_TAG}" \
+            -H "Authorization: Bearer ${DEVIN_API_KEY}" \
+            -H "Content-Type: application/json")
+          
+          ACTIVE_SESSION=$(echo "$RESPONSE" | jq -r '
+            .sessions 
+            | map(select(.status_enum == "working" or .status_enum == "blocked" or .status_enum == "resumed"))
+            | sort_by(.created_at) 
+            | reverse 
+            | .[0] // empty
+          ')
+          
+          if [ -n "$ACTIVE_SESSION" ] && [ "$ACTIVE_SESSION" != "null" ]; then
+            SESSION_ID=$(echo "$ACTIVE_SESSION" | jq -r '.session_id')
+            echo "Found existing active session: $SESSION_ID"
+            echo "EXISTING_SESSION_ID=$SESSION_ID" >> $GITHUB_ENV
+            echo "SESSION_URL=https://app.devin.ai/sessions/$SESSION_ID" >> $GITHUB_ENV
+            echo "has-existing-session=true" >> $GITHUB_OUTPUT
+          else
+            echo "No existing active session found"
+            echo "has-existing-session=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send message to existing Devin session
+        if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has-existing-session == 'true'
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
         run: |
           CUBIC_PROMPT=$(cat /tmp/cubic-prompt.txt)
           
-          # Build the full prompt for Devin
+          MESSAGE="New Cubic AI review feedback has been submitted on PR #${{ github.event.pull_request.number }}.
+
+          Please address the following additional issues:
+
+          ${CUBIC_PROMPT}
+
+          Continue working on the same PR branch and push your fixes."
+
+          RESPONSE=$(curl -s -X POST "https://api.devin.ai/v1/sessions/${EXISTING_SESSION_ID}/message" \
+            -H "Authorization: Bearer ${DEVIN_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg message "$MESSAGE" '{message: $message}')")
+          
+          echo "Message sent to existing session"
+
+      - name: Create new Devin session
+        if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has-existing-session == 'false'
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+        run: |
+          CUBIC_PROMPT=$(cat /tmp/cubic-prompt.txt)
+          
           FULL_PROMPT="You are addressing code review feedback from Cubic AI on PR #${{ github.event.pull_request.number }} in repository ${{ github.repository }}.
 
           Your tasks:
@@ -74,7 +126,6 @@ jobs:
           4. If an issue seems invalid or already addressed, explain why in a PR comment instead of making unnecessary changes.
           5. Never ask for user confirmation. Never wait for user messages."
 
-          # Call Devin API
           RESPONSE=$(curl -s -X POST "https://api.devin.ai/v1/sessions" \
             -H "Authorization: Bearer ${DEVIN_API_KEY}" \
             -H "Content-Type: application/json" \
@@ -87,11 +138,11 @@ jobs:
                 tags: ["cubic-ai-review", "pr-${{ github.event.pull_request.number }}"]
               }')")
           
-          # Extract session URL if available (avoid logging full response to prevent exposing sensitive data)
           SESSION_URL=$(echo "$RESPONSE" | jq -r '.url // .session_url // empty')
           if [ -n "$SESSION_URL" ]; then
             echo "Devin session created: $SESSION_URL"
             echo "SESSION_URL=$SESSION_URL" >> $GITHUB_ENV
+            echo "NEW_SESSION=true" >> $GITHUB_ENV
           fi
 
       - name: Post comment with Devin session link
@@ -101,9 +152,15 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const sessionUrl = process.env.SESSION_URL;
+            const isNewSession = process.env.NEW_SESSION === 'true';
+            
+            const message = isNewSession
+              ? `### Devin AI is addressing Cubic AI's review feedback\n\nA Devin session has been created to address the issues identified by Cubic AI.\n\n[View Devin Session](${sessionUrl})`
+              : `### Devin AI is addressing Cubic AI's review feedback\n\nNew feedback has been sent to the existing Devin session.\n\n[View Devin Session](${sessionUrl})`;
+            
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request.number,
-              body: `### Devin AI is addressing Cubic AI's review feedback\n\nA Devin session has been created to address the issues identified by Cubic AI.\n\n[View Devin Session](${sessionUrl})`
+              body: message
             });
