@@ -1,0 +1,17 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "BigBlueButton",
+  "slug": "bigbluebutton",
+  "type": "bigbluebutton_video",
+  "logo": "icon.svg",
+  "url": "https://bigbluebutton.org",
+  "variant": "conferencing",
+  "categories": ["conferencing"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "BigBlueButton is an open-source web conferencing system designed for online learning with real-time sharing of audio, video, slides, chat, and screen.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic",
+  "dirName": "bigbluebutton"
+}
