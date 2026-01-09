@@ -17,11 +17,11 @@ permissions:
 jobs:
   complete-stale-pr:
     name: Trigger Devin to Complete Stale Community PR
-    # For labeled events: only run if 'stale' label was added and PR has 'community' label
+    # For labeled events: only run if 'stale' label was added
     # For workflow_dispatch: always run (we'll validate the PR in the steps)
     if: >
       github.event_name == 'workflow_dispatch' ||
-      (github.event.label.name == 'stale' && contains(github.event.pull_request.labels.*.name, 'community'))
+      github.event.label.name == 'stale'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Get PR details
