@@ -1,8 +1,11 @@
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
+import { Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
   Alert,
   Modal,
+  Platform,
   ScrollView,
   Switch,
   Text,
@@ -242,38 +245,120 @@ export function AdvancedTab(props: AdvancedTabProps) {
         <Modal
           visible={showLanguagePicker}
           animationType="slide"
-          transparent={true}
+          transparent={Platform.OS !== "ios"}
+          presentationStyle={Platform.OS === "ios" ? "formSheet" : undefined}
           onRequestClose={() => setShowLanguagePicker(false)}
         >
-          <View className="flex-1 justify-end bg-black/50">
-            <View className="max-h-[70%] rounded-t-3xl bg-white">
-              <View className="flex-row items-center justify-between border-b border-[#E5E5EA] p-4">
-                <Text className="text-lg font-semibold text-[#333]">Select Language</Text>
-                <TouchableOpacity onPress={() => setShowLanguagePicker(false)}>
-                  <Ionicons name="close" size={24} color="#666" />
-                </TouchableOpacity>
-              </View>
-              <ScrollView className="p-2">
-                {interfaceLanguageOptions.map((option) => (
+          {Platform.OS === "ios" ? (
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+              }}
+            >
+              {/* Glass Header */}
+              {isLiquidGlassAvailable() ? (
+                <GlassView
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 60, // Standard header height
+                    zIndex: 10,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingHorizontal: 16,
+                  }}
+                  glassEffectStyle="regular"
+                >
                   <TouchableOpacity
-                    key={option.value}
-                    className={`flex-row items-center justify-between rounded-lg p-4 ${
-                      props.interfaceLanguage === option.value ? "bg-[#F0F0F0]" : ""
-                    }`}
-                    onPress={() => {
-                      props.setInterfaceLanguage(option.value);
-                      setShowLanguagePicker(false);
-                    }}
+                    onPress={() => setShowLanguagePicker(false)}
+                    className="h-[30px] w-[30px] items-center justify-center rounded-full bg-[#E5E5EA]"
                   >
-                    <Text className="text-base text-[#333]">{option.label}</Text>
-                    {props.interfaceLanguage === option.value ? (
-                      <Ionicons name="checkmark" size={20} color="#007AFF" />
-                    ) : null}
+                    <Ionicons name="close" size={20} color="#8E8E93" />
                   </TouchableOpacity>
-                ))}
+
+                  <Text className="text-[17px] font-semibold text-black">Select Language</Text>
+
+                  {/* Spacer to balance the centered title since we removed the right button */}
+                  <View className="h-8 w-8" />
+                </GlassView>
+              ) : (
+                <View className="absolute left-0 right-0 top-0 z-10 h-[60px] flex-row items-center justify-between border-b border-[#E5E5EA] bg-white px-4">
+                  <TouchableOpacity
+                    onPress={() => setShowLanguagePicker(false)}
+                    className="h-8 w-8 items-center justify-center rounded-full bg-[#E5E5EA]"
+                  >
+                    <Ionicons name="close" size={20} color="#8E8E93" />
+                  </TouchableOpacity>
+
+                  <Text className="text-[17px] font-semibold text-black">Select Language</Text>
+
+                  {/* Spacer to balance the centered title */}
+                  <View className="h-8 w-8" />
+                </View>
+              )}
+
+              <ScrollView
+                className="flex-1"
+                contentContainerStyle={{ paddingTop: 80, paddingHorizontal: 16, paddingBottom: 40 }}
+              >
+                <View className="overflow-hidden rounded-xl border border-gray-300/40 bg-white/60">
+                  {interfaceLanguageOptions.map((option, index) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      className={`flex-row items-center justify-between px-4 py-3 active:bg-white/80 ${
+                        index !== interfaceLanguageOptions.length - 1
+                          ? "border-b border-gray-300/40"
+                          : ""
+                      }`}
+                      onPress={() => {
+                        props.setInterfaceLanguage(option.value);
+                        setShowLanguagePicker(false);
+                      }}
+                    >
+                      <Text className="text-base text-[#333]">{option.label}</Text>
+                      {props.interfaceLanguage === option.value ? (
+                        <Ionicons name="checkmark" size={20} color="#007AFF" />
+                      ) : null}
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </ScrollView>
             </View>
-          </View>
+          ) : (
+            <View className="flex-1 justify-end bg-black/50">
+              <View className="max-h-[70%] rounded-t-3xl bg-white">
+                <View className="flex-row items-center justify-between border-b border-[#E5E5EA] p-4">
+                  <Text className="text-lg font-semibold text-[#333]">Select Language</Text>
+                  <TouchableOpacity onPress={() => setShowLanguagePicker(false)}>
+                    <Ionicons name="close" size={24} color="#666" />
+                  </TouchableOpacity>
+                </View>
+                <ScrollView className="p-2">
+                  {interfaceLanguageOptions.map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      className={`flex-row items-center justify-between rounded-lg p-4 ${
+                        props.interfaceLanguage === option.value ? "bg-[#F0F0F0]" : ""
+                      }`}
+                      onPress={() => {
+                        props.setInterfaceLanguage(option.value);
+                        setShowLanguagePicker(false);
+                      }}
+                    >
+                      <Text className="text-base text-[#333]">{option.label}</Text>
+                      {props.interfaceLanguage === option.value ? (
+                        <Ionicons name="checkmark" size={20} color="#007AFF" />
+                      ) : null}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+          )}
         </Modal>
       </View>
 
