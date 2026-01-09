@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -9,6 +9,18 @@ import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUs
 
 import { handler } from "../../../pages/api/availability/_get";
 
+type SingleUserAvailability = {
+  busy: Array<{ start: Date; end: Date; title?: string; source?: string }>;
+  timeZone: string;
+  workingHours: Array<{ days: number[]; startTime: number; endTime: number; userId?: number }>;
+  dateOverrides: Array<unknown>;
+  datesOutOfOffice?: Record<string, { fromUser?: unknown; toUser?: unknown; reason?: string; emoji?: string; notes?: string }>;
+};
+
+function isSingleUserAvailability(result: unknown): result is SingleUserAvailability {
+  return result !== null && typeof result === "object" && "busy" in result && !Array.isArray(result);
+}
+
 vi.mock("@calcom/features/di/containers/GetUserAvailability", () => ({
   getUserAvailabilityService: vi.fn(),
 }));
@@ -16,7 +28,15 @@ vi.mock("@calcom/features/di/containers/GetUserAvailability", () => ({
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
-const mockAvailabilityData = {
+type MockAvailabilityData = {
+  busy: Array<{ start: Date; end: Date; title: string; source: string }>;
+  timeZone: string;
+  workingHours: Array<{ days: number[]; startTime: number; endTime: number; userId: number }>;
+  dateOverrides: Array<unknown>;
+  datesOutOfOffice: Record<string, { fromUser: { id: number; displayName: string }; toUser: { id: number; username: string; displayName: string }; reason: string; emoji: string; notes: string }>;
+};
+
+const mockAvailabilityData: MockAvailabilityData = {
   busy: [
     {
       start: new Date("2024-01-15T09:00:00Z"),
@@ -45,7 +65,7 @@ const mockAvailabilityData = {
   },
 };
 
-const mockGetUserAvailability = vi.fn();
+const mockGetUserAvailability: ReturnType<typeof vi.fn> = vi.fn();
 
 beforeEach(() => {
   mockGetUserAvailability.mockResolvedValue(mockAvailabilityData);
@@ -78,8 +98,11 @@ describe("GET /api/availability", () => {
 
       const result = await handler(req);
 
+      if (!isSingleUserAvailability(result)) {
+        throw new Error("Expected single user availability response");
+      }
       expect(result.busy).toHaveLength(2);
-      result.busy.forEach((busyTime: Record<string, unknown>) => {
+      result.busy.forEach((busyTime) => {
         expect(busyTime).not.toHaveProperty("title");
         expect(busyTime).toHaveProperty("start");
         expect(busyTime).toHaveProperty("end");
@@ -90,9 +113,10 @@ describe("GET /api/availability", () => {
       const requesterId = 100;
       const targetUserId = 200;
 
+      // @ts-expect-error - prismaMock typing requires full User object but we only need id for this test
       prismaMock.user.findFirst.mockResolvedValue({
         id: targetUserId,
-      } as any);
+      });
 
       const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
@@ -108,8 +132,11 @@ describe("GET /api/availability", () => {
 
       const result = await handler(req);
 
+      if (!isSingleUserAvailability(result)) {
+        throw new Error("Expected single user availability response");
+      }
       expect(result.busy).toHaveLength(2);
-      result.busy.forEach((busyTime: Record<string, unknown>) => {
+      result.busy.forEach((busyTime) => {
         expect(busyTime).not.toHaveProperty("title");
       });
     });
@@ -132,14 +159,17 @@ describe("GET /api/availability", () => {
 
       const result = await handler(req);
 
-      expect(result.datesOutOfOffice["2024-01-20"]).not.toHaveProperty("reason");
-      expect(result.datesOutOfOffice["2024-01-20"]).not.toHaveProperty("emoji");
-      expect(result.datesOutOfOffice["2024-01-20"]).not.toHaveProperty("notes");
-      expect(result.datesOutOfOffice["2024-01-20"].fromUser).toEqual({
+      if (!isSingleUserAvailability(result)) {
+        throw new Error("Expected single user availability response");
+      }
+      expect(result.datesOutOfOffice?.["2024-01-20"]).not.toHaveProperty("reason");
+      expect(result.datesOutOfOffice?.["2024-01-20"]).not.toHaveProperty("emoji");
+      expect(result.datesOutOfOffice?.["2024-01-20"]).not.toHaveProperty("notes");
+      expect(result.datesOutOfOffice?.["2024-01-20"]?.fromUser).toEqual({
         id: 1,
         displayName: "John Doe",
       });
-      expect(result.datesOutOfOffice["2024-01-20"].toUser).toEqual({
+      expect(result.datesOutOfOffice?.["2024-01-20"]?.toUser).toEqual({
         id: 2,
         username: "jane",
         displayName: "Jane Doe",
@@ -165,6 +195,9 @@ describe("GET /api/availability", () => {
 
       const result = await handler(req);
 
+      if (!isSingleUserAvailability(result)) {
+        throw new Error("Expected single user availability response");
+      }
       expect(result.busy).toHaveLength(2);
       expect(result.busy[0].title).toBe("Confidential Meeting");
       expect(result.busy[1].title).toBe("Secret Project Discussion");
@@ -173,9 +206,10 @@ describe("GET /api/availability", () => {
     test("should return full data including titles when querying own availability by username", async () => {
       const userId = 100;
 
+      // @ts-expect-error - prismaMock typing requires full User object but we only need id for this test
       prismaMock.user.findFirst.mockResolvedValue({
         id: userId,
-      } as any);
+      });
 
       const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
@@ -191,9 +225,12 @@ describe("GET /api/availability", () => {
 
       const result = await handler(req);
 
+      if (!isSingleUserAvailability(result)) {
+        throw new Error("Expected single user availability response");
+      }
       expect(result.busy[0].title).toBe("Confidential Meeting");
-      expect(result.datesOutOfOffice["2024-01-20"].reason).toBe("Vacation");
-      expect(result.datesOutOfOffice["2024-01-20"].notes).toBe("Private vacation notes");
+      expect(result.datesOutOfOffice?.["2024-01-20"]?.reason).toBe("Vacation");
+      expect(result.datesOutOfOffice?.["2024-01-20"]?.notes).toBe("Private vacation notes");
     });
   });
 
@@ -216,20 +253,24 @@ describe("GET /api/availability", () => {
 
       const result = await handler(req);
 
+      if (!isSingleUserAvailability(result)) {
+        throw new Error("Expected single user availability response");
+      }
       expect(result.busy[0].title).toBe("Confidential Meeting");
       expect(result.busy[1].title).toBe("Secret Project Discussion");
-      expect(result.datesOutOfOffice["2024-01-20"].reason).toBe("Vacation");
-      expect(result.datesOutOfOffice["2024-01-20"].emoji).toBe("beach");
-      expect(result.datesOutOfOffice["2024-01-20"].notes).toBe("Private vacation notes");
+      expect(result.datesOutOfOffice?.["2024-01-20"]?.reason).toBe("Vacation");
+      expect(result.datesOutOfOffice?.["2024-01-20"]?.emoji).toBe("beach");
+      expect(result.datesOutOfOffice?.["2024-01-20"]?.notes).toBe("Private vacation notes");
     });
 
     test("should return full data for system admin querying by username", async () => {
       const adminUserId = 999;
       const targetUserId = 200;
 
+      // @ts-expect-error - prismaMock typing requires full User object but we only need id for this test
       prismaMock.user.findFirst.mockResolvedValue({
         id: targetUserId,
-      } as any);
+      });
 
       const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
@@ -245,8 +286,11 @@ describe("GET /api/availability", () => {
 
       const result = await handler(req);
 
+      if (!isSingleUserAvailability(result)) {
+        throw new Error("Expected single user availability response");
+      }
       expect(result.busy[0].title).toBe("Confidential Meeting");
-      expect(result.datesOutOfOffice["2024-01-20"].reason).toBe("Vacation");
+      expect(result.datesOutOfOffice?.["2024-01-20"]?.reason).toBe("Vacation");
     });
   });
 
@@ -274,9 +318,12 @@ describe("GET /api/availability", () => {
 
       const result = await handler(req);
 
+      if (!isSingleUserAvailability(result)) {
+        throw new Error("Expected single user availability response");
+      }
       expect(result.datesOutOfOffice).toBeUndefined();
       expect(result.busy).toHaveLength(2);
-      result.busy.forEach((busyTime: Record<string, unknown>) => {
+      result.busy.forEach((busyTime) => {
         expect(busyTime).not.toHaveProperty("title");
       });
     });
@@ -304,6 +351,9 @@ describe("GET /api/availability", () => {
 
       const result = await handler(req);
 
+      if (!isSingleUserAvailability(result)) {
+        throw new Error("Expected single user availability response");
+      }
       expect(result.busy).toEqual([]);
     });
 
@@ -330,6 +380,9 @@ describe("GET /api/availability", () => {
 
       const result = await handler(req);
 
+      if (!isSingleUserAvailability(result)) {
+        throw new Error("Expected single user availability response");
+      }
       expect(result.datesOutOfOffice).toEqual({});
     });
   });
