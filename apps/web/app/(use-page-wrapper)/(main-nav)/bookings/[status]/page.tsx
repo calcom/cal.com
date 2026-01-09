@@ -55,17 +55,24 @@ const Page = async ({ params }: PageProps) => {
   }
 
   const featuresRepository = new FeaturesRepository(prisma);
-  const isCalendarViewEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
-    "booking-calendar-view"
-  );
+  const featureFlags = session?.user?.id
+    ? await featuresRepository.getUserFeaturesStatus(session.user.id, ["bookings-v3", "booking-audit"])
+    : { "bookings-v3": false, "booking-audit": false };
+
+  const bookingsV3Enabled = featureFlags["bookings-v3"] ?? false;
+  const bookingAuditEnabled = featureFlags["booking-audit"] ?? false;
 
   return (
-    <ShellMainAppDir heading={t("bookings")} subtitle={t("bookings_description")}>
+    <ShellMainAppDir
+      heading={t("bookings")}
+      subtitle={t("bookings_description")}
+      headerClassName="bookings-shell-heading">
       <BookingsList
         status={parsed.data.status}
         userId={session?.user?.id}
         permissions={{ canReadOthersBookings }}
-        isCalendarViewEnabled={isCalendarViewEnabled}
+        bookingsV3Enabled={bookingsV3Enabled}
+        bookingAuditEnabled={bookingAuditEnabled}
       />
     </ShellMainAppDir>
   );

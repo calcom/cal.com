@@ -6,7 +6,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import type { Resource, PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import {
   CrudAction,
   Scope,
@@ -160,7 +160,7 @@ export function RoleSheet({
         teamId,
         roleId: role.id,
         name: values.name,
-        permissions: values.permissions as any,
+        permissions: values.permissions as PermissionString[],
         color: values.color,
       });
     } else {
@@ -169,7 +169,7 @@ export function RoleSheet({
         name: values.name,
         description: values.description,
         color: values.color,
-        permissions: values.permissions as any,
+        permissions: values.permissions as PermissionString[],
       });
     }
   };
@@ -183,7 +183,7 @@ export function RoleSheet({
           </SheetTitle>
         </SheetHeader>
         <Form form={form} handleSubmit={onSubmit}>
-          <div className="space-y-4 py-5">
+          <div className="stack-y-4 py-5">
             <div className="flex items-end justify-end gap-2">
               <div className="flex-1">
                 <TextField
@@ -203,7 +203,7 @@ export function RoleSheet({
 
             <div className="">
               {isAdvancedMode ? (
-                <div className="space-y-4">
+                <div className="stack-y-4">
                   <div>
                     <div className="mb-2 flex items-center justify-between">
                       <Label className="mb-0">{t("permissions")}</Label>
@@ -239,7 +239,7 @@ export function RoleSheet({
                   ))}{" "}
                 </div>
               ) : (
-                <div className="bg-muted rounded-xl p-1">
+                <div className="bg-cal-muted rounded-xl p-1">
                   <div className="flex items-center justify-between px-3 py-2">
                     <Label>{t("permissions")}</Label>
                     <div className="flex items-center gap-2">

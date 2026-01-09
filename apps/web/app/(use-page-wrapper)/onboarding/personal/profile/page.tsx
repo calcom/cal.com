@@ -7,7 +7,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { PersonalProfileView } from "~/onboarding/personal/profile/personal-profile-view";
+import { PersonalSettingsView } from "~/onboarding/personal/settings/personal-settings-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -28,7 +28,7 @@ const ServerPage = async () => {
 
   const userEmail = session.user.email || "";
 
-  return <PersonalProfileView userEmail={userEmail} />;
+  return <PersonalSettingsView userEmail={userEmail} />;
 };
 
 export default ServerPage;

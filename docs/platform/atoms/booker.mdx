@@ -591,6 +591,7 @@ Below is a comprehensive list of props that can be passed to the booker atom.
 | handleSlotReservation           | No          | Custom function to handle slot reservation logic. Receives the timeslot string as parameter.                                                                                                                   |
 | entity                          | No          | Entity configuration object containing `orgSlug`, `teamSlug`, `name`, and `considerUnpublished` properties.                                                                                                    |
 | eventMetaChildren               | No          | React node to inject custom content into the event metadata section.                                                                                                                                           |
+| defaultPhoneCountry             | No          | Sets the default country code for phone number inputs in the booking form. Accepts ISO 3166-1 alpha-2 country codes (e.g., `"us"`, `"gb"`, `"in"`, `"ee"`). When set, phone inputs will default to the specified country's dialing code. |
 
 ## Styling
 
@@ -607,9 +608,9 @@ export default function Booker( props : BookerProps ) {
       <Booker
         ...
         customClassNames={{
-          bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
+          bookerContainer: "bg-[#F5F2FE]! [&_button:!rounded-full] border-subtle border",
           datePickerCustomClassNames: {
-            datePickerDatesActive: "!bg-[#D7CEF5]",
+            datePickerDatesActive: "bg-[#D7CEF5]!",
           },
         }}
       />
@@ -673,20 +674,20 @@ export default function Booker( props : BookerProps ) {
       <Booker
         ...
         customClassNames={{
-          bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
+          bookerContainer: "bg-[#F5F2FE]! [&_button:!rounded-full] border-subtle border",
           datePickerCustomClassNames: {
-            datePickerDatesActive: "!bg-[#D7CEF5]",
+            datePickerDatesActive: "bg-[#D7CEF5]!",
           },
           eventMetaCustomClassNames: {
             eventMetaTitle: "text-[#7151DC]",
           },
           availableTimeSlotsCustomClassNames: {
-            availableTimeSlotsHeaderContainer: "!bg-[#F5F2FE]",
-            availableTimes: "!bg-[#D7CEF5]",
+            availableTimeSlotsHeaderContainer: "bg-[#F5F2FE]!",
+            availableTimes: "bg-[#D7CEF5]!",
           },
           confirmStep: {
-            confirmButton: "!bg-purple-700",
-            backButton: "text-purple-700 hover:!bg-purple-700 hover:!text-white"
+            confirmButton: "bg-purple-700!",
+            backButton: "text-purple-700 hover:bg-purple-700! hover:text-white!"
           }
         }}
       />

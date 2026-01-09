@@ -27,6 +27,7 @@ import {
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
+import { slugifyLenient } from "@calcom/platform-libraries";
 import { getApps, getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
 import {
   validateCustomEventName,
@@ -39,6 +40,7 @@ import {
   InputBookingField_2024_06_14,
   OutputUnknownLocation_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
+  supportedIntegrations,
 } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -128,6 +130,10 @@ export class InputEventTypesService_2024_06_14 {
       useDestinationCalendarEmail,
       disableGuests,
       bookerActiveBookingsLimit,
+      slug,
+      disableRescheduling,
+      disableCancelling,
+      calVideoSettings,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -143,6 +149,8 @@ export class InputEventTypesService_2024_06_14 {
       ? this.transformInputBookerActiveBookingsLimit(bookerActiveBookingsLimit)
       : {};
 
+    const slugifiedSlug = slugifyLenient(slug);
+
     const metadata: EventTypeMetadata = {
       bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
       requiresConfirmationThreshold:
@@ -150,8 +158,13 @@ export class InputEventTypesService_2024_06_14 {
       multipleDuration: lengthInMinutesOptions,
     };
 
+    const disableReschedulingTransformed = this.transformInputDisableRescheduling(disableRescheduling);
+    const disableCancellingTransformed = this.transformInputDisableCancelling(disableCancelling);
+    const calVideoSettingsTransformed = this.transformInputCalVideoSettings(calVideoSettings);
+
     const eventType = {
       ...rest,
+      slug: slugifiedSlug,
       length: lengthInMinutes,
       locations: locationsTransformed,
       bookingFields: this.transformInputBookingFields(effectiveBookingFields),
@@ -170,6 +183,9 @@ export class InputEventTypesService_2024_06_14 {
       eventName: customName,
       useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
       ...maxActiveBookingsPerBooker,
+      ...disableReschedulingTransformed,
+      ...disableCancellingTransformed,
+      ...calVideoSettingsTransformed,
     };
 
     return eventType;
@@ -208,6 +224,10 @@ export class InputEventTypesService_2024_06_14 {
       useDestinationCalendarEmail,
       disableGuests,
       bookerActiveBookingsLimit,
+      slug,
+      disableRescheduling,
+      disableCancelling,
+      calVideoSettings,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
@@ -228,14 +248,31 @@ export class InputEventTypesService_2024_06_14 {
 
     const metadata: EventTypeMetadata = {
       ...metadataTransformed,
-      bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
-      requiresConfirmationThreshold:
-        confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
-      multipleDuration: lengthInMinutesOptions,
+      ...(bookerLayouts !== undefined
+        ? { bookerLayouts: this.transformInputBookerLayouts(bookerLayouts) }
+        : {}),
+      ...(confirmationPolicy !== undefined
+        ? {
+            requiresConfirmationThreshold:
+              confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+          }
+        : {}),
+      ...(lengthInMinutesOptions !== undefined ? { multipleDuration: lengthInMinutesOptions } : {}),
     };
+
+    const disableReschedulingTransformed = disableRescheduling
+      ? this.transformInputDisableRescheduling(disableRescheduling)
+      : {};
+    const disableCancellingTransformed = disableCancelling
+      ? this.transformInputDisableCancelling(disableCancelling)
+      : {};
+    const calVideoSettingsTransformed = calVideoSettings
+      ? this.transformInputCalVideoSettings(calVideoSettings)
+      : {};
 
     const eventType = {
       ...rest,
+      ...(slug ? { slug: slugifyLenient(slug) } : {}),
       length: lengthInMinutes,
       locations: locations ? this.transformInputLocations(locations) : undefined,
       bookingFields: effectiveBookingFields
@@ -252,10 +289,13 @@ export class InputEventTypesService_2024_06_14 {
       requiresConfirmationWillBlockSlot:
         confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
       eventTypeColor: this.transformInputEventTypeColor(color),
-      ...this.transformInputSeatOptions(seats),
+      ...(seats ? this.transformInputSeatOptions(seats) : { seatsPerTimeSlot: undefined }),
       eventName: customName,
       useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
       ...maxActiveBookingsPerBooker,
+      ...disableReschedulingTransformed,
+      ...disableCancellingTransformed,
+      ...calVideoSettingsTransformed,
     };
 
     return eventType;
@@ -542,14 +582,40 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   async checkAppIsValidAndConnected(user: UserWithProfile, appSlug: string) {
-    const conferencingApps = ["google-meet", "office365-video", "zoom"];
+    const conferencingApps = supportedIntegrations as readonly string[];
     if (!conferencingApps.includes(appSlug)) {
       throw new BadRequestException("Invalid app, available apps are: ", conferencingApps.join(", "));
     }
 
-    if (appSlug === "office365-video") {
-      appSlug = "msteams";
-    }
+    // Map API integration names to actual app slugs
+    const slugMap: Record<string, string> = {
+      "office365-video": "msteams",
+      "facetime-video": "facetime",
+      "whereby-video": "whereby",
+      "whatsapp-video": "whatsapp",
+      "webex-video": "webex",
+      "telegram-video": "telegram",
+      "sylaps-video": "sylapsvideo",
+      "skype-video": "skype",
+      "sirius-video": "sirius_video",
+      "signal-video": "signal",
+      "shimmer-video": "shimmervideo",
+      "salesroom-video": "salesroom",
+      "roam-video": "roam",
+      "riverside-video": "riverside",
+      "ping-video": "ping",
+      "mirotalk-video": "mirotalk",
+      "jelly-video": "jelly",
+      "jelly-conferencing": "jelly",
+      "huddle": "huddle01",
+      "element-call-video": "element-call",
+      "eightxeight-video": "eightxeight",
+      "discord-video": "discord",
+      "demodesk-video": "demodesk",
+      "campfire-video": "campfire",
+    };
+
+    appSlug = slugMap[appSlug] || appSlug;
 
     const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
@@ -561,5 +627,61 @@ export class InputEventTypesService_2024_06_14 {
       throw new BadRequestException(`${appSlug} not connected.`);
     }
     return foundApp.credential;
+  }
+
+  transformInputDisableRescheduling(disableRescheduling: CreateEventTypeInput_2024_06_14["disableRescheduling"]) {
+    if (!disableRescheduling) {
+      return {};
+    }
+
+    // If disabled is true, rescheduling is always disabled
+    if (disableRescheduling.disabled === true) {
+      return {
+        disableRescheduling: true,
+        minimumRescheduleNotice: null,
+      };
+    }
+
+    // If minutesBefore is set, use it for conditional disable
+    if (disableRescheduling.minutesBefore && disableRescheduling.minutesBefore > 0) {
+      return {
+        disableRescheduling: false,
+        minimumRescheduleNotice: disableRescheduling.minutesBefore,
+      };
+    }
+
+    // Otherwise rescheduling is not disabled
+    return {
+      disableRescheduling: false,
+      minimumRescheduleNotice: null,
+    };
+  }
+
+  transformInputDisableCancelling(disableCancelling: CreateEventTypeInput_2024_06_14["disableCancelling"]) {
+    if (!disableCancelling) {
+      return {};
+    }
+
+    return {
+      disableCancelling: disableCancelling.disabled === true,
+    };
+  }
+
+  transformInputCalVideoSettings(calVideoSettings: CreateEventTypeInput_2024_06_14["calVideoSettings"]) {
+    if (!calVideoSettings) {
+      return {};
+    }
+
+    // Extract sendTranscriptionEmails from calVideoSettings and map to canSendCalVideoTranscriptionEmails
+    const { sendTranscriptionEmails, ...restCalVideoSettings } = calVideoSettings;
+
+    const hasOtherSettings = Object.keys(restCalVideoSettings).length > 0;
+
+    return {
+      ...(hasOtherSettings ? { calVideoSettings: restCalVideoSettings } : {}),
+      ...(sendTranscriptionEmails !== undefined
+        ? { canSendCalVideoTranscriptionEmails: sendTranscriptionEmails }
+        : {}),
+    };
   }
 }

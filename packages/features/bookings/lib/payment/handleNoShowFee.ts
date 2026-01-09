@@ -1,7 +1,7 @@
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
-import { sendNoShowFeeChargedEmail } from "@calcom/emails";
+import { sendNoShowFeeChargedEmail } from "@calcom/emails/billing-email-service";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
@@ -31,6 +31,9 @@ export const handleNoShowFee = async ({
       name?: string | null;
       locale: string | null;
       timeZone: string;
+      profiles: {
+        organizationId: number | null;
+      }[];
     } | null;
     eventType: {
       title: string;
@@ -97,6 +100,7 @@ export const handleNoShowFee = async ({
       currency: payment.currency,
       paymentOption: payment.paymentOption,
     },
+    organizationId: booking.user?.profiles?.[0]?.organizationId ?? null,
   };
 
   if (teamId) {

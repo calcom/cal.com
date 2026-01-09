@@ -1,4 +1,4 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
 
 import {
   getDate,
@@ -7,20 +7,20 @@ import {
   getMockBookingAttendee,
   TestData,
   addWorkflowReminders,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import {
   expectBookingToBeInDatabase,
   expectSuccessfulRoundRobinReschedulingEmails,
   expectWorkflowToBeTriggered,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, vi, expect } from "vitest";
 
 import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 vi.mock("@calcom/features/bookings/lib/EventManager");
 vi.mock("@calcom/app-store/utils", () => ({
@@ -179,7 +179,10 @@ type ConferenceResult = {
 const mockEventManagerReschedule = async (config?: MockEventManagerConfig) => {
   const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const spy = vi.spyOn(EventManager.prototype as any, "reschedule");
+  const existingSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
+  // Clear any existing mock calls from previous tests
+  existingSpy.mockClear();
+  const spy = existingSpy;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   spy.mockImplementation(async (event: any) => {
@@ -465,9 +468,9 @@ describe("roundRobinManualReassignment test", () => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
     await mockEventManagerReschedule();
 
-    const sendRoundRobinReassignedEmailsAndSMSSpy = vi.spyOn(
-      await import("@calcom/emails"),
-      "sendRoundRobinReassignedEmailsAndSMS"
+    const sendReassignedEmailsAndSMSSpy = vi.spyOn(
+      await import("@calcom/emails/email-manager"),
+      "sendReassignedEmailsAndSMS"
     );
 
     const testDestinationCalendar = createTestDestinationCalendar();
@@ -523,7 +526,7 @@ describe("roundRobinManualReassignment test", () => {
       reassignedById: 1,
     });
 
-    expect(sendRoundRobinReassignedEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
+    expect(sendReassignedEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
   });
 });
 

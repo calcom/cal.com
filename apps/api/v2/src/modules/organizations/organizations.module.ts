@@ -13,6 +13,7 @@ import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.ser
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { EmailModule } from "@/modules/email/email.module";
 import { EmailService } from "@/modules/email/email.service";
+import { OrganizationMembershipService } from "@/lib/services/organization-membership.service";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
@@ -39,6 +40,7 @@ import { OrganizationsMembershipRepository } from "@/modules/organizations/membe
 import { OrganizationsMembershipOutputService } from "@/modules/organizations/memberships/services/organizations-membership-output.service";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { OrganizationsOrganizationsModule } from "@/modules/organizations/organizations/organizations-organizations.module";
+import { OrganizationsRolesModule } from "@/modules/organizations/roles/organizations-roles.module";
 import { OrganizationsSchedulesController } from "@/modules/organizations/schedules/organizations-schedules.controller";
 import { OrganizationsSchedulesService } from "@/modules/organizations/schedules/services/organizations-schedules.service";
 import { OrganizationsStripeModule } from "@/modules/organizations/stripe/organizations-stripe.module";
@@ -50,6 +52,7 @@ import { OrganizationsTeamsInviteController } from "@/modules/organizations/team
 import { OrganizationsTeamsMembershipsController } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.controller";
 import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.repository";
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/teams/memberships/services/organizations-teams-memberships.service";
+import { OrganizationsTeamsRolesModule } from "@/modules/organizations/teams/roles/organizations-teams-roles.module";
 import { OrganizationsTeamsRoutingFormsModule } from "@/modules/organizations/teams/routing-forms/organizations-teams-routing-forms.module";
 import { OrganizationsTeamsSchedulesController } from "@/modules/organizations/teams/schedules/organizations-teams-schedules.controller";
 import { OrganizationTeamWorkflowsController } from "@/modules/organizations/teams/workflows/controllers/org-team-workflows.controller";
@@ -96,6 +99,8 @@ import { Module } from "@nestjs/common";
     TeamsModule,
     OrganizationsDelegationCredentialModule,
     OrganizationsOrganizationsModule,
+    OrganizationsRolesModule,
+    OrganizationsTeamsRolesModule,
     OrganizationsStripeModule,
     OrganizationsTeamsRoutingFormsModule,
     MembershipsModule,
@@ -104,6 +109,7 @@ import { Module } from "@nestjs/common";
   ],
   providers: [
     OrganizationsRepository,
+    OrganizationMembershipService,
     OrganizationsTeamsRepository,
     OrganizationsService,
     OrganizationsTeamsService,
@@ -196,4 +202,4 @@ import { Module } from "@nestjs/common";
     OrganizationsEventTypesPrivateLinksController,
   ],
 })
-export class OrganizationsModule {}
+export class OrganizationsModule { }
