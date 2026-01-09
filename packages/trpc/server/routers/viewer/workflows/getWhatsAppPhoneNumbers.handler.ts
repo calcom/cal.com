@@ -32,14 +32,13 @@ export const getWhatsAppPhoneNumbersHandler = async ({ ctx, input }: GetOptions)
     },
   });
 
-  console.log("Fetched phones:", phones);
-
   return phones.map((phone) => ({
     id: phone.phoneNumberId,
     phoneNumber: phone.phoneNumber,
     credentialId: phone.credentialId,
     wabaId: phone.wabaId,
-    isDefault: false, // Logic to determine default can be added
+    isDefault: false,
     isValid: !phone.credential.invalid,
+    templates: phone.templates || [],
   }));
 };

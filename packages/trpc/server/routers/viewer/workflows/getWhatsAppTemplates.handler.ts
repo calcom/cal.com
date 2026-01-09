@@ -8,6 +8,7 @@ export const getWhatsAppTemplatesHandler = async ({
   ctx: { prisma: PrismaClient; user: { id: string } };
   input: { phoneNumberId: string; calIdTeamId?: number };
 }) => {
+  console.log("Hello there")
   const whereClause = input.calIdTeamId
     ? {
         phoneNumberId: input.phoneNumberId,

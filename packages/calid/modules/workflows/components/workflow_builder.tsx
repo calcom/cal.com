@@ -149,6 +149,29 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     defaultValue: [],
   }) as WorkflowStep[];
 
+  useEffect(() => {
+    steps.map((step) => {
+      if (step.metaTemplatePhoneNumberId) {
+        const whatsAppTemplatesForPhone = whatsAppTemplates(step.metaTemplatePhoneNumberId);
+        if (!step.metaTemplateName) {
+          if (whatsAppTemplatesForPhone && whatsAppTemplatesForPhone.length > 0) {
+            updateAction(step.id, "metaTemplateName", whatsAppTemplatesForPhone[0].name);
+          }
+        }
+
+        if (step.metaTemplateName) {
+          if (
+            whatsAppTemplatesForPhone &&
+            !whatsAppTemplatesForPhone.some((e) => e.name === step.metaTemplateName)
+          ) {
+            console.log("Setting template name as null: ", step.metaTemplateName);
+            updateAction(step.id, "metaTemplateName", null);
+          }
+        }
+      }
+    });
+  }, [steps]);
+
   // Real data states
   const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
@@ -179,17 +202,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     { enabled: !!isAllDataLoaded }
   );
 
-  const [selectedPhoneNumberId, setSelectedPhoneNumberId] = useState<string | null>(null);
-
   const [invalidVariables, setInvalidVariables] = useState<{ [stepId: string]: string | null }>({});
 
-  const { data: whatsAppTemplates } = trpc.viewer.workflows.getWhatsAppTemplates.useQuery(
-    {
-      phoneNumberId: selectedPhoneNumberId || "",
-      ...(workflowData?.calIdTeamId ? { calIdTeamId: workflowData.calIdTeamId } : {}),
-    },
-    { enabled: !!selectedPhoneNumberId }
-  );
+  const whatsAppTemplates = (phone: string) => {
+    return whatsAppPhones?.find((p) => p.id === phone)?.templates || [];
+  };
 
   // Get verified numbers and emails
   let { data: verifiedNumbersData } = trpc.viewer.workflows.calid_getVerifiedNumbers.useQuery(
@@ -330,7 +347,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const [syncingTemplates, setSyncingTemplates] = useState(false);
 
   const syncTemplatesMutation = trpc.viewer.appWhatsappBusiness.syncTemplates.useMutation({
-    onSuccess(data, variables) {
+    async onSuccess(data, variables) {
+      await utils.viewer.workflows.getWhatsAppPhoneNumbers.invalidate();
       setSyncingTemplates(false);
       triggerToast(t("successfully_synced"), "success");
     },
@@ -345,17 +363,15 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     },
   });
 
-  const handleSyncTemplates = useCallback(() => {
-    setSyncingTemplates(true);
-    if (selectedPhoneNumberId) {
+  const handleSyncTemplates = useCallback(
+    (phoneNumber) => {
+      setSyncingTemplates(true);
       syncTemplatesMutation.mutate({
-        phoneNumberId: selectedPhoneNumberId,
+        phoneNumberId: phoneNumber,
       });
-    } else {
-      setSyncingTemplates(false);
-      triggerToast("Select a phone number", "error");
-    }
-  }, [selectedPhoneNumberId, syncTemplatesMutation]);
+    },
+    [syncTemplatesMutation]
+  );
 
   const sendEmailVerificationCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
     onSuccess(data, variables) {
@@ -518,12 +534,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             }
             return updatedStep;
           }) || [];
-
-        processedSteps.forEach((step) => {
-          if (isWhatsappAction(step.action) && step.metaTemplatePhoneNumberId) {
-            setSelectedPhoneNumberId(step.metaTemplatePhoneNumberId);
-          }
-        });
 
         // Use form.reset to set all values at once
 
@@ -775,18 +785,18 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     (stepId: number, field: keyof WorkflowStep, value: any) => {
       const currentSteps = form.getValues("steps") || [];
 
-      // // Handle action type changes
-      // if (field === "action") {
-      //   const newAction = value as WorkflowActions;
-      //   // ... rest of your existing action change logic
-      // }
-
       const updated = currentSteps.map((step) => {
         if (step.id === stepId) {
           const updatedStep = { ...step, [field]: value };
 
-          if (field === "metaTemplateName" && isWhatsappAction(step.action)) {
-            const selectedTemplate = whatsAppTemplates?.find((t) => t.name === value);
+          if (
+            field === "metaTemplateName" &&
+            step.metaTemplatePhoneNumberId &&
+            isWhatsappAction(step.action)
+          ) {
+            const selectedTemplate = whatsAppTemplates(step.metaTemplatePhoneNumberId)?.find(
+              (t) => t.name === value
+            );
 
             if (selectedTemplate) {
               // Check if template needs variable mapping
@@ -803,9 +813,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                   [stepId.toString()]: invalidVar,
                 }));
               }
-
-              triggerTemplateUpdate(stepId);
             }
+            triggerTemplateUpdate(stepId);
           }
 
           // Handle action type changes
@@ -913,7 +922,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
       form.setValue("steps", updated, { shouldDirty: true });
     },
-    [form, i18n.language, t, timeFormat, triggerTemplateUpdate, whatsAppTemplates]
+    [form, i18n.language, t, timeFormat, triggerTemplateUpdate, whatsAppPhones]
   );
 
   const toggleActionExpanded = useCallback((stepId: number) => {
@@ -971,13 +980,32 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         stepNumber: index + 1,
       };
 
-      if (isWhatsappAction(processedStep.action) && processedStep.metaTemplateName) {
-        const selectedTemplate = whatsAppTemplates?.find((t) => t.id === processedStep.metaTemplateName);
+      if (
+        isWhatsappAction(processedStep.action) &&
+        processedStep.metaTemplateName &&
+        processedStep.metaTemplatePhoneNumberId
+      ) {
+        const selectedTemplate = whatsAppTemplates(processedStep.metaTemplatePhoneNumberId)?.find(
+          (t) => t.id === processedStep.metaTemplateName
+        );
       }
 
       // Validation logic - ONLY for checking, don't modify original
       const strippedHtml = processedStep.reminderBody?.replace(/<[^>]+>/g, "") || "";
       const isBodyEmpty = !isSMSOrWhatsappAction(processedStep.action) && strippedHtml.length <= 1;
+
+      const isMetaTemplateEmpty =
+        (processedStep.action === WorkflowActions.WHATSAPP_NUMBER ||
+          processedStep.action === WorkflowActions.WHATSAPP_ATTENDEE) &&
+        processedStep.metaTemplatePhoneNumberId &&
+        !processedStep.metaTemplateName;
+
+      console.log("isMetaTemplateEmpty: ", processedStep.metaTemplateName);
+
+      if (isMetaTemplateEmpty) {
+        isEmpty = true;
+        triggerToast(t("select_whatsapp_template"), "error");
+      }
 
       if (isBodyEmpty) {
         isEmpty = true;
@@ -1020,16 +1048,12 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
       return processedStep;
     });
 
-    console.log("Validated steps: ", validatedSteps);
-
     if (!isEmpty && isVerified && workflowId && !hasMappingErrors && !hasInvalidVariables) {
       if (selectedOptions.length > 0) {
         activeOnIds = selectedOptions
           .filter((option) => option.value !== "all")
           .map((option) => parseInt(option.value, 10));
       }
-
-      console.log("Validated steps:", validatedSteps);
 
       updateMutation.mutate({
         id: workflowId,
@@ -1055,7 +1079,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     verifiedNumbersData,
     verifiedEmailsData,
     numberVerificationStatus,
-    whatsAppTemplates,
+    whatsAppPhones,
     t,
     i18n.language,
     form,
@@ -1147,7 +1171,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     );
   }
 
-  const convertWhatsAppTemplateForDisplay = (text: string): string => {
+  const convertWhatsAppTemplateForDisplay = (text: string | null): string => {
     if (!text) return "";
 
     // Replace \n with <br> for HTML display
@@ -1561,6 +1585,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                             }
                                             onChange={(option) => {
                                               // Handle redirect for setup option
+                                              if (option?.value === step.metaTemplatePhoneNumberId) {
+                                                return;
+                                              }
+
                                               if (option?.value === "setup") {
                                                 window.open("/apps/whatsapp-business", "_blank"); // To prevent user from accidently exiting the page without saving
                                                 return;
@@ -1571,9 +1599,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                                 "metaTemplatePhoneNumberId",
                                                 option?.value || null
                                               );
-                                              setSelectedPhoneNumberId(option?.value || null);
-                                              // Reset template when phone changes
+
                                               updateAction(step.id, "metaTemplateName", null);
+
+                                              // Reset template when phone changes
+
+                                              if (option?.value === "" && step.template) {
+                                                updateAction(step.id, "template", step.template);
+                                              }
                                             }}
                                             options={[
                                               { value: "", label: "Default" },
@@ -1619,7 +1652,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                       )}
 
                                       {/* WhatsApp Template Selector */}
-                                      {step.metaTemplatePhoneNumberId && whatsAppTemplates && (
+                                      {step.metaTemplatePhoneNumberId && whatsAppPhones && (
                                         <div className="bg-default mt-4 rounded-md">
                                           <div className="flex items-center justify-between">
                                             <Label>Message template</Label>
@@ -1651,7 +1684,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                                   color="minimal"
                                                   size="sm"
                                                   loading={syncingTemplates}
-                                                  onClick={() => handleSyncTemplates()}
+                                                  onClick={() =>
+                                                    handleSyncTemplates(step.metaTemplatePhoneNumberId)
+                                                  }
                                                   className="flex items-center gap-1 text-xs">
                                                   <Icon name="info" className="h-4 w-4" />
                                                   {t("sync_templates")}
@@ -1661,13 +1696,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                           </div>
                                           <Select
                                             value={
-                                              whatsAppTemplates.find(
+                                              whatsAppTemplates(step.metaTemplatePhoneNumberId).find(
                                                 (template) => template.name === step.metaTemplateName
                                               )
                                                 ? {
                                                     value: step.metaTemplateName || "",
                                                     label:
-                                                      whatsAppTemplates.find(
+                                                      whatsAppTemplates(step.metaTemplatePhoneNumberId).find(
                                                         (t) => t.name === step.metaTemplateName
                                                       )?.name || "",
                                                   }
@@ -1681,9 +1716,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                               );
 
                                               // Optionally auto-fill reminderBody with template body
-                                              const selectedTemplate = whatsAppTemplates.find(
-                                                (t) => t.name === option?.value
-                                              );
+                                              const selectedTemplate = whatsAppTemplates(
+                                                step.metaTemplatePhoneNumberId
+                                              ).find((t) => t.name === option?.value);
                                               if (selectedTemplate?.components) {
                                                 const bodyComponent = selectedTemplate.components.find(
                                                   (c: any) => c.type === "BODY"
@@ -1693,10 +1728,12 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                                 }
                                               }
                                             }}
-                                            options={whatsAppTemplates.map((template) => ({
-                                              value: template.name,
-                                              label: `${template.name} (${template.language})`,
-                                            }))}
+                                            options={whatsAppTemplates(step.metaTemplatePhoneNumberId).map(
+                                              (template) => ({
+                                                value: template.name,
+                                                label: `${template.name} (${template.language})`,
+                                              })
+                                            )}
                                             isDisabled={readOnly}
                                             className="mt-1"
                                           />
@@ -1918,8 +1955,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                             key={`editor-${step.id}-${stepTemplateUpdate}-${step.template}`}
                                             getText={() =>
                                               step.action === WorkflowActions.WHATSAPP_ATTENDEE ||
-                                              step.action === WorkflowActions.WHATSAPP_ATTENDEE
-                                                ? convertWhatsAppTemplateForDisplay(step.reminderBody)
+                                              step.action === WorkflowActions.WHATSAPP_NUMBER
+                                                ? !!step.metaTemplatePhoneNumberId === !!step.metaTemplateName
+                                                  ? convertWhatsAppTemplateForDisplay(step.reminderBody)
+                                                  : ""
                                                 : step.reminderBody || ""
                                             }
                                             setText={(text: string) => {
