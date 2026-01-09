@@ -15,7 +15,7 @@ export const setDestinationReminderHandler = async ({ ctx, input }: SetDestinati
   const { credentialId, integration, defaultReminder } = input;
 
   // Update the destination calendar's custom reminder setting
-  await DestinationCalendarRepository.updateCustomReminder({
+  await DestinationCalendarRepository.getInstance().updateCustomReminder({
     userId: user.id,
     credentialId,
     integration,

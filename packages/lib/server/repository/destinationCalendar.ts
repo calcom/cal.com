@@ -1,15 +1,27 @@
-import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { prisma as defaultPrisma } from "@calcom/prisma";
 
 export class DestinationCalendarRepository {
-  static async getCustomReminderByCredentialId(credentialId: number): Promise<number | null> {
-    const destinationCalendar = await prisma.destinationCalendar.findFirst({
+  constructor(private prisma: PrismaClient = defaultPrisma) {}
+
+  private static _instance: DestinationCalendarRepository;
+
+  static getInstance(): DestinationCalendarRepository {
+    if (!DestinationCalendarRepository._instance) {
+      DestinationCalendarRepository._instance = new DestinationCalendarRepository();
+    }
+    return DestinationCalendarRepository._instance;
+  }
+
+  async getCustomReminderByCredentialId(credentialId: number): Promise<number | null> {
+    const destinationCalendar = await this.prisma.destinationCalendar.findFirst({
       where: { credentialId },
       select: { customCalendarReminder: true },
     });
     return destinationCalendar?.customCalendarReminder ?? null;
   }
 
-  static async updateCustomReminder({
+  async updateCustomReminder({
     userId,
     credentialId,
     integration,
@@ -20,7 +32,7 @@ export class DestinationCalendarRepository {
     integration: string;
     customCalendarReminder: number | null;
   }) {
-    return await prisma.destinationCalendar.updateMany({
+    return await this.prisma.destinationCalendar.updateMany({
       where: {
         userId,
         credentialId,

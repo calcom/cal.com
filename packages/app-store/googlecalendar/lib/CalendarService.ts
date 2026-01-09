@@ -59,7 +59,7 @@ export default class GoogleCalendarService implements Calendar {
 
   private async getReminderDuration(credentialId: number): Promise<number | null> {
     try {
-      return await DestinationCalendarRepository.getCustomReminderByCredentialId(credentialId);
+      return await DestinationCalendarRepository.getInstance().getCustomReminderByCredentialId(credentialId);
     } catch (error) {
       this.log.warn("Failed to fetch custom calendar reminder", safeStringify(error));
       return null;
