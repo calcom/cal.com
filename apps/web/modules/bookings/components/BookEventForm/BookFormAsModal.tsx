@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import React from "react";
 
 import { useEventTypeById } from "@calcom/atoms/hooks/event-types/private/useEventTypeById";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
@@ -11,7 +10,7 @@ import { DialogContent } from "@calcom/ui/components/dialog";
 
 import { getDurationFormatted } from "../event-meta/Duration";
 import { FromTime } from "@calcom/features/bookings/Booker/utils/dates";
-import { useEvent } from "@calcom/features/bookings/Booker/utils/event";
+import { useEvent } from "@calcom/web/modules/bookings/hooks/useEvent";
 import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 
 const BookEventFormWrapper = ({ children, onCancel }: { onCancel: () => void; children: ReactNode }) => {
