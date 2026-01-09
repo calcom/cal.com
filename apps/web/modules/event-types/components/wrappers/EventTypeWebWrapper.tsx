@@ -6,8 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import type { ChildrenEventType } from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
-import { EventType as EventTypeComponent } from "@calcom/web/modules/event-types/components/EventType";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { EventPermissionProvider } from "@calcom/features/pbac/client/context/EventPermissionContext";
 import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";
@@ -20,14 +18,17 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
-import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 import { TRPCClientError } from "@trpc/react-query";
 
-import { useEventTypeForm } from "../hooks/useEventTypeForm";
-import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
-import { useTabsNavigations } from "../hooks/useTabsNavigations";
+import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
+import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
+
+import type { ChildrenEventType } from "../ChildrenEventTypeSelect";
+import { EventType as EventTypeComponent } from "../EventType";
+import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
+import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
+import { useTabsNavigations } from "@calcom/atoms/event-types/hooks/useTabsNavigations";
 
 type EventPermissions = {
   eventTypes: {
@@ -44,65 +45,49 @@ type EventPermissions = {
   };
 };
 
-const ManagedEventTypeDialog = dynamic(
-  () => import("@calcom/web/modules/event-types/components/dialogs/ManagedEventDialog")
-);
+const ManagedEventTypeDialog = dynamic(() => import("../dialogs/ManagedEventDialog"));
 
-const AssignmentWarningDialog = dynamic(
-  () => import("@calcom/web/modules/event-types/components/dialogs/AssignmentWarningDialog")
-);
+const AssignmentWarningDialog = dynamic(() => import("../dialogs/AssignmentWarningDialog"));
 
 const EventSetupTab = dynamic(
-  () =>
-    // import web wrapper when it's ready
-    import("./EventSetupTabWebWrapper").then((mod) => mod),
+  () => import("./EventSetupTabWebWrapper").then((mod) => mod),
   { loading: () => null }
 );
 
 const EventAvailabilityTab = dynamic(() =>
-  // import web wrapper when it's ready
   import("./EventAvailabilityTabWebWrapper").then((mod) => mod)
 );
 
 const EventTeamAssignmentTab = dynamic(() => import("./EventTeamAssignmentTabWebWrapper").then((mod) => mod));
 
 const EventLimitsTab = dynamic(() =>
-  // import web wrapper when it's ready
   import("./EventLimitsTabWebWrapper").then((mod) => mod)
 );
 
 const EventAdvancedTab = dynamic(() =>
-  // import web wrapper when it's ready
   import("./EventAdvancedWebWrapper").then((mod) => mod)
 );
 
 const EventInstantTab = dynamic(() =>
-  import("@calcom/web/modules/event-types/components/tabs/instant/EventInstantTab").then(
-    (mod) => mod.EventInstantTab
-  )
+  import("../tabs/instant/EventInstantTab").then((mod) => mod.EventInstantTab)
 );
 
 const EventRecurringTab = dynamic(() =>
-  // import web wrapper when it's ready
   import("./EventRecurringWebWrapper").then((mod) => mod)
 );
 
 const EventAppsTab = dynamic(() =>
-  import("@calcom/web/modules/event-types/components/tabs/apps/EventAppsTab").then((mod) => mod.EventAppsTab)
+  import("../tabs/apps/EventAppsTab").then((mod) => mod.EventAppsTab)
 );
 
-const EventWorkflowsTab = dynamic(
-  () => import("@calcom/web/modules/event-types/components/tabs/workflows/EventWorkflowsTab")
-);
+const EventWorkflowsTab = dynamic(() => import("../tabs/workflows/EventWorkflowsTab"));
 
 const EventWebhooksTab = dynamic(() =>
-  import("@calcom/web/modules/event-types/components/tabs/webhooks/EventWebhooksTab").then(
-    (mod) => mod.EventWebhooksTab
-  )
+  import("../tabs/webhooks/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
 );
 
 const EventAITab = dynamic(() =>
-  import("@calcom/web/modules/event-types/components/tabs/ai/EventAITab").then((mod) => mod.EventAITab)
+  import("../tabs/ai/EventAITab").then((mod) => mod.EventAITab)
 );
 
 export type EventTypeWebWrapperProps = {
@@ -173,7 +158,6 @@ const EventTypeWeb = ({
     teamId: eventType.team?.id || eventType.parent?.teamId,
   });
 
-  // Check workflow permissions
   const { hasPermission: canReadWorkflows } = useWorkflowPermission("canRead");
   const updateMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
     onSuccess: async () => {
@@ -185,12 +169,9 @@ const EventTypeWeb = ({
       }));
       currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
 
-      // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
       revalidateEventTypeEditPage(eventType.id);
       if (eventType.team?.slug) {
-        // When an event-type is updated,
-        // guests could still hit a stale cache and see the old page.
         revalidateTeamEventTypeCache({
           teamSlug: eventType.team.slug,
           meetingSlug: eventType.slug,
@@ -337,7 +318,6 @@ const EventTypeWeb = ({
       ];
 
       Components.forEach((C) => {
-        // how to preload with app dir?
         // @ts-expect-error Property 'render' does not exist on type 'ComponentClass
         C.render?.preload();
       });
@@ -379,8 +359,6 @@ const EventTypeWeb = ({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
       if (team?.slug) {
-        // When a team event-type is deleted,
-        // guests could still hit a stale cache and see the old page.
         revalidateTeamEventTypeCache({
           teamSlug: team.slug,
           meetingSlug: eventType.slug,
@@ -442,7 +420,6 @@ const EventTypeWeb = ({
             onConfirm={(e: { preventDefault: () => void }) => {
               e.preventDefault();
               handleSubmit(form.getValues());
-              // telemetry.event(telemetryEventTypes.slugReplacementAction);
               setSlugExistsChildrenDialogOpen([]);
             }}
           />

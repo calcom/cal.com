@@ -1,12 +1,13 @@
 import { useFormContext } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { TeamMembers } from "@calcom/web/modules/event-types/components/EventType";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { EventAvailabilityTab } from "@calcom/web/modules/event-types/components/tabs/availability/EventAvailabilityTab";
+
+import type { TeamMembers } from "../EventType";
+import { EventAvailabilityTab } from "../tabs/availability/EventAvailabilityTab";
 
 export type EventAvailabilityTabWebWrapperProps = {
   eventType: EventTypeSetup;
@@ -30,7 +31,6 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
     formMethods,
   });
 
-  // Check if team has restriction schedule feature enabled
   const { data: isRestrictionScheduleEnabled = false } = trpc.viewer.features.checkTeamFeature.useQuery(
     {
       teamId: props.eventType.team?.id || 0,
@@ -38,7 +38,7 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
     },
     {
       enabled: !!props.eventType.team?.id,
-      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+      staleTime: 5 * 60 * 1000,
     }
   );
 
