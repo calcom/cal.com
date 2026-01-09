@@ -1,53 +1,57 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import {
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-} from "@tanstack/react-table";
-import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
-import { useQueryState, parseAsBoolean } from "nuqs";
-import { useMemo, useReducer, useState } from "react";
-import { createPortal } from "react-dom";
-import posthog from "posthog-js";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import {
-  DataTableProvider,
-  useColumnFilters,
   ColumnFilterType,
   convertFacetedValuesToMap,
+  DataTableProvider,
+  type FacetedValue,
+  useColumnFilters,
   useDataTable,
 } from "@calcom/features/data-table";
-import {
-  DataTableWrapper,
-  DataTableToolbar,
-  DataTableFilters,
-  DataTableSegment,
-  DataTableSelectionBar,
-} from "~/data-table/components";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import {
-  generateCsvRawForMembersTable,
-  generateHeaderFromReactTable,
-} from "@calcom/web/modules/users/lib/UserListTableUtils";
+import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import type { FilterType } from "@calcom/types/data-table";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Checkbox } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
-
+import { LimitedBadges } from "@calcom/web/components/ui/LimitedBadges";
+import {
+  generateCsvRawForMembersTable,
+  generateHeaderFromReactTable,
+} from "@calcom/web/modules/users/lib/UserListTableUtils";
+import { keepPreviousData } from "@tanstack/react-query";
+import {
+  type CellContext,
+  type ColumnDef,
+  getCoreRowModel,
+  getSortedRowModel,
+  type HeaderContext,
+  useReactTable,
+} from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { parseAsBoolean, useQueryState } from "nuqs";
+import posthog from "posthog-js";
+import { useMemo, useReducer, useState } from "react";
+import { createPortal } from "react-dom";
+import {
+  DataTableFilters,
+  DataTableSegment,
+  DataTableSelectionBar,
+  DataTableToolbar,
+  DataTableWrapper,
+} from "~/data-table/components";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DynamicLink } from "./BulkActions/DynamicLink";
 import { EventTypesList } from "./BulkActions/EventTypesList";
@@ -58,9 +62,8 @@ import { DeleteMemberModal } from "./DeleteMemberModal";
 import { EditUserSheet } from "./EditSheet/EditUserSheet";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
+import type { UserTableAction, UserTableState, UserTableUser } from "./types";
 import { TableActions } from "./UserTableActions";
-import type { UserTableState, UserTableAction, UserTableUser } from "./types";
-import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -121,7 +124,7 @@ function reducer(
   }
 }
 
-export type UserListTableProps = {
+type UserListTableProps = {
   org: RouterOutputs["viewer"]["organizations"]["listCurrent"];
   teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
   attributes?: RouterOutputs["viewer"]["attributes"]["list"];
@@ -139,7 +142,7 @@ export type UserListTableProps = {
   permissions?: MemberPermissions;
 };
 
-export function UserListTable(props: UserListTableProps) {
+function UserListTable(props: UserListTableProps): JSX.Element | null {
   const pathname = usePathname();
   if (!pathname) return null;
   return (
@@ -159,11 +162,8 @@ function UserListTableContent({
   teams,
   facetedTeamValues,
   permissions,
-}: UserListTableProps) {
-  const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState(
-    "dynamicLink",
-    parseAsBoolean
-  );
+}: UserListTableProps): JSX.Element {
+  const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
   const { t } = useLocale();
@@ -204,7 +204,7 @@ function UserListTableContent({
       canResendInvitation: permissions?.canInvite ?? adminOrOwner,
       canImpersonate: permissions?.canImpersonate ?? adminOrOwner,
     };
-    const generateAttributeColumns = () => {
+    const generateAttributeColumns = (): ColumnDef<UserTableUser>[] => {
       if (!attributes?.length) {
         return [];
       }
@@ -219,13 +219,14 @@ function UserListTableContent({
           const isText = attribute.type === "TEXT";
           const isSingleSelect = attribute.type === "SINGLE_SELECT";
           // const isMultiSelect = attribute.type === "MULTI_SELECT";
-          const filterType = isNumber
-            ? ColumnFilterType.NUMBER
-            : isText
-            ? ColumnFilterType.TEXT
-            : isSingleSelect
-            ? ColumnFilterType.SINGLE_SELECT
-            : ColumnFilterType.MULTI_SELECT;
+          let filterType: FilterType = ColumnFilterType.MULTI_SELECT;
+          if (isNumber) {
+            filterType = ColumnFilterType.NUMBER;
+          } else if (isText) {
+            filterType = ColumnFilterType.TEXT;
+          } else if (isSingleSelect) {
+            filterType = ColumnFilterType.SINGLE_SELECT;
+          }
 
           return {
             id: attribute.id,
@@ -234,53 +235,44 @@ function UserListTableContent({
               filter: { type: filterType },
             },
             size: 120,
-            accessorFn: (data) =>
-              data.attributes?.find((attr) => attr.attributeId === attribute.id)
-                ?.value,
-            cell: ({ row }) => {
+            accessorFn: (data: UserTableUser) =>
+              data.attributes?.find((attr) => attr.attributeId === attribute.id)?.value,
+            cell: ({ row }: CellContext<UserTableUser, unknown>) => {
               const attributeValues = row.original.attributes?.filter(
                 (attr) => attr.attributeId === attribute.id
               );
-              if (attributeValues?.length === 0) return null;
-              return (
-                <div
-                  className={classNames(
-                    isNumber ? "flex w-full justify-center" : "flex flex-wrap"
-                  )}
-                >
-                  {attributeValues?.map((attributeValue) => {
-                    const isAGroupOption = attributeValue.contains?.length > 0;
-                    const suffix = attribute.isWeightsEnabled
-                      ? `${attributeValue.weight || 100}%`
-                      : undefined;
-                    return (
-                      <div
-                        className="mr-1 inline-flex shrink-0"
-                        key={attributeValue.id}
-                      >
-                        <Badge
-                          variant={isAGroupOption ? "orange" : "gray"}
-                          className={classNames(suffix && "rounded-r-none")}
-                        >
-                          {attributeValue.value}
-                        </Badge>
+              if (!attributeValues || attributeValues.length === 0) return null;
 
-                        {suffix ? (
-                          <Badge
-                            variant={isAGroupOption ? "orange" : "gray"}
-                            style={{
-                              backgroundColor:
-                                "color-mix(in hsl, var(--cal-bg-emphasis), black 5%)",
-                            }}
-                            className="rounded-l-none"
-                          >
-                            {suffix}
-                          </Badge>
-                        ) : null}
-                      </div>
-                    );
+              return (
+                <LimitedBadges
+                  items={attributeValues.map((attributeValue) => {
+                    const isAGroupOption = attributeValue.contains?.length > 0;
+                    let weight = "";
+                    if (attribute.isWeightsEnabled) {
+                      weight = `${attributeValue.weight || 100}%`;
+                    }
+                    let groupIndicator = "";
+                    if (isAGroupOption) {
+                      groupIndicator = " (group)";
+                    }
+                    let label = attributeValue.value;
+                    if (weight) {
+                      label = `${label} ${weight}`;
+                    }
+                    label = `${label}${groupIndicator}`;
+
+                    let variant: "orange" | "gray" = "gray";
+                    if (isAGroupOption) {
+                      variant = "orange";
+                    }
+
+                    return {
+                      label,
+                      variant,
+                    };
                   })}
-                </div>
+                  className={classNames(isNumber && "w-full justify-center")}
+                />
               );
             },
           };
@@ -296,19 +288,17 @@ function UserListTableContent({
         enableSorting: false,
         enableResizing: false,
         size: 30,
-        header: ({ table }) => (
+        header: ({ table }: HeaderContext<UserTableUser, unknown>) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
+            onCheckedChange={(value: boolean | "indeterminate") => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
           />
         ),
-        cell: ({ row }) => (
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => (
           <Checkbox
             checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            onCheckedChange={(value: boolean | "indeterminate") => row.toggleSelected(!!value)}
             aria-label="Select row"
             className="translate-y-[2px]"
           />
@@ -316,14 +306,13 @@ function UserListTableContent({
       },
       {
         id: "member",
-        accessorFn: (data) => data.email,
+        accessorFn: (data: UserTableUser) => data.email,
         enableHiding: false,
         enableColumnFilter: false,
         size: 200,
         header: t("members"),
-        cell: ({ row }) => {
-          const { username, name, email, avatarUrl } = row.original;
-          const displayName = name || username || "No username";
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => {
+          const { username, email, avatarUrl } = row.original;
           return (
             <div className="flex items-center gap-2">
               <Avatar
@@ -353,19 +342,23 @@ function UserListTableContent({
       },
       {
         id: "role",
-        accessorFn: (data) => data.role,
+        accessorFn: (data: UserTableUser) => data.role,
         header: t("role"),
         size: 100,
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT },
         },
-        cell: ({ row, table }) => {
+        cell: ({ row, table }: CellContext<UserTableUser, unknown>) => {
           const { role, username, customRole } = row.original;
           const roleName = customRole?.name || role;
+          let roleVariant: "gray" | "blue" = "blue";
+          if (role === "MEMBER") {
+            roleVariant = "gray";
+          }
           return (
             <Badge
               data-testid={`member-${username}-role`}
-              variant={role === "MEMBER" ? "gray" : "blue"}
+              variant={roleVariant}
               onClick={() => {
                 table.getColumn("role")?.setFilterValue([role]);
               }}
@@ -377,18 +370,18 @@ function UserListTableContent({
       },
       {
         id: "teams",
-        accessorFn: (data) => data.teams.map((team) => team.name),
+        accessorFn: (data: UserTableUser) => data.teams.map((team) => team.name),
         header: t("teams"),
         size: 140,
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT },
         },
-        cell: ({ row, table }) => {
+        cell: ({ row, table }: CellContext<UserTableUser, unknown>) => {
           const { teams, accepted, email, username } = row.original;
-          // TODO: Implement click to filter
+
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
-              {accepted ? null : (
+              {!accepted && (
                 <Badge
                   data-testid2={`member-${username}-pending`}
                   variant="red"
@@ -402,17 +395,15 @@ function UserListTableContent({
                 </Badge>
               )}
 
-              {teams.map((team) => (
-                <Badge
-                  key={team.id}
-                  variant="gray"
-                  onClick={() => {
+              <LimitedBadges
+                items={teams.map((team) => ({
+                  label: team.name,
+                  variant: "gray" as const,
+                  onClick: () => {
                     table.getColumn("teams")?.setFilterValue([team.name]);
-                  }}
-                >
-                  {team.name}
-                </Badge>
-              ))}
+                  },
+                }))}
+              />
             </div>
           );
         },
@@ -429,7 +420,7 @@ function UserListTableContent({
             type: ColumnFilterType.DATE_RANGE,
           },
         },
-        cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => <div>{row.original.lastActiveAt}</div>,
       },
       {
         id: "createdAt",
@@ -442,7 +433,7 @@ function UserListTableContent({
             type: ColumnFilterType.DATE_RANGE,
           },
         },
-        cell: ({ row }) => <div>{row.original.createdAt || ""}</div>,
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => <div>{row.original.createdAt || ""}</div>,
       },
       {
         id: "updatedAt",
@@ -455,7 +446,7 @@ function UserListTableContent({
             type: ColumnFilterType.DATE_RANGE,
           },
         },
-        cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => <div>{row.original.updatedAt || ""}</div>,
       },
       {
         id: "completedOnboarding",
@@ -464,13 +455,15 @@ function UserListTableContent({
         enableSorting: false,
         enableColumnFilter: false,
         size: 80,
-        cell: ({ row }) => {
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => {
           const { completedOnboarding } = row.original;
-          return (
-            <Badge variant={completedOnboarding ? "green" : "gray"}>
-              {completedOnboarding ? t("yes") : t("no")}
-            </Badge>
-          );
+          let onboardingVariant: "green" | "gray" = "gray";
+          let onboardingText = t("no");
+          if (completedOnboarding) {
+            onboardingVariant = "green";
+            onboardingText = t("yes");
+          }
+          return <Badge variant={onboardingVariant}>{onboardingText}</Badge>;
         },
       },
       {
@@ -481,16 +474,18 @@ function UserListTableContent({
         enableSorting: false,
         enableColumnFilter: false,
         size: 80,
-        cell: ({ row }) => {
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => {
           const { twoFactorEnabled } = row.original;
           if (!adminOrOwner || twoFactorEnabled === undefined) {
             return null;
           }
-          return (
-            <Badge variant={twoFactorEnabled ? "green" : "gray"}>
-              {twoFactorEnabled ? t("enabled") : t("disabled")}
-            </Badge>
-          );
+          let twoFaVariant: "green" | "gray" = "gray";
+          let twoFaText = t("disabled");
+          if (twoFactorEnabled) {
+            twoFaVariant = "green";
+            twoFaText = t("enabled");
+          }
+          return <Badge variant={twoFaVariant}>{twoFaText}</Badge>;
         },
       },
       {
@@ -499,7 +494,7 @@ function UserListTableContent({
         enableSorting: false,
         enableResizing: false,
         size: 80,
-        cell: ({ row }) => {
+        cell: ({ row }: CellContext<UserTableUser, unknown>) => {
           const user = row.original;
           const permissionsRaw = tablePermissions;
           const isSelf = user.id === session?.user.id;
@@ -535,15 +530,7 @@ function UserListTableContent({
     ];
 
     return cols;
-  }, [
-    session?.user.id,
-    adminOrOwner,
-    dispatch,
-    domain,
-    attributes,
-    org?.canAdminImpersonate,
-    permissions,
-  ]);
+  }, [session?.user.id, adminOrOwner, domain, attributes, org?.canAdminImpersonate, permissions, t]);
 
   const table = useReactTable({
     data: flatData,
@@ -566,8 +553,8 @@ function UserListTableContent({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onRowSelectionChange: setRowSelection,
-    getRowId: (row) => `${row.id}`,
-    getFacetedUniqueValues: (_, columnId) => () => {
+    getRowId: (row: UserTableUser) => `${row.id}`,
+    getFacetedUniqueValues: (_: unknown, columnId: string) => (): Map<FacetedValue, number> => {
       if (facetedTeamValues) {
         switch (columnId) {
           case "role":
@@ -608,7 +595,7 @@ function UserListTableContent({
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
-  const handleDownload = async () => {
+  const handleDownload = async (): Promise<void> => {
     try {
       if (!org?.slug || !org?.name) {
         throw new Error("Org slug or name is missing.");
@@ -701,7 +688,7 @@ function UserListTableContent({
             <p className="text-brand-subtle shrink-0 px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
-            {!isPlatformUser ? (
+            {!isPlatformUser && (
               <>
                 {permissions?.canChangeMemberRole && (
                   <TeamListBulkAction table={table} />
@@ -725,7 +712,7 @@ function UserListTableContent({
                   <EventTypesList table={table} orgTeams={teams} />
                 )}
               </>
-            ) : null}
+            )}
             {(permissions?.canRemove ?? adminOrOwner) && (
               <DeleteBulkUsers
                 users={table
@@ -798,3 +785,6 @@ function UserListTableContent({
     </>
   );
 }
+
+export { UserListTable };
+export type { UserListTableProps };
