@@ -46,6 +46,12 @@ jobs:
               prNumber = pr.number;
             }
             
+            // Check if head repo still exists (can be null if fork was deleted)
+            if (!pr.head.repo) {
+              core.setFailed('Cannot complete this PR: the source repository (fork) has been deleted.');
+              return;
+            }
+            
             // Check if this is a fork PR
             const isFork = pr.head.repo.fork || pr.head.repo.full_name !== pr.base.repo.full_name;
             
