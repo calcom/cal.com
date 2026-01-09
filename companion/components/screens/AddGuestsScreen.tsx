@@ -18,8 +18,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAddGuests } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
-import { CalComAPIService } from "@/services/calcom";
 import { safeLogError } from "@/utils/safeLogger";
 
 export interface AddGuestsScreenProps {
@@ -51,7 +51,9 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
     const [guests, setGuests] = useState<{ email: string; name?: string }[]>([]);
-    const [isSaving, setIsSaving] = useState(false);
+
+    // Use React Query mutation for automatic cache invalidation
+    const { mutate: addGuestsMutation, isPending: isSaving } = useAddGuests();
 
     // Notify parent of saving state changes
     useEffect(() => {
@@ -92,7 +94,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
       [guests]
     );
 
-    const handleSubmit = useCallback(async () => {
+    const handleSubmit = useCallback(() => {
       if (!booking || isSaving) return;
 
       if (guests.length === 0) {
@@ -100,17 +102,24 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
         return;
       }
 
-      setIsSaving(true);
-      try {
-        await CalComAPIService.addGuests(booking.uid, guests);
-        Alert.alert("Success", "Guests added successfully", [{ text: "OK", onPress: onSuccess }]);
-        setIsSaving(false);
-      } catch (error) {
-        safeLogError("[AddGuestsScreen] Failed to add guests:", error);
-        Alert.alert("Error", "Failed to add guests. Please try again.");
-        setIsSaving(false);
-      }
-    }, [booking, guests, onSuccess, isSaving]);
+      addGuestsMutation(
+        {
+          uid: booking.uid,
+          guests,
+        },
+        {
+          onSuccess: () => {
+            Alert.alert("Success", "Guests added successfully", [
+              { text: "OK", onPress: onSuccess },
+            ]);
+          },
+          onError: (error) => {
+            safeLogError("[AddGuestsScreen] Failed to add guests:", error);
+            Alert.alert("Error", "Failed to add guests. Please try again.");
+          },
+        }
+      );
+    }, [booking, guests, onSuccess, isSaving, addGuestsMutation]);
 
     // Expose submit function to parent via ref (same pattern as senior's actionHandlersRef)
     useImperativeHandle(
