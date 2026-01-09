@@ -1,6 +1,6 @@
 import type { Page, PlaywrightTestArgs, Locator } from "@playwright/test";
 import { expect } from "@playwright/test";
-import type { createUsersFixture } from "playwright/fixtures/users";
+import type { createUsersFixture } from "./fixtures/users";
 import { uuid } from "short-uuid";
 
 import prisma from "@calcom/prisma";
