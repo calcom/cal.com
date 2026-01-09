@@ -77,6 +77,29 @@ export interface EmailSettings {
   additionalGuestsEmails?: string[];
 }
 
+// Disable Cancelling settings (API V2 format)
+export interface DisableCancelling {
+  disabled: boolean;
+}
+
+// Disable Rescheduling settings (API V2 format)
+export interface DisableRescheduling {
+  disabled: boolean;
+  minutesBefore?: number; // Optional: disable when less than X minutes before
+}
+
+// Cal Video Settings
+export interface CalVideoSettings {
+  disableRecordingForOrganizer?: boolean;
+  disableRecordingForGuests?: boolean;
+  redirectUrlOnExit?: string;
+  enableAutomaticRecordingForOrganizer?: boolean;
+  enableAutomaticTranscription?: boolean;
+  disableTranscriptionForGuests?: boolean;
+  disableTranscriptionForOrganizer?: boolean;
+  sendTranscriptionEmails?: boolean;
+}
+
 // Booking Field Types
 export interface BaseBookingField {
   name: string;
@@ -231,23 +254,30 @@ export interface EventType {
   // Metadata
   metadata?: Record<string, unknown>;
 
-  // Booking action settings (may also be in metadata)
-  disableRescheduling?: boolean;
-  disableCancelling?: boolean;
+  // Booking action settings (API V2 format)
+  disableRescheduling?: DisableRescheduling;
+  disableCancelling?: DisableCancelling;
   minimumRescheduleNotice?: number;
   allowReschedulingPastBookings?: boolean;
+  allowReschedulingCancelledBookings?: boolean;
 
   // Additional properties from API responses
   hideCalendarEventDetails?: boolean;
   hideOrganizerEmail?: boolean;
-  allowReschedulingCancelledBookings?: boolean;
   customReplyToEmail?: string;
   color?: {
     lightThemeHex?: string;
     darkThemeHex?: string;
   };
-  sendCalVideoTranscription?: boolean;
-  autoTranslate?: boolean;
+
+  // Cal Video Settings
+  calVideoSettings?: CalVideoSettings;
+
+  // Interface language (API V2)
+  interfaceLanguage?: string;
+
+  // Optimized slots (API V2)
+  showOptimizedSlots?: boolean;
 }
 
 export interface CreateEventTypeInput {
@@ -309,6 +339,13 @@ export interface CreateEventTypeInput {
   successRedirectUrl?: string;
   forwardParamsSuccessRedirect?: boolean;
   metadata?: Record<string, unknown>;
+
+  // API V2 new fields
+  disableCancelling?: DisableCancelling;
+  disableRescheduling?: DisableRescheduling;
+  calVideoSettings?: CalVideoSettings;
+  interfaceLanguage?: string;
+  showOptimizedSlots?: boolean;
 }
 
 export interface GetEventTypesResponse {

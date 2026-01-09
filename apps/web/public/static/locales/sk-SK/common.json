@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Rezervácia bola úspešne preusmernená. Presmerovávame na stránku rezervácie",
   "on_booking_write_to_event_object": "Pri rezervácii zapíšte do objektu udalosti",
   "field_name": "Názov poľa",
+  "field_name_cannot_be_empty": "Názov poľa nemôže byť prázdny",
+  "field_already_exists": "Pole už existuje",
   "add_new_field": "Pridať nové pole",
   "you_dont_have_access_to_reroute_this_booking": "Nemáte prístup na preusmernenie tejto rezervácie",
   "form_response_not_found": "Odpoveď formulára nebola nájdená",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Vlastník rezervácie nie je členom vašej organizácie.",
   "audit_logs_permission_denied": "Nemáte oprávnenie na zobrazenie auditných záznamov pre túto rezerváciu.",
   "audit_logs_permission_check_error": "Pri kontrole oprávnení sa vyskytla chyba.",
+  "account_already_exists_please_login": "Účet s týmto e-mailom už existuje. Prihláste sa, prosím, aby ste prijali pozvánku.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
