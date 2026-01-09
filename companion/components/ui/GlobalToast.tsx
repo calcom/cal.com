@@ -34,21 +34,9 @@ import { Animated, Platform, StyleSheet, Text, View } from "react-native";
 import { useGlobalToast, type ToastType } from "@/contexts/ToastContext";
 
 const ICON_CONFIG: Record<ToastType, { name: keyof typeof Ionicons.glyphMap; color: string }> = {
-  success: { name: "checkmark-circle", color: "#22C55E" },
-  error: { name: "close-circle", color: "#EF4444" },
-  info: { name: "information-circle", color: "#3B82F6" },
-};
-
-const BACKGROUND_COLORS: Record<ToastType, string> = {
-  success: "#F0FDF4",
-  error: "#FEF2F2",
-  info: "#EFF6FF",
-};
-
-const BORDER_COLORS: Record<ToastType, string> = {
-  success: "#BBF7D0",
-  error: "#FECACA",
-  info: "#BFDBFE",
+  success: { name: "checkmark-circle", color: "#000000" },
+  error: { name: "close-circle", color: "#000000" },
+  info: { name: "information-circle", color: "#000000" },
 };
 
 export function GlobalToast() {
@@ -81,8 +69,6 @@ export function GlobalToast() {
   }
 
   const iconConfig = ICON_CONFIG[toast.type];
-  const backgroundColor = BACKGROUND_COLORS[toast.type];
-  const borderColor = BORDER_COLORS[toast.type];
 
   return (
     <View style={styles.overlay} pointerEvents="none">
@@ -91,8 +77,6 @@ export function GlobalToast() {
           styles.container,
           {
             opacity: fadeAnim,
-            backgroundColor,
-            borderColor,
           },
         ]}
       >
@@ -124,6 +108,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     borderWidth: 1,
+    borderColor: "#E5E7EB",
+    backgroundColor: "#FFFFFF",
     maxWidth: 320,
     minWidth: 200,
     shadowColor: "#000",
@@ -141,13 +127,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#1F2937",
+    color: "#000000",
     marginBottom: 2,
   },
   message: {
     fontSize: 13,
     fontWeight: "400",
-    color: "#6B7280",
+    color: "#374151",
     lineHeight: 18,
   },
 });
