@@ -52,14 +52,14 @@ function createTeamPbacProcedure(
  *
  * @param permission - The specific permission required (e.g., "organization.read", "organization.update")
  * @param fallbackRoles - Roles to check when PBAC is disabled (defaults to ["ADMIN", "OWNER"])
- * @returns A procedure that checks the specified permission for the organization
+ * @returns A procedure that checks the specified permission for the organization and adds organizationId to context
  */
 function createOrgPbacProcedure(
   permission: PermissionString,
   fallbackRoles: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER]
-): ReturnType<typeof authedProcedure.use> {
+) {
   return authedProcedure.use(async ({ ctx, next }) => {
-    const organizationId: number | null = ctx.user.organizationId;
+    const organizationId = ctx.user.organizationId;
 
     if (!organizationId) {
       throw new TRPCError({
@@ -68,8 +68,8 @@ function createOrgPbacProcedure(
       });
     }
 
-    const permissionCheckService: PermissionCheckService = new PermissionCheckService();
-    const hasPermission: boolean = await permissionCheckService.checkPermission({
+    const permissionCheckService = new PermissionCheckService();
+    const hasPermission = await permissionCheckService.checkPermission({
       userId: ctx.user.id,
       teamId: organizationId,
       permission,

@@ -77,9 +77,8 @@ export const featureOptInRouter = router({
    * Used by org admins to configure feature opt-in for their organization.
    */
   listForOrganization: createOrgPbacProcedure("organization.read").query(async ({ ctx }) => {
-    // organizationId is guaranteed to exist after createOrgPbacProcedure middleware
     // Organizations use the same listFeaturesForTeam since they're stored in TeamFeatures
-    return featureOptInService.listFeaturesForTeam({ teamId: ctx.user.organizationId! });
+    return featureOptInService.listFeaturesForTeam({ teamId: ctx.organizationId });
   }),
 
   /**
@@ -149,7 +148,6 @@ export const featureOptInRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // organizationId is guaranteed to exist after createOrgPbacProcedure middleware
       if (!isOptInFeature(input.slug)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -159,7 +157,7 @@ export const featureOptInRouter = router({
 
       // Organizations use the same TeamFeatures table
       await featureOptInService.setTeamFeatureState({
-        teamId: ctx.user.organizationId!,
+        teamId: ctx.organizationId,
         featureId: input.slug,
         state: input.state,
         assignedBy: ctx.user.id,
@@ -216,10 +214,8 @@ export const featureOptInRouter = router({
    * Get organization's auto opt-in preference (requires org admin).
    */
   getOrganizationAutoOptIn: createOrgPbacProcedure("organization.read").query(async ({ ctx }) => {
-    // organizationId is guaranteed to exist after createOrgPbacProcedure middleware
-    const organizationId = ctx.user.organizationId!;
-    const result = await featuresRepository.getTeamsAutoOptIn([organizationId]);
-    return { autoOptIn: result[organizationId] ?? false };
+    const result = await featuresRepository.getTeamsAutoOptIn([ctx.organizationId]);
+    return { autoOptIn: result[ctx.organizationId] ?? false };
   }),
 
   /**
@@ -232,8 +228,7 @@ export const featureOptInRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // organizationId is guaranteed to exist after createOrgPbacProcedure middleware
-      await featuresRepository.setTeamAutoOptIn(ctx.user.organizationId!, input.autoOptIn);
+      await featuresRepository.setTeamAutoOptIn(ctx.organizationId, input.autoOptIn);
       return { success: true };
     }),
 });
