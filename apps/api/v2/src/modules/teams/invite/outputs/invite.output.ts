@@ -1,6 +1,11 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty } from "@nestjs/swagger";
+import { Expose, Type } from "class-transformer";
+import { IsEnum, IsString, ValidateNested } from "class-validator";
 
 export class InviteDataDto {
+  @IsString()
+  @Expose()
   @ApiProperty({
     description:
       "Unique invitation token for this team. Share this token with prospective members to allow them to join the team.",
@@ -8,6 +13,8 @@ export class InviteDataDto {
   })
   token!: string;
 
+  @IsString()
+  @Expose()
   @ApiProperty({
     description:
       "Complete invitation URL that can be shared with prospective members. Opens the signup page with the token and redirects to getting started after signup.",
@@ -18,9 +25,14 @@ export class InviteDataDto {
 }
 
 export class CreateInviteOutputDto {
-  @ApiProperty({ example: "success" })
-  status!: string;
+  @Expose()
+  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
+  @Expose()
+  @ValidateNested()
+  @Type(() => InviteDataDto)
   @ApiProperty({ type: InviteDataDto })
   data!: InviteDataDto;
 }
