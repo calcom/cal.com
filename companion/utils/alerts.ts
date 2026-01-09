@@ -35,7 +35,11 @@ export const setGlobalToastFunction = (fn: typeof globalShowToast) => {
  */
 export const showErrorAlert = (title: string, message: string) => {
   if (Platform.OS === "web" && globalShowToast) {
-    globalShowToast(title, message, "error");
+    if (__DEV__) {
+      globalShowToast(title, message, "error");
+    } else {
+      console.error(`[${title}] ${message}`);
+    }
     return;
   }
 
