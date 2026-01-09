@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Rezervarea a fost redirecționată cu succes. Se redirecționează către pagina de rezervare",
   "on_booking_write_to_event_object": "La rezervare, scrie în obiectul evenimentului",
   "field_name": "Numele câmpului",
+  "field_name_cannot_be_empty": "Numele câmpului nu poate fi gol",
+  "field_already_exists": "Câmpul există deja",
   "add_new_field": "Adaugă câmp nou",
   "you_dont_have_access_to_reroute_this_booking": "Nu ai acces pentru a redirecționa această rezervare",
   "form_response_not_found": "Răspunsul formularului nu a fost găsit",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Proprietarul rezervării nu este membru al organizației tale.",
   "audit_logs_permission_denied": "Nu aveți permisiunea de a vizualiza jurnalele de audit pentru această rezervare.",
   "audit_logs_permission_check_error": "A apărut o eroare la verificarea permisiunilor.",
+  "account_already_exists_please_login": "Există deja un cont cu acest email. Vă rugăm să vă autentificați pentru a accepta invitația.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
