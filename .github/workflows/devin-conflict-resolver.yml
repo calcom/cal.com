@@ -1,0 +1,188 @@
+name: Devin PR Conflict Resolver
+
+on:
+  # Trigger when main branch is updated (could cause conflicts in open PRs)
+  push:
+    branches:
+      - main
+  # Also allow manual trigger for testing
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-conflicts:
+    name: Check Open PRs for Conflicts
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Get open PRs and check for conflicts
+        id: check-prs
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            
+            // Get all open PRs
+            const { data: pullRequests } = await github.rest.pulls.list({
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100
+            });
+            
+            console.log(`Found ${pullRequests.length} open PRs`);
+            
+            const conflictingPRs = [];
+            
+            for (const pr of pullRequests) {
+              // Get detailed PR info including mergeable status
+              const { data: prDetails } = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: pr.number
+              });
+              
+              // GitHub may need time to compute mergeable status
+              // If null, we skip this PR for now (will be checked on next run)
+              if (prDetails.mergeable === false && prDetails.mergeable_state === 'dirty') {
+                console.log(`PR #${pr.number} has conflicts (mergeable_state: ${prDetails.mergeable_state})`);
+                
+                // Check if we've already created a Devin session for this conflict
+                // by looking for our comment on the PR
+                const { data: comments } = await github.rest.issues.listComments({
+                  owner,
+                  repo,
+                  issue_number: pr.number,
+                  per_page: 100
+                });
+                
+                // Look for our conflict resolution comment
+                const hasExistingSession = comments.some(comment => 
+                  comment.user.login === 'github-actions[bot]' &&
+                  comment.body.includes('Devin AI is resolving merge conflicts')
+                );
+                
+                if (!hasExistingSession) {
+                  conflictingPRs.push({
+                    number: pr.number,
+                    title: pr.title,
+                    head_ref: pr.head.ref,
+                    base_ref: pr.base.ref,
+                    html_url: pr.html_url
+                  });
+                } else {
+                  console.log(`PR #${pr.number} already has a Devin session for conflict resolution`);
+                }
+              } else if (prDetails.mergeable === null) {
+                console.log(`PR #${pr.number} mergeable status is still being computed`);
+              } else {
+                console.log(`PR #${pr.number} has no conflicts (mergeable: ${prDetails.mergeable}, state: ${prDetails.mergeable_state})`);
+              }
+            }
+            
+            console.log(`Found ${conflictingPRs.length} PRs with conflicts that need Devin sessions`);
+            
+            // Save conflicting PRs to output
+            const fs = require('fs');
+            fs.writeFileSync('/tmp/conflicting-prs.json', JSON.stringify(conflictingPRs));
+            
+            core.setOutput('has-conflicts', conflictingPRs.length > 0 ? 'true' : 'false');
+            core.setOutput('conflict-count', conflictingPRs.length.toString());
+
+      - name: Create Devin sessions for conflicting PRs
+        if: steps.check-prs.outputs.has-conflicts == 'true'
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const conflictingPRs = JSON.parse(fs.readFileSync('/tmp/conflicting-prs.json', 'utf8'));
+            const { owner, repo } = context.repo;
+            
+            for (const pr of conflictingPRs) {
+              console.log(`Creating Devin session for PR #${pr.number}: ${pr.title}`);
+              
+              const prompt = `You are resolving merge conflicts on PR #${pr.number} in repository ${owner}/${repo}.
+
+            PR Title: ${pr.title}
+            PR URL: ${pr.html_url}
+            Head Branch: ${pr.head_ref}
+            Base Branch: ${pr.base_ref}
+
+            Your tasks:
+            1. Clone the repository ${owner}/${repo} locally.
+            2. Check out the PR branch: ${pr.head_ref}
+            3. Fetch the latest changes from the base branch: ${pr.base_ref}
+            4. Merge the base branch into the PR branch to identify conflicts.
+            5. Resolve all merge conflicts carefully:
+               - Review the conflicting changes from both branches
+               - Make intelligent decisions about how to combine the changes
+               - Preserve the intent of both the PR changes and the base branch updates
+               - If unsure about a conflict, prefer keeping both changes where possible
+            6. Test that the code still works after resolving conflicts (run lint/type checks).
+            7. Commit the merge resolution with a clear commit message.
+            8. Push the resolved changes to the PR branch.
+
+            Rules and Guidelines:
+            1. Be careful when resolving conflicts - understand the context of both changes.
+            2. Follow the existing code style and conventions in the repository.
+            3. Run lint and type checks before pushing to ensure the code is valid.
+            4. If a conflict seems too complex or risky to resolve automatically, explain the situation in a PR comment instead.
+            5. Never ask for user confirmation. Never wait for user messages.`;
+
+              try {
+                // Call Devin API
+                const response = await fetch('https://api.devin.ai/v1/sessions', {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    prompt: prompt,
+                    title: `Resolve Conflicts: PR #${pr.number}`,
+                    tags: ['conflict-resolution', `pr-${pr.number}`]
+                  })
+                });
+                
+                const data = await response.json();
+                const sessionUrl = data.url || data.session_url;
+                
+                if (sessionUrl) {
+                  console.log(`Devin session created for PR #${pr.number}: ${sessionUrl}`);
+                  
+                  // Post comment on the PR
+                  await github.rest.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: pr.number,
+                    body: `### Devin AI is resolving merge conflicts
+
+            This PR has merge conflicts with the \`${pr.base_ref}\` branch. A Devin session has been created to automatically resolve them.
+
+            [View Devin Session](${sessionUrl})
+
+            Devin will:
+            1. Merge the latest \`${pr.base_ref}\` into this branch
+            2. Resolve any conflicts intelligently
+            3. Run lint/type checks to ensure validity
+            4. Push the resolved changes
+
+            If you prefer to resolve conflicts manually, you can close the Devin session and handle it yourself.`
+                  });
+                } else {
+                  console.log(`Failed to get session URL for PR #${pr.number}:`, data);
+                }
+              } catch (error) {
+                console.error(`Error creating Devin session for PR #${pr.number}:`, error);
+              }
+              
+              // Small delay between API calls to avoid rate limiting
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
