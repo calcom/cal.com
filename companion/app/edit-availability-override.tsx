@@ -1,6 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import type { EditAvailabilityOverrideScreenHandle } from "@/components/screens/EditAvailabilityOverrideScreen";
@@ -40,6 +41,10 @@ export default function EditAvailabilityOverride() {
     }
   }, [id, router]);
 
+  const handleClose = useCallback(() => {
+    router.back();
+  }, [router]);
+
   const handleSave = useCallback(() => {
     if (isSaving) return;
     screenRef.current?.submit();
@@ -66,7 +71,12 @@ export default function EditAvailabilityOverride() {
         className="flex-1 items-center justify-center bg-white"
         style={{ paddingBottom: insets.bottom }}
       >
-        <Stack.Screen options={{ title }} />
+        <Stack.Screen
+          options={{
+            title,
+            presentation: "modal",
+          }}
+        />
         <ActivityIndicator size="large" color="#007AFF" />
       </View>
     );
@@ -77,6 +87,20 @@ export default function EditAvailabilityOverride() {
       <Stack.Screen
         options={{
           title,
+          presentation: "modal",
+          contentStyle: {
+            backgroundColor: "#FFFFFF",
+          },
+          headerStyle: {
+            backgroundColor: "#FFFFFF",
+          },
+          headerLeft: () => (
+            <HeaderButtonWrapper side="left">
+              <TouchableOpacity onPress={handleClose} style={{ padding: 8 }}>
+                <Ionicons name="close" size={24} color="#000" />
+              </TouchableOpacity>
+            </HeaderButtonWrapper>
+          ),
           headerRight: () => (
             <HeaderButtonWrapper side="right">
               <Text
