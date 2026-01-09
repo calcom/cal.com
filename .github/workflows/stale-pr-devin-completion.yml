@@ -32,7 +32,7 @@ jobs:
           script: |
             let prNumber;
             let pr;
-            
+
             if (context.eventName === 'workflow_dispatch') {
               prNumber = ${{ inputs.pr_number || 0 }};
               const { data } = await github.rest.pulls.get({
@@ -45,33 +45,33 @@ jobs:
               pr = context.payload.pull_request;
               prNumber = pr.number;
             }
-            
+
             // Check if head repo still exists (can be null if fork was deleted)
             if (!pr.head.repo) {
               core.setFailed('Cannot complete this PR: the source repository (fork) has been deleted.');
               return;
             }
-            
+
             // Check if this is a fork PR
             const isFork = pr.head.repo.fork || pr.head.repo.full_name !== pr.base.repo.full_name;
-            
+
             // For fork PRs, check if maintainer can modify (push to the branch)
             const maintainerCanModify = pr.maintainer_can_modify;
-            
+
             // Determine if we can proceed
             // - Non-fork PRs: always allowed (maintainers have push access)
             // - Fork PRs: only if maintainer_can_modify is true
             const canProceed = !isFork || maintainerCanModify;
-            
+
             if (!canProceed) {
               core.setFailed(`Cannot complete this fork PR: the fork owner has not enabled "Allow edits from maintainers". PR author needs to enable this setting.`);
               return;
             }
-            
+
             // Get the clone URL for the head repo (fork or base)
             const headRepoFullName = pr.head.repo.full_name;
             const headRepoCloneUrl = pr.head.repo.clone_url;
-            
+
             // Set outputs for use in subsequent steps
             core.setOutput('pr_number', prNumber);
             core.setOutput('pr_title', pr.title);
@@ -82,7 +82,7 @@ jobs:
             core.setOutput('head_repo_clone_url', headRepoCloneUrl);
             core.setOutput('maintainer_can_modify', maintainerCanModify);
             core.setOutput('can_proceed', canProceed);
-            
+
             console.log(`PR #${prNumber}: "${pr.title}"`);
             console.log(`Author: ${pr.user.login}`);
             console.log(`Branch: ${pr.head.ref}`);
@@ -105,7 +105,7 @@ jobs:
           # Build fork-specific instructions if this is a fork PR
           if [ "$IS_FORK" = "true" ]; then
             CLONE_INSTRUCTIONS="This is a fork PR. Clone from the fork repository: ${HEAD_REPO_FULL_NAME}
-          
+
           To check out this PR:
           1. Clone the fork: git clone https://github.com/${HEAD_REPO_FULL_NAME}.git
           2. Check out the branch: git checkout ${PR_BRANCH}
@@ -137,6 +137,8 @@ jobs:
           7. Commit your changes with clear commit messages.
           8. Push your changes to the PR branch.
           9. Post a summary comment on the PR explaining what you completed.
+          10. Remove the 'stale' label from the PR if you've completed the work.
+          11. Mark the PR as ready for review if applicable.
 
           Rules and Guidelines:
           1. Respect the original author's intent and approach - don't rewrite the PR from scratch.
@@ -157,7 +159,7 @@ jobs:
                 title: $title,
                 tags: ["stale-pr-completion", "pr-'${PR_NUMBER}'"]
               }')")
-          
+
           SESSION_URL=$(echo "$RESPONSE" | jq -r '.url // .session_url // empty')
           if [ -n "$SESSION_URL" ]; then
             echo "Devin session created: $SESSION_URL"
