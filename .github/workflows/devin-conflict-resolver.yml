@@ -5,6 +5,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to resolve conflicts for (optional, bypasses maintainer access check for fork PRs)'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -18,10 +23,13 @@ jobs:
       - name: Get open PRs and check for conflicts
         id: check-prs
         uses: actions/github-script@v7
+        env:
+          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { owner, repo } = context.repo;
+            const manualPrNumber = process.env.INPUT_PR_NUMBER ? parseInt(process.env.INPUT_PR_NUMBER, 10) : null;
             
             const query = `
               query($owner: String!, $repo: String!, $cursor: String) {
@@ -69,31 +77,44 @@ jobs:
             
             console.log(`Found ${allPRs.length} open PRs via GraphQL`);
             
+            if (manualPrNumber) {
+              console.log(`Manual PR number provided: ${manualPrNumber}`);
+            }
+            
             const conflictingPRs = [];
             
             for (const pr of allPRs) {
-              if (pr.isDraft) {
+              const isTargetPR = manualPrNumber && pr.number === manualPrNumber;
+              
+              if (!isTargetPR && pr.isDraft) {
                 console.log(`PR #${pr.number} is a draft, skipping`);
                 continue;
               }
               
-              const hasDevinLabel = pr.labels.nodes.some(label => label.name === 'devin-conflict-resolution');
-              if (hasDevinLabel) {
-                console.log(`PR #${pr.number} already has devin-conflict-resolution label, skipping`);
-                continue;
+              if (!isTargetPR) {
+                const hasDevinLabel = pr.labels.nodes.some(label => label.name === 'devin-conflict-resolution');
+                if (hasDevinLabel) {
+                  console.log(`PR #${pr.number} already has devin-conflict-resolution label, skipping`);
+                  continue;
+                }
               }
               
-              if (pr.mergeable === 'CONFLICTING') {
+              if (pr.mergeable === 'CONFLICTING' || (isTargetPR && pr.mergeable !== 'MERGEABLE')) {
                 const isFork = pr.headRepository?.owner?.login !== owner;
                 const headRepoOwner = pr.headRepository?.owner?.login || owner;
                 const headRepoName = pr.headRepository?.name || repo;
                 
-                if (isFork && !pr.maintainerCanModify) {
+                if (!isTargetPR && isFork && !pr.maintainerCanModify) {
                   console.log(`PR #${pr.number} is from a fork without maintainer push access, skipping`);
                   continue;
                 }
                 
-                console.log(`PR #${pr.number} has conflicts${isFork ? ' (from fork)' : ''}`);
+                if (isTargetPR) {
+                  console.log(`PR #${pr.number} manually targeted for conflict resolution${isFork ? ' (from fork)' : ''}`);
+                } else {
+                  console.log(`PR #${pr.number} has conflicts${isFork ? ' (from fork)' : ''}`);
+                }
+                
                 conflictingPRs.push({
                   number: pr.number,
                   title: pr.title,
@@ -102,13 +123,20 @@ jobs:
                   html_url: pr.url,
                   is_fork: isFork,
                   head_repo_owner: headRepoOwner,
-                  head_repo_name: headRepoName
+                  head_repo_name: headRepoName,
+                  is_manual: isTargetPR
                 });
+                
+                if (isTargetPR) break;
               } else if (pr.mergeable === 'UNKNOWN') {
                 console.log(`PR #${pr.number} mergeable status is still being computed`);
               } else {
                 console.log(`PR #${pr.number} has no conflicts (mergeable: ${pr.mergeable})`);
               }
+            }
+            
+            if (manualPrNumber && conflictingPRs.length === 0) {
+              console.log(`Warning: PR #${manualPrNumber} not found or has no conflicts`);
             }
             
             console.log(`Found ${conflictingPRs.length} PRs with conflicts that need Devin sessions`);
