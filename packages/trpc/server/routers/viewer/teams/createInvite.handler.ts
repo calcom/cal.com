@@ -36,7 +36,7 @@ export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) =
 
   if (!hasInvitePermission) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const result = await TeamService.createInvite(teamId, { token: input.token });
+  const result = await TeamService.createOrganizationTeamInvite(teamId, { token: input.token });
   return result;
 };
 
