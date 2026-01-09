@@ -5,12 +5,14 @@ import { useEffect, useState } from "react";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 
-import { CreateOrEditOutOfOfficeEntryModal } from "@calcom/features/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
-import type { BookingRedirectForm } from "@calcom/features/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
-import { GoogleCalendarOOOSyncModal } from "@calcom/features/settings/outOfOffice/GoogleCalendarOOOSyncModal";
-import { OOOTypeSelectionModal } from "@calcom/features/settings/outOfOffice/OOOTypeSelectionModal";
-import OutOfOfficeEntriesList from "@calcom/features/settings/outOfOffice/OutOfOfficeEntriesList";
-import { OutOfOfficeTab } from "@calcom/features/settings/outOfOffice/OutOfOfficeToggleGroup";
+import type { BookingRedirectForm } from "~/settings/outOfOffice/types";
+
+import { CreateOrEditOutOfOfficeEntryModal } from "~/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
+import { GoogleCalendarOOOSyncModal } from "~/settings/outOfOffice/GoogleCalendarOOOSyncModal";
+import { OOOTypeSelectionModal } from "~/settings/outOfOffice/OOOTypeSelectionModal";
+import OutOfOfficeEntriesList from "~/settings/outOfOffice/OutOfOfficeEntriesList";
+import { OutOfOfficeTab } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
+
 import { HolidaysView } from "./holidays-view";
 
 export default function OutOfOfficeView() {
