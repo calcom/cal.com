@@ -1,5 +1,5 @@
-import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/InstallAppButtonWithoutPlanCheck";
 import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
+import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/InstallAppButtonWithoutPlanCheck";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui/components/button";
@@ -52,8 +52,6 @@ export const InstallableAppCard = ({
             loading={isInstalling || buttonProps?.loading}
             className="mt-auto w-full items-center justify-center rounded-[10px]"
             onClick={(event) => {
-              // Save cookie to return to this page after OAuth
-              document.cookie = `return-to=${window.location.href};path=/;max-age=3600;SameSite=Lax`;
               onInstallClick(app.slug);
               buttonProps?.onClick?.(event);
             }}>

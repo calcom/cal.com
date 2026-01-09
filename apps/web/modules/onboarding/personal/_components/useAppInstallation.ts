@@ -1,18 +1,21 @@
-import { useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
 
 type InstallSuccessCallback = (appSlug: string) => void;
 
-export const useAppInstallation = () => {
+export const useAppInstallation = (returnTo?: string) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [installingAppSlug, setInstallingAppSlug] = useState<string | null>(null);
 
+  // Use provided returnTo or fallback to current page URL
+  const returnToUrl = returnTo ?? (typeof window !== "undefined" ? window.location.href : undefined);
+
   const createInstallHandlers = (appSlug: string, onSuccess?: InstallSuccessCallback) => {
     return {
+      returnTo: returnToUrl,
       onSuccess: () => {
         setInstallingAppSlug(null);
         utils.viewer.apps.integrations.invalidate();
