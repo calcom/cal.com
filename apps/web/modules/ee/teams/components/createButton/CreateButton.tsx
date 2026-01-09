@@ -62,12 +62,17 @@ export function CreateButton(props: CreateBtnProps) {
 
   const hasTeams = !!options.find((option) => option.teamId);
   const platform = !!options.find((option) => option.platform);
+  const hasMultipleOptions = options.length > 1;
 
   // inject selection data into url for correct router history
   const openModal = (option: Option) => {
     const _searchParams = new URLSearchParams(searchParams.toString());
-    function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
-      if (value !== undefined && value !== null) _searchParams.set(key, value.toString());
+    function setParamsIfDefined(
+      key: string,
+      value: string | number | boolean | null | undefined
+    ) {
+      if (value !== undefined && value !== null)
+        _searchParams.set(key, value.toString());
     }
     setParamsIfDefined("dialog", "new");
     setParamsIfDefined("eventPage", option.slug);
@@ -82,7 +87,6 @@ export function CreateButton(props: CreateBtnProps) {
     <>
       {!hasTeams && !platform ? (
         <Button
-          size="sm"
           onClick={() =>
             CreateDialog
               ? openModal(options[0])
@@ -92,10 +96,15 @@ export function CreateButton(props: CreateBtnProps) {
           }
           data-testid="create-button"
           StartIcon="plus"
+          EndIcon={hasMultipleOptions ? "chevron-down" : undefined}
           loading={isPending}
           variant={disableMobileButton ? "button" : "fab"}
-          className={classNames(disableMobileButton && "md:min-h-min md:min-w-min", className)}
-          {...restProps}>
+          className={classNames(
+            disableMobileButton && "md:min-h-min md:min-w-min",
+            className
+          )}
+          {...restProps}
+        >
           {buttonText ? buttonText : t("new")}
         </Button>
       ) : (
@@ -104,15 +113,24 @@ export function CreateButton(props: CreateBtnProps) {
             <Button
               variant={disableMobileButton ? "button" : "fab"}
               StartIcon="plus"
+              EndIcon={hasMultipleOptions ? "chevron-down" : undefined}
               size="sm"
               data-testid="create-button-dropdown"
               loading={isPending}
-              className={classNames(disableMobileButton && "md:min-h-min md:min-w-min", className)}
-              {...restProps}>
+              className={classNames(
+                disableMobileButton && "md:min-h-min md:min-w-min",
+                className
+              )}
+              {...restProps}
+            >
               {buttonText ? buttonText : t("new")}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent sideOffset={14} align="end" className="scroll-bar max-h-60 overflow-y-auto">
+          <DropdownMenuContent
+            sideOffset={14}
+            align="end"
+            className="scroll-bar max-h-60 overflow-y-auto"
+          >
             <DropdownMenuLabel>
               <div className="w-48 text-left text-xs">{subtitle}</div>
             </DropdownMenuLabel>
@@ -121,14 +139,24 @@ export function CreateButton(props: CreateBtnProps) {
                 <DropdownItem
                   type="button"
                   data-testid={`option${option.teamId ? "-team" : ""}-${idx}`}
-                  CustomStartIcon={<Avatar alt={option.label || ""} imageSrc={option.image} size="sm" />}
+                  CustomStartIcon={
+                    <Avatar
+                      alt={option.label || ""}
+                      imageSrc={option.image}
+                      size="sm"
+                    />
+                  }
                   onClick={() =>
                     CreateDialog
                       ? openModal(option)
                       : createFunction
-                      ? createFunction(option.teamId || undefined, option.platform)
+                      ? createFunction(
+                          option.teamId || undefined,
+                          option.platform
+                        )
                       : null
-                  }>
+                  }
+                >
                   {" "}
                   {/*improve this code */}
                   <span>{option.label}</span>
