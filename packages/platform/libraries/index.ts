@@ -135,6 +135,9 @@ export { TeamService } from "@calcom/features/ee/teams/services/teamService";
 export { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 export { getTasker } from "@calcom/features/tasker/tasker-factory";
 export type { Tasker } from "@calcom/features/tasker/tasker";
+
+export { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
+
 export { verifyCodeChallenge } from "@calcom/lib/pkce";
 export { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 export { OAuthService } from "@calcom/features/oauth/services/OAuthService";

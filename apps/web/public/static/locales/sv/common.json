@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Omdirigering av bokning lyckades. Omdirigerar till bokningssidan",
   "on_booking_write_to_event_object": "Vid bokning, skriv till händelseobjektet",
   "field_name": "Fältnamn",
+  "field_name_cannot_be_empty": "Fältnamn får inte vara tomt",
+  "field_already_exists": "Fältet finns redan",
   "add_new_field": "Lägg till nytt fält",
   "you_dont_have_access_to_reroute_this_booking": "Du har inte behörighet att omdirigera denna bokning",
   "form_response_not_found": "Formulärsvar hittades inte",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Bokningsägaren är inte medlem i din organisation.",
   "audit_logs_permission_denied": "Du har inte behörighet att visa granskningsloggar för denna bokning.",
   "audit_logs_permission_check_error": "Ett fel uppstod vid kontroll av behörigheter.",
+  "account_already_exists_please_login": "Ett konto med denna e-postadress finns redan. Logga in för att acceptera inbjudan.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
