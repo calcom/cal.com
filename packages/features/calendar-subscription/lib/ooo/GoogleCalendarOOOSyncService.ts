@@ -130,7 +130,7 @@ export class GoogleCalendarOOOSyncService {
             const endDate = new Date(endDateStr);
 
             // Validate dates are valid
-            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
               log.warn("Skipping event with invalid dates", { eventId: event.id, startDateStr, endDateStr });
               continue;
             }
@@ -283,7 +283,7 @@ export class GoogleCalendarOOOSyncService {
 
     // Delete entries that no longer exist in Google Calendar
     // Only delete if the entry's end date is in the future (not historical records)
-    for (const [googleEventId, entry] of existingByGoogleId) {
+    for (const [googleEventId, entry] of Array.from(existingByGoogleId.entries())) {
       // Only delete if this was an active/future entry that was removed from Google Calendar
       if (entry.end >= now) {
         await prisma.outOfOfficeEntry.delete({

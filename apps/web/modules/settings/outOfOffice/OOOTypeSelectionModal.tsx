@@ -58,7 +58,7 @@ export const OOOTypeSelectionModal = ({
                   "flex items-center gap-4 rounded-lg border p-4 text-left transition-colors"
                 )}>
                 <div className="bg-subtle flex h-12 w-12 items-center justify-center rounded-lg">
-                  <Icon name="calendar-plus" className="text-default h-6 w-6" />
+                  <Icon name="calendar" className="text-default h-6 w-6" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-emphasis font-medium">{t("one_off_ooo")}</h3>
