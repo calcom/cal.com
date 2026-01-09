@@ -2,53 +2,43 @@ import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { IBillingProviderService } from "../../billingProvider/IBillingProviderService";
 import { SeatChangeTrackingService } from "../../seatTracking/SeatChangeTrackingService";
 import { MonthlyProrationService } from "../MonthlyProrationService";
 
-vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
-  default: {
-    invoiceItems: {
-      create: vi.fn().mockResolvedValue({
-        id: "ii_test_123",
-        amount: 1000,
-        currency: "usd",
-      }),
-    },
-    invoices: {
-      create: vi.fn().mockResolvedValue({
-        id: "in_test_123",
-        customer: "cus_test_123",
-        auto_advance: true,
-      }),
-      finalizeInvoice: vi.fn().mockResolvedValue({
-        id: "in_test_123",
-        status: "open",
-      }),
-    },
-    subscriptions: {
-      retrieve: vi.fn().mockResolvedValue({
-        items: {
-          data: [
-            {
-              quantity: 1,
-            },
-          ],
-        },
-      }),
-      update: vi.fn().mockResolvedValue({
-        id: "sub_test_123",
-        items: {
-          data: [
-            {
-              id: "si_test_123",
-              quantity: 1,
-            },
-          ],
-        },
-      }),
-    },
-  },
-}));
+const mockBillingService: IBillingProviderService = {
+  createInvoiceItem: vi.fn().mockResolvedValue({ invoiceItemId: "ii_test_123" }),
+  createInvoice: vi.fn().mockResolvedValue({ invoiceId: "in_test_123" }),
+  finalizeInvoice: vi.fn().mockResolvedValue(undefined),
+  getSubscription: vi.fn().mockResolvedValue({
+    items: [
+      { id: "si_test_123", quantity: 1, price: { unit_amount: 12000, recurring: { interval: "year" } } },
+    ],
+    customer: "cus_test_123",
+    status: "active",
+    current_period_start: 1622505600,
+    current_period_end: 1654041600,
+    trial_end: null,
+  }),
+  handleSubscriptionUpdate: vi.fn().mockResolvedValue(undefined),
+  // Add stub implementations for other required interface methods
+  checkoutSessionIsPaid: vi.fn().mockResolvedValue(true),
+  handleSubscriptionCancel: vi.fn().mockResolvedValue(undefined),
+  handleSubscriptionCreation: vi.fn().mockResolvedValue(undefined),
+  handleEndTrial: vi.fn().mockResolvedValue(undefined),
+  createCustomer: vi.fn().mockResolvedValue({ stripeCustomerId: "cus_test_123" }),
+  createPaymentIntent: vi.fn().mockResolvedValue({ id: "pi_test_123", client_secret: "secret_123" }),
+  createSubscriptionCheckout: vi
+    .fn()
+    .mockResolvedValue({ checkoutUrl: "https://checkout.test", sessionId: "cs_test_123" }),
+  createPrice: vi.fn().mockResolvedValue({ priceId: "price_test_123" }),
+  getPrice: vi.fn().mockResolvedValue(null),
+  getSubscriptionStatus: vi.fn().mockResolvedValue(null),
+  getCheckoutSession: vi.fn().mockResolvedValue(null),
+  getCustomer: vi.fn().mockResolvedValue(null),
+  getSubscriptions: vi.fn().mockResolvedValue(null),
+  updateCustomer: vi.fn().mockResolvedValue(undefined),
+} as IBillingProviderService;
 
 describe("MonthlyProrationService Integration Tests", () => {
   let testUser: User;
@@ -108,7 +98,7 @@ describe("MonthlyProrationService Integration Tests", () => {
 
   it("should process end-to-end proration for annual team with seat additions", async () => {
     const seatTracker = new SeatChangeTrackingService();
-    const prorationService = new MonthlyProrationService();
+    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
 
     await seatTracker.logSeatAddition({
       teamId: testTeam.id,
@@ -146,7 +136,7 @@ describe("MonthlyProrationService Integration Tests", () => {
 
   it("should skip proration for team with no net change", async () => {
     const seatTracker = new SeatChangeTrackingService();
-    const prorationService = new MonthlyProrationService();
+    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
 
     await seatTracker.logSeatAddition({
       teamId: testTeam.id,
@@ -229,7 +219,7 @@ describe("MonthlyProrationService Integration Tests", () => {
       seatCount: 3,
     });
 
-    const prorationService = new MonthlyProrationService();
+    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
     const results = await prorationService.processMonthlyProrations({ monthKey });
 
     const filteredResults = results.filter((r) => [testTeam.id, testTeam2.id].includes(r.teamId));
@@ -239,7 +229,7 @@ describe("MonthlyProrationService Integration Tests", () => {
 
   it("should handle payment success callback", async () => {
     const seatTracker = new SeatChangeTrackingService();
-    const prorationService = new MonthlyProrationService();
+    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
 
     await seatTracker.logSeatAddition({
       teamId: testTeam.id,
@@ -267,7 +257,7 @@ describe("MonthlyProrationService Integration Tests", () => {
 
   it("should handle payment failure callback", async () => {
     const seatTracker = new SeatChangeTrackingService();
-    const prorationService = new MonthlyProrationService();
+    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
 
     await seatTracker.logSeatAddition({
       teamId: testTeam.id,

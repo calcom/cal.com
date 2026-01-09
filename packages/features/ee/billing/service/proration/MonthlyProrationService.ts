@@ -1,6 +1,8 @@
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 import type { Logger } from "tslog";
+import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
+import { StripeBillingService } from "../billingProvider/StripeBillingService";
 import { MonthlyProrationRepository } from "../../repository/proration/MonthlyProrationRepository";
 import type { BillingInfo } from "../../repository/proration/MonthlyProrationTeamRepository";
 import { MonthlyProrationTeamRepository } from "../../repository/proration/MonthlyProrationTeamRepository";
@@ -27,11 +29,13 @@ export class MonthlyProrationService {
   private logger: Logger<unknown>;
   private teamRepository: MonthlyProrationTeamRepository;
   private prorationRepository: MonthlyProrationRepository;
+  private billingService: IBillingProviderService;
 
-  constructor(customLogger?: Logger<unknown>) {
+  constructor(customLogger?: Logger<unknown>, billingService?: IBillingProviderService) {
     this.logger = customLogger || log;
     this.teamRepository = new MonthlyProrationTeamRepository();
     this.prorationRepository = new MonthlyProrationRepository();
+    this.billingService = billingService || new StripeBillingService(stripe);
   }
 
   async processMonthlyProrations(params: ProcessMonthlyProrationsParams) {
@@ -188,8 +192,8 @@ export class MonthlyProrationService {
   }) {
     const amountInCents = Math.round(proration.proratedAmount);
 
-    const invoiceItem = await stripe.invoiceItems.create({
-      customer: proration.customerId,
+    const { invoiceItemId } = await this.billingService.createInvoiceItem({
+      customerId: proration.customerId,
       amount: amountInCents,
       currency: "usd",
       description: `Additional ${proration.netSeatIncrease} seat${
@@ -203,23 +207,23 @@ export class MonthlyProrationService {
       },
     });
 
-    const invoice = await stripe.invoices.create({
-      customer: proration.customerId,
-      auto_advance: true,
+    const { invoiceId } = await this.billingService.createInvoice({
+      customerId: proration.customerId,
+      autoAdvance: true,
       metadata: {
         type: "monthly_proration",
         prorationId: proration.id,
       },
     });
 
-    await stripe.invoices.finalizeInvoice(invoice.id);
+    await this.billingService.finalizeInvoice(invoiceId);
 
     await this.prorationRepository.updateProrationStatus(proration.id, "INVOICE_CREATED", {
-      invoiceItemId: invoiceItem.id,
-      invoiceId: invoice.id,
+      invoiceItemId,
+      invoiceId,
     });
 
-    return invoiceItem;
+    return { invoiceItemId };
   }
 
   async handleProrationPaymentSuccess(prorationId: string) {
@@ -255,14 +259,10 @@ export class MonthlyProrationService {
     subscriptionItemId: string,
     quantity: number
   ): Promise<void> {
-    await stripe.subscriptions.update(subscriptionId, {
-      items: [
-        {
-          id: subscriptionItemId,
-          quantity,
-        },
-      ],
-      proration_behavior: "none",
+    await this.billingService.handleSubscriptionUpdate({
+      subscriptionId,
+      subscriptionItemId,
+      membershipCount: quantity,
     });
   }
 
@@ -304,12 +304,16 @@ export class MonthlyProrationService {
     this.logger.info(`[${teamId}] ${needsCreation ? "creating" : "populating"} billing data from stripe`);
 
     try {
-      const subscription = await stripe.subscriptions.retrieve(billing.subscriptionId);
+      const subscription = await this.billingService.getSubscription(billing.subscriptionId);
+
+      if (!subscription) {
+        throw new Error(`Subscription ${billing.subscriptionId} not found`);
+      }
 
       const billingPeriod =
-        subscription.items.data[0]?.price.recurring?.interval === "year" ? "ANNUALLY" : "MONTHLY";
+        subscription.items[0]?.price.recurring?.interval === "year" ? "ANNUALLY" : "MONTHLY";
 
-      const pricePerSeat = subscription.items.data[0]?.price.unit_amount ?? 0;
+      const pricePerSeat = subscription.items[0]?.price.unit_amount ?? 0;
 
       const subscriptionStart = subscription.current_period_start
         ? new Date(subscription.current_period_start * 1000)
@@ -319,12 +323,12 @@ export class MonthlyProrationService {
         ? new Date(subscription.current_period_end * 1000)
         : null;
 
-      const subscriptionItemId = subscription.items.data[0]?.id || billing.subscriptionItemId || "";
-      const customerId = subscription.customer as string;
+      const subscriptionItemId = subscription.items[0]?.id || billing.subscriptionItemId || "";
+      const customerId = subscription.customer;
       const subscriptionTrialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
 
       if (needsCreation) {
-        const paidSeats = subscription.items.data[0]?.quantity || 0;
+        const paidSeats = subscription.items[0]?.quantity || 0;
         const billingData = {
           teamId,
           subscriptionId: billing.subscriptionId,
@@ -379,7 +383,7 @@ export class MonthlyProrationService {
   }
 
   private async getSubscriptionQuantity(subscriptionId: string): Promise<number> {
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    return subscription.items.data[0]?.quantity || 0;
+    const subscription = await this.billingService.getSubscription(subscriptionId);
+    return subscription?.items[0]?.quantity || 0;
   }
 }
