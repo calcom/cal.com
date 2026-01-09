@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { ConferencingAppsOutputDto } from "@/modules/conferencing/outputs/get-conferencing-apps.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";

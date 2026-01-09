@@ -12,22 +12,18 @@ import posthog from "posthog-js";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import {
   DataTableProvider,
-  DataTableWrapper,
-  DataTableToolbar,
-  DataTableSelectionBar,
-  DataTableFilters,
-  DataTableSegment,
   useColumnFilters,
   ColumnFilterType,
   convertFacetedValuesToMap,
   useDataTable,
 } from "@calcom/features/data-table";
+import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment, DataTableSelectionBar } from "~/data-table/components";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import {
   generateCsvRawForMembersTable,
   generateHeaderFromReactTable,
-} from "@calcom/features/users/lib/UserListTableUtils";
+} from "@calcom/web/modules/users/lib/UserListTableUtils";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -52,7 +48,8 @@ import { EditUserSheet } from "./EditSheet/EditUserSheet";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
-import type { UserTableState, UserTableAction, UserTableUser, MemberPermissions } from "./types";
+import type { UserTableState, UserTableAction, UserTableUser } from "./types";
+import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 
 const initialState: UserTableState = {
   changeMemberRole: {

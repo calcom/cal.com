@@ -97,6 +97,15 @@ jobs:
             // NOTE: We use workflow run created_at instead of commit timestamp because
             // git commit timestamps can be arbitrarily backdated by attackers
             if (pr.labels?.some(l => l.name === 'run-ci')) {
+              // Skip stale check if this is a re-run (run_attempt > 1)
+              // Re-runs are explicitly triggered by maintainers
+              const runAttempt = parseInt(process.env.GITHUB_RUN_ATTEMPT || '1', 10);
+              if (runAttempt > 1) {
+                console.log(`Re-run detected (attempt ${runAttempt}), trusting existing 'run-ci' label`);
+                core.setOutput('is-trusted', true);
+                return;
+              }
+
               const events = await github.paginate(github.rest.issues.listEvents, {
                 owner,
                 repo,
@@ -159,6 +168,7 @@ jobs:
     outputs:
       has-files-requiring-all-checks: ${{ steps.filter.outputs.has-files-requiring-all-checks }}
       has_companion: ${{ steps.filter.outputs.has_companion }}
+      has-api-v2-changes: ${{ steps.filter.outputs.has-api-v2-changes }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
       db-cache-hit: ${{ steps.cache-db-check.outputs.cache-hit }}
@@ -192,6 +202,16 @@ jobs:
               - '!i18n.lock'
             has_companion:
               - "companion/**"
+            has-api-v2-changes:
+              - "apps/api/v2/**"
+              - "packages/platform-constants/**"
+              - "packages/platform-enums/**"
+              - "packages/platform-utils/**"
+              - "packages/platform-types/**"
+              - "packages/platform-libraries/**"
+              - "packages/trpc/**"
+              - "packages/prisma/schema.prisma"
+              - "docs/api-reference/v2/**"
       - name: Get Latest Commit SHA
         id: get_sha
         run: |
@@ -361,7 +381,7 @@ jobs:
   check-api-v2-breaking-changes:
     name: Check API v2 breaking changes
     needs: [prepare]
-    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-api-v2-changes == 'true' }}
     uses: ./.github/workflows/check-api-v2-breaking-changes.yml
     secrets: inherit
 
@@ -447,7 +467,7 @@ jobs:
             needs.type-check.result != 'success' ||
             needs.unit-test.result != 'success' ||
             needs.api-v2-unit-test.result != 'success' ||
-            needs.check-api-v2-breaking-changes.result != 'success' ||
+            (needs.prepare.outputs.has-api-v2-changes == 'true' && needs.check-api-v2-breaking-changes.result != 'success') ||
               needs.build.result != 'success' ||
               needs.build-api-v1.result != 'success' ||
               needs.build-api-v2.result != 'success' ||
