@@ -13,7 +13,7 @@ export class EventTypesRepositoryFixture {
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
 
-  async getAllUserEventTypes(userId: number): Promise<EventType[]> {
+  async getAllUserEventTypes(userId: number) {
     return this.prismaWriteClient.eventType.findMany({
       where: {
         userId,
@@ -21,7 +21,7 @@ export class EventTypesRepositoryFixture {
     });
   }
 
-  async getAllTeamEventTypes(teamId: number): Promise<(EventType & { hosts: unknown[] })[]> {
+  async getAllTeamEventTypes(teamId: number) {
     return this.prismaWriteClient.eventType.findMany({
       where: {
         teamId,
@@ -32,7 +32,7 @@ export class EventTypesRepositoryFixture {
     });
   }
 
-  async create(data: Prisma.EventTypeCreateInput, userId: number): Promise<EventType> {
+  async create(data: Prisma.EventTypeCreateInput, userId: number) {
     return this.prismaWriteClient.eventType.create({
       data: {
         ...data,
@@ -50,15 +50,15 @@ export class EventTypesRepositoryFixture {
     });
   }
 
-  async createTeamEventType(data: Prisma.EventTypeCreateInput): Promise<EventType> {
+  async createTeamEventType(data: Prisma.EventTypeCreateInput) {
     return this.prismaWriteClient.eventType.create({ data });
   }
 
-  async delete(eventTypeId: EventType["id"]): Promise<EventType> {
+  async delete(eventTypeId: EventType["id"]) {
     return this.prismaWriteClient.eventType.delete({ where: { id: eventTypeId } });
   }
 
-  async deleteAllTeamEventTypes(teamId: number): Promise<Prisma.BatchPayload> {
+  async deleteAllTeamEventTypes(teamId: number) {
     return this.prismaWriteClient.eventType.deleteMany({
       where: {
         teamId,
@@ -66,7 +66,7 @@ export class EventTypesRepositoryFixture {
     });
   }
 
-  async deleteAllUserEventTypes(userId: number): Promise<Prisma.BatchPayload> {
+  async deleteAllUserEventTypes(userId: number) {
     return this.prismaWriteClient.eventType.deleteMany({
       where: {
         userId,
@@ -74,7 +74,7 @@ export class EventTypesRepositoryFixture {
     });
   }
 
-  async findById(eventTypeId: EventType["id"]): Promise<EventType | null> {
+  async findById(eventTypeId: EventType["id"]) {
     return this.prismaReadClient.eventType.findUnique({ where: { id: eventTypeId } });
   }
 }

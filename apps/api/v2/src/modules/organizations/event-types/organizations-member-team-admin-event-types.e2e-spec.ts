@@ -67,7 +67,7 @@ describe("Organizations Event Types Endpoints", () => {
 
     beforeAll(async () => {
       // Generate unique slug inside beforeAll to ensure uniqueness across test runs
-      managedEventTypeSlug = `organizations-event-types-managed-${randomString()}`;
+      managedEventTypeSlug = `organizations-event-types-managed-${Date.now()}-${randomString()}`;
       const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
@@ -306,7 +306,7 @@ describe("Organizations Event Types Endpoints", () => {
           },
         ],
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error - schedulingType is lowercase in API input
+        // @ts-ignore
         schedulingType: "collective",
         hosts: [
           {
@@ -1095,7 +1095,7 @@ describe("Organizations Event Types Endpoints", () => {
           },
         ],
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error - schedulingType is camelCase in API input
+        // @ts-ignore
         schedulingType: "roundRobin",
         hosts: [
           {
@@ -1374,25 +1374,21 @@ describe("Organizations Event Types Endpoints", () => {
       expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
     });
 
-    function evaluateHost(expected: Host, received: Host | undefined): void {
+    function evaluateHost(expected: Host, received: Host | undefined) {
       expect(expected.userId).toEqual(received?.userId);
       expect(expected.mandatory).toEqual(received?.mandatory);
       expect(expected.priority).toEqual(received?.priority);
     }
 
     afterAll(async () => {
-      // Delete user event types first (child event types of managed event types)
       await eventTypesRepositoryFixture.deleteAllUserEventTypes(teammate1.id);
       await eventTypesRepositoryFixture.deleteAllUserEventTypes(teammate2.id);
-      // Delete team event types before deleting the team
       await eventTypesRepositoryFixture.deleteAllTeamEventTypes(team.id);
       await eventTypesRepositoryFixture.deleteAllTeamEventTypes(falseTestTeam.id);
-      // Delete users after their event types are deleted
       await userRepositoryFixture.deleteByEmail(userAdmin.email);
       await userRepositoryFixture.deleteByEmail(teammate1.email);
       await userRepositoryFixture.deleteByEmail(teammate2.email);
       await userRepositoryFixture.deleteByEmail(falseTestUser.email);
-      // Delete teams and organizations
       await teamsRepositoryFixture.delete(team.id);
       await teamsRepositoryFixture.delete(falseTestTeam.id);
       await organizationsRepositoryFixture.delete(org.id);
