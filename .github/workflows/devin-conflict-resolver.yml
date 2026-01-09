@@ -188,7 +188,8 @@ jobs:
                 });
                 
                 if (!response.ok) {
-                  throw new Error(`Devin API error: ${response.status} ${response.statusText}`);
+                  console.error(`Devin API error for PR #${pr.number}: ${response.status} ${response.statusText}`);
+                  continue;
                 }
                 
                 const data = await response.json();
