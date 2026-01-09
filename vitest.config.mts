@@ -96,7 +96,7 @@ export default defineConfig({
     globals: true,
     silent: true,
     environment: "jsdom",
-    setupFiles: ["./setupVitest.ts"],
+    setupFiles: ["./packages/testing/src/setupVitest.ts"],
     include: getTestInclude(),
     exclude: getTestExclude(),
     server: {

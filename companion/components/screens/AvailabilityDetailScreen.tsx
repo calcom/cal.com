@@ -1,20 +1,23 @@
+/**
+ * AvailabilityDetailScreen Component (Android/Extension)
+ *
+ * Read-only display of availability schedule.
+ * Editing is done via separate modal screens.
+ */
+
 import { Ionicons } from "@expo/vector-icons";
-import { GlassView } from "expo-glass-effect";
 import { useRouter } from "expo-router";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Switch, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
-import { FullScreenModal } from "@/components/FullScreenModal";
-import { TIMEZONES } from "@/constants/timezones";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 import type { ScheduleAvailability } from "@/services/types";
 import { showErrorAlert } from "@/utils/alerts";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const DAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-// Map day names to numbers - module scope for React Compiler optimization
+// Map day names to numbers
 const DAY_NAME_TO_NUMBER: Record<string, number> = {
   Sunday: 0,
   Monday: 1,
@@ -32,16 +35,14 @@ const formatTime12Hour = (time24: string): string => {
   const min = minutes || "00";
   const period = hour >= 12 ? "PM" : "AM";
   const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-  // Pad single-digit hours with leading zero for consistent width
   const hour12Padded = hour12.toString().padStart(2, "0");
   return `${hour12Padded}:${min} ${period}`;
 };
 
-// Format availability for display
+// Format availability for display - groups days with same time range
 const formatAvailabilityDisplay = (
   availability: Record<number, ScheduleAvailability[]>
 ): string[] => {
-  // Group slots by time range
   const timeRangeMap: Record<string, number[]> = {};
 
   Object.keys(availability).forEach((dayIndexStr) => {
@@ -58,12 +59,11 @@ const formatAvailabilityDisplay = (
     }
   });
 
-  // Format each time range group
   const formatted: string[] = [];
   Object.keys(timeRangeMap).forEach((timeKey) => {
     const days = timeRangeMap[timeKey].sort((a, b) => a - b);
     const [startTime, endTime] = timeKey.split("-");
-    const dayNames = days.map((day) => DAY_ABBREVIATIONS[day]).join(", ");
+    const dayNames = days.map((day) => DAYS[day]).join(", ");
     const timeRange = `${formatTime12Hour(startTime)} - ${formatTime12Hour(endTime)}`;
     formatted.push(`${dayNames}, ${timeRange}`);
   });
@@ -71,28 +71,24 @@ const formatAvailabilityDisplay = (
   return formatted;
 };
 
-// Generate time options (15-minute intervals)
-const generateTimeOptions = () => {
-  const options: string[] = [];
-  for (let hour = 0; hour < 24; hour++) {
-    for (let minute = 0; minute < 60; minute += 15) {
-      const h = hour.toString().padStart(2, "0");
-      const m = minute.toString().padStart(2, "0");
-      options.push(`${h}:${m}`);
-    }
-  }
-  return options;
+// Format date for display
+const formatDateForDisplay = (dateStr: string): string => {
+  if (!dateStr) return "";
+  const date = new Date(`${dateStr}T00:00:00`);
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 };
-
-const TIME_OPTIONS = generateTimeOptions();
 
 export interface AvailabilityDetailScreenProps {
   id: string;
-  useNativeHeader?: boolean;
+  onActionsReady?: (handlers: { handleSetAsDefault: () => void; handleDelete: () => void }) => void;
 }
 
 export interface AvailabilityDetailScreenHandle {
-  save: () => void;
   setAsDefault: () => void;
   delete: () => void;
   refresh: () => void;
@@ -101,42 +97,23 @@ export interface AvailabilityDetailScreenHandle {
 export const AvailabilityDetailScreen = forwardRef<
   AvailabilityDetailScreenHandle,
   AvailabilityDetailScreenProps
->(function AvailabilityDetailScreen({ id, useNativeHeader = false }, ref) {
+>(function AvailabilityDetailScreen({ id, onActionsReady }, ref) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [_schedule, setSchedule] = useState<Schedule | null>(null);
   const [scheduleName, setScheduleName] = useState("");
   const [timeZone, setTimeZone] = useState("");
   const [isDefault, setIsDefault] = useState(false);
   const [availability, setAvailability] = useState<Record<number, ScheduleAvailability[]>>({});
-  const [showTimezoneModal, setShowTimezoneModal] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState<{
-    dayIndex: number;
-    slotIndex: number;
-    type: "start" | "end";
-  } | null>(null);
   const [overrides, setOverrides] = useState<
     {
-      date: string; // Format: "2024-05-20"
-      startTime: string; // Format: "12:00" or "00:00" for unavailable
-      endTime: string; // Format: "14:00" or "00:00" for unavailable
+      date: string;
+      startTime: string;
+      endTime: string;
     }[]
   >([]);
-  const [showOverrideModal, setShowOverrideModal] = useState(false);
-  const [editingOverride, setEditingOverride] = useState<number | null>(null);
-  const [overrideDate, setOverrideDate] = useState("");
-  const [overrideStartTime, setOverrideStartTime] = useState("09:00");
-  const [overrideEndTime, setOverrideEndTime] = useState("17:00");
-  const [isUnavailable, setIsUnavailable] = useState(false);
-  const [showOverrideTimePicker, setShowOverrideTimePicker] = useState<{
-    type: "start" | "end";
-  } | null>(null);
-
-  // Use all supported timezones from the shared constants
-  const timezones = TIMEZONES;
 
   const processScheduleData = useCallback(
     (scheduleData: NonNullable<Awaited<ReturnType<typeof CalComAPIService.getScheduleById>>>) => {
@@ -149,29 +126,24 @@ export const AvailabilityDetailScreen = forwardRef<
       setTimeZone(tz);
       setIsDefault(isDefaultSchedule);
 
-      // Convert availability array to day-indexed object
       const availabilityMap: Record<number, ScheduleAvailability[]> = {};
 
       const availabilityArray = scheduleData.availability;
       if (availabilityArray && Array.isArray(availabilityArray)) {
         availabilityArray.forEach((slot) => {
-          // Handle both string day names and number day formats
           let days: number[] = [];
           if (Array.isArray(slot.days)) {
             days = slot.days
               .map((day) => {
-                // If it's a day name string (e.g., "Sunday", "Monday")
                 if (typeof day === "string" && DAY_NAME_TO_NUMBER[day] !== undefined) {
                   return DAY_NAME_TO_NUMBER[day];
                 }
-                // If it's a number string (e.g., "0", "1")
                 if (typeof day === "string") {
                   const parsed = parseInt(day, 10);
                   if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 6) {
                     return parsed;
                   }
                 }
-                // If it's already a number
                 if (typeof day === "number" && day >= 0 && day <= 6) {
                   return day;
                 }
@@ -197,7 +169,6 @@ export const AvailabilityDetailScreen = forwardRef<
 
       setAvailability(availabilityMap);
 
-      // Load overrides if they exist
       const overridesArray = scheduleData.overrides;
       if (overridesArray && Array.isArray(overridesArray)) {
         const formattedOverrides = overridesArray.map((override) => {
@@ -220,7 +191,6 @@ export const AvailabilityDetailScreen = forwardRef<
     try {
       scheduleData = await CalComAPIService.getScheduleById(Number(id));
     } catch (error) {
-      // Avoid logging raw error objects from API calls (may contain sensitive response data).
       console.error("Error fetching schedule");
       if (__DEV__) {
         const message = error instanceof Error ? error.message : String(error);
@@ -246,139 +216,12 @@ export const AvailabilityDetailScreen = forwardRef<
     }
   }, [id, fetchSchedule]);
 
-  const toggleDay = (dayIndex: number) => {
-    setAvailability((prev) => {
-      const newAvailability = { ...prev };
-      if (newAvailability[dayIndex] && newAvailability[dayIndex].length > 0) {
-        // Disable day - remove availability
-        delete newAvailability[dayIndex];
-      } else {
-        // Enable day - add default time slot (9 AM - 5 PM)
-        newAvailability[dayIndex] = [
-          {
-            days: [dayIndex.toString()],
-            startTime: "09:00:00",
-            endTime: "17:00:00",
-          },
-        ];
-      }
-      return newAvailability;
-    });
-  };
-
-  const addTimeSlot = (dayIndex: number) => {
-    setAvailability((prev) => {
-      const newAvailability = { ...prev };
-      if (!newAvailability[dayIndex]) {
-        newAvailability[dayIndex] = [];
-      }
-      newAvailability[dayIndex].push({
-        days: [dayIndex.toString()],
-        startTime: "09:00:00",
-        endTime: "17:00:00",
-      });
-      return newAvailability;
-    });
-  };
-
-  const removeTimeSlot = (dayIndex: number, slotIndex: number) => {
-    setAvailability((prev) => {
-      const newAvailability = { ...prev };
-      if (newAvailability[dayIndex]) {
-        newAvailability[dayIndex] = newAvailability[dayIndex].filter((_, i) => i !== slotIndex);
-        if (newAvailability[dayIndex].length === 0) {
-          delete newAvailability[dayIndex];
-        }
-      }
-      return newAvailability;
-    });
-  };
-
-  const updateTimeSlot = (
-    dayIndex: number,
-    slotIndex: number,
-    type: "start" | "end",
-    time: string
-  ) => {
-    setAvailability((prev) => {
-      const newAvailability = { ...prev };
-      if (newAvailability[dayIndex]?.[slotIndex]) {
-        const slot = { ...newAvailability[dayIndex][slotIndex] };
-        if (type === "start") {
-          slot.startTime = `${time}:00`;
-        } else {
-          slot.endTime = `${time}:00`;
-        }
-        newAvailability[dayIndex][slotIndex] = slot;
-      }
-      return newAvailability;
-    });
-  };
-
-  const handleSave = async () => {
-    // Validate availability name
-    if (!scheduleName.trim()) {
-      Alert.alert("Error", "Please enter an availability name");
+  const handleSetAsDefault = useCallback(async () => {
+    if (isDefault) {
+      Alert.alert("Info", "This schedule is already set as default");
       return;
     }
 
-    setSaving(true);
-    try {
-      // Convert availability object back to array format with day names
-      const availabilityArray: {
-        days: string[]; // Day names like "Monday", "Tuesday"
-        startTime: string; // Format: "09:00"
-        endTime: string; // Format: "10:00"
-      }[] = [];
-
-      Object.keys(availability).forEach((dayIndexStr) => {
-        const dayIndex = Number(dayIndexStr);
-        const slots = availability[dayIndex];
-        if (slots && slots.length > 0) {
-          slots.forEach((slot) => {
-            // Convert day number to day name
-            const dayName = DAYS[dayIndex];
-
-            // Format time from "09:00:00" to "09:00" (remove seconds)
-            const formatTimeForAPI = (time: string): string => {
-              return time.substring(0, 5); // Take only HH:MM
-            };
-
-            availabilityArray.push({
-              days: [dayName],
-              startTime: formatTimeForAPI(slot.startTime),
-              endTime: formatTimeForAPI(slot.endTime),
-            });
-          });
-        }
-      });
-
-      // Format overrides for API (ensure times are in HH:MM format)
-      const formattedOverrides = overrides.map((override) => ({
-        date: override.date,
-        startTime: override.startTime.substring(0, 5), // Ensure HH:MM format
-        endTime: override.endTime.substring(0, 5), // Ensure HH:MM format
-      }));
-
-      await CalComAPIService.updateSchedule(Number(id), {
-        name: scheduleName.trim(),
-        timeZone,
-        availability: availabilityArray,
-        isDefault: isDefault,
-        overrides: formattedOverrides,
-      });
-
-      Alert.alert("Success", "Availability updated successfully", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
-      setSaving(false);
-    } catch {
-      showErrorAlert("Error", "Failed to update availability. Please try again.");
-      setSaving(false);
-    }
-  };
-
-  const handleSetAsDefault = async () => {
     try {
       await CalComAPIService.updateSchedule(Number(id), {
         isDefault: true,
@@ -388,9 +231,17 @@ export const AvailabilityDetailScreen = forwardRef<
     } catch {
       showErrorAlert("Error", "Failed to set availability as default. Please try again.");
     }
-  };
+  }, [isDefault, id]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
+    if (isDefault) {
+      Alert.alert(
+        "Cannot Delete",
+        "You cannot delete the default schedule. Please set another schedule as default first."
+      );
+      return;
+    }
+
     Alert.alert("Delete Availability", `Are you sure you want to delete "${scheduleName}"?`, [
       { text: "Cancel", style: "cancel" },
       {
@@ -408,669 +259,198 @@ export const AvailabilityDetailScreen = forwardRef<
         },
       },
     ]);
-  };
+  }, [isDefault, scheduleName, id, router]);
 
-  // Expose methods to parent via ref
-  useImperativeHandle(ref, () => ({
-    save: handleSave,
-    setAsDefault: handleSetAsDefault,
-    delete: handleDelete,
-    refresh: fetchSchedule,
-  }));
+  // Expose handlers via ref
+  useImperativeHandle(
+    ref,
+    () => ({
+      setAsDefault: handleSetAsDefault,
+      delete: handleDelete,
+      refresh: fetchSchedule,
+    }),
+    [handleSetAsDefault, handleDelete, fetchSchedule]
+  );
 
-  const handleAddOverride = () => {
-    setEditingOverride(null);
-    setOverrideDate("");
-    setOverrideStartTime("09:00");
-    setOverrideEndTime("17:00");
-    setIsUnavailable(false);
-    setShowOverrideModal(true);
-  };
-
-  const handleEditOverride = (index: number) => {
-    const override = overrides[index];
-    setEditingOverride(index);
-    setOverrideDate(override.date);
-    setOverrideStartTime(override.startTime);
-    setOverrideEndTime(override.endTime);
-    setIsUnavailable(override.startTime === "00:00" && override.endTime === "00:00");
-    setShowOverrideModal(true);
-  };
-
-  const handleDeleteOverride = (index: number) => {
-    Alert.alert("Delete Override", "Are you sure you want to delete this date override?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => {
-          setOverrides(overrides.filter((_, i) => i !== index));
-        },
-      },
-    ]);
-  };
-
-  const handleSaveOverride = () => {
-    if (!overrideDate) {
-      Alert.alert("Error", "Please select a date");
-      return;
+  // Expose handlers to parent for header menu
+  useEffect(() => {
+    if (onActionsReady) {
+      onActionsReady({
+        handleSetAsDefault,
+        handleDelete,
+      });
     }
+  }, [onActionsReady, handleSetAsDefault, handleDelete]);
 
-    const newOverride = {
-      date: overrideDate,
-      startTime: isUnavailable ? "00:00" : overrideStartTime,
-      endTime: isUnavailable ? "00:00" : overrideEndTime,
-    };
-
-    if (editingOverride !== null) {
-      // Update existing override
-      const updated = [...overrides];
-      updated[editingOverride] = newOverride;
-      setOverrides(updated);
-    } else {
-      // Add new override
-      setOverrides([...overrides, newOverride]);
-    }
-
-    setShowOverrideModal(false);
-  };
-
-  const formatDateForDisplay = (dateStr: string): string => {
-    if (!dateStr) return "";
-    const date = new Date(`${dateStr}T00:00:00`);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  // Count enabled days
+  const enabledDaysCount = Object.keys(availability).length;
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#f8f9fa]">
+      <View className="flex-1 items-center justify-center bg-[#f2f2f7]">
         <ActivityIndicator size="large" color="#000000" />
-        <Text className="mt-4 text-base text-[#666]">Loading availability...</Text>
+        <Text className="mt-4 text-[15px] text-[#8E8E93]">Loading availability...</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-[#f8f9fa]">
-      {/* Glass Header - only show when not using native header */}
-      {!useNativeHeader && (
-        <GlassView
-          style={[
-            {
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 1000,
-              paddingHorizontal: 16,
-              paddingBottom: 12,
-              paddingTop: insets.top + 8,
-            },
-          ]}
-          glassEffectStyle="clear"
-        >
-          <View className="min-h-[44px] flex-row items-center justify-between">
-            <AppPressable
-              className="h-10 w-10 items-start justify-center"
-              onPress={() => router.back()}
-            >
-              <Ionicons name="chevron-back" size={24} color="#000" />
-            </AppPressable>
-
-            <Text
-              className="mx-2.5 flex-1 text-center text-lg font-semibold text-black"
-              numberOfLines={1}
-            >
-              Edit Availability
-            </Text>
-
-            <AppPressable
-              className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${
-                saving ? "opacity-60" : ""
-              }`}
-              onPress={handleSave}
-              disabled={saving}
-            >
-              <Text className="text-base font-semibold text-white">Save</Text>
-            </AppPressable>
-          </View>
-        </GlassView>
-      )}
-
+    <View className="flex-1 bg-[#f2f2f7]">
       <ScrollView
         className="flex-1"
-        style={{ paddingTop: useNativeHeader ? 0 : insets.top + 70 }}
-        contentContainerStyle={{ padding: 16, paddingBottom: 200 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 16,
+          paddingBottom: insets.bottom + 100,
+        }}
+        showsVerticalScrollIndicator={false}
       >
-        <View className="gap-4">
-          {/* Availability Name */}
-          <View className="rounded-2xl bg-white p-6">
-            <Text className="mb-3 text-base font-semibold text-[#333]">Availability Name</Text>
-            <TextInput
-              value={scheduleName}
-              onChangeText={setScheduleName}
-              placeholder="Enter availability name"
-              placeholderTextColor="#999"
-              className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-[#333]"
-            />
-          </View>
-
-          {/* Working Hours Display */}
-          <View className="rounded-2xl bg-white p-6">
-            <Text className="mb-3 text-xl font-bold text-[#333]">Working Hours</Text>
-            {Object.keys(availability).length > 0 ? (
-              <View>
-                {formatAvailabilityDisplay(availability).map((line) => (
-                  <Text key={line} className="mb-1 text-base text-[#666]">
-                    {line}
-                  </Text>
-                ))}
-              </View>
-            ) : (
-              <Text className="text-base text-[#999]">No availability set</Text>
+        {/* Schedule Title Section */}
+        <View className="mb-4">
+          <View className="mb-2 flex-row flex-wrap items-center">
+            <Text
+              className="text-[26px] font-semibold leading-tight text-black"
+              style={{ letterSpacing: -0.3 }}
+            >
+              {scheduleName || "Untitled Schedule"}
+            </Text>
+            {isDefault && (
+              <Ionicons
+                name="star-outline"
+                size={20}
+                color="#000000"
+                style={{ marginLeft: 6, marginTop: 2 }}
+              />
             )}
           </View>
+        </View>
 
-          {/* Availability Schedule */}
-          <View className="rounded-2xl bg-white p-6">
-            <Text className="mb-4 text-xl font-bold text-[#333]">Availability</Text>
-            {DAYS.map((day, dayIndex) => {
-              const daySlots = availability[dayIndex] || [];
-              const isEnabled = daySlots.length > 0;
-              const firstSlot = daySlots[0];
+        {/* Weekly Schedule Card - Navigable */}
+        <View className="mb-4 overflow-hidden rounded-xl bg-white">
+          <AppPressable onPress={() => router.push(`/edit-availability-hours?id=${id}` as never)}>
+            <View className="flex-row items-center justify-between px-4 py-3.5">
+              <Text className="text-[17px] text-black">Weekly Schedule</Text>
+              <View className="flex-row items-center">
+                <Text className="mr-1 text-[17px] text-[#8E8E93]">
+                  {enabledDaysCount} {enabledDaysCount === 1 ? "day" : "days"}
+                </Text>
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+              </View>
+            </View>
 
-              return (
-                <View
-                  key={day}
-                  className={`mb-3 border-b border-[#E5E5EA] pb-3 ${
-                    dayIndex === DAYS.length - 1 ? "mb-0 border-b-0 pb-0" : ""
-                  }`}
-                >
-                  <View className="flex-row items-center">
-                    <View className="flex-1 flex-row items-center">
-                      <Switch
-                        value={isEnabled}
-                        onValueChange={() => toggleDay(dayIndex)}
-                        trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                        thumbColor="#fff"
-                        style={{
-                          transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
-                        }}
-                      />
-                      <Text
-                        className="ml-1 text-base font-medium text-[#333]"
-                        style={{ width: 40 }}
-                      >
-                        {DAY_ABBREVIATIONS[dayIndex]}
-                      </Text>
-                      {isEnabled && firstSlot ? (
-                        <View className="flex-row items-center gap-2">
-                          <AppPressable
-                            onPress={() =>
-                              setShowTimePicker({
-                                dayIndex,
-                                slotIndex: 0,
-                                type: "start",
-                              })
-                            }
-                            className="rounded-lg border border-[#E5E5EA] bg-white px-2 py-1"
-                            style={{ width: 85 }}
-                          >
-                            <Text className="text-center text-base text-[#333]">
-                              {formatTime12Hour(firstSlot.startTime)}
-                            </Text>
-                          </AppPressable>
-                          <Text className="text-base text-[#666]">-</Text>
-                          <AppPressable
-                            onPress={() =>
-                              setShowTimePicker({
-                                dayIndex,
-                                slotIndex: 0,
-                                type: "end",
-                              })
-                            }
-                            className="rounded-lg border border-[#E5E5EA] bg-white px-2 py-1"
-                            style={{ width: 85 }}
-                          >
-                            <Text className="text-center text-base text-[#333]">
-                              {formatTime12Hour(firstSlot.endTime)}
-                            </Text>
-                          </AppPressable>
-                        </View>
-                      ) : null}
-                    </View>
+            {/* Expanded Day List */}
+            <View className="border-t border-[#E5E5EA] px-4 py-2.5">
+              {DAYS.map((day, dayIndex) => {
+                const daySlots = availability[dayIndex] || [];
+                const isEnabled = daySlots.length > 0;
+
+                return (
+                  <View
+                    key={day}
+                    className={`flex-row items-center py-3 ${
+                      dayIndex > 0 ? "border-t border-[#E5E5EA]" : ""
+                    }`}
+                  >
+                    <View
+                      className={`mr-3 h-2.5 w-2.5 rounded-full ${
+                        isEnabled ? "bg-[#34C759]" : "bg-[#E5E5EA]"
+                      }`}
+                    />
+                    <Text
+                      className={`w-24 text-[15px] font-medium ${
+                        isEnabled ? "text-black" : "text-[#8E8E93]"
+                      }`}
+                    >
+                      {DAYS[dayIndex]}
+                    </Text>
+
                     {isEnabled ? (
-                      <AppPressable onPress={() => addTimeSlot(dayIndex)} className="p-1">
-                        <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
-                      </AppPressable>
-                    ) : null}
+                      <View className="flex-1 items-end">
+                        {daySlots.map((slot, slotIndex) => (
+                          <Text
+                            key={`${slotIndex}-${slot.startTime}`}
+                            className={`text-[15px] text-black ${slotIndex > 0 ? "mt-1" : ""}`}
+                          >
+                            {formatTime12Hour(slot.startTime)} - {formatTime12Hour(slot.endTime)}
+                          </Text>
+                        ))}
+                      </View>
+                    ) : (
+                      <Text className="flex-1 text-right text-[15px] text-[#8E8E93]">
+                        Unavailable
+                      </Text>
+                    )}
                   </View>
+                );
+              })}
+            </View>
+          </AppPressable>
+        </View>
 
-                  {isEnabled && daySlots.length > 1 ? (
-                    <View className="mt-2" style={{ marginLeft: 108 }}>
-                      {daySlots.slice(1).map((slot, slotIndex) => (
-                        <View
-                          key={`${slotIndex}-${slot.startTime}-${slot.endTime}`}
-                          className="mb-2 flex-row items-center gap-2"
-                        >
-                          <AppPressable
-                            onPress={() =>
-                              setShowTimePicker({
-                                dayIndex,
-                                slotIndex: slotIndex + 1,
-                                type: "start",
-                              })
-                            }
-                            className="rounded-lg border border-[#E5E5EA] bg-white px-2 py-1"
-                            style={{ width: 85 }}
-                          >
-                            <Text className="text-center text-base text-[#333]">
-                              {formatTime12Hour(slot.startTime)}
-                            </Text>
-                          </AppPressable>
-                          <Text className="text-base text-[#666]">-</Text>
-                          <AppPressable
-                            onPress={() =>
-                              setShowTimePicker({
-                                dayIndex,
-                                slotIndex: slotIndex + 1,
-                                type: "end",
-                              })
-                            }
-                            className="rounded-lg border border-[#E5E5EA] bg-white px-2 py-1"
-                            style={{ width: 85 }}
-                          >
-                            <Text className="text-center text-base text-[#333]">
-                              {formatTime12Hour(slot.endTime)}
-                            </Text>
-                          </AppPressable>
-                          <AppPressable
-                            onPress={() => removeTimeSlot(dayIndex, slotIndex + 1)}
-                            className="p-1"
-                          >
-                            <Ionicons name="trash-outline" size={20} color="#800020" />
-                          </AppPressable>
-                        </View>
-                      ))}
-                    </View>
-                  ) : null}
-                </View>
-              );
-            })}
-          </View>
+        {/* Timezone Card - Navigable */}
+        <View className="mb-4 overflow-hidden rounded-xl bg-white">
+          <AppPressable onPress={() => router.push(`/edit-availability-name?id=${id}` as never)}>
+            <View className="flex-row items-center justify-between px-4 py-3.5">
+              <Text className="text-[17px] text-black">Timezone</Text>
+              <View className="flex-row items-center">
+                <Text className="mr-1 text-[17px] text-[#8E8E93]">{timeZone}</Text>
+                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+              </View>
+            </View>
+          </AppPressable>
+        </View>
 
-          {/* Timezone */}
-          <View className="rounded-2xl bg-white p-6">
-            <Text className="mb-3 text-xl font-bold text-[#333]">Timezone</Text>
+        {/* Date Overrides Card - Navigable */}
+        {overrides.length > 0 && (
+          <View className="mb-4 overflow-hidden rounded-xl bg-white">
             <AppPressable
-              onPress={() => setShowTimezoneModal(true)}
-              className="flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
+              onPress={() => router.push(`/edit-availability-override?id=${id}` as never)}
             >
-              <Text className="text-base text-[#333]">{timeZone}</Text>
-              <Ionicons name="chevron-down" size={20} color="#666" />
-            </AppPressable>
-          </View>
+              <View className="flex-row items-center justify-between px-4 py-3.5">
+                <Text className="text-[17px] text-black">Date Overrides</Text>
+                <View className="flex-row items-center">
+                  <Text className="mr-1 text-[17px] text-[#8E8E93]">
+                    {overrides.length} {overrides.length === 1 ? "override" : "overrides"}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+                </View>
+              </View>
 
-          {/* Date Overrides */}
-          <View className="rounded-2xl bg-white p-6">
-            <Text className="mb-2 text-xl font-bold text-[#333]">Date overrides</Text>
-            <Text className="mb-4 text-base text-[#666]">
-              Add dates when your availability changes from your daily hours.
-            </Text>
-
-            {overrides.length > 0 ? (
-              <View className="mb-4">
+              {/* Expanded Overrides List */}
+              <View className="border-t border-[#E5E5EA] px-4 py-2.5">
                 {overrides.map((override, index) => (
                   <View
                     key={override.date}
-                    className="mb-2 flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] p-3"
+                    className={`py-2.5 ${index > 0 ? "border-t border-[#E5E5EA]" : ""}`}
                   >
-                    <View className="flex-1">
-                      <Text className="mb-1 text-base font-medium text-[#333]">
-                        {formatDateForDisplay(override.date)}
+                    <Text className="mb-0.5 text-[17px] text-black">
+                      {formatDateForDisplay(override.date)}
+                    </Text>
+                    {override.startTime === "00:00" && override.endTime === "00:00" ? (
+                      <Text className="text-[15px] text-[#FF3B30]">Unavailable</Text>
+                    ) : (
+                      <Text className="text-[15px] text-[#8E8E93]">
+                        {formatTime12Hour(`${override.startTime}:00`)} -{" "}
+                        {formatTime12Hour(`${override.endTime}:00`)}
                       </Text>
-                      {override.startTime === "00:00" && override.endTime === "00:00" ? (
-                        <Text className="text-sm text-[#666]">Unavailable (All day)</Text>
-                      ) : (
-                        <Text className="text-sm text-[#666]">
-                          {formatTime12Hour(`${override.startTime}:00`)} -{" "}
-                          {formatTime12Hour(`${override.endTime}:00`)}
-                        </Text>
-                      )}
-                    </View>
-                    <View className="flex-row items-center gap-2">
-                      <AppPressable onPress={() => handleEditOverride(index)} className="p-2">
-                        <Ionicons name="pencil-outline" size={20} color="#007AFF" />
-                      </AppPressable>
-                      <AppPressable onPress={() => handleDeleteOverride(index)} className="p-2">
-                        <Ionicons name="trash-outline" size={20} color="#800020" />
-                      </AppPressable>
-                    </View>
+                    )}
                   </View>
                 ))}
               </View>
-            ) : null}
-
-            <AppPressable
-              onPress={handleAddOverride}
-              className="flex-row items-center justify-center rounded-lg border border-dashed border-[#E5E5EA] py-3"
-            >
-              <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
-              <Text className="ml-2 text-base font-medium text-[#007AFF]">Add an override</Text>
             </AppPressable>
           </View>
-        </View>
+        )}
+
+        {/* No Overrides Message */}
+        {overrides.length === 0 && (
+          <View className="mb-4 overflow-hidden rounded-xl bg-white">
+            <View className="px-4 py-3.5">
+              <Text className="text-[17px] text-black">Date Overrides</Text>
+              <Text className="mt-1 text-[15px] text-[#8E8E93]">No date overrides set</Text>
+            </View>
+          </View>
+        )}
       </ScrollView>
-
-      {/* Bottom Action Bar */}
-      <GlassView
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          paddingTop: 16,
-          paddingHorizontal: 20,
-          backgroundColor: "#f8f9fa",
-          borderTopWidth: 0.5,
-          borderTopColor: "#E5E5EA",
-          paddingBottom: insets.bottom + 12,
-        }}
-        glassEffectStyle="clear"
-      >
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center gap-2">
-            <Text className="text-base font-medium text-[#333]">Set as Default</Text>
-            <Switch
-              value={isDefault}
-              onValueChange={handleSetAsDefault}
-              disabled={isDefault}
-              trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-
-          <View className="flex-row items-center gap-3">
-            <GlassView
-              className="overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]"
-              glassEffectStyle="clear"
-            >
-              <AppPressable
-                className="h-11 w-11 items-center justify-center"
-                onPress={handleDelete}
-              >
-                <Ionicons name="trash-outline" size={20} color="#800020" />
-              </AppPressable>
-            </GlassView>
-          </View>
-        </View>
-      </GlassView>
-
-      {/* Timezone Modal */}
-      <FullScreenModal
-        visible={showTimezoneModal}
-        animationType="fade"
-        onRequestClose={() => setShowTimezoneModal(false)}
-      >
-        <AppPressable
-          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
-          activeOpacity={1}
-          onPress={() => setShowTimezoneModal(false)}
-        >
-          <AppPressable
-            className="max-h-[80%] w-[90%] max-w-[500px] rounded-2xl bg-white p-4"
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <View className="mb-4 flex-row items-center justify-between">
-              <Text className="text-xl font-bold text-[#333]">Select Timezone</Text>
-              <AppPressable onPress={() => setShowTimezoneModal(false)}>
-                <Ionicons name="close" size={24} color="#666" />
-              </AppPressable>
-            </View>
-            <ScrollView>
-              {timezones.map((tz) => (
-                <AppPressable
-                  key={tz}
-                  onPress={() => {
-                    setTimeZone(tz);
-                    setShowTimezoneModal(false);
-                  }}
-                  className="border-b border-[#E5E5EA] py-3"
-                >
-                  <Text className="text-base text-[#333]">{tz}</Text>
-                </AppPressable>
-              ))}
-            </ScrollView>
-          </AppPressable>
-        </AppPressable>
-      </FullScreenModal>
-
-      {/* Time Picker Modal */}
-      <FullScreenModal
-        visible={!!showTimePicker}
-        animationType="fade"
-        onRequestClose={() => setShowTimePicker(null)}
-      >
-        <AppPressable
-          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
-          activeOpacity={1}
-          onPress={() => setShowTimePicker(null)}
-        >
-          <AppPressable
-            className="max-h-[80%] w-[90%] max-w-[500px] rounded-2xl bg-white p-4"
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <View className="mb-4 flex-row items-center justify-between">
-              <Text className="text-xl font-bold text-[#333]">
-                Select {showTimePicker?.type === "start" ? "Start" : "End"} Time
-              </Text>
-              <AppPressable onPress={() => setShowTimePicker(null)}>
-                <Ionicons name="close" size={24} color="#666" />
-              </AppPressable>
-            </View>
-            <ScrollView>
-              {TIME_OPTIONS.map((time) => {
-                const currentTime =
-                  showTimePicker?.type === "start"
-                    ? availability[showTimePicker.dayIndex]?.[
-                        showTimePicker.slotIndex
-                      ]?.startTime.substring(0, 5)
-                    : availability[showTimePicker?.dayIndex || 0]?.[
-                        showTimePicker?.slotIndex || 0
-                      ]?.endTime.substring(0, 5);
-                const isSelected = currentTime === time;
-
-                return (
-                  <AppPressable
-                    key={time}
-                    onPress={() => {
-                      if (showTimePicker) {
-                        updateTimeSlot(
-                          showTimePicker.dayIndex,
-                          showTimePicker.slotIndex,
-                          showTimePicker.type,
-                          time
-                        );
-                        setShowTimePicker(null);
-                      }
-                    }}
-                    className={`border-b border-[#E5E5EA] py-3 ${isSelected ? "bg-[#E3F2FD]" : ""}`}
-                  >
-                    <Text
-                      className={`text-base ${
-                        isSelected ? "font-semibold text-[#007AFF]" : "text-[#333]"
-                      }`}
-                    >
-                      {time}
-                    </Text>
-                  </AppPressable>
-                );
-              })}
-            </ScrollView>
-          </AppPressable>
-        </AppPressable>
-      </FullScreenModal>
-
-      {/* Override Modal */}
-      <FullScreenModal
-        visible={showOverrideModal}
-        animationType="fade"
-        onRequestClose={() => setShowOverrideModal(false)}
-      >
-        <AppPressable
-          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
-          activeOpacity={1}
-          onPress={() => setShowOverrideModal(false)}
-        >
-          <AppPressable
-            className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white p-6"
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <View className="mb-4 flex-row items-center justify-between">
-              <Text className="text-xl font-bold text-[#333]">
-                {editingOverride !== null ? "Edit Override" : "Add Override"}
-              </Text>
-              <AppPressable onPress={() => setShowOverrideModal(false)}>
-                <Ionicons name="close" size={24} color="#666" />
-              </AppPressable>
-            </View>
-
-            <ScrollView>
-              <View className="gap-4">
-                {/* Date Picker */}
-                <View>
-                  <Text className="mb-2 text-base font-semibold text-[#333]">
-                    Select the dates to override
-                  </Text>
-                  <TextInput
-                    value={overrideDate}
-                    onChangeText={setOverrideDate}
-                    placeholder="YYYY-MM-DD (e.g., 2024-05-20)"
-                    placeholderTextColor="#999"
-                    className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-[#333]"
-                  />
-                  <Text className="mt-1 text-sm text-[#666]">Enter date in YYYY-MM-DD format</Text>
-                </View>
-
-                {/* Unavailable Toggle */}
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-base font-semibold text-[#333]">
-                    Mark unavailable (All day)
-                  </Text>
-                  <Switch
-                    value={isUnavailable}
-                    onValueChange={setIsUnavailable}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-
-                {/* Time Picker (only if not unavailable) */}
-                {!isUnavailable ? (
-                  <View>
-                    <Text className="mb-3 text-base font-semibold text-[#333]">
-                      Which hours are you free?
-                    </Text>
-                    <View className="flex-row items-center gap-2">
-                      <AppPressable
-                        onPress={() => setShowOverrideTimePicker({ type: "start" })}
-                        className="flex-1 rounded-lg border border-[#E5E5EA] bg-white px-3 py-3"
-                      >
-                        <Text className="text-center text-base text-[#333]">
-                          {formatTime12Hour(`${overrideStartTime}:00`)}
-                        </Text>
-                      </AppPressable>
-                      <Text className="text-base text-[#666]">-</Text>
-                      <AppPressable
-                        onPress={() => setShowOverrideTimePicker({ type: "end" })}
-                        className="flex-1 rounded-lg border border-[#E5E5EA] bg-white px-3 py-3"
-                      >
-                        <Text className="text-center text-base text-[#333]">
-                          {formatTime12Hour(`${overrideEndTime}:00`)}
-                        </Text>
-                      </AppPressable>
-                    </View>
-                  </View>
-                ) : null}
-
-                {/* Save Button */}
-                <AppPressable
-                  onPress={handleSaveOverride}
-                  className="mt-4 rounded-lg bg-black py-3"
-                >
-                  <Text className="text-center text-base font-semibold text-white">
-                    Save Override
-                  </Text>
-                </AppPressable>
-              </View>
-            </ScrollView>
-          </AppPressable>
-        </AppPressable>
-      </FullScreenModal>
-
-      {/* Override Time Picker Modal */}
-      <FullScreenModal
-        visible={!!showOverrideTimePicker}
-        animationType="fade"
-        onRequestClose={() => setShowOverrideTimePicker(null)}
-      >
-        <AppPressable
-          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
-          activeOpacity={1}
-          onPress={() => setShowOverrideTimePicker(null)}
-        >
-          <AppPressable
-            className="max-h-[60%] w-[90%] max-w-[500px] rounded-2xl bg-white p-6"
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <View className="mb-4 flex-row items-center justify-between">
-              <Text className="text-xl font-bold text-[#333]">
-                Select {showOverrideTimePicker?.type === "start" ? "Start" : "End"} Time
-              </Text>
-              <AppPressable onPress={() => setShowOverrideTimePicker(null)}>
-                <Ionicons name="close" size={24} color="#666" />
-              </AppPressable>
-            </View>
-            <ScrollView>
-              {TIME_OPTIONS.map((time) => {
-                const currentTime =
-                  showOverrideTimePicker?.type === "start" ? overrideStartTime : overrideEndTime;
-                const isSelected = currentTime === time;
-                return (
-                  <AppPressable
-                    key={time}
-                    onPress={() => {
-                      if (showOverrideTimePicker?.type === "start") {
-                        setOverrideStartTime(time);
-                      } else {
-                        setOverrideEndTime(time);
-                      }
-                      setShowOverrideTimePicker(null);
-                    }}
-                    className={`border-b border-[#E5E5EA] py-3 ${isSelected ? "bg-[#F0F9FF]" : ""}`}
-                  >
-                    <Text
-                      className={`text-base ${
-                        isSelected ? "font-semibold text-[#007AFF]" : "text-[#333]"
-                      }`}
-                    >
-                      {formatTime12Hour(`${time}:00`)}
-                    </Text>
-                  </AppPressable>
-                );
-              })}
-            </ScrollView>
-          </AppPressable>
-        </AppPressable>
-      </FullScreenModal>
     </View>
   );
 });

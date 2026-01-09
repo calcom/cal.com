@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Reserva redirigida correctament. Redirigint a la pàgina de reserva",
   "on_booking_write_to_event_object": "En reservar, escriu a l'objecte esdeveniment",
   "field_name": "Nom del camp",
+  "field_name_cannot_be_empty": "El nom del camp no pot estar buit",
+  "field_already_exists": "El camp ja existeix",
   "add_new_field": "Afegeix un nou camp",
   "you_dont_have_access_to_reroute_this_booking": "No tens accés per redirigir aquesta reserva",
   "form_response_not_found": "No s'ha trobat la resposta del formulari",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "El propietari de la reserva no és membre de la teva organització.",
   "audit_logs_permission_denied": "No tens permís per veure els registres d'auditoria d'aquesta reserva.",
   "audit_logs_permission_check_error": "S'ha produït un error en comprovar els permisos.",
+  "account_already_exists_please_login": "Ja existeix un compte amb aquest correu electrònic. Si us plau, inicia sessió per acceptar la invitació.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

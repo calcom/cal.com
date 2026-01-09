@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Bookingen ble omdirigert. Omdirigerer til bookingsiden",
   "on_booking_write_to_event_object": "Ved booking, skriv til hendelsesobjektet",
   "field_name": "Feltnavn",
+  "field_name_cannot_be_empty": "Feltnavn kan ikke være tomt",
+  "field_already_exists": "Feltet finnes allerede",
   "add_new_field": "Legg til nytt felt",
   "you_dont_have_access_to_reroute_this_booking": "Du har ikke tilgang til å omdirigere denne bookingen",
   "form_response_not_found": "Skjemasvar ikke funnet",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Eieren av bookingen er ikke medlem av organisasjonen din.",
   "audit_logs_permission_denied": "Du har ikke tillatelse til å se revisjonslogger for denne bookingen.",
   "audit_logs_permission_check_error": "Det oppstod en feil under kontroll av tillatelser.",
+  "account_already_exists_please_login": "En konto med denne e-postadressen finnes allerede. Vennligst logg inn for å akseptere invitasjonen.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -33,6 +33,7 @@
     "zod": "^3.0.0"
   },
   "devDependencies": {
+    "@calcom/testing": "workspace:*",
     "@calcom/types": "workspace:*"
   }
 }

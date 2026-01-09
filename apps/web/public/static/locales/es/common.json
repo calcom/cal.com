@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Reserva redirigida con éxito. Redirigiendo a la página de reserva",
   "on_booking_write_to_event_object": "Al reservar, escribir en el objeto del evento",
   "field_name": "Nombre del campo",
+  "field_name_cannot_be_empty": "El nombre del campo no puede estar vacío",
+  "field_already_exists": "El campo ya existe",
   "add_new_field": "Añadir nuevo campo",
   "you_dont_have_access_to_reroute_this_booking": "No tienes acceso para redirigir esta reserva",
   "form_response_not_found": "Respuesta del formulario no encontrada",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "El propietario de la reserva no es miembro de tu organización.",
   "audit_logs_permission_denied": "No tienes permiso para ver los registros de auditoría de esta reserva.",
   "audit_logs_permission_check_error": "Ocurrió un error al verificar los permisos.",
+  "account_already_exists_please_login": "Ya existe una cuenta con este correo electrónico. Por favor, inicia sesión para aceptar la invitación.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
