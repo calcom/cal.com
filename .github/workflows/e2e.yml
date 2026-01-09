@@ -42,31 +42,10 @@ env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 jobs:
-  build:
-    timeout-minutes: 15
-    name: Build
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/yarn-install
-      - run: yarn prisma generate
-      - uses: ./.github/actions/cache-build
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            apps/web/.next
-            apps/web/public/embed
-            .turbo
-            **/dist
-          retention-days: 1
   e2e:
     timeout-minutes: 20
     name: E2E (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    needs: build
     services:
       postgres:
         image: postgres:13
@@ -108,37 +87,9 @@ jobs:
       - uses: ./.github/actions/yarn-playwright-install
       - run: yarn prisma generate
       - uses: ./.github/actions/cache-db
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: .
-      - name: Start server in background
-        run: |
-          yarn workspace @calcom/web copy-app-store-static
-          NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first' yarn workspace @calcom/web start -p 3000 &
-          echo $! > /tmp/web-server.pid
-          # Wait for server to be ready
-          timeout 120 bash -c 'until curl -f http://localhost:3000 > /dev/null 2>&1; do sleep 1; done' || exit 1
-        env:
-          DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
-          DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.CI_NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: ${{ secrets.CI_NEXTAUTH_URL }}
-          NEXT_PUBLIC_IS_E2E: ${{ vars.CI_NEXT_PUBLIC_IS_E2E }}
-          NEXT_PUBLIC_WEBAPP_URL: ${{ vars.CI_NEXT_PUBLIC_WEBAPP_URL }}
-          NEXT_PUBLIC_WEBSITE_URL: ${{ vars.CI_NEXT_PUBLIC_WEBSITE_URL }}
-          NEXT_PUBLIC_API_V2_URL: ${{ secrets.CI_NEXT_PUBLIC_API_V2_URL }}
-          NEXT_PUBLIC_API_V2_ROOT_URL: ${{ secrets.CI_NEXT_PUBLIC_API_V2_ROOT_URL }}
-          CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
+      - uses: ./.github/actions/cache-build
       - name: Run Tests
         run: yarn e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }} --workers=4
-      - name: Stop server
-        if: always()
-        run: |
-          if [ -f /tmp/web-server.pid ]; then
-            kill $(cat /tmp/web-server.pid) || true
-          fi
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: always()

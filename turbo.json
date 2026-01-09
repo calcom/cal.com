@@ -371,7 +371,7 @@
     },
     "@calcom/web#start": {
       "cache": false,
-      "dependsOn": []
+      "dependsOn": ["@calcom/web#build"]
     },
     "@calcom/atoms#build-npm": {
       "outputs": ["dist/**", "globals.min.css"]

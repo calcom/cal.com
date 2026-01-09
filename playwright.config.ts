@@ -33,9 +33,7 @@ const webServer: PlaywrightTestConfig["webServer"] = [
       "yarn workspace @calcom/web copy-app-store-static && NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first' yarn workspace @calcom/web start -p 3000",
     port: 3000,
     timeout: 60_000,
-    // In CI, server is started in background before tests run, so reuse it
-    // In local, also reuse to avoid multiple server instances
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     stdout: "ignore",
     stderr: "ignore",
   },
@@ -48,7 +46,7 @@ if (IS_EMBED_TEST) {
     command: "yarn workspace @calcom/embed-core dev",
     port: 3100,
     timeout: 60_000,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     stdout: "ignore",
     stderr: "ignore",
   });
@@ -61,7 +59,7 @@ if (IS_EMBED_REACT_TEST) {
     command: "yarn workspace @calcom/embed-react dev",
     port: 3101,
     timeout: 60_000,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     stdout: "ignore",
     stderr: "ignore",
   });

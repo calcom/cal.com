@@ -15,6 +15,7 @@ runs:
         path: |
           ${{ github.workspace }}/apps/web/.next
           ${{ github.workspace }}/apps/web/public/embed
+          ${{ github.workspace }}/apps/web/public/app-store
           **/.turbo/**
           **/dist/**
         key: ${{ steps.cache-key.outputs.key }}
