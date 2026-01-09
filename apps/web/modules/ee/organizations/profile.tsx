@@ -111,6 +111,13 @@ const OrgProfileView = ({
     [error, router]
   );
 
+  // Scroll to top when page loads
+  useEffect(() => {
+    if (!isPending && orgBranding && currentOrganisation) {
+      window.scrollTo(0, 0);
+    }
+  }, [isPending, orgBranding, currentOrganisation]);
+
   if (isPending || !orgBranding || !currentOrganisation) {
     return <SkeletonLoader />;
   }
