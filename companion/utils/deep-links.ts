@@ -7,6 +7,7 @@
  */
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
+import { Alert } from "react-native";
 import { showErrorAlert } from "@/utils/alerts";
 
 // Default Cal.com web URL - can be overridden for self-hosted instances

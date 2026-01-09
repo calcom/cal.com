@@ -2,6 +2,7 @@ import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
+  Alert,
   Modal,
   Platform,
   ScrollView,
@@ -466,7 +467,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 "Private Links"
               );
             } else {
-              Alert.alert("Info", "Save the event type first to manage private links.");
+              showInfoAlert("Info", "Save the event type first to manage private links.");
             }
           }}
         >
