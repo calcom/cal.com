@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "បានបញ្ជូនការកក់ដោយជោគជ័យ។ កំពុងបញ្ជូនបន្តទៅទំព័រកក់",
   "on_booking_write_to_event_object": "នៅពេលកក់ សរសេរទៅក្នុងវត្ថុព្រឹត្តិការណ៍",
   "field_name": "ឈ្មោះវាល",
+  "field_name_cannot_be_empty": "ឈ្មោះវាលមិនអាចទទេបានទេ",
+  "field_already_exists": "វាលមានរួចហើយ",
   "add_new_field": "បន្ថែមវាលថ្មី",
   "you_dont_have_access_to_reroute_this_booking": "អ្នកមិនមានសិទ្ធិប្តូរទិសការកក់នេះទេ",
   "form_response_not_found": "រកមិនឃើញការឆ្លើយតបទម្រង់",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "ម្ចាស់ការកក់មិនមែនជាសមាជិកនៃអង្គការរបស់អ្នកទេ។",
   "audit_logs_permission_denied": "អ្នកមិនមានសិទ្ធិមើលកំណត់ហេតុសវនកម្មសម្រាប់ការកក់នេះទេ។",
   "audit_logs_permission_check_error": "មានកំហុសកើតឡើងពេលកំពុងពិនិត្យសិទ្ធិ។",
+  "account_already_exists_please_login": "គណនីដែលមានអ៊ីមែលនេះមានរួចហើយ។ សូមចូលដើម្បីទទួលយកការអញ្ជើញ។",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
