@@ -1,17 +1,22 @@
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import { getTeamWithoutMembers } from "@calcom/features/ee/teams/lib/queries";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 
 import type { TrpcSessionUser } from "../../../types";
 import getTeam from "./get.handler";
 
-const mockFindUniqueByUserIdAndTeamId = vi.fn();
+const { mockFindUniqueByUserIdAndTeamId, MockMembershipRepository } = vi.hoisted(() => {
+  const mockFindUniqueByUserIdAndTeamId = vi.fn();
+
+  class MockMembershipRepository {
+    findUniqueByUserIdAndTeamId = mockFindUniqueByUserIdAndTeamId;
+  }
+
+  return { mockFindUniqueByUserIdAndTeamId, MockMembershipRepository };
+});
 
 vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: vi.fn().mockImplementation(() => ({
-    findUniqueByUserIdAndTeamId: mockFindUniqueByUserIdAndTeamId,
-  })),
+  MembershipRepository: MockMembershipRepository,
 }));
 
 vi.mock("@calcom/features/ee/teams/lib/queries", () => ({

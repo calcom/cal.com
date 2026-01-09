@@ -1,17 +1,23 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { Payment } from "@calcom/prisma/client";
 
 import { handleNoShowFee } from "./handleNoShowFee";
 import { processNoShowFeeOnCancellation } from "./processNoShowFeeOnCancellation";
 import { shouldChargeNoShowCancellationFee } from "./shouldChargeNoShowCancellationFee";
 
-const mockFindUniqueByUserIdAndTeamId = vi.fn();
+const { mockFindUniqueByUserIdAndTeamId, MockMembershipRepository } = vi.hoisted(() => {
+  const mockFindUniqueByUserIdAndTeamId = vi.fn();
+
+  class MockMembershipRepository {
+    findUniqueByUserIdAndTeamId = mockFindUniqueByUserIdAndTeamId;
+  }
+
+  return { mockFindUniqueByUserIdAndTeamId, MockMembershipRepository };
+});
+
 vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: vi.fn().mockImplementation(() => ({
-    findUniqueByUserIdAndTeamId: mockFindUniqueByUserIdAndTeamId,
-  })),
+  MembershipRepository: MockMembershipRepository,
 }));
 
 vi.mock("./handleNoShowFee", () => ({

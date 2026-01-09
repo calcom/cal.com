@@ -4,7 +4,6 @@ import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated"
 import { sendNoShowFeeChargedEmail } from "@calcom/emails/billing-email-service";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -14,9 +13,11 @@ import { handleNoShowFee } from "./handleNoShowFee";
 vi.mock("@calcom/app-store/payment.services.generated", () => ({
   PaymentServiceMap: {
     stripepayment: Promise.resolve({
-      PaymentService: vi.fn().mockImplementation(function() { return {
-        chargeCard: vi.fn(),
-      }; }),
+      PaymentService: vi.fn().mockImplementation(function () {
+        return {
+          chargeCard: vi.fn(),
+        };
+      }),
     }),
   },
 }));
@@ -36,11 +37,18 @@ vi.mock("@calcom/features/credentials/repositories/CredentialRepository", () => 
   },
 }));
 
-const mockFindUniqueByUserIdAndTeamId = vi.fn();
+const { mockFindUniqueByUserIdAndTeamId, MockMembershipRepository } = vi.hoisted(() => {
+  const mockFindUniqueByUserIdAndTeamId = vi.fn();
+
+  class MockMembershipRepository {
+    findUniqueByUserIdAndTeamId = mockFindUniqueByUserIdAndTeamId;
+  }
+
+  return { mockFindUniqueByUserIdAndTeamId, MockMembershipRepository };
+});
+
 vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: vi.fn().mockImplementation(() => ({
-    findUniqueByUserIdAndTeamId: mockFindUniqueByUserIdAndTeamId,
-  })),
+  MembershipRepository: MockMembershipRepository,
 }));
 
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
