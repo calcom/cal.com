@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { dub } from "@calcom/features/auth/lib/dub";
+import { urlShortener } from "@calcom/lib/urlShortener";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -9,32 +9,6 @@ import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import type { AttendeeInBookingInfo, BookingInfo } from "../types";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate, { transformBookingResponsesToVariableFormat } from "./templates/customTemplate";
-
-export const bulkShortenLinks = async (links: string[]) => {
-  if (!process.env.DUB_API_KEY) {
-    return links.map((link) => ({ shortLink: link }));
-  }
-
-  const linksToShorten = links.filter((link) => link);
-  const results = await dub.links.createMany(
-    linksToShorten.map((link) => ({
-      domain: "sms.cal.com",
-      url: link,
-      folderId: "fold_wx3NZDKQYbLDbncSubeMu0ss",
-    }))
-  );
-  return links.map((link) => {
-    const createdLink = results.find(
-      (result): result is Extract<typeof result, { url: string }> =>
-        !("error" in result) && result.url === link
-    );
-    if (createdLink) {
-      return { shortLink: createdLink.shortLink };
-    } else {
-      return { shortLink: link };
-    }
-  });
-};
 
 export const getSMSMessageWithVariables = async (
   smsMessage: string,
@@ -57,7 +31,9 @@ export const getSMSMessageWithVariables = async (
   };
 
   const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
-    await bulkShortenLinks([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink]);
+    await urlShortener.shortenMany([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink], {
+      folderId: "fold_wx3NZDKQYbLDbncSubeMu0ss",
+    });
 
   const timeZone =
     action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSMS.timeZone : evt.organizer.timeZone;

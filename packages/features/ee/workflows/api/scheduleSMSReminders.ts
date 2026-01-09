@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
+import { urlShortener } from "@calcom/lib/urlShortener";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -137,7 +137,9 @@ export async function handler(req: NextRequest) {
         };
 
         const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
-          await bulkShortenLinks([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink]);
+          await urlShortener.shortenMany([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink], {
+            folderId: "fold_wx3NZDKQYbLDbncSubeMu0ss",
+          });
 
         const variables: VariablesType = {
           eventName: reminder.booking?.eventType?.title,
