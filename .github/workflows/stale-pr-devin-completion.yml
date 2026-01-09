@@ -20,35 +20,41 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const prAuthor = context.payload.pull_request.user.login;
-            
-            // Skip bot accounts
-            if (prAuthor.endsWith('[bot]')) {
-              console.log(`Skipping: ${prAuthor} is a bot`);
+            const trustedAssociations = ['OWNER', 'MEMBER', 'COLLABORATOR'];
+            const pr = context.payload.pull_request;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            async function hasWriteAccess(username) {
+              try {
+                const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner,
+                  repo,
+                  username,
+                });
+                return ['admin', 'maintain', 'write'].includes(permission.permission);
+              } catch (e) {
+                console.log(`Permission check failed for ${username}: ${e.message}`);
+                return false;
+              }
+            }
+
+            console.log(`PR #${pr.number} by ${pr.user.login} (${pr.author_association})`);
+
+            if (trustedAssociations.includes(pr.author_association)) {
+              console.log(`Skipping: Author has trusted association: ${pr.author_association}`);
               core.setOutput('is-community', 'false');
               return;
             }
-            
-            // Check if author is a member of the calcom organization
-            try {
-              await github.rest.orgs.checkMembershipForUser({
-                org: 'calcom',
-                username: prAuthor
-              });
-              // If we get here, user is a member - skip
-              console.log(`Skipping: ${prAuthor} is a calcom org member`);
+
+            if (await hasWriteAccess(pr.user.login)) {
+              console.log(`Skipping: Author has write access`);
               core.setOutput('is-community', 'false');
-            } catch (error) {
-              if (error.status === 404) {
-                // User is not a member - this is a community PR
-                console.log(`Processing: ${prAuthor} is a community contributor`);
-                core.setOutput('is-community', 'true');
-              } else {
-                // Some other error - log and skip to be safe
-                console.log(`Error checking membership for ${prAuthor}: ${error.message}`);
-                core.setOutput('is-community', 'false');
-              }
+              return;
             }
+
+            console.log(`Processing: ${pr.user.login} is a community contributor`);
+            core.setOutput('is-community', 'true');
 
       - name: Get PR details
         if: steps.check-community.outputs.is-community == 'true'
