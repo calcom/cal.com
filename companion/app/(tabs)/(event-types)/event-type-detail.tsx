@@ -163,6 +163,7 @@ export default function EventTypeDetail() {
   const [showScheduleDropdown, setShowScheduleDropdown] = useState(false);
   const [schedulesLoading, setSchedulesLoading] = useState(false);
   const [scheduleDetailsLoading, setScheduleDetailsLoading] = useState(false);
+  const [initialScheduleId, setInitialScheduleId] = useState<number | null>(null);
   const [isHidden, setIsHidden] = useState(false);
   const [selectedTimezone, setSelectedTimezone] = useState("");
   const [showTimezoneDropdown, setShowTimezoneDropdown] = useState(false);
@@ -400,18 +401,31 @@ export default function EventTypeDetail() {
       const schedulesData = await CalComAPIService.getSchedules();
       setSchedules(schedulesData);
 
-      // Set default schedule if one exists
-      const defaultSchedule = schedulesData.find((schedule) => schedule.isDefault);
-      if (defaultSchedule) {
-        setSelectedSchedule(defaultSchedule);
-        await fetchScheduleDetails(defaultSchedule.id);
+      // Only auto-select a schedule if none is currently selected
+      // This prevents overwriting the schedule loaded from the event type
+      if (!selectedSchedule) {
+        // Use the event type's schedule if we have it, otherwise use default
+        let scheduleToSelect: Schedule | undefined;
+
+        if (initialScheduleId) {
+          scheduleToSelect = schedulesData.find((schedule) => schedule.id === initialScheduleId);
+        }
+
+        if (!scheduleToSelect) {
+          scheduleToSelect = schedulesData.find((schedule) => schedule.isDefault);
+        }
+
+        if (scheduleToSelect) {
+          setSelectedSchedule(scheduleToSelect);
+          await fetchScheduleDetails(scheduleToSelect.id);
+        }
       }
       setSchedulesLoading(false);
     } catch (error) {
       safeLogError("Failed to fetch schedules:", error);
       setSchedulesLoading(false);
     }
-  }, [fetchScheduleDetails]);
+  }, [fetchScheduleDetails, selectedSchedule, initialScheduleId]);
 
   const fetchConferencingOptions = useCallback(async () => {
     setConferencingLoading(true);
@@ -434,6 +448,11 @@ export default function EventTypeDetail() {
     if (eventType.description) setEventDescription(eventType.description);
     if (eventType.lengthInMinutes) setEventDuration(eventType.lengthInMinutes.toString());
     if (eventType.hidden !== undefined) setIsHidden(eventType.hidden);
+
+    // Load schedule ID - this will be used by fetchSchedules to select the correct schedule
+    if (eventType.scheduleId) {
+      setInitialScheduleId(eventType.scheduleId);
+    }
 
     const eventTypeExt = eventType as EventType & EventTypeExtended;
     const lengthOptions = eventTypeExt.lengthInMinutesOptions;
