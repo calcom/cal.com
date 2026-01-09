@@ -23,55 +23,72 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             
-            const searchQuery = `repo:${owner}/${repo} is:pr is:open draft:false`;
-            const { data: searchResults } = await github.rest.search.issuesAndPullRequests({
-              q: searchQuery,
-              per_page: 100
-            });
+            const query = `
+              query($owner: String!, $repo: String!, $cursor: String) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequests(states: OPEN, first: 100, after: $cursor) {
+                    pageInfo {
+                      hasNextPage
+                      endCursor
+                    }
+                    nodes {
+                      number
+                      title
+                      mergeable
+                      isDraft
+                      headRefName
+                      baseRefName
+                      url
+                      labels(first: 10) {
+                        nodes {
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `;
             
-            console.log(`Found ${searchResults.total_count} open non-draft PRs`);
+            const allPRs = [];
+            let cursor = null;
+            
+            do {
+              const result = await github.graphql(query, { owner, repo, cursor });
+              const { nodes, pageInfo } = result.repository.pullRequests;
+              allPRs.push(...nodes);
+              cursor = pageInfo.hasNextPage ? pageInfo.endCursor : null;
+            } while (cursor);
+            
+            console.log(`Found ${allPRs.length} open PRs via GraphQL`);
             
             const conflictingPRs = [];
             
-            for (const item of searchResults.items) {
-              const prNumber = item.number;
+            for (const pr of allPRs) {
+              if (pr.isDraft) {
+                console.log(`PR #${pr.number} is a draft, skipping`);
+                continue;
+              }
               
-              const { data: prDetails } = await github.rest.pulls.get({
-                owner,
-                repo,
-                pull_number: prNumber
-              });
+              const hasDevinLabel = pr.labels.nodes.some(label => label.name === 'devin-conflict-resolution');
+              if (hasDevinLabel) {
+                console.log(`PR #${pr.number} already has devin-conflict-resolution label, skipping`);
+                continue;
+              }
               
-              if (prDetails.mergeable === false && prDetails.mergeable_state === 'dirty') {
-                console.log(`PR #${prNumber} has conflicts (mergeable_state: ${prDetails.mergeable_state})`);
-                
-                const { data: comments } = await github.rest.issues.listComments({
-                  owner,
-                  repo,
-                  issue_number: prNumber,
-                  per_page: 100
+              if (pr.mergeable === 'CONFLICTING') {
+                console.log(`PR #${pr.number} has conflicts`);
+                conflictingPRs.push({
+                  number: pr.number,
+                  title: pr.title,
+                  head_ref: pr.headRefName,
+                  base_ref: pr.baseRefName,
+                  html_url: pr.url
                 });
-                
-                const hasExistingSession = comments.some(comment =>
-                  comment.user.login === 'github-actions[bot]' &&
-                  comment.body.includes('Devin AI is resolving merge conflicts')
-                );
-                
-                if (!hasExistingSession) {
-                  conflictingPRs.push({
-                    number: prNumber,
-                    title: prDetails.title,
-                    head_ref: prDetails.head.ref,
-                    base_ref: prDetails.base.ref,
-                    html_url: prDetails.html_url
-                  });
-                } else {
-                  console.log(`PR #${prNumber} already has a Devin session for conflict resolution`);
-                }
-              } else if (prDetails.mergeable === null) {
-                console.log(`PR #${prNumber} mergeable status is still being computed`);
+              } else if (pr.mergeable === 'UNKNOWN') {
+                console.log(`PR #${pr.number} mergeable status is still being computed`);
               } else {
-                console.log(`PR #${prNumber} has no conflicts (mergeable: ${prDetails.mergeable}, state: ${prDetails.mergeable_state})`);
+                console.log(`PR #${pr.number} has no conflicts (mergeable: ${pr.mergeable})`);
               }
             }
             
@@ -146,6 +163,13 @@ jobs:
                 
                 if (sessionUrl) {
                   console.log(`Devin session created for PR #${pr.number}: ${sessionUrl}`);
+                  
+                  await github.rest.issues.addLabels({
+                    owner,
+                    repo,
+                    issue_number: pr.number,
+                    labels: ['devin-conflict-resolution']
+                  });
                   
                   await github.rest.issues.createComment({
                     owner,
