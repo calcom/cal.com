@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "予約の再ルーティングに成功しました。予約ページにリダイレクトしています",
   "on_booking_write_to_event_object": "予約時にイベントオブジェクトに書き込む",
   "field_name": "フィールド名",
+  "field_name_cannot_be_empty": "フィールド名を入力してください",
+  "field_already_exists": "このフィールドは既に存在します",
   "add_new_field": "新しいフィールドを追加",
   "you_dont_have_access_to_reroute_this_booking": "この予約を変更する権限がありません",
   "form_response_not_found": "フォームの回答が見つかりません",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "予約のオーナーはあなたの組織のメンバーではありません。",
   "audit_logs_permission_denied": "この予約の監査ログを表示する権限がありません。",
   "audit_logs_permission_check_error": "権限の確認中にエラーが発生しました。",
+  "account_already_exists_please_login": "このメールアドレスのアカウントは既に存在します。招待を承認するにはログインしてください。",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
