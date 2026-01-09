@@ -51,7 +51,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!tokenResponse.ok) {
-    console.error("Lever token exchange failed:", tokenResponse.status);
+    const errorBody = await tokenResponse.json().catch(() => ({}));
+    const errorCode = errorBody.error || "unknown";
+    console.error("Lever token exchange failed:", tokenResponse.status, errorCode);
     return res.status(500).json({ message: "Failed to complete Lever connection" });
   }
 

@@ -28,7 +28,7 @@ interface LeverNote {
 }
 
 function formatNoteBody(event: CalendarEvent): string {
-  const tz = event.attendees?.[0]?.timeZone || "UTC";
+  let tz = event.attendees?.[0]?.timeZone || "UTC";
   const loc = getLocation(event) || "Not specified";
   let startTime: string;
   let endTime: string;
@@ -37,6 +37,7 @@ function formatNoteBody(event: CalendarEvent): string {
     endTime = new Date(event.endTime).toLocaleString("en-US", { timeZone: tz });
   } catch {
     // Invalid timezone, fall back to UTC
+    tz = "UTC";
     startTime = new Date(event.startTime).toLocaleString("en-US", { timeZone: "UTC" });
     endTime = new Date(event.endTime).toLocaleString("en-US", { timeZone: "UTC" });
   }
@@ -113,7 +114,7 @@ export default class LeverCrmService implements CRM {
     return {
       getToken: async () => {
         if (!isTokenValid(currentToken)) {
-          if (!currentToken.refresh_token) {
+          if (!currentToken?.refresh_token) {
             throw new HttpError({ statusCode: 401, message: "Lever refresh token missing. Please reconnect." });
           }
           await refreshAccessToken(currentToken.refresh_token);
