@@ -33,7 +33,9 @@ const webServer: PlaywrightTestConfig["webServer"] = [
       "yarn workspace @calcom/web copy-app-store-static && NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first' yarn workspace @calcom/web start -p 3000",
     port: 3000,
     timeout: 60_000,
-    reuseExistingServer: !process.env.CI,
+    // In CI, server is started in background before tests run, so reuse it
+    // In local, also reuse to avoid multiple server instances
+    reuseExistingServer: true,
     stdout: "ignore",
     stderr: "ignore",
   },
@@ -46,7 +48,7 @@ if (IS_EMBED_TEST) {
     command: "yarn workspace @calcom/embed-core dev",
     port: 3100,
     timeout: 60_000,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     stdout: "ignore",
     stderr: "ignore",
   });
@@ -59,7 +61,7 @@ if (IS_EMBED_REACT_TEST) {
     command: "yarn workspace @calcom/embed-react dev",
     port: 3101,
     timeout: 60_000,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     stdout: "ignore",
     stderr: "ignore",
   });
@@ -93,10 +95,10 @@ const DEFAULT_CHROMIUM: NonNullable<PlaywrightTestConfig["projects"]>[number]["u
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  retries: process.env.CI ? 2 : 0,
   // While debugging it should be focussed mode
   // eslint-disable-next-line turbo/no-undeclared-env-vars
-  workers: 2,
+  workers: process.env.PWDEBUG ? 1 : os.cpus().length,
   timeout: DEFAULT_TEST_TIMEOUT,
   maxFailures: headless ? 10 : undefined,
   fullyParallel: true,
