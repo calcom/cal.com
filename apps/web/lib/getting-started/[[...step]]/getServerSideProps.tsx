@@ -1,12 +1,12 @@
-import cookie from "cookie";
 import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import isPrismaObj from "@calcom/lib/isPrismaObj";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { getUtmParamsFromCookie } from "@calcom/lib/utm";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+
+import { isPrismaObjOrUndefined } from "@lib/isPrismaObj";
 
 async function getRequestCountryOrigin(
   req: import("http").IncomingMessage & { cookies: Partial<{ [key: string]: string }> }
@@ -47,12 +47,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   //required for tracking utm tracking from oauth signup
 
   try {
-    const cookies = cookie.parse(req.headers.cookie || "");
-    if (cookies.utm_params) {
-      const utmParamsObj = getUtmParamsFromCookie(cookies.utm_params);
+    //if UTM INFO in cookie exists and not already set
+    if (req.cookies.utm_params && !isPrismaObjOrUndefined(user.metadata)?.utm) {
+      const _cookiesFromReq = req.cookies;
       user.metadata = {
         ...(typeof user.metadata === "object" && user.metadata !== null ? user.metadata : {}),
-        utm: utmParamsObj,
+        utm: _cookiesFromReq.utm_params,
       };
       await userRepo.updateWhereId({
         whereId: user.id,
