@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-  # Also allow manual trigger for testing
   workflow_dispatch:
 
 permissions:
@@ -25,8 +24,6 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             
-            // Use GitHub Search API to get open, non-draft PRs
-            // This is more efficient than filtering in the loop
             const searchQuery = `repo:${owner}/${repo} is:pr is:open draft:false`;
             const { data: searchResults } = await github.rest.search.issuesAndPullRequests({
               q: searchQuery,
@@ -40,7 +37,6 @@ jobs:
             for (const item of searchResults.items) {
               const prNumber = item.number;
               
-              // Get detailed PR info including mergeable status
               const { data: prDetails } = await github.rest.pulls.get({
                 owner,
                 repo,
