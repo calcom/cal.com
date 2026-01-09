@@ -6,7 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import PhoneInput from "@calcom/features/components/phone-input";
+import PhoneInput from "@calcom/web/modules/phone-input/components";
 import { WORKFLOW_ACTIONS } from "@calcom/features/ee/workflows/lib/constants";
 import { onlyLettersNumbersSpaces } from "@calcom/features/ee/workflows/lib/schema";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
