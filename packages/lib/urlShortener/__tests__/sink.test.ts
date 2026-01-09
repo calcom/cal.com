@@ -205,11 +205,30 @@ describe("SinkClient", () => {
     });
 
     it("should handle empty URLs in the array", async () => {
+      const mockResponse = {
+        link: {
+          id: "abc123",
+          url: "https://example.com",
+          slug: "xyz",
+          createdAt: "2024-01-01",
+          updatedAt: "2024-01-01",
+          views: 0,
+        },
+        shortLink: "https://sink.test.com/xyz",
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
       const testSink = new SinkClient();
       const results = await testSink.createMany(["", "https://example.com", ""]);
 
       expect(results[0]).toEqual({ url: "", shortLink: null });
+      expect(results[1]).toEqual({ url: "https://example.com", shortLink: "https://sink.test.com/xyz" });
       expect(results[2]).toEqual({ url: "", shortLink: null });
+      expect(global.fetch).toHaveBeenCalledTimes(1);
     });
 
     it("should handle partial failures gracefully", async () => {

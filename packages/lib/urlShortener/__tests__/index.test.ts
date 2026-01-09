@@ -127,7 +127,7 @@ describe("UrlShortener", () => {
       expect(sink.isConfigured).toHaveBeenCalled();
       expect(dub.links.createMany).toHaveBeenCalledWith([
         {
-          domain: "sms.cal.com",
+          domain: undefined,
           url: "https://example.com",
           folderId: undefined,
         },
@@ -180,7 +180,7 @@ describe("UrlShortener", () => {
 
       expect(dub.links.createMany).toHaveBeenCalledWith([
         {
-          domain: "sms.cal.com",
+          domain: undefined,
           url: "https://example.com",
           folderId: undefined,
         },
@@ -318,7 +318,7 @@ describe("UrlShortener", () => {
       // Dub only receives non-empty URLs
       expect(dub.links.createMany).toHaveBeenCalledWith([
         {
-          domain: "sms.cal.com",
+          domain: undefined,
           url: "https://example.com",
           folderId: undefined,
         },
