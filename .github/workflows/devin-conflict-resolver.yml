@@ -86,9 +86,15 @@ jobs:
             
             function processPR(pr, mergeableStatus) {
               const isTargetPR = manualPrNumber && pr.number === manualPrNumber;
+              const isFork = pr.headRepository?.owner?.login !== owner;
               
               if (!isTargetPR && pr.isDraft) {
                 console.log(`PR #${pr.number} is a draft, skipping`);
+                return { skip: true };
+              }
+              
+              if (!isTargetPR && isFork) {
+                console.log(`PR #${pr.number} is from a fork, skipping`);
                 return { skip: true };
               }
               
@@ -101,19 +107,13 @@ jobs:
               }
               
               if (mergeableStatus === 'CONFLICTING' || (isTargetPR && mergeableStatus !== 'MERGEABLE')) {
-                const isFork = pr.headRepository?.owner?.login !== owner;
                 const headRepoOwner = pr.headRepository?.owner?.login || owner;
                 const headRepoName = pr.headRepository?.name || repo;
-                
-                if (!isTargetPR && isFork && !pr.maintainerCanModify) {
-                  console.log(`PR #${pr.number} is from a fork without maintainer push access, skipping`);
-                  return { skip: true };
-                }
                 
                 if (isTargetPR) {
                   console.log(`PR #${pr.number} manually targeted for conflict resolution${isFork ? ' (from fork)' : ''}`);
                 } else {
-                  console.log(`PR #${pr.number} has conflicts${isFork ? ' (from fork)' : ''}`);
+                  console.log(`PR #${pr.number} has conflicts`);
                 }
                 
                 return {
