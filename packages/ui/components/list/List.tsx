@@ -44,7 +44,7 @@ export function ListItem(props: ListItemProps) {
     {
       ...passThroughProps,
       className: classNames(
-        "items-center bg-default min-w-0 flex-1 flex border-neutral-200 p-4 sm:mx-0 md:border md:p-4 xl:mt-0 border-subtle",
+        "items-center bg-default min-w-0 flex-1 flex flex-wrap overflow-hidden border-neutral-200 p-4 sm:mx-0 md:border md:p-4 xl:mt-0 border-subtle",
         expanded ? "my-2 border" : "border -mb-px last:mb-0",
         // Pass rounded false to not round the corners -> Useful when used in list we can use roundedContainer to create the right design
         rounded ? "rounded-md" : "rounded-none",
