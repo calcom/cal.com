@@ -1,8 +1,15 @@
 import "./instrument";
 
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
-import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
+import process from "node:process";
+import {
+  API_VERSIONS,
+  API_VERSIONS_ENUM,
+  CAL_API_VERSION_HEADER,
+  VERSION_2024_04_15,
+  X_CAL_CLIENT_ID,
+  X_CAL_PLATFORM_EMBED,
+  X_CAL_SECRET_KEY,
+} from "@calcom/platform-constants";
 import type { ValidationError } from "@nestjs/common";
 import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
@@ -10,17 +17,9 @@ import type { NestExpressApplication } from "@nestjs/platform-express";
 import cookieParser from "cookie-parser";
 import { Request } from "express";
 import helmet from "helmet";
-
-import {
-  API_VERSIONS,
-  VERSION_2024_04_15,
-  API_VERSIONS_ENUM,
-  CAL_API_VERSION_HEADER,
-  X_CAL_CLIENT_ID,
-  X_CAL_SECRET_KEY,
-  X_CAL_PLATFORM_EMBED,
-} from "@calcom/platform-constants";
-
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
 import { CalendarServiceExceptionFilter } from "./filters/calendar-service-exception.filter";
 import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
 
@@ -42,9 +41,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     },
     defaultVersion: VERSION_2024_04_15,
   });
-
   app.use(helmet());
-
   app.enableCors({
     origin: "*",
     methods: ["GET", "PATCH", "DELETE", "HEAD", "POST", "PUT", "OPTIONS"],
@@ -69,16 +66,13 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
         target: true,
         value: true,
       },
-      exceptionFactory(errors: ValidationError[]) {
+      exceptionFactory(errors: ValidationError[]): BadRequestException {
         return new BadRequestException({ errors });
       },
     })
   );
 
-  // Exception filters
-  // Note: Standard NestJS practice is to get the adapter host if needed for specific filters
-  // app.useGlobalFilters(new PrismaExceptionFilter()); // etc.
-
+  // Exception filters, new filters go at the bottom, keep the order
   app.useGlobalFilters(new PrismaExceptionFilter());
   app.useGlobalFilters(new ZodExceptionFilter());
   app.useGlobalFilters(new HttpExceptionFilter());

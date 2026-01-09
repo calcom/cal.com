@@ -1,14 +1,19 @@
-import type { AppConfig } from "@/config/type";
+import "dotenv/config";
+
+import { IncomingMessage, Server, ServerResponse } from "node:http";
+import process from "node:process";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
-import "dotenv/config";
+
 import { WinstonModule } from "nest-winston";
 import * as qs from "qs";
 
-import { bootstrap } from "./bootstrap";
+import type { AppConfig } from "@/config/type";
+
 import { AppModule } from "./app.module";
+import { bootstrap } from "./bootstrap";
 import { loggerConfig } from "./lib/logger";
 
 const logger = new Logger("App");
@@ -22,12 +27,17 @@ if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
   });
 }
 
-async function run() {
+async function run(): Promise<void> {
   const app = await createNestApp();
   try {
     bootstrap(app);
-    const configService = app.get(ConfigService<AppConfig, true>);
-    const port = configService.get("api.port", { infer: true }) || 3000;
+    const config = app.get(ConfigService<AppConfig, true>);
+    const port = config.get("api.port", { infer: true });
+
+    if (config.get("env.type", { infer: true }) === "development") {
+      const { generateSwaggerForApp } = await import("./swagger/generate-swagger");
+      generateSwaggerForApp(app);
+    }
 
     await app.listen(port);
 
@@ -37,9 +47,7 @@ async function run() {
   }
 }
 
-/**
- * VERCEL SERVERLESS HANDLER
- */
+// Vercel serverless handler
 export default async (req: any, res: any) => {
   if (!cachedServer) {
     try {
@@ -54,11 +62,7 @@ export default async (req: any, res: any) => {
     }
   }
 
-  /**
-   * FIX: Vercel pre-parses req.query.
-   * We force a re-parse of the raw query string using 'qs' to ensure
-   * that 'routedTeamMemberIds[]' is correctly mapped to 'routedTeamMemberIds' as an array.
-   */
+  // Vercel pre-parses req.query, re-parse to handle array params like 'routedTeamMemberIds[]'
   const urlParts = req.url.split("?");
   if (urlParts.length > 1) {
     req.query = qs.parse(urlParts[1], { arrayLimit: 1000, comma: true });
@@ -67,10 +71,9 @@ export default async (req: any, res: any) => {
   return cachedServer(req, res);
 };
 
-/**
- * SHARED NEST INSTANCE CREATION
- */
-export async function createNestApp() {
+export async function createNestApp(): Promise<
+  NestExpressApplication<Server<typeof IncomingMessage, typeof ServerResponse>>
+> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger(loggerConfig()),
     bodyParser: false,

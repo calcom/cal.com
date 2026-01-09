@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Broneering edukalt ümber suunatud. Suunatakse broneerimislehele",
   "on_booking_write_to_event_object": "Broneeringu korral kirjuta sündmuse objekti",
   "field_name": "Välja nimi",
+  "field_name_cannot_be_empty": "Välja nimi ei tohi olla tühi",
+  "field_already_exists": "Väli on juba olemas",
   "add_new_field": "Lisa uus väli",
   "you_dont_have_access_to_reroute_this_booking": "Sul pole õigust seda broneeringut ümber suunata",
   "form_response_not_found": "Vormi vastust ei leitud",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Broneeringu omanik ei kuulu teie organisatsiooni.",
   "audit_logs_permission_denied": "Teil puudub õigus selle broneeringu auditiloge vaadata.",
   "audit_logs_permission_check_error": "Õiguste kontrollimisel tekkis viga.",
+  "account_already_exists_please_login": "Selle e-posti aadressiga konto on juba olemas. Palun logi sisse, et kutse vastu võtta.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

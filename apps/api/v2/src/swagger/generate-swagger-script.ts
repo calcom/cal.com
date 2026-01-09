@@ -1,4 +1,5 @@
 import "dotenv/config";
+import process from "node:process";
 
 import { bootstrap } from "../bootstrap";
 import { createNestApp } from "../main";
@@ -14,7 +15,7 @@ generateSwagger()
     process.exit(1);
   });
 
-async function generateSwagger() {
+async function generateSwagger(): Promise<void> {
   const app = await createNestApp();
 
   try {
