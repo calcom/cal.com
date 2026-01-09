@@ -1,5 +1,4 @@
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
-import { Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {

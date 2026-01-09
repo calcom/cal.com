@@ -38,7 +38,7 @@ import {
 } from "@/hooks";
 import { useEventTypeFilter } from "@/hooks/useEventTypeFilter";
 import { CalComAPIService, type EventType } from "@/services/calcom";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { getEventDuration } from "@/utils/getEventDuration";
 import { offlineAwareRefresh } from "@/utils/network";
@@ -149,17 +149,9 @@ export default function EventTypes() {
       const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
       await Clipboard.setStringAsync(link);
 
-      if (Platform.OS === "web") {
-        showToastMessage("Link copied!");
-      } else {
-        Alert.alert("Link Copied", "Event type link copied!");
-      }
+      showSuccessAlert("Link Copied", "Event type link copied!");
     } catch {
-      if (Platform.OS === "web") {
-        showToastMessage("Failed to copy link");
-      } else {
-        showErrorAlert("Error", "Failed to copy link. Please try again.");
-      }
+      showErrorAlert("Error", "Failed to copy link. Please try again.");
     }
   };
 

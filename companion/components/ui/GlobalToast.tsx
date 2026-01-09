@@ -28,7 +28,7 @@
  */
 
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { Animated, Platform, StyleSheet, Text, View } from "react-native";
 
 import { useGlobalToast, type ToastType } from "@/contexts/ToastContext";
@@ -41,7 +41,8 @@ const ICON_CONFIG: Record<ToastType, { name: keyof typeof Ionicons.glyphMap; col
 
 export function GlobalToast() {
   const { toast } = useGlobalToast();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  // Use useMemo instead of useRef().current to avoid React Compiler error
+  const fadeAnim = useMemo(() => new Animated.Value(0), []);
 
   useEffect(() => {
     if (toast.visible) {
@@ -58,6 +59,24 @@ export function GlobalToast() {
       }).start();
     }
   }, [toast.visible, fadeAnim]);
+
+  // Expand iframe on web when toast is visible (to center on screen)
+  useEffect(() => {
+    if (Platform.OS === "web") {
+      if (toast.visible) {
+        window.parent.postMessage({ type: "cal-companion-expand" }, "*");
+      } else {
+        window.parent.postMessage({ type: "cal-companion-collapse" }, "*");
+      }
+    }
+
+    return () => {
+      // Cleanup: collapse on unmount if we expanded
+      if (Platform.OS === "web" && toast.visible) {
+        window.parent.postMessage({ type: "cal-companion-collapse" }, "*");
+      }
+    };
+  }, [toast.visible]);
 
   // Only render on web platform
   if (Platform.OS !== "web") {
@@ -110,8 +129,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E5E7EB",
     backgroundColor: "#FFFFFF",
-    maxWidth: 320,
-    minWidth: 200,
+    maxWidth: 640,
+    minWidth: 400,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
