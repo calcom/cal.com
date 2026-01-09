@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Boeking succesvol omgeleid. U wordt doorgestuurd naar de boekingspagina",
   "on_booking_write_to_event_object": "Bij boeking, schrijf naar event object",
   "field_name": "Veldnaam",
+  "field_name_cannot_be_empty": "Veldnaam mag niet leeg zijn",
+  "field_already_exists": "Veld bestaat al",
   "add_new_field": "Nieuw veld toevoegen",
   "you_dont_have_access_to_reroute_this_booking": "Je hebt geen toegang om deze boeking om te leiden",
   "form_response_not_found": "Formulierreactie niet gevonden",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "De eigenaar van de boeking is geen lid van je organisatie.",
   "audit_logs_permission_denied": "Je hebt geen toestemming om auditlogs voor deze boeking te bekijken.",
   "audit_logs_permission_check_error": "Er is een fout opgetreden bij het controleren van machtigingen.",
+  "account_already_exists_please_login": "Er bestaat al een account met dit e-mailadres. Log in om de uitnodiging te accepteren.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
