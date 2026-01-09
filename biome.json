@@ -79,16 +79,6 @@
       "formatter": { "enabled": false }
     },
     {
-      "includes": ["apps/api/v2/**/*.ts", "apps/api/v2/**/*.controller.ts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useImportType": "off"
-          }
-        }
-      }
-    },
-    {
       "includes": ["**/*.tsx"],
       "javascript": {
         "jsxRuntime": "transparent"
@@ -154,6 +144,20 @@
           "security": {
             "noBlankTarget": "warn",
             "noDangerouslySetInnerHtml": "warn"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/api/v2/**/*.ts", "apps/api/v2/**/*.controller.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useImportType": "off",
+            "noProcessEnv": "off"
+          },
+          "correctness": {
+            "noProcessGlobal": "off"
           }
         }
       }
