@@ -4186,5 +4186,6 @@
   "audit_logs_permission_denied": "You do not have permission to view audit logs for this booking.",
   "audit_logs_permission_check_error": "An error occurred while checking permissions.",
   "account_already_exists_please_login": "An account with this email already exists. Please log in to accept the invitation.",
+  "unverified_email_oauth_error": "Please verify your email address before signing in with Google or SAML. Sign in with your password to resend the verification email.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
