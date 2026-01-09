@@ -4,7 +4,7 @@ import _package from "./package.json";
 
 export const metadata = {
   name: "Lever",
-  installed: !!process.env.MERGE_API_KEY,
+  installed: true,
   description: _package.description,
   type: "lever_crm",
   variant: "crm",

@@ -1,139 +1,152 @@
 import { getLocation } from "@calcom/lib/CalEventParser";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { ContactCreateInput, CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 
-import appConfig from "../config.json";
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
+import type { LeverToken } from "../api/callback";
 
-// =============================================================================
-// Lever ATS Integration via Merge.dev
-// =============================================================================
-//
-// Connects Cal.com with Lever ATS through Merge.dev unified API.
-//
-// Flow:
-// 1. User installs app -> Merge Link OAuth -> account_token stored
-// 2. Booking created -> Search for attendee in Lever by email
-// 3. If not found -> Create new candidate with attendee details
-// 4. Log meeting as NOTE activity on candidate profile
-//
-// Authentication:
-// - MERGE_API_KEY: Environment variable (Merge.dev API key)
-// - account_token: Per-user OAuth token (stored in credential.key)
-//
-// Docs: https://docs.merge.dev/integrations/ats/lever/
-// =============================================================================
+const LEVER_API_BASE = "https://api.lever.co/v1";
 
-const MERGE_API_BASE_URL = "https://api.merge.dev/api/ats/v1";
-const INTEGRATION_USER_ID = "cal-com-integration";
-
-// Merge.dev API response types
-interface MergeCandidate {
+interface LeverOpportunity {
   id: string;
-  email_addresses: Array<{ value: string; email_address_type?: string }>;
+  emails?: string[];
+  name?: string;
 }
 
-interface MergeCandidateListResponse {
-  results: MergeCandidate[];
+interface LeverOpportunitiesResponse {
+  data: LeverOpportunity[];
 }
 
-interface MergeActivity {
+interface LeverNote {
   id: string;
+  text: string;
 }
 
-/**
- * Parses name into first/last components. Falls back to email username.
- */
-function parseContactName(name: string | undefined, email: string) {
-  if (name?.trim()) {
-    const parts = name.trim().split(/\s+/);
-    return { firstName: parts[0], lastName: parts.slice(1).join(" ") || "-" };
-  }
-  return { firstName: email.split("@")[0], lastName: "-" };
-}
-
-/**
- * Formats event details as HTML for Lever activity notes.
- */
-function formatActivityBody(event: CalendarEvent): string {
+function formatNoteBody(event: CalendarEvent): string {
   const tz = event.attendees?.[0]?.timeZone || "UTC";
   const loc = getLocation(event) || "Not specified";
-  return `<b>Meeting:</b> ${event.title}<br><b>Timezone:</b> ${tz}<br><b>Location:</b> ${loc}<br><b>Notes:</b> ${event.additionalNotes || "None"}`;
+  const startTime = new Date(event.startTime).toLocaleString("en-US", { timeZone: tz });
+  const endTime = new Date(event.endTime).toLocaleString("en-US", { timeZone: tz });
+
+  return [
+    `Meeting: ${event.title}`,
+    `Time: ${startTime} - ${endTime} (${tz})`,
+    `Location: ${loc}`,
+    event.additionalNotes ? `Notes: ${event.additionalNotes}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
-/**
- * Lever CRM service using Merge.dev unified ATS API.
- *
- * Syncs Cal.com bookings with Lever by creating candidates and
- * logging meeting activities to their profiles.
- */
 export default class LeverCrmService implements CRM {
-  private readonly log: typeof logger;
-  private readonly accountToken: string;
-  private readonly apiKey: string;
+  private log: typeof logger;
+  private auth: Promise<{ getToken: () => Promise<string> }>;
+  private clientId = "";
+  private clientSecret = "";
 
-  constructor(credential: CredentialPayload) {
-    this.apiKey = process.env.MERGE_API_KEY || "";
-    this.accountToken = (credential.key as { account_token?: string })?.account_token || "";
+  constructor(private credential: CredentialPayload) {
     this.log = logger.getSubLogger({ prefix: ["[lever]"] });
+    this.auth = this.leverAuth(credential);
   }
 
-  private getHeaders(): HeadersInit {
-    return {
-      Authorization: `Bearer ${this.apiKey}`,
-      "X-Account-Token": this.accountToken,
-      "Content-Type": "application/json",
+  private leverAuth = async (credential: CredentialPayload) => {
+    const appKeys = await getAppKeysFromSlug("lever");
+    if (typeof appKeys.client_id === "string") this.clientId = appKeys.client_id;
+    if (typeof appKeys.client_secret === "string") this.clientSecret = appKeys.client_secret;
+
+    if (!this.clientId) throw new HttpError({ statusCode: 400, message: "Lever client_id missing." });
+    if (!this.clientSecret) throw new HttpError({ statusCode: 400, message: "Lever client_secret missing." });
+
+    let currentToken = credential.key as unknown as LeverToken;
+
+    const isTokenValid = (token: LeverToken) =>
+      token && token.access_token && token.expiryDate && token.expiryDate > Date.now();
+
+    const refreshAccessToken = async (refreshToken: string) => {
+      const response: LeverToken = await refreshOAuthTokens(
+        async () => {
+          const res = await fetch("https://auth.lever.co/oauth/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              grant_type: "refresh_token",
+              refresh_token: refreshToken,
+              client_id: this.clientId,
+              client_secret: this.clientSecret,
+            }),
+          });
+
+          if (!res.ok) {
+            throw new Error(`Lever token refresh failed: ${res.status}`);
+          }
+
+          return res.json();
+        },
+        "lever",
+        credential.userId
+      );
+
+      response.expiryDate = Math.round(Date.now() + response.expires_in * 1000);
+
+      await prisma.credential.update({
+        where: { id: credential.id },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data: { key: response as any },
+      });
+
+      currentToken = response;
     };
-  }
 
-  /** Creates candidates in Lever for provided contacts. */
-  async createContacts(contacts: ContactCreateInput[]): Promise<Contact[]> {
-    return Promise.all(
-      contacts.map(async (contact) => {
-        const { firstName, lastName } = parseContactName(contact.name, contact.email);
-
-        const res = await fetch(`${MERGE_API_BASE_URL}/candidates`, {
-          method: "POST",
-          headers: this.getHeaders(),
-          body: JSON.stringify({
-            model: {
-              first_name: firstName,
-              last_name: lastName,
-              email_addresses: [{ value: contact.email, email_address_type: "PERSONAL" }],
-            },
-            remote_user_id: INTEGRATION_USER_ID,
-          }),
-        });
-
-        if (!res.ok) {
-          this.log.error("Failed to create candidate", { status: res.status });
-          throw new Error(`Lever API error: ${res.status}`);
+    return {
+      getToken: async () => {
+        if (!isTokenValid(currentToken)) {
+          await refreshAccessToken(currentToken.refresh_token);
         }
+        return currentToken.access_token;
+      },
+    };
+  };
 
-        const candidate = (await res.json()) as MergeCandidate;
-        return { id: candidate.id, email: contact.email };
-      })
-    );
+  private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
+    const token = await (await this.auth).getToken();
+
+    const res = await fetch(`${LEVER_API_BASE}${path}`, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
+
+    if (!res.ok) {
+      this.log.error("Lever API error", { path, status: res.status });
+      throw new Error(`Lever API error: ${res.status}`);
+    }
+
+    return res.json();
   }
 
-  /** Searches for candidates in Lever by email. */
   async getContacts({ emails }: { emails: string | string[] }): Promise<Contact[]> {
     const emailList = Array.isArray(emails) ? emails : [emails];
 
     const results = await Promise.all(
       emailList.map(async (email): Promise<Contact | null> => {
         try {
-          const res = await fetch(
-            `${MERGE_API_BASE_URL}/candidates?email_addresses=${encodeURIComponent(email)}`,
-            { method: "GET", headers: this.getHeaders() }
+          const response = await this.request<LeverOpportunitiesResponse>(
+            `/opportunities?email=${encodeURIComponent(email)}`
           );
 
-          if (!res.ok) return null;
-
-          const data = (await res.json()) as MergeCandidateListResponse;
-          const c = data.results?.[0];
-          return c ? { id: c.id, email: c.email_addresses?.[0]?.value || email } : null;
+          const opp = response.data?.[0];
+          if (opp) {
+            return { id: opp.id, email: opp.emails?.[0] || email };
+          }
+          return null;
         } catch {
           return null;
         }
@@ -143,40 +156,46 @@ export default class LeverCrmService implements CRM {
     return results.filter((c): c is Contact => c !== null);
   }
 
-  /** Creates meeting activity in Lever for primary contact. */
+  async createContacts(contacts: ContactCreateInput[]): Promise<Contact[]> {
+    return Promise.all(
+      contacts.map(async (contact) => {
+        const response = await this.request<{ data: LeverOpportunity }>("/opportunities", {
+          method: "POST",
+          body: JSON.stringify({
+            name: contact.name || contact.email.split("@")[0],
+            emails: [contact.email],
+            sources: ["Cal.com"],
+          }),
+        });
+
+        return { id: response.data.id, email: contact.email };
+      })
+    );
+  }
+
   async createEvent(event: CalendarEvent, contacts: Contact[]): Promise<CrmEvent | undefined> {
     if (!contacts.length) return undefined;
 
-    const res = await fetch(`${MERGE_API_BASE_URL}/activities`, {
+    const opportunityId = contacts[0].id;
+
+    const response = await this.request<{ data: LeverNote }>(`/opportunities/${opportunityId}/notes`, {
       method: "POST",
-      headers: this.getHeaders(),
       body: JSON.stringify({
-        model: {
-          activity_type: "NOTE",
-          subject: event.title,
-          body: formatActivityBody(event),
-          candidate: contacts[0].id,
-        },
-        remote_user_id: INTEGRATION_USER_ID,
+        value: formatNoteBody(event),
       }),
     });
 
-    if (!res.ok) {
-      this.log.error("Failed to create activity", { status: res.status });
-      throw new Error(`Lever API error: ${res.status}`);
-    }
-
-    const activity = (await res.json()) as MergeActivity;
-    return { id: activity.id, uid: activity.id, type: appConfig.slug };
+    return { id: response.data.id, uid: response.data.id, type: "lever_crm" };
   }
 
-  /** No-op: Merge ATS API does not support updates. */
   async updateEvent(uid: string, _event: CalendarEvent): Promise<CrmEvent> {
-    return { id: uid, uid, type: appConfig.slug };
+    // Lever notes can be updated but we keep it simple
+    return { id: uid, uid, type: "lever_crm" };
   }
 
-  /** No-op: Merge ATS API does not support deletion. */
-  async deleteEvent(_uid: string, _event: CalendarEvent): Promise<void> {}
+  async deleteEvent(_uid: string, _event: CalendarEvent): Promise<void> {
+    // Lever notes created via API can be deleted but we don't track which note to delete
+  }
 
   getAppOptions() {
     return {};

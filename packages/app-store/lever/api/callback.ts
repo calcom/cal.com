@@ -1,79 +1,67 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
+import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import appConfig from "../config.json";
+import metadata from "../_metadata";
 
-/**
- * Lever OAuth Callback Handler
- *
- * Completes the Merge.dev Link OAuth flow by exchanging the public token
- * for an account token and storing it in the credential.
- *
- * Flow:
- * 1. Receive public_token from Merge Link redirect
- * 2. Exchange for account_token via Merge API
- * 3. Update credential with account_token
- * 4. Redirect to installed apps page
- */
+export interface LeverToken {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  token_type: string;
+  expiryDate?: number;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Validate user session
+  const { code } = req.query;
+  const state = decodeOAuthState(req);
+
+  if (code && typeof code !== "string") {
+    return res.status(400).json({ message: "`code` must be a string" });
+  }
+
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
-  // Validate public token from Merge Link
-  const { public_token } = req.query;
-  if (!public_token || typeof public_token !== "string") {
-    return res.status(400).json({ message: "Missing public token from Merge" });
-  }
+  const appKeys = await getAppKeysFromSlug("lever");
+  const clientId = typeof appKeys.client_id === "string" ? appKeys.client_id : "";
+  const clientSecret = typeof appKeys.client_secret === "string" ? appKeys.client_secret : "";
 
-  // Validate API key is configured
-  const mergeApiKey = process.env.MERGE_API_KEY;
-  if (!mergeApiKey) {
-    return res.status(500).json({ message: "Merge API key not configured" });
-  }
+  if (!clientId) return res.status(400).json({ message: "Lever client_id missing." });
+  if (!clientSecret) return res.status(400).json({ message: "Lever client_secret missing." });
 
-  try {
-    // Exchange public token for account token
-    const tokenResponse = await fetch("https://api.merge.dev/api/integrations/account-token", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${mergeApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ public_token }),
-    });
+  const redirectUri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/lever/callback`;
 
-    if (!tokenResponse.ok) {
-      console.error("Failed to exchange Merge token");
-      return res.status(500).json({ message: "Failed to complete Lever connection" });
-    }
+  const tokenResponse = await fetch("https://auth.lever.co/oauth/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      grant_type: "authorization_code",
+      code,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: redirectUri,
+    }),
+  });
 
-    const { account_token, integration } = await tokenResponse.json();
-
-    // Store account token in credential
-    await prisma.credential.updateMany({
-      where: {
-        userId: req.session.user.id,
-        type: `${appConfig.slug}_other_calendar`,
-      },
-      data: {
-        key: { account_token, integration },
-      },
-    });
-
-    // Redirect to installed apps page
-    const state = decodeOAuthState(req);
-    res.redirect(
-      getSafeRedirectUrl(state?.returnTo) ??
-        getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug })
-    );
-  } catch (error) {
-    console.error("Error in Lever callback handler");
+  if (!tokenResponse.ok) {
+    const error = await tokenResponse.text();
+    console.error("Lever token exchange failed:", error);
     return res.status(500).json({ message: "Failed to complete Lever connection" });
   }
+
+  const tokens: LeverToken = await tokenResponse.json();
+  tokens.expiryDate = Math.round(Date.now() + tokens.expires_in * 1000);
+
+  await createOAuthAppCredential({ appId: metadata.slug, type: metadata.type }, tokens, req);
+
+  res.redirect(
+    getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "crm", slug: "lever" })
+  );
 }
