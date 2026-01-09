@@ -176,7 +176,7 @@ export const getDescription = (t: TFunction, description?: string | null) => {
 };
 
 export const getLocation = (calEvent: {
-  videoCallData?: VideoCallData;
+  videoCallData?: { type?: string; url?: string };
   additionalInformation?: AdditionalInformation;
   location?: string | null;
   uid?: string | null;
@@ -459,7 +459,7 @@ type RichDescriptionCalEvent = {
   appsStatus?: AppsStatus[] | null;
   manageLink?: string | null;
   hideOrganizerEmail?: boolean;
-  videoCallData?: VideoCallData;
+  videoCallData?: { type?: string; url?: string };
   additionalInformation?: AdditionalInformation;
   location?: string | null;
   uid?: string | null;
@@ -624,7 +624,7 @@ export const getPublicVideoCallUrl = (uid?: string | null): string => {
 };
 
 export const getVideoCallUrlFromCalEvent = (calEvent: {
-  videoCallData?: VideoCallData;
+  videoCallData?: { type?: string; url?: string };
   additionalInformation?: AdditionalInformation;
   location?: string | null;
   uid?: string | null;
