@@ -1,16 +1,16 @@
 /**
- * AdvancedTab Component (Android/Web)
+ * AdvancedTab Component (iOS)
  *
- * Settings app style with grouped rows, section headers, and compact toggles.
- * Descriptions shown via Alert.alert on tap.
+ * iOS-specific implementation with native Settings app style.
+ * Rows are grouped together with indented separators and section headers.
  */
 
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
   Alert,
   Modal,
-  Platform,
   ScrollView,
   Switch,
   Text,
@@ -64,8 +64,12 @@ const interfaceLanguageOptions = [
   { label: "中文（台灣）", value: "zh-TW" },
 ];
 
-// Section header
-function SectionHeader({ title }: { title: string }) {
+// Section header like iOS Settings
+interface SectionHeaderProps {
+  title: string;
+}
+
+function SectionHeader({ title }: SectionHeaderProps) {
   return (
     <Text
       className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
@@ -76,16 +80,14 @@ function SectionHeader({ title }: { title: string }) {
   );
 }
 
-// Settings group container
-function SettingsGroup({
-  children,
-  header,
-  footer,
-}: {
+// iOS Settings style group container
+interface SettingsGroupProps {
   children: React.ReactNode;
   header?: string;
   footer?: string;
-}) {
+}
+
+function SettingsGroup({ children, header, footer }: SettingsGroupProps) {
   return (
     <View>
       {header ? <SectionHeader title={header} /> : null}
@@ -95,7 +97,16 @@ function SettingsGroup({
   );
 }
 
-// Toggle row with indented separator
+// iOS Settings style toggle row with indented separator
+interface SettingRowProps {
+  title: string;
+  description?: string;
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+  learnMoreUrl?: string;
+  isLast?: boolean;
+}
+
 function SettingRow({
   title,
   description,
@@ -103,14 +114,7 @@ function SettingRow({
   onValueChange,
   learnMoreUrl,
   isLast = false,
-}: {
-  title: string;
-  description?: string;
-  value: boolean;
-  onValueChange: (value: boolean) => void;
-  learnMoreUrl?: string;
-  isLast?: boolean;
-}) {
+}: SettingRowProps) {
   const showDescription = () => {
     if (!description) return;
 
@@ -155,7 +159,7 @@ function SettingRow({
             value={value}
             onValueChange={onValueChange}
             trackColor={{ false: "#E9E9EA", true: "#34C759" }}
-            thumbColor={Platform.OS === "android" ? "#FFFFFF" : undefined}
+            thumbColor="#FFFFFF"
           />
         </View>
       </View>
@@ -163,18 +167,15 @@ function SettingRow({
   );
 }
 
-// Navigation row (with chevron)
-function NavigationRow({
-  title,
-  value,
-  onPress,
-  isLast = false,
-}: {
+// iOS Settings style navigation row (with chevron) and indented separator
+interface NavigationRowProps {
   title: string;
   value?: string;
   onPress: () => void;
   isLast?: boolean;
-}) {
+}
+
+function NavigationRow({ title, value, onPress, isLast = false }: NavigationRowProps) {
   return (
     <View className="bg-white pl-4" style={{ minHeight: 44 }}>
       <TouchableOpacity
@@ -419,37 +420,42 @@ export function AdvancedTab(props: AdvancedTabProps) {
       <Modal
         visible={showLanguagePicker}
         animationType="slide"
-        transparent={Platform.OS !== "ios"}
-        presentationStyle={Platform.OS === "ios" ? "formSheet" : undefined}
+        presentationStyle="formSheet"
         onRequestClose={() => setShowLanguagePicker(false)}
       >
         <View
           style={{
             flex: 1,
-            backgroundColor: Platform.OS === "ios" ? "#F2F2F7" : "rgba(0,0,0,0.5)",
+            backgroundColor: isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
           }}
         >
-          {Platform.OS !== "ios" ? (
-            <TouchableOpacity
-              style={{ flex: 1 }}
-              activeOpacity={1}
-              onPress={() => setShowLanguagePicker(false)}
-            />
-          ) : null}
-          <View
-            style={
-              Platform.OS === "ios"
-                ? { flex: 1 }
-                : {
-                    backgroundColor: "#F2F2F7",
-                    borderTopLeftRadius: 20,
-                    borderTopRightRadius: 20,
-                    maxHeight: "70%",
-                  }
-            }
-          >
-            {/* Header */}
-            <View className="h-[60px] flex-row items-center justify-between border-b border-[#E5E5E5] bg-white px-4">
+          {isLiquidGlassAvailable() ? (
+            <GlassView
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 60,
+                zIndex: 10,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingHorizontal: 16,
+              }}
+              glassEffectStyle="regular"
+            >
+              <TouchableOpacity
+                onPress={() => setShowLanguagePicker(false)}
+                className="h-[30px] w-[30px] items-center justify-center rounded-full bg-[#E5E5EA]"
+              >
+                <Ionicons name="close" size={20} color="#8E8E93" />
+              </TouchableOpacity>
+              <Text className="text-[17px] font-semibold text-black">Select Language</Text>
+              <View className="h-8 w-8" />
+            </GlassView>
+          ) : (
+            <View className="absolute left-0 right-0 top-0 z-10 h-[60px] flex-row items-center justify-between border-b border-[#E5E5E5] bg-white px-4">
               <TouchableOpacity
                 onPress={() => setShowLanguagePicker(false)}
                 className="h-8 w-8 items-center justify-center rounded-full bg-[#E5E5EA]"
@@ -459,35 +465,35 @@ export function AdvancedTab(props: AdvancedTabProps) {
               <Text className="text-[17px] font-semibold text-black">Select Language</Text>
               <View className="h-8 w-8" />
             </View>
+          )}
 
-            <ScrollView
-              className="flex-1"
-              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, paddingTop: 16 }}
-            >
-              <View className="overflow-hidden rounded-[10px] bg-white">
-                {interfaceLanguageOptions.map((option, index) => (
-                  <View key={option.value} className="bg-white pl-4">
-                    <TouchableOpacity
-                      className={`flex-row items-center justify-between py-3 pr-4 ${
-                        index !== interfaceLanguageOptions.length - 1
-                          ? "border-b border-[#E5E5E5]"
-                          : ""
-                      }`}
-                      onPress={() => {
-                        props.setInterfaceLanguage(option.value);
-                        setShowLanguagePicker(false);
-                      }}
-                    >
-                      <Text className="text-[17px] text-black">{option.label}</Text>
-                      {props.interfaceLanguage === option.value ? (
-                        <Ionicons name="checkmark" size={20} color="#007AFF" />
-                      ) : null}
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ paddingTop: 80, paddingHorizontal: 16, paddingBottom: 40 }}
+          >
+            <View className="overflow-hidden rounded-[10px] bg-white">
+              {interfaceLanguageOptions.map((option, index) => (
+                <View key={option.value} className="bg-white pl-4">
+                  <TouchableOpacity
+                    className={`flex-row items-center justify-between py-3 pr-4 ${
+                      index !== interfaceLanguageOptions.length - 1
+                        ? "border-b border-[#E5E5E5]"
+                        : ""
+                    }`}
+                    onPress={() => {
+                      props.setInterfaceLanguage(option.value);
+                      setShowLanguagePicker(false);
+                    }}
+                  >
+                    <Text className="text-[17px] text-black">{option.label}</Text>
+                    {props.interfaceLanguage === option.value ? (
+                      <Ionicons name="checkmark" size={20} color="#007AFF" />
+                    ) : null}
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </ScrollView>
         </View>
       </Modal>
 

@@ -1,21 +1,12 @@
 /**
- * LimitsTab Component (Android/Web)
+ * LimitsTab Component (iOS)
  *
- * Settings app style with grouped rows, section headers, and compact toggles.
- * Descriptions shown via Alert.alert on tap.
+ * iOS-specific implementation with native Settings app style.
+ * Groups settings with section headers and uses Alert for descriptions.
  */
 
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Alert,
-  Animated,
-  Platform,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, Animated, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 import { openInAppBrowser } from "@/utils/browser";
 
@@ -31,7 +22,7 @@ interface DurationLimit {
   unit: string;
 }
 
-// Section header
+// Section header like iOS Settings
 function SectionHeader({ title }: { title: string }) {
   return (
     <Text
@@ -43,7 +34,7 @@ function SectionHeader({ title }: { title: string }) {
   );
 }
 
-// Settings group container
+// iOS Settings style group container
 function SettingsGroup({
   children,
   header,
@@ -62,7 +53,7 @@ function SettingsGroup({
   );
 }
 
-// Toggle row with indented separator
+// iOS Settings style toggle row with indented separator
 function SettingRow({
   title,
   description,
@@ -106,7 +97,7 @@ function SettingRow({
             value={value}
             onValueChange={onValueChange}
             trackColor={{ false: "#E9E9EA", true: "#34C759" }}
-            thumbColor={Platform.OS === "android" ? "#FFFFFF" : undefined}
+            thumbColor="#FFFFFF"
           />
         </View>
       </View>
@@ -114,7 +105,7 @@ function SettingRow({
   );
 }
 
-// Navigation row
+// iOS Settings style navigation row
 function NavigationRow({
   title,
   value,
@@ -290,7 +281,7 @@ export function LimitsTab(props: LimitsTabProps) {
         />
       </SettingsGroup>
 
-      {/* Frequency Limit Configuration */}
+      {/* Frequency Limit Configuration - shown when enabled */}
       {props.limitBookingFrequency ? (
         <SettingsGroup header="Frequency Limits">
           {props.frequencyLimits.map((limit, index) => (
@@ -347,7 +338,7 @@ export function LimitsTab(props: LimitsTabProps) {
         </SettingsGroup>
       ) : null}
 
-      {/* Duration Limit Configuration */}
+      {/* Duration Limit Configuration - shown when enabled */}
       {props.limitTotalDuration ? (
         <SettingsGroup header="Duration Limits">
           {props.durationLimits.map((limit, index) => (
@@ -404,7 +395,7 @@ export function LimitsTab(props: LimitsTabProps) {
         </SettingsGroup>
       ) : null}
 
-      {/* Max Active Bookings Configuration */}
+      {/* Max Active Bookings Configuration - shown when enabled */}
       {props.maxActiveBookingsPerBooker ? (
         <SettingsGroup header="Active Bookings Limit">
           <View className="bg-white pl-4">
@@ -442,7 +433,7 @@ export function LimitsTab(props: LimitsTabProps) {
         </SettingsGroup>
       ) : null}
 
-      {/* Future Bookings Configuration */}
+      {/* Future Bookings Configuration - shown when enabled */}
       {props.limitFutureBookings ? (
         <SettingsGroup header="Future Booking Limit">
           {/* Rolling option */}
