@@ -44,7 +44,7 @@ async function getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | n
   return { orgId, teamIds };
 }
 
-export const featureOptInRouter: ReturnType<typeof router> = router({
+export const featureOptInRouter = router({
   /**
    * Get all opt-in features with states for current user.
    * This considers all teams/orgs the user belongs to.
@@ -77,8 +77,15 @@ export const featureOptInRouter: ReturnType<typeof router> = router({
    * Used by org admins to configure feature opt-in for their organization.
    */
   listForOrganization: createOrgPbacProcedure("organization.read").query(async ({ ctx }) => {
+    const organizationId = ctx.user.organization.id;
+    if (!organizationId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "You are not a member of any organization.",
+      });
+    }
     // Organizations use the same listFeaturesForTeam since they're stored in TeamFeatures
-    return featureOptInService.listFeaturesForTeam({ teamId: ctx.organizationId });
+    return featureOptInService.listFeaturesForTeam({ teamId: organizationId });
   }),
 
   /**
@@ -148,6 +155,14 @@ export const featureOptInRouter: ReturnType<typeof router> = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const organizationId = ctx.user.organization.id;
+      if (!organizationId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You are not a member of any organization.",
+        });
+      }
+
       if (!isOptInFeature(input.slug)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -157,7 +172,7 @@ export const featureOptInRouter: ReturnType<typeof router> = router({
 
       // Organizations use the same TeamFeatures table
       await featureOptInService.setTeamFeatureState({
-        teamId: ctx.organizationId,
+        teamId: organizationId,
         featureId: input.slug,
         state: input.state,
         assignedBy: ctx.user.id,
@@ -214,8 +229,15 @@ export const featureOptInRouter: ReturnType<typeof router> = router({
    * Get organization's auto opt-in preference (requires org admin).
    */
   getOrganizationAutoOptIn: createOrgPbacProcedure("organization.read").query(async ({ ctx }) => {
-    const result = await featuresRepository.getTeamsAutoOptIn([ctx.organizationId]);
-    return { autoOptIn: result[ctx.organizationId] ?? false };
+    const organizationId = ctx.user.organization.id;
+    if (!organizationId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "You are not a member of any organization.",
+      });
+    }
+    const result = await featuresRepository.getTeamsAutoOptIn([organizationId]);
+    return { autoOptIn: result[organizationId] ?? false };
   }),
 
   /**
@@ -228,7 +250,14 @@ export const featureOptInRouter: ReturnType<typeof router> = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await featuresRepository.setTeamAutoOptIn(ctx.organizationId, input.autoOptIn);
+      const organizationId = ctx.user.organization.id;
+      if (!organizationId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You are not a member of any organization.",
+        });
+      }
+      await featuresRepository.setTeamAutoOptIn(organizationId, input.autoOptIn);
       return { success: true };
     }),
 });
