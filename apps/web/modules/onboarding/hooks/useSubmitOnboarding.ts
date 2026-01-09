@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { setShowNewOrgModalFlag } from "@calcom/features/ee/organizations/hooks/useWelcomeModal";
-import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { useFlagMap } from "@calcom/web/modules/feature-flags/context/provider";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";

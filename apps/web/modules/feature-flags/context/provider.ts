@@ -1,6 +1,6 @@
 import { createContext, useContext, createElement } from "react";
 
-import type { AppFlags } from "../config";
+import type { AppFlags } from "@calcom/features/flags/config";
 
 /**
  * Generic Feature Flags
@@ -32,7 +32,7 @@ export function useFlagMap() {
  *
  * ```ts
  * import { useFlags } from "@calcom/features/flags/hooks/useFlag"
- * import { FeatureProvider, useFlagMap } from @calcom/features/flags/context/provider"
+ * import { FeatureProvider, useFlagMap } from @calcom/web/modules/feature-flags/context/provider"
  *
  * export default function YourPage () {
  *   const flags = useFlags()

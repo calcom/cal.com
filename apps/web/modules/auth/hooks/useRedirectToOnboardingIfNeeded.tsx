@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { useFlagMap } from "@calcom/web/modules/feature-flags/context/provider";
 import type { User } from "@calcom/prisma/client";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
