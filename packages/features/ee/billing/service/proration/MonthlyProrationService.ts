@@ -1,11 +1,11 @@
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 import type { Logger } from "tslog";
-import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
-import { StripeBillingService } from "../billingProvider/StripeBillingService";
 import { MonthlyProrationRepository } from "../../repository/proration/MonthlyProrationRepository";
 import type { BillingInfo } from "../../repository/proration/MonthlyProrationTeamRepository";
 import { MonthlyProrationTeamRepository } from "../../repository/proration/MonthlyProrationTeamRepository";
+import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
+import { StripeBillingService } from "../billingProvider/StripeBillingService";
 import { SeatChangeTrackingService } from "../seatTracking/SeatChangeTrackingService";
 
 const log = logger.getSubLogger({ prefix: ["MonthlyProrationService"] });
