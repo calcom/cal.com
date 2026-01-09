@@ -1,0 +1,93 @@
+name: Stale Community PR Devin Completion
+
+on:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  complete-stale-pr:
+    name: Trigger Devin to Complete Stale Community PR
+    # Only run if the 'stale' label was added and PR has 'community' label
+    if: github.event.label.name == 'stale' && contains(github.event.pull_request.labels.*.name, 'community')
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Create Devin session
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          REPO_NAME: ${{ github.repository }}
+        run: |
+          FULL_PROMPT="You are completing a stale community PR #${PR_NUMBER} in repository ${REPO_NAME}.
+
+          This PR was started by @${PR_AUTHOR} but has become stale. Your job is to complete it.
+
+          PR Title: ${PR_TITLE}
+          PR Branch: ${PR_BRANCH}
+
+          Your tasks:
+          1. Clone the repository ${REPO_NAME} locally.
+          2. Check out the PR branch: ${PR_BRANCH}
+          3. Review the current state of the PR and understand what it's trying to accomplish.
+          4. Read the PR description and any comments/review feedback on the PR.
+          5. Complete any unfinished work on the PR:
+             - Fix any issues mentioned in review comments
+             - Ensure the code follows the repository's coding standards
+             - Add any missing tests if applicable
+             - Fix any linting or type errors
+          6. Run the appropriate checks (lint, type-check, tests) to ensure the PR is ready for review.
+          7. Commit your changes with clear commit messages.
+          8. Push your changes to the PR branch.
+          9. Post a summary comment on the PR explaining what you completed.
+
+          Rules and Guidelines:
+          1. Respect the original author's intent and approach - don't rewrite the PR from scratch.
+          2. Make minimal, focused changes that complete the PR's original goal.
+          3. Follow the existing code style and conventions in the repository.
+          4. If the PR's original approach seems fundamentally flawed, explain why in a comment instead of making major changes.
+          5. Never ask for user confirmation. Never wait for user messages.
+          6. Credit the original author in your commit messages where appropriate."
+
+          RESPONSE=$(curl -s -X POST "https://api.devin.ai/v1/sessions" \
+            -H "Authorization: Bearer ${DEVIN_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg prompt "$FULL_PROMPT" \
+              --arg title "Complete Stale PR #${PR_NUMBER}: ${PR_TITLE}" \
+              '{
+                prompt: $prompt,
+                title: $title,
+                tags: ["stale-pr-completion", "pr-'${PR_NUMBER}'"]
+              }')")
+          
+          SESSION_URL=$(echo "$RESPONSE" | jq -r '.url // .session_url // empty')
+          if [ -n "$SESSION_URL" ]; then
+            echo "Devin session created: $SESSION_URL"
+            echo "SESSION_URL=$SESSION_URL" >> $GITHUB_ENV
+          else
+            echo "Failed to create Devin session"
+            exit 1
+          fi
+
+      - name: Post comment with Devin session link
+        if: env.SESSION_URL != ''
+        uses: actions/github-script@v7
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const sessionUrl = process.env.SESSION_URL;
+            const prAuthor = process.env.PR_AUTHOR;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: `### Devin AI is completing this stale PR\n\nThis PR by @${prAuthor} has been marked as stale. A Devin session has been created to complete the remaining work.\n\n[View Devin Session](${sessionUrl})\n\n---\n*Devin will review the PR, address any feedback, and push updates to complete this PR.*`
+            });
