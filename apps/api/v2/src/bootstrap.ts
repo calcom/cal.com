@@ -1,5 +1,6 @@
 import "./instrument";
 
+import process from "node:process";
 import {
   API_VERSIONS,
   API_VERSIONS_ENUM,

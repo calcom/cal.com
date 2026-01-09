@@ -18,7 +18,6 @@ export type AppConfig = {
     workerReadPoolMax: number;
     workerWritePoolMax: number;
     redisUrl: string;
-    usePool: boolean;
   };
   next: {
     authSecret: string;

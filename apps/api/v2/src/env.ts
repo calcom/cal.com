@@ -40,10 +40,11 @@ export type Environment = {
   DATABASE_WRITE_WORKER_POOL_MAX: number;
   ENABLE_SLOTS_WORKERS: string;
   SLOTS_WORKER_POOL_SIZE: string;
-  USE_POOL: string;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {
+  // biome-ignore lint/style/noProcessEnv: <config file>
+  // biome-ignore lint/correctness/noProcessGlobal: <config file>
   const value = process.env[key] as Environment[K] | undefined;
 
   if (value === undefined) {
