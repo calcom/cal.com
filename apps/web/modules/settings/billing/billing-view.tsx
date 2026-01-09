@@ -49,6 +49,7 @@ const BillingView = () => {
   const { t } = useLocale();
   const returnTo = pathname;
   const [showSkipTrialDialog, setShowSkipTrialDialog] = useState(false);
+  const utils = trpc.useUtils();
 
   // Determine the billing context and extract appropriate team/org ID
   const getTeamIdFromContext = () => {
@@ -80,6 +81,10 @@ const BillingView = () => {
     onSuccess: () => {
       showToast(t("trial_skipped_successfully"), "success");
       setShowSkipTrialDialog(false);
+      // Invalidate the subscription status cache to hide the skip trial button
+      if (teamIdNumber) {
+        utils.viewer.teams.getSubscriptionStatus.invalidate({ teamId: teamIdNumber });
+      }
     },
     onError: (error) => {
       showToast(error.message || t("error_skipping_trial"), "error");
