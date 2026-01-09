@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
@@ -3131,24 +3131,22 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
 
         const calVideoService = app.get(CalVideoService);
-        jest
-          .spyOn(calVideoService, "getVideoSessions")
-          .mockResolvedValue([
-            {
-              id: mockSessions[0].id,
-              room: mockSessions[0].room,
-              startTime: mockSessions[0].start_time,
-              duration: mockSessions[0].duration,
-              ongoing: mockSessions[0].ongoing,
-              maxParticipants: mockSessions[0].max_participants,
-              participants: mockSessions[0].participants.map((p) => ({
-                userId: p.user_id,
-                userName: p.user_name,
-                joinTime: p.join_time,
-                duration: p.duration,
-              })),
-            },
-          ]);
+        jest.spyOn(calVideoService, "getVideoSessions").mockResolvedValue([
+          {
+            id: mockSessions[0].id,
+            room: mockSessions[0].room,
+            startTime: mockSessions[0].start_time,
+            duration: mockSessions[0].duration,
+            ongoing: mockSessions[0].ongoing,
+            maxParticipants: mockSessions[0].max_participants,
+            participants: mockSessions[0].participants.map((p) => ({
+              userId: p.user_id,
+              userName: p.user_name,
+              joinTime: p.join_time,
+              duration: p.duration,
+            })),
+          },
+        ]);
 
         const response = await request(app.getHttpServer())
           .get(`/v2/bookings/${booking.uid}/conferencing-sessions`)
