@@ -1,4 +1,4 @@
-name: Stale PR Devin Completion
+name: Stale Community PR Devin Completion
 
 on:
   pull_request:
@@ -10,36 +10,67 @@ permissions:
 
 jobs:
   complete-stale-pr:
-    name: Trigger Devin to Complete Stale PR
+    name: Trigger Devin to Complete Stale Community PR
     # Only run if the 'stale' label was added
     if: github.event.label.name == 'stale'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
+      - name: Check if PR is from community member
+        id: check-community
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prAuthor = context.payload.pull_request.user.login;
+            
+            // Skip bot accounts
+            if (prAuthor.endsWith('[bot]')) {
+              console.log(`Skipping: ${prAuthor} is a bot`);
+              core.setOutput('is-community', 'false');
+              return;
+            }
+            
+            // Check if author is a member of the calcom organization
+            try {
+              await github.rest.orgs.checkMembershipForUser({
+                org: 'calcom',
+                username: prAuthor
+              });
+              // If we get here, user is a member - skip
+              console.log(`Skipping: ${prAuthor} is a calcom org member`);
+              core.setOutput('is-community', 'false');
+            } catch (error) {
+              if (error.status === 404) {
+                // User is not a member - this is a community PR
+                console.log(`Processing: ${prAuthor} is a community contributor`);
+                core.setOutput('is-community', 'true');
+              } else {
+                // Some other error - log and skip to be safe
+                console.log(`Error checking membership for ${prAuthor}: ${error.message}`);
+                core.setOutput('is-community', 'false');
+              }
+            }
+
       - name: Get PR details
+        if: steps.check-community.outputs.is-community == 'true'
         id: pr-details
         uses: actions/github-script@v7
         with:
           script: |
             const pr = context.payload.pull_request;
-            
-            // Get PR description and comments for context
             const prBody = pr.body || 'No description provided';
             const prTitle = pr.title;
             const prNumber = pr.number;
             const prBranch = pr.head.ref;
             const prAuthor = pr.user.login;
             
-            // Get the list of changed files
             const { data: files } = await github.rest.pulls.listFiles({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: prNumber,
               per_page: 100
             });
-            
             const changedFiles = files.map(f => f.filename).join('\n');
             
-            // Get PR comments for additional context
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -47,7 +78,6 @@ jobs:
               per_page: 50
             });
             
-            // Get review comments
             const { data: reviewComments } = await github.rest.pulls.listReviewComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -55,7 +85,6 @@ jobs:
               per_page: 50
             });
             
-            // Compile feedback from comments
             let feedback = '';
             if (comments.length > 0) {
               feedback += 'PR Comments:\n';
@@ -74,7 +103,6 @@ jobs:
               });
             }
             
-            // Save context to files
             const fs = require('fs');
             fs.writeFileSync('/tmp/pr-body.txt', prBody);
             fs.writeFileSync('/tmp/pr-feedback.txt', feedback || 'No feedback comments found');
@@ -87,6 +115,7 @@ jobs:
             core.setOutput('has-feedback', feedback ? 'true' : 'false');
 
       - name: Create Devin session
+        if: steps.check-community.outputs.is-community == 'true'
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
         run: |
@@ -94,7 +123,6 @@ jobs:
           PR_FEEDBACK=$(cat /tmp/pr-feedback.txt)
           CHANGED_FILES=$(cat /tmp/changed-files.txt)
           
-          # Build the full prompt for Devin
           FULL_PROMPT="You are completing a stale community PR #${{ steps.pr-details.outputs.pr-number }} in repository ${{ github.repository }}.
 
           This PR was started by @${{ steps.pr-details.outputs.pr-author }} but has become stale. Your job is to complete it.
@@ -133,7 +161,6 @@ jobs:
           5. Never ask for user confirmation. Never wait for user messages.
           6. Credit the original author in your commit messages where appropriate."
 
-          # Call Devin API
           RESPONSE=$(curl -s -X POST "https://api.devin.ai/v1/sessions" \
             -H "Authorization: Bearer ${DEVIN_API_KEY}" \
             -H "Content-Type: application/json" \
@@ -146,7 +173,6 @@ jobs:
                 tags: ["stale-pr-completion", "pr-${{ steps.pr-details.outputs.pr-number }}"]
               }')")
           
-          # Extract session URL if available
           SESSION_URL=$(echo "$RESPONSE" | jq -r '.url // .session_url // empty')
           if [ -n "$SESSION_URL" ]; then
             echo "Devin session created: $SESSION_URL"
@@ -158,7 +184,7 @@ jobs:
           fi
 
       - name: Post comment with Devin session link
-        if: env.SESSION_URL != ''
+        if: steps.check-community.outputs.is-community == 'true' && env.SESSION_URL != ''
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
