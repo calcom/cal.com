@@ -138,6 +138,7 @@ jobs:
           8. Push your changes to the PR branch.
           9. Post a summary comment on the PR explaining what you completed.
           10. Remove the 'stale' label from the PR if you've completed the work.
+          11. Mark the PR as ready for review if applicable.
 
           Rules and Guidelines:
           1. Respect the original author's intent and approach - don't rewrite the PR from scratch.
