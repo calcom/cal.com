@@ -1,4 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { ExternalLinkIcon, XIcon } from "lucide-react";
+
 import type { Props } from "react-select";
 
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
@@ -166,7 +168,7 @@ export const ChildrenEventTypeSelect = ({
                           href={`${getBookerBaseUrlSync(
                             children.owner.profile?.organization?.slug ?? null
                           )}/${children.owner?.username}/${children.slug}`}
-                          StartIcon="external-link"
+                          StartIcon={ExternalLinkIcon}
                         />
                       </Tooltip>
                     )}
@@ -181,7 +183,7 @@ export const ChildrenEventTypeSelect = ({
                         onClick={() =>
                           props.onChange(value.filter((item) => item.owner.id !== children.owner.id))
                         }
-                        StartIcon="x"
+                        StartIcon={XIcon}
                       />
                     </Tooltip>
                   </ButtonGroup>

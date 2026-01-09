@@ -1,4 +1,6 @@
 import { noop } from "@tanstack/react-table";
+import { PencilIcon, Trash2Icon } from "lucide-react";
+
 import { formatInTimeZone } from "date-fns-tz";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
@@ -125,7 +127,7 @@ const DateOverrideList = ({
                     className="text-default h-5"
                     color="minimal"
                     variant="icon"
-                    StartIcon="pencil"
+                    StartIcon={PencilIcon}
                   />
                 </DialogTrigger>
               }
@@ -146,7 +148,7 @@ const DateOverrideList = ({
                 })}
                 color="destructive"
                 variant="icon"
-                StartIcon="trash-2"
+                StartIcon={Trash2Icon}
                 onClick={() => {
                   replace([...fields.filter((currentItem) => currentItem.id !== item.id)]);
                   if (!isDryRun) {

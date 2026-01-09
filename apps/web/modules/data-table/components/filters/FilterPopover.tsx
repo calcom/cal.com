@@ -1,10 +1,10 @@
- 
+import type { LucideIcon } from "lucide-react";
+import { BinaryIcon, CalendarRangeIcon, ChevronDownIcon, DiscIcon, FileTextIcon, LayersIcon } from "lucide-react";
 import startCase from "lodash/startCase";
 
 import type { FilterType } from "@calcom/types/data-table";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import type { IconName } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 
 import { useFilterValue } from "@calcom/features/data-table/hooks";
@@ -19,12 +19,12 @@ import { FilterOptions } from "./FilterOptions";
 import { useFilterPopoverOpen } from "./useFilterPopoverOpen";
 import { numberFilterOperatorOptions, useTextFilterOperatorOptions } from "./utils";
 
-const FILTER_ICONS: Record<FilterType, IconName> = {
-  [ColumnFilterType.TEXT]: "file-text",
-  [ColumnFilterType.NUMBER]: "binary",
-  [ColumnFilterType.MULTI_SELECT]: "layers",
-  [ColumnFilterType.SINGLE_SELECT]: "disc",
-  [ColumnFilterType.DATE_RANGE]: "calendar-range",
+const FILTER_ICONS: Record<FilterType, LucideIcon> = {
+  [ColumnFilterType.TEXT]: FileTextIcon,
+  [ColumnFilterType.NUMBER]: BinaryIcon,
+  [ColumnFilterType.MULTI_SELECT]: LayersIcon,
+  [ColumnFilterType.SINGLE_SELECT]: DiscIcon,
+  [ColumnFilterType.DATE_RANGE]: CalendarRangeIcon,
 };
 
 type FilterPopoverProps = {
@@ -143,7 +143,7 @@ export function FilterPopover({ column }: FilterPopoverProps) {
           color="secondary"
           className="h-[34px] items-center"
           StartIcon={icon}
-          EndIcon="chevron-down"
+          EndIcon={ChevronDownIcon}
           data-testid={`filter-popover-trigger-${column.id}`}>
           <span>{startCase(column.title)}</span>
           <AppliedFilterValue column={column} filterValue={filterValue} />

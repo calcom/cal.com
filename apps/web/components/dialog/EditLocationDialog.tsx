@@ -1,4 +1,5 @@
 import { ErrorMessage } from "@hookform/error-message";
+import { MapPinIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { useEffect, useState } from "react";
@@ -23,7 +24,6 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Form, Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "../../lib/QueryCell";
 
@@ -258,7 +258,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           }}>
           <div className="flex flex-row md:space-x-3">
             <div className="bg-subtle hidden h-10 w-10 shrink-0 justify-center rounded-full md:flex">
-              <Icon name="map-pin" className="m-auto h-6 w-6" />
+              <MapPinIcon className="m-auto h-6 w-6" />
             </div>
             <div className="w-full md:pt-1">
               <DialogHeader title={t("edit_location")} />

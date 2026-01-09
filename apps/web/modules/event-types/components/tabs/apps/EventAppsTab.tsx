@@ -1,3 +1,4 @@
+import { Grid3X3Icon, LockIcon } from "lucide-react";
 import Link from "next/link";
 import { useFormContext } from "react-hook-form";
 
@@ -132,12 +133,12 @@ export const EventAppsTab = ({
           )}
           {!isPendingApps && !installedApps?.length ? (
             <EmptyScreen
-              Icon="grid-3x3"
+              Icon={Grid3X3Icon}
               headline={t("empty_installed_apps_headline")}
               description={t("empty_installed_apps_description")}
               buttonRaw={
                 appsDisableProps.disabled ? (
-                  <Button StartIcon="lock" color="secondary" disabled>
+                  <Button StartIcon={LockIcon} color="secondary" disabled>
                     {t("locked_by_team_admin")}
                   </Button>
                 ) : (

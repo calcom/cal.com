@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { UsersIcon } from "lucide-react";
+
 
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -52,7 +54,7 @@ export const FlagAdminList = () => {
                       size="sm"
                       variant="icon"
                       onClick={() => handleAssignClick(flag)}
-                      StartIcon="users"></Button>
+                      StartIcon={UsersIcon}></Button>
                   </div>
                 </ListItem>
               ))}

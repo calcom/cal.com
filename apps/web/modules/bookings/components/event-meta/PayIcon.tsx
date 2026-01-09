@@ -1,6 +1,10 @@
-import { Icon } from "@calcom/ui/components/icon";
+import { CreditCardIcon, ZapIcon } from "lucide-react";
 
 export function PayIcon(props: { currency: string; className?: string }) {
   const { className, currency } = props;
-  return <Icon name={currency !== "BTC" ? "credit-card" : "zap"} className={className} />;
+  return currency !== "BTC" ? (
+    <CreditCardIcon className={className} />
+  ) : (
+    <ZapIcon className={className} />
+  );
 }

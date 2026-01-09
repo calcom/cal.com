@@ -1,6 +1,16 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
+import {
+  BuildingIcon,
+  CheckIcon,
+  LockIcon,
+  PencilIcon,
+  ShieldIcon,
+  TrashIcon,
+  UserIcon,
+  VenetianMaskIcon,
+} from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -20,7 +30,6 @@ import {
   ConfirmationDialogContent,
 } from "@calcom/ui/components/dialog";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -209,11 +218,11 @@ function UsersTableBare() {
                         <span>/{user.username}</span>
                         {user.profiles[0]?.username && (
                           <span className="flex items-center gap-1">
-                            <Icon name="building" className="text-subtle size-5" />
+                            <BuildingIcon className="text-subtle size-5" />
                             <span>{user.profiles[0]?.username}</span>
                           </span>
                         )}
-                        {user.locked && <Icon name="lock" />}
+                        {user.locked && <LockIcon />}
                         <br />
                       </div>
                       <span className="break-all">{user.email}</span>
@@ -234,31 +243,31 @@ function UsersTableBare() {
                           id: "edit",
                           label: "Edit",
                           href: `/settings/admin/users/${user.id}/edit`,
-                          icon: "pencil",
+                          icon: PencilIcon,
                         },
                         {
                           id: "reset-password",
                           label: "Reset Password",
                           onClick: () => sendPasswordResetEmail.mutate({ userId: user.id }),
-                          icon: "lock",
+                          icon: LockIcon,
                         },
                         {
                           id: "impersonate-user",
                           label: "Impersonate User",
                           onClick: () => handleImpersonateUser(user?.email),
-                          icon: "user",
+                          icon: UserIcon,
                         },
                         {
                           id: "lock-user",
                           label: user.locked ? "Unlock User Account" : "Lock User Account",
                           onClick: () => lockUserAccount.mutate({ userId: user.id, locked: !user.locked }),
-                          icon: "lock",
+                          icon: LockIcon,
                         },
                         {
                           id: "verify-workflows",
                           label: "Verify workflows",
                           onClick: () => verifyWorkflows.mutate({ userId: user.id }),
-                          icon: "check",
+                          icon: CheckIcon,
                         },
                         {
                           id: "whitelist-user-workflows",
@@ -271,7 +280,7 @@ function UsersTableBare() {
                               whitelistWorkflows: !user.whitelistWorkflows,
                             });
                           },
-                          icon: "check",
+                          icon: CheckIcon,
                         },
                         {
                           id: "impersonation",
@@ -280,21 +289,21 @@ function UsersTableBare() {
                             setSelectedUser(user.email);
                             setShowImpersonateModal(true);
                           },
-                          icon: "venetian-mask",
+                          icon: VenetianMaskIcon,
                         },
                         {
                           id: "remove-2fa",
                           label: "Remove 2FA",
                           color: "destructive",
                           onClick: () => removeTwoFactor.mutate({ userId: user.id }),
-                          icon: "shield",
+                          icon: ShieldIcon,
                         },
                         {
                           id: "delete",
                           label: "Delete",
                           color: "destructive",
                           onClick: () => setUserToDelete(user.id),
-                          icon: "trash",
+                          icon: TrashIcon,
                         },
                       ]}
                     />
@@ -347,7 +356,6 @@ const DeleteUserDialog = ({
   onClose: () => void;
 }) => {
   return (
-     
     <Dialog name="delete-user" open={!!user} onOpenChange={(open) => (open ? () => {} : onClose())}>
       <ConfirmationDialogContent
         title="Delete User"

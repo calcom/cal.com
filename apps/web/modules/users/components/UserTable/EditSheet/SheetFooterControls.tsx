@@ -1,4 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { PencilIcon } from "lucide-react";
+
 import { Button } from "@calcom/ui/components/button";
 import { SheetClose } from "@calcom/ui/components/sheet";
 
@@ -56,7 +58,7 @@ function MoreInfoFooter({
             setEditMode(true);
           }}
           key="EDIT_BUTTON"
-          StartIcon="pencil">
+          StartIcon={PencilIcon}>
           {t("edit")}
         </Button>
       )}

@@ -1,4 +1,6 @@
 import { getTranslate } from "app/_utils";
+import { InfoIcon } from "lucide-react";
+
 
 import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
 import { Button } from "@calcom/ui/components/button";
@@ -19,7 +21,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
             className="mx-2 hover:bg-transparent"
             color="minimal"
             variant="icon"
-            StartIcon="info"
+            StartIcon={InfoIcon}
           />
         </div>
       }

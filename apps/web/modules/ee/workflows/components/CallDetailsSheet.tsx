@@ -1,10 +1,10 @@
 import type { Dispatch } from "react";
+import { DownloadIcon, UserIcon } from "lucide-react";
 
 import type { CallDetailsAction, CallDetailsState } from "@calcom/features/ee/workflows/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import {
   Sheet,
   SheetContent,
@@ -126,7 +126,7 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
               <audio controls className="h-11 w-[258px]" src={selectedCall.recording_url}>
                 Your browser does not support the audio element.
               </audio>
-              <Button color="minimal" href={selectedCall.recording_url} target="_blank" StartIcon="download">
+              <Button color="minimal" href={selectedCall.recording_url} target="_blank" StartIcon={DownloadIcon}>
                 {t("download")}
               </Button>
             </div>
@@ -150,7 +150,7 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
                     return (
                       <div key={index} className="stack-y-1">
                         <div className="flex items-center gap-2">
-                          <Icon name="user" className={isAgent ? "text-info" : "text-success"} />
+                          <UserIcon className={isAgent ? "text-info" : "text-success"} />
                           <span className={`text-sm font-medium ${isAgent ? "text-info" : "text-success"}`}>
                             {isAgent ? t("agent") : t("user")}
                           </span>

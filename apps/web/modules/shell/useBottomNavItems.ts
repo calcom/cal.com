@@ -1,3 +1,4 @@
+import { ClockIcon, CopyIcon, ExternalLinkIcon, GiftIcon, LockIcon, SettingsIcon } from "lucide-react";
 import type { User as UserAuth } from "next-auth";
 import posthog from "posthog-js";
 
@@ -41,51 +42,51 @@ export function useBottomNavItems({
           name: "skip_trial",
           href: "",
           isLoading: skipTeamTrialsMutation.isPending,
-          icon: "clock",
+          icon: ClockIcon,
           onClick: (e: { preventDefault: () => void }) => {
             e.preventDefault();
             skipTeamTrialsMutation.mutate({});
           },
         }
       : null,
-    {
-      name: "view_public_page",
-      href: publicPageUrl,
-      icon: "external-link",
-      target: "__blank",
-    },
-    {
-      name: "copy_public_page_link",
-      href: "",
-      onClick: (e: { preventDefault: () => void }) => {
-        e.preventDefault();
-        navigator.clipboard.writeText(publicPageUrl);
-        showToast(t("link_copied"), "success");
-      },
-      icon: "copy",
-    },
-    IS_DUB_REFERRALS_ENABLED
-      ? {
-          name: "referral_text",
-          href: "/refer",
-          icon: "gift",
-          onClick: () => {
-            posthog.capture("refer_and_earn_clicked");
+        {
+          name: "view_public_page",
+          href: publicPageUrl,
+          icon: ExternalLinkIcon,
+          target: "__blank",
+        },
+        {
+          name: "copy_public_page_link",
+          href: "",
+          onClick: (e: { preventDefault: () => void }) => {
+            e.preventDefault();
+            navigator.clipboard.writeText(publicPageUrl);
+            showToast(t("link_copied"), "success");
           },
-        }
-      : null,
+          icon: CopyIcon,
+        },
+        IS_DUB_REFERRALS_ENABLED
+          ? {
+              name: "referral_text",
+              href: "/refer",
+              icon: GiftIcon,
+              onClick: () => {
+                posthog.capture("refer_and_earn_clicked");
+              },
+            }
+          : null,
 
-    isAdmin
-      ? {
-          name: "impersonation",
-          href: "/settings/admin/impersonation",
-          icon: "lock",
-        }
-      : null,
-    {
-      name: "settings",
-      href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
-      icon: "settings",
-    },
+        isAdmin
+          ? {
+              name: "impersonation",
+              href: "/settings/admin/impersonation",
+              icon: LockIcon,
+            }
+          : null,
+        {
+          name: "settings",
+          href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
+          icon: SettingsIcon,
+        },
   ].filter(Boolean) as NavigationItemType[];
 }

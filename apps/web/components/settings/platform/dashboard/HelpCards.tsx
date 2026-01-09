@@ -1,6 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Card } from "@calcom/ui/components/card";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { helpCards } from "@lib/settings/platform/utils";
 
@@ -25,7 +24,7 @@ export const HelpCards = () => {
           return (
             <div key={card.title}>
               <Card
-                icon={<Icon name={card.icon} className="h-5 w-5 text-green-700" />}
+                icon={<card.Icon className="h-5 w-5 text-green-700" />}
                 variant={card.variant}
                 title={title}
                 description={description}

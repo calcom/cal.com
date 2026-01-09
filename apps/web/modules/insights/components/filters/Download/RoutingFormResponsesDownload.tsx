@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { FileDownIcon } from "lucide-react";
+
 
 import dayjs from "@calcom/dayjs";
 import type { SortingState } from "@calcom/features/data-table";
@@ -88,7 +90,7 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
     <Dropdown modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
-          EndIcon="file-down"
+          EndIcon={FileDownIcon}
           color="secondary"
           className="self-end sm:self-baseline"
           loading={isDownloading}>

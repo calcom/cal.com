@@ -2,12 +2,13 @@
 
 import { keepPreviousData } from "@tanstack/react-query";
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { FileDownIcon, Handshake as HandshakeIcon, PlusIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
+import posthog from "posthog-js";
 import { useMemo, useReducer, useState } from "react";
 import { createPortal } from "react-dom";
-import posthog from "posthog-js";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import {
@@ -201,10 +202,10 @@ function UserListTableContent({
           const filterType = isNumber
             ? ColumnFilterType.NUMBER
             : isText
-              ? ColumnFilterType.TEXT
-              : isSingleSelect
-                ? ColumnFilterType.SINGLE_SELECT
-                : ColumnFilterType.MULTI_SELECT;
+            ? ColumnFilterType.TEXT
+            : isSingleSelect
+            ? ColumnFilterType.SINGLE_SELECT
+            : ColumnFilterType.MULTI_SELECT;
 
           return {
             id: attribute.id,
@@ -647,7 +648,7 @@ function UserListTableContent({
                   <DataTableSelectionBar.Button
                     color="secondary"
                     onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
-                    icon="handshake">
+                    Icon={HandshakeIcon}>
                     {t("group_meeting")}
                   </DataTableSelectionBar.Button>
                 )}
@@ -689,7 +690,7 @@ function UserListTableContent({
             <DataTableToolbar.CTA
               type="button"
               color="secondary"
-              StartIcon="file-down"
+              StartIcon={FileDownIcon}
               loading={isDownloading}
               onClick={() => handleDownload()}
               data-testid="export-members-button">
@@ -699,7 +700,7 @@ function UserListTableContent({
               <DataTableToolbar.CTA
                 type="button"
                 color="primary"
-                StartIcon="plus"
+                StartIcon={PlusIcon}
                 onClick={() => {
                   dispatch({
                     type: "INVITE_MEMBER",
@@ -707,7 +708,7 @@ function UserListTableContent({
                       showModal: true,
                     },
                   });
-                  posthog.capture("add_organization_member_clicked")
+                  posthog.capture("add_organization_member_clicked");
                 }}
                 data-testid="new-organization-member-button">
                 {t("add")}

@@ -1,4 +1,6 @@
 import type { Directory } from "@boxyhq/saml-jackson";
+import { ClipboardIcon } from "lucide-react";
+
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui/components/toast";
@@ -30,7 +32,7 @@ const DirectoryInfo = ({ directory }: { directory: Directory }) => {
               }}
               type="button"
               className="rounded-l-none text-base"
-              StartIcon="clipboard">
+              StartIcon={ClipboardIcon}>
               {t("copy")}
             </Button>
           </Tooltip>
@@ -52,7 +54,7 @@ const DirectoryInfo = ({ directory }: { directory: Directory }) => {
               }}
               type="button"
               className="rounded-l-none text-base"
-              StartIcon="clipboard">
+              StartIcon={ClipboardIcon}>
               {t("copy")}
             </Button>
           </Tooltip>

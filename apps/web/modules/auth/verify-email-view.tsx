@@ -1,5 +1,6 @@
 "use client";
 
+import { MailOpenIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
@@ -65,7 +66,7 @@ function VerifyEmailPage() {
           <EmptyScreen
             border
             dashedBorder={false}
-            Icon="mail-open"
+            Icon={MailOpenIcon}
             headline={t("check_your_email")}
             description={t("verify_email_page_body", { email: session?.user?.email, appName: APP_NAME })}
             className="bg-default"
@@ -79,6 +80,7 @@ function VerifyEmailPage() {
                       href={href}
                       target="_blank"
                       rel="noopener noreferrer">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={icon} alt={name} className="me-1 h-4 w-4" /> {name}
                     </Button>
                   ))}

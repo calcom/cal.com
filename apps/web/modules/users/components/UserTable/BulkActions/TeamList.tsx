@@ -1,4 +1,5 @@
 import type { Table } from "@tanstack/react-table";
+import { CheckIcon, Users as UsersIcon } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
@@ -15,7 +16,6 @@ import {
   CommandItem,
   CommandList,
 } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -85,7 +85,7 @@ export function TeamListBulkAction({ table }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <DataTableSelectionBar.Button icon="users" color="secondary">
+          <DataTableSelectionBar.Button Icon={UsersIcon} color="secondary">
             {t("add_to_team")}
           </DataTableSelectionBar.Button>
         </PopoverTrigger>
@@ -128,7 +128,7 @@ export function TeamListBulkAction({ table }: Props) {
                             "border-subtle ml-auto flex h-4 w-4 items-center justify-center rounded-sm border",
                             isSelected ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
                           )}>
-                          <Icon name="check" className={classNames("h-4 w-4")} />
+                          <CheckIcon className={classNames("h-4 w-4")} />
                         </div>
                       </CommandItem>
                     );

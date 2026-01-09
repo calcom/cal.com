@@ -1,5 +1,6 @@
 "use client";
 
+import { PhoneCallIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -53,7 +54,7 @@ function ConnectAndJoin() {
       {session ? (
         <EmptyScreen
           headline={t("instant_tab_title")}
-          Icon="phone-call"
+          Icon={PhoneCallIcon}
           description={t("uprade_to_create_instant_bookings")}
           buttonRaw={
             <div className="flex flex-col items-center justify-center	gap-4">

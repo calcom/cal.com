@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CopyIcon, ExternalLinkIcon, LinkIcon, LogOutIcon, Trash2Icon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -32,7 +33,6 @@ import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import {
   SkeletonButton,
@@ -47,8 +47,6 @@ import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(ma
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
-
-
 
 const SkeletonLoader = () => {
   return (
@@ -178,10 +176,10 @@ const ProfileView = () => {
           </div>
           <div>
             <Link href={permalink} passHref={true} target="_blank">
-              <LinkIconButton Icon="external-link">{t("preview")}</LinkIconButton>
+              <LinkIconButton Icon={ExternalLinkIcon}>{t("preview")}</LinkIconButton>
             </Link>
             <LinkIconButton
-              Icon="link"
+              Icon={LinkIcon}
               onClick={() => {
                 navigator.clipboard.writeText(permalink);
                 showToast("Copied to clipboard", "success");
@@ -205,7 +203,7 @@ const ProfileView = () => {
               <Button
                 color="destructive"
                 className="border"
-                StartIcon="trash-2"
+                StartIcon={Trash2Icon}
                 data-testid="disband-team-button">
                 {t("disband_team")}
               </Button>
@@ -225,7 +223,7 @@ const ProfileView = () => {
         <Dialog>
           <SectionBottomActions align="end">
             <DialogTrigger asChild>
-              <Button color="destructive" className="border" StartIcon="log-out">
+              <Button color="destructive" className="border" StartIcon={LogOutIcon}>
                 {t("leave_team")}
               </Button>
             </DialogTrigger>
@@ -449,7 +447,7 @@ type FormValues = z.infer<typeof teamProfileFormSchema>;
                   type="button"
                   aria-label="copy team id"
                   onClick={() => handleCopy(teamId.toString())}>
-                  <Icon name="copy" className="ml-1 h-4 w-4" />
+                  <CopyIcon className="ml-1 h-4 w-4" />
                 </Button>
               </Tooltip>
             }

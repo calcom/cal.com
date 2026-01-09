@@ -1,6 +1,8 @@
 "use client";
 
 import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
+import { CalendarIcon, PlusIcon, Trash2Icon } from "lucide-react";
+
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -206,7 +208,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               <Button
                 color="secondary"
                 className="mt-2"
-                StartIcon="calendar"
+                StartIcon={CalendarIcon}
                 onClick={() => setIsTZScheduleOpen(true)}>
                 {t("schedule_timezone_change")}
               </Button>
@@ -242,7 +244,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                           color="secondary"
                           className="ml-auto"
                           variant="icon"
-                          StartIcon="trash-2"
+                          StartIcon={Trash2Icon}
                           onClick={() => {
                             const updatedSchedules = watchedTzSchedules.filter(
                               (s, filterIndex) => filterIndex !== index
@@ -255,7 +257,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                   })}
                 </div>
                 <Button
-                  StartIcon="plus"
+                  StartIcon={PlusIcon}
                   color="secondary"
                   className="mt-4"
                   onClick={() => setIsTZScheduleOpen(true)}>

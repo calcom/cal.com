@@ -22,7 +22,7 @@ import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { ArrowRightIcon, ZapIcon } from "lucide-react";
 import { useHasPaidPlan, useHasActiveTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
 import { AddActionDialog } from "./AddActionDialog";
@@ -196,9 +196,9 @@ export default function WorkflowDetailsPage(props: Props) {
           collapsible={false}
           label={
             <div className="flex items-center gap-2 pt-1 pb-2">
-              <div className="border-subtle text-subtle ml-1 rounded-lg border p-1">
-                <Icon name="zap" size="16" />
-              </div>
+                            <div className="border-subtle text-subtle ml-1 rounded-lg border p-1">
+                              <ZapIcon size={16} />
+                            </div>
               <div className="text-sm font-medium leading-none">{t("trigger")}</div>
             </div>
           }>
@@ -238,9 +238,9 @@ export default function WorkflowDetailsPage(props: Props) {
                     collapsible={false}
                     label={
                       <div className="flex items-center gap-2 pt-1 pb-2">
-                        <div className="border-subtle text-subtle rounded-lg border p-1">
-                          <Icon name="arrow-right" size="16" />
-                        </div>
+                                                <div className="border-subtle text-subtle rounded-lg border p-1">
+                                                  <ArrowRightIcon size={16} />
+                                                </div>
                         <div className="text-sm font-medium leading-none">{t("action")}</div>
                       </div>
                     }

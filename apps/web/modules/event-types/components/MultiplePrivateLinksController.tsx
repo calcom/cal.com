@@ -1,4 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { CopyIcon, ExternalLinkIcon, PlusIcon, SettingsIcon, Trash2Icon } from "lucide-react";
+
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
@@ -278,7 +280,7 @@ export const MultiplePrivateLinksController = ({
                                 type="button"
                                 color="minimal"
                                 size="sm"
-                                StartIcon="copy"
+                                StartIcon={CopyIcon}
                                 onClick={() => {
                                   copyToClipboard(singleUseURL);
                                   showToast(t("link_copied"), "success");
@@ -299,7 +301,7 @@ export const MultiplePrivateLinksController = ({
                               type="button"
                               color="minimal"
                               variant="icon"
-                              StartIcon="external-link"
+                              StartIcon={ExternalLinkIcon}
                               data-testid="private-link-preview"
                               href={singleUseURL}
                               target="_blank"
@@ -312,7 +314,7 @@ export const MultiplePrivateLinksController = ({
                             type="button"
                             color="minimal"
                             variant="icon"
-                            StartIcon="settings"
+                            StartIcon={SettingsIcon}
                             data-testid="private-link-settings"
                             onClick={() => openSettingsDialog(originalIndex, val)}
                           />
@@ -321,7 +323,7 @@ export const MultiplePrivateLinksController = ({
                           data-testid={`remove-private-link-${originalIndex}`}
                           variant="icon"
                           type="button"
-                          StartIcon="trash-2"
+                          StartIcon={Trash2Icon}
                           color="destructive"
                           className="ml-1 border-none"
                           onClick={() => removePrivateLink(originalIndex)}
@@ -336,7 +338,7 @@ export const MultiplePrivateLinksController = ({
               })}
               <Button
                 color="minimal"
-                StartIcon="plus"
+                StartIcon={PlusIcon}
                 onClick={addPrivateLink}
                 data-testid="add-private-link-button">
                 {t("add_a_multiple_private_link")}

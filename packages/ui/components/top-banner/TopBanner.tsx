@@ -1,13 +1,12 @@
 import classNames from "classnames";
+import type { LucideIcon } from "lucide-react";
+import { InfoIcon, TriangleAlertIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
 
-import { Icon } from "../icon";
-import type { IconName } from "../icon";
-
 export type TopBannerProps = {
-  icon?: IconName;
+  icon?: LucideIcon;
   text: string;
   variant?: keyof typeof variantClassName;
   actions?: ReactNode;
@@ -24,14 +23,14 @@ const defaultIconProps = {
 };
 
 export function TopBanner(props: TopBannerProps) {
-  const { icon, variant = "default", text, actions } = props;
+  const { icon: IconComponent, variant = "default", text, actions } = props;
 
   const renderDefaultIconByVariant = () => {
     switch (variant) {
       case "error":
-        return <Icon {...defaultIconProps} name="triangle-alert" data-testid="variant-error" />;
+        return <TriangleAlertIcon {...defaultIconProps} data-testid="variant-error" />;
       case "warning":
-        return <Icon {...defaultIconProps} name="info" data-testid="variant-warning" />;
+        return <InfoIcon {...defaultIconProps} data-testid="variant-warning" />;
       default:
         return null;
     }
@@ -48,7 +47,7 @@ export function TopBanner(props: TopBannerProps) {
       )}>
       <div className="flex flex-1 flex-col items-start justify-center gap-2 px-1 py-0.5 lg:flex-row lg:items-center">
         <p className="text-emphasis flex flex-col items-start justify-center gap-2 text-left font-sans text-sm font-medium leading-4 lg:flex-row lg:items-center">
-          {icon ? <Icon {...defaultIconProps} name={icon} data-testid="variant-default" /> : defaultIcon}
+          {IconComponent ? <IconComponent {...defaultIconProps} data-testid="variant-default" /> : defaultIcon}
           {text}
         </p>
         {actions && <div className="text-sm font-medium">{actions}</div>}

@@ -1,4 +1,5 @@
 import type { Table } from "@tanstack/react-table";
+import { CheckIcon, Link as LinkIcon } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useState, Fragment } from "react";
 
@@ -16,7 +17,6 @@ import {
   CommandItem,
   CommandList,
 } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -92,7 +92,7 @@ export function EventTypesList({ table, teamId }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <DataTableSelectionBar.Button icon="link" color="secondary">
+          <DataTableSelectionBar.Button Icon={LinkIcon} color="secondary">
             {t("add_to_event_type")}
           </DataTableSelectionBar.Button>
         </PopoverTrigger>
@@ -196,7 +196,7 @@ const ListItem = ({ onSelect, text, isSelected }: ListItemProps) => {
           "border-subtle ml-auto flex h-4 w-4 items-center justify-center rounded-sm border",
           isSelected ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
         )}>
-        <Icon name="check" className={classNames("h-4 w-4")} />
+        <CheckIcon className={classNames("h-4 w-4")} />
       </div>
     </CommandItem>
   );

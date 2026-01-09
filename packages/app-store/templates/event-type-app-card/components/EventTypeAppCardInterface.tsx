@@ -1,8 +1,9 @@
+import { SunriseIcon, SunsetIcon } from "lucide-react";
+
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
-import { Icon } from "@calcom/ui/components/icon";
 
 import type { appDataSchema } from "../zod";
 
@@ -33,7 +34,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
       <div className="mt-2 text-sm">
         <div className="flex">
           <span className="ltr:mr-2 rtl:ml-2">
-            <Icon name={isSunrise ? "sunrise" : "sunset"} />
+            {isSunrise ? <SunriseIcon /> : <SunsetIcon />}
           </span>
           I am an AppCard for Event with Title: {eventType.title}
         </div>{" "}

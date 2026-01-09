@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { ChevronDownIcon, MonitorIcon } from "lucide-react";
+
 import type { UseFormReturn } from "react-hook-form";
 
 import type { Language } from "@calcom/features/calAIPhone/providers/retellAI/types";
@@ -196,7 +198,7 @@ export function AgentConfigurationSheet({
                     color="secondary"
                     className="rounded-[10px]"
                     disabled={readOnly}
-                    EndIcon="chevron-down">
+                    EndIcon={ChevronDownIcon}>
                     {t("test_agent")}
                   </Button>
                 </DropdownMenuTrigger>
@@ -204,7 +206,7 @@ export function AgentConfigurationSheet({
                   <DropdownMenuItem>
                     <DropdownItem
                       type="button"
-                      StartIcon="monitor"
+                      StartIcon={MonitorIcon}
                       onClick={() => {
                         setIsWebCallDialogOpen(true);
                       }}>

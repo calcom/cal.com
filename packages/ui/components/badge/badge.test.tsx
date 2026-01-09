@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
+import { InfoIcon } from "lucide-react";
 import { vi } from "vitest";
 
-import { Icon } from "../icon";
 import { Badge, badgeStyles } from "./Badge";
 
 describe("Badge", () => {
@@ -40,12 +40,12 @@ describe("Badge", () => {
   });
 
   test("renders with startIcon when provided", () => {
-    render(<Badge startIcon="info">{children}</Badge>);
+    render(<Badge startIcon={InfoIcon}>{children}</Badge>);
     expect(screen.getByTestId("start-icon")).toBeInTheDocument();
   });
 
   test("renders with customStartIcon when provided", () => {
-    render(<Badge customStartIcon={<Icon name="info" data-testid="custom-icon" />}>{children}</Badge>);
+    render(<Badge customStartIcon={<InfoIcon />}>{children}</Badge>);
     expect(screen.getByTestId("custom-icon")).toBeInTheDocument();
   });
 

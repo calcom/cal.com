@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { ArrowRightIcon } from "lucide-react";
+
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import posthog from "posthog-js";
@@ -162,7 +164,7 @@ const UserProfile = ({ user }: UserProfileProps) => {
       </fieldset>
       <Button
         loading={mutation.isPending}
-        EndIcon="arrow-right"
+        EndIcon={ArrowRightIcon}
         type="submit"
         className="mt-8 w-full items-center justify-center">
         {t("finish_and_start")}

@@ -2,6 +2,7 @@
 
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
+import type { LucideIcon } from "lucide-react";
 import type { ForwardRefExoticComponent, ReactNode } from "react";
 import React from "react";
 
@@ -10,8 +11,6 @@ import classNames from "@calcom/ui/classNames";
 
 import type { ButtonProps } from "../button";
 import { Button } from "../button";
-import type { IconName } from "../icon";
-import { Icon } from "../icon";
 
 const dialogClasses = cva(
   "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-[95vw] m-auto -translate-x-1/2 -translate-y-1/2 rounded-2xl text-left shadow-xl focus-visible:outline-none sm:align-middle",
@@ -43,7 +42,7 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
   description?: string | JSX.Element | null;
   closeText?: string;
   actionDisabled?: boolean;
-  Icon?: IconName;
+  Icon?: LucideIcon;
   enableOverflow?: boolean;
   forceOverlayWhenNoModal?: boolean;
   /**
@@ -97,13 +96,13 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               </div>
             </div>
           )}
-          {type === "confirmation" && (
-            <div className="flex">
-              {icon && (
-                <div className="bg-emphasis flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                  <Icon name={icon} className="text-emphasis h-4 w-4" />
-                </div>
-              )}
+                    {type === "confirmation" && (
+                      <div className="flex">
+                        {icon && (
+                          <div className="bg-emphasis flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                            {React.createElement(icon, { className: "text-emphasis h-4 w-4" })}
+                          </div>
+                        )}
               <div className="ml-4 grow">
                 <DialogHeader title={title} subtitle={props.description} />
                 <div data-testid="dialog-confirmation">{children}</div>

@@ -1,12 +1,11 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { UserPlusIcon, XIcon } from "lucide-react";
 import type { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label, Select } from "@calcom/ui/components/form";
 
 export type CheckedUserSelectOption = {
   avatar: string;
@@ -50,11 +49,10 @@ export const CheckedUserSelect = ({
                     className={`flex px-3 py-2 ${index === value.length - 1 ? "" : "border-b"}`}>
                     <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
                     <p className="my-auto ml-3 text-sm text-gray-900">{option.label}</p>
-                    <Icon
-                      name="x"
-                      onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
-                      className="my-auto ml-auto"
-                    />
+                                        <XIcon
+                                          onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
+                                          className="my-auto ml-auto h-4 w-4"
+                                        />
                   </li>
                 );
               })}
@@ -63,11 +61,11 @@ export const CheckedUserSelect = ({
         </div>
       ) : (
         <div className="mt-6">
-          <EmptyScreen
-            Icon="user-plus"
-            headline={t("no_assigned_members")}
-            description={t("start_assigning_members_above")}
-          />
+                    <EmptyScreen
+                      Icon={UserPlusIcon}
+                      headline={t("no_assigned_members")}
+                      description={t("start_assigning_members_above")}
+                    />
         </div>
       )}
     </>

@@ -1,5 +1,7 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, ChevronUpIcon, CopyIcon, EllipsisIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -10,8 +12,6 @@ import { Badge } from "../badge";
 import { Button } from "../button";
 import { Dropdown, DropdownMenuTrigger, DropdownMenuContent, DropdownItem } from "../dropdown";
 import { Input } from "../form/inputs/TextField";
-import { Icon } from "../icon";
-import type { IconName } from "../icon";
 
 type Action = { check: () => boolean; fn: () => void; color?: "destructive" | "minimal"; disabled?: boolean };
 
@@ -23,7 +23,7 @@ type FormCardActionsProps = {
 const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) => {
   type ActionItem = {
     label: string;
-    icon: IconName;
+    icon: LucideIcon;
     onClick: () => void;
     color: "destructive" | "minimal";
     disabled?: boolean;
@@ -32,12 +32,12 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
   const actions: ActionItem[] = [
     duplicateField?.fn && {
       label: "Duplicate",
-      icon: "copy",
+      icon: CopyIcon,
       onClick: () => duplicateField.fn(),
     },
     deleteField?.fn && {
       label: "Delete",
-      icon: "trash",
+      icon: TrashIcon,
       onClick: () => deleteField.fn(),
       color: deleteField.color ?? "minimal",
       disabled: deleteField.disabled,
@@ -68,7 +68,7 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
     <Dropdown>
       <DropdownMenuTrigger asChild>
         <Button type="button" variant="icon" color="minimal" className="ml-2">
-          <Icon name="ellipsis" className="text-default h-4 w-4" />
+          <EllipsisIcon className="text-default h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
@@ -115,7 +115,7 @@ export default function FormCard({
   moveDown?: Action | null;
   className?: string;
   badge?: { text: string; href?: string; variant: BadgeProps["variant"] } | null;
-  leftIcon?: IconName;
+  leftIcon?: LucideIcon;
   collapsible?: boolean;
 } & JSX.IntrinsicElements["div"]) {
   className = classNames(
@@ -137,7 +137,7 @@ export default function FormCard({
             type="button"
             className="bg-default text-muted hover:text-emphasis invisible -ml-2 mb-1 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
             onClick={() => moveUp?.fn()}>
-            <Icon name="arrow-up" />
+            <ArrowUpIcon />
           </button>
         ) : null}
         {moveDown?.check() ? (
@@ -145,7 +145,7 @@ export default function FormCard({
             type="button"
             className="bg-default text-muted hover:text-emphasis invisible -ml-2 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
             onClick={() => moveDown?.fn()}>
-            <Icon name="arrow-down" />
+            <ArrowDownIcon />
           </button>
         ) : null}
       </div>
@@ -154,7 +154,10 @@ export default function FormCard({
           <div className="flex items-center gap-2">
             {leftIcon && (
               <div className="text-subtle border-subtle rounded-lg border p-1.5">
-                <Icon name={leftIcon} className="text-default h-4 w-4" />
+                {(() => {
+                  const LeftIconComponent = leftIcon;
+                  return <LeftIconComponent className="text-default h-4 w-4" />;
+                })()}
               </div>
             )}
             {collapsible && (
@@ -163,8 +166,7 @@ export default function FormCard({
                 variant="icon"
                 color="minimal"
                 CustomStartIcon={
-                  <Icon
-                    name="chevron-up"
+                  <ChevronUpIcon
                     className={classNames(
                       "text-default h-4 w-4 transition-transform",
                       isCollapsed && "rotate-180"

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ExternalLinkIcon, LockIcon, ZapIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -18,7 +19,6 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
@@ -136,7 +136,7 @@ const WorkflowListItem = (props: ItemProps) => {
         {workflow.permissions?.canUpdate && (
           <div className="flex-none">
             <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
-              <Button type="button" color="minimal" className="mr-4" EndIcon="external-link">
+              <Button type="button" color="minimal" className="mr-4" EndIcon={ExternalLinkIcon}>
                 <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
               </Button>
             </Link>
@@ -154,7 +154,7 @@ const WorkflowListItem = (props: ItemProps) => {
           }>
           <div className="flex items-center ltr:mr-2 rtl:ml-2">
             {workflow.readOnly && props.isChildrenManagedEventType && (
-              <Icon name="lock" className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
+              <LockIcon className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
             )}
             <Switch
               checked={isActive}
@@ -222,7 +222,6 @@ function EventWorkflowsTab(props: Props) {
           : allActiveWorkflows.concat(disabledWorkflows);
       setSortedWorkflows(allSortedWorkflows);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending]);
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
@@ -286,7 +285,7 @@ function EventWorkflowsTab(props: Props) {
           ) : (
             <div className="pt-2 before:border-0">
               <EmptyScreen
-                Icon="zap"
+                Icon={ZapIcon}
                 headline={t("workflows")}
                 description={t("no_workflows_description")}
                 buttonRaw={

@@ -1,4 +1,6 @@
 import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
+import { PlusIcon } from "lucide-react";
+
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
@@ -61,7 +63,7 @@ export function NewScheduleButton({
   return (
     <Dialog name={name} clearQueryParamsOnClose={["copy-schedule-id"]}>
       <DialogTrigger asChild>
-        <Button variant="fab" data-testid={name} StartIcon="plus" size="sm">
+        <Button variant="fab" data-testid={name} StartIcon={PlusIcon} size="sm">
           {t("new")}
         </Button>
       </DialogTrigger>

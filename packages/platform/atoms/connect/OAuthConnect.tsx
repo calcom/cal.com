@@ -1,6 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { CalendarDaysIcon } from "lucide-react";
+
 import type { FC } from "react";
 
 import type { CALENDARS } from "@calcom/platform-constants";
@@ -71,7 +73,7 @@ export const OAuthConnect: FC<
     return (
       <AtomsWrapper>
         <Button
-          StartIcon="calendar-days"
+          StartIcon={CalendarDaysIcon}
           color="primary"
           disabled={isClickable ? false : isChecking}
           tooltip={tooltip ? tooltip : <ConnectedCalendarsTooltip calendarInstance={calendar} />}
@@ -96,7 +98,7 @@ export const OAuthConnect: FC<
   return (
     <AtomsWrapper>
       <Button
-        StartIcon="calendar-days"
+        StartIcon={CalendarDaysIcon}
         color="primary"
         disabled={isDisabled}
         className={cn(

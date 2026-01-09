@@ -1,4 +1,5 @@
 import type { Table } from "@tanstack/react-table";
+import { CheckIcon, ChevronRightIcon, Tags as TagsIcon } from "lucide-react";
 import { createContext, useContext, useState, useMemo, type PropsWithChildren } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -19,7 +20,6 @@ import {
   CommandList,
 } from "@calcom/ui/components/command";
 import { Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -138,7 +138,7 @@ function SelectedAttributeToAssign() {
                       "ml-auto flex h-4 w-4 items-center justify-center rounded-sm border"
                     )}>
                     {selectedAttributeOptions?.includes(option.id) ? (
-                      <Icon name="check" className={classNames("h-4 w-4")} />
+                      <CheckIcon className={classNames("h-4 w-4")} />
                     ) : null}
                   </div>
                 </CommandItem>
@@ -195,7 +195,7 @@ function Content({ showMultiSelectWarning }: { showMultiSelectWarning: boolean }
                     <span>{option.name}</span>
                     <div
                       className={classNames("ml-auto flex h-4 w-4 items-center justify-center rounded-sm")}>
-                      <Icon name="chevron-right" className={classNames("h-4 w-4")} />
+                      <ChevronRightIcon className={classNames("h-4 w-4")} />
                     </div>
                   </CommandItem>
                 );
@@ -259,7 +259,7 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
         }
       }}>
       <PopoverTrigger asChild>
-        <DataTableSelectionBar.Button icon="tags" color="secondary">
+        <DataTableSelectionBar.Button Icon={TagsIcon} color="secondary">
           {t("add_attributes")}
         </DataTableSelectionBar.Button>
       </PopoverTrigger>

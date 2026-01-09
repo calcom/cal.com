@@ -2,6 +2,7 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
+import { ClockIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -129,7 +130,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
       {availabilities.schedules.length === 0 ? (
         <div className="flex justify-center">
           <EmptyScreen
-            Icon="clock"
+            Icon={ClockIcon}
             headline={t("new_schedule_heading")}
             description={t("new_schedule_description")}
             className="w-full"

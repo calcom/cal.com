@@ -1,5 +1,6 @@
 import classNames from "classnames";
-// eslint-disable-next-line no-restricted-imports
+import { StarIcon, CheckIcon, ExternalLinkIcon, PencilIcon } from "lucide-react";
+
 import { noop } from "lodash";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -19,7 +20,6 @@ import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Label, Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 
@@ -104,12 +104,12 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   const updateUsername = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
-      onSuccessMutation && (await onSuccessMutation());
+      if (onSuccessMutation) await onSuccessMutation();
       await update({ username: inputUsernameValue });
       setOpenDialogSaveUsername(false);
     },
     onError: (error) => {
-      onErrorMutation && onErrorMutation(error);
+      if (onErrorMutation) onErrorMutation(error);
     },
   });
 
@@ -246,12 +246,12 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 usernameIsAvailable ? "" : ""
               )}>
               {isInputUsernamePremium ? (
-                <Icon name="star" className="mt-[2px] h-4 w-4 fill-orange-400" />
+                <StarIcon className="mt-[2px] h-4 w-4 fill-orange-400" />
               ) : (
                 <></>
               )}
               {!isInputUsernamePremium && usernameIsAvailable ? (
-                <Icon name="check" className="mt-[2px] h-4 w-4" />
+                <CheckIcon className="mt-[2px] h-4 w-4" />
               ) : (
                 <></>
               )}
@@ -270,7 +270,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
       <Dialog open={openDialogSaveUsername}>
         <DialogContent
-          Icon="pencil"
+          Icon={PencilIcon}
           title={t("confirm_username_change_dialog_title")}
           description={
             <>
@@ -307,7 +307,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="go-to-billing"
                 href={paymentLink}>
                 <>
-                  {t("go_to_stripe_billing")} <Icon name="external-link" className="ml-1 h-4 w-4" />
+                  {t("go_to_stripe_billing")} <ExternalLinkIcon className="ml-1 h-4 w-4" />
                 </>
               </Button>
             )}

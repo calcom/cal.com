@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { LockIcon, PlusIcon, WebhookIcon } from "lucide-react";
+
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -99,7 +101,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
       <Button
         color="secondary"
         data-testid="new_webhook"
-        StartIcon="plus"
+        StartIcon={PlusIcon}
         onClick={() => setCreateModalOpen(true)}>
         {t("new_webhook")}
       </Button>
@@ -155,7 +157,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                           </p>
                         </div>
                         {cannotEditWebhooks ? (
-                          <Button StartIcon="lock" color="secondary" disabled>
+                          <Button StartIcon={LockIcon} color="secondary" disabled>
                             {t("locked_by_team_admin")}
                           </Button>
                         ) : (
@@ -197,13 +199,13 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                     </div>
                   </>
                 ) : (
-                  <EmptyScreen
-                    Icon="webhook"
-                    headline={t("create_your_first_webhook")}
+                    <EmptyScreen
+                      Icon={WebhookIcon}
+                      headline={t("create_your_first_webhook")}
                     description={t("first_event_type_webhook_description")}
                     buttonRaw={
                       cannotEditWebhooks ? (
-                        <Button StartIcon="lock" color="secondary" disabled>
+                        <Button StartIcon={LockIcon} color="secondary" disabled>
                           {t("locked_by_team_admin")}
                         </Button>
                       ) : (

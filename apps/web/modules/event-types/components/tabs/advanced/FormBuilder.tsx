@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { ArrowDownIcon, ArrowUpIcon, MailIcon, PhoneIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
@@ -29,7 +30,6 @@ import {
   InputField,
   Label,
 } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
@@ -169,12 +169,12 @@ export const FormBuilder = function FormBuilder({
                 {
                   value: "email",
                   label: "Email",
-                  iconLeft: <Icon name="mail" className="h-4 w-4" />,
+                  iconLeft: <MailIcon className="h-4 w-4" />,
                 },
                 {
                   value: "phone",
                   label: "Phone",
-                  iconLeft: <Icon name="phone" className="h-4 w-4" />,
+                  iconLeft: <PhoneIcon className="h-4 w-4" />,
                 },
               ]}
               onValueChange={(value) => {
@@ -278,7 +278,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-subtle hover:border-emphasis invisible absolute -left-[12px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index - 1)}>
-                        <Icon name="arrow-up" className="h-5 w-5" />
+                        <ArrowUpIcon className="h-5 w-5" />
                       </button>
                     )}
                     {index < fields.length - 1 && (
@@ -286,7 +286,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:border-emphasis border-subtle hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] -ml-4 mt-8 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index + 1)}>
-                        <Icon name="arrow-down" className="h-5 w-5" />
+                        <ArrowDownIcon className="h-5 w-5" />
                       </button>
                     )}
                   </>
@@ -339,7 +339,7 @@ export const FormBuilder = function FormBuilder({
                         onClick={() => {
                           removeField(index);
                         }}
-                        StartIcon="trash-2"
+                        StartIcon={Trash2Icon}
                       />
                     )}
                     <Button
@@ -362,7 +362,7 @@ export const FormBuilder = function FormBuilder({
             data-testid="add-field"
             onClick={addField}
             className="mt-4"
-            StartIcon="plus">
+            StartIcon={PlusIcon}>
             {addFieldLabel}
           </Button>
         )}
@@ -489,7 +489,7 @@ function Options({
                       className="absolute right-1 top-1/2 -translate-y-1/2 hover:bg-transparent! focus:bg-transparent! focus:outline-none! focus:ring-0!"
                       size="sm"
                       color="minimal"
-                      StartIcon="x"
+                      StartIcon={XIcon}
                       onClick={() => {
                         if (!value) return;
                         const newOptions = [...(value || [])];
@@ -536,7 +536,7 @@ function Options({
               newOptions.push({ label: "", value: "", price: 0 });
               onChange(newOptions);
             }}
-            StartIcon="plus">
+            StartIcon={PlusIcon}>
             Add an Option
           </Button>
         )}

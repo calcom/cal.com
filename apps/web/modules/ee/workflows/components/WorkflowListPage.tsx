@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { EllipsisIcon, LinkIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -21,7 +22,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { DeleteDialog } from "./DeleteDialog";
@@ -139,7 +139,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               {/*active on all badge */}
                               {workflow.isActiveOnAll ? (
                                 <div>
-                                  <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                  <LinkIcon className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                   {workflow.isOrg ? t("active_on_all_teams") : t("active_on_all_event_types")}
                                 </div>
                               ) : workflow.activeOn && workflow.activeOn.length > 0 ? (
@@ -156,7 +156,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                       </p>
                                     ))}>
                                   <div>
-                                    <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                    <LinkIcon className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                     {t("active_on_event_types", {
                                       count: workflow.activeOn.filter((wf) =>
                                         workflow.teamId ? wf.eventType.parentId === null : true
@@ -171,7 +171,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                     <p key={key}>{activeOn.team.name}</p>
                                   ))}>
                                   <div>
-                                    <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                    <LinkIcon className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                     {t("active_on_teams", {
                                       count: workflow.activeOnTeams?.length,
                                     })}
@@ -180,7 +180,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               ) : (
                                 // active on no teams or event types
                                 <div>
-                                  <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                  <LinkIcon className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                   {workflow.isOrg ? t("no_active_teams") : t("no_active_event_types")}
                                 </div>
                               )}
@@ -230,7 +230,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               type="button"
                               color="secondary"
                               variant="icon"
-                              StartIcon="pencil"
+                              StartIcon={PencilIcon}
                               disabled={
                                 workflow.permissions ? !workflow.permissions?.canUpdate : workflow.readOnly
                               }
@@ -249,7 +249,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               disabled={
                                 workflow.permissions ? !workflow.permissions?.canDelete : workflow.readOnly
                               }
-                              StartIcon="trash-2"
+                              StartIcon={Trash2Icon}
                               data-testid="delete-button"
                             />
                           </Tooltip>
@@ -261,7 +261,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                         <div className="block sm:hidden">
                           <Dropdown>
                             <DropdownMenuTrigger asChild>
-                              <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
+                              <Button type="button" color="minimal" variant="icon" StartIcon={EllipsisIcon} />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               {(workflow.permissions
@@ -270,7 +270,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 <DropdownMenuItem>
                                   <DropdownItem
                                     type="button"
-                                    StartIcon="pencil"
+                                    StartIcon={PencilIcon}
                                     onClick={async () => await router.replace(`/workflows/${workflow.id}`)}>
                                     {t("edit")}
                                   </DropdownItem>
@@ -283,7 +283,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                   <DropdownItem
                                     type="button"
                                     color="destructive"
-                                    StartIcon="trash-2"
+                                    StartIcon={Trash2Icon}
                                     onClick={() => {
                                       setDeleteDialogOpen(true);
                                       setwWorkflowToDeleteId(workflow.id);

@@ -1,5 +1,6 @@
 "use client";
 
+import { TriangleAlertIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import type { AriaRole, ComponentType } from "react";
 import React, { Fragment, useEffect } from "react";
@@ -55,7 +56,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
         </>
       ) : (
         <EmptyScreen
-          Icon="triangle-alert"
+          Icon={TriangleAlertIcon}
           headline={t("enterprise_license")}
           buttonRaw={
             <Button color="secondary" href="https://go.cal.com/get-license">
@@ -71,7 +72,6 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
 
 export const withLicenseRequired =
   <T extends JSX.IntrinsicAttributes>(Component: ComponentType<T>) =>
-  // eslint-disable-next-line react/display-name
   (hocProps: T) =>
     (
       <div>

@@ -1,4 +1,6 @@
 import type { FunctionComponent, SVGProps } from "react";
+import { PlusIcon } from "lucide-react";
+
 
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -36,7 +38,7 @@ const AdditionalCalendarSelector = ({ isPending }: AdditionalCalendarSelectorPro
   return (
     <Dropdown modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button StartIcon="plus" color="secondary" {...(isPending && { loading: isPending })}>
+        <Button StartIcon={PlusIcon} color="secondary" {...(isPending && { loading: isPending })}>
           {t("add")}
         </Button>
       </DropdownMenuTrigger>
@@ -44,7 +46,7 @@ const AdditionalCalendarSelector = ({ isPending }: AdditionalCalendarSelectorPro
         {options.map((data) => (
           <DropdownMenuItem key={data.slug} className="focus:outline-none">
             {data.slug === "add-new" ? (
-              <DropdownItem StartIcon="plus" color="minimal" href="/apps/categories/calendar">
+              <DropdownItem StartIcon={PlusIcon} color="minimal" href="/apps/categories/calendar">
                 {t("install_new_calendar_app")}
               </DropdownItem>
             ) : (

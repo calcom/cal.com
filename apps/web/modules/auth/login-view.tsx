@@ -1,6 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeftIcon, LockIcon } from "lucide-react";
+
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -112,7 +114,7 @@ export default function Login({
           }
           setErrorMessage(null);
         }}
-        StartIcon="arrow-left"
+        StartIcon={ArrowLeftIcon}
         color="minimal">
         {t("go_back")}
       </Button>
@@ -123,7 +125,7 @@ export default function Login({
             setErrorMessage(null);
             methods.setValue("totpCode", "");
           }}
-          StartIcon="lock"
+          StartIcon={LockIcon}
           color="minimal">
           {t("lost_access")}
         </Button>

@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { ExternalLinkIcon, PlusIcon } from "lucide-react";
+
 import { useEffect, useState } from "react";
 import posthog from "posthog-js";
 
@@ -124,7 +126,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
         </h3>
       </div>
       {/* TODO: add reviews <div className="flex text-sm text-default">
-            <span>{props.rating} stars</span> <Icon name="star" className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
+            <span>{props.rating} stars</span> <Star className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
       <p
@@ -256,7 +258,7 @@ const InstallAppButtonChild = ({
       <Button
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon="external-link"
+        StartIcon={ExternalLinkIcon}
         {...props}
         size="base">
         {t("visit")}
@@ -270,7 +272,7 @@ const InstallAppButtonChild = ({
       <Button
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon="plus"
+        StartIcon={PlusIcon}
         data-testid="install-app-button"
         {...props}>
         {paid.trial ? t("start_paid_trial") : t("subscribe")}
@@ -282,7 +284,7 @@ const InstallAppButtonChild = ({
     <Button
       color="secondary"
       className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-      StartIcon="plus"
+      StartIcon={PlusIcon}
       data-testid="install-app-button"
       {...props}
       size="base">

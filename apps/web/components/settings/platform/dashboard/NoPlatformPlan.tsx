@@ -1,3 +1,5 @@
+import { CreditCardIcon } from "lucide-react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
@@ -6,7 +8,7 @@ export default function NoPlatformPlan() {
   const { t } = useLocale();
   return (
     <EmptyScreen
-      Icon="credit-card"
+      Icon={CreditCardIcon}
       headline={t("subscription_needed")}
       description={t("subscription_needed_description")}
       buttonRaw={

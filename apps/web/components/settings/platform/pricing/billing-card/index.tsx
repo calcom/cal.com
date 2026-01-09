@@ -1,4 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CircleCheckIcon } from "lucide-react";
+
 import { Button } from "@calcom/ui/components/button";
 
 type PlatformBillingCardProps = {
@@ -30,7 +32,7 @@ export const PlatformBillingCard = ({
             <>
               <Button
                 type="button"
-                StartIcon="circle-check"
+                StartIcon={CircleCheckIcon}
                 className="bg-default hover:bg-default cursor-none text-green-500 hover:cursor-pointer"
                 tooltip={t("this_is_your_current_plan")}
               />

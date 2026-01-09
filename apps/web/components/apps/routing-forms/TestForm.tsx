@@ -1,6 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { ExternalLinkIcon, RefreshCwIcon, XIcon } from "lucide-react";
+
 import type { Dispatch, SetStateAction } from "react";
 import { useState, useMemo } from "react";
 
@@ -213,7 +215,7 @@ export const TestForm = ({
                     href={formLink}
                     target="_blank"
                     variant="icon"
-                    StartIcon="external-link"
+                    StartIcon={ExternalLinkIcon}
                     data-testid="open-form-in-new-tab"
                     size="sm">
                     <span className="sr-only">{t("open_in_new_tab")}</span>
@@ -222,11 +224,11 @@ export const TestForm = ({
                     color="secondary"
                     onClick={resetForm}
                     variant="icon"
-                    StartIcon="refresh-cw"
+                    StartIcon={RefreshCwIcon}
                     size="sm">
                     <span className="sr-only">{t("reset")}</span>
                   </Button>
-                  <Button color="secondary" onClick={onClose} variant="icon" StartIcon="x" size="sm">
+                  <Button color="secondary" onClick={onClose} variant="icon" StartIcon={XIcon} size="sm">
                     <span className="sr-only">{t("close")}</span>
                   </Button>
                 </div>
@@ -261,7 +263,7 @@ export const TestForm = ({
                     href={formLink}
                     target="_blank"
                     variant="icon"
-                    StartIcon="external-link"
+                    StartIcon={ExternalLinkIcon}
                     size="sm">
                     <span className="sr-only">{t("open_in_new_tab")}</span>
                   </Button>
@@ -269,7 +271,7 @@ export const TestForm = ({
                     color="secondary"
                     onClick={resetForm}
                     variant="icon"
-                    StartIcon="refresh-cw"
+                    StartIcon={RefreshCwIcon}
                     size="sm">
                     <span className="sr-only">{t("reset")}</span>
                   </Button>
@@ -277,7 +279,7 @@ export const TestForm = ({
                     color="secondary"
                     onClick={onClose}
                     variant="icon"
-                    StartIcon="x"
+                    StartIcon={XIcon}
                     size="sm"
                     data-testid="close-results-button">
                     <span className="sr-only">{t("close")}</span>
@@ -290,7 +292,7 @@ export const TestForm = ({
 
             {showRRData ? (
               <>
-                <Button color="secondary" onClick={resetForm} variant="icon" StartIcon="refresh-cw">
+                <Button color="secondary" onClick={resetForm} variant="icon" StartIcon={RefreshCwIcon}>
                   {t("reset_form")}
                 </Button>
                 <TeamMembersMatchResult membersMatchResult={membersMatchResult} />

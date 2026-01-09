@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { FileDownIcon } from "lucide-react";
+
 import posthog from "posthog-js";
 
 import dayjs from "@calcom/dayjs";
@@ -96,7 +98,7 @@ const Download = () => {
     <Dropdown modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
-          EndIcon="file-down"
+          EndIcon={FileDownIcon}
           color="secondary"
           loading={isDownloading}
           className="h-full self-end sm:self-baseline">

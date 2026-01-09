@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+import { ArrowRightIcon, ChevronDownIcon, ChevronUpIcon, RotateCwIcon, SparklesIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
@@ -8,8 +10,6 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { sessionStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
-import { Icon } from "@calcom/ui/components/icon";
-import type { IconName } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -47,7 +47,7 @@ export type NavigationItemType = {
   onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
   target?: HTMLAnchorElement["target"];
   badge?: React.ReactNode;
-  icon?: IconName;
+  icon?: LucideIcon;
   child?: NavigationItemType[];
   pro?: true;
   onlyMobile?: boolean;
@@ -157,14 +157,18 @@ export const NavigationItem: React.FC<{
                 : ""
             )}>
             {item.icon && (
-              <Icon
-                name={item.isLoading ? "rotate-cw" : item.icon}
-                className={classNames(
-                  "todesktop:!text-blue-500 mr-2 h-4 w-4 shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
-                  item.isLoading && "animate-spin"
-                )}
-                aria-hidden="true"
-              />
+              (() => {
+                const IconComponent = item.isLoading ? RotateCwIcon : item.icon;
+                return (
+                  <IconComponent
+                    className={classNames(
+                      "todesktop:!text-blue-500 mr-2 h-4 w-4 shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
+                      item.isLoading && "animate-spin"
+                    )}
+                    aria-hidden="true"
+                  />
+                );
+              })()
             )}
             {isLocaleReady ? (
               <span
@@ -177,7 +181,11 @@ export const NavigationItem: React.FC<{
               <SkeletonText className="h-[20px] w-full" />
             )}
             {shouldShowChevron && (
-              <Icon name={isExpanded ? "chevron-up" : "chevron-down"} className="ml-auto h-4 w-4" />
+              isExpanded ? (
+                <ChevronUpIcon className="ml-auto h-4 w-4" />
+              ) : (
+                <ChevronDownIcon className="ml-auto h-4 w-4" />
+              )
             )}
           </button>
         </Tooltip>
@@ -205,15 +213,19 @@ export const NavigationItem: React.FC<{
             )}
             aria-current={current ? "page" : undefined}>
             {item.icon && (
-              <Icon
-                name={item.isLoading ? "rotate-cw" : item.icon}
-                className={classNames(
-                  "todesktop:!text-blue-500 mr-2 h-4 w-4 shrink-0 aria-[aria-current='page']:text-inherit rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
-                  item.isLoading && "animate-spin"
-                )}
-                aria-hidden="true"
-                aria-current={current ? "page" : undefined}
-              />
+              (() => {
+                const IconComponent = item.isLoading ? RotateCwIcon : item.icon;
+                return (
+                  <IconComponent
+                    className={classNames(
+                      "todesktop:!text-blue-500 mr-2 h-4 w-4 shrink-0 aria-[aria-current='page']:text-inherit rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
+                      item.isLoading && "animate-spin"
+                    )}
+                    aria-hidden="true"
+                    aria-current={current ? "page" : undefined}
+                  />
+                );
+              })()
             )}
             {isLocaleReady ? (
               <span
@@ -226,7 +238,7 @@ export const NavigationItem: React.FC<{
               <SkeletonText className="h-[20px] w-full" />
             )}
             {item.name === "workflows" && (
-              <Badge startIcon="sparkles" variant="purple">
+              <Badge StartIcon={SparklesIcon} variant="purple">
                 Cal.ai
               </Badge>
             )}
@@ -261,12 +273,16 @@ export const MobileNavigationItem: React.FC<{
       aria-current={current ? "page" : undefined}>
       {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
       {item.icon && (
-        <Icon
-          name={item.icon}
-          className="[&[aria-current='page']]:text-emphasis  mx-auto mb-1 block h-5 w-5 shrink-0 text-center text-inherit"
-          aria-hidden="true"
-          aria-current={current ? "page" : undefined}
-        />
+        (() => {
+          const IconComponent = item.icon;
+          return (
+            <IconComponent
+              className="[&[aria-current='page']]:text-emphasis  mx-auto mb-1 block h-5 w-5 shrink-0 text-center text-inherit"
+              aria-hidden="true"
+              aria-current={current ? "page" : undefined}
+            />
+          );
+        })()
       )}
       {isLocaleReady ? <span className="block truncate">{t(item.name)}</span> : <SkeletonText />}
     </Link>
@@ -295,11 +311,18 @@ export const MobileNavigationMoreItem: React.FC<{
             className="hover:bg-subtle flex w-full items-center justify-between p-5 text-left transition">
             <span className="text-default flex items-center font-semibold">
               {item.icon && (
-                <Icon name={item.icon} className="h-5 w-5 shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+                (() => {
+                  const IconComponent = item.icon;
+                  return <IconComponent className="h-5 w-5 shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />;
+                })()
               )}
               {isLocaleReady ? t(item.name) : <SkeletonText />}
             </span>
-            <Icon name={isExpanded ? "chevron-up" : "chevron-down"} className="text-subtle h-5 w-5" />
+            {isExpanded ? (
+              <ChevronUpIcon className="text-subtle h-5 w-5" />
+            ) : (
+              <ChevronDownIcon className="text-subtle h-5 w-5" />
+            )}
           </button>
           {isExpanded && item.child && (
             <ul className="bg-subtle">
@@ -321,11 +344,14 @@ export const MobileNavigationMoreItem: React.FC<{
         <Link href={item.href} className="hover:bg-subtle flex items-center justify-between p-5 transition">
           <span className="text-default flex items-center font-semibold ">
             {item.icon && (
-              <Icon name={item.icon} className="h-5 w-5 shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+              (() => {
+                const IconComponent = item.icon;
+                return <IconComponent className="h-5 w-5 shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />;
+              })()
             )}
             {isLocaleReady ? t(item.name) : <SkeletonText />}
           </span>
-          <Icon name="arrow-right" className="text-subtle h-5 w-5" />
+          <ArrowRightIcon className="text-subtle h-5 w-5" />
         </Link>
       )}
     </li>

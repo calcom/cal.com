@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import { CircleAlertIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -51,7 +52,7 @@ export const DisableAllEmailsSetting = ({
       <Dialog open={dialogOpen} onOpenChange={(e) => setDialogOpen(e)}>
         <DialogContent
           title={title}
-          Icon="circle-alert"
+          Icon={CircleAlertIcon}
           className={customClassNames?.confirmationDialog?.container}>
           <p
             className={classNames("text-default text-sm", customClassNames?.confirmationDialog?.description)}>

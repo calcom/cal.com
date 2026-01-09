@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { EllipsisIcon, FlagIcon, SendIcon, TrashIcon } from "lucide-react";
+
 import type { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -70,7 +72,7 @@ const CustomEmailTextField = ({
           <Dropdown>
             <DropdownMenuTrigger asChild>
               <Button
-                StartIcon="ellipsis"
+                StartIcon={EllipsisIcon}
                 variant="icon"
                 size="xs"
                 color="minimal"
@@ -81,7 +83,7 @@ const CustomEmailTextField = ({
             <DropdownMenuContent>
               <DropdownMenuItem>
                 <DropdownItem
-                  StartIcon="flag"
+                  StartIcon={FlagIcon}
                   color="secondary"
                   className="disabled:opacity-40"
                   onClick={handleChangePrimary}
@@ -93,7 +95,7 @@ const CustomEmailTextField = ({
               {!emailVerified && (
                 <DropdownMenuItem>
                   <DropdownItem
-                    StartIcon="send"
+                    StartIcon={SendIcon}
                     color="secondary"
                     className="disabled:opacity-40"
                     onClick={handleVerifyEmail}
@@ -105,7 +107,7 @@ const CustomEmailTextField = ({
               )}
               <DropdownMenuItem>
                 <DropdownItem
-                  StartIcon="trash"
+                  StartIcon={TrashIcon}
                   color="destructive"
                   className="rounded-t-none disabled:opacity-40"
                   onClick={handleItemDelete}
