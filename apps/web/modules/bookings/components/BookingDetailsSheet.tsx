@@ -42,13 +42,11 @@ import { BookingActionsDropdown } from "../../../components/booking/actions/Book
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
 import type { BookingListingStatus } from "../../../components/booking/types";
 import { usePaymentStatus } from "../hooks/usePaymentStatus";
-import {
-  useBookingDetailsSheetStore,
-  useBookingDetailsSheetStoreApi,
-} from "../store/bookingDetailsSheetStore";
+import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 import { JoinMeetingButton } from "./JoinMeetingButton";
-
+import { BookingHistory } from "@calcom/features/booking-audit/client/components/BookingHistory";
+import { SegmentedControl } from "@calcom/ui/components/segmented-control";
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
 
 interface BookingDetailsSheetProps {
@@ -56,6 +54,7 @@ interface BookingDetailsSheetProps {
   userTimeFormat?: number;
   userId?: number;
   userEmail?: string;
+  bookingAuditEnabled?: boolean;
 }
 
 export function BookingDetailsSheet({
@@ -63,6 +62,7 @@ export function BookingDetailsSheet({
   userTimeFormat,
   userId,
   userEmail,
+  bookingAuditEnabled = false,
 }: BookingDetailsSheetProps) {
   const booking = useBookingDetailsSheetStore((state) => state.getSelectedBooking());
 
@@ -77,6 +77,7 @@ export function BookingDetailsSheet({
         userTimeFormat={userTimeFormat}
         userId={userId}
         userEmail={userEmail}
+        bookingAuditEnabled={bookingAuditEnabled}
       />
     </BookingActionsStoreProvider>
   );
@@ -88,6 +89,26 @@ interface BookingDetailsSheetInnerProps {
   userTimeFormat?: number;
   userId?: number;
   userEmail?: string;
+  bookingAuditEnabled?: boolean;
+}
+
+function useActiveSegment(bookingAuditEnabled: boolean) {
+  const [activeSegment, setActiveSegmentInStore] = useBookingDetailsSheetStore((state) => [state.activeSegment, state.setActiveSegment]);
+
+  const getDerivedActiveSegment = ({ activeSegment, bookingAuditEnabled }: { activeSegment: "info" | "history" | null, bookingAuditEnabled: boolean }) => {
+    if (!bookingAuditEnabled && activeSegment === "history") {
+      return "info";
+    }
+    return activeSegment ?? "info";
+  }
+
+  const derivedActiveSegment = getDerivedActiveSegment({ activeSegment, bookingAuditEnabled });
+
+  const setDerivedActiveSegment = (segment: "info" | "history") => {
+    setActiveSegmentInStore(getDerivedActiveSegment({ activeSegment: segment, bookingAuditEnabled }));
+  };
+
+  return [derivedActiveSegment, setDerivedActiveSegment] as const;
 }
 
 function BookingDetailsSheetInner({
@@ -96,42 +117,49 @@ function BookingDetailsSheetInner({
   userTimeFormat,
   userId,
   userEmail,
+  bookingAuditEnabled = false,
 }: BookingDetailsSheetInnerProps) {
   const { t } = useLocale();
+  const [activeSegment, setActiveSegment] = useActiveSegment(bookingAuditEnabled);
 
   // Fetch additional booking details for reschedule information
   const { data: bookingDetails } = trpc.viewer.bookings.getBookingDetails.useQuery(
     { uid: booking.uid },
     {
-      enabled: Boolean(booking.rescheduled || booking.fromReschedule),
       // Keep data fresh but don't refetch too aggressively
       staleTime: 5 * 60 * 1000, // 5 minutes
     }
   );
 
-  // Get navigation state directly from the store
-  const hasNext = useBookingDetailsSheetStore((state) => state.hasNext());
-  const hasPrevious = useBookingDetailsSheetStore((state) => state.hasPrevious());
-  const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
+  // Get navigation state from the store in a single selector
+  const navigation = useBookingDetailsSheetStore((state) => {
+    const hasNextInArray = state.hasNextInArray();
+    const hasPreviousInArray = state.hasPreviousInArray();
+    const isLastInArray = state.isLastInArray();
+    const isFirstInArray = state.isFirstInArray();
+
+    return {
+      navigateNext: state.navigateNext,
+      navigatePrevious: state.navigatePrevious,
+      isTransitioning: state.isTransitioning,
+      setSelectedBookingUid: state.setSelectedBookingUid,
+      setActiveSegment: state.setActiveSegment,
+      canGoNext: hasNextInArray || (isLastInArray && state.capabilities?.canNavigateToNextPeriod()),
+      canGoPrev: hasPreviousInArray || (isFirstInArray && state.capabilities?.canNavigateToPreviousPeriod()),
+    };
+  });
 
   const handleClose = () => {
-    setSelectedBookingUid(null);
+    navigation.setSelectedBookingUid(null);
+    navigation.setActiveSegment(null);
   };
 
-  const storeApi = useBookingDetailsSheetStoreApi();
-
   const handleNext = () => {
-    const nextUid = storeApi.getState().getNextBookingUid();
-    if (nextUid !== null) {
-      setSelectedBookingUid(nextUid);
-    }
+    navigation.navigateNext();
   };
 
   const handlePrevious = () => {
-    const prevUid = storeApi.getState().getPreviousBookingUid();
-    if (prevUid !== null) {
-      setSelectedBookingUid(prevUid);
-    }
+    navigation.navigatePrevious();
   };
 
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
@@ -167,15 +195,15 @@ function BookingDetailsSheetInner({
   const recurringInfo =
     booking.recurringEventId && booking.eventType?.recurringEvent
       ? {
-          count: booking.eventType.recurringEvent.count,
-          recurringEvent: booking.eventType.recurringEvent,
-        }
+        count: booking.eventType.recurringEvent.count,
+        recurringEvent: booking.eventType.recurringEvent,
+      }
       : null;
 
   const customResponses = booking.responses
     ? Object.entries(booking.responses as Record<string, unknown>)
-        .filter(([fieldName]) => shouldShowFieldInCustomResponses(fieldName))
-        .map(([question, answer]) => [question, answer] as [string, unknown])
+      .filter(([fieldName]) => shouldShowFieldInCustomResponses(fieldName))
+      .map(([question, answer]) => [question, answer] as [string, unknown])
     : [];
 
   const reason = booking.assignmentReason?.[0];
@@ -214,7 +242,7 @@ function BookingDetailsSheetInner({
                 size="sm"
                 color="secondary"
                 StartIcon="chevron-up"
-                disabled={!hasPrevious}
+                disabled={!navigation.canGoPrev || navigation.isTransitioning}
                 onClick={(e) => {
                   e.preventDefault();
                   handlePrevious();
@@ -225,7 +253,7 @@ function BookingDetailsSheetInner({
                 size="sm"
                 color="secondary"
                 StartIcon="chevron-down"
-                disabled={!hasNext}
+                disabled={!navigation.canGoNext || navigation.isTransitioning}
                 onClick={(e) => {
                   e.preventDefault();
                   handleNext();
@@ -254,41 +282,59 @@ function BookingDetailsSheetInner({
               </SheetTitle>
             </div>
 
-            <WhenSection
-              rescheduled={booking.rescheduled || false}
-              startTime={startTime}
-              endTime={endTime}
-              timeZone={userTimeZone}
-              previousBooking={bookingDetails?.previousBooking}
-            />
+            {bookingAuditEnabled && (
+              <SegmentedControl
+                data={[{ value: "info", label: t("info") }, { value: "history", label: t("history") }]}
+                value={activeSegment}
+                onChange={(value) => setActiveSegment(value)}
+              />
+            )}
 
-            <OldRescheduledBookingInfo
-              booking={booking}
-              rescheduledToBooking={bookingDetails?.rescheduledToBooking}
-            />
+            {activeSegment === "info" && (
+              <>
+                <WhenSection
+                  rescheduled={booking.rescheduled || false}
+                  startTime={startTime}
+                  endTime={endTime}
+                  timeZone={userTimeZone}
+                  previousBooking={bookingDetails?.previousBooking}
+                />
 
-            <NewRescheduledBookingInfo booking={booking} />
+                <OldRescheduledBookingInfo
+                  booking={booking}
+                  rescheduledToBooking={bookingDetails?.rescheduledToBooking}
+                />
 
-            <CancelledBookingInfo booking={booking} />
+                <NewRescheduledBookingInfo booking={booking} />
 
-            <WhoSection booking={booking} />
+                <CancelledBookingInfo booking={booking} />
 
-            <WhereSection booking={booking} meta={bookingMetadata} />
+                <WhoSection booking={booking} />
 
-            <RecurringInfoSection recurringInfo={recurringInfo} />
+                <WhereSection booking={booking} meta={bookingMetadata} />
 
-            <AssignmentReasonSection booking={booking} />
+                <RecurringInfoSection recurringInfo={recurringInfo} />
 
-            {booking.payment?.[0] && <PaymentSection booking={booking} payment={booking.payment[0]} />}
+                <AssignmentReasonSection booking={booking} />
 
-            <SlotsSection booking={booking} />
+                {booking.payment?.[0] && <PaymentSection booking={booking} payment={booking.payment[0]} />}
 
-            <AdditionalNotesSection booking={booking} />
+                <SlotsSection booking={booking} />
 
-            <CustomQuestionsSection
-              customResponses={customResponses}
-              bookingFields={booking.eventType?.bookingFields}
-            />
+                <AdditionalNotesSection booking={booking} />
+
+                <CustomQuestionsSection
+                  customResponses={customResponses}
+                  bookingFields={booking.eventType?.bookingFields}
+                />
+
+                <TrackingSection tracking={bookingDetails?.tracking} />
+              </>
+            )}
+
+            {bookingAuditEnabled && activeSegment === "history" && (
+              <BookingHistory bookingUid={booking.uid} />
+            )}
           </div>
         </SheetBody>
 
@@ -838,6 +884,43 @@ function BookingHeaderBadges({
         </Badge>
       )}
     </div>
+  );
+}
+
+function TrackingSection({
+  tracking,
+}: {
+  tracking?: {
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_campaign: string | null;
+    utm_term: string | null;
+    utm_content: string | null;
+  } | null;
+}) {
+  const { t } = useLocale();
+
+  if (!tracking) {
+    return null;
+  }
+
+  const utmEntries = Object.entries(tracking).filter(([_, value]) => Boolean(value));
+
+  if (utmEntries.length === 0) {
+    return null;
+  }
+
+  return (
+    <Section title={t("utm_params")}>
+      <div className="text-default text-sm">
+        {utmEntries.map(([key, value]) => (
+          <div key={key} className="mb-1 last:mb-0">
+            <span className="font-medium">{key}</span>:{" "}
+            <code className="bg-subtle text-default rounded px-1 py-0.5 font-mono text-xs">{value}</code>
+          </div>
+        ))}
+      </div>
+    </Section>
   );
 }
 

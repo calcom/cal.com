@@ -10,6 +10,14 @@ vi.mock("@calcom/lib/constants", async () => {
   return await vi.importActual("@calcom/lib/constants");
 });
 
+vi.mock("@calcom/ee/organizations/lib/orgDomains", () => ({
+  getOrgFullOrigin: vi.fn(),
+}));
+
+vi.mock("@calcom/lib/hooks/useRouterQuery", () => ({
+  useRouterQuery: vi.fn(),
+}));
+
 function mockedUserPageComponentProps(props: Partial<React.ComponentProps<typeof UserPage>>) {
   return {
     themeBasis: "dark",
