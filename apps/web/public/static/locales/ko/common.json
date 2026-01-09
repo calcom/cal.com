@@ -403,6 +403,7 @@
   "set_up_later": "나중에 하기",
   "current_time": "현재 시각",
   "details": "세부사항",
+  "info": "정보",
   "welcome": "환영합니다",
   "welcome_back": "또 뵙게 되어 반갑습니다",
   "welcome_to_calcom": "{{appName}}을 방문하신 것을 환영합니다",
@@ -1298,6 +1299,8 @@
   "schedule_deleted_successfully": "일정이 성공적으로 삭제되었습니다",
   "default_schedule_name": "작업 시간",
   "new_schedule_heading": "가용성 일정 생성",
+  "no_schedules_created_yet": "아직 가용성 일정을 생성하지 않았습니다. 시작하려면 일정을 생성하세요.",
+  "create_availability_schedule": "가용성 일정 생성",
   "new_schedule_description": "가용성 일정을 생성하면 이벤트 유형 전반에 걸쳐 가용성을 관리할 수 있습니다. 하나 이상의 이벤트 유형에 적용할 수 있습니다.",
   "requires_ownership_of_a_token": "다음 주소에 속한 토큰의 소유권이 필요합니다:",
   "example_name": "홍길동",
@@ -3185,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "예약이 성공적으로 재라우팅되었습니다. 예약 페이지로 리디렉션 중입니다",
   "on_booking_write_to_event_object": "예약 시 이벤트 객체에 쓰기",
   "field_name": "필드 이름",
+  "field_name_cannot_be_empty": "필드 이름은 비워둘 수 없습니다",
+  "field_already_exists": "필드가 이미 존재합니다",
   "add_new_field": "새 필드 추가",
   "you_dont_have_access_to_reroute_this_booking": "이 예약을 재라우팅할 권한이 없습니다",
   "form_response_not_found": "양식 응답을 찾을 수 없습니다",
@@ -4160,7 +4165,9 @@
     "attendee_no_show_updated": "참석자 불참 업데이트됨",
     "type": "할당 유형",
     "assignmentType_manual": "수동 할당",
-    "assignmentType_roundRobin": "라운드 로빈 할당"
+    "assignmentType_roundRobin": "라운드 로빈 할당",
+    "actor_impersonated_by": "가장자",
+    "source": "소스"
   },
   "error_loading_booking_logs": "예약 로그 로드 오류",
   "no_audit_logs_found": "감사 로그를 찾을 수 없음",
@@ -4177,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "예약 소유자가 귀하의 조직 구성원이 아닙니다.",
   "audit_logs_permission_denied": "이 예약에 대한 감사 로그를 볼 권한이 없습니다.",
   "audit_logs_permission_check_error": "권한 확인 중 오류가 발생했습니다.",
+  "account_already_exists_please_login": "이 이메일로 등록된 계정이 이미 존재합니다. 초대를 수락하려면 로그인하세요.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

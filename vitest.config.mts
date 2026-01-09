@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
@@ -96,7 +96,7 @@ export default defineConfig({
     globals: true,
     silent: true,
     environment: "jsdom",
-    setupFiles: ["./setupVitest.ts"],
+    setupFiles: ["./packages/testing/src/setupVitest.ts"],
     include: getTestInclude(),
     exclude: getTestExclude(),
     server: {

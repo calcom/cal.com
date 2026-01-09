@@ -17,31 +17,76 @@ on:
   # in case manual trigger is needed
   workflow_dispatch:
     inputs:
+      BUILD_FROM_BRANCH:
+        description: "Build from the selected branch instead of a tag"
+        type: boolean
+        default: false
       RELEASE_TAG:
-        description: "Tag to build (e.g., v6.0.5)"
-        required: true
+        description: "Tag to build (e.g., v6.0.5) - required if BUILD_FROM_BRANCH is false"
+        required: false
       PUSH_IMAGE:
         description: "Push the Docker image to DockerHub"
         type: boolean
         default: true
 
 jobs:
+  prepare:
+    name: "Prepare Release"
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    outputs:
+      release_tag: ${{ steps.determine-tag.outputs.release_tag }}
+      checkout_ref: ${{ steps.determine-tag.outputs.checkout_ref }}
+    steps:
+      - name: Validate inputs
+        if: github.event_name == 'workflow_dispatch' && inputs.BUILD_FROM_BRANCH == false && inputs.RELEASE_TAG == ''
+        run: |
+          echo "::error::RELEASE_TAG is required when BUILD_FROM_BRANCH is false"
+          exit 1
+
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ (github.event_name == 'workflow_dispatch' && inputs.BUILD_FROM_BRANCH) && github.ref || inputs.RELEASE_TAG || github.ref }}
+
+      - name: "Determine tag and ref"
+        id: determine-tag
+        run: |
+          # Determine checkout ref
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.BUILD_FROM_BRANCH }}" = "true" ]; then
+            echo "checkout_ref=${{ github.ref }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "checkout_ref=${{ inputs.RELEASE_TAG }}" >> $GITHUB_OUTPUT
+          else
+            echo "checkout_ref=${{ github.ref }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Determine release tag
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ inputs.BUILD_FROM_BRANCH }}" = "true" ]; then
+              # Extract branch name and short SHA for the tag
+              BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+              # Sanitize branch name: replace slashes with dashes for valid Docker tag
+              SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | tr '/' '-')
+              SHORT_SHA=$(git rev-parse --short HEAD)
+              echo "release_tag=${SANITIZED_BRANCH}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+            else
+              echo "release_tag=${{ inputs.RELEASE_TAG }}" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "release_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
   release-amd64:
     name: "Release AMD64"
+    needs: prepare
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    env:
+      RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
     steps:
       - name: checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.RELEASE_TAG || github.ref }}
-
-      - name: "Determine tag"
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "RELEASE_TAG=${{ inputs.RELEASE_TAG }}" >> $GITHUB_ENV
-          else
-            echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-          fi
+          ref: ${{ needs.prepare.outputs.checkout_ref }}
 
       - name: Build and test Docker image
         uses: ./.github/actions/docker-build-and-test
@@ -82,20 +127,15 @@ jobs:
 
   release-arm:
     name: "Release ARM"
+    needs: prepare
     runs-on: ubuntu-24.04-arm
+    env:
+      RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
     steps:
       - name: checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.RELEASE_TAG || github.ref }}
-
-      - name: "Determine tag"
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "RELEASE_TAG=${{ inputs.RELEASE_TAG }}" >> $GITHUB_ENV
-          else
-            echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-          fi
+          ref: ${{ needs.prepare.outputs.checkout_ref }}
 
       - name: Build and test Docker image
         uses: ./.github/actions/docker-build-and-test

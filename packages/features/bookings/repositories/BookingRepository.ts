@@ -2781,4 +2781,11 @@ export class BookingRepository implements IBookingRepository {
       status: result.status,
     };
   }
+
+  async updateRecordedStatus({ bookingUid, isRecorded }: { bookingUid: string; isRecorded: boolean }): Promise<void> {
+    await this.prismaClient.booking.update({
+      where: { uid: bookingUid },
+      data: { isRecorded },
+    });
+  }
 }
