@@ -1,3 +1,6 @@
+/** biome-ignore-all lint/correctness/noProcessGlobal: e2e file */
+/** biome-ignore-all lint/suspicious/noTsIgnore: e2e file */
+/** biome-ignore-all lint/style/noProcessEnv: e2e file */
 import type { Environment } from "@/env";
 import "dotenv/config";
 
@@ -22,6 +25,8 @@ const env: Partial<Omit<Environment, "NODE_ENV">> = {
   RATE_LIMIT_DEFAULT_LIMIT: 10000,
   RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS: 60000,
   IS_TEAM_BILLING_ENABLED: false,
+  ENABLE_SLOTS_WORKERS: "false",
+  SLOTS_WORKER_POOL_SIZE: "0",
 };
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -36,5 +41,5 @@ process.env = {
   CALENDSO_ENCRYPTION_KEY: "22gfxhWUlcKliUeXcu8xNah2+HP/29ZX",
   INTEGRATION_TEST_MODE: "true",
   e2e: "true",
-  SLOTS_CACHE_TTL: "1"
+  SLOTS_CACHE_TTL: "1",
 };
