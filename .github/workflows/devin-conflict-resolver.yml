@@ -39,6 +39,13 @@ jobs:
                       headRefName
                       baseRefName
                       url
+                      headRepository {
+                        owner {
+                          login
+                        }
+                        name
+                      }
+                      maintainerCanModify
                       labels(first: 10) {
                         nodes {
                           name
@@ -77,13 +84,25 @@ jobs:
               }
               
               if (pr.mergeable === 'CONFLICTING') {
-                console.log(`PR #${pr.number} has conflicts`);
+                const isFork = pr.headRepository?.owner?.login !== owner;
+                const headRepoOwner = pr.headRepository?.owner?.login || owner;
+                const headRepoName = pr.headRepository?.name || repo;
+                
+                if (isFork && !pr.maintainerCanModify) {
+                  console.log(`PR #${pr.number} is from a fork without maintainer push access, skipping`);
+                  continue;
+                }
+                
+                console.log(`PR #${pr.number} has conflicts${isFork ? ' (from fork)' : ''}`);
                 conflictingPRs.push({
                   number: pr.number,
                   title: pr.title,
                   head_ref: pr.headRefName,
                   base_ref: pr.baseRefName,
-                  html_url: pr.url
+                  html_url: pr.url,
+                  is_fork: isFork,
+                  head_repo_owner: headRepoOwner,
+                  head_repo_name: headRepoName
                 });
               } else if (pr.mergeable === 'UNKNOWN') {
                 console.log(`PR #${pr.number} mergeable status is still being computed`);
@@ -114,7 +133,17 @@ jobs:
             const { owner, repo } = context.repo;
             
             for (const pr of conflictingPRs) {
-              console.log(`Creating Devin session for PR #${pr.number}: ${pr.title}`);
+              console.log(`Creating Devin session for PR #${pr.number}: ${pr.title}${pr.is_fork ? ' (fork)' : ''}`);
+              
+              const forkInstructions = pr.is_fork ? `
+            IMPORTANT: This PR is from a fork. The contributor has enabled "Allow edits from maintainers".
+            - Clone the FORK repository: ${pr.head_repo_owner}/${pr.head_repo_name}
+            - The branch to work on is: ${pr.head_ref}
+            - Add the upstream remote: git remote add upstream https://github.com/${owner}/${repo}.git
+            - Fetch upstream and merge: git fetch upstream && git merge upstream/${pr.base_ref}` : `
+            - Clone the repository: ${owner}/${repo}
+            - Check out the PR branch: ${pr.head_ref}
+            - Merge the base branch: git merge origin/${pr.base_ref}`;
               
               const prompt = `You are resolving merge conflicts on PR #${pr.number} in repository ${owner}/${repo}.
 
@@ -122,20 +151,20 @@ jobs:
             PR URL: ${pr.html_url}
             Head Branch: ${pr.head_ref}
             Base Branch: ${pr.base_ref}
+            ${pr.is_fork ? `Fork Repository: ${pr.head_repo_owner}/${pr.head_repo_name}` : ''}
 
             Your tasks:
-            1. Clone the repository ${owner}/${repo} locally.
-            2. Check out the PR branch: ${pr.head_ref}
-            3. Fetch the latest changes from the base branch: ${pr.base_ref}
-            4. Merge the base branch into the PR branch to identify conflicts.
-            5. Resolve all merge conflicts carefully:
+            ${forkInstructions}
+            
+            Then:
+            1. Resolve all merge conflicts carefully:
                - Review the conflicting changes from both branches
                - Make intelligent decisions about how to combine the changes
                - Preserve the intent of both the PR changes and the base branch updates
                - If unsure about a conflict, prefer keeping both changes where possible
-            6. Test that the code still works after resolving conflicts (run lint/type checks).
-            7. Commit the merge resolution with a clear commit message.
-            8. Push the resolved changes to the PR branch.
+            2. Test that the code still works after resolving conflicts (run lint/type checks).
+            3. Commit the merge resolution with a clear commit message.
+            4. Push the resolved changes to the PR branch.
 
             Rules and Guidelines:
             1. Be careful when resolving conflicts - understand the context of both changes.
