@@ -38,6 +38,12 @@ jobs:
             const conflictingPRs = [];
             
             for (const pr of pullRequests) {
+              // Skip draft PRs - they're still work in progress
+              if (pr.draft) {
+                console.log(`PR #${pr.number} is a draft, skipping`);
+                continue;
+              }
+              
               // Get detailed PR info including mergeable status
               const { data: prDetails } = await github.rest.pulls.get({
                 owner,
