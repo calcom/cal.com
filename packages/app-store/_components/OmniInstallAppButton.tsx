@@ -1,4 +1,4 @@
-import useApp from "@calcom/web/modules/apps/hooks/useApp";
+import useApp from "@calcom/features/apps/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
