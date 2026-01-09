@@ -15,7 +15,7 @@ import { AppPressable } from "@/components/AppPressable";
 import { FullScreenModal } from "@/components/FullScreenModal";
 import type { Schedule } from "@/services/calcom";
 import { CalComAPIService } from "@/services/calcom";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { shadows } from "@/utils/shadows";
 
 // Generate time options (15-minute intervals)
@@ -181,7 +181,8 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         await CalComAPIService.updateSchedule(schedule.id, {
           overrides: newOverrides,
         });
-        Alert.alert("Success", successMessage, [{ text: "OK", onPress: onSuccess }]);
+        showSuccessAlert("Success", successMessage);
+        onSuccess();
         setIsSaving(false);
       } catch {
         showErrorAlert("Error", "Failed to save override. Please try again.");
@@ -229,20 +230,20 @@ export const EditAvailabilityOverrideScreen = forwardRef<
     if (!schedule || isSaving) return;
 
     if (!selectedDate) {
-      Alert.alert("Error", "Please enter a date (YYYY-MM-DD format)");
+      showErrorAlert("Error", "Please enter a date (YYYY-MM-DD format)");
       return;
     }
 
     // Validate date format
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(selectedDate)) {
-      Alert.alert("Error", "Please enter date in YYYY-MM-DD format");
+      showErrorAlert("Error", "Please enter date in YYYY-MM-DD format");
       return;
     }
 
     // Validate end time is after start time (only when not marking as unavailable)
     if (!isUnavailable && endTime <= startTime) {
-      Alert.alert("Error", "End time must be after start time");
+      showErrorAlert("Error", "End time must be after start time");
       return;
     }
 

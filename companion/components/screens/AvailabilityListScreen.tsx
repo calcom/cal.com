@@ -177,11 +177,11 @@ export function AvailabilityListScreen({
     setNameError("");
 
     if (!newScheduleName.trim()) {
-      // Use inline error for Android AlertDialog, Alert for others
+      // Use inline error for Android AlertDialog, showErrorAlert for others
       if (Platform.OS === "android") {
         setNameError("Please enter a schedule name");
       } else {
-        Alert.alert("Error", "Please enter a schedule name");
+        showErrorAlert("Error", "Please enter a schedule name");
       }
       return;
     }

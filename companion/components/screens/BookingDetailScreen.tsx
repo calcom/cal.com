@@ -38,7 +38,7 @@ import { SvgImage } from "@/components/SvgImage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCancelBooking } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 import { openInAppBrowser } from "@/utils/browser";
 import { defaultLocations, getDefaultLocationIconUrl } from "@/utils/defaultLocations";
@@ -273,12 +273,8 @@ export function BookingDetailScreen({
         { uid: booking.uid, reason },
         {
           onSuccess: () => {
-            Alert.alert("Success", "Booking cancelled successfully", [
-              {
-                text: "OK",
-                onPress: () => router.back(),
-              },
-            ]);
+            showSuccessAlert("Success", "Booking cancelled successfully");
+            router.back();
           },
           onError: (err) => {
             console.error("Failed to cancel booking");
@@ -347,7 +343,7 @@ export function BookingDetailScreen({
   }, []);
 
   const handleReportBooking = useCallback(() => {
-    Alert.alert("Report Booking", "Report booking functionality is not yet available");
+    showInfoAlert("Report Booking", "Report booking functionality is not yet available");
   }, []);
 
   // Navigate to reschedule screen (same pattern as senior's - navigate to screen in same folder)
