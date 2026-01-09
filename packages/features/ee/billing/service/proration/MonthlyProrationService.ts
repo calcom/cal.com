@@ -64,6 +64,10 @@ export class MonthlyProrationService {
 
     const changes = await seatTracker.getMonthlyChanges({ teamId, monthKey });
 
+    if (changes.netChange === 0) {
+      return null;
+    }
+
     const teamWithBilling = await this.teamRepository.getTeamWithBilling(teamId);
 
     if (!teamWithBilling) throw new Error(`Team ${teamId} not found`);
@@ -90,13 +94,12 @@ export class MonthlyProrationService {
     const currentSeatCount = teamWithBilling.memberCount;
 
     const paidSeats = billing.paidSeats ?? (await this.getSubscriptionQuantity(billing.subscriptionId));
-    const chargeableSeats = Math.max(0, currentSeatCount - paidSeats);
 
     const [year, month] = monthKey.split("-").map(Number);
     const periodEnd = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
     const calculation = this.calculateProration({
-      netSeatIncrease: chargeableSeats,
+      netSeatIncrease: changes.netChange,
       subscriptionStart: billing.subscriptionStart,
       subscriptionEnd: billing.subscriptionEnd,
       pricePerSeat: billing.pricePerSeat,
@@ -111,7 +114,7 @@ export class MonthlyProrationService {
       seatsAtStart: paidSeats,
       seatsAdded: changes.additions,
       seatsRemoved: changes.removals,
-      netSeatIncrease: chargeableSeats,
+      netSeatIncrease: changes.netChange,
       seatsAtEnd: currentSeatCount,
       subscriptionId: billing.subscriptionId,
       subscriptionItemId: billing.subscriptionItemId,
@@ -132,8 +135,8 @@ export class MonthlyProrationService {
     });
 
     if (calculation.proratedAmount > 0) {
-      await this.createStripeInvoiceItem(proration);
-      return proration;
+      const updatedProration = await this.createStripeInvoiceItem(proration);
+      return updatedProration;
     }
 
     await this.updateSubscriptionQuantity(
@@ -218,12 +221,16 @@ export class MonthlyProrationService {
 
     await this.billingService.finalizeInvoice(invoiceId);
 
-    await this.prorationRepository.updateProrationStatus(proration.id, "INVOICE_CREATED", {
-      invoiceItemId,
-      invoiceId,
-    });
+    const updatedProration = await this.prorationRepository.updateProrationStatus(
+      proration.id,
+      "INVOICE_CREATED",
+      {
+        invoiceItemId,
+        invoiceId,
+      }
+    );
 
-    return { invoiceItemId };
+    return updatedProration;
   }
 
   async handleProrationPaymentSuccess(prorationId: string) {
