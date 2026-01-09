@@ -1,7 +1,8 @@
 "use client";
 
-import Shell from "@calcom/features/shell/Shell";
 import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui/components/skeleton";
+
+import Shell from "~/shell/Shell";
 
 export function AvailabilityScheduleSkeleton() {
   return (
@@ -18,13 +19,13 @@ export function AvailabilityScheduleSkeleton() {
             {/* Title section */}
             <header className="flex w-full max-w-full items-center truncate">
               <div className="w-full truncate ltr:mr-4 rtl:ml-4 md:block">
-                <SkeletonText className="font-cal max-w-28 sm:max-w-72 md:max-w-80 hidden h-6 truncate text-xl font-semibold tracking-wide md:block" />
+                <SkeletonText className="font-heading max-w-28 sm:max-w-72 md:max-w-80 hidden h-6 truncate text-xl tracking-wide md:block" />
                 {/* Title */}
                 <SkeletonText className="mt-1 hidden h-4 w-64 text-sm md:block" /> {/* Subtitle */}
               </div>
 
               {/* Action buttons */}
-              <div className="relative flex-shrink-0 md:relative md:bottom-auto md:right-auto">
+              <div className="relative shrink-0 md:relative md:bottom-auto md:right-auto">
                 {/* Desktop buttons - Set to Default, Delete, and Save */}
                 <div className="flex items-center justify-end">
                   {/* Set to Default - desktop only */}
@@ -99,14 +100,14 @@ export function AvailabilityScheduleSkeleton() {
                     <SkeletonText className="ml-2 h-4 w-4 rounded-full" /> {/* Info icon */}
                   </div>
                   <SkeletonText className="mb-4 mt-1 h-4 w-full max-w-md text-sm" /> {/* Description */}
-                  <div className="space-y-2">
+                  <div className="stack-y-2">
                     <SkeletonButton className="h-9 w-36 rounded-md" /> {/* Add an override button */}
                   </div>
                 </div>
               </div>
 
               {/* Sidebar - only visible on desktop */}
-              <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1 xl:w-[25%]">
+              <div className="min-w-40 stack-y-2 col-span-3 hidden md:block lg:col-span-1 xl:w-[25%]">
                 <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
                   <div>
                     <SkeletonText className="mb-1 h-4 w-24 text-sm" /> {/* Timezone */}

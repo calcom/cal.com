@@ -112,11 +112,40 @@ export const getAppsStatus = (calEvent: Pick<CalendarEvent, "appsStatus">, t: TF
     `;
 };
 
+/**
+ * Converts HTML to plain text while preserving line breaks and links.
+ * Used for calendar event descriptions that are stored as HTML from the rich text editor.
+ */
+const htmlToPlainText = (html: string): string => {
+  return (
+    html
+      // Convert links to markdown-style format: [text](url)
+      .replace(/<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>([^<]*)<\/a>/gi, (_, url, text) => {
+        // If link text is the same as URL, just show the URL
+        if (text === url || !text.trim()) {
+          return url;
+        }
+        return `${text} (${url})`;
+      })
+      // Convert block-level elements to newlines
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p>/gi, "\n")
+      .replace(/<\/div>/gi, "\n")
+      .replace(/<\/li>/gi, "\n")
+      .replace(/<\/h[1-6]>/gi, "\n")
+      // Strip remaining HTML tags
+      .replace(/<\/?[^>]+(>|$)/g, "")
+      // Normalize multiple newlines to max 2
+      .replace(/\n{3,}/g, "\n\n")
+      .trim()
+  );
+};
+
 export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: TFunction) => {
   if (!calEvent.description) {
     return "";
   }
-  const plainText = calEvent.description.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
+  const plainText = htmlToPlainText(calEvent.description);
   return `${t("description")}\n${plainText}`;
 };
 

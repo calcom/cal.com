@@ -1,5 +1,5 @@
 import db from "@calcom/prisma";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { RoleType as DomainRoleType } from "../domain/models/Role";
 import type { CreateRoleData, UpdateRolePermissionsData } from "../domain/models/Role";
@@ -36,12 +36,23 @@ export class RoleService {
     return DEFAULT_ROLE_IDS[role];
   }
 
+  private getMembershipRoleFromRoleId(roleId: string): MembershipRole | null {
+    const entry = Object.entries(DEFAULT_ROLE_IDS).find(([, id]) => id === roleId);
+    return entry ? (entry[0] as MembershipRole) : null;
+  }
+
   async assignRoleToMember(roleId: string, membershipId: number) {
     const role = await this.repository.findById(roleId);
     if (!role) throw new Error("Role not found");
+    
+    const membershipRole = this.getMembershipRoleFromRoleId(roleId);
+    
     await db.membership.update({
       where: { id: membershipId },
-      data: { customRoleId: roleId },
+      data: {
+        customRoleId: roleId,
+        ...(membershipRole ? { role: membershipRole } : {}),
+      },
     });
     return role;
   }

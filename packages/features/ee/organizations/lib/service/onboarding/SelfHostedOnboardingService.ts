@@ -1,12 +1,12 @@
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { findUserToBeOrgOwner } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
+import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
+import { findUserToBeOrgOwner } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
+import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { BillingPeriod } from "@calcom/prisma/enums";
@@ -46,8 +46,12 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
       })
     );
 
-    // Step 1: Filter and normalize teams/invites
-    const { teamsData, invitedMembersData } = this.filterTeamsAndInvites(input.teams, input.invitedMembers);
+    // Step 1: Build and validate teams/invites (includes conflict slug detection)
+    const { teamsData, invitedMembersData } = await this.buildTeamsAndInvites(
+      input.slug,
+      input.teams,
+      input.invitedMembers
+    );
 
     // Step 2: Create onboarding record with ALL data at once
     const organizationOnboarding = await this.createOnboardingRecord({

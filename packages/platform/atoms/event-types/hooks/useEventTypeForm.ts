@@ -7,7 +7,7 @@ import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/check
 import { locationsResolver } from "@calcom/app-store/locations";
 import { DEFAULT_PROMPT_VALUE, DEFAULT_BEGIN_MESSAGE } from "@calcom/features/calAIPhone/promptTemplates";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
-import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
+import { sortHosts } from "@calcom/web/modules/event-types/components/HostEditDialogs";
 import { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type {
   FormValues,
@@ -94,6 +94,9 @@ export const useEventTypeForm = ({
       requiresConfirmationForFreeEmail: eventType.requiresConfirmationForFreeEmail,
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
+      disabledCancelling: eventType.disableCancelling ?? false,
+      disabledRescheduling: eventType.disableRescheduling ?? false,
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
       hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,
@@ -118,6 +121,7 @@ export const useEventTypeForm = ({
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
       autoTranslateDescriptionEnabled: eventType.autoTranslateDescriptionEnabled,
+      autoTranslateInstantMeetingTitleEnabled: eventType.autoTranslateInstantMeetingTitleEnabled ?? true,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
       assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
@@ -374,7 +378,7 @@ export const useEventTypeForm = ({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { availability, users, scheduleName, ...rest } = input;
+    const { availability, users, scheduleName, disabledCancelling, disabledRescheduling, ...rest } = input;
     const payload = {
       ...rest,
       length,
@@ -399,6 +403,8 @@ export const useEventTypeForm = ({
       children,
       assignAllTeamMembers,
       multiplePrivateLinks: values.multiplePrivateLinks,
+      disableCancelling: disabledCancelling,
+      disableRescheduling: disabledRescheduling,
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
         : undefined,

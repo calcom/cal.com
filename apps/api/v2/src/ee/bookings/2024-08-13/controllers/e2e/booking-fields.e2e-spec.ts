@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
@@ -854,7 +854,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
     describe("Booking Field Type Validation", () => {
       const basePayload = {
-        start: "2025-06-19T11:00:00.000Z",
+        start: new Date(Date.UTC(2030, 5, 19, 11, 0, 0)).toISOString(),
         attendee: {
           name: "Charlie TypeTest",
           email: "charlie.typetest@example.com",
@@ -1161,6 +1161,31 @@ describe("Bookings Endpoints 2024-08-13", () => {
         expect(response.body.error.message).toBe(
           `One or more invalid options for booking field '${fieldName}'. Allowed options are: blue, red.`
         );
+      });
+
+      it("should transform null values to empty strings in bookingFieldsResponses", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFields.id,
+          bookingFieldsResponses: {
+            "favorite-movie": "The Matrix",
+            rescheduleReason: null,
+            notes: null,
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(201);
+        expect(response.body.status).toEqual(SUCCESS_STATUS);
+
+        if (responseDataIsBooking(response.body.data)) {
+          const data: BookingOutput_2024_08_13 = response.body.data;
+          expect(data.bookingFieldsResponses.notes).toBe("");
+          expect(data.bookingFieldsResponses.rescheduleReason).toBe("");
+          expect(data.bookingFieldsResponses["favorite-movie"]).toBe("The Matrix");
+        }
       });
     });
 

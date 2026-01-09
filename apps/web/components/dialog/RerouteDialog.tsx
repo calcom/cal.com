@@ -373,9 +373,9 @@ const NewRoutingManager = ({
     reroutingState.value?.type === "reschedule_to_different_event_new_tab";
 
   return (
-    <div className="bg-muted flex flex-col space-y-3 rounded-md p-4 text-sm">
+    <div className="bg-cal-muted flex flex-col stack-y-3 rounded-md p-4 text-sm">
       <h2 className="text-emphasis font-medium">{t("new_routing_status")}</h2>
-      <div className="flex flex-col space-y-2">
+      <div className="flex flex-col stack-y-2">
         {reroutingState.status === ReroutingStatusEnum.REROUTING_NOT_INITIATED && reroutingPreview()}
         {(reroutingState.status === ReroutingStatusEnum.REROUTING_NOT_INITIATED || !isReroutingInNewTab) &&
           reroutingCTAs()}
@@ -567,7 +567,7 @@ const NewRoutingManager = ({
         throw new Error(t("something_went_wrong"));
       }
       return (
-        <div className="flex flex-col space-y-2">
+        <div className="flex flex-col stack-y-2">
           <span className="text-default" data-testid="reroute-preview-event-type">
             <span className="font-semibold">{t("event_type")}:</span>{" "}
             <a
@@ -666,9 +666,9 @@ const CurrentRoutingStatus = ({
   const bookerUrl = useBookerUrl();
   if (!fullSlug) return null;
   return (
-    <div className="bg-muted flex flex-col space-y-3 rounded-md p-4 text-sm">
+    <div className="bg-cal-muted flex flex-col stack-y-3 rounded-md p-4 text-sm">
       <h2 className="text-emphasis font-medium">{t("current_routing_status")}</h2>
-      <div className="flex flex-col space-y-2">
+      <div className="flex flex-col stack-y-2">
         <span className="text-default" data-testid="current-routing-status-event-type">
           <span className="font-semibold">{t("event_type")}:</span>{" "}
           <a
@@ -804,7 +804,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
     <div>
       <div>
         <Link
-          className="text-emphasis text-semibold font-cal mb-4 flex underline"
+          className="text-emphasis font-heading mb-4 flex underline"
           href={`/apps/routing-forms/form-edit/${form.id}`}
           target="_blank">
           {form.name}

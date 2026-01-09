@@ -21,9 +21,9 @@ function Success() {
   const { t } = useLocale();
   return (
     <>
-      <div className="space-y-6">
+      <div className="stack-y-6">
         <div>
-          <h2 className="font-cal text-emphasis mt-6 text-center text-3xl font-extrabold">
+          <h2 className="font-heading text-emphasis mt-6 text-center text-3xl">
             {t("password_updated")}
           </h2>
         </div>
@@ -39,18 +39,16 @@ function Expired() {
   const { t } = useLocale();
   return (
     <>
-      <div className="space-y-6">
+      <div className="stack-y-6">
         <div>
-          <h2 className="font-cal text-emphasis mt-6 text-center text-3xl font-extrabold">{t("whoops")}</h2>
+          <h2 className="font-heading text-emphasis mt-6 text-center text-3xl">{t("whoops")}</h2>
           <h2 className="text-emphasis text-center text-3xl font-extrabold">{t("request_is_expired")}</h2>
         </div>
         <p>{t("request_is_expired_instructions")}</p>
-        <Link href="/auth/forgot-password" passHref legacyBehavior>
-          <button
-            type="button"
-            className="flex w-full justify-center px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
-            {t("try_again")}
-          </button>
+        <Link
+          href="/auth/forgot-password"
+          className="flex w-full justify-center px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+          {t("try_again")}
         </Link>
       </div>
     </>
@@ -114,7 +112,7 @@ function PasswordResetForm({
 
   return (
     <Form
-      className="space-y-6"
+      className="stack-y-6"
       form={formMethods}
       style={
         {

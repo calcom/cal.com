@@ -16,13 +16,13 @@ export default function SelectGifInput(props: ISelectGifInput) {
   const [showDialog, setShowDialog] = useState(false);
 
   return (
-    <div className="flex flex-col items-start space-x-2 space-y-2 rtl:space-x-reverse">
+    <div className="flex flex-col items-start space-x-2 stack-y-2 rtl:space-x-reverse">
       {selectedGif && (
         <div className="min-h-[200px]">
           <img alt="Selected Gif Image" src={selectedGif} />
         </div>
       )}
-      <div className="flex">
+      <div className="flex gap-2">
         {selectedGif ? (
           <Button
             color="minimal"

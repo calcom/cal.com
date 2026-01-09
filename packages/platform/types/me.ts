@@ -4,6 +4,8 @@ export const userSchemaResponse = z.object({
   id: z.number().int(),
   email: z.string(),
   name: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+  bio: z.string().nullable(),
   timeFormat: z.number().int().default(12),
   defaultScheduleId: z.number().int().nullable(),
   weekStart: z.string(),

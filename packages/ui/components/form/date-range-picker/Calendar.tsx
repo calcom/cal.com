@@ -26,8 +26,8 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
-        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-        month: "space-y-4",
+        months: "flex flex-col sm:flex-row stack-y-4 sm:space-x-4 sm:stack-y-0",
+        month: "stack-y-4",
         caption: "flex pt-1 relative items-center justify-between",
         caption_label: "text-sm font-medium",
         nav: "flex items-center",
@@ -35,15 +35,15 @@ function Calendar({
         head_row: "flex w-full items-center justify-between",
         head_cell: "w-8 md:w-11 h-8 text-sm font-medium text-default text-center",
         nav_button: cn(buttonClasses({ color: "minimal", variant: "icon" })),
-        table: "w-full border-collapse space-y-1",
+        table: "w-full border-collapse stack-y-1",
         row: "flex w-full mt-0.5 gap-0.5",
-        cell: "w-8 h-8 md:h-11 md:w-11 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+        cell: "w-8 h-8 md:h-11 md:w-11 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
         day: cn(
           buttonClasses({ color: "minimal" }),
           "w-8 h-8 md:h-11 md:w-11 p-0 text-sm font-medium aria-selected:opacity-100 inline-flex items-center justify-center"
         ),
-        day_range_end: "hover:!bg-inverted hover:!text-inverted",
-        day_range_start: "hover:!bg-inverted hover:!text-inverted",
+        day_range_end: "hover:bg-inverted! text-inverted!",
+        day_range_start: "hover:bg-inverted! text-inverted!",
         day_selected: "bg-inverted text-inverted",
         day_today: "",
         day_outside: "",

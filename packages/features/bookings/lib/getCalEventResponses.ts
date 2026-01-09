@@ -67,8 +67,9 @@ export const getCalEventResponses = ({
     parsedBookingFields.forEach((field) => {
       const label = field.label || field.defaultLabel;
       if (!label) {
-        //TODO: This error must be thrown while saving event-type as well so that such an event-type can't be saved
-        throw new Error(`Missing label for booking field "${field.name}"`);
+        //TODO: This error must be thrown while saving event-type so that such an event-type can't be saved
+        log.error(`Missing label for booking field "${field.name}"`);
+        return;
       }
 
       if (field.name == "guests" && !!seatsEnabled) {

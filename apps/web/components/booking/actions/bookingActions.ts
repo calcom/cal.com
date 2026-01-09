@@ -1,3 +1,4 @@
+import { isWithinMinimumRescheduleNotice } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { ActionType } from "@calcom/ui/components/table";
 
@@ -38,43 +39,40 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
   const { booking, isPending, isTabRecurring, isTabUnconfirmed, isRecurring, showPendingPayment, t } =
     context;
 
-  const actions: ActionType[] = [
-    {
-      id: "reject",
-      label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
-      icon: "ban",
-      disabled: false, // This would be controlled by mutation state in the component
-    },
-  ];
+  const actions: ActionType[] = [];
 
   // For bookings with payment, only confirm if the booking is paid for
   // Original logic: (isPending && !paymentAppData.enabled) || (paymentAppData.enabled && !!paymentAppData.price && booking.paid)
   if ((isPending && !showPendingPayment) || (showPendingPayment && booking.paid)) {
     actions.push({
       id: "confirm",
-      bookingId: booking.id,
+      bookingUid: booking.uid,
       label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
       icon: "check" as const,
       disabled: false, // This would be controlled by mutation state in the component
     });
   }
 
+  actions.push({
+    id: "reject",
+    label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
+    icon: "ban",
+    disabled: false, // This would be controlled by mutation state in the component
+  });
+
   return actions;
 }
 
 export function getCancelEventAction(context: BookingActionContext): ActionType {
-  const { booking, isTabRecurring, isRecurring, getSeatReferenceUid, t } = context;
-  const seatReferenceUid = getSeatReferenceUid();
+  const { booking, isTabRecurring, isRecurring, t } = context;
 
   return {
     id: "cancel",
     label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
-    href: `/booking/${booking.uid}?cancel=true${
-      isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-    }${booking.seatsReferences.length && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
     icon: "circle-x",
     color: "destructive",
     disabled: isActionDisabled("cancel", context),
+    bookingUid: booking.uid,
   };
 }
 
@@ -109,6 +107,12 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
   } = context;
   const seatReferenceUid = getSeatReferenceUid();
 
+  const isReassignableRoundRobin =
+    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    (!booking.eventType.hostGroups || booking.eventType.hostGroups.length <= 1);
+  const isManagedChildEvent = booking.eventType.parentId != null;
+  const isReassignable = isReassignableRoundRobin || isManagedChildEvent;
+
   const actions: (ActionType | null)[] = [
     {
       id: "reschedule",
@@ -119,8 +123,12 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
           ? `?seatReferenceUid=${seatReferenceUid}`
           : ""
       }`,
-      disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+      disabled: isActionDisabled("reschedule", {
+        ...context,
+        booking,
+        isBookingInPast,
+        isDisabledRescheduling,
+      }),
     },
     {
       id: "reschedule_request",
@@ -128,9 +136,12 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
       label: t("send_reschedule_request"),
       disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
-        isDisabledRescheduling ||
-        booking.seatsReferences.length > 0,
+        isActionDisabled("reschedule_request", {
+          ...context,
+          booking,
+          isBookingInPast,
+          isDisabledRescheduling,
+        }) || booking.seatsReferences.length > 0,
     },
     isBookingFromRoutingForm
       ? {
@@ -154,9 +165,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
           icon: "user-plus",
           disabled: false,
         },
-    // Reassign if round robin with no or one host groups
-    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-    (!booking.eventType.hostGroups || booking.eventType.hostGroups?.length <= 1)
+    isReassignable
       ? {
           id: "reassign",
           label: t("reassign"),
@@ -228,12 +237,29 @@ export function shouldShowIndividualReportButton(context: BookingActionContext):
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
-  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling } = context;
+  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isAttendee } = context;
 
   switch (actionId) {
     case "reschedule":
     case "reschedule_request":
-      return (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling;
+      // Only apply minimum reschedule notice restriction if user is NOT the organizer
+      // If user is an attendee (or not authenticated), apply the restriction
+      const isUserOrganizer =
+        !isAttendee &&
+        booking.loggedInUser?.userId &&
+        booking.user?.id &&
+        booking.loggedInUser.userId === booking.user.id;
+      const isWithinMinimumNotice =
+        !isUserOrganizer &&
+        isWithinMinimumRescheduleNotice(
+          new Date(booking.startTime),
+          booking.eventType.minimumRescheduleNotice ?? null
+        );
+      return (
+        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
+        isDisabledRescheduling ||
+        isWithinMinimumNotice
+      );
     case "cancel":
       return isDisabledCancelling || isBookingInPast;
     case "view_recordings":
