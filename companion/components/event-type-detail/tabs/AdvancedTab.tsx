@@ -17,42 +17,42 @@ import { openInAppBrowser } from "@/utils/browser";
 const interfaceLanguageOptions = [
   { label: "Browser Default", value: "" },
   { label: "English", value: "en" },
-  { label: "Arabic", value: "ar" },
-  { label: "Azerbaijani", value: "az" },
-  { label: "Bulgarian", value: "bg" },
-  { label: "Bengali", value: "bn" },
-  { label: "Catalan", value: "ca" },
-  { label: "Czech", value: "cs" },
-  { label: "Danish", value: "da" },
-  { label: "German", value: "de" },
-  { label: "Greek", value: "el" },
-  { label: "Spanish", value: "es" },
-  { label: "Spanish (Latin America)", value: "es-419" },
-  { label: "Basque", value: "eu" },
-  { label: "Estonian", value: "et" },
-  { label: "Finnish", value: "fi" },
-  { label: "French", value: "fr" },
-  { label: "Hebrew", value: "he" },
-  { label: "Hungarian", value: "hu" },
-  { label: "Italian", value: "it" },
-  { label: "Japanese", value: "ja" },
-  { label: "Khmer", value: "km" },
-  { label: "Korean", value: "ko" },
-  { label: "Dutch", value: "nl" },
-  { label: "Norwegian", value: "no" },
-  { label: "Polish", value: "pl" },
-  { label: "Portuguese (Brazil)", value: "pt-BR" },
-  { label: "Portuguese", value: "pt" },
-  { label: "Romanian", value: "ro" },
-  { label: "Russian", value: "ru" },
-  { label: "Slovak", value: "sk-SK" },
-  { label: "Serbian", value: "sr" },
-  { label: "Swedish", value: "sv" },
-  { label: "Turkish", value: "tr" },
-  { label: "Ukrainian", value: "uk" },
-  { label: "Vietnamese", value: "vi" },
-  { label: "Chinese (Simplified)", value: "zh-CN" },
-  { label: "Chinese (Traditional)", value: "zh-TW" },
+  { label: "العربية", value: "ar" },
+  { label: "Azərbaycan", value: "az" },
+  { label: "Български", value: "bg" },
+  { label: "বাংলা", value: "bn" },
+  { label: "Català", value: "ca" },
+  { label: "Čeština", value: "cs" },
+  { label: "Dansk", value: "da" },
+  { label: "Deutsch", value: "de" },
+  { label: "Ελληνικά", value: "el" },
+  { label: "Español", value: "es" },
+  { label: "Español latinoamericano", value: "es-419" },
+  { label: "Eesti", value: "et" },
+  { label: "Euskara", value: "eu" },
+  { label: "Suomi", value: "fi" },
+  { label: "Français", value: "fr" },
+  { label: "עברית", value: "he" },
+  { label: "Magyar", value: "hu" },
+  { label: "Italiano", value: "it" },
+  { label: "日本語", value: "ja" },
+  { label: "ខ្មែរ", value: "km" },
+  { label: "한국어", value: "ko" },
+  { label: "Nederlands", value: "nl" },
+  { label: "Norsk", value: "no" },
+  { label: "Polski", value: "pl" },
+  { label: "Português", value: "pt" },
+  { label: "Português (Brasil)", value: "pt-BR" },
+  { label: "Română", value: "ro" },
+  { label: "Русский", value: "ru" },
+  { label: "Slovenčina (Slovensko)", value: "sk-SK" },
+  { label: "Српски", value: "sr" },
+  { label: "Svenska", value: "sv" },
+  { label: "Türkçe", value: "tr" },
+  { label: "Українська", value: "uk" },
+  { label: "Tiếng Việt", value: "vi" },
+  { label: "中文（中国）", value: "zh-CN" },
+  { label: "中文（台灣）", value: "zh-TW" },
 ];
 
 interface ConfigureOnWebCardProps {
@@ -95,8 +95,7 @@ function ConfigureOnWebCard({
 interface AdvancedTabProps {
   requiresConfirmation: boolean;
   setRequiresConfirmation: (value: boolean) => void;
-  autoTranslate: boolean;
-  setAutoTranslate: (value: boolean) => void;
+
   requiresBookerEmailVerification: boolean;
   setRequiresBookerEmailVerification: (value: boolean) => void;
   hideCalendarNotes: boolean;
@@ -220,26 +219,6 @@ export function AdvancedTab(props: AdvancedTabProps) {
           <Switch
             value={props.sendCalVideoTranscription}
             onValueChange={props.setSendCalVideoTranscription}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
-
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">
-              Auto translate title and description
-            </Text>
-            <Text className="text-sm text-[#666]">
-              Automatically translate titles and descriptions to the visitor's browser language
-              using AI.
-            </Text>
-          </View>
-          <Switch
-            value={props.autoTranslate}
-            onValueChange={props.setAutoTranslate}
             trackColor={{ false: "#E5E5EA", true: "#34C759" }}
             thumbColor="#FFFFFF"
           />

@@ -124,7 +124,7 @@ interface EventTypeFormState {
   disableCancelling: boolean;
   disableRescheduling: boolean;
   sendCalVideoTranscription: boolean;
-  autoTranslate: boolean;
+
   interfaceLanguage: string;
   showOptimizedSlots: boolean;
 
@@ -730,7 +730,7 @@ export function buildPartialUpdatePayload(
   const metadataChanges: Record<string, unknown> = {};
   const originalMetadata = original.metadata || {};
 
-  // Disable Cancelling - Send BOTH new API format and metadata for compatibility
+  // Disable Cancelling
   const originalDisableCancelling =
     typeof original.disableCancelling === "object"
       ? original.disableCancelling.disabled
@@ -738,10 +738,9 @@ export function buildPartialUpdatePayload(
 
   if (currentState.disableCancelling !== originalDisableCancelling) {
     payload.disableCancelling = { disabled: currentState.disableCancelling };
-    metadataChanges.disableCancelling = currentState.disableCancelling;
   }
 
-  // Disable Rescheduling - Send BOTH new API format and metadata for compatibility
+  // Disable Rescheduling
   const originalDisableRescheduling =
     typeof original.disableRescheduling === "object"
       ? original.disableRescheduling.disabled
@@ -749,26 +748,15 @@ export function buildPartialUpdatePayload(
 
   if (currentState.disableRescheduling !== originalDisableRescheduling) {
     payload.disableRescheduling = { disabled: currentState.disableRescheduling };
-    metadataChanges.disableRescheduling = currentState.disableRescheduling;
   }
 
-  // Cal Video Settings - Send BOTH new API format and metadata for compatibility
+  // Cal Video Settings
   const originalSendTranscription = original.calVideoSettings?.sendTranscriptionEmails ?? true;
 
-  // Check against metadata too in case it was loaded from there
-  const originalMetadataSendTranscription =
-    originalMetadata.sendCalVideoTranscription !== undefined
-      ? originalMetadata.sendCalVideoTranscription
-      : originalSendTranscription;
-
-  if (
-    currentState.sendCalVideoTranscription !== originalSendTranscription ||
-    currentState.sendCalVideoTranscription !== originalMetadataSendTranscription
-  ) {
+  if (currentState.sendCalVideoTranscription !== originalSendTranscription) {
     payload.calVideoSettings = {
       sendTranscriptionEmails: currentState.sendCalVideoTranscription,
     };
-    metadataChanges.sendCalVideoTranscription = currentState.sendCalVideoTranscription;
   }
 
   // Interface Language (API V2)
@@ -779,11 +767,6 @@ export function buildPartialUpdatePayload(
   // Show Optimized Slots (API V2)
   if (currentState.showOptimizedSlots !== (original.showOptimizedSlots || false)) {
     payload.showOptimizedSlots = currentState.showOptimizedSlots;
-  }
-
-  // AutoTranslate still uses metadata (not yet a top-level API field)
-  if (currentState.autoTranslate !== (originalMetadata.autoTranslate || false)) {
-    metadataChanges.autoTranslate = currentState.autoTranslate;
   }
 
   if ((currentState.calendarEventName || "") !== (originalMetadata.calendarEventName || "")) {

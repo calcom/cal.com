@@ -53,7 +53,7 @@ interface EventTypeExtended {
   disableCancelling?: boolean | { disabled: boolean };
   disableRescheduling?: boolean | { disabled: boolean; minutesBefore?: number };
   sendCalVideoTranscription?: boolean;
-  autoTranslate?: boolean;
+
   lockedTimeZone?: string;
   hideCalendarEventDetails?: boolean;
   hideOrganizerEmail?: boolean;
@@ -207,7 +207,7 @@ export default function EventTypeDetail() {
   const [disableCancelling, setDisableCancelling] = useState(false);
   const [disableRescheduling, setDisableRescheduling] = useState(false);
   const [sendCalVideoTranscription, setSendCalVideoTranscription] = useState(true);
-  const [autoTranslate, setAutoTranslate] = useState(false);
+
   const [requiresBookerEmailVerification, setRequiresBookerEmailVerification] = useState(false);
   const [hideCalendarNotes, setHideCalendarNotes] = useState(false);
   const [hideCalendarEventDetails, setHideCalendarEventDetails] = useState(false);
@@ -640,12 +640,6 @@ export default function EventTypeDetail() {
       setSendCalVideoTranscription(eventTypeExt.sendCalVideoTranscription);
     } else if (metadata?.sendCalVideoTranscription) {
       setSendCalVideoTranscription(true);
-    }
-
-    if (eventTypeExt.autoTranslate !== undefined) {
-      setAutoTranslate(eventTypeExt.autoTranslate);
-    } else if (metadata?.autoTranslate) {
-      setAutoTranslate(true);
     }
 
     // Load interface language (API V2)
@@ -1117,7 +1111,7 @@ export default function EventTypeDetail() {
         disableCancelling,
         disableRescheduling,
         sendCalVideoTranscription,
-        autoTranslate,
+
         interfaceLanguage,
         showOptimizedSlots,
 
@@ -1901,8 +1895,6 @@ export default function EventTypeDetail() {
             <AdvancedTab
               requiresConfirmation={requiresConfirmation}
               setRequiresConfirmation={setRequiresConfirmation}
-              autoTranslate={autoTranslate}
-              setAutoTranslate={setAutoTranslate}
               requiresBookerEmailVerification={requiresBookerEmailVerification}
               setRequiresBookerEmailVerification={setRequiresBookerEmailVerification}
               hideCalendarNotes={hideCalendarNotes}
