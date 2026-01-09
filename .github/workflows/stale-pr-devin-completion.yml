@@ -1,0 +1,173 @@
+name: Stale PR Devin Completion
+
+on:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  complete-stale-pr:
+    name: Trigger Devin to Complete Stale PR
+    # Only run if the 'stale' label was added
+    if: github.event.label.name == 'stale'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Get PR details
+        id: pr-details
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            
+            // Get PR description and comments for context
+            const prBody = pr.body || 'No description provided';
+            const prTitle = pr.title;
+            const prNumber = pr.number;
+            const prBranch = pr.head.ref;
+            const prAuthor = pr.user.login;
+            
+            // Get the list of changed files
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+              per_page: 100
+            });
+            
+            const changedFiles = files.map(f => f.filename).join('\n');
+            
+            // Get PR comments for additional context
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 50
+            });
+            
+            // Get review comments
+            const { data: reviewComments } = await github.rest.pulls.listReviewComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+              per_page: 50
+            });
+            
+            // Compile feedback from comments
+            let feedback = '';
+            if (comments.length > 0) {
+              feedback += 'PR Comments:\n';
+              comments.forEach(c => {
+                if (c.user.login !== 'github-actions[bot]' && c.user.login !== 'devin-ai-integration[bot]') {
+                  feedback += `- @${c.user.login}: ${c.body.substring(0, 500)}\n`;
+                }
+              });
+            }
+            if (reviewComments.length > 0) {
+              feedback += '\nCode Review Comments:\n';
+              reviewComments.forEach(c => {
+                if (c.user.login !== 'github-actions[bot]' && c.user.login !== 'devin-ai-integration[bot]') {
+                  feedback += `- @${c.user.login} on ${c.path}: ${c.body.substring(0, 500)}\n`;
+                }
+              });
+            }
+            
+            // Save context to files
+            const fs = require('fs');
+            fs.writeFileSync('/tmp/pr-body.txt', prBody);
+            fs.writeFileSync('/tmp/pr-feedback.txt', feedback || 'No feedback comments found');
+            fs.writeFileSync('/tmp/changed-files.txt', changedFiles);
+            
+            core.setOutput('pr-title', prTitle);
+            core.setOutput('pr-number', prNumber);
+            core.setOutput('pr-branch', prBranch);
+            core.setOutput('pr-author', prAuthor);
+            core.setOutput('has-feedback', feedback ? 'true' : 'false');
+
+      - name: Create Devin session
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+        run: |
+          PR_BODY=$(cat /tmp/pr-body.txt)
+          PR_FEEDBACK=$(cat /tmp/pr-feedback.txt)
+          CHANGED_FILES=$(cat /tmp/changed-files.txt)
+          
+          # Build the full prompt for Devin
+          FULL_PROMPT="You are completing a stale community PR #${{ steps.pr-details.outputs.pr-number }} in repository ${{ github.repository }}.
+
+          This PR was started by @${{ steps.pr-details.outputs.pr-author }} but has become stale. Your job is to complete it.
+
+          PR Title: ${{ steps.pr-details.outputs.pr-title }}
+
+          PR Description:
+          ${PR_BODY}
+
+          Changed Files:
+          ${CHANGED_FILES}
+
+          Feedback and Review Comments:
+          ${PR_FEEDBACK}
+
+          Your tasks:
+          1. Clone the repository ${{ github.repository }} locally.
+          2. Check out the PR branch: ${{ steps.pr-details.outputs.pr-branch }}
+          3. Review the current state of the PR and understand what it's trying to accomplish.
+          4. Review any feedback or review comments that have been left on the PR.
+          5. Complete any unfinished work on the PR:
+             - Fix any issues mentioned in review comments
+             - Ensure the code follows the repository's coding standards
+             - Add any missing tests if applicable
+             - Fix any linting or type errors
+          6. Run the appropriate checks (lint, type-check, tests) to ensure the PR is ready for review.
+          7. Commit your changes with clear commit messages.
+          8. Push your changes to the PR branch.
+          9. Post a summary comment on the PR explaining what you completed.
+
+          Rules and Guidelines:
+          1. Respect the original author's intent and approach - don't rewrite the PR from scratch.
+          2. Make minimal, focused changes that complete the PR's original goal.
+          3. Follow the existing code style and conventions in the repository.
+          4. If the PR's original approach seems fundamentally flawed, explain why in a comment instead of making major changes.
+          5. Never ask for user confirmation. Never wait for user messages.
+          6. Credit the original author in your commit messages where appropriate."
+
+          # Call Devin API
+          RESPONSE=$(curl -s -X POST "https://api.devin.ai/v1/sessions" \
+            -H "Authorization: Bearer ${DEVIN_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg prompt "$FULL_PROMPT" \
+              --arg title "Complete Stale PR #${{ steps.pr-details.outputs.pr-number }}: ${{ steps.pr-details.outputs.pr-title }}" \
+              '{
+                prompt: $prompt,
+                title: $title,
+                tags: ["stale-pr-completion", "pr-${{ steps.pr-details.outputs.pr-number }}"]
+              }')")
+          
+          # Extract session URL if available
+          SESSION_URL=$(echo "$RESPONSE" | jq -r '.url // .session_url // empty')
+          if [ -n "$SESSION_URL" ]; then
+            echo "Devin session created: $SESSION_URL"
+            echo "SESSION_URL=$SESSION_URL" >> $GITHUB_ENV
+          else
+            echo "Failed to create Devin session"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+
+      - name: Post comment with Devin session link
+        if: env.SESSION_URL != ''
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const sessionUrl = process.env.SESSION_URL;
+            const prAuthor = '${{ steps.pr-details.outputs.pr-author }}';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: `### Devin AI is completing this stale PR\n\nThis PR by @${prAuthor} has been marked as stale. A Devin session has been created to complete the remaining work.\n\n[View Devin Session](${sessionUrl})\n\n---\n*Devin will review the PR, address any feedback, and push updates to complete this PR.*`
+            });
