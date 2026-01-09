@@ -14,6 +14,7 @@ import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/ev
 import type { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import type { WorkingHours as WorkingHoursWithUserId } from "@calcom/types/schedule";
 import type { DateOverride, WorkingHours } from "@calcom/features/schedules/lib/date-ranges";
 import { buildDateRanges, subtract } from "@calcom/features/schedules/lib/date-ranges";
 import { getWorkingHours } from "@calcom/lib/availability";
@@ -37,6 +38,8 @@ import type {
   Availability,
   SelectedCalendar,
   TravelSchedule,
+  Host,
+  Schedule,
 } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -104,6 +107,106 @@ type GetUsersAvailabilityProps = {
   initialData?: Omit<GetUserAvailabilityInitialData, "user">;
 };
 
+type ScheduleWithoutTimeZone = {
+  id: number;
+  availability?: {
+    days: number[];
+    startTime: Date;
+    endTime: Date;
+    date: Date | null;
+  }[];
+};
+
+const DEFAULT_SCHEDULE_DATA: ScheduleWithoutTimeZone = {
+  availability: [
+    {
+      startTime: new Date("1970-01-01T09:00:00Z"),
+      endTime: new Date("1970-01-01T17:00:00Z"),
+      days: [1, 2, 3, 4, 5], // Monday to Friday
+      date: null,
+    },
+  ],
+  id: 0,
+};
+
+type DetectEventTypeScheduleForUserInput = {
+  eventType?: {
+    hosts: {
+      user: {
+        id: number;
+      };
+      schedule:
+        | (ScheduleWithoutTimeZone & {
+            timeZone: string | null;
+          })
+        | null;
+    }[];
+    timeZone: string | null;
+    schedule:
+      | (ScheduleWithoutTimeZone & {
+          timeZone: string | null;
+        })
+      | null;
+  } | null;
+  user: {
+    schedules: NonNullable<GetUserAvailabilityInitialData["user"]>["schedules"];
+    defaultScheduleId: number | null;
+    timeZone: string;
+    id: number;
+  };
+};
+
+type DetectEventTypeScheduleForUserOutput = {
+  isDefaultSchedule: boolean;
+  isTimezoneSet: boolean;
+  schedule: ScheduleWithoutTimeZone & {
+    timeZone: string;
+  };
+};
+
+function detectEventTypeScheduleForUser({
+  eventType,
+  user,
+}: DetectEventTypeScheduleForUserInput): DetectEventTypeScheduleForUserOutput {
+  const userSchedule = user.schedules.filter(
+    (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
+  )[0];
+  const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
+
+  // TODO: It uses default timezone of user. Should we use timezone of team ?
+  const fallbackTimezoneIfScheduleIsMissing = eventType?.timeZone || user.timeZone;
+
+  const fallbackSchedule = {
+    ...DEFAULT_SCHEDULE_DATA,
+    timeZone: fallbackTimezoneIfScheduleIsMissing,
+  };
+
+  let potentialSchedule = null;
+
+  if (eventType?.schedule) {
+    potentialSchedule = eventType.schedule;
+  } else if (hostSchedule) {
+    potentialSchedule = hostSchedule;
+  } else if (userSchedule) {
+    potentialSchedule = userSchedule;
+  }
+
+  const schedule = potentialSchedule ?? fallbackSchedule;
+
+  const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
+
+  const isTimezoneSet = Boolean(potentialSchedule && potentialSchedule.timeZone !== null);
+
+  return {
+    isDefaultSchedule,
+    isTimezoneSet,
+    schedule: {
+      ...schedule,
+      timeZone: schedule.timeZone || fallbackTimezoneIfScheduleIsMissing,
+    },
+  };
+}
+
 export type EventType = Awaited<ReturnType<(typeof UserAvailabilityService)["prototype"]["_getEventType"]>>;
 
 export type GetUserAvailabilityInitialData = {
@@ -169,9 +272,30 @@ export type CurrentSeats = Awaited<
   ReturnType<(typeof UserAvailabilityService)["prototype"]["_getCurrentSeats"]>
 >;
 
-export type GetUserAvailabilityResult = Awaited<
-  ReturnType<(typeof UserAvailabilityService)["prototype"]["_getUserAvailability"]>
->;
+export type GetUserAvailabilityResult = {
+  busy: EventBusyDetails[];
+  timeZone: string;
+  dateRanges: {
+    start: dayjs.Dayjs;
+    end: dayjs.Dayjs;
+  }[];
+  oooExcludedDateRanges: {
+    start: dayjs.Dayjs;
+    end: dayjs.Dayjs;
+  }[];
+  workingHours: WorkingHoursWithUserId[];
+  dateOverrides: TimeRange[];
+  currentSeats:
+    | {
+        uid: string;
+        startTime: Date;
+        _count: {
+          attendees: number;
+        };
+      }[]
+    | null;
+  datesOutOfOffice?: IOutOfOfficeData;
+};
 
 export interface IFromUser {
   id: number;
@@ -323,7 +447,7 @@ export class UserAvailabilityService {
   async _getUserAvailability(
     params: GetUserAvailabilityParams,
     initialData?: GetUserAvailabilityInitialData
-  ) {
+  ): Promise<GetUserAvailabilityResult> {
     const {
       username,
       userId,
@@ -360,38 +484,10 @@ export class UserAvailabilityService {
       currentSeats = await this.getCurrentSeats(eventType, dateFrom, dateTo);
     }
 
-    const userSchedule = user.schedules.filter(
-      (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
-    )[0];
-
-    const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
-
-    // TODO: It uses default timezone of user. Should we use timezone of team ?
-    const fallbackTimezoneIfScheduleIsMissing = eventType?.timeZone || user.timeZone;
-
-    const fallbackSchedule = {
-      availability: [
-        {
-          startTime: new Date("1970-01-01T09:00:00Z"),
-          endTime: new Date("1970-01-01T17:00:00Z"),
-          days: [1, 2, 3, 4, 5], // Monday to Friday
-          date: null,
-        },
-      ],
-      id: 0,
-
-      timeZone: fallbackTimezoneIfScheduleIsMissing,
-    };
-
-    // possible timezones that have been set by or for a user
-    const potentialSchedule = eventType?.schedule
-      ? eventType.schedule
-      : hostSchedule
-        ? hostSchedule
-        : userSchedule;
-
-    // if no schedules set by or for a user, use fallbackSchedule
-    const schedule = potentialSchedule ?? fallbackSchedule;
+    const { isDefaultSchedule, isTimezoneSet, schedule } = detectEventTypeScheduleForUser({
+      eventType,
+      user,
+    });
 
     const bookingLimits =
       eventType?.bookingLimits &&
@@ -415,16 +511,19 @@ export class UserAvailabilityService {
       ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
       : user.userLevelSelectedCalendars;
 
-    const isTimezoneSet = Boolean(potentialSchedule && potentialSchedule.timeZone !== null);
+    let calendarTimezone: string | null = null;
+    let finalTimezone: string | null = null;
 
-    // this timezone is synced with google/outlook calendars timezone usingg delegated credentials
-    // it's a fallback for delegated credentials users who want to sync their timezone with third party calendars
-    const calendarTimezone = !isTimezoneSet ? await this.getTimezoneFromDelegatedCalendars(user) : null;
+    if (!isTimezoneSet) {
+      calendarTimezone = await this.getTimezoneFromDelegatedCalendars(user);
+      if (calendarTimezone) {
+        finalTimezone = calendarTimezone;
+      }
+    }
 
-    const finalTimezone =
-      !isTimezoneSet && calendarTimezone
-        ? calendarTimezone
-        : schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing;
+    if (!finalTimezone) {
+      finalTimezone = schedule.timeZone;
+    }
 
     let busyTimesFromLimits: EventBusyDetails[] = [];
 
@@ -517,17 +616,6 @@ export class UserAvailabilityService {
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
     ];
-
-    const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
-
-    log.debug(
-      `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - usingSchedule: ${safeStringify({
-        chosenSchedule: schedule,
-        eventTypeSchedule: eventType?.schedule,
-        userSchedule: userSchedule,
-        hostSchedule: hostSchedule,
-      })}`
-    );
 
     if (
       !(
