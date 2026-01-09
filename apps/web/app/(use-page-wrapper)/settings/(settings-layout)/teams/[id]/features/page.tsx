@@ -1,9 +1,14 @@
+import type { Metadata } from "next";
+import type { ReactElement } from "react";
+
 import { _generateMetadata } from "app/_utils";
 import { notFound } from "next/navigation";
 
 import TeamFeaturesView from "~/settings/teams/[id]/features-view";
 
-export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
+type PageParams = { params: Promise<{ id: string }> };
+
+const generateMetadata = async ({ params }: PageParams): Promise<Metadata> =>
   await _generateMetadata(
     (t) => t("features"),
     (t) => t("feature_opt_in_team_description"),
@@ -12,7 +17,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
     `/settings/teams/${(await params).id}/features`
   );
 
-const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
+const Page = async ({ params }: PageParams): Promise<ReactElement> => {
   const { id } = await params;
   const teamId = Number(id);
 
@@ -23,4 +28,5 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   return <TeamFeaturesView teamId={teamId} />;
 };
 
+export { generateMetadata };
 export default Page;

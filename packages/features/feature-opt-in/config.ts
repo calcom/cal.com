@@ -37,4 +37,4 @@ export function isOptInFeature(slug: string): slug is FeatureId {
 /**
  * Check if there are any opt-in features available.
  */
-export const HAS_OPT_IN_FEATURES = OPT_IN_FEATURES.length > 0;
+export const HAS_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.length > 0;

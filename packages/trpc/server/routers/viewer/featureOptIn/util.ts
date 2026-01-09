@@ -16,10 +16,10 @@ import authedProcedure from "../../../procedures/authedProcedure";
  * @param fallbackRoles - Roles to check when PBAC is disabled (defaults to ["ADMIN", "OWNER"])
  * @returns A procedure that checks the specified permission for the team
  */
-export const createTeamPbacProcedure = (
+function createTeamPbacProcedure(
   permission: PermissionString,
   fallbackRoles: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER]
-) => {
+): ReturnType<typeof authedProcedure.input> {
   return authedProcedure
     .input(
       z.object({
@@ -27,8 +27,8 @@ export const createTeamPbacProcedure = (
       })
     )
     .use(async ({ ctx, input, next }) => {
-      const permissionCheckService = new PermissionCheckService();
-      const hasPermission = await permissionCheckService.checkPermission({
+      const permissionCheckService: PermissionCheckService = new PermissionCheckService();
+      const hasPermission: boolean = await permissionCheckService.checkPermission({
         userId: ctx.user.id,
         teamId: input.teamId,
         permission,
@@ -44,7 +44,7 @@ export const createTeamPbacProcedure = (
 
       return next();
     });
-};
+}
 
 /**
  * Creates a procedure that checks organization-level PBAC permissions.
@@ -54,12 +54,12 @@ export const createTeamPbacProcedure = (
  * @param fallbackRoles - Roles to check when PBAC is disabled (defaults to ["ADMIN", "OWNER"])
  * @returns A procedure that checks the specified permission for the organization
  */
-export const createOrgPbacProcedure = (
+function createOrgPbacProcedure(
   permission: PermissionString,
   fallbackRoles: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER]
-) => {
+): ReturnType<typeof authedProcedure.use> {
   return authedProcedure.use(async ({ ctx, next }) => {
-    const organizationId = ctx.user.organizationId;
+    const organizationId: number | null = ctx.user.organizationId;
 
     if (!organizationId) {
       throw new TRPCError({
@@ -68,8 +68,8 @@ export const createOrgPbacProcedure = (
       });
     }
 
-    const permissionCheckService = new PermissionCheckService();
-    const hasPermission = await permissionCheckService.checkPermission({
+    const permissionCheckService: PermissionCheckService = new PermissionCheckService();
+    const hasPermission: boolean = await permissionCheckService.checkPermission({
       userId: ctx.user.id,
       teamId: organizationId,
       permission,
@@ -90,4 +90,6 @@ export const createOrgPbacProcedure = (
       },
     });
   });
-};
+}
+
+export { createTeamPbacProcedure, createOrgPbacProcedure };

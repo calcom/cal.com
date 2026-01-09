@@ -9,16 +9,74 @@ import { computeEffectiveStateAcrossTeams } from "../lib/computeEffectiveState";
 type ResolvedFeatureState = {
   featureId: FeatureId;
   globalEnabled: boolean;
-  orgState: FeatureState; // Raw state (before auto-opt-in transform)
-  teamStates: FeatureState[]; // Raw states
-  userState: FeatureState | undefined; // Raw state
+  orgState: FeatureState;
+  teamStates: FeatureState[];
+  userState: FeatureState | undefined;
   effectiveEnabled: boolean;
   effectiveReason: EffectiveStateReason;
-  // Auto-opt-in flags for UI to show checkbox state
   orgAutoOptIn: boolean;
   teamAutoOptIns: boolean[];
   userAutoOptIn: boolean;
 };
+
+type ListFeaturesForUserResult = {
+  featureId: FeatureId;
+  globalEnabled: boolean;
+  orgState: FeatureState;
+  teamStates: FeatureState[];
+  userState: FeatureState | undefined;
+  effectiveEnabled: boolean;
+  effectiveReason: EffectiveStateReason;
+  orgAutoOptIn: boolean;
+  teamAutoOptIns: boolean[];
+  userAutoOptIn: boolean;
+};
+
+type ListFeaturesForTeamResult = {
+  featureId: FeatureId;
+  globalEnabled: boolean;
+  teamState: FeatureState;
+  orgState: FeatureState;
+};
+
+function getAllTeamIds(orgId: number | null, teamIds: number[]): number[] {
+  if (orgId !== null) {
+    return [orgId, ...teamIds];
+  }
+  return teamIds;
+}
+
+function getOrgState(orgId: number | null, teamStatesById: Record<number, FeatureState>): FeatureState {
+  if (orgId !== null) {
+    return teamStatesById[orgId] ?? "inherit";
+  }
+  return "inherit";
+}
+
+function getOrgAutoOptIn(orgId: number | null, teamsAutoOptIn: Record<number, boolean>): boolean {
+  if (orgId !== null) {
+    return teamsAutoOptIn[orgId] ?? false;
+  }
+  return false;
+}
+
+function getTeamIdsToQuery(teamId: number, parentOrgId: number | null | undefined): number[] {
+  if (parentOrgId) {
+    return [teamId, parentOrgId];
+  }
+  return [teamId];
+}
+
+function getOrgStateForTeam(
+  parentOrgId: number | null | undefined,
+  teamStates: Record<string, Record<number, FeatureState>>,
+  slug: FeatureId
+): FeatureState {
+  if (parentOrgId) {
+    return teamStates[slug]?.[parentOrgId] ?? "inherit";
+  }
+  return "inherit";
+}
 
 /**
  * Service class for managing feature opt-in logic.
@@ -55,85 +113,94 @@ export class FeatureOptInService {
     teamIds: number[];
     featureIds: FeatureId[];
   }): Promise<Record<string, ResolvedFeatureState>> {
-    // Get org and team states in a single query
-    // Include orgId in the query if it exists
-    const allTeamIds = orgId !== null ? [orgId, ...teamIds] : teamIds;
+    const allTeamIds = getAllTeamIds(orgId, teamIds);
 
     const [allFeatures, allTeamStates, userStates, userAutoOptIn, teamsAutoOptIn] = await Promise.all([
       this.featuresRepository.getAllFeatures(),
-      this.featuresRepository.getTeamsFeatureStates({
-        teamIds: allTeamIds,
-        featureIds,
-      }),
-      this.featuresRepository.getUserFeatureStates({
-        userId,
-        featureIds,
-      }),
+      this.featuresRepository.getTeamsFeatureStates({ teamIds: allTeamIds, featureIds }),
+      this.featuresRepository.getUserFeatureStates({ userId, featureIds }),
       this.featuresRepository.getUserAutoOptIn(userId),
       this.featuresRepository.getTeamsAutoOptIn(allTeamIds),
     ]);
 
     const globalEnabledMap = new Map(allFeatures.map((feature) => [feature.slug, feature.enabled ?? false]));
-
     const resolvedStates: Record<string, ResolvedFeatureState> = {};
 
     for (const featureId of featureIds) {
-      const globalEnabled = globalEnabledMap.get(featureId) ?? false;
-      const teamStatesById = allTeamStates[featureId] ?? {};
-
-      // Extract raw org state from the combined result
-      const orgState: FeatureState = orgId !== null ? teamStatesById[orgId] ?? "inherit" : "inherit";
-
-      // Extract raw team states from the combined result
-      const teamStates = teamIds.map((teamId) => teamStatesById[teamId] ?? "inherit");
-
-      const userState = userStates[featureId] ?? "inherit";
-
-      // Get auto-opt-in flags for this feature's hierarchy
-      const orgAutoOptIn = orgId !== null ? teamsAutoOptIn[orgId] ?? false : false;
-      const teamAutoOptIns = teamIds.map((teamId) => teamsAutoOptIn[teamId] ?? false);
-
-      // Apply auto-opt-in transformation
-      const { effectiveOrgState, effectiveTeamStates, effectiveUserState } = applyAutoOptIn({
-        orgState,
-        teamStates,
-        userState,
-        orgAutoOptIn,
-        teamAutoOptIns,
-        userAutoOptIn,
-      });
-
-      // Compute effective state with transformed states
-      const { enabled: effectiveEnabled, reason: effectiveReason } = computeEffectiveStateAcrossTeams({
-        globalEnabled,
-        orgState: effectiveOrgState,
-        teamStates: effectiveTeamStates,
-        userState: effectiveUserState,
-      });
-
-      resolvedStates[featureId] = {
+      const state = this.resolveFeatureState(
         featureId,
-        globalEnabled,
-        orgState, // Raw state (before auto-opt-in transform)
-        teamStates, // Raw states
-        userState, // Raw state
-        effectiveEnabled,
-        effectiveReason,
-        // Auto-opt-in flags for UI
-        orgAutoOptIn,
-        teamAutoOptIns,
-        userAutoOptIn,
-      };
+        orgId,
+        teamIds,
+        globalEnabledMap,
+        allTeamStates,
+        userStates,
+        teamsAutoOptIn,
+        userAutoOptIn
+      );
+      resolvedStates[featureId] = state;
     }
 
     return resolvedStates;
+  }
+
+  private resolveFeatureState(
+    featureId: FeatureId,
+    orgId: number | null,
+    teamIds: number[],
+    globalEnabledMap: Map<string, boolean>,
+    allTeamStates: Record<string, Record<number, FeatureState>>,
+    userStates: Record<string, FeatureState>,
+    teamsAutoOptIn: Record<number, boolean>,
+    userAutoOptIn: boolean
+  ): ResolvedFeatureState {
+    const globalEnabled = globalEnabledMap.get(featureId) ?? false;
+    const teamStatesById = allTeamStates[featureId] ?? {};
+
+    const orgState = getOrgState(orgId, teamStatesById);
+    const teamStates = teamIds.map((teamId) => teamStatesById[teamId] ?? "inherit");
+    const userState = userStates[featureId] ?? "inherit";
+    const orgAutoOptIn = getOrgAutoOptIn(orgId, teamsAutoOptIn);
+    const teamAutoOptIns = teamIds.map((teamId) => teamsAutoOptIn[teamId] ?? false);
+
+    const { effectiveOrgState, effectiveTeamStates, effectiveUserState } = applyAutoOptIn({
+      orgState,
+      teamStates,
+      userState,
+      orgAutoOptIn,
+      teamAutoOptIns,
+      userAutoOptIn,
+    });
+
+    const { enabled: effectiveEnabled, reason: effectiveReason } = computeEffectiveStateAcrossTeams({
+      globalEnabled,
+      orgState: effectiveOrgState,
+      teamStates: effectiveTeamStates,
+      userState: effectiveUserState,
+    });
+
+    return {
+      featureId,
+      globalEnabled,
+      orgState,
+      teamStates,
+      userState,
+      effectiveEnabled,
+      effectiveReason,
+      orgAutoOptIn,
+      teamAutoOptIns,
+      userAutoOptIn,
+    };
   }
 
   /**
    * List all opt-in features with their states for a user across teams.
    * Only returns features that are in the allowlist and globally enabled.
    */
-  async listFeaturesForUser(input: { userId: number; orgId: number | null; teamIds: number[] }) {
+  async listFeaturesForUser(input: {
+    userId: number;
+    orgId: number | null;
+    teamIds: number[];
+  }): Promise<ListFeaturesForUserResult[]> {
     const { userId, orgId, teamIds } = input;
     const featureIds = OPT_IN_FEATURES.map((config) => config.slug);
 
@@ -153,14 +220,15 @@ export class FeatureOptInService {
    * Only returns features that are in the allowlist and globally enabled.
    * If parentOrgId is provided, also returns the organization state for each feature.
    */
-  async listFeaturesForTeam(input: { teamId: number; parentOrgId?: number | null }) {
+  async listFeaturesForTeam(input: {
+    teamId: number;
+    parentOrgId?: number | null;
+  }): Promise<ListFeaturesForTeamResult[]> {
     const { teamId, parentOrgId } = input;
-
-    const teamIdsToQuery = parentOrgId ? [teamId, parentOrgId] : [teamId];
+    const teamIdsToQuery = getTeamIdsToQuery(teamId, parentOrgId);
 
     const [allFeatures, teamStates] = await Promise.all([
       this.featuresRepository.getAllFeatures(),
-      // Get all team feature states in a single query (includes org if parentOrgId provided)
       this.featuresRepository.getTeamsFeatureStates({
         teamIds: teamIdsToQuery,
         featureIds: OPT_IN_FEATURES.map((config) => config.slug),
@@ -171,16 +239,9 @@ export class FeatureOptInService {
       const globalFeature = allFeatures.find((f) => f.slug === config.slug);
       const globalEnabled = globalFeature?.enabled ?? false;
       const teamState = teamStates[config.slug]?.[teamId] ?? "inherit";
-      const orgState: FeatureState = parentOrgId
-        ? teamStates[config.slug]?.[parentOrgId] ?? "inherit"
-        : "inherit";
+      const orgState = getOrgStateForTeam(parentOrgId, teamStates, config.slug);
 
-      return {
-        featureId: config.slug,
-        globalEnabled,
-        teamState,
-        orgState,
-      };
+      return { featureId: config.slug, globalEnabled, teamState, orgState };
     });
 
     return results.filter((result) => result.globalEnabled);
@@ -194,14 +255,10 @@ export class FeatureOptInService {
     input:
       | { userId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number }
       | { userId: number; featureId: FeatureId; state: "inherit" }
-  ) {
+  ): Promise<void> {
     const { userId, featureId, state } = input;
     if (state === "inherit") {
-      await this.featuresRepository.setUserFeatureState({
-        userId,
-        featureId,
-        state,
-      });
+      await this.featuresRepository.setUserFeatureState({ userId, featureId, state });
     } else {
       const { assignedBy } = input;
       await this.featuresRepository.setUserFeatureState({
@@ -221,14 +278,10 @@ export class FeatureOptInService {
     input:
       | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number }
       | { teamId: number; featureId: FeatureId; state: "inherit" }
-  ) {
+  ): Promise<void> {
     const { teamId, featureId, state } = input;
     if (state === "inherit") {
-      await this.featuresRepository.setTeamFeatureState({
-        teamId,
-        featureId,
-        state,
-      });
+      await this.featuresRepository.setTeamFeatureState({ teamId, featureId, state });
     } else {
       const { assignedBy } = input;
       await this.featuresRepository.setTeamFeatureState({

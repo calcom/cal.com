@@ -1,3 +1,4 @@
+import type { ZodEnum } from "zod";
 import { z } from "zod";
 
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
@@ -13,11 +14,11 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { createOrgPbacProcedure, createTeamPbacProcedure } from "./util";
 
-const featureStateSchema = z.enum(["enabled", "disabled", "inherit"]);
+const featureStateSchema: ZodEnum<["enabled", "disabled", "inherit"]> = z.enum(["enabled", "disabled", "inherit"]);
 
-const featuresRepository = new FeaturesRepository(prisma);
-const featureOptInService = new FeatureOptInService(featuresRepository);
-const teamRepository = new TeamRepository(prisma);
+const featuresRepository: FeaturesRepository = new FeaturesRepository(prisma);
+const featureOptInService: FeatureOptInService = new FeatureOptInService(featuresRepository);
+const teamRepository: TeamRepository = new TeamRepository(prisma);
 
 /**
  * Helper to get user's org and team IDs from their memberships.
@@ -43,7 +44,7 @@ async function getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | n
   return { orgId, teamIds };
 }
 
-export const featureOptInRouter = router({
+export const featureOptInRouter: ReturnType<typeof router> = router({
   /**
    * Get all opt-in features with states for current user.
    * This considers all teams/orgs the user belongs to.

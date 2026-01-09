@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactElement } from "react";
+
 import { FeaturesSettings } from "@calcom/features/feature-opt-in/components/FeaturesSettings";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,7 +12,7 @@ interface TeamFeaturesViewProps {
   teamId: number;
 }
 
-const TeamFeaturesView = ({ teamId }: TeamFeaturesViewProps) => {
+const TeamFeaturesView = ({ teamId }: TeamFeaturesViewProps): ReactElement => {
   const { t } = useLocale();
   const featureOptIn = useTeamFeatureOptIn(teamId);
 
