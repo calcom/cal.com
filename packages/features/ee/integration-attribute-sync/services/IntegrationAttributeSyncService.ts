@@ -1,6 +1,6 @@
 import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-
 import type { ZCreateAttributeSyncSchema } from "@calcom/trpc/server/routers/viewer/attribute-sync/createAttributeSync.schema";
+
 import { enabledAppSlugs } from "../constants";
 import {
   type IIntegrationAttributeSyncRepository,
@@ -45,9 +45,7 @@ export class IntegrationAttributeSyncService {
     const parsedRule = attributeSyncRuleSchema.parse(input.rule);
 
     const integrationValue = credential.app?.slug || credential.type;
-    if (
-      !Object.values(AttributeSyncIntegrations).includes(integrationValue as AttributeSyncIntegrations)
-    ) {
+    if (!Object.values(AttributeSyncIntegrations).includes(integrationValue as AttributeSyncIntegrations)) {
       throw new Error(`Unsupported integration type: ${integrationValue}`);
     }
 
@@ -97,5 +95,9 @@ export class IntegrationAttributeSyncService {
   }
   async deleteById(id: string) {
     return this.deps.integrationAttributeSyncRepository.deleteById(id);
+  }
+
+  async getAllByCredentialId(credentialId: number) {
+    return this.deps.integrationAttributeSyncRepository.getAllByCredentialId(credentialId);
   }
 }
