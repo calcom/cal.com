@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Animated,
@@ -974,6 +974,170 @@ export default function EventTypeDetail() {
     ]);
   };
 
+  // Calculate current form state efficiently
+  const currentFormState = useMemo(
+    () => ({
+      // Basics
+      eventTitle,
+      eventSlug,
+      eventDescription,
+      eventDuration,
+      isHidden,
+      locations,
+      disableGuests,
+
+      // Multiple durations
+      allowMultipleDurations,
+      selectedDurations,
+      defaultDuration,
+
+      // Availability
+      selectedScheduleId: selectedSchedule?.id,
+
+      // Limits
+      beforeEventBuffer,
+      afterEventBuffer,
+      minimumNoticeValue,
+      minimumNoticeUnit,
+      slotInterval,
+      limitBookingFrequency,
+      frequencyLimits,
+      limitTotalDuration,
+      durationLimits,
+      onlyShowFirstAvailableSlot,
+      maxActiveBookingsPerBooker,
+      maxActiveBookingsValue,
+      offerReschedule,
+      limitFutureBookings,
+      futureBookingType,
+      rollingDays,
+      rollingCalendarDays,
+      rangeStartDate,
+      rangeEndDate,
+
+      // Advanced
+      requiresConfirmation,
+      requiresBookerEmailVerification,
+      hideCalendarNotes,
+      hideCalendarEventDetails,
+      hideOrganizerEmail,
+      lockTimezone,
+      allowReschedulingPastEvents,
+      allowBookingThroughRescheduleLink,
+      successRedirectUrl,
+      forwardParamsSuccessRedirect,
+      customReplyToEmail,
+      eventTypeColorLight,
+      eventTypeColorDark,
+      calendarEventName,
+      addToCalendarEmail,
+      selectedLayouts,
+      defaultLayout,
+      disableCancelling,
+      disableRescheduling,
+      sendCalVideoTranscription,
+
+      interfaceLanguage,
+      showOptimizedSlots,
+
+      // Seats
+      seatsEnabled,
+      seatsPerTimeSlot,
+      showAttendeeInfo,
+      showAvailabilityCount,
+
+      // Recurring
+      recurringEnabled,
+      recurringInterval,
+      recurringFrequency,
+      recurringOccurrences,
+    }),
+    [
+      eventTitle,
+      eventSlug,
+      eventDescription,
+      eventDuration,
+      isHidden,
+      locations,
+      disableGuests,
+      allowMultipleDurations,
+      selectedDurations,
+      defaultDuration,
+      selectedSchedule,
+      beforeEventBuffer,
+      afterEventBuffer,
+      minimumNoticeValue,
+      minimumNoticeUnit,
+      slotInterval,
+      limitBookingFrequency,
+      frequencyLimits,
+      limitTotalDuration,
+      durationLimits,
+      onlyShowFirstAvailableSlot,
+      maxActiveBookingsPerBooker,
+      maxActiveBookingsValue,
+      offerReschedule,
+      limitFutureBookings,
+      futureBookingType,
+      rollingDays,
+      rollingCalendarDays,
+      rangeStartDate,
+      rangeEndDate,
+      requiresConfirmation,
+      requiresBookerEmailVerification,
+      hideCalendarNotes,
+      hideCalendarEventDetails,
+      hideOrganizerEmail,
+      lockTimezone,
+      allowReschedulingPastEvents,
+      allowBookingThroughRescheduleLink,
+      successRedirectUrl,
+      forwardParamsSuccessRedirect,
+      customReplyToEmail,
+      eventTypeColorLight,
+      eventTypeColorDark,
+      calendarEventName,
+      addToCalendarEmail,
+      selectedLayouts,
+      defaultLayout,
+      disableCancelling,
+      disableRescheduling,
+      sendCalVideoTranscription,
+      interfaceLanguage,
+      showOptimizedSlots,
+      seatsEnabled,
+      seatsPerTimeSlot,
+      showAttendeeInfo,
+      showAvailabilityCount,
+      recurringEnabled,
+      recurringInterval,
+      recurringFrequency,
+      recurringOccurrences,
+    ]
+  );
+
+  // Calculate isDirty state
+  const isDirty = useMemo(() => {
+    if (!eventTypeData) return false;
+    // For new event types (id="new"), we always want to enable save if required fields are filled
+    // But for now, let's stick to the dirty check logic which applies mostly to updates
+    if (id === "new") {
+      // For create mode, we can consider it "dirty" if title and slug are present
+      // or just always enabled. The requirement was "when user changes something".
+      // Usually for "new" forms, the button IS enabled, or disabled until valid.
+      // Let's assume the requirement "enable/disable based on changes" specifically targets the EDIT flow.
+      // But to be safe and consistent with "disable until change", we can check if it differs from initial empty state?
+      // Actually, for "Create", it's usually better to be enabled or validated.
+      // However, the user request: "we have this save button in event types, so when user changes something then only i want this save button to enable"
+      // This strongly implies the Edit case.
+      // For "new", returning true (always dirty/ready) is a safe default to avoid blocking creation.
+      return true;
+    }
+
+    const payload = buildPartialUpdatePayload(currentFormState, eventTypeData);
+    return Object.keys(payload).length > 0;
+  }, [currentFormState, eventTypeData, id]);
+
   const handleSave = async () => {
     if (!id) {
       Alert.alert("Error", "Event type ID is missing");
@@ -1051,90 +1215,14 @@ export default function EventTypeDetail() {
       setSaving(false);
     } else {
       // For UPDATE mode, use partial update - only send changed fields
-      const currentFormState = {
-        // Basics
-        eventTitle,
-        eventSlug,
-        eventDescription,
-        eventDuration,
-        isHidden,
-        locations,
-        disableGuests,
-
-        // Multiple durations
-        allowMultipleDurations,
-        selectedDurations,
-        defaultDuration,
-
-        // Availability
-        selectedScheduleId,
-
-        // Limits
-        beforeEventBuffer,
-        afterEventBuffer,
-        minimumNoticeValue,
-        minimumNoticeUnit,
-        slotInterval,
-        limitBookingFrequency,
-        frequencyLimits,
-        limitTotalDuration,
-        durationLimits,
-        onlyShowFirstAvailableSlot,
-        maxActiveBookingsPerBooker,
-        maxActiveBookingsValue,
-        offerReschedule,
-        limitFutureBookings,
-        futureBookingType,
-        rollingDays,
-        rollingCalendarDays,
-        rangeStartDate,
-        rangeEndDate,
-
-        // Advanced
-        requiresConfirmation,
-        requiresBookerEmailVerification,
-        hideCalendarNotes,
-        hideCalendarEventDetails,
-        hideOrganizerEmail,
-        lockTimezone,
-        allowReschedulingPastEvents,
-        allowBookingThroughRescheduleLink,
-        successRedirectUrl,
-        forwardParamsSuccessRedirect,
-        customReplyToEmail,
-        eventTypeColorLight,
-        eventTypeColorDark,
-        calendarEventName,
-        addToCalendarEmail,
-        selectedLayouts,
-        defaultLayout,
-        disableCancelling,
-        disableRescheduling,
-        sendCalVideoTranscription,
-
-        interfaceLanguage,
-        showOptimizedSlots,
-
-        // Seats
-        seatsEnabled,
-        seatsPerTimeSlot,
-        showAttendeeInfo,
-        showAvailabilityCount,
-
-        // Recurring
-        recurringEnabled,
-        recurringInterval,
-        recurringFrequency,
-        recurringOccurrences,
-      };
-
-      // Build partial payload with only changed fields
+      // Using the memoized currentFormState
       const payload = buildPartialUpdatePayload(currentFormState, eventTypeData);
 
       if (Object.keys(payload).length === 0) {
-        Alert.alert("No Changes", "No changes were made to the event type.");
-        setSaving(false);
-        return;
+        // This should theoretically strictly not be reached if button is disabled,
+        // but it acts as a safeguard.
+        // setSaving(false);
+        // return;
       }
 
       try {
@@ -1215,10 +1303,16 @@ export default function EventTypeDetail() {
         {/* Save Button */}
         <AppPressable
           onPress={handleSave}
-          disabled={saving}
-          className={`px-2 py-2 ${saving ? "opacity-50" : ""}`}
+          disabled={saving || !isDirty}
+          className={`px-2 py-2 ${saving || !isDirty ? "opacity-50" : ""}`}
         >
-          <Text className="text-[16px] font-semibold text-[#007AFF]">{saveButtonText}</Text>
+          <Text
+            className={`text-[16px] font-semibold ${
+              saving || !isDirty ? "text-[#C7C7CC]" : "text-[#007AFF]"
+            }`}
+          >
+            {saveButtonText}
+          </Text>
         </AppPressable>
       </View>
     </HeaderButtonWrapper>
@@ -1274,7 +1368,7 @@ export default function EventTypeDetail() {
             </Stack.Header.Menu>
             <Stack.Header.Button
               onPress={handleSave}
-              disabled={saving}
+              disabled={saving || !isDirty}
               variant="prominent"
               tintColor="#000"
             >
