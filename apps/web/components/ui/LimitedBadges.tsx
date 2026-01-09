@@ -65,8 +65,8 @@ function LimitedBadges({
 
   return (
     <div className={`flex flex-wrap items-center gap-x-1 gap-y-1 ${className || ""}`}>
-      {visibleItems.map((item, index) => (
-        <Badge key={index} variant={item.variant || "gray"} onClick={item.onClick}>
+      {visibleItems.map((item) => (
+        <Badge key={item.label} variant={item.variant || "gray"} onClick={item.onClick}>
           {item.label}
         </Badge>
       ))}
@@ -89,9 +89,9 @@ function LimitedBadges({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}>
             <div className="flex flex-col gap-1">
-              {hiddenItems.map((item, index) => (
+              {hiddenItems.map((item) => (
                 <span
-                  key={index}
+                  key={item.label}
                   className="text-default cursor-pointer text-sm hover:text-emphasis"
                   onClick={item.onClick}>
                   {item.label}
