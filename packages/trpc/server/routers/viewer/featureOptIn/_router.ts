@@ -77,12 +77,10 @@ export const featureOptInRouter = router({
    * Used by org admins to configure feature opt-in for their organization.
    */
   listForOrganization: createOrgPbacProcedure("organization.read").query(async ({ ctx }) => {
-    const organizationId = ctx.user.organization.id;
+    // organizationId is guaranteed to exist after createOrgPbacProcedure middleware
+    const organizationId = ctx.user.organizationId;
     if (!organizationId) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "You are not a member of any organization.",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Organization ID is required." });
     }
     // Organizations use the same listFeaturesForTeam since they're stored in TeamFeatures
     return featureOptInService.listFeaturesForTeam({ teamId: organizationId });
@@ -155,12 +153,10 @@ export const featureOptInRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const organizationId = ctx.user.organization.id;
+      // organizationId is guaranteed to exist after createOrgPbacProcedure middleware
+      const organizationId = ctx.user.organizationId;
       if (!organizationId) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "You are not a member of any organization.",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Organization ID is required." });
       }
 
       if (!isOptInFeature(input.slug)) {
@@ -229,12 +225,10 @@ export const featureOptInRouter = router({
    * Get organization's auto opt-in preference (requires org admin).
    */
   getOrganizationAutoOptIn: createOrgPbacProcedure("organization.read").query(async ({ ctx }) => {
-    const organizationId = ctx.user.organization.id;
+    // organizationId is guaranteed to exist after createOrgPbacProcedure middleware
+    const organizationId = ctx.user.organizationId;
     if (!organizationId) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "You are not a member of any organization.",
-      });
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Organization ID is required." });
     }
     const result = await featuresRepository.getTeamsAutoOptIn([organizationId]);
     return { autoOptIn: result[organizationId] ?? false };
@@ -250,12 +244,10 @@ export const featureOptInRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const organizationId = ctx.user.organization.id;
+      // organizationId is guaranteed to exist after createOrgPbacProcedure middleware
+      const organizationId = ctx.user.organizationId;
       if (!organizationId) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "You are not a member of any organization.",
-        });
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Organization ID is required." });
       }
       await featuresRepository.setTeamAutoOptIn(organizationId, input.autoOptIn);
       return { success: true };

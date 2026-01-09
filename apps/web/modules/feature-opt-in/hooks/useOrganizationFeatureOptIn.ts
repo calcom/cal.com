@@ -1,27 +1,27 @@
 "use client";
 
+import { useCallback, useMemo } from "react";
+
+import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
 import type { FeatureState } from "@calcom/features/flags/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
-
-type TranslationFn = (key: string) => string;
-
-function createMutationCallbacks(
-  t: TranslationFn,
-  onSuccessCallback: () => void
-): { onSuccess: () => void; onError: () => void } {
-  return {
-    onSuccess: (): void => {
-      onSuccessCallback();
-      showToast(t("settings_updated_successfully"), "success");
-    },
-    onError: (): void => {
-      showToast(t("error_updating_settings"), "error");
-    },
-  };
+function useMutationCallbacks(onSuccessCallback: () => void): { onSuccess: () => void; onError: () => void } {
+  const { t } = useLocale();
+  return useMemo(
+    () => ({
+      onSuccess: (): void => {
+        onSuccessCallback();
+        showToast(t("settings_updated_successfully"), "success");
+      },
+      onError: (): void => {
+        showToast(t("error_updating_settings"), "error");
+      },
+    }),
+    [onSuccessCallback, t]
+  );
 }
 
 function normalizeFeatures(
@@ -52,15 +52,18 @@ export function useOrganizationFeatureOptIn(): UseFeatureOptInResult {
     refetchOnWindowFocus: false,
   });
 
-  const setStateMutation = trpc.viewer.featureOptIn.setOrganizationState.useMutation(
-    createMutationCallbacks(t, () => utils.viewer.featureOptIn.listForOrganization.invalidate())
-  );
+  const invalidateFeatures = useCallback(() => utils.viewer.featureOptIn.listForOrganization.invalidate(), [utils]);
+  const invalidateFeaturesAndAutoOptIn = useCallback(() => {
+    utils.viewer.featureOptIn.getOrganizationAutoOptIn.invalidate();
+    utils.viewer.featureOptIn.listForOrganization.invalidate();
+  }, [utils]);
 
+  const setStateMutationCallbacks = useMutationCallbacks(invalidateFeatures);
+  const setAutoOptInMutationCallbacks = useMutationCallbacks(invalidateFeaturesAndAutoOptIn);
+
+  const setStateMutation = trpc.viewer.featureOptIn.setOrganizationState.useMutation(setStateMutationCallbacks);
   const setAutoOptInMutation = trpc.viewer.featureOptIn.setOrganizationAutoOptIn.useMutation(
-    createMutationCallbacks(t, () => {
-      utils.viewer.featureOptIn.getOrganizationAutoOptIn.invalidate();
-      utils.viewer.featureOptIn.listForOrganization.invalidate();
-    })
+    setAutoOptInMutationCallbacks
   );
 
   const features = normalizeFeatures(featuresQuery.data);

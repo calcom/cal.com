@@ -16,6 +16,7 @@ import { getOptInFeatureConfig } from "../config";
 import type { NormalizedFeature, UseFeatureOptInResult } from "../types";
 
 interface FeaturesSettingsProps {
+  /** The hook result - can be from useUserFeatureOptIn, useTeamFeatureOptIn, or useOrganizationFeatureOptIn */
   featureOptIn: UseFeatureOptInResult;
 }
 

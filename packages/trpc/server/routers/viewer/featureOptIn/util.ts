@@ -59,7 +59,7 @@ function createOrgPbacProcedure(
   fallbackRoles: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER]
 ): ReturnType<typeof authedProcedure.use> {
   return authedProcedure.use(async ({ ctx, next }) => {
-    const organizationId: number | null = ctx.user.organization.id;
+    const organizationId: number | null = ctx.user.organizationId;
 
     if (!organizationId) {
       throw new TRPCError({

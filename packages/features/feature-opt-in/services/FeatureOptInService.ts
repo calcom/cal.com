@@ -39,12 +39,6 @@ type ListFeaturesForTeamResult = {
   orgState: FeatureState;
 };
 
-function getAllTeamIds(orgId: number | null, teamIds: number[]): number[] {
-  if (orgId !== null) {
-    return [orgId, ...teamIds];
-  }
-  return teamIds;
-}
 
 function getOrgState(orgId: number | null, teamStatesById: Record<number, FeatureState>): FeatureState {
   if (orgId !== null) {
@@ -113,7 +107,7 @@ export class FeatureOptInService {
     teamIds: number[];
     featureIds: FeatureId[];
   }): Promise<Record<string, ResolvedFeatureState>> {
-    const allTeamIds = getAllTeamIds(orgId, teamIds);
+    const allTeamIds = orgId !== null ? [orgId, ...teamIds] : teamIds;
 
     const [allFeatures, allTeamStates, userStates, userAutoOptIn, teamsAutoOptIn] = await Promise.all([
       this.featuresRepository.getAllFeatures(),

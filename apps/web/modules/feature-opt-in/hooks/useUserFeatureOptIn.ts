@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 import type { EffectiveStateReason } from "@calcom/features/feature-opt-in/lib/computeEffectiveState";
 import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
@@ -9,7 +9,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
-type TranslationFn = (key: string) => string;
 type UserFeatureData = {
   featureId: string;
   globalEnabled: boolean;
@@ -17,19 +16,20 @@ type UserFeatureData = {
   effectiveReason: EffectiveStateReason;
 };
 
-function createMutationCallbacks(
-  t: TranslationFn,
-  onSuccessCallback: () => void
-): { onSuccess: () => void; onError: () => void } {
-  return {
-    onSuccess: (): void => {
-      onSuccessCallback();
-      showToast(t("settings_updated_successfully"), "success");
-    },
-    onError: (): void => {
-      showToast(t("error_updating_settings"), "error");
-    },
-  };
+function useMutationCallbacks(onSuccessCallback: () => void): { onSuccess: () => void; onError: () => void } {
+  const { t } = useLocale();
+  return useMemo(
+    () => ({
+      onSuccess: (): void => {
+        onSuccessCallback();
+        showToast(t("settings_updated_successfully"), "success");
+      },
+      onError: (): void => {
+        showToast(t("error_updating_settings"), "error");
+      },
+    }),
+    [onSuccessCallback, t]
+  );
 }
 
 function normalizeUserFeatures(data: UserFeatureData[] | undefined): NormalizedFeature[] {
@@ -67,16 +67,17 @@ export function useUserFeatureOptIn(): UseFeatureOptInResult {
   const featuresQuery = trpc.viewer.featureOptIn.listForUser.useQuery(undefined, { refetchOnWindowFocus: false });
   const autoOptInQuery = trpc.viewer.featureOptIn.getUserAutoOptIn.useQuery(undefined, { refetchOnWindowFocus: false });
 
-  const setStateMutation = trpc.viewer.featureOptIn.setUserState.useMutation(
-    createMutationCallbacks(t, () => utils.viewer.featureOptIn.listForUser.invalidate())
-  );
+  const invalidateFeatures = useCallback(() => utils.viewer.featureOptIn.listForUser.invalidate(), [utils]);
+  const invalidateFeaturesAndAutoOptIn = useCallback(() => {
+    utils.viewer.featureOptIn.getUserAutoOptIn.invalidate();
+    utils.viewer.featureOptIn.listForUser.invalidate();
+  }, [utils]);
 
-  const setAutoOptInMutation = trpc.viewer.featureOptIn.setUserAutoOptIn.useMutation(
-    createMutationCallbacks(t, () => {
-      utils.viewer.featureOptIn.getUserAutoOptIn.invalidate();
-      utils.viewer.featureOptIn.listForUser.invalidate();
-    })
-  );
+  const setStateMutationCallbacks = useMutationCallbacks(invalidateFeatures);
+  const setAutoOptInMutationCallbacks = useMutationCallbacks(invalidateFeaturesAndAutoOptIn);
+
+  const setStateMutation = trpc.viewer.featureOptIn.setUserState.useMutation(setStateMutationCallbacks);
+  const setAutoOptInMutation = trpc.viewer.featureOptIn.setUserAutoOptIn.useMutation(setAutoOptInMutationCallbacks);
 
   const features = useMemo(() => normalizeUserFeatures(featuresQuery.data), [featuresQuery.data]);
   const setFeatureState = (slug: string, state: FeatureState): void => setStateMutation.mutate({ slug, state });

@@ -1,31 +1,30 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
+import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
 import type { FeatureState } from "@calcom/features/flags/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
-
-type TranslationFn = (key: string) => string;
 type FeatureBlockingState = { orgState?: FeatureState };
 type TeamFeatureData = { featureId: string; globalEnabled: boolean; teamState: FeatureState; orgState: FeatureState };
 
-function createMutationCallbacks(
-  t: TranslationFn,
-  onSuccessCallback: () => void
-): { onSuccess: () => void; onError: () => void } {
-  return {
-    onSuccess: (): void => {
-      onSuccessCallback();
-      showToast(t("settings_updated_successfully"), "success");
-    },
-    onError: (): void => {
-      showToast(t("error_updating_settings"), "error");
-    },
-  };
+function useMutationCallbacks(onSuccessCallback: () => void): { onSuccess: () => void; onError: () => void } {
+  const { t } = useLocale();
+  return useMemo(
+    () => ({
+      onSuccess: (): void => {
+        onSuccessCallback();
+        showToast(t("settings_updated_successfully"), "success");
+      },
+      onError: (): void => {
+        showToast(t("error_updating_settings"), "error");
+      },
+    }),
+    [onSuccessCallback, t]
+  );
 }
 
 function normalizeTeamFeatures(data: TeamFeatureData[] | undefined): NormalizedFeature[] {
@@ -67,16 +66,20 @@ export function useTeamFeatureOptIn(teamId: number): UseFeatureOptInResult {
   const featuresQuery = trpc.viewer.featureOptIn.listForTeam.useQuery({ teamId }, { refetchOnWindowFocus: false });
   const autoOptInQuery = trpc.viewer.featureOptIn.getTeamAutoOptIn.useQuery({ teamId }, { refetchOnWindowFocus: false });
 
-  const setStateMutation = trpc.viewer.featureOptIn.setTeamState.useMutation(
-    createMutationCallbacks(t, () => utils.viewer.featureOptIn.listForTeam.invalidate({ teamId }))
+  const invalidateFeatures = useCallback(
+    () => utils.viewer.featureOptIn.listForTeam.invalidate({ teamId }),
+    [utils, teamId]
   );
+  const invalidateFeaturesAndAutoOptIn = useCallback(() => {
+    utils.viewer.featureOptIn.getTeamAutoOptIn.invalidate({ teamId });
+    utils.viewer.featureOptIn.listForTeam.invalidate({ teamId });
+  }, [utils, teamId]);
 
-  const setAutoOptInMutation = trpc.viewer.featureOptIn.setTeamAutoOptIn.useMutation(
-    createMutationCallbacks(t, () => {
-      utils.viewer.featureOptIn.getTeamAutoOptIn.invalidate({ teamId });
-      utils.viewer.featureOptIn.listForTeam.invalidate({ teamId });
-    })
-  );
+  const setStateMutationCallbacks = useMutationCallbacks(invalidateFeatures);
+  const setAutoOptInMutationCallbacks = useMutationCallbacks(invalidateFeaturesAndAutoOptIn);
+
+  const setStateMutation = trpc.viewer.featureOptIn.setTeamState.useMutation(setStateMutationCallbacks);
+  const setAutoOptInMutation = trpc.viewer.featureOptIn.setTeamAutoOptIn.useMutation(setAutoOptInMutationCallbacks);
 
   const featureBlockingState = useMemo(() => buildBlockingStateMap(featuresQuery.data), [featuresQuery.data]);
   const features = normalizeTeamFeatures(featuresQuery.data);
