@@ -6,23 +6,12 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
+import type { ICalendarSwitchProps } from "@calcom/ui/components/calendar-switch";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
-export type ICalendarSwitchProps = {
-  title: string;
-  externalId: string;
-  type: string;
-  isChecked: boolean;
-  name: string;
-  isLastItemInList?: boolean;
-  destination?: boolean;
-  credentialId: number;
-  delegationCredentialId: string | null;
-  eventTypeId: number | null;
-  disabled?: boolean;
-};
+export type { ICalendarSwitchProps };
 
 type UserCalendarSwitchProps = Omit<ICalendarSwitchProps, "eventTypeId">;
 

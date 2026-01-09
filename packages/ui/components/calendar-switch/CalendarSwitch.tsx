@@ -2,8 +2,21 @@
 
 import type { ReactNode } from "react";
 
-import { type ICalendarSwitchProps } from "@calcom/web/modules/calendars/components/CalendarSwitch";
 import classNames from "@calcom/ui/classNames";
+
+export type ICalendarSwitchProps = {
+  title: string;
+  externalId: string;
+  type: string;
+  isChecked: boolean;
+  name: string;
+  isLastItemInList?: boolean;
+  destination?: boolean;
+  credentialId: number;
+  delegationCredentialId: string | null;
+  eventTypeId: number | null;
+  disabled?: boolean;
+};
 
 import { Icon } from "../icon";
 
