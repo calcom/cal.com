@@ -403,6 +403,7 @@
   "set_up_later": "Állítsa be később",
   "current_time": "Jelenlegi idő",
   "details": "Részletek",
+  "info": "Információ",
   "welcome": "Üdvözöljük",
   "welcome_back": "Üdv újra",
   "welcome_to_calcom": "Üdvözli a {{appName}}",
@@ -1298,6 +1299,8 @@
   "schedule_deleted_successfully": "Az ütemezés sikeresen törölve",
   "default_schedule_name": "Munkaórák",
   "new_schedule_heading": "Készítsen elérhetőségi ütemtervet",
+  "no_schedules_created_yet": "Még nem hozott létre egyetlen elérhetőségi ütemtervet sem. Hozzon létre egyet a kezdéshez.",
+  "create_availability_schedule": "Elérhetőségi ütemterv létrehozása",
   "new_schedule_description": "A rendelkezésre állás ütemezésének létrehozása lehetővé teszi a rendelkezésre állás kezelését az eseménytípusok között. Egy vagy több eseménytípusra alkalmazhatók.",
   "requires_ownership_of_a_token": "A következő címhez tartozó token tulajdonjogát igényli:",
   "example_name": "Gipsz Jakab",
@@ -3185,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "A foglalás átirányítása sikeres. Átirányítás a foglalási oldalra",
   "on_booking_write_to_event_object": "Foglaláskor írás az esemény objektumba",
   "field_name": "Mező neve",
+  "field_name_cannot_be_empty": "A mező neve nem lehet üres",
+  "field_already_exists": "A mező már létezik",
   "add_new_field": "Új mező hozzáadása",
   "you_dont_have_access_to_reroute_this_booking": "Nincs jogosultságod átirányítani ezt a foglalást",
   "form_response_not_found": "Űrlap válasz nem található",
@@ -4160,7 +4165,9 @@
     "attendee_no_show_updated": "Résztvevő meg nem jelenése frissítve",
     "type": "Hozzárendelés típusa",
     "assignmentType_manual": "Manuális hozzárendelés",
-    "assignmentType_roundRobin": "Körmérkőzéses hozzárendelés"
+    "assignmentType_roundRobin": "Körmérkőzéses hozzárendelés",
+    "actor_impersonated_by": "Megszemélyesítő",
+    "source": "Forrás"
   },
   "error_loading_booking_logs": "Hiba a foglalási naplók betöltésekor",
   "no_audit_logs_found": "Nem találhatók audit naplók",
@@ -4177,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "A foglalás tulajdonosa nem tagja a szervezetének.",
   "audit_logs_permission_denied": "Nincs jogosultsága az audit naplók megtekintéséhez ehhez a foglaláshoz.",
   "audit_logs_permission_check_error": "Hiba történt a jogosultságok ellenőrzése során.",
+  "account_already_exists_please_login": "Ezzel az e-mail címmel már létezik fiók. Kérjük, jelentkezzen be a meghívás elfogadásához.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
