@@ -1,8 +1,12 @@
+const skipWarnings = ["1", "true", "yes", "on"].includes(
+  (process.env.SKIP_WARNINGS ?? "").toLowerCase()
+);
+
 export default {
-  "(apps|packages)/**/*.{js,ts,jsx,tsx}": (files) =>
-    process.env.SKIP_WARNINGS === "1"
-      ? `eslint --fix --flag v10_config_lookup_from_file ${files.join(" ")}`
-      : `eslint --fix --flag v10_config_lookup_from_file --max-warnings=0 ${files.join(" ")}`,
-  "*.json": ["prettier --write"],
+  "(apps|packages|companion)/**/*.{js,ts,jsx,tsx}": (files) =>
+    skipWarnings
+      ? `biome lint --config-path=biome-staged.json ${files.join(" ")}`
+      : `biome lint --config-path=biome-staged.json --error-on-warnings ${files.join(" ")}`,
+      "*.json": (files) => `biome format --config-path=biome-staged.json ${files.join(" ")}`,
   "packages/prisma/schema.prisma": ["prisma format"],
 };

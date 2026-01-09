@@ -1,3 +1,4 @@
+# ⚠️ SECURITY: Do not add steps that checkout PR code or run local actions before trust-check job completes.
 name: PR Update
 
 on:
@@ -6,6 +7,7 @@ on:
     branches:
       - main
       - gh-actions-test-branch
+
   workflow_dispatch:
 
 permissions:
@@ -17,22 +19,176 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Security gate: Check if PR is from a trusted contributor or approved via run-ci label
+  # This MUST run before any job that checks out PR code and executes it with secrets
+  trust-check:
+    name: Trust Check
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    permissions:
+      pull-requests: read
+      actions: read
+      issues: read
+    outputs:
+      is-trusted: ${{ steps.check-trust.outputs.is-trusted }}
+    steps:
+      - name: Check if PR is trusted
+        id: check-trust
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const trustedAssociations = ['OWNER', 'MEMBER', 'COLLABORATOR'];
+
+            if (!context.payload.pull_request) {
+              if (context.eventName === 'workflow_dispatch') {
+                console.log('workflow_dispatch event - assuming trusted (manual trigger)');
+                core.setOutput('is-trusted', true);
+                return;
+              }
+              console.log('No pull request context found');
+              core.setOutput('is-trusted', false);
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Fetch fresh PR data - payload labels may be stale on re-runs
+            const { data: pr } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: context.payload.pull_request.number,
+            });
+
+            const prNumber = pr.number;
+            const headSha = pr.head.sha;
+
+            async function hasWriteAccess(username) {
+              try {
+                const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner,
+                  repo,
+                  username,
+                });
+                return ['admin', 'maintain', 'write'].includes(permission.permission);
+              } catch (e) {
+                console.log(`Permission check failed for ${username}: ${e.message}`);
+                return false;
+              }
+            }
+
+            console.log(`PR #${prNumber} by ${pr.user.login} (${pr.author_association})`);
+
+            // Check 1: Is the author a trusted contributor?
+            if (trustedAssociations.includes(pr.author_association)) {
+              console.log(`Author has trusted association: ${pr.author_association}`);
+              core.setOutput('is-trusted', true);
+              return;
+            }
+
+            // Check 2: Verify write access via API (author_association can be unreliable)
+            if (await hasWriteAccess(pr.user.login)) {
+              console.log(`Author has write access`);
+              core.setOutput('is-trusted', true);
+              return;
+            }
+
+            // Check 3: Was 'run-ci' label added AFTER this SHA was pushed by someone with write access?
+            // This enables re-runs triggered by the run-ci.yml workflow
+            // NOTE: We use workflow run created_at instead of commit timestamp because
+            // git commit timestamps can be arbitrarily backdated by attackers
+            if (pr.labels?.some(l => l.name === 'run-ci')) {
+              // Skip stale check if this is a re-run (run_attempt > 1)
+              // Re-runs are explicitly triggered by maintainers
+              const runAttempt = parseInt(process.env.GITHUB_RUN_ATTEMPT || '1', 10);
+              if (runAttempt > 1) {
+                console.log(`Re-run detected (attempt ${runAttempt}), trusting existing 'run-ci' label`);
+                core.setOutput('is-trusted', true);
+                return;
+              }
+
+              const events = await github.paginate(github.rest.issues.listEvents, {
+                owner,
+                repo,
+                issue_number: prNumber,
+                per_page: 100,
+              });
+
+              const labelEvent = events
+                .filter(e => e.event === 'labeled' && e.label?.name === 'run-ci')
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+
+              if (labelEvent) {
+                // Get workflow runs to find when this SHA was first pushed
+                const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
+                  owner,
+                  repo,
+                  workflow_id: 'pr.yml',
+                  head_sha: headSha,
+                  per_page: 100,
+                });
+
+                // Filter runs to this PR (in case same SHA exists in multiple PRs)
+                const matchingRuns = runs.filter(run =>
+                  !run.pull_requests?.length || run.pull_requests.some(p => p.number === prNumber)
+                );
+
+                if (matchingRuns.length > 0) {
+                  const labelTime = new Date(labelEvent.created_at);
+                  // Use the oldest run's created_at as the push time
+                  const originalRun = matchingRuns[matchingRuns.length - 1];
+                  const pushTime = new Date(originalRun.created_at);
+
+                  if (labelTime > pushTime) {
+                    const adder = labelEvent.actor.login;
+                    if (await hasWriteAccess(adder)) {
+                      console.log(`Approved via 'run-ci' label added by ${adder} after push (label: ${labelTime.toISOString()}, push: ${pushTime.toISOString()})`);
+                      core.setOutput('is-trusted', true);
+                      return;
+                    }
+                    console.log(`Label 'run-ci' added by ${adder} (no write access)`);
+                  } else {
+                    console.log(`Label 'run-ci' is stale (label: ${labelTime.toISOString()}, push: ${pushTime.toISOString()})`);
+                  }
+                } else {
+                  console.log('No workflow runs found for this SHA - cannot validate label timing');
+                }
+              }
+            }
+
+            console.log('External contribution requires "run-ci" label from a maintainer');
+            core.setOutput('is-trusted', false);
+
   prepare:
     name: Prepare
-    runs-on: buildjet-2vcpu-ubuntu-2204
+    needs: [trust-check]
+    if: needs.trust-check.outputs.is-trusted == 'true'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       pull-requests: read
     outputs:
       has-files-requiring-all-checks: ${{ steps.filter.outputs.has-files-requiring-all-checks }}
       has_companion: ${{ steps.filter.outputs.has_companion }}
+      has-api-v2-changes: ${{ steps.filter.outputs.has-api-v2-changes }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
+      db-cache-hit: ${{ steps.cache-db-check.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
+      - name: Generate DB cache key
+        id: cache-db-key
+        uses: ./.github/actions/cache-db-key
+      - name: Check DB cache (lookup-only)
+        id: cache-db-check
+        uses: actions/cache/restore@v4
+        with:
+          path: backups/backup.sql
+          key: ${{ steps.cache-db-key.outputs.key }}
+          lookup-only: true
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          predicate-quantifier: "every"
           filters: |
             has-files-requiring-all-checks:
               - '**'
@@ -46,6 +202,16 @@ jobs:
               - '!i18n.lock'
             has_companion:
               - "companion/**"
+            has-api-v2-changes:
+              - "apps/api/v2/**"
+              - "packages/platform-constants/**"
+              - "packages/platform-enums/**"
+              - "packages/platform-utils/**"
+              - "packages/platform-types/**"
+              - "packages/platform-libraries/**"
+              - "packages/trpc/**"
+              - "packages/prisma/schema.prisma"
+              - "docs/api-reference/v2/**"
       - name: Get Latest Commit SHA
         id: get_sha
         run: |
@@ -110,58 +276,76 @@ jobs:
             const labelFound = labels.map(l => l.name).includes('ready-for-e2e');
             console.log('Found the label?', labelFound);
             core.setOutput('run-e2e', labelFound);
-
-  deps:
-    name: Install dependencies
-    needs: [prepare]
-    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/yarn-install.yml
+      - uses: ./.github/actions/yarn-install
+        if: ${{ steps.filter.outputs.has-files-requiring-all-checks == 'true' }}
+        with:
+          skip-install-if-cache-hit: "true"
+      - uses: ./.github/actions/yarn-playwright-install
+        if: ${{ steps.filter.outputs.has-files-requiring-all-checks == 'true' }}
+        with:
+          skip-install-if-cache-hit: "true"
 
   type-check:
     name: Type check
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   lint:
     name: Linters
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   unit-test:
     name: Tests
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
+  api-v2-unit-test:
+    name: Tests
+    needs: [prepare]
+    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/api-v2-unit-tests.yml
+    secrets: inherit
+
+  setup-db:
+    name: Setup Database
+    needs: [prepare]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/setup-db.yml
+    with:
+      DB_CACHE_HIT: ${{ needs.prepare.outputs.db-cache-hit }}
+    secrets: inherit
+
   build-api-v1:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
 
   build-api-v2:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
 
   build-atoms:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/atoms-production-build.yml
     secrets: inherit
 
   build-docs:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/docs-build.yml
     secrets: inherit
@@ -175,49 +359,56 @@ jobs:
 
   build:
     name: Production builds
-    needs: [prepare, deps]
+    needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
   integration-test:
     name: Tests
-    needs: [prepare, build, build-api-v1, build-api-v2]
-    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, build, setup-db]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
   e2e:
     name: Tests
-    needs: [prepare, build, build-api-v1, build-api-v2]
+    needs: [prepare, build, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
+  check-api-v2-breaking-changes:
+    name: Check API v2 breaking changes
+    needs: [prepare]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-api-v2-changes == 'true' }}
+    uses: ./.github/workflows/check-api-v2-breaking-changes.yml
+    secrets: inherit
+
   e2e-api-v2:
     name: Tests
-    needs: [prepare, build, build-api-v1, build-api-v2]
+    needs: [prepare, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-api-v2.yml
     secrets: inherit
 
   e2e-app-store:
     name: Tests
-    needs: [prepare, build, build-api-v1, build-api-v2]
+    needs: [prepare, build, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
     name: Tests
-    needs: [prepare, build, build-api-v1, build-api-v2]
+    needs: [prepare, build, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
     name: Tests
-    needs: [prepare, build, build-api-v1, build-api-v2]
+    needs: [prepare, build, setup-db]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
@@ -228,42 +419,16 @@ jobs:
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
 
-  merge-reports:
-    name: Merge reports
-    if: ${{ !cancelled() && needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' && (needs.e2e.result == 'failure' || needs.e2e-embed.result == 'failure' || needs.e2e-embed-react.result == 'failure' || needs.e2e-app-store.result == 'failure') }}
-    needs: [prepare, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
-    uses: ./.github/workflows/merge-reports.yml
-    secrets: inherit
-
-  publish-report:
-    name: Publish HTML report
-    if: ${{ !cancelled() && needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' && (needs.e2e.result == 'failure' || needs.e2e-embed.result == 'failure' || needs.e2e-embed-react.result == 'failure' || needs.e2e-app-store.result == 'failure') }}
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    needs: [prepare, merge-reports, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
-    uses: ./.github/workflows/publish-report.yml
-    secrets: inherit
-
-  cleanup-report:
-    name: Cleanup HTML report
-    if: ${{ !cancelled() && needs.prepare.outputs.run-e2e == 'true' && (github.event.pull_request.merged == true || github.event.pull_request.state == 'closed') }}
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    needs: [prepare, publish-report]
-    uses: ./.github/workflows/cleanup-report.yml
-    secrets: inherit
-
   required:
     needs:
       [
+        trust-check,
         prepare,
         lint,
         type-check,
         unit-test,
+        api-v2-unit-test,
+        check-api-v2-breaking-changes,
         integration-test,
         build,
         build-api-v1,
@@ -271,6 +436,7 @@ jobs:
         build-atoms,
         build-docs,
         build-companion,
+        setup-db,
         e2e,
         e2e-api-v2,
         e2e-embed,
@@ -278,22 +444,36 @@ jobs:
         e2e-app-store,
       ]
     if: always()
-    runs-on: buildjet-2vcpu-ubuntu-2204
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
-      - name: fail if conditional jobs failed
+      - name: Fail if trust-check did not succeed
+        run: |
+          echo "::error::Trust check did not complete successfully (result: ${{ needs.trust-check.result }}). Please re-run the workflow."
+          exit 1
+        if: needs.trust-check.result != 'success'
+      - name: Fail if PR is not trusted (external contributor without run-ci label)
+        run: |
+          echo "::error::This PR is from an external contributor and requires the 'run-ci' label before CI can run."
+          echo "A maintainer must review the code and add the 'run-ci' label to trigger CI checks."
+          exit 1
+        if: needs.trust-check.outputs.is-trusted != 'true' && needs.trust-check.result == 'success'
+      - name: Fail if conditional jobs failed
         run: exit 1
         if: |
           (
             needs.prepare.outputs.has-files-requiring-all-checks == 'true' &&
             (
-              needs.lint.result != 'success' ||
-              needs.type-check.result != 'success' ||
-              needs.unit-test.result != 'success' ||
+            needs.lint.result != 'success' ||
+            needs.type-check.result != 'success' ||
+            needs.unit-test.result != 'success' ||
+            needs.api-v2-unit-test.result != 'success' ||
+            (needs.prepare.outputs.has-api-v2-changes == 'true' && needs.check-api-v2-breaking-changes.result != 'success') ||
               needs.build.result != 'success' ||
               needs.build-api-v1.result != 'success' ||
               needs.build-api-v2.result != 'success' ||
               needs.build-atoms.result != 'success' ||
               needs.build-docs.result != 'success' ||
+              needs.setup-db.result != 'success' ||
               needs.integration-test.result != 'success' ||
               needs.e2e.result != 'success' ||
               needs.e2e-api-v2.result != 'success' ||
