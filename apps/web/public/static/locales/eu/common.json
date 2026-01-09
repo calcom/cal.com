@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Erreserba berriro bideratu da. Erreserba orrira berbideratzen",
   "on_booking_write_to_event_object": "Erreserban, idatzi gertaera objektuan",
   "field_name": "Eremuaren izena",
+  "field_name_cannot_be_empty": "Eremuaren izena ezin da hutsik egon",
+  "field_already_exists": "Eremua dagoeneko existitzen da",
   "add_new_field": "Gehitu eremu berria",
   "you_dont_have_access_to_reroute_this_booking": "Ez duzu erreserba hau berbideratzeko baimenik",
   "form_response_not_found": "Ez da inprimaki erantzunik aurkitu",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Erreserbaren jabea ez da zure erakundeko kidea.",
   "audit_logs_permission_denied": "Ez duzu erreserba honen auditoretza erregistroak ikusteko baimenik.",
   "audit_logs_permission_check_error": "Errore bat gertatu da baimenak egiaztatzean.",
+  "account_already_exists_please_login": "Email hau duen kontu bat dagoeneko existitzen da. Hasi saioa gonbidapena onartzeko.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

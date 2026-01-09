@@ -190,7 +190,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-02",
-        []
+        [],
+        "slots"
       );
 
       expect(result).toEqual([]);
@@ -206,7 +207,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-02",
-        []
+        [],
+        "slots"
       );
 
       expect(result).toEqual([[]]);
@@ -229,7 +231,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-02",
-        [selectedCalendar]
+        [selectedCalendar],
+        "slots"
       );
 
       expect(result).toEqual([[]]);
@@ -267,15 +270,17 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-04",
-        [selectedCalendar]
+        [selectedCalendar],
+        "slots"
       );
 
-      expect(getAvailabilitySpy).toHaveBeenCalledWith(
-        "2010-12-01",
-        "2010-12-04",
-        [selectedCalendar],
-        false
-      );
+      expect(getAvailabilitySpy).toHaveBeenCalledWith({
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedCalendar],
+        mode: "slots",
+        fallbackToPrimary: false,
+      });
       expect(result).toEqual([
         availability.map((av) => ({
           ...av,
@@ -337,21 +342,24 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-04",
-        [selectedGoogleCalendar, selectedOfficeCalendar]
+        [selectedGoogleCalendar, selectedOfficeCalendar],
+        "slots"
       );
 
-      expect(getGoogleAvailabilitySpy).toHaveBeenCalledWith(
-        "2010-12-01",
-        "2010-12-04",
-        [selectedGoogleCalendar],
-        false
-      );
-      expect(getOfficeAvailabilitySpy).toHaveBeenCalledWith(
-        "2010-12-01",
-        "2010-12-04",
-        [selectedOfficeCalendar],
-        false
-      );
+      expect(getGoogleAvailabilitySpy).toHaveBeenCalledWith({
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedGoogleCalendar],
+        mode: "slots",
+        fallbackToPrimary: false,
+      });
+      expect(getOfficeAvailabilitySpy).toHaveBeenCalledWith({
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedOfficeCalendar],
+        mode: "slots",
+        fallbackToPrimary: false,
+      });
       expect(result).toEqual([
         googleAvailability.map((av) => ({
           ...av,
@@ -373,7 +381,8 @@ describe("getCalendarsEvents", () => {
         [buildRegularCredential(credential)],
         "2010-12-01",
         "2010-12-02",
-        []
+        [],
+        "slots"
       );
 
       expect(getAvailabilitySpy).not.toHaveBeenCalled();
@@ -391,9 +400,15 @@ describe("getCalendarsEvents", () => {
         .spyOn(GoogleCalendarService.prototype, "getAvailability")
         .mockReturnValue(Promise.resolve([]));
 
-      const result = await getCalendarsEvents(credentials, startDate, endDate, []);
+      const result = await getCalendarsEvents(credentials, startDate, endDate, [], "slots");
 
-      expect(getAvailabilitySpy).toHaveBeenCalledWith(startDate, endDate, [], true);
+      expect(getAvailabilitySpy).toHaveBeenCalledWith({
+        dateFrom: startDate,
+        dateTo: endDate,
+        selectedCalendars: [],
+        mode: "slots",
+        fallbackToPrimary: true,
+      });
       expect(result).toEqual([[]]);
     });
   });
@@ -523,12 +538,13 @@ describe("getCalendarsEventsWithTimezones", () => {
         [selectedCalendar]
       );
 
-      expect(getAvailabilityWithTimezonesSpy).toHaveBeenCalledWith(
-        "2010-12-01",
-        "2010-12-04",
-        [selectedCalendar],
-        false
-      );
+      expect(getAvailabilityWithTimezonesSpy).toHaveBeenCalledWith({
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedCalendar],
+        mode: "slots",
+        fallbackToPrimary: false,
+      });
       expect(result).toEqual([
         availability.map((av) => ({
           ...av,
@@ -565,7 +581,13 @@ describe("getCalendarsEventsWithTimezones", () => {
 
       const result = await getCalendarsEventsWithTimezones(credentials, startDate, endDate, []);
 
-      expect(getAvailabilityWithTimezonesSpy).toHaveBeenCalledWith(startDate, endDate, [], true);
+      expect(getAvailabilityWithTimezonesSpy).toHaveBeenCalledWith({
+        dateFrom: startDate,
+        dateTo: endDate,
+        selectedCalendars: [],
+        mode: "slots",
+        fallbackToPrimary: true,
+      });
       expect(result).toEqual([[]]);
     });
   });
