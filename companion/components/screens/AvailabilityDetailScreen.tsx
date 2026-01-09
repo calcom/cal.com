@@ -39,38 +39,6 @@ const formatTime12Hour = (time24: string): string => {
   return `${hour12Padded}:${min} ${period}`;
 };
 
-// Format availability for display - groups days with same time range
-const formatAvailabilityDisplay = (
-  availability: Record<number, ScheduleAvailability[]>
-): string[] => {
-  const timeRangeMap: Record<string, number[]> = {};
-
-  Object.keys(availability).forEach((dayIndexStr) => {
-    const dayIndex = Number(dayIndexStr);
-    const slots = availability[dayIndex];
-    if (slots && slots.length > 0) {
-      slots.forEach((slot) => {
-        const timeKey = `${slot.startTime}-${slot.endTime}`;
-        if (!timeRangeMap[timeKey]) {
-          timeRangeMap[timeKey] = [];
-        }
-        timeRangeMap[timeKey].push(dayIndex);
-      });
-    }
-  });
-
-  const formatted: string[] = [];
-  Object.keys(timeRangeMap).forEach((timeKey) => {
-    const days = timeRangeMap[timeKey].sort((a, b) => a - b);
-    const [startTime, endTime] = timeKey.split("-");
-    const dayNames = days.map((day) => DAYS[day]).join(", ");
-    const timeRange = `${formatTime12Hour(startTime)} - ${formatTime12Hour(endTime)}`;
-    formatted.push(`${dayNames}, ${timeRange}`);
-  });
-
-  return formatted;
-};
-
 // Format date for display
 const formatDateForDisplay = (dateStr: string): string => {
   if (!dateStr) return "";

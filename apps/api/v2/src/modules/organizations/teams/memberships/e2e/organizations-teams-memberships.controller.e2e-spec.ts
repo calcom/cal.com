@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
@@ -527,7 +527,8 @@ describe("Organizations Teams Memberships Endpoints", () => {
 
         await profileRepositoryFixture.create({
           uid: `usr-${userWithMatchingEmailForOverride.id}`,
-          username: userWithMatchingEmailForOverride.username || `user-${userWithMatchingEmailForOverride.id}`,
+          username:
+            userWithMatchingEmailForOverride.username || `user-${userWithMatchingEmailForOverride.id}`,
           organization: { connect: { id: orgWithAutoAccept.id } },
           user: { connect: { id: userWithMatchingEmailForOverride.id } },
         });
@@ -561,9 +562,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
         expect(responseBody.data.accepted).toBe(true);
 
         // Verify EventTypes assignment
-        const eventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(
-          subteamWithAutoAccept.id
-        );
+        const eventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(subteamWithAutoAccept.id);
         const eventTypeWithAssignAll = eventTypes.find((et) => et.assignAllTeamMembers);
         expect(eventTypeWithAssignAll).toBeTruthy();
         const userIsHost = eventTypeWithAssignAll?.hosts.some((h) => h.userId === userWithMatchingEmail.id);
