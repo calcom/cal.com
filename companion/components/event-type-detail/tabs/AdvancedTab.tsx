@@ -1,7 +1,62 @@
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
+import { Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Alert, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import {
+  Alert,
+  Modal,
+  Platform,
+  ScrollView,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 import { openInAppBrowser } from "@/utils/browser";
+
+// Interface language options matching API V2 enum
+const interfaceLanguageOptions = [
+  { label: "Browser Default", value: "" },
+  { label: "English", value: "en" },
+  { label: "العربية", value: "ar" },
+  { label: "Azərbaycan", value: "az" },
+  { label: "Български", value: "bg" },
+  { label: "বাংলা", value: "bn" },
+  { label: "Català", value: "ca" },
+  { label: "Čeština", value: "cs" },
+  { label: "Dansk", value: "da" },
+  { label: "Deutsch", value: "de" },
+  { label: "Ελληνικά", value: "el" },
+  { label: "Español", value: "es" },
+  { label: "Español latinoamericano", value: "es-419" },
+  { label: "Eesti", value: "et" },
+  { label: "Euskara", value: "eu" },
+  { label: "Suomi", value: "fi" },
+  { label: "Français", value: "fr" },
+  { label: "עברית", value: "he" },
+  { label: "Magyar", value: "hu" },
+  { label: "Italiano", value: "it" },
+  { label: "日本語", value: "ja" },
+  { label: "ខ្មែរ", value: "km" },
+  { label: "한국어", value: "ko" },
+  { label: "Nederlands", value: "nl" },
+  { label: "Norsk", value: "no" },
+  { label: "Polski", value: "pl" },
+  { label: "Português", value: "pt" },
+  { label: "Português (Brasil)", value: "pt-BR" },
+  { label: "Română", value: "ro" },
+  { label: "Русский", value: "ru" },
+  { label: "Slovenčina (Slovensko)", value: "sk-SK" },
+  { label: "Српски", value: "sr" },
+  { label: "Svenska", value: "sv" },
+  { label: "Türkçe", value: "tr" },
+  { label: "Українська", value: "uk" },
+  { label: "Tiếng Việt", value: "vi" },
+  { label: "中文（中国）", value: "zh-CN" },
+  { label: "中文（台灣）", value: "zh-TW" },
+];
 
 interface ConfigureOnWebCardProps {
   title: string;
@@ -43,8 +98,7 @@ function ConfigureOnWebCard({
 interface AdvancedTabProps {
   requiresConfirmation: boolean;
   setRequiresConfirmation: (value: boolean) => void;
-  autoTranslate: boolean;
-  setAutoTranslate: (value: boolean) => void;
+
   requiresBookerEmailVerification: boolean;
   setRequiresBookerEmailVerification: (value: boolean) => void;
   hideCalendarNotes: boolean;
@@ -80,9 +134,27 @@ interface AdvancedTabProps {
   showAvailabilityCount: boolean;
   setShowAvailabilityCount: (value: boolean) => void;
   eventTypeId: string;
+  // New API V2 props
+  disableCancelling: boolean;
+  setDisableCancelling: (value: boolean) => void;
+  disableRescheduling: boolean;
+  setDisableRescheduling: (value: boolean) => void;
+  sendCalVideoTranscription: boolean;
+  setSendCalVideoTranscription: (value: boolean) => void;
+  interfaceLanguage: string;
+  setInterfaceLanguage: (value: string) => void;
+  showOptimizedSlots: boolean;
+  setShowOptimizedSlots: (value: boolean) => void;
 }
 
 export function AdvancedTab(props: AdvancedTabProps) {
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
+
+  const getLanguageLabel = (value: string) => {
+    const option = interfaceLanguageOptions.find((opt) => opt.value === value);
+    return option?.label || "Browser Default";
+  };
+
   return (
     <View className="gap-3">
       <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
@@ -103,53 +175,192 @@ export function AdvancedTab(props: AdvancedTabProps) {
         </View>
       </View>
 
-      <ConfigureOnWebCard
-        title="Disable Cancelling"
-        description="Guests and Organizer can no longer cancel the event with calendar invite or email."
-        eventTypeId={props.eventTypeId}
-        browserTitle="Disable Cancelling"
-      />
-
-      <ConfigureOnWebCard
-        title="Disable Rescheduling"
-        description="Guests and Organizer can no longer reschedule the event with calendar invite or email."
-        eventTypeId={props.eventTypeId}
-        browserTitle="Disable Rescheduling"
-      />
-
-      <ConfigureOnWebCard
-        title="Send Cal Video Transcription Emails"
-        description="Send emails with the transcription of the Cal Video after the meeting ends. (Requires a paid plan)"
-        eventTypeId={props.eventTypeId}
-        browserTitle="Cal Video Transcription"
-      />
-
       <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
         <View className="flex-row items-start justify-between">
           <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">
-              Auto translate title and description
-            </Text>
+            <Text className="mb-1 text-base font-medium text-[#333]">Disable Cancelling</Text>
             <Text className="text-sm text-[#666]">
-              Automatically translate titles and descriptions to the visitor's browser language
-              using AI.
+              Guests and Organizer can no longer cancel the event with calendar invite or email.
             </Text>
           </View>
           <Switch
-            value={props.autoTranslate}
-            onValueChange={props.setAutoTranslate}
+            value={props.disableCancelling}
+            onValueChange={props.setDisableCancelling}
             trackColor={{ false: "#E5E5EA", true: "#34C759" }}
             thumbColor="#FFFFFF"
           />
         </View>
       </View>
 
-      <ConfigureOnWebCard
-        title="Interface Language"
-        description="Set your preferred language for the booking interface."
-        eventTypeId={props.eventTypeId}
-        browserTitle="Interface Language"
-      />
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">Disable Rescheduling</Text>
+            <Text className="text-sm text-[#666]">
+              Guests and Organizer can no longer reschedule the event with calendar invite or email.
+            </Text>
+          </View>
+          <Switch
+            value={props.disableRescheduling}
+            onValueChange={props.setDisableRescheduling}
+            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+      </View>
+
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">
+              Send Cal Video Transcription Emails
+            </Text>
+            <Text className="text-sm text-[#666]">
+              Send emails with the transcription of the Cal Video after the meeting ends.
+            </Text>
+          </View>
+          <Switch
+            value={props.sendCalVideoTranscription}
+            onValueChange={props.setSendCalVideoTranscription}
+            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+      </View>
+
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <Text className="mb-1.5 text-base font-medium text-[#333]">Interface Language</Text>
+        <Text className="mb-3 text-sm text-[#666]">
+          Set your preferred language for the booking interface.
+        </Text>
+        <TouchableOpacity
+          className="flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
+          onPress={() => setShowLanguagePicker(true)}
+        >
+          <Text className="text-base text-[#333]">{getLanguageLabel(props.interfaceLanguage)}</Text>
+          <Ionicons name="chevron-down" size={20} color="#666" />
+        </TouchableOpacity>
+
+        {/* Language Picker Modal */}
+        <Modal
+          visible={showLanguagePicker}
+          animationType="slide"
+          transparent={Platform.OS !== "ios"}
+          presentationStyle={Platform.OS === "ios" ? "formSheet" : undefined}
+          onRequestClose={() => setShowLanguagePicker(false)}
+        >
+          {Platform.OS === "ios" ? (
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
+              }}
+            >
+              {/* Glass Header */}
+              {isLiquidGlassAvailable() ? (
+                <GlassView
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 60, // Standard header height
+                    zIndex: 10,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingHorizontal: 16,
+                  }}
+                  glassEffectStyle="regular"
+                >
+                  <TouchableOpacity
+                    onPress={() => setShowLanguagePicker(false)}
+                    className="h-[30px] w-[30px] items-center justify-center rounded-full bg-[#E5E5EA]"
+                  >
+                    <Ionicons name="close" size={20} color="#8E8E93" />
+                  </TouchableOpacity>
+
+                  <Text className="text-[17px] font-semibold text-black">Select Language</Text>
+
+                  {/* Spacer to balance the centered title since we removed the right button */}
+                  <View className="h-8 w-8" />
+                </GlassView>
+              ) : (
+                <View className="absolute left-0 right-0 top-0 z-10 h-[60px] flex-row items-center justify-between border-b border-[#E5E5EA] bg-white px-4">
+                  <TouchableOpacity
+                    onPress={() => setShowLanguagePicker(false)}
+                    className="h-8 w-8 items-center justify-center rounded-full bg-[#E5E5EA]"
+                  >
+                    <Ionicons name="close" size={20} color="#8E8E93" />
+                  </TouchableOpacity>
+
+                  <Text className="text-[17px] font-semibold text-black">Select Language</Text>
+
+                  {/* Spacer to balance the centered title */}
+                  <View className="h-8 w-8" />
+                </View>
+              )}
+
+              <ScrollView
+                className="flex-1"
+                contentContainerStyle={{ paddingTop: 80, paddingHorizontal: 16, paddingBottom: 40 }}
+              >
+                <View className="overflow-hidden rounded-xl border border-gray-300/40 bg-white/60">
+                  {interfaceLanguageOptions.map((option, index) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      className={`flex-row items-center justify-between px-4 py-3 active:bg-white/80 ${
+                        index !== interfaceLanguageOptions.length - 1
+                          ? "border-b border-gray-300/40"
+                          : ""
+                      }`}
+                      onPress={() => {
+                        props.setInterfaceLanguage(option.value);
+                        setShowLanguagePicker(false);
+                      }}
+                    >
+                      <Text className="text-base text-[#333]">{option.label}</Text>
+                      {props.interfaceLanguage === option.value ? (
+                        <Ionicons name="checkmark" size={20} color="#007AFF" />
+                      ) : null}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+          ) : (
+            <View className="flex-1 justify-end bg-black/50">
+              <View className="max-h-[70%] rounded-t-3xl bg-white">
+                <View className="flex-row items-center justify-between border-b border-[#E5E5EA] p-4">
+                  <Text className="text-lg font-semibold text-[#333]">Select Language</Text>
+                  <TouchableOpacity onPress={() => setShowLanguagePicker(false)}>
+                    <Ionicons name="close" size={24} color="#666" />
+                  </TouchableOpacity>
+                </View>
+                <ScrollView className="p-2">
+                  {interfaceLanguageOptions.map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      className={`flex-row items-center justify-between rounded-lg p-4 ${
+                        props.interfaceLanguage === option.value ? "bg-[#F0F0F0]" : ""
+                      }`}
+                      onPress={() => {
+                        props.setInterfaceLanguage(option.value);
+                        setShowLanguagePicker(false);
+                      }}
+                    >
+                      <Text className="text-base text-[#333]">{option.label}</Text>
+                      {props.interfaceLanguage === option.value ? (
+                        <Ionicons name="checkmark" size={20} color="#007AFF" />
+                      ) : null}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+          )}
+        </Modal>
+      </View>
 
       <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
         <View className="flex-row items-start justify-between">
@@ -425,19 +636,44 @@ export function AdvancedTab(props: AdvancedTabProps) {
         ) : null}
       </View>
 
-      <ConfigureOnWebCard
-        title="Allow rescheduling past events"
-        description="Enabling this option allows for past events to be rescheduled."
-        eventTypeId={props.eventTypeId}
-        browserTitle="Allow Rescheduling Past Events"
-      />
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">
+              Allow rescheduling past events
+            </Text>
+            <Text className="text-sm text-[#666]">
+              Enabling this option allows for past events to be rescheduled.
+            </Text>
+          </View>
+          <Switch
+            value={props.allowReschedulingPastEvents}
+            onValueChange={props.setAllowReschedulingPastEvents}
+            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+      </View>
 
-      <ConfigureOnWebCard
-        title="Allow booking through reschedule link"
-        description="When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
-        eventTypeId={props.eventTypeId}
-        browserTitle="Allow Booking Through Reschedule Link"
-      />
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">
+              Allow booking through reschedule link
+            </Text>
+            <Text className="text-sm text-[#666]">
+              When enabled, users will be able to create a new booking when trying to reschedule a
+              cancelled booking.
+            </Text>
+          </View>
+          <Switch
+            value={props.allowBookingThroughRescheduleLink}
+            onValueChange={props.setAllowBookingThroughRescheduleLink}
+            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+      </View>
 
       <ConfigureOnWebCard
         title="Custom 'Reply-To' email"
@@ -502,12 +738,22 @@ export function AdvancedTab(props: AdvancedTabProps) {
         </View>
       </View>
 
-      <ConfigureOnWebCard
-        title="Optimized slots"
-        description="Arrange time slots to optimize availability."
-        eventTypeId={props.eventTypeId}
-        browserTitle="Optimized Slots"
-      />
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">Optimized slots</Text>
+            <Text className="text-sm text-[#666]">
+              Arrange time slots to optimize availability.
+            </Text>
+          </View>
+          <Switch
+            value={props.showOptimizedSlots}
+            onValueChange={props.setShowOptimizedSlots}
+            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+      </View>
     </View>
   );
 }
