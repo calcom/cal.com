@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { Calendar } from "@calcom/features/calendars/weeklyview";
+import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
 import type { CalendarComponentProps, Hours } from "@calcom/features/calendars/weeklyview/types/state";
 import { weekdayDates } from "@calcom/features/calendars/weeklyview/utils";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";

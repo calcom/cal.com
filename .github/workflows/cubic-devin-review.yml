@@ -1,0 +1,109 @@
+name: Cubic AI to Devin Review
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  trigger-devin:
+    name: Trigger Devin to Address Cubic AI Review
+    # Only run if the review is from cubic-dev-ai bot and contains the AI prompt
+    if: github.event.review.user.login == 'cubic-dev-ai[bot]'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Extract AI prompt from Cubic review
+        id: extract-prompt
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const reviewBody = context.payload.review.body || '';
+            
+            // Look for the AI prompt section in Cubic's review
+            // Format: <details><summary>Prompt for AI agents (all issues)</summary>
+            //         ```text
+            //         ... prompt content ...
+            //         ```
+            //         </details>
+            const promptMatch = reviewBody.match(/<details>\s*<summary>Prompt for AI agents[^<]*<\/summary>\s*```(?:text)?\s*([\s\S]*?)```\s*<\/details>/i);
+            
+            if (!promptMatch || !promptMatch[1]) {
+              console.log('No AI prompt found in review body');
+              console.log('Review body:', reviewBody);
+              core.setOutput('has-prompt', 'false');
+              return;
+            }
+            
+            const prompt = promptMatch[1].trim();
+            console.log('Extracted prompt:', prompt);
+            
+            // Save prompt to file to avoid shell escaping issues
+            const fs = require('fs');
+            fs.writeFileSync('/tmp/cubic-prompt.txt', prompt);
+            
+            core.setOutput('has-prompt', 'true');
+
+      - name: Create Devin session
+        if: steps.extract-prompt.outputs.has-prompt == 'true'
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+        run: |
+          CUBIC_PROMPT=$(cat /tmp/cubic-prompt.txt)
+          
+          # Build the full prompt for Devin
+          FULL_PROMPT="You are addressing code review feedback from Cubic AI on PR #${{ github.event.pull_request.number }} in repository ${{ github.repository }}.
+
+          Your tasks:
+          1. Clone the repository ${{ github.repository }} locally.
+          2. Check out the PR branch and review the current code.
+          3. Read and understand the Cubic AI review feedback below.
+          4. Address each issue identified by Cubic AI by making the necessary code changes.
+          5. Commit your changes with clear commit messages referencing the issues fixed.
+          6. Push your changes to the PR branch.
+
+          Cubic AI Review Feedback:
+          ${CUBIC_PROMPT}
+
+          Rules and Guidelines:
+          1. Make minimal, focused changes that directly address the feedback.
+          2. Follow the existing code style and conventions in the repository.
+          3. Test your changes if possible before pushing.
+          4. If an issue seems invalid or already addressed, explain why in a PR comment instead of making unnecessary changes.
+          5. Never ask for user confirmation. Never wait for user messages."
+
+          # Call Devin API
+          RESPONSE=$(curl -s -X POST "https://api.devin.ai/v1/sessions" \
+            -H "Authorization: Bearer ${DEVIN_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg prompt "$FULL_PROMPT" \
+              --arg title "Cubic AI Review: PR #${{ github.event.pull_request.number }}" \
+              '{
+                prompt: $prompt,
+                title: $title,
+                tags: ["cubic-ai-review", "pr-${{ github.event.pull_request.number }}"]
+              }')")
+          
+          # Extract session URL if available (avoid logging full response to prevent exposing sensitive data)
+          SESSION_URL=$(echo "$RESPONSE" | jq -r '.url // .session_url // empty')
+          if [ -n "$SESSION_URL" ]; then
+            echo "Devin session created: $SESSION_URL"
+            echo "SESSION_URL=$SESSION_URL" >> $GITHUB_ENV
+          fi
+
+      - name: Post comment with Devin session link
+        if: steps.extract-prompt.outputs.has-prompt == 'true' && env.SESSION_URL != ''
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const sessionUrl = process.env.SESSION_URL;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: `### Devin AI is addressing Cubic AI's review feedback\n\nA Devin session has been created to address the issues identified by Cubic AI.\n\n[View Devin Session](${sessionUrl})`
+            });

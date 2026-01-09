@@ -339,6 +339,7 @@ export class UserRepository {
         locked: true,
         role: true,
         id: true,
+        uuid: true,
         username: true,
         name: true,
         email: true,
@@ -386,6 +387,27 @@ export class UserRepository {
       ...user,
       metadata: userMetadata.parse(user.metadata),
     };
+  }
+
+  async findSecondaryEmailByUserIdAndEmail({
+    userId,
+    email,
+  }: {
+    userId: number;
+    email: string;
+  }) {
+    return this.prismaClient.secondaryEmail.findUnique({
+      where: {
+        userId_email: {
+          userId,
+          email,
+        },
+      },
+      select: {
+        id: true,
+        emailVerified: true,
+      },
+    });
   }
 
   async findByUuid({ uuid }: { uuid: string }) {
@@ -457,6 +479,44 @@ export class UserRepository {
 
   async isMovedToAProfile({ user }: { user: Pick<UserType, "movedToProfileId"> }) {
     return !!user.movedToProfileId;
+  }
+
+  async swapPrimaryEmailWithSecondaryEmail({
+    userId,
+    secondaryEmailId,
+    oldPrimaryEmail,
+    oldPrimaryEmailVerified,
+    newPrimaryEmail,
+    userUpdateData,
+  }: {
+    userId: number;
+    secondaryEmailId: number;
+    oldPrimaryEmail: string;
+    oldPrimaryEmailVerified: Date | null;
+    newPrimaryEmail: string;
+    userUpdateData?: Prisma.UserUpdateInput;
+  }) {
+    const [, updatedUser] = await this.prismaClient.$transaction([
+      this.prismaClient.secondaryEmail.update({
+        where: {
+          id: secondaryEmailId,
+          userId: userId,
+        },
+        data: {
+          email: oldPrimaryEmail,
+          emailVerified: oldPrimaryEmailVerified,
+        },
+      }),
+      this.prismaClient.user.update({
+        where: { id: userId },
+        data: {
+          ...userUpdateData,
+          email: newPrimaryEmail,
+        },
+      }),
+    ]);
+
+    return updatedUser;
   }
 
   async enrichUserWithTheProfile<T extends { username: string | null; id: number }>({
@@ -1177,6 +1237,7 @@ export class UserRepository {
     return this.prismaClient.user.findMany({
       where,
       select: {
+        locked: true,
         allowDynamicBooking: true,
         ...availabilityUserSelect,
         credentials: {
