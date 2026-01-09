@@ -1120,7 +1120,6 @@ export default function EventTypeDetail() {
 
   // Calculate isDirty state
   const isDirty = useMemo(() => {
-    if (!eventTypeData) return false;
     // For new event types (id="new"), we always want to enable save if required fields are filled
     // But for now, let's stick to the dirty check logic which applies mostly to updates
     if (id === "new") {
@@ -1135,6 +1134,8 @@ export default function EventTypeDetail() {
       // For "new", returning true (always dirty/ready) is a safe default to avoid blocking creation.
       return true;
     }
+
+    if (!eventTypeData) return false;
 
     const payload = buildPartialUpdatePayload(currentFormState, eventTypeData);
     return Object.keys(payload).length > 0;
