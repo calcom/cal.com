@@ -21,7 +21,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const redirectUri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/lever/callback`;
 
-  const state = encodeOAuthState(req);
+  let state: string | undefined;
+  try {
+    state = encodeOAuthState(req);
+  } catch {
+    return res.status(400).json({ message: "Invalid OAuth state" });
+  }
+
   const params = new URLSearchParams();
   params.set("client_id", clientId);
   params.set("redirect_uri", redirectUri);

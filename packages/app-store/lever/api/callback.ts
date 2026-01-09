@@ -21,8 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code } = req.query;
   const state = decodeOAuthState(req);
 
-  if (code && typeof code !== "string") {
-    return res.status(400).json({ message: "`code` must be a string" });
+  if (!code || typeof code !== "string") {
+    return res.status(400).json({ message: "Missing or invalid `code` parameter" });
   }
 
   if (!req.session?.user?.id) {
@@ -51,8 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!tokenResponse.ok) {
-    const error = await tokenResponse.text();
-    console.error("Lever token exchange failed:", error);
+    console.error("Lever token exchange failed:", tokenResponse.status);
     return res.status(500).json({ message: "Failed to complete Lever connection" });
   }
 

@@ -30,8 +30,16 @@ interface LeverNote {
 function formatNoteBody(event: CalendarEvent): string {
   const tz = event.attendees?.[0]?.timeZone || "UTC";
   const loc = getLocation(event) || "Not specified";
-  const startTime = new Date(event.startTime).toLocaleString("en-US", { timeZone: tz });
-  const endTime = new Date(event.endTime).toLocaleString("en-US", { timeZone: tz });
+  let startTime: string;
+  let endTime: string;
+  try {
+    startTime = new Date(event.startTime).toLocaleString("en-US", { timeZone: tz });
+    endTime = new Date(event.endTime).toLocaleString("en-US", { timeZone: tz });
+  } catch {
+    // Invalid timezone, fall back to UTC
+    startTime = new Date(event.startTime).toLocaleString("en-US", { timeZone: "UTC" });
+    endTime = new Date(event.endTime).toLocaleString("en-US", { timeZone: "UTC" });
+  }
 
   return [
     `Meeting: ${event.title}`,
@@ -105,6 +113,9 @@ export default class LeverCrmService implements CRM {
     return {
       getToken: async () => {
         if (!isTokenValid(currentToken)) {
+          if (!currentToken.refresh_token) {
+            throw new HttpError({ statusCode: 401, message: "Lever refresh token missing. Please reconnect." });
+          }
           await refreshAccessToken(currentToken.refresh_token);
         }
         return currentToken.access_token;
@@ -125,7 +136,7 @@ export default class LeverCrmService implements CRM {
     });
 
     if (!res.ok) {
-      this.log.error("Lever API error", { path, status: res.status });
+      this.log.error("Lever API error", { path: path.split("?")[0], status: res.status });
       throw new Error(`Lever API error: ${res.status}`);
     }
 
