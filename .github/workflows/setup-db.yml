@@ -8,6 +8,10 @@ on:
         type: string
         default: "false"
         description: "Whether the DB cache was hit (skip yarn-install and cache-db if true)"
+      commit-sha:
+        description: "Commit SHA for cache key"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -47,7 +51,12 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+        with:
+          mode: restore
+          commit-sha: ${{ inputs.commit-sha }}
       - uses: ./.github/actions/yarn-install
         if: inputs.DB_CACHE_HIT != 'true'
       - run: yarn prisma generate
