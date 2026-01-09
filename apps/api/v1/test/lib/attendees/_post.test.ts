@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -77,7 +77,7 @@ describe("POST /api/attendees", () => {
 
       const userBooking = { id: 1 };
 
-      prismaMock.booking.findFirst.mockResolvedValue(userBooking);
+      prismaMock.booking.findFirst.mockResolvedValue(userBooking as any);
 
       const attendeeData = {
         id: 1,

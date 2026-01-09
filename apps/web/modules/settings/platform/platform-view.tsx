@@ -1,12 +1,13 @@
 "use client";
 
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
 
-import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { useExternalRedirectHandler } from "@lib/hooks/settings/platform/billing/useExternalRedirectHandler";
 import { useDeleteOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useDeleteOAuthClient";
 import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
 
@@ -16,17 +17,28 @@ import { OAuthClientsList } from "@components/settings/platform/dashboard/oauth-
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@components/settings/platform/pricing/platform-pricing";
 
+import Shell from "~/shell/Shell";
+
 const queryClient = new QueryClient();
 
 export default function Platform() {
   const { t } = useLocale();
-  const [initialClientId, setInitialClientId] = useState("");
-  const [initialClientName, setInitialClientName] = useState("");
+  const [_initialClientId, setInitialClientId] = useState("");
+  const [_initialClientName, setInitialClientName] = useState("");
+  const pathname = usePathname();
 
   const { data, isLoading: isOAuthClientLoading, refetch: refetchClients } = useOAuthClients();
 
-  const { isUserLoading, isUserBillingDataLoading, isPlatformUser, isPaidUser, userBillingData, userOrgId } =
-    useGetUserAttributes();
+  const {
+    isUserLoading,
+    isUserBillingDataLoading,
+    isPlatformUser,
+    isPaidUser,
+    userBillingData,
+    userOrgId,
+    refetchTeamBilling,
+    refetchPlatformUser,
+  } = useGetUserAttributes();
 
   const { mutateAsync, isPending: isDeleting } = useDeleteOAuthClient({
     onSuccess: () => {
@@ -39,10 +51,23 @@ export default function Platform() {
     await mutateAsync({ id: id });
   };
 
+  const refetchBillingState = useCallback(() => {
+    refetchTeamBilling();
+    refetchPlatformUser();
+  }, [refetchTeamBilling, refetchPlatformUser]);
+
   useEffect(() => {
     setInitialClientId(data[0]?.id);
     setInitialClientName(data[0]?.name);
   }, [data]);
+
+  useEffect(() => {
+    refetchBillingState();
+  }, [pathname, refetchTeamBilling, refetchPlatformUser, refetchBillingState]);
+
+  useExternalRedirectHandler(() => {
+    refetchBillingState();
+  });
 
   if (isUserLoading || isOAuthClientLoading) return <div className="m-5">{t("loading")}</div>;
 

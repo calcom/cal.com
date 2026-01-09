@@ -1,6 +1,9 @@
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { v4 as uuidv4 } from "uuid";
 
-import { generateUniqueAPIKey as generateHashedApiKey } from "@calcom/ee/api-keys/lib/apiKeys";
+import { PrismaApiKeyRepository } from "@calcom/features/ee/api-keys/repositories/PrismaApiKeyRepository";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { RETELL_AI_TEST_MODE, RETELL_AI_TEST_EVENT_TYPE_MAP } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -14,37 +17,30 @@ import type {
   AIPhoneServiceTools,
 } from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
+import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
 import type { RetellAIRepository, Language } from "../types";
 import { getLlmId } from "../types";
+import { replaceEventTypePlaceholders } from "../utils/promptUtils";
+
+type Dependencies = {
+  retellRepository: RetellAIRepository;
+  agentRepository: AgentRepositoryInterface;
+  phoneNumberRepository: PhoneNumberRepositoryInterface;
+};
 
 export class AgentService {
   private logger = logger.getSubLogger({ prefix: ["AgentService"] });
-
-  constructor(
-    private retellRepository: RetellAIRepository,
-    private agentRepository: AgentRepositoryInterface
-  ) {}
+  constructor(private deps: Dependencies) {}
 
   private async createApiKey({ userId, teamId }: { userId: number; teamId?: number }) {
-    const [hashedApiKey, apiKey] = generateHashedApiKey();
-    await prisma.apiKey.create({
-      data: {
-        id: uuidv4(),
-        userId,
-        teamId,
-        // And here we pass a null to expiresAt if never expires is true
-        expiresAt: null,
-        hashedKey: hashedApiKey,
-        note: `Cal AI Phone API Key for agent ${userId} ${teamId ? `for team ${teamId}` : ""}`,
-      },
+    const apiKeyRepository = await PrismaApiKeyRepository.withGlobalPrisma();
+    return await apiKeyRepository.createApiKey({
+      userId,
+      teamId,
+      expiresAt: null,
+      note: `Cal.ai Phone API Key for agent ${userId} ${teamId ? `for team ${teamId}` : ""}`,
     });
-
-    const apiKeyPrefix = process.env.API_KEY_PREFIX ?? "cal_";
-
-    const prefixedApiKey = `${apiKeyPrefix}${apiKey}`;
-
-    return prefixedApiKey;
   }
 
   async getAgent(agentId: string): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
@@ -56,7 +52,7 @@ export class AgentService {
     }
 
     try {
-      return await this.retellRepository.getAgent(agentId);
+      return await this.deps.retellRepository.getAgent(agentId);
     } catch (error) {
       this.logger.error("Failed to get agent from external AI service", {
         agentId,
@@ -94,6 +90,13 @@ export class AgentService {
       });
     }
 
+    let eventTypeId = data.eventTypeId;
+
+    if (RETELL_AI_TEST_MODE && RETELL_AI_TEST_EVENT_TYPE_MAP) {
+      const mappedId = RETELL_AI_TEST_EVENT_TYPE_MAP[String(data.eventTypeId)];
+      eventTypeId = mappedId ? Number(mappedId) : data.eventTypeId;
+    }
+
     try {
       const agent = await this.getAgent(agentId);
       const llmId = getLlmId(agent);
@@ -104,7 +107,7 @@ export class AgentService {
           message: "Agent does not have an LLM configured.",
         });
       }
-      const llmDetails = await this.retellRepository.getLLM(llmId);
+      const llmDetails = await this.deps.retellRepository.getLLM(llmId);
 
       if (!llmDetails) {
         throw new HttpError({ statusCode: 404, message: "LLM details not found." });
@@ -112,8 +115,8 @@ export class AgentService {
 
       const existing = llmDetails?.general_tools ?? [];
 
-      const hasCheck = existing.some((t) => t.name === `check_availability_${data.eventTypeId}`);
-      const hasBook = existing.some((t) => t.name === `book_appointment_${data.eventTypeId}`);
+      const hasCheck = existing.some((t) => t.name === `check_availability_${eventTypeId}`);
+      const hasBook = existing.some((t) => t.name === `book_appointment_${eventTypeId}`);
       // If both already exist and end_call also exists, nothing to do
       const hasEndCallAlready = existing.some((t) => t.type === "end_call");
       if (hasCheck && hasBook && hasEndCallAlready) {
@@ -126,27 +129,29 @@ export class AgentService {
       )?.cal_api_key;
 
       const apiKey =
-        reusableKey ??
-        (await this.createApiKey({
-          userId: data.userId,
-          teamId: data.teamId || undefined,
-        }));
+        RETELL_AI_TEST_MODE && process.env.RETELL_AI_TEST_CAL_API_KEY
+          ? process.env.RETELL_AI_TEST_CAL_API_KEY
+          : reusableKey ??
+            (await this.createApiKey({
+              userId: data.userId,
+              teamId: data.teamId || undefined,
+            }));
 
       const newEventTools: NonNullable<AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>> = [];
       if (!hasCheck) {
         newEventTools.push({
-          name: `check_availability_${data.eventTypeId}`,
+          name: `check_availability_${eventTypeId}`,
           type: "check_availability_cal",
-          event_type_id: data.eventTypeId,
+          event_type_id: eventTypeId,
           cal_api_key: apiKey,
           timezone: data.timeZone,
         });
       }
       if (!hasBook) {
         newEventTools.push({
-          name: `book_appointment_${data.eventTypeId}`,
+          name: `book_appointment_${eventTypeId}`,
           type: "book_appointment_cal",
-          event_type_id: data.eventTypeId,
+          event_type_id: eventTypeId,
           cal_api_key: apiKey,
           timezone: data.timeZone,
         });
@@ -162,7 +167,7 @@ export class AgentService {
 
       const updatedGeneralTools = [...existing, ...newEventTools];
 
-      await this.retellRepository.updateLLM(llmId, { general_tools: updatedGeneralTools });
+      await this.deps.retellRepository.updateLLM(llmId, { general_tools: updatedGeneralTools });
     } catch (error) {
       if (error instanceof HttpError) {
         throw error;
@@ -193,6 +198,15 @@ export class AgentService {
       return;
     }
 
+    let mappedEventTypeIds = eventTypeIds;
+
+    if (RETELL_AI_TEST_MODE && RETELL_AI_TEST_EVENT_TYPE_MAP) {
+      mappedEventTypeIds = eventTypeIds.map((id) => {
+        const mappedId = RETELL_AI_TEST_EVENT_TYPE_MAP[String(id)];
+        return mappedId ? Number(mappedId) : id;
+      });
+    }
+
     try {
       const agent = await this.getAgent(agentId);
       const llmId = getLlmId(agent);
@@ -204,7 +218,7 @@ export class AgentService {
         });
       }
 
-      const llmDetails = await this.retellRepository.getLLM(llmId);
+      const llmDetails = await this.deps.retellRepository.getLLM(llmId);
 
       if (!llmDetails) {
         throw new HttpError({ statusCode: 404, message: "LLM details not found." });
@@ -212,7 +226,7 @@ export class AgentService {
 
       const existing = llmDetails?.general_tools ?? [];
 
-      const toolNamesToRemove = eventTypeIds.flatMap((eventTypeId) => [
+      const toolNamesToRemove = mappedEventTypeIds.flatMap((eventTypeId) => [
         `check_availability_${eventTypeId}`,
         `book_appointment_${eventTypeId}`,
       ]);
@@ -220,11 +234,12 @@ export class AgentService {
       const filteredTools = existing.filter((tool) => !toolNamesToRemove.includes(tool.name));
 
       if (filteredTools.length !== existing.length) {
-        await this.retellRepository.updateLLM(llmId, { general_tools: filteredTools });
+        await this.deps.retellRepository.updateLLM(llmId, { general_tools: filteredTools });
         this.logger.info("Removed event-specific tools from agent", {
           agentId,
           llmId,
           removedEventTypes: eventTypeIds,
+          mappedEventTypes: RETELL_AI_TEST_MODE ? mappedEventTypeIds : undefined,
           toolsRemoved: existing.length - filteredTools.length,
         });
       }
@@ -253,6 +268,15 @@ export class AgentService {
       });
     }
 
+    let mappedActiveEventTypeIds = activeEventTypeIds;
+
+    if (RETELL_AI_TEST_MODE && RETELL_AI_TEST_EVENT_TYPE_MAP) {
+      mappedActiveEventTypeIds = activeEventTypeIds.map((id) => {
+        const mappedId = RETELL_AI_TEST_EVENT_TYPE_MAP[String(id)];
+        return mappedId ? Number(mappedId) : id;
+      });
+    }
+
     try {
       const agent = await this.getAgent(agentId);
       const llmId = getLlmId(agent);
@@ -264,7 +288,7 @@ export class AgentService {
         });
       }
 
-      const llmDetails = await this.retellRepository.getLLM(llmId);
+      const llmDetails = await this.deps.retellRepository.getLLM(llmId);
 
       if (!llmDetails) {
         throw new HttpError({ statusCode: 404, message: "LLM details not found." });
@@ -282,14 +306,14 @@ export class AgentService {
         if (!eventTypeIdMatch) return false;
 
         const eventTypeId = parseInt(eventTypeIdMatch[1]);
-        return !activeEventTypeIds.includes(eventTypeId);
+        return !mappedActiveEventTypeIds.includes(eventTypeId);
       });
 
       if (toolsToRemove.length > 0) {
         const toolNamesToRemove = toolsToRemove.map((tool) => tool.name);
         const filteredTools = existing.filter((tool) => !toolNamesToRemove.includes(tool.name));
 
-        await this.retellRepository.updateLLM(llmId, { general_tools: filteredTools });
+        await this.deps.retellRepository.updateLLM(llmId, { general_tools: filteredTools });
 
         this.logger.info("Cleaned up unused event-specific tools", {
           agentId,
@@ -316,6 +340,7 @@ export class AgentService {
       this.logger.error("Failed to cleanup unused tools for agent", {
         agentId,
         activeEventTypeIds,
+        mappedActiveEventTypeIds: RETELL_AI_TEST_MODE ? mappedActiveEventTypeIds : undefined,
         error,
       });
       throw new HttpError({
@@ -345,7 +370,7 @@ export class AgentService {
 
     try {
       const updateRequest = RetellAIServiceMapper.mapToUpdateAgentRequest(data);
-      return await this.retellRepository.updateAgent(agentId, updateRequest);
+      return await this.deps.retellRepository.updateAgent(agentId, updateRequest);
     } catch (error) {
       this.logger.error("Failed to update agent in external AI service", {
         agentId,
@@ -368,7 +393,7 @@ export class AgentService {
     teamId?: number;
     scope?: "personal" | "team" | "all";
   }) {
-    const agents = await this.agentRepository.findManyWithUserAccess({
+    const agents = await this.deps.agentRepository.findManyWithUserAccess({
       userId,
       teamId,
       scope,
@@ -383,7 +408,7 @@ export class AgentService {
   }
 
   async getAgentWithDetails({ id, userId, teamId }: { id: string; userId: number; teamId?: number }) {
-    const agent = await this.agentRepository.findByIdWithUserAccessAndDetails({
+    const agent = await this.deps.agentRepository.findByIdWithUserAccessAndDetails({
       id,
       userId,
       teamId,
@@ -407,7 +432,7 @@ export class AgentService {
         });
       }
 
-      const llmDetails = await this.retellRepository.getLLM(llmId);
+      const llmDetails = await this.deps.retellRepository.getLLM(llmId);
 
       return RetellAIServiceMapper.formatAgentDetails(agent, retellAgent, llmDetails);
     } catch (error) {
@@ -429,7 +454,7 @@ export class AgentService {
     }
   }
 
-  async createAgent({
+  async createOutboundAgent({
     name: _name,
     userId,
     teamId,
@@ -445,7 +470,7 @@ export class AgentService {
     const agentName = _name || `Agent - ${userId} ${uuidv4()}`;
 
     if (teamId) {
-      const canManage = await this.agentRepository.canManageTeamResources({
+      const canManage = await this.deps.agentRepository.canManageTeamResources({
         userId,
         teamId,
       });
@@ -459,7 +484,7 @@ export class AgentService {
 
     const llmConfig = await setupAIConfiguration();
 
-    const agent = await this.agentRepository.create({
+    const agent = await this.deps.agentRepository.create({
       name: agentName,
       providerAgentId: llmConfig.agentId,
       userId,
@@ -467,7 +492,7 @@ export class AgentService {
     });
 
     if (workflowStepId) {
-      await this.agentRepository.linkToWorkflowStep({
+      await this.deps.agentRepository.linkOutboundAgentToWorkflow({
         workflowStepId,
         agentId: agent.id,
       });
@@ -480,15 +505,128 @@ export class AgentService {
     };
   }
 
+  async createInboundAgent({
+    name,
+    phoneNumber,
+    userId,
+    teamId,
+    workflowStepId,
+    aiConfigurationService,
+  }: {
+    name?: string;
+    phoneNumber: string;
+    userId: number;
+    teamId?: number;
+    workflowStepId: number;
+    aiConfigurationService: {
+      setupInboundAIConfiguration: () => Promise<{ llmId: string; agentId: string }>;
+    };
+  }) {
+    if (teamId) {
+      const canManage = await this.deps.agentRepository.canManageTeamResources({
+        userId,
+        teamId,
+      });
+      if (!canManage) {
+        throw new HttpError({
+          statusCode: 403,
+          message: "You don't have permission to create agents for this team.",
+        });
+      }
+    }
+
+    const isPhoneNumberValid = isValidPhoneNumber(phoneNumber);
+    if (!isPhoneNumberValid) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Invalid phone number",
+      });
+    }
+
+    let phoneNumberRecord;
+    if (teamId) {
+      phoneNumberRecord = await this.deps.phoneNumberRepository.findByPhoneNumberAndTeamId({
+        phoneNumber,
+        teamId,
+        userId,
+      });
+    } else {
+      phoneNumberRecord = await this.deps.phoneNumberRepository.findByPhoneNumberAndUserId({
+        phoneNumber,
+        userId,
+      });
+    }
+
+    if (!phoneNumberRecord) {
+      throw new HttpError({
+        statusCode: 404,
+        message: "Phone number not found or you don't have access to it",
+      });
+    }
+
+    if (phoneNumberRecord.inboundAgentId) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Inbound agent already configured for this phone number",
+      });
+    }
+
+    const agentName = name || `Inbound Agent - ${workflowStepId}`;
+
+    const llmConfig = await aiConfigurationService.setupInboundAIConfiguration();
+
+    const agent = await this.deps.agentRepository.create({
+      name: agentName,
+      providerAgentId: llmConfig.agentId,
+      userId,
+      teamId,
+    });
+
+    await this.deps.agentRepository.linkInboundAgentToWorkflow({
+      workflowStepId,
+      agentId: agent.id,
+    });
+
+    // Update the Retell phone number with the new inbound agent ID
+    await this.deps.retellRepository.updatePhoneNumber(phoneNumber, {
+      inbound_agent_id: llmConfig.agentId,
+    });
+
+    const updateInboundAgentIdResult = await this.deps.phoneNumberRepository.updateInboundAgentId({
+      id: phoneNumberRecord.id,
+      agentId: agent.id,
+    });
+
+    if (updateInboundAgentIdResult.count === 0) {
+      const conflictingAgentId = await this.deps.phoneNumberRepository.findInboundAgentIdByPhoneNumberId({
+        phoneNumberId: phoneNumberRecord.id,
+      });
+
+      throw new HttpError({
+        statusCode: 409,
+        message: `Inbound agent was configured by another request. Conflicting agent: ${conflictingAgentId}`,
+      });
+    }
+
+    return {
+      id: agent.id,
+      providerAgentId: agent.providerAgentId,
+      message: "Inbound agent created successfully",
+    };
+  }
+
   async updateAgentConfiguration({
     id,
     userId,
     teamId,
-    name,
+    name: _name,
     generalPrompt,
     beginMessage,
     generalTools,
     voiceId,
+    language,
+    outboundEventTypeId,
+    timeZone,
     updateLLMConfiguration,
   }: {
     id: string;
@@ -499,12 +637,15 @@ export class AgentService {
     beginMessage?: string | null;
     generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>;
     voiceId?: string;
+    language?: Language;
+    outboundEventTypeId?: number;
+    timeZone?: string;
     updateLLMConfiguration: (
       llmId: string,
       data: AIPhoneServiceUpdateModelParams<AIPhoneServiceProviderType.RETELL_AI>
     ) => Promise<AIPhoneServiceModel<AIPhoneServiceProviderType.RETELL_AI>>;
   }) {
-    const agent = await this.agentRepository.findByIdWithAdminAccess({
+    const agent = await this.deps.agentRepository.findByIdWithAdminAccess({
       id,
       userId,
       teamId,
@@ -517,11 +658,17 @@ export class AgentService {
       });
     }
 
+    const updatedPrompt =
+      agent.inboundEventTypeId && generalPrompt
+        ? replaceEventTypePlaceholders(generalPrompt, agent.inboundEventTypeId)
+        : generalPrompt;
+
     const hasRetellUpdates =
-      generalPrompt !== undefined ||
+      updatedPrompt !== undefined ||
       beginMessage !== undefined ||
       generalTools !== undefined ||
-      voiceId !== undefined;
+      voiceId !== undefined ||
+      language !== undefined;
 
     if (hasRetellUpdates) {
       try {
@@ -530,20 +677,21 @@ export class AgentService {
 
         if (
           llmId &&
-          (generalPrompt !== undefined || beginMessage !== undefined || generalTools !== undefined)
+          (updatedPrompt !== undefined || beginMessage !== undefined || generalTools !== undefined)
         ) {
           const llmUpdateData = RetellAIServiceMapper.extractLLMUpdateData(
-            generalPrompt,
+            updatedPrompt,
             beginMessage,
             generalTools
           );
           await updateLLMConfiguration(llmId, llmUpdateData);
         }
 
-        if (voiceId) {
-          await this.updateAgent(agent.providerAgentId, {
-            voice_id: voiceId,
-          });
+        if (voiceId || language) {
+          const agentUpdateData: Parameters<typeof this.updateAgent>[1] = {};
+          if (voiceId) agentUpdateData.voice_id = voiceId;
+          if (language) agentUpdateData.language = language;
+          await this.updateAgent(agent.providerAgentId, agentUpdateData);
         }
       } catch (error) {
         this.logger.error("Failed to update agent configuration in external AI service", {
@@ -570,6 +718,41 @@ export class AgentService {
       }
     }
 
+    if (outboundEventTypeId && agent.outboundEventTypeId !== outboundEventTypeId) {
+      const eventTypeRepository = new EventTypeRepository(prisma);
+
+      const outBoundEventType = await eventTypeRepository.findByIdMinimal({
+        id: outboundEventTypeId,
+      });
+
+      if (!outBoundEventType) {
+        throw new HttpError({
+          statusCode: 404,
+          message: "Event type not found.",
+        });
+      }
+
+      if (userId !== outBoundEventType.userId && teamId !== outBoundEventType.teamId) {
+        throw new HttpError({
+          statusCode: 403,
+          message: "You don't have permission to use this event type.",
+        });
+      }
+
+      const userTimeZone = timeZone || "UTC";
+      await this.updateToolsFromAgentId(agent.providerAgentId, {
+        eventTypeId: outboundEventTypeId,
+        timeZone: userTimeZone,
+        userId,
+        teamId,
+      });
+
+      await this.deps.agentRepository.updateOutboundEventTypeId({
+        agentId: id,
+        eventTypeId: outboundEventTypeId,
+      });
+    }
+
     return { message: "Agent updated successfully" };
   }
 
@@ -584,7 +767,7 @@ export class AgentService {
     teamId?: number;
     deleteAIConfiguration: (config: { agentId: string; llmId?: string }) => Promise<void>;
   }) {
-    const agent = await this.agentRepository.findByIdWithAdminAccess({
+    const agent = await this.deps.agentRepository.findByIdWithAdminAccess({
       id,
       userId,
       teamId,
@@ -615,7 +798,7 @@ export class AgentService {
       });
     }
 
-    await this.agentRepository.delete({ id });
+    await this.deps.agentRepository.delete({ id });
 
     return { message: "Agent deleted successfully" };
   }

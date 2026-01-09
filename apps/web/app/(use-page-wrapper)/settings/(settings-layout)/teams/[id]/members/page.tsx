@@ -1,14 +1,19 @@
 import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
+import { headers, cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
+import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getTeamMemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
+import { TeamMembersView } from "@calcom/web/modules/ee/teams/views/team-members-view";
 
-import { TeamMembersView } from "~/teams/team-members-view";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(
@@ -25,7 +30,7 @@ const getCachedTeamRoles = unstable_cache(
     try {
       const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
       return await roleManager.getTeamRoles(teamId);
-    } catch (error) {
+    } catch {
       // PBAC not enabled or error occurred, return empty array
       return [];
     }
@@ -41,7 +46,7 @@ const getCachedTeamAttributes = unstable_cache(
 
     try {
       return await attributeRepo.findAllByOrgIdWithOptions({ orgId: organizationId });
-    } catch (error) {
+    } catch {
       return [];
     }
   },
@@ -54,6 +59,12 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
   const teamId = parseInt(id);
 
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+
+  if (!session?.user.id) {
+    return redirect("/auth/login");
+  }
+
   const teamCaller = await createRouterCaller(viewerTeamsRouter);
   const team = await teamCaller.get({ teamId });
 
@@ -65,9 +76,13 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const organizationId = team.parentId || teamId;
 
   // Load PBAC roles and attributes if available
-  const [roles, attributes] = await Promise.all([
+  const [roles, attributes, memberPermissions] = await Promise.all([
     getCachedTeamRoles(teamId, organizationId),
     getCachedTeamAttributes(organizationId),
+    getTeamMemberPermissions({
+      userId: session.user.id,
+      team,
+    }),
   ]);
 
   const facetedTeamValues = {
@@ -84,7 +99,12 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
 
   return (
     <SettingsHeader title={t("team_members")} description={t("members_team_description")}>
-      <TeamMembersView team={team} facetedTeamValues={facetedTeamValues} attributes={attributes} />
+      <TeamMembersView
+        team={team}
+        facetedTeamValues={facetedTeamValues}
+        attributes={attributes}
+        permissions={memberPermissions}
+      />
     </SettingsHeader>
   );
 };

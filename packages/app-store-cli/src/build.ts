@@ -1,30 +1,41 @@
 import chokidar from "chokidar";
-import fs from "fs";
+import fs from "node:fs"
 // eslint-disable-next-line no-restricted-imports
 import { debounce } from "lodash";
-import path from "path";
-import prettier from "prettier";
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
-import prettierConfig from "@calcom/config/prettier-preset";
+import { spawnSync } from "node:child_process";
+import path from "node:path"
 import type { AppMeta } from "@calcom/types/App";
+import { AppMetaSchema } from "@calcom/types/AppMetaSchema";
 
 import { APP_STORE_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";
 
 const isInWatchMode = process.argv[2] === "--watch";
 
-const formatOutput = (source: string) =>
-  prettier.format(source, {
-    parser: "babel",
-    ...prettierConfig,
-  });
+const repoRoot = path.resolve(__dirname, "../../..");
 
-const getVariableName = (appName: string) => appName.replace(/[-.\/]/g, "_");
+const formatFileWithBiome = (filePath: string) => {
+  const { status } = spawnSync(
+    "yarn",
+    ["biome", "format", "--write", "--no-errors-on-unmatched", filePath],
+    {
+      stdio: "inherit",
+      cwd: repoRoot,
+    }
+  );
+
+  if (status !== 0) {
+    throw new Error(`Biome formatting failed for ${filePath}`);
+  }
+};
+
+const formatOutput = (source: string) => source;
+
+const getVariableName = (appName: string) => appName.replace(/[-./]/g, "_");
 
 // INFO: Handle stripe separately as it's an old app with different dirName than slug/appId
-const getAppId = (app: { name: string }) => (app.name === "stripepayment" ? "stripe" : app.name);
+const getAppId = (app: { name: string }) =>
+  app.name === "stripepayment" ? "stripe" : app.name;
 
 type App = Partial<AppMeta> & {
   name: string;
@@ -40,9 +51,9 @@ function generateFiles() {
   const crmOutput = [];
   const appDirs: { name: string; path: string }[] = [];
 
-  fs.readdirSync(`${APP_STORE_PATH}`).forEach(function (dir) {
+  fs.readdirSync(`${APP_STORE_PATH}`).forEach((dir) => {
     if (dir === "ee" || dir === "templates") {
-      fs.readdirSync(path.join(APP_STORE_PATH, dir)).forEach(function (subDir) {
+      fs.readdirSync(path.join(APP_STORE_PATH, dir)).forEach((subDir) => {
         if (fs.statSync(path.join(APP_STORE_PATH, dir, subDir)).isDirectory()) {
           if (getAppName(subDir)) {
             appDirs.push({
@@ -65,14 +76,40 @@ function generateFiles() {
     }
   });
 
-  function forEachAppDir(callback: (arg: App) => void, filter: (arg: App) => boolean = () => true) {
+  function forEachAppDir(
+    callback: (arg: App) => void,
+    filter: (arg: App) => boolean = () => true
+  ) {
     for (let i = 0; i < appDirs.length; i++) {
-      const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
-      const metadataPath = path.join(APP_STORE_PATH, appDirs[i].path, "_metadata.ts");
-      let app;
+      const configPath = path.join(
+        APP_STORE_PATH,
+        appDirs[i].path,
+        "config.json"
+      );
+      const metadataPath = path.join(
+        APP_STORE_PATH,
+        appDirs[i].path,
+        "_metadata.ts"
+      );
+      let app: AppMetaSchema;
 
       if (fs.existsSync(configPath)) {
-        app = JSON.parse(fs.readFileSync(configPath).toString());
+        try {
+          const rawConfig = fs.readFileSync(configPath, "utf8");
+          const parsedConfig = JSON.parse(rawConfig);
+          app = AppMetaSchema.parse(parsedConfig);
+        } catch (error) {
+          const prefix = `Config error in ${path.join(
+            APP_STORE_PATH,
+            appDirs[i].path,
+            "config.json"
+          )}`;
+          throw new Error(
+            `${prefix}: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        }
       } else if (fs.existsSync(metadataPath)) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         app = require(metadataPath).metadata;
@@ -140,12 +177,18 @@ function generateFiles() {
     const getLocalImportName = (
       app: { name: string },
       chosenConfig: ReturnType<typeof getChosenImportConfig>
-    ) => `${getVariableName(app.name)}_${getVariableName(chosenConfig.fileToBeImported)}`;
+    ) =>
+      `${getVariableName(app.name)}_${getVariableName(
+        chosenConfig.fileToBeImported
+      )}`;
 
     const fileToBeImportedExists = (
       app: { path: string },
       chosenConfig: ReturnType<typeof getChosenImportConfig>
-    ) => fs.existsSync(path.join(APP_STORE_PATH, app.path, chosenConfig.fileToBeImported));
+    ) =>
+      fs.existsSync(
+        path.join(APP_STORE_PATH, app.path, chosenConfig.fileToBeImported)
+      );
 
     addImportStatements();
     createExportObject();
@@ -155,13 +198,19 @@ function generateFiles() {
     function addImportStatements() {
       forEachAppDir((app) => {
         const chosenConfig = getChosenImportConfig(importConfig, app);
-        if (fileToBeImportedExists(app, chosenConfig) && chosenConfig.importName) {
+        if (
+          fileToBeImportedExists(app, chosenConfig) &&
+          chosenConfig.importName
+        ) {
           const importName = chosenConfig.importName;
           if (!lazyImport) {
             if (importName !== "default") {
               // Import with local alias that will be used by createExportObject
               output.push(
-                `import { ${importName} as ${getLocalImportName(app, chosenConfig)} } from "${getModulePath(
+                `import { ${importName} as ${getLocalImportName(
+                  app,
+                  chosenConfig
+                )} } from "${getModulePath(
                   app.path,
                   chosenConfig.fileToBeImported
                 )}"`
@@ -169,7 +218,10 @@ function generateFiles() {
             } else {
               // Default Import
               output.push(
-                `import ${getLocalImportName(app, chosenConfig)} from "${getModulePath(
+                `import ${getLocalImportName(
+                  app,
+                  chosenConfig
+                )} from "${getModulePath(
                   app.path,
                   chosenConfig.fileToBeImported
                 )}"`
@@ -200,7 +252,12 @@ function generateFiles() {
                 )}")),`
               );
             } else {
-              output.push(`"${key}": import("${getModulePath(app.path, chosenConfig.fileToBeImported)}"),`);
+              output.push(
+                `"${key}": import("${getModulePath(
+                  app.path,
+                  chosenConfig.fileToBeImported
+                )}"),`
+              );
             }
           }
         }
@@ -209,13 +266,24 @@ function generateFiles() {
       output.push(`};`);
     }
 
-    function getChosenImportConfig(importConfig: ImportConfig, app: { path: string }) {
-      let chosenConfig;
+    function getChosenImportConfig(
+      importConfig: ImportConfig,
+      app: { path: string }
+    ) {
+      let chosenConfig: ImportConfig;
 
-      if (!(importConfig instanceof Array)) {
+      if (!Array.isArray(importConfig)) {
         chosenConfig = importConfig;
       } else {
-        if (fs.existsSync(path.join(APP_STORE_PATH, app.path, importConfig[0].fileToBeImported))) {
+        if (
+          fs.existsSync(
+            path.join(
+              APP_STORE_PATH,
+              app.path,
+              importConfig[0].fileToBeImported
+            )
+          )
+        ) {
           chosenConfig = importConfig[0];
         } else {
           chosenConfig = importConfig[1];
@@ -369,7 +437,7 @@ function generateFiles() {
     calendarOutput.push(
       exportLine.replace(
         "export const CalendarServiceMap = {",
-        "export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"
@@ -401,12 +469,15 @@ function generateFiles() {
   );
   if (analyticsExportLineIndex !== -1) {
     const exportLine = analyticsServices[analyticsExportLineIndex];
-    const objectContent = analyticsServices.slice(analyticsExportLineIndex + 1, -1);
+    const objectContent = analyticsServices.slice(
+      analyticsExportLineIndex + 1,
+      -1
+    );
 
     analyticsOutput.push(
       exportLine.replace(
         "export const AnalyticsServiceMap = {",
-        "export const AnalyticsServiceMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const AnalyticsServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"
@@ -426,7 +497,9 @@ function generateFiles() {
       lazyImport: true,
     },
     (app: App) => {
-      const hasPaymentService = fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/PaymentService.ts"));
+      const hasPaymentService = fs.existsSync(
+        path.join(APP_STORE_PATH, app.path, "lib/PaymentService.ts")
+      );
       return hasPaymentService;
     }
   );
@@ -444,7 +517,9 @@ function generateFiles() {
       lazyImport: true,
     },
     (app: App) => {
-      return fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/VideoApiAdapter.ts"));
+      return fs.existsSync(
+        path.join(APP_STORE_PATH, app.path, "lib/VideoApiAdapter.ts")
+      );
     }
   );
 
@@ -458,7 +533,7 @@ function generateFiles() {
     videoOutput.push(
       exportLine.replace(
         "export const VideoApiAdapterMap = {",
-        "export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"
@@ -486,9 +561,13 @@ function generateFiles() {
     ["video.adapters.generated.ts", videoOutput],
   ];
   filesToGenerate.forEach(([fileName, output]) => {
-    fs.writeFileSync(`${APP_STORE_PATH}/${fileName}`, formatOutput(`${banner}${output.join("\n")}`));
+    const filePath = `${APP_STORE_PATH}/${fileName}`;
+    fs.writeFileSync(filePath, formatOutput(`${banner}${output.join("\n")}`));
+    formatFileWithBiome(filePath);
   });
-  console.log(`Generated ${filesToGenerate.map(([fileName]) => fileName).join(", ")}`);
+  console.log(
+    `Generated ${filesToGenerate.map(([fileName]) => fileName).join(", ")}`
+  );
 }
 
 const debouncedGenerateFiles = debounce(generateFiles);

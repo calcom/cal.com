@@ -1,0 +1,326 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`csvDataTransformer > extractFieldValue > snapshot: various input types 1`] = `
+[
+  {
+    "input": ""simple string"",
+    "output": "simple string",
+  },
+  {
+    "input": "42",
+    "output": "42",
+  },
+  {
+    "input": "true",
+    "output": "true",
+  },
+  {
+    "input": "false",
+    "output": "false",
+  },
+  {
+    "input": "["option1","option2"]",
+    "output": "option1, option2",
+  },
+  {
+    "input": "{"value":"wrapped"}",
+    "output": "wrapped",
+  },
+  {
+    "input": "{"value":["multi","select"]}",
+    "output": "multi, select",
+  },
+  {
+    "input": "null",
+    "output": null,
+  },
+  {
+    "input": """",
+    "output": null,
+  },
+  {
+    "input": "["",null,"valid"]",
+    "output": "valid",
+  },
+]
+`;
+
+exports[`csvDataTransformer > formatCsvRow > snapshot: complete CSV row formatting 1`] = `
+{
+  "Additional Notes": null,
+  "Budget": "50000",
+  "Company": "Tech Corp",
+  "Job Title": "Senior Engineer",
+  "Meeting Purpose": "Quarterly Review",
+  "attendee1": "Alice Johnson (alice@example.com)",
+  "attendee2": "Bob Smith (bob@example.com)",
+  "attendee3": "Late Person (late@example.com)",
+  "attendeePhone1": "+1111111111",
+  "attendeePhone2": "+2222222222",
+  "attendeePhone3": null,
+  "createdAt": "2024-03-20T09:30:00.000Z",
+  "createdAt_date": "2024-03-20",
+  "createdAt_time": "02:30:00",
+  "endTime": "2024-03-20T16:00:00.000Z",
+  "endTime_date": "2024-03-20",
+  "endTime_time": "09:00:00",
+  "eventLength": 60,
+  "eventTypeId": 5,
+  "id": 123,
+  "noShowGuests": "Late Person (late@example.com)",
+  "noShowGuestsCount": 1,
+  "noShowHost": false,
+  "paid": true,
+  "rating": 4,
+  "ratingFeedback": "Very productive",
+  "startTime": "2024-03-20T15:00:00.000Z",
+  "startTime_date": "2024-03-20",
+  "startTime_time": "08:00:00",
+  "timeStatus": "completed",
+  "title": "Strategy Meeting",
+  "uid": "booking-abc-123",
+  "userEmail": "manager@company.com",
+  "userUsername": "manager",
+}
+`;
+
+exports[`csvDataTransformer > getAllFieldsForNonSeatedEvent > snapshot: all fields extraction for non-seated events 1`] = `
+{
+  "fields": [
+    {
+      "label": "Contact Phone",
+      "name": "customPhone",
+    },
+    {
+      "label": "Company Name",
+      "name": "company",
+    },
+    {
+      "label": "Job Title",
+      "name": "jobTitle",
+    },
+    {
+      "label": "Budget",
+      "name": "budget",
+    },
+    {
+      "label": "Interests",
+      "name": "interests",
+    },
+    {
+      "label": "Website URL",
+      "name": "website",
+    },
+    {
+      "label": "I agree to terms",
+      "name": "agreeToTerms",
+    },
+    {
+      "label": "Additional Notes",
+      "name": "additionalNotes",
+    },
+  ],
+  "phoneFieldNames": [
+    "customPhone",
+  ],
+}
+`;
+
+exports[`csvDataTransformer > getPhoneFieldsForSeatedEvent > snapshot: phone fields extraction for seated events 1`] = `
+[
+  {
+    "label": "Primary Phone Number",
+    "name": "primaryPhone",
+  },
+  {
+    "label": "Secondary Phone",
+    "name": "secondaryPhone",
+  },
+]
+`;
+
+exports[`csvDataTransformer > processBookingAttendees > snapshot: complete booking processing 1`] = `
+{
+  "attendeeList": [
+    "Alice Johnson (alice@example.com)",
+    "Bob Smith (bob@example.com)",
+    "Carol White (carol@example.com)",
+  ],
+  "attendeePhoneNumbers": [
+    "+1111111111",
+    "+0000000000",
+    "+0000000000",
+  ],
+  "bookingQuestionResponses": {
+    "Agreed to Terms": "true",
+    "Budget": "10000",
+    "Company": "Tech Corp",
+    "Interests": "AI, Cloud",
+    "Job Title": "Engineer",
+  },
+  "noShowGuests": "Bob Smith (bob@example.com)",
+  "noShowGuestsCount": 1,
+}
+`;
+
+exports[`csvDataTransformer > processBookingsForCsv > snapshot: processing multiple bookings with different event types 1`] = `
+{
+  "allBookingQuestionLabels": [
+    "Company Name",
+    "How did you hear about us?",
+    "Contact Phone",
+    "Emergency Contact",
+  ],
+  "bookings": [
+    [
+      "non-seated-booking",
+      {
+        "attendeeList": [
+          "John Doe (john@example.com)",
+          "Jane Smith (jane@example.com)",
+        ],
+        "attendeePhoneNumbers": [
+          "+1234567890",
+          "+9999999999",
+        ],
+        "bookingQuestionResponses": {
+          "Company Name": "Acme Inc",
+          "Contact Phone": "+9999999999",
+          "How did you hear about us?": "Google",
+        },
+        "noShowGuests": "Jane Smith (jane@example.com)",
+        "noShowGuestsCount": 1,
+      },
+    ],
+    [
+      "seated-booking",
+      {
+        "attendeeList": [
+          "Seat A (seata@example.com)",
+          "Seat B (seatb@example.com)",
+        ],
+        "attendeePhoneNumbers": [
+          "+5555555555",
+          "+5555555555",
+        ],
+        "bookingQuestionResponses": {
+          "Emergency Contact": "+5555555555",
+        },
+        "noShowGuests": null,
+        "noShowGuestsCount": 0,
+      },
+    ],
+  ],
+  "maxAttendees": 2,
+}
+`;
+
+exports[`csvDataTransformer > transformBookingsForCsv > snapshot: complete transformation pipeline 1`] = `
+[
+  {
+    "Budget": "25000",
+    "Company": "Client Corp",
+    "Emergency Contact": null,
+    "Timeline": "Q2 2024",
+    "attendee1": "Client A (clienta@example.com)",
+    "attendee2": null,
+    "attendee3": null,
+    "attendeePhone1": "+1234567890",
+    "attendeePhone2": null,
+    "attendeePhone3": null,
+    "createdAt": "2024-02-01T08:00:00.000Z",
+    "createdAt_date": "2024-02-01",
+    "createdAt_time": "08:00:00",
+    "endTime": "2024-02-01T10:30:00.000Z",
+    "endTime_date": "2024-02-01",
+    "endTime_time": "10:30:00",
+    "eventLength": 30,
+    "eventTypeId": 1,
+    "id": 1,
+    "noShowGuests": null,
+    "noShowGuestsCount": 0,
+    "noShowHost": false,
+    "paid": false,
+    "rating": 5,
+    "ratingFeedback": "Excellent",
+    "startTime": "2024-02-01T10:00:00.000Z",
+    "startTime_date": "2024-02-01",
+    "startTime_time": "10:00:00",
+    "timeStatus": "completed",
+    "title": "Sales Call",
+    "uid": "booking-1",
+    "userEmail": "sales@company.com",
+    "userUsername": "sales",
+  },
+  {
+    "Budget": null,
+    "Company": null,
+    "Emergency Contact": "+5555555555",
+    "Timeline": null,
+    "attendee1": "Participant 1 (p1@example.com)",
+    "attendee2": "Participant 2 (p2@example.com)",
+    "attendee3": "Participant 3 (p3@example.com)",
+    "attendeePhone1": "+5555555555",
+    "attendeePhone2": "+5555555555",
+    "attendeePhone3": "+9876543210",
+    "createdAt": "2024-02-02T09:00:00.000Z",
+    "createdAt_date": "2024-02-02",
+    "createdAt_time": "09:00:00",
+    "endTime": "2024-02-02T16:00:00.000Z",
+    "endTime_date": "2024-02-02",
+    "endTime_time": "16:00:00",
+    "eventLength": 120,
+    "eventTypeId": 2,
+    "id": 2,
+    "noShowGuests": "Participant 2 (p2@example.com)",
+    "noShowGuestsCount": 1,
+    "noShowHost": false,
+    "paid": true,
+    "rating": null,
+    "ratingFeedback": null,
+    "startTime": "2024-02-02T14:00:00.000Z",
+    "startTime_date": "2024-02-02",
+    "startTime_time": "14:00:00",
+    "timeStatus": "completed",
+    "title": "Team Workshop",
+    "uid": "booking-2",
+    "userEmail": "trainer@company.com",
+    "userUsername": "trainer",
+  },
+  {
+    "Budget": null,
+    "Company": null,
+    "Emergency Contact": null,
+    "Timeline": null,
+    "attendee1": null,
+    "attendee2": null,
+    "attendee3": null,
+    "attendeePhone1": null,
+    "attendeePhone2": null,
+    "attendeePhone3": null,
+    "createdAt": "2024-02-03T10:00:00.000Z",
+    "createdAt_date": "2024-02-03",
+    "createdAt_time": "10:00:00",
+    "endTime": "2024-02-03T15:45:00.000Z",
+    "endTime_date": "2024-02-03",
+    "endTime_time": "15:45:00",
+    "eventLength": 45,
+    "eventTypeId": null,
+    "id": 3,
+    "noShowGuests": null,
+    "noShowGuestsCount": 0,
+    "noShowHost": false,
+    "paid": false,
+    "rating": null,
+    "ratingFeedback": null,
+    "startTime": "2024-02-03T15:00:00.000Z",
+    "startTime_date": "2024-02-03",
+    "startTime_time": "15:00:00",
+    "timeStatus": "upcoming",
+    "title": "Orphan Booking",
+    "uid": null,
+    "userEmail": "user@company.com",
+    "userUsername": "user",
+  },
+]
+`;

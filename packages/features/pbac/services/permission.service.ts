@@ -18,12 +18,16 @@ export class PermissionService {
   validatePermission(permission: PermissionString): PermissionValidationResult {
     try {
       const permissionObj = PermissionMapper.fromPermissionString(permission);
-      const isValid = !!PERMISSION_REGISTRY[permissionObj.resource]?.[permissionObj.action];
+      const registryEntry = PERMISSION_REGISTRY[permissionObj.resource];
+      const actionEntry = registryEntry?.[permissionObj.action];
+      const isValid = !!actionEntry;
+
       return {
         isValid,
         error: isValid ? null : `Invalid permission: ${permission}`,
       };
     } catch (error) {
+      console.debug(`[DEBUG] Error validating permission ${permission}:`, error);
       if (error instanceof Error) {
         return {
           isValid: false,

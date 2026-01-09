@@ -2,8 +2,6 @@ import type { PageProps as _PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { z } from "zod";
 
-import { StripeService } from "@calcom/lib/server/service/stripe";
-
 import VerifyPage from "~/auth/verify-view";
 
 const querySchema = z.object({
@@ -14,18 +12,10 @@ const querySchema = z.object({
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const p = { ...(await params), ...(await searchParams) };
-  const { sessionId, stripeCustomerId } = querySchema.parse(p);
-
-  const data = await StripeService.getCheckoutSession({
-    stripeCustomerId,
-    checkoutSessionId: sessionId,
-  });
-
-  const { hasPaymentFailed } = data;
+  const { sessionId } = querySchema.parse(p);
 
   return await _generateMetadata(
-    () =>
-      hasPaymentFailed ? "Your payment failed" : sessionId ? "Payment successful!" : `Verify your email`,
+    () => (sessionId ? "Payment Page" : `Verify your email`),
     () => "",
     undefined,
     undefined,

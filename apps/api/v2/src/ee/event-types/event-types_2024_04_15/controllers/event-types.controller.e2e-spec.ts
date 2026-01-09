@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { Editable } from "@/ee/event-types/event-types_2024_04_15//inputs/enums/editable";
 import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
@@ -16,7 +16,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { EventType, PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -37,7 +36,8 @@ import {
   eventTypeLocations,
   EventTypesPublic,
 } from "@calcom/platform-libraries/event-types";
-import { ApiSuccessResponse } from "@calcom/platform-types";
+import type { ApiSuccessResponse } from "@calcom/platform-types";
+import type { EventType, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 describe("Event types Endpoints", () => {
   describe("Not authenticated", () => {
@@ -290,9 +290,9 @@ describe("Event types Endpoints", () => {
           expect(responseBookingFields).toBeDefined();
           // note(Lauris): response bookingFields are already existing default bookingFields + the new one
           const responseBookingField = responseBookingFields.find((field) => field.name === bookingFieldName);
-          const fields = responseBookingField
-          //@ts-ignore
-          delete fields.labelAsSafeHtml
+          const fields = responseBookingField;
+          // @ts-expect-error fields is possibly undefined
+          delete fields.labelAsSafeHtml;
           expect(fields).toEqual(bookingFields[0]);
           eventType.bookingFields = responseBookingFields;
         });

@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
@@ -13,16 +11,14 @@ export default function AppNotInstalledMessage({ appName }: { appName: string })
         <div className="mb-5 rounded-full bg-gray-100 p-3  dark:bg-[#292929] ">
           <Icon name="circle-alert" className="h-9 w-9 p-0.5" strokeWidth={1.5} />
         </div>
-        <h3 className="font-cal mb-2 text-2xl font-semibold">{t("app_not_installed")}</h3>
+        <h3 className="font-heading mb-2 text-2xl">{t("app_not_installed")}</h3>
         <p className="text-subtle px-1 leading-normal">{t("visit_our_app_store")}</p>
 
         <div className="mt-5">
-          <Link href={`/apps/${appName}`} passHref={true} legacyBehavior>
-            <Button type="button" color="secondary">
-              {t("go_to_app_store")}
-              <Icon name="arrow-up-right" className="ml-1" size={20} />
-            </Button>
-          </Link>
+          <Button href={`/apps/${appName}`} type="button" color="secondary">
+            {t("go_to_app_store")}
+            <Icon name="arrow-up-right" className="ml-1" size={20} />
+          </Button>
         </div>
       </div>
     </div>

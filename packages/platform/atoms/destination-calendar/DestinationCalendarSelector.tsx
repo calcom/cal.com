@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 
 import { SingleValueComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
 import { OptionComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
-import type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
+import type { ConnectedDestinationCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -54,7 +54,7 @@ export const DestinationCalendarSelector = ({
 
       setSelectedOption({
         value: `${selected.integration}:${selected.externalId}`,
-        label: `${selected.name} ` || "",
+        label: selected.name ? `${selected.name} ` : "",
         subtitle: `(${selectedIntegration?.integration.title?.replace(/calendar/i, "")} - ${
           selectedIntegration?.primary?.name
         })`,
@@ -104,23 +104,18 @@ export const DestinationCalendarSelector = ({
         }
         options={options}
         styles={{
-          placeholder: (styles) => ({
-            ...styles,
-            ...getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`),
-          }),
-          singleValue: (styles) => ({
-            ...styles,
-            ...getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`),
-          }),
-          control: (defaultStyles) => {
-            return {
-              ...defaultStyles,
-              "@media only screen and (min-width: 640px)": {
-                ...(defaultStyles["@media only screen and (min-width: 640px)"] as object),
-                maxWidth,
-              },
-            };
-          },
+          placeholder: (styles) =>
+            Object.assign({}, styles, getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`)),
+          singleValue: (styles) =>
+            Object.assign({}, styles, getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`)),
+          control: (defaultStyles) =>
+            Object.assign({}, defaultStyles, {
+              "@media only screen and (min-width: 640px)": Object.assign(
+                {},
+                defaultStyles["@media only screen and (min-width: 640px)"] as object,
+                { maxWidth }
+              ),
+            }),
         }}
         isSearchable={false}
         className={classNames(

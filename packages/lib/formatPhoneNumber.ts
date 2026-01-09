@@ -1,4 +1,4 @@
-import { parsePhoneNumberWithError } from "libphonenumber-js";
+import { parsePhoneNumberWithError } from "libphonenumber-js/max";
 
 export const formatPhoneNumber = (phoneNumber: string) => {
   const parsedPhoneNumber = parsePhoneNumberWithError(phoneNumber);

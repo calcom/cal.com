@@ -276,7 +276,7 @@ pre::-webkit-scrollbar-thumb {
   top: -10000px;
   left: -10000px;
   margin-top: -6px;
-  max-width: 300px;
+  max-width: min(300px, calc(100vw - 20px));
   width: 100%;
   opacity: 0;
   background-color: #fff;

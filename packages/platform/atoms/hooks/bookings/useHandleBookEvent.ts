@@ -5,16 +5,16 @@ import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerSt
 import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
+import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormSearchParams } from "@calcom/platform-types";
-import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { getUtmTrackingParameters } from "../../lib/getUtmTrackingParameters";
 import type { UseCreateBookingInput } from "./useCreateBooking";
 
-type Callbacks = { onSuccess?: () => void; onError?: (err: any) => void };
+type Callbacks = { onSuccess?: () => void; onError?: (err: unknown) => void };
 type UseHandleBookingProps = {
   bookingForm: UseBookingFormReturnType["bookingForm"];
   event?: {
@@ -31,6 +31,7 @@ type UseHandleBookingProps = {
   locationUrl?: string;
   routingFormSearchParams?: RoutingFormSearchParams;
   isBookingDryRun?: boolean;
+  rrHostSubsetIds?: number[];
 };
 
 export const useHandleBookEvent = ({
@@ -44,6 +45,7 @@ export const useHandleBookEvent = ({
   locationUrl,
   routingFormSearchParams,
   isBookingDryRun,
+  rrHostSubsetIds,
 }: UseHandleBookingProps) => {
   const isPlatform = useIsPlatform();
   const setFormValues = useBookerStoreContext((state) => state.setFormValues);
@@ -63,8 +65,9 @@ export const useHandleBookEvent = ({
   const crmOwnerRecordType = useBookerStoreContext((state) => state.crmOwnerRecordType);
   const crmAppSlug = useBookerStoreContext((state) => state.crmAppSlug);
   const crmRecordId = useBookerStoreContext((state) => state.crmRecordId);
-  const handleError = (err: any) => {
-    const errorMessage = err?.message ? t(err.message) : t("can_you_try_again");
+  const verificationCode = useBookerStoreContext((state) => state.verificationCode);
+  const handleError = (err: unknown) => {
+    const errorMessage = err instanceof Error ? t(err.message) : t("can_you_try_again");
     showToast(errorMessage, "error");
   };
   const searchParams = useSearchParams();
@@ -113,13 +116,15 @@ export const useHandleBookEvent = ({
         orgSlug: orgSlug ? orgSlug : undefined,
         routingFormSearchParams,
         isDryRunProp: isBookingDryRun,
+        verificationCode: verificationCode || undefined,
+        rrHostSubsetIds,
       };
 
       const tracking = getUtmTrackingParameters(searchParams);
 
       if (isInstantMeeting) {
         handleInstantBooking(mapBookingToMutationInput(bookingInput), callbacks);
-      } else if (event.data?.recurringEvent?.freq && recurringEventCount && !rescheduleUid) {
+      } else if (event.data?.recurringEvent?.freq != null && recurringEventCount && !rescheduleUid) {
         handleRecBooking(
           mapRecurringBookingToMutationInput(bookingInput, recurringEventCount, tracking),
           callbacks

@@ -29,10 +29,10 @@ export function ProgressBar({ color, percentageValue, label, className }: Progre
 
   return (
     <div className={classNames("flex w-full items-center gap-3", className)}>
-      <div className="h-2 flex-1 rounded-full bg-gray-200">
+      <div className="bg-subtle h-2 flex-1 rounded-full">
         <div className={progressBarStyles({ color })} style={{ width: `${clampedPercentage}%` }} />
       </div>
-      {label && <span className="text-sm font-medium text-gray-700">{label}</span>}
+      {label && <span className="text-default text-sm font-medium">{label}</span>}
     </div>
   );
 }

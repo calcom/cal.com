@@ -2,6 +2,7 @@
  * TODO: Consolidate this file with BookingLocationService and add tests
  */
 import type { TFunction } from "i18next";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
@@ -13,10 +14,12 @@ import type { EventLocationTypeFromAppMeta } from "../types/App";
 import {
   MeetLocationType as importedMeetLocationType,
   MSTeamsLocationType as importedMSTeamsLocationType,
+  DailyLocationType as importedDailyLocationType,
 } from "./constants";
 
 export const MeetLocationType = importedMeetLocationType;
 export const MSTeamsLocationType = importedMSTeamsLocationType;
+export const DailyLocationType = importedDailyLocationType;
 
 export type DefaultEventLocationType = {
   default: true;
@@ -69,7 +72,6 @@ export type EventLocationTypeFromApp = Ensure<
 
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
 
-export const DailyLocationType = "integrations:daily";
 export const CalVideoLocationType = DailyLocationType;
 
 /**
@@ -114,6 +116,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     iconUrl: "/map-pin-dark.svg",
     category: "in person",
     linkType: "static",
+    supportsCustomLabel: true,
   },
   {
     default: true,
@@ -128,6 +131,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     iconUrl: "/message-pin.svg",
     category: "other",
     linkType: "static",
+    supportsCustomLabel: true,
   },
   {
     default: true,
@@ -310,7 +314,6 @@ export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFi
     if (location.displayLocationPublicly || !eventLocationType) {
       return location;
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { address: _1, link: _2, hostPhoneNumber: _3, ...privacyFilteredLocation } = location;
       logger.debug("Applied Privacy Filter", location, privacyFilteredLocation);
       return privacyFilteredLocation;
@@ -370,7 +373,7 @@ export const locationKeyToString = (location: LocationObject) => {
   }
   const defaultValueVariable = eventLocationType.defaultValueVariable;
   if (!defaultValueVariable) {
-    console.error(`defaultValueVariable not set for ${location.type}`);
+    logger.error(`defaultValueVariable not set for ${location.type}`);
     return "";
   }
   return location[defaultValueVariable] || eventLocationType.label;
@@ -427,12 +430,12 @@ export const getEventLocationValue = (eventLocations: LocationObject[], bookingL
   }
   const defaultValueVariable = eventLocationType.defaultValueVariable;
   if (!defaultValueVariable) {
-    console.error(`${defaultValueVariable} not set for ${bookingLocation.type}`);
+    logger.error(`${defaultValueVariable} not set for ${bookingLocation.type}`);
     return "";
   }
   const eventLocation = getEventLocationWithType(eventLocations, bookingLocation?.type);
   if (!eventLocation) {
-    console.error(`Could not find eventLocation for ${bookingLocation}`);
+    logger.error(`Could not find eventLocation for ${bookingLocation}`);
     return "";
   }
 
@@ -456,7 +459,7 @@ export function getSuccessPageLocationMessage(
     const isConfirmed = bookingStatus === BookingStatus.ACCEPTED;
 
     if (bookingStatus === BookingStatus.CANCELLED || bookingStatus === BookingStatus.REJECTED) {
-      locationToDisplay == t("web_conference");
+      locationToDisplay = t("web_conference");
     } else if (isConfirmed) {
       locationToDisplay = `${getHumanReadableLocationValue(location, t)}: ${t(
         "meeting_url_in_confirmation_email"
@@ -500,4 +503,67 @@ export const isAttendeeInputRequired = (locationType: string) => {
     return false;
   }
   return location.attendeeInputType;
+};
+
+export const locationsResolver = (t: TFunction) => {
+  return z
+    .array(
+      z
+        .object({
+          type: z.string(),
+          address: z.string().optional(),
+          link: z.string().url().optional(),
+          phone: z
+            .string()
+            .refine((val) => isValidPhoneNumber(val))
+            .optional(),
+          hostPhoneNumber: z
+            .string()
+            .refine((val) => isValidPhoneNumber(val))
+            .optional(),
+          displayLocationPublicly: z.boolean().optional(),
+          credentialId: z.number().optional(),
+          teamName: z.string().optional(),
+        })
+        .passthrough()
+        .superRefine((val, ctx) => {
+          if (val?.link) {
+            const link = val.link;
+            const eventLocationType = getEventLocationType(val.type);
+            if (
+              eventLocationType &&
+              !eventLocationType.default &&
+              eventLocationType.linkType === "static" &&
+              eventLocationType.urlRegExp
+            ) {
+              const valid = z.string().regex(new RegExp(eventLocationType.urlRegExp)).safeParse(link).success;
+
+              if (!valid) {
+                const sampleUrl = eventLocationType.organizerInputPlaceholder;
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  path: [eventLocationType?.defaultValueVariable ?? "link"],
+                  message: t("invalid_url_error_message", {
+                    label: eventLocationType.label,
+                    sampleUrl: sampleUrl ?? "https://cal.com",
+                  }),
+                });
+              }
+              return;
+            }
+
+            const valid = z.string().url().optional().safeParse(link).success;
+
+            if (!valid) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: [eventLocationType?.defaultValueVariable ?? "link"],
+                message: `Invalid URL`,
+              });
+            }
+          }
+          return;
+        })
+    )
+    .optional();
 };

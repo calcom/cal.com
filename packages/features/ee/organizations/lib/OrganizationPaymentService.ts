@@ -1,30 +1,29 @@
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
-import {
-  ORGANIZATION_SELF_SERVE_MIN_SEATS,
-  ORGANIZATION_SELF_SERVE_PRICE,
-  WEBAPP_URL,
-} from "@calcom/lib/constants";
+import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import type { StripeBillingService } from "@calcom/features/ee/billing/service/billingProvider/StripeBillingService";
+import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { ORGANIZATION_SELF_SERVE_PRICE, WEBAPP_URL, ORG_TRIAL_DAYS } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
-import type { BillingPeriod } from "@calcom/prisma/enums";
+import { UserPermissionRole, type BillingPeriod } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
-import { TRPCError } from "@trpc/server";
 
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
+import type { OnboardingUser } from "./service/onboarding/types";
 
 type OrganizationOnboardingId = string;
 const log = logger.getSubLogger({ prefix: ["OrganizationPaymentService"] });
 type CreatePaymentIntentInput = {
   logo: string | null;
   bio: string | null;
+  brandColor?: string | null;
+  bannerUrl?: string | null;
   teams?: { id: number; isBeingMigrated: boolean; slug: string | null; name: string }[];
-  invitedMembers?: { email: string }[];
+  invitedMembers?: { email: string; name?: string; teamId?: number; teamName?: string }[];
 };
 
 type CreateOnboardingInput = {
@@ -35,6 +34,12 @@ type CreateOnboardingInput = {
   seats?: number | null;
   pricePerSeat?: number | null;
   createdByUserId: number;
+  logo?: string | null;
+  bio?: string | null;
+  brandColor?: string | null;
+  bannerUrl?: string | null;
+  teams?: { id: number; isBeingMigrated: boolean; slug: string | null; name: string }[];
+  invitedMembers?: { email: string; name?: string; teamId?: number; teamName?: string; role?: string }[];
 };
 
 type PermissionCheckInput = {
@@ -72,10 +77,10 @@ type StripePrice = {
 export class OrganizationPaymentService {
   protected billingService: StripeBillingService;
   protected permissionService: OrganizationPermissionService;
-  protected user: NonNullable<TrpcSessionUser>;
+  protected user: OnboardingUser;
 
-  constructor(user: NonNullable<TrpcSessionUser>, permissionService?: OrganizationPermissionService) {
-    this.billingService = new StripeBillingService();
+  constructor(user: OnboardingUser, permissionService?: OrganizationPermissionService) {
+    this.billingService = getBillingProviderService();
     this.permissionService = permissionService || new OrganizationPermissionService(user);
     this.user = user;
   }
@@ -124,7 +129,7 @@ export class OrganizationPaymentService {
   }): PaymentConfig {
     return {
       billingPeriod: input.billingPeriod || "MONTHLY",
-      seats: input.seats || Number(ORGANIZATION_SELF_SERVE_MIN_SEATS),
+      seats: input.seats ?? 1,
       pricePerSeat: input.pricePerSeat || Number(ORGANIZATION_SELF_SERVE_PRICE),
     };
   }
@@ -171,10 +176,10 @@ export class OrganizationPaymentService {
       this.permissionService.hasModifiedDefaultPayment(input) &&
       !this.permissionService.hasPermissionToModifyDefaultPayment()
     ) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "You do not have permission to modify the default payment settings",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.Unauthorized,
+        "You do not have permission to modify the default payment settings"
+      );
     }
 
     await this.permissionService.validatePermissions(input);
@@ -191,6 +196,12 @@ export class OrganizationPaymentService {
       seats: config.seats,
       pricePerSeat: config.pricePerSeat,
       createdById: input.createdByUserId,
+      logo: input.logo ?? null,
+      bio: input.bio ?? null,
+      brandColor: input.brandColor ?? null,
+      bannerUrl: input.bannerUrl ?? null,
+      teams: input.teams ?? [],
+      invitedMembers: input.invitedMembers ?? [],
     });
   }
 
@@ -262,10 +273,17 @@ export class OrganizationPaymentService {
         organizationOnboardingId,
       })
     );
+
+    const subscriptionData = ORG_TRIAL_DAYS
+      ? {
+          trial_period_days: ORG_TRIAL_DAYS,
+        }
+      : undefined;
+
     return this.billingService.createSubscriptionCheckout({
       customerId: stripeCustomerId,
-      successUrl: `${WEBAPP_URL}/settings/organizations/new/status?session_id={CHECKOUT_SESSION_ID}&paymentStatus=success&${params.toString()}`,
-      cancelUrl: `${WEBAPP_URL}/settings/organizations/new/status?session_id={CHECKOUT_SESSION_ID}&paymentStatus=failed&${params.toString()}`,
+      successUrl: `${WEBAPP_URL}/api/organizations/payment-redirect?session_id={CHECKOUT_SESSION_ID}&paymentStatus=success&${params.toString()}`,
+      cancelUrl: `${WEBAPP_URL}/api/organizations/payment-redirect?session_id={CHECKOUT_SESSION_ID}&paymentStatus=failed&${params.toString()}`,
       priceId,
       quantity: config.seats,
       metadata: {
@@ -274,6 +292,7 @@ export class OrganizationPaymentService {
         pricePerSeat: config.pricePerSeat,
         billingPeriod: config.billingPeriod,
       },
+      ...(subscriptionData && { subscriptionData }),
     });
   }
 
@@ -287,14 +306,14 @@ export class OrganizationPaymentService {
   ) {
     log.debug("createPaymentIntent", safeStringify(input));
 
-    const { teams: _teams, invitedMembers, logo, bio } = input;
+    const { teams: _teams, invitedMembers, logo, bio, brandColor, bannerUrl } = input;
 
     const teams = _teams?.filter((team) => team.id === -1 || team.isBeingMigrated) || [];
     const teamIds = teams.filter((team) => team.id > 0).map((team) => team.id);
 
     const { orgOwnerEmail, pricePerSeat, slug, billingPeriod, seats } = organizationOnboarding;
 
-    if (this.user.role === "ADMIN") {
+    if (this.user.role === UserPermissionRole.ADMIN) {
       log.debug("Admin flow, skipping checkout", safeStringify({ organizationOnboarding }));
       return {
         organizationOnboarding,
@@ -362,15 +381,20 @@ export class OrganizationPaymentService {
       })
     );
 
-    log.debug("Updating onboarding");
+    log.debug("Updating onboarding with stripe details and form data");
 
+    // Update the onboarding record with all the form data
     await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
-      bio: bio ?? null,
-      logo: logo ?? null,
-      invitedMembers: invitedMembers,
-      teams,
       stripeCustomerId,
-      ...updatedConfig,
+      seats: updatedConfig.seats,
+      pricePerSeat: updatedConfig.pricePerSeat,
+      billingPeriod: updatedConfig.billingPeriod,
+      logo,
+      bio,
+      brandColor: brandColor ?? null,
+      bannerUrl: bannerUrl ?? null,
+      teams,
+      invitedMembers,
     });
 
     return {
