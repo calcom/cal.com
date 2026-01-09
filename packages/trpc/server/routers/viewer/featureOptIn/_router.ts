@@ -12,7 +12,7 @@ import { TRPCError } from "@trpc/server";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
-import { createOrgPbacProcedure, createTeamPbacProcedure } from "./util";
+import { createOrgPbacProcedure, createTeamPbacProcedure } from "../../../procedures/pbacProcedures";
 
 const featureStateSchema: ZodEnum<["enabled", "disabled", "inherit"]> = z.enum(["enabled", "disabled", "inherit"]);
 

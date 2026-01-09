@@ -5,9 +5,9 @@ import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import authedProcedure from "../../../procedures/authedProcedure";
+import authedProcedure from "./authedProcedure";
 // Import after mocks are set up
-import { createTeamPbacProcedure, createOrgPbacProcedure } from "./util";
+import { createTeamPbacProcedure, createOrgPbacProcedure } from "./pbacProcedures";
 
 // Mock dependencies - use factory functions to avoid hoisting issues
 const mockCheckPermission = vi.fn();
@@ -20,7 +20,7 @@ vi.mock("@calcom/features/pbac/services/permission-check.service", () => {
   };
 });
 
-vi.mock("../../../procedures/authedProcedure", () => ({
+vi.mock("./authedProcedure", () => ({
   default: {
     input: vi.fn().mockReturnThis(),
     use: vi.fn(),

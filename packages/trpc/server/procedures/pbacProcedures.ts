@@ -6,7 +6,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import authedProcedure from "../../../procedures/authedProcedure";
+import authedProcedure from "./authedProcedure";
 
 /**
  * Creates a procedure that checks team-level PBAC permissions.
