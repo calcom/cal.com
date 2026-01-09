@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 
 import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import { useSegments } from "@calcom/web/modules/data-table/hooks/useSegments";
 import {
   RoutingFormResponsesTable,
   FailedBookingsByField,

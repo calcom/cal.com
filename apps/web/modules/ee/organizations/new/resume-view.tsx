@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
-import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
+import { useOnboarding } from "@calcom/web/modules/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";

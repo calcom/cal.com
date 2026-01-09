@@ -18,7 +18,7 @@ import {
   useDataTable,
 } from "@calcom/features/data-table";
 import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment, DataTableSelectionBar } from "~/data-table/components";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import { useSegments } from "@calcom/web/modules/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import {
   generateCsvRawForMembersTable,
