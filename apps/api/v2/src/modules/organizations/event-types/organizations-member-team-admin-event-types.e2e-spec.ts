@@ -306,7 +306,7 @@ describe("Organizations Event Types Endpoints", () => {
           },
         ],
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error - schedulingType is lowercase in API input
         schedulingType: "collective",
         hosts: [
           {
@@ -1095,7 +1095,7 @@ describe("Organizations Event Types Endpoints", () => {
           },
         ],
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error - schedulingType is camelCase in API input
         schedulingType: "roundRobin",
         hosts: [
           {
@@ -1374,20 +1374,25 @@ describe("Organizations Event Types Endpoints", () => {
       expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
     });
 
-    function evaluateHost(expected: Host, received: Host | undefined) {
+    function evaluateHost(expected: Host, received: Host | undefined): void {
       expect(expected.userId).toEqual(received?.userId);
       expect(expected.mandatory).toEqual(received?.mandatory);
       expect(expected.priority).toEqual(received?.priority);
     }
 
     afterAll(async () => {
+      // Delete user event types first (child event types of managed event types)
+      await eventTypesRepositoryFixture.deleteAllUserEventTypes(teammate1.id);
+      await eventTypesRepositoryFixture.deleteAllUserEventTypes(teammate2.id);
+      // Delete team event types before deleting the team
+      await eventTypesRepositoryFixture.deleteAllTeamEventTypes(team.id);
+      await eventTypesRepositoryFixture.deleteAllTeamEventTypes(falseTestTeam.id);
+      // Delete users after their event types are deleted
       await userRepositoryFixture.deleteByEmail(userAdmin.email);
       await userRepositoryFixture.deleteByEmail(teammate1.email);
       await userRepositoryFixture.deleteByEmail(teammate2.email);
       await userRepositoryFixture.deleteByEmail(falseTestUser.email);
-      // Explicitly delete all team event types before deleting the team to ensure proper cleanup
-      await eventTypesRepositoryFixture.deleteAllTeamEventTypes(team.id);
-      await eventTypesRepositoryFixture.deleteAllTeamEventTypes(falseTestTeam.id);
+      // Delete teams and organizations
       await teamsRepositoryFixture.delete(team.id);
       await teamsRepositoryFixture.delete(falseTestTeam.id);
       await organizationsRepositoryFixture.delete(org.id);
