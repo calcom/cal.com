@@ -1,7 +1,7 @@
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
-import type { OptInFeaturePolicy } from "../config";
+import type { OptInFeaturePolicy } from "../types";
 import { getOptInFeatureConfig, OPT_IN_FEATURES } from "../config";
 import { applyAutoOptIn } from "../lib/applyAutoOptIn";
 import type { EffectiveStateReason } from "../lib/computeEffectiveState";

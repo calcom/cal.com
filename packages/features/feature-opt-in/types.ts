@@ -2,6 +2,16 @@ import type { EffectiveStateReason } from "@calcom/features/feature-opt-in/lib/c
 import type { FeatureState } from "@calcom/features/flags/config";
 
 /**
+ * Policy that determines how feature opt-in states are evaluated.
+ *
+ * - `permissive`: User opt-in can activate the feature; any explicit enable above is sufficient;
+ *   disables only win if ALL teams disable.
+ * - `strict`: User opt-in alone is not enough; requires explicit enable from org/team;
+ *   ANY explicit disable blocks.
+ */
+export type OptInFeaturePolicy = "permissive" | "strict";
+
+/**
  * Normalized feature representation used across all scopes (user, team, org).
  */
 export interface NormalizedFeature {

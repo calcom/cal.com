@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { FeatureState } from "@calcom/features/flags/config";
 import { computeEffectiveStateAcrossTeams } from "./computeEffectiveState";
+import type { OptInFeaturePolicy } from "../types";
 
 /**
  * Feature Opt-In Effective State Computation
@@ -62,8 +63,8 @@ import { computeEffectiveStateAcrossTeams } from "./computeEffectiveState";
 describe("computeEffectiveStateAcrossTeams", () => {
   describe("Global Kill Switch", () => {
     it.each([
-      { policy: "permissive" as const, orgState: "enabled" as const, teamStates: ["enabled"] as FeatureState[], userState: "enabled" as const },
-      { policy: "strict" as const, orgState: "enabled" as const, teamStates: ["enabled"] as FeatureState[], userState: "enabled" as const },
+      { policy: "permissive" as OptInFeaturePolicy, orgState: "enabled" as FeatureState, teamStates: ["enabled"] as FeatureState[], userState: "enabled" as FeatureState },
+      { policy: "strict" as OptInFeaturePolicy, orgState: "enabled" as FeatureState, teamStates: ["enabled"] as FeatureState[], userState: "enabled" as FeatureState },
     ])("blocks feature when global is disabled (policy: $policy)", ({ policy, orgState, teamStates, userState }) => {
       expect(
         computeEffectiveStateAcrossTeams({
@@ -79,8 +80,8 @@ describe("computeEffectiveStateAcrossTeams", () => {
 
   describe("Organization Level Blocking", () => {
     it.each([
-      { policy: "permissive" as const, teamStates: ["enabled"] as FeatureState[], userState: "enabled" as const },
-      { policy: "strict" as const, teamStates: ["enabled"] as FeatureState[], userState: "enabled" as const },
+      { policy: "permissive" as OptInFeaturePolicy, teamStates: ["enabled"] as FeatureState[], userState: "enabled" as FeatureState },
+      { policy: "strict" as OptInFeaturePolicy, teamStates: ["enabled"] as FeatureState[], userState: "enabled" as FeatureState },
     ])("blocks feature when org is disabled (policy: $policy)", ({ policy, teamStates, userState }) => {
       expect(
         computeEffectiveStateAcrossTeams({
@@ -428,9 +429,9 @@ describe("computeEffectiveStateAcrossTeams", () => {
     it("user-only enablement: allowed in permissive, blocked in strict", () => {
       const input = {
         globalEnabled: true,
-        orgState: "inherit" as const,
+        orgState: "inherit" as FeatureState,
         teamStates: ["inherit", "inherit"] as FeatureState[],
-        userState: "enabled" as const,
+        userState: "enabled" as FeatureState,
       };
 
       expect(computeEffectiveStateAcrossTeams({ ...input, policy: "permissive" })).toEqual({
@@ -447,9 +448,9 @@ describe("computeEffectiveStateAcrossTeams", () => {
     it("mixed team states: allowed in permissive, blocked in strict", () => {
       const input = {
         globalEnabled: true,
-        orgState: "inherit" as const,
+        orgState: "inherit" as FeatureState,
         teamStates: ["enabled", "disabled"] as FeatureState[],
-        userState: "enabled" as const,
+        userState: "enabled" as FeatureState,
       };
 
       expect(computeEffectiveStateAcrossTeams({ ...input, policy: "permissive" })).toEqual({
