@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Бронирование успешно перенаправлено. Перенаправление на страницу бронирования",
   "on_booking_write_to_event_object": "При бронировании записать в объект события",
   "field_name": "Название поля",
+  "field_name_cannot_be_empty": "Название поля не может быть пустым",
+  "field_already_exists": "Поле уже существует",
   "add_new_field": "Добавить новое поле",
   "you_dont_have_access_to_reroute_this_booking": "У вас нет доступа для перенаправления этого бронирования",
   "form_response_not_found": "Ответ формы не найден",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Владелец бронирования не является членом вашей организации.",
   "audit_logs_permission_denied": "У вас нет прав для просмотра журналов аудита по этому бронированию.",
   "audit_logs_permission_check_error": "Произошла ошибка при проверке прав доступа.",
+  "account_already_exists_please_login": "Аккаунт с этим адресом электронной почты уже существует. Пожалуйста, войдите, чтобы принять приглашение.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

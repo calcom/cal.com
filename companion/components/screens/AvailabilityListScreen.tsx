@@ -9,6 +9,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
@@ -290,13 +291,13 @@ export function AvailabilityListScreen({
             autoCorrect={false}
             clearButtonMode="while-editing"
           />
-          <AppPressable
+          <TouchableOpacity
             className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
             onPress={handleCreateNew}
           >
             <Ionicons name="add" size={18} color="#fff" />
             <Text className="text-base font-semibold text-white">New</Text>
-          </AppPressable>
+          </TouchableOpacity>
         </View>
       </Activity>
 
@@ -439,12 +440,12 @@ export function AvailabilityListScreen({
           animationType="fade"
           onRequestClose={() => onShowCreateModalChange(false)}
         >
-          <AppPressable
+          <TouchableOpacity
             className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
             activeOpacity={1}
             onPress={() => onShowCreateModalChange(false)}
           >
-            <AppPressable
+            <TouchableOpacity
               className="w-[90%] max-w-[500px] rounded-2xl bg-white"
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
@@ -452,7 +453,10 @@ export function AvailabilityListScreen({
             >
               {/* Header */}
               <View className="px-8 pb-4 pt-6">
-                <Text className="text-2xl font-semibold text-gray-900">Add a new schedule</Text>
+                <Text className="mb-2 text-2xl font-semibold text-gray-900">
+                  Add a new schedule
+                </Text>
+                <Text className="text-sm text-gray-500">Create a new availability schedule.</Text>
               </View>
 
               {/* Content */}
@@ -497,8 +501,8 @@ export function AvailabilityListScreen({
                   </AppPressable>
                 </View>
               </View>
-            </AppPressable>
-          </AppPressable>
+            </TouchableOpacity>
+          </TouchableOpacity>
         </FullScreenModal>
       )}
 
