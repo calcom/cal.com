@@ -640,6 +640,8 @@ export default function EventTypeDetail() {
       setSendCalVideoTranscription(eventTypeExt.sendCalVideoTranscription);
     } else if (metadata?.sendCalVideoTranscription) {
       setSendCalVideoTranscription(true);
+    } else {
+      setSendCalVideoTranscription(false);
     }
 
     // Load interface language (API V2)

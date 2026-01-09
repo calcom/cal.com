@@ -751,7 +751,7 @@ export function buildPartialUpdatePayload(
   }
 
   // Cal Video Settings
-  const originalSendTranscription = original.calVideoSettings?.sendTranscriptionEmails ?? true;
+  const originalSendTranscription = original.calVideoSettings?.sendTranscriptionEmails ?? false;
 
   if (currentState.sendCalVideoTranscription !== originalSendTranscription) {
     payload.calVideoSettings = {
