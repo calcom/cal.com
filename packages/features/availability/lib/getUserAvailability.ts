@@ -19,6 +19,7 @@ import type { DateOverride, WorkingHours } from "@calcom/features/schedules/lib/
 import { buildDateRanges, subtract } from "@calcom/features/schedules/lib/date-ranges";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { stringToDayjsZod } from "@calcom/lib/dayjs";
+import { detectEventTypeScheduleForUser } from "./detectEventTypeScheduleForUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getHolidayService } from "@calcom/lib/holidays";
 import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
@@ -38,8 +39,6 @@ import type {
   Availability,
   SelectedCalendar,
   TravelSchedule,
-  Host,
-  Schedule,
 } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -106,106 +105,6 @@ type GetUsersAvailabilityProps = {
   query: GetUsersAvailabilityQuery;
   initialData?: Omit<GetUserAvailabilityInitialData, "user">;
 };
-
-type ScheduleWithoutTimeZone = {
-  id: number;
-  availability?: {
-    days: number[];
-    startTime: Date;
-    endTime: Date;
-    date: Date | null;
-  }[];
-};
-
-const DEFAULT_SCHEDULE_DATA: ScheduleWithoutTimeZone = {
-  availability: [
-    {
-      startTime: new Date("1970-01-01T09:00:00Z"),
-      endTime: new Date("1970-01-01T17:00:00Z"),
-      days: [1, 2, 3, 4, 5], // Monday to Friday
-      date: null,
-    },
-  ],
-  id: 0,
-};
-
-type DetectEventTypeScheduleForUserInput = {
-  eventType?: {
-    hosts: {
-      user: {
-        id: number;
-      };
-      schedule:
-        | (ScheduleWithoutTimeZone & {
-            timeZone: string | null;
-          })
-        | null;
-    }[];
-    timeZone: string | null;
-    schedule:
-      | (ScheduleWithoutTimeZone & {
-          timeZone: string | null;
-        })
-      | null;
-  } | null;
-  user: {
-    schedules: NonNullable<GetUserAvailabilityInitialData["user"]>["schedules"];
-    defaultScheduleId: number | null;
-    timeZone: string;
-    id: number;
-  };
-};
-
-type DetectEventTypeScheduleForUserOutput = {
-  isDefaultSchedule: boolean;
-  isTimezoneSet: boolean;
-  schedule: ScheduleWithoutTimeZone & {
-    timeZone: string;
-  };
-};
-
-function detectEventTypeScheduleForUser({
-  eventType,
-  user,
-}: DetectEventTypeScheduleForUserInput): DetectEventTypeScheduleForUserOutput {
-  const userSchedule = user.schedules.filter(
-    (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
-  )[0];
-  const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
-
-  // TODO: It uses default timezone of user. Should we use timezone of team ?
-  const fallbackTimezoneIfScheduleIsMissing = eventType?.timeZone || user.timeZone;
-
-  const fallbackSchedule = {
-    ...DEFAULT_SCHEDULE_DATA,
-    timeZone: fallbackTimezoneIfScheduleIsMissing,
-  };
-
-  let potentialSchedule = null;
-
-  if (eventType?.schedule) {
-    potentialSchedule = eventType.schedule;
-  } else if (hostSchedule) {
-    potentialSchedule = hostSchedule;
-  } else if (userSchedule) {
-    potentialSchedule = userSchedule;
-  }
-
-  const schedule = potentialSchedule ?? fallbackSchedule;
-
-  const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
-
-  const isTimezoneSet = Boolean(potentialSchedule && potentialSchedule.timeZone !== null);
-
-  return {
-    isDefaultSchedule,
-    isTimezoneSet,
-    schedule: {
-      ...schedule,
-      timeZone: schedule.timeZone || fallbackTimezoneIfScheduleIsMissing,
-    },
-  };
-}
 
 export type EventType = Awaited<ReturnType<(typeof UserAvailabilityService)["prototype"]["_getEventType"]>>;
 
