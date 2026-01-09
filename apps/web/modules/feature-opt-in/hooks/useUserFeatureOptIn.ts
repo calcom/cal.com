@@ -1,5 +1,7 @@
 "use client";
 
+import type { TFunction } from "i18next";
+
 import { useCallback, useMemo } from "react";
 
 import type { EffectiveStateReason } from "@calcom/features/feature-opt-in/lib/computeEffectiveState";
@@ -41,7 +43,7 @@ function normalizeUserFeatures(data: UserFeatureData[] | undefined): NormalizedF
   }));
 }
 
-function createUserBlockedWarningFn(t: TranslationFn): (feature: NormalizedFeature) => string | null {
+function createUserBlockedWarningFn(t: TFunction): (feature: NormalizedFeature) => string | null {
   return (feature: NormalizedFeature): string | null => {
     if (!feature.effectiveReason) return null;
     switch (feature.effectiveReason) {

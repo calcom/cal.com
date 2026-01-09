@@ -1,5 +1,6 @@
 "use client";
 
+import type { TFunction } from "i18next";
 import { useCallback, useMemo } from "react";
 
 import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
@@ -45,7 +46,7 @@ function buildBlockingStateMap(data: TeamFeatureData[] | undefined): Map<string,
 
 function createTeamBlockedWarningFn(
   blockingStateMap: Map<string, FeatureBlockingState>,
-  t: TranslationFn
+  t: TFunction
 ): (feature: NormalizedFeature) => string | null {
   return (feature: NormalizedFeature): string | null => {
     const blockingState = blockingStateMap.get(feature.slug);
