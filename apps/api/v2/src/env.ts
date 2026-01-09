@@ -1,4 +1,5 @@
-import { logLevels } from "@/lib/logger";
+import type { logLevels } from "@/lib/logger";
+import process from "node:process";
 
 export type Environment = {
   NODE_ENV: "development" | "production";
@@ -20,6 +21,8 @@ export type Environment = {
   IS_E2E: string;
   CALCOM_LICENSE_KEY: string;
   GET_LICENSE_KEY_URL: string;
+  CALENDSO_ENCRYPTION_KEY: string;
+  CAL_SIGNATURE_TOKEN: string;
   API_KEY_PREFIX: string;
   DOCS_URL: string;
   RATE_LIMIT_DEFAULT_TTL_MS: number;
