@@ -1240,6 +1240,7 @@ function sanitizePayload(payload: Record<string, unknown>): Record<string, unkno
     "slotInterval",
     "eventName",
     "timeZone",
+    "interfaceLanguage",
   ];
 
   for (const [key, value] of Object.entries(payload)) {
