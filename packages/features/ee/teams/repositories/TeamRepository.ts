@@ -468,6 +468,19 @@ export class TeamRepository {
     });
   }
 
+  async findOrganizationIdBySlug({ slug }: { slug: string }): Promise<number | null> {
+    const org = await this.prismaClient.team.findFirst({
+      where: {
+        slug,
+        isOrganization: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return org?.id ?? null;
+  }
+
   async isSlugAvailableForUpdate({
     slug,
     teamId,
