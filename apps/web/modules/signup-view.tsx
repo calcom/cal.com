@@ -385,7 +385,7 @@ export default function Signup({
               </div>
             )}
             <div className="flex flex-col gap-2">
-              <h1 className="font-cal text-[28px] leading-none ">
+              <h1 className="font-heading text-[28px] leading-none ">
                 {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
               </h1>
               {IS_CALCOM ? (

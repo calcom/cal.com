@@ -5,33 +5,40 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WatchlistType } from "@calcom/prisma/enums";
-import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { showToast } from "@calcom/ui/components/toast";
 
-type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReports"]["rows"][number];
-
-interface BookingReportEntryDetailsModalProps {
-  entry: BookingReport | null;
-  isOpen: boolean;
-  onClose: () => void;
-}
+import type { BookingReport, BlocklistScope } from "../types";
 
 interface FormData {
   blockType: WatchlistType;
 }
 
-export function BookingReportEntryDetailsModal({
+export interface BookingReportDetailsModalProps<T extends BookingReport> {
+  scope: BlocklistScope;
+  entry: T | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onAddToBlocklist: (reportIds: string[], type: WatchlistType) => void;
+  onDismiss: (reportId: string) => void;
+  isAddingToBlocklist?: boolean;
+  isDismissing?: boolean;
+}
+
+export function BookingReportDetailsModal<T extends BookingReport>({
+  scope,
   entry,
   isOpen,
   onClose,
-}: BookingReportEntryDetailsModalProps) {
+  onAddToBlocklist,
+  onDismiss,
+  isAddingToBlocklist = false,
+  isDismissing = false,
+}: BookingReportDetailsModalProps<T>) {
   const { t } = useLocale();
-  const utils = trpc.useUtils();
+  const isSystem = scope === "system";
 
   const {
     control,
@@ -44,46 +51,14 @@ export function BookingReportEntryDetailsModal({
     },
   });
 
-  const addToWatchlist = trpc.viewer.organizations.addToWatchlist.useMutation({
-    onSuccess: async () => {
-      await utils.viewer.organizations.listBookingReports.invalidate();
-      await utils.viewer.organizations.listWatchlistEntries.invalidate();
-      showToast(t("blocklist_entry_created"), "success");
-      onClose();
-      reset();
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
-
-  const dismissBookingReport = trpc.viewer.organizations.dismissBookingReport.useMutation({
-    onSuccess: async () => {
-      await utils.viewer.organizations.listBookingReports.invalidate();
-      showToast(t("booking_report_dismissed"), "success");
-      onClose();
-      reset();
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
-
   const onSubmit = (data: FormData) => {
     if (!entry) return;
-
-    addToWatchlist.mutate({
-      reportIds: [entry.id],
-      type: data.blockType,
-    });
+    onAddToBlocklist([entry.id], data.blockType);
   };
 
   const handleDismiss = () => {
     if (!entry) return;
-
-    dismissBookingReport.mutate({
-      reportId: entry.id,
-    });
+    onDismiss(entry.id);
   };
 
   const handleGoBack = () => {
@@ -104,14 +79,32 @@ export function BookingReportEntryDetailsModal({
       <DialogContent enableOverflow>
         <DialogHeader title={t("review_report") + ` - ${entry.bookerEmail}`} />
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="stack-y-5">
+          <div className="space-y-5">
             <div className="bg-subtle rounded-xl p-1">
               <h2 className="text-emphasis px-5 py-4 text-base font-semibold">{t("details")}</h2>
-              <div className="bg-default stack-y-4 rounded-xl p-5">
+              <div className="bg-default space-y-4 rounded-xl p-5">
                 <div>
                   <label className="text-emphasis mb-1 block text-sm font-semibold">{t("email")}</label>
                   <p className="text-subtle text-sm">{entry.bookerEmail}</p>
                 </div>
+
+                {isSystem && entry.organization && (
+                  <div>
+                    <label className="text-emphasis mb-1 block text-sm font-semibold">
+                      {t("organization")}
+                    </label>
+                    <p className="text-subtle text-sm">{entry.organization.name}</p>
+                  </div>
+                )}
+
+                {isSystem && !entry.organization && (
+                  <div>
+                    <label className="text-emphasis mb-1 block text-sm font-semibold">
+                      {t("organization")}
+                    </label>
+                    <p className="text-subtle text-sm">{t("individual")}</p>
+                  </div>
+                )}
 
                 <div>
                   <label className="text-emphasis mb-1 block text-sm font-semibold">{t("reason")}</label>
@@ -146,6 +139,7 @@ export function BookingReportEntryDetailsModal({
               <h2 className="text-emphasis mb-2 text-base font-semibold">
                 {t("what_would_you_like_to_block")}
               </h2>
+              {isSystem && <p className="text-subtle mb-3 text-sm">{t("system_wide_blocklist_warning")}</p>}
               <Controller
                 name="blockType"
                 control={control}
@@ -179,7 +173,7 @@ export function BookingReportEntryDetailsModal({
                 type="button"
                 color="minimal"
                 onClick={handleGoBack}
-                disabled={isSubmitting || addToWatchlist.isPending || dismissBookingReport.isPending}>
+                disabled={isSubmitting || isAddingToBlocklist || isDismissing}>
                 {t("go_back")}
               </Button>
 
@@ -188,15 +182,15 @@ export function BookingReportEntryDetailsModal({
                   type="button"
                   color="secondary"
                   onClick={handleDismiss}
-                  loading={dismissBookingReport.isPending}
-                  disabled={isSubmitting || addToWatchlist.isPending || dismissBookingReport.isPending}>
+                  loading={isDismissing}
+                  disabled={isSubmitting || isAddingToBlocklist || isDismissing}>
                   {t("dont_block")}
                 </Button>
                 <Button
                   type="submit"
-                  loading={isSubmitting || addToWatchlist.isPending}
-                  disabled={isSubmitting || addToWatchlist.isPending || dismissBookingReport.isPending}>
-                  {t("add_to_blocklist")}
+                  loading={isSubmitting || isAddingToBlocklist}
+                  disabled={isSubmitting || isAddingToBlocklist || isDismissing}>
+                  {t(isSystem ? "add_to_system_blocklist" : "add_to_blocklist")}
                 </Button>
               </div>
             </div>
