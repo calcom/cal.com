@@ -484,6 +484,8 @@ model User {
   agents                         Agent[]
   holidaySettings                UserHolidaySettings?
 
+  autoOptInFeatures Boolean @default(false)
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
@@ -614,6 +616,8 @@ model Team {
 
   teamBilling         TeamBilling?         @relation("TeamBilling")
   organizationBilling OrganizationBilling? @relation("OrganizationBilling")
+
+  autoOptInFeatures Boolean @default(false)
 
   // Monthly proration tracking
   seatChangeLogs    SeatChangeLog[]
@@ -2412,7 +2416,7 @@ model Watchlist {
   audits         WatchlistAudit[]
 
   @@unique([type, value, organizationId])
-  @@index([type, value, organizationId, action])
+  @@index([isGlobal, action, organizationId, type, value])
 }
 
 model WatchlistAudit {
@@ -2817,6 +2821,11 @@ model BookingAudit {
 
   data Json?
 
+  // Context for across action types concerns like impersonation, ip, userAgent etc.
+  // This is separate from `data` because it isn't related to action type but makes sense with every action
+  // BookingAuditContextSchema
+  context Json?
+
   @@index([actorId])
   @@index([bookingUid])
   @@index([timestamp])
@@ -2916,10 +2925,9 @@ model TeamBilling {
   subscriptionTrialEnd DateTime?
   subscriptionEnd      DateTime?
 
-  // Monthly proration fields
-  billingPeriod     BillingPeriod? // MONTHLY or ANNUALLY
-  pricePerSeat      Float? // Price per seat for proration calculations
-  paidSeats         Int? // High-water mark: max seats paid for in current billing period
+  billingPeriod     BillingPeriod?
+  pricePerSeat      Int?
+  paidSeats         Int?
   monthlyProrations MonthlyProration[]
   seatChangeLogs    SeatChangeLog[]
 
@@ -2941,10 +2949,9 @@ model OrganizationBilling {
   subscriptionTrialEnd DateTime?
   subscriptionEnd      DateTime?
 
-  // Monthly proration fields
-  billingPeriod     BillingPeriod? // MONTHLY or ANNUALLY
-  pricePerSeat      Float? // Price per seat for proration calculations
-  paidSeats         Int? // High-water mark: max seats paid for in current billing period
+  billingPeriod     BillingPeriod?
+  pricePerSeat      Int?
+  paidSeats         Int?
   monthlyProrations MonthlyProration[]
   seatChangeLogs    SeatChangeLog[]
 
@@ -2952,30 +2959,25 @@ model OrganizationBilling {
   updatedAt DateTime @updatedAt
 }
 
-// Monthly proration tracking for annual subscriptions
 model SeatChangeLog {
   id     String @id @default(uuid())
   teamId Int
   team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  changeType  SeatChangeType // ADDITION or REMOVAL
-  seatCount   Int // Number of seats changed (always positive)
-  userId      Int? // User who was added/removed (nullable for bulk ops)
-  triggeredBy Int? // Admin who triggered the change
+  changeType  SeatChangeType
+  seatCount   Int
+  userId      Int?
+  triggeredBy Int?
 
-  // For proration calculation
   changeDate DateTime @default(now())
-  monthKey   String // Format: "YYYY-MM" for grouping (e.g., "2026-01")
+  monthKey   String
 
-  // Track if this change has been processed
   processedInProrationId String?
   proration              MonthlyProration? @relation(fields: [processedInProrationId], references: [id])
 
-  // Metadata
-  metadata  Json? // Additional context (invitation ID, etc.)
+  metadata  Json?
   createdAt DateTime @default(now())
 
-  // Determine which billing model to use
   teamBillingId         String?
   teamBilling           TeamBilling?         @relation(fields: [teamBillingId], references: [id])
   organizationBillingId String?
@@ -2996,52 +2998,42 @@ model MonthlyProration {
   teamId Int
   team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  // Period covered
-  monthKey    String // Format: "YYYY-MM"
-  periodStart DateTime // First day of the month (calendar)
-  periodEnd   DateTime // Last day of the month (calendar)
+  monthKey    String
+  periodStart DateTime
+  periodEnd   DateTime
 
-  // Seat calculation
-  seatsAtStart    Int // Seats at beginning of month
-  seatsAdded      Int // Total seats added during month
-  seatsRemoved    Int // Total seats removed during month
-  netSeatIncrease Int // seatsAdded - seatsRemoved (capped at 0)
-  seatsAtEnd      Int // Final seat count
+  seatsAtStart    Int
+  seatsAdded      Int
+  seatsRemoved    Int
+  netSeatIncrease Int
+  seatsAtEnd      Int
 
-  // Stripe details
   subscriptionId     String
   subscriptionItemId String
   customerId         String
 
-  // Proration calculation
-  subscriptionStart DateTime // When annual subscription started
-  subscriptionEnd   DateTime // When annual subscription ends
-  remainingDays     Int // Days remaining when charge created
-  pricePerSeat      Float // Annual price per seat
-  proratedAmount    Float // Calculated proration amount
+  subscriptionStart DateTime
+  subscriptionEnd   DateTime
+  remainingDays     Int
+  pricePerSeat      Int
+  proratedAmount    Int
 
-  // Stripe invoice item
-  invoiceItemId String? // Stripe invoice item ID
-  invoiceId     String? // Stripe invoice ID (when finalized)
+  invoiceItemId String?
+  invoiceId     String?
 
-  // Status tracking
   status ProrationStatus @default(PENDING)
 
-  // Payment
   chargedAt     DateTime?
   failedAt      DateTime?
   failureReason String?
   retryCount    Int       @default(0)
 
-  // Relations
   seatChanges SeatChangeLog[]
 
-  // Metadata
   metadata  Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Determine which billing model to use
   teamBillingId         String?
   teamBilling           TeamBilling?         @relation(fields: [teamBillingId], references: [id])
   organizationBillingId String?

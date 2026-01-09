@@ -4163,7 +4163,9 @@
     "attendee_no_show_updated": "Assenza partecipante aggiornata",
     "type": "Tipo di assegnazione",
     "assignmentType_manual": "Assegnazione manuale",
-    "assignmentType_roundRobin": "Assegnazione round robin"
+    "assignmentType_roundRobin": "Assegnazione round robin",
+    "actor_impersonated_by": "Impersonificatore",
+    "source": "Origine"
   },
   "error_loading_booking_logs": "Errore nel caricamento dei log della prenotazione",
   "no_audit_logs_found": "Nessun log di audit trovato",

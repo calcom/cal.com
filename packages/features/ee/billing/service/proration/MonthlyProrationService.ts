@@ -173,7 +173,7 @@ export class MonthlyProrationService {
     const proratedAmount = (pricePerSeat * netSeatIncrease * remainingDays) / totalSubscriptionDays;
 
     return {
-      proratedAmount: Math.round(proratedAmount * 100) / 100,
+      proratedAmount: Math.round(proratedAmount),
       remainingDays,
     };
   }
@@ -186,7 +186,7 @@ export class MonthlyProrationService {
     monthKey: string;
     teamId: number;
   }) {
-    const amountInCents = Math.round(proration.proratedAmount * 100);
+    const amountInCents = Math.round(proration.proratedAmount);
 
     const invoiceItem = await stripe.invoiceItems.create({
       customer: proration.customerId,

@@ -39,16 +39,21 @@ export class BillingPeriodService {
   }
 
   async shouldApplyMonthlyProration(teamId: number): Promise<boolean> {
-    const featuresRepository = new FeaturesRepository(prisma);
-    const isFeatureEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
+    try {
+      const featuresRepository = new FeaturesRepository(prisma);
+      const isFeatureEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
 
-    if (!isFeatureEnabled) {
+      if (!isFeatureEnabled) {
+        return false;
+      }
+
+      const info = await this.getOrCreateBillingPeriodInfo(teamId);
+
+      return info.billingPeriod === "ANNUALLY" && !info.isInTrial && info.subscriptionStart !== null;
+    } catch (error) {
+      log.error(`Failed to check if monthly proration should apply for team ${teamId}`, { error });
       return false;
     }
-
-    const info = await this.getOrCreateBillingPeriodInfo(teamId);
-
-    return info.billingPeriod === "ANNUALLY" && !info.isInTrial && info.subscriptionStart !== null;
   }
 
   async getOrCreateBillingPeriodInfo(teamId: number): Promise<BillingPeriodInfo> {
@@ -85,7 +90,8 @@ export class BillingPeriodService {
 
     if (!team) throw new Error(`Team ${teamId} not found`);
 
-    const billing = team.isOrganization ? team.organizationBilling : team.teamBilling;
+    const isOrganization = team.isOrganization;
+    const billing = isOrganization ? team.organizationBilling : team.teamBilling;
 
     if (!billing) {
       return {

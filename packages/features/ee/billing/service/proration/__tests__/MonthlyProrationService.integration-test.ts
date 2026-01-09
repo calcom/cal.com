@@ -195,8 +195,9 @@ describe("MonthlyProrationService Integration Tests", () => {
     const prorationService = new MonthlyProrationService();
     const results = await prorationService.processMonthlyProrations({ monthKey });
 
-    expect(results).toHaveLength(2);
-    expect(results.every((r) => r.status === "INVOICE_CREATED")).toBe(true);
+    const filteredResults = results.filter(r => [testTeam.id, testTeam2.id].includes(r.teamId));
+    expect(filteredResults).toHaveLength(2);
+    expect(filteredResults.every((r) => r.status === "INVOICE_CREATED")).toBe(true);
   });
 
   it("should handle payment success callback", async () => {
