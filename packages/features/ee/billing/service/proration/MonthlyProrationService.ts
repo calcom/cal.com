@@ -64,7 +64,8 @@ export class MonthlyProrationService {
 
     const changes = await seatTracker.getMonthlyChanges({ teamId, monthKey });
 
-    if (changes.netChange === 0) {
+    // If there are no changes at all (no additions or removals), skip processing
+    if (changes.additions === 0 && changes.removals === 0) {
       return null;
     }
 
