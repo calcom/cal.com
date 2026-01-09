@@ -7,22 +7,33 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "lint": "eslint .",
-    "lint:fix": "eslint . ",
-    "build": "yarn trpc:generate || true",
-    "trpc:generate": "yarn tsc --project tsconfig.json"
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "build": "yarn build:server && yarn build:react",
+    "build:server": "yarn tsc --project tsconfig.server.json",
+    "build:react": "yarn tsc --project tsconfig.react.json"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.17.15",
     "@trpc/client": "11.0.0-next-beta.222",
     "@trpc/next": "11.0.0-next-beta.222",
     "@trpc/react-query": "11.0.0-next-beta.222",
     "@trpc/server": "11.0.0-next-beta.222",
+    "cookie": "0.7.2",
     "superjson": "1.9.1",
-    "zod": "^3.22.4"
+    "uuid": "8.3.2",
+    "zod": "3.25.76"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.0.0",
+    "next": ">=14.0.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "@calcom/eslint-config": "workspace:*",
-    "typescript": "^5.9.0-beta"
+    "@biomejs/biome": "2.3.10",
+    "@tanstack/react-query": "5.17.19",
+    "@types/cookie": "0.6.0",
+    "@types/uuid": "8.3.4",
+    "typescript": "5.9.3"
   }
 }
