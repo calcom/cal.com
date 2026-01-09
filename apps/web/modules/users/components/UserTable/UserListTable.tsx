@@ -1,7 +1,12 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+} from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
@@ -17,7 +22,13 @@ import {
   convertFacetedValuesToMap,
   useDataTable,
 } from "@calcom/features/data-table";
-import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment, DataTableSelectionBar } from "~/data-table/components";
+import {
+  DataTableWrapper,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSegment,
+  DataTableSelectionBar,
+} from "~/data-table/components";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import {
@@ -81,7 +92,10 @@ const initalColumnVisibility = {
   actions: true,
 };
 
-function reducer(state: UserTableState, action: UserTableAction): UserTableState {
+function reducer(
+  state: UserTableState,
+  action: UserTableAction
+): UserTableState {
   switch (action.type) {
     case "SET_CHANGE_MEMBER_ROLE_ID":
       return { ...state, changeMemberRole: action.payload };
@@ -129,7 +143,11 @@ export function UserListTable(props: UserListTableProps) {
   const pathname = usePathname();
   if (!pathname) return null;
   return (
-    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={25}>
+    <DataTableProvider
+      tableIdentifier={pathname}
+      useSegments={useSegments}
+      defaultPageSize={25}
+    >
       <UserListTableContent {...props} />
     </DataTableProvider>
   );
@@ -142,7 +160,10 @@ function UserListTableContent({
   facetedTeamValues,
   permissions,
 }: UserListTableProps) {
-  const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
+  const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState(
+    "dynamicLink",
+    parseAsBoolean
+  );
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
   const { t } = useLocale();
@@ -201,10 +222,10 @@ function UserListTableContent({
           const filterType = isNumber
             ? ColumnFilterType.NUMBER
             : isText
-              ? ColumnFilterType.TEXT
-              : isSingleSelect
-                ? ColumnFilterType.SINGLE_SELECT
-                : ColumnFilterType.MULTI_SELECT;
+            ? ColumnFilterType.TEXT
+            : isSingleSelect
+            ? ColumnFilterType.SINGLE_SELECT
+            : ColumnFilterType.MULTI_SELECT;
 
           return {
             id: attribute.id,
@@ -213,24 +234,34 @@ function UserListTableContent({
               filter: { type: filterType },
             },
             size: 120,
-            accessorFn: (data) => data.attributes?.find((attr) => attr.attributeId === attribute.id)?.value,
+            accessorFn: (data) =>
+              data.attributes?.find((attr) => attr.attributeId === attribute.id)
+                ?.value,
             cell: ({ row }) => {
               const attributeValues = row.original.attributes?.filter(
                 (attr) => attr.attributeId === attribute.id
               );
               if (attributeValues?.length === 0) return null;
               return (
-                <div className={classNames(isNumber ? "flex w-full justify-center" : "flex flex-wrap")}>
+                <div
+                  className={classNames(
+                    isNumber ? "flex w-full justify-center" : "flex flex-wrap"
+                  )}
+                >
                   {attributeValues?.map((attributeValue) => {
                     const isAGroupOption = attributeValue.contains?.length > 0;
                     const suffix = attribute.isWeightsEnabled
                       ? `${attributeValue.weight || 100}%`
                       : undefined;
                     return (
-                      <div className="mr-1 inline-flex shrink-0" key={attributeValue.id}>
+                      <div
+                        className="mr-1 inline-flex shrink-0"
+                        key={attributeValue.id}
+                      >
                         <Badge
                           variant={isAGroupOption ? "orange" : "gray"}
-                          className={classNames(suffix && "rounded-r-none")}>
+                          className={classNames(suffix && "rounded-r-none")}
+                        >
                           {attributeValue.value}
                         </Badge>
 
@@ -238,9 +269,11 @@ function UserListTableContent({
                           <Badge
                             variant={isAGroupOption ? "orange" : "gray"}
                             style={{
-                              backgroundColor: "color-mix(in hsl, var(--cal-bg-emphasis), black 5%)",
+                              backgroundColor:
+                                "color-mix(in hsl, var(--cal-bg-emphasis), black 5%)",
                             }}
-                            className="rounded-l-none">
+                            className="rounded-l-none"
+                          >
                             {suffix}
                           </Badge>
                         ) : null}
@@ -266,7 +299,9 @@ function UserListTableContent({
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
             aria-label="Select all"
           />
         ),
@@ -287,12 +322,13 @@ function UserListTableContent({
         size: 200,
         header: t("members"),
         cell: ({ row }) => {
-          const { username, email, avatarUrl } = row.original;
+          const { username, name, email, avatarUrl } = row.original;
+          const displayName = name || username || "No username";
           return (
             <div className="flex items-center gap-2">
               <Avatar
                 size="sm"
-                alt={username || email}
+                alt={displayName}
                 imageSrc={getUserAvatarUrl({
                   avatarUrl,
                 })}
@@ -300,12 +336,14 @@ function UserListTableContent({
               <div className="">
                 <div
                   data-testid={`member-${username}-username`}
-                  className="text-emphasis text-sm font-medium leading-none">
-                  {username || "No username"}
+                  className="text-emphasis text-sm font-medium leading-none"
+                >
+                  {displayName}
                 </div>
                 <div
                   data-testid={`member-${username}-email`}
-                  className="text-subtle mt-1 text-sm leading-none">
+                  className="text-subtle mt-1 text-sm leading-none"
+                >
                   {email}
                 </div>
               </div>
@@ -330,7 +368,8 @@ function UserListTableContent({
               variant={role === "MEMBER" ? "gray" : "blue"}
               onClick={() => {
                 table.getColumn("role")?.setFilterValue([role]);
-              }}>
+              }}
+            >
               {roleName}
             </Badge>
           );
@@ -357,7 +396,8 @@ function UserListTableContent({
                   data-testid={`email-${email.replace("@", "")}-pending`}
                   onClick={() => {
                     table.getColumn("role")?.setFilterValue(["PENDING"]);
-                  }}>
+                  }}
+                >
                   {t("pending")}
                 </Badge>
               )}
@@ -368,7 +408,8 @@ function UserListTableContent({
                   variant="gray"
                   onClick={() => {
                     table.getColumn("teams")?.setFilterValue([team.name]);
-                  }}>
+                  }}
+                >
                   {team.name}
                 </Badge>
               ))}
@@ -465,7 +506,8 @@ function UserListTableContent({
 
           const permissionsForUser = {
             canEdit:
-              ((permissionsRaw.canEdit ?? false) || (permissions?.canEditAttributesForUser ?? false)) &&
+              ((permissionsRaw.canEdit ?? false) ||
+                (permissions?.canEditAttributesForUser ?? false)) &&
               user.accepted &&
               !isSelf,
             canRemove: (permissionsRaw.canRemove ?? false) && !isSelf,
@@ -476,7 +518,8 @@ function UserListTableContent({
               !!org?.canAdminImpersonate &&
               (permissionsRaw.canImpersonate ?? false),
             canLeave: user.accepted && isSelf,
-            canResendInvitation: (permissionsRaw.canResendInvitation ?? false) && !user.accepted,
+            canResendInvitation:
+              (permissionsRaw.canResendInvitation ?? false) && !user.accepted,
           };
 
           return (
@@ -492,7 +535,15 @@ function UserListTableContent({
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch, domain, attributes, org?.canAdminImpersonate, permissions]);
+  }, [
+    session?.user.id,
+    adminOrOwner,
+    dispatch,
+    domain,
+    attributes,
+    org?.canAdminImpersonate,
+    permissions,
+  ]);
 
   const table = useReactTable({
     data: flatData,
@@ -534,7 +585,9 @@ function UserListTableContent({
               }))
             );
           default: {
-            const attribute = facetedTeamValues.attributes.find((attr) => attr.id === columnId);
+            const attribute = facetedTeamValues.attributes.find(
+              (attr) => attr.id === columnId
+            );
             if (attribute) {
               return convertFacetedValuesToMap(
                 attribute?.options.map(({ value }) => ({
@@ -594,12 +647,19 @@ function UserListTableContent({
       }
 
       const ATTRIBUTE_IDS = attributes?.map((attr) => attr.id) ?? [];
-      const csvRaw = generateCsvRawForMembersTable(headers, allRows, ATTRIBUTE_IDS, domain);
+      const csvRaw = generateCsvRawForMembersTable(
+        headers,
+        allRows,
+        ATTRIBUTE_IDS,
+        domain
+      );
       if (!csvRaw) {
         throw new Error("Generating CSV file failed.");
       }
 
-      const filename = `${org.name}_${new Date().toISOString().split("T")[0]}.csv`;
+      const filename = `${org.name}_${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
       downloadAsCsv(csvRaw, filename);
     } catch (error) {
       showToast(`Error: ${error}`, "error");
@@ -629,7 +689,8 @@ function UserListTableContent({
             <DataTableSegment.SaveButton />
             <DataTableSegment.Select />
           </>
-        }>
+        }
+      >
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
           <DataTableSelectionBar.Root className="bottom-[7.3rem]! md:bottom-32!">
             <DynamicLink table={table} domain={domain} />
@@ -642,17 +703,23 @@ function UserListTableContent({
             </p>
             {!isPlatformUser ? (
               <>
-                {permissions?.canChangeMemberRole && <TeamListBulkAction table={table} />}
+                {permissions?.canChangeMemberRole && (
+                  <TeamListBulkAction table={table} />
+                )}
                 {numberOfSelectedRows >= 2 && (
                   <DataTableSelectionBar.Button
                     color="secondary"
                     onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
-                    icon="handshake">
+                    icon="handshake"
+                  >
                     {t("group_meeting")}
                   </DataTableSelectionBar.Button>
                 )}
                 {(permissions?.canEditAttributesForUser ?? adminOrOwner) && (
-                  <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
+                  <MassAssignAttributesBulkAction
+                    table={table}
+                    filters={columnFilters}
+                  />
                 )}
                 {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
                   <EventTypesList table={table} orgTeams={teams} />
@@ -661,7 +728,9 @@ function UserListTableContent({
             ) : null}
             {(permissions?.canRemove ?? adminOrOwner) && (
               <DeleteBulkUsers
-                users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+                users={table
+                  .getSelectedRowModel()
+                  .flatRows.map((row) => row.original)}
                 onRemove={() => table.toggleAllPageRowsSelected(false)}
               />
             )}
@@ -669,10 +738,18 @@ function UserListTableContent({
         )}
       </DataTableWrapper>
 
-      {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
-      {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
-      {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
-      {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
+      {state.deleteMember.showModal && (
+        <DeleteMemberModal state={state} dispatch={dispatch} />
+      )}
+      {state.inviteMember.showModal && (
+        <InviteMemberModal dispatch={dispatch} />
+      )}
+      {state.impersonateMember.showModal && (
+        <ImpersonationMemberModal dispatch={dispatch} state={state} />
+      )}
+      {state.changeMemberRole.showModal && (
+        <ChangeUserRoleModal dispatch={dispatch} state={state} />
+      )}
       {state.editSheet.showModal && (
         <EditUserSheet
           dispatch={dispatch}
@@ -692,7 +769,8 @@ function UserListTableContent({
               StartIcon="file-down"
               loading={isDownloading}
               onClick={() => handleDownload()}
-              data-testid="export-members-button">
+              data-testid="export-members-button"
+            >
               {t("download")}
             </DataTableToolbar.CTA>
             {(permissions?.canInvite ?? adminOrOwner) && (
@@ -707,9 +785,10 @@ function UserListTableContent({
                       showModal: true,
                     },
                   });
-                  posthog.capture("add_organization_member_clicked")
+                  posthog.capture("add_organization_member_clicked");
                 }}
-                data-testid="new-organization-member-button">
+                data-testid="new-organization-member-button"
+              >
                 {t("add")}
               </DataTableToolbar.CTA>
             )}
