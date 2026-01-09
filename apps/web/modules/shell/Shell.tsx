@@ -8,7 +8,7 @@ import { Toaster } from "sonner";
 
 import { useRedirectToLoginIfUnauthenticated } from "@calcom/web/modules/auth/hooks/useRedirectToLoginIfUnauthenticated";
 import { useRedirectToOnboardingIfNeeded } from "@calcom/web/modules/auth/hooks/useRedirectToOnboardingIfNeeded";
-import { useFormbricks } from "@calcom/web/modules/formbricks/useFormbricks";
+import { useFormbricks } from "@calcom/web/modules/formbricks/hooks/useFormbricks";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";

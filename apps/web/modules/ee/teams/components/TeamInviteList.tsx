@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { trackFormbricksAction } from "@calcom/web/modules/formbricks/trackFormbricksAction";
+import { trackFormbricksAction } from "@calcom/web/modules/formbricks/lib/trackFormbricksAction";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
