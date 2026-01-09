@@ -51,8 +51,10 @@ jobs:
             if [ "${{ inputs.BUILD_FROM_BRANCH }}" = "true" ]; then
               # Extract branch name and short SHA for the tag
               BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+              # Sanitize branch name: replace slashes with dashes for valid Docker tag
+              SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | tr '/' '-')
               SHORT_SHA=$(git rev-parse --short HEAD)
-              echo "RELEASE_TAG=${BRANCH_NAME}-${SHORT_SHA}" >> $GITHUB_ENV
+              echo "RELEASE_TAG=${SANITIZED_BRANCH}-${SHORT_SHA}" >> $GITHUB_ENV
             else
               echo "RELEASE_TAG=${{ inputs.RELEASE_TAG }}" >> $GITHUB_ENV
             fi
@@ -118,8 +120,10 @@ jobs:
             if [ "${{ inputs.BUILD_FROM_BRANCH }}" = "true" ]; then
               # Extract branch name and short SHA for the tag
               BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+              # Sanitize branch name: replace slashes with dashes for valid Docker tag
+              SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | tr '/' '-')
               SHORT_SHA=$(git rev-parse --short HEAD)
-              echo "RELEASE_TAG=${BRANCH_NAME}-${SHORT_SHA}" >> $GITHUB_ENV
+              echo "RELEASE_TAG=${SANITIZED_BRANCH}-${SHORT_SHA}" >> $GITHUB_ENV
             else
               echo "RELEASE_TAG=${{ inputs.RELEASE_TAG }}" >> $GITHUB_ENV
             fi
