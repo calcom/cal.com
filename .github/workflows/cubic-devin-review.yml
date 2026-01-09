@@ -87,9 +87,7 @@ jobs:
                 tags: ["cubic-ai-review", "pr-${{ github.event.pull_request.number }}"]
               }')")
           
-          echo "Devin API Response: $RESPONSE"
-          
-          # Extract session URL if available
+          # Extract session URL if available (avoid logging full response to prevent exposing sensitive data)
           SESSION_URL=$(echo "$RESPONSE" | jq -r '.url // .session_url // empty')
           if [ -n "$SESSION_URL" ]; then
             echo "Devin session created: $SESSION_URL"
