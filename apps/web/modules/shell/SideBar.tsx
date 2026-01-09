@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
-import { IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER, ENABLE_SIDEBAR_TIPS } from "@calcom/lib/constants";
+import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserPermissionRole } from "@calcom/prisma/enums";
@@ -56,6 +57,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const flags = useFlagMap();
 
   const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.orgAwareUsername}`;
 
@@ -137,7 +139,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
 
         {!isPlatformPages && (
           <div className="md:px-2 md:pb-4 lg:p-0">
-            {ENABLE_SIDEBAR_TIPS && (
+            {flags["sidebar-tips"] && (
               <div className="overflow-hidden">
                 <Tips />
               </div>
