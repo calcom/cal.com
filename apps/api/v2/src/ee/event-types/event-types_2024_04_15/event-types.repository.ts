@@ -56,7 +56,6 @@ export class EventTypesRepository_2024_04_15 {
       userId: user.id,
       prisma: this.dbRead.prisma as unknown as PrismaClient,
       isUserOrganizationAdmin,
-      isTrpcCall: true,
     });
   }
 

@@ -83,7 +83,6 @@ export class EventTypesAtomService {
       userId: user.id,
       prisma: this.dbRead.prisma as unknown as PrismaClient,
       isUserOrganizationAdmin,
-      isTrpcCall: true,
     });
 
     if (!eventType) {

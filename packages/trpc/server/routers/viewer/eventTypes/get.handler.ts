@@ -18,7 +18,6 @@ export const getHandler = ({ ctx, input }: GetOptions) => {
     eventTypeId: input.id,
     userId: ctx.user.id,
     prisma: ctx.prisma,
-    isTrpcCall: true,
     isUserOrganizationAdmin: !!ctx.user?.organization?.isOrgAdmin,
   });
 };
