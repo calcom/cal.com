@@ -260,14 +260,14 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
       }}
     >
       <div className="border-subtle border-x px-4 py-8 sm:px-6">
-        <div className="flex items-center">
+        <div className="grid grid-cols-2 gap-8">
           <Controller
             control={form.control}
             name="logoUrl"
             render={({ field: { value, onChange } }) => {
               const showRemoveLogoButton = value !== null;
               return (
-                <>
+                <div className="flex items-center gap-4">
                   <Avatar
                     data-testid="profile-upload-logo"
                     alt={form.getValues("name")}
@@ -277,7 +277,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                     )}
                     size="lg"
                   />
-                  <div className="ms-4">
+                  <div>
                     <div className="flex gap-2">
                       <ImageUploader
                         target="logo"
@@ -288,9 +288,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                           value,
                           form.getValues("name")
                         )}
-                        triggerButtonColor={
-                          showRemoveLogoButton ? "secondary" : "primary"
-                        }
+                        triggerButtonColor="secondary"
                       />
                       {showRemoveLogoButton && (
                         <Button color="minimal" onClick={() => onChange(null)}>
@@ -299,7 +297,47 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                       )}
                     </div>
                   </div>
-                </>
+                </div>
+              );
+            }}
+          />
+          <Controller
+            control={form.control}
+            name="calVideoLogo"
+            render={({ field: { value, onChange } }) => {
+              const showRemoveLogoButton = !!value;
+              return (
+                <div className="flex items-center gap-4">
+                  <Avatar
+                    alt="calVideoLogo"
+                    imageSrc={value}
+                    fallback={
+                      <Icon name="plus" className="text-subtle h-6 w-6" />
+                    }
+                    size="lg"
+                  />
+                  <div>
+                    <div className="flex gap-2">
+                      <ImageUploader
+                        target="avatar"
+                        id="cal-video-logo-upload"
+                        buttonMsg={t("upload_cal_video_logo")}
+                        handleAvatarChange={onChange}
+                        imageSrc={value || undefined}
+                        uploadInstruction={t(
+                          "cal_video_logo_upload_instruction"
+                        )}
+                        triggerButtonColor="secondary"
+                        testId="cal-video-logo"
+                      />
+                      {showRemoveLogoButton && (
+                        <Button color="minimal" onClick={() => onChange(null)}>
+                          {t("remove")}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               );
             }}
           />
@@ -318,78 +356,72 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                     data-testid="profile-upload-banner"
                     alt={`${defaultValues.name} Banner` || ""}
                     className="grid min-h-[150px] w-full place-items-center rounded-md sm:min-h-[200px]"
-                    fallback={t("no_target", { target: "banner" })}
-                    imageSrc={value}
-                  />
-                  <div className="ms-4">
-                    <div className="flex gap-2">
-                      <BannerUploader
-                        height={500}
-                        width={1500}
-                        target="banner"
-                        uploadInstruction={t("org_banner_instructions", {
-                          height: 500,
-                          width: 1500,
-                        })}
-                        id="banner-upload"
-                        buttonMsg={t("upload_banner")}
-                        handleAvatarChange={onChange}
-                        imageSrc={value || undefined}
-                        triggerButtonColor={
-                          showRemoveBannerButton ? "secondary" : "primary"
-                        }
-                      />
-                      {showRemoveBannerButton && (
-                        <Button color="minimal" onClick={() => onChange(null)}>
-                          {t("remove")}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </>
-              );
-            }}
-          />
-        </div>
-        <div className="mt-2 flex items-center">
-          <Controller
-            control={form.control}
-            name="calVideoLogo"
-            render={({ field: { value, onChange } }) => {
-              const showRemoveLogoButton = !!value;
-              return (
-                <>
-                  <Avatar
-                    alt="calVideoLogo"
-                    imageSrc={value}
                     fallback={
-                      <Icon name="plus" className="text-subtle h-6 w-6" />
+                      !value ? (
+                        <div className="flex flex-col items-center gap-3">
+                          <p className="text-muted text-sm">
+                            {t("no_target", { target: "banner" })}
+                          </p>
+                          <div className="hidden">
+                            <BannerUploader
+                              height={500}
+                              width={1500}
+                              target="banner"
+                              uploadInstruction={t("org_banner_instructions", {
+                                height: 500,
+                                width: 1500,
+                              })}
+                              id="banner-upload-inline"
+                              buttonMsg={t("upload_banner")}
+                              handleAvatarChange={onChange}
+                              imageSrc={value || undefined}
+                              triggerButtonColor="secondary"
+                            />
+                          </div>
+                          <Button
+                            color="secondary"
+                            StartIcon="upload"
+                            onClick={() => {
+                              // Trigger the BannerUploader dialog
+                              const triggerButton = document.querySelector(
+                                '[data-testid="open-upload-banner-dialog"]'
+                              ) as HTMLButtonElement;
+                              triggerButton?.click();
+                            }}>
+                            {t("upload_banner")}
+                          </Button>
+                        </div>
+                      ) : (
+                        t("no_target", { target: "banner" })
+                      )
                     }
-                    size="lg"
+                    imageSrc={value}
                   />
-                  <div className="ms-4">
-                    <div className="flex gap-2">
-                      <ImageUploader
-                        target="avatar"
-                        id="cal-video-logo-upload"
-                        buttonMsg={t("upload_cal_video_logo")}
-                        handleAvatarChange={onChange}
-                        imageSrc={value || undefined}
-                        uploadInstruction={t(
-                          "cal_video_logo_upload_instruction"
+                  {value && (
+                    <div className="mt-2">
+                      <div className="flex gap-2">
+                        <BannerUploader
+                          height={500}
+                          width={1500}
+                          target="banner"
+                          uploadInstruction={t("org_banner_instructions", {
+                            height: 500,
+                            width: 1500,
+                          })}
+                          id="banner-upload"
+                          buttonMsg={t("upload_banner")}
+                          handleAvatarChange={onChange}
+                          imageSrc={value || undefined}
+                          triggerButtonColor="secondary"
+                        />
+                        {showRemoveBannerButton && (
+                          <Button color="minimal" onClick={() => onChange(null)}>
+                            {t("remove")}
+                          </Button>
                         )}
-                        triggerButtonColor={
-                          showRemoveLogoButton ? "secondary" : "primary"
-                        }
-                        testId="cal-video-logo"
-                      />
-                      {showRemoveLogoButton && (
-                        <Button color="minimal" onClick={() => onChange(null)}>
-                          {t("remove")}
-                        </Button>
-                      )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </>
               );
             }}
