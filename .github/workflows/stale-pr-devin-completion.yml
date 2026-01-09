@@ -3,6 +3,12 @@ name: Stale Community PR Devin Completion
 on:
   pull_request:
     types: [labeled]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to complete'
+        required: true
+        type: number
 
 permissions:
   contents: read
@@ -11,19 +17,103 @@ permissions:
 jobs:
   complete-stale-pr:
     name: Trigger Devin to Complete Stale Community PR
-    # Only run if the 'stale' label was added and PR has 'community' label
-    if: github.event.label.name == 'stale' && contains(github.event.pull_request.labels.*.name, 'community')
+    # For labeled events: only run if 'stale' label was added
+    # For workflow_dispatch: always run (we'll validate the PR in the steps)
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.label.name == 'stale'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
+      - name: Get PR details
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            let prNumber;
+            let pr;
+            
+            if (context.eventName === 'workflow_dispatch') {
+              prNumber = ${{ inputs.pr_number || 0 }};
+              const { data } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber
+              });
+              pr = data;
+            } else {
+              pr = context.payload.pull_request;
+              prNumber = pr.number;
+            }
+            
+            // Check if head repo still exists (can be null if fork was deleted)
+            if (!pr.head.repo) {
+              core.setFailed('Cannot complete this PR: the source repository (fork) has been deleted.');
+              return;
+            }
+            
+            // Check if this is a fork PR
+            const isFork = pr.head.repo.fork || pr.head.repo.full_name !== pr.base.repo.full_name;
+            
+            // For fork PRs, check if maintainer can modify (push to the branch)
+            const maintainerCanModify = pr.maintainer_can_modify;
+            
+            // Determine if we can proceed
+            // - Non-fork PRs: always allowed (maintainers have push access)
+            // - Fork PRs: only if maintainer_can_modify is true
+            const canProceed = !isFork || maintainerCanModify;
+            
+            if (!canProceed) {
+              core.setFailed(`Cannot complete this fork PR: the fork owner has not enabled "Allow edits from maintainers". PR author needs to enable this setting.`);
+              return;
+            }
+            
+            // Get the clone URL for the head repo (fork or base)
+            const headRepoFullName = pr.head.repo.full_name;
+            const headRepoCloneUrl = pr.head.repo.clone_url;
+            
+            // Set outputs for use in subsequent steps
+            core.setOutput('pr_number', prNumber);
+            core.setOutput('pr_title', pr.title);
+            core.setOutput('pr_author', pr.user.login);
+            core.setOutput('pr_branch', pr.head.ref);
+            core.setOutput('is_fork', isFork);
+            core.setOutput('head_repo_full_name', headRepoFullName);
+            core.setOutput('head_repo_clone_url', headRepoCloneUrl);
+            core.setOutput('maintainer_can_modify', maintainerCanModify);
+            core.setOutput('can_proceed', canProceed);
+            
+            console.log(`PR #${prNumber}: "${pr.title}"`);
+            console.log(`Author: ${pr.user.login}`);
+            console.log(`Branch: ${pr.head.ref}`);
+            console.log(`Is fork: ${isFork}`);
+            console.log(`Head repo: ${headRepoFullName}`);
+            console.log(`Maintainer can modify: ${maintainerCanModify}`);
+
       - name: Create Devin session
+        if: steps.pr.outputs.can_proceed == 'true'
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          PR_TITLE: ${{ steps.pr.outputs.pr_title }}
+          PR_AUTHOR: ${{ steps.pr.outputs.pr_author }}
+          PR_BRANCH: ${{ steps.pr.outputs.pr_branch }}
+          IS_FORK: ${{ steps.pr.outputs.is_fork }}
+          HEAD_REPO_FULL_NAME: ${{ steps.pr.outputs.head_repo_full_name }}
           REPO_NAME: ${{ github.repository }}
         run: |
+          # Build fork-specific instructions if this is a fork PR
+          if [ "$IS_FORK" = "true" ]; then
+            CLONE_INSTRUCTIONS="This is a fork PR. Clone from the fork repository: ${HEAD_REPO_FULL_NAME}
+          
+          To check out this PR:
+          1. Clone the fork: git clone https://github.com/${HEAD_REPO_FULL_NAME}.git
+          2. Check out the branch: git checkout ${PR_BRANCH}
+          3. Add the upstream remote: git remote add upstream https://github.com/${REPO_NAME}.git"
+          else
+            CLONE_INSTRUCTIONS="Clone the repository ${REPO_NAME} and check out the branch: ${PR_BRANCH}"
+          fi
+
           FULL_PROMPT="You are completing a stale community PR #${PR_NUMBER} in repository ${REPO_NAME}.
 
           This PR was started by @${PR_AUTHOR} but has become stale. Your job is to complete it.
@@ -31,8 +121,10 @@ jobs:
           PR Title: ${PR_TITLE}
           PR Branch: ${PR_BRANCH}
 
+          ${CLONE_INSTRUCTIONS}
+
           Your tasks:
-          1. Clone the repository ${REPO_NAME} locally.
+          1. Clone the repository as described above.
           2. Check out the PR branch: ${PR_BRANCH}
           3. Review the current state of the PR and understand what it's trying to accomplish.
           4. Read the PR description and any comments/review feedback on the PR.
@@ -79,15 +171,17 @@ jobs:
         if: env.SESSION_URL != ''
         uses: actions/github-script@v7
         env:
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_AUTHOR: ${{ steps.pr.outputs.pr_author }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const sessionUrl = process.env.SESSION_URL;
             const prAuthor = process.env.PR_AUTHOR;
+            const prNumber = process.env.PR_NUMBER;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
+              issue_number: parseInt(prNumber),
               body: `### Devin AI is completing this stale PR\n\nThis PR by @${prAuthor} has been marked as stale. A Devin session has been created to complete the remaining work.\n\n[View Devin Session](${sessionUrl})\n\n---\n*Devin will review the PR, address any feedback, and push updates to complete this PR.*`
             });
