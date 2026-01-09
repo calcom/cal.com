@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Rezervasyon başarıyla yeniden yönlendirildi. Rezervasyon sayfasına yönlendiriliyor",
   "on_booking_write_to_event_object": "Rezervasyon sırasında etkinlik nesnesine yazma",
   "field_name": "Alan adı",
+  "field_name_cannot_be_empty": "Alan adı boş bırakılamaz",
+  "field_already_exists": "Alan zaten mevcut",
   "add_new_field": "Yeni alan ekle",
   "you_dont_have_access_to_reroute_this_booking": "Bu rezervasyonu yeniden yönlendirme erişiminiz yok",
   "form_response_not_found": "Form yanıtı bulunamadı",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Rezervasyon sahibi kuruluşunuzun üyesi değil.",
   "audit_logs_permission_denied": "Bu rezervasyon için denetim günlüklerini görüntüleme izniniz yok.",
   "audit_logs_permission_check_error": "İzinler kontrol edilirken bir hata oluştu.",
+  "account_already_exists_please_login": "Bu e-posta adresiyle bir hesap zaten mevcut. Daveti kabul etmek için lütfen giriş yapın.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -791,7 +791,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
             <View>
               <UIText className="mb-2 text-sm font-medium">Reason for cancellation</UIText>
               <TextInput
-                className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827]"
+                className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900"
                 placeholder="Why are you cancelling?"
                 placeholderTextColor="#9CA3AF"
                 value={cancelReason}

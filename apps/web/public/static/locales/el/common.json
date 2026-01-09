@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Η ανακατεύθυνση της κράτησης ολοκληρώθηκε με επιτυχία. Ανακατεύθυνση στη σελίδα κράτησης",
   "on_booking_write_to_event_object": "Κατά την κράτηση, εγγραφή στο αντικείμενο συμβάντος",
   "field_name": "Όνομα πεδίου",
+  "field_name_cannot_be_empty": "Το όνομα πεδίου δεν μπορεί να είναι κενό",
+  "field_already_exists": "Το πεδίο υπάρχει ήδη",
   "add_new_field": "Προσθήκη νέου πεδίου",
   "you_dont_have_access_to_reroute_this_booking": "Δεν έχετε πρόσβαση για την ανακατεύθυνση αυτής της κράτησης",
   "form_response_not_found": "Η απάντηση της φόρμας δεν βρέθηκε",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Ο κάτοχος της κράτησης δεν είναι μέλος του οργανισμού σας.",
   "audit_logs_permission_denied": "Δεν έχετε άδεια να δείτε τα αρχεία ελέγχου για αυτήν την κράτηση.",
   "audit_logs_permission_check_error": "Παρουσιάστηκε σφάλμα κατά τον έλεγχο των αδειών.",
+  "account_already_exists_please_login": "Υπάρχει ήδη λογαριασμός με αυτό το email. Παρακαλούμε συνδεθείτε για να αποδεχτείτε την πρόσκληση.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
