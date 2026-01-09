@@ -546,9 +546,17 @@ export default class HubspotCalendarService implements CRM {
 
   private async getHubspotOwnerIdFromEmail(email: string): Promise<string | null> {
     try {
-      const ownersResponse = await this.hubspotClient.crm.owners.ownersApi.getPage();
-      const owner = ownersResponse.results.find((o) => o.email?.toLowerCase() === email.toLowerCase());
-      return owner?.id ?? null;
+      const ownersResponse = await this.hubspotClient.crm.owners.ownersApi.getPage(
+        email,
+        undefined,
+        100,
+        false
+      );
+      if (ownersResponse.results && ownersResponse.results.length > 0) {
+        const owner = ownersResponse.results.find((o) => o.email?.toLowerCase() === email.toLowerCase());
+        return owner?.id ?? null;
+      }
+      return null;
     } catch (error) {
       this.log.error("Error fetching HubSpot owner:", error);
       return null;
