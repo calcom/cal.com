@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
 
+import { ALL_APPS } from "@calcom/app-store/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -7,10 +8,12 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
 import type { Attendee, BookingSeat, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
-import type { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
+
+const APP_TYPE_TO_NAME_MAP = new Map<string, string>(ALL_APPS.map((app) => [app.type, app.name]));
 
 export type BookingForCalEventBuilder = NonNullable<
   Awaited<ReturnType<BookingRepository["getBookingForCalEventBuilder"]>>
@@ -184,7 +187,8 @@ export class CalendarEventBuilder {
       })
       .withRecurring(recurring)
       .withUid(uid)
-      .withOneTimePassword(oneTimePassword);
+      .withOneTimePassword(oneTimePassword)
+      .withOrganization(organizationId);
 
     // Seats
     if (seatsReferences?.length && bookingResponses) {
@@ -210,8 +214,9 @@ export class CalendarEventBuilder {
     references
       .filter((r) => r && r.type)
       .forEach((ref) => {
+        const appName = APP_TYPE_TO_NAME_MAP.get(ref.type) || ref.type.replace("_", "-");
         appsStatus.push({
-          appName: ref.type.replace("_", "-"),
+          appName,
           type: ref.type,
           success: ref.uid ? 1 : 0,
           failures: ref.uid ? 0 : 1,
@@ -225,12 +230,23 @@ export class CalendarEventBuilder {
 
     // Team & calendars
     if (eventType.team) {
+      // We need to get the team members assigned to the booking
+      // In the DB team members are stored in the Attendee table
+      const bookingAttendees = booking.attendees;
+
+      const hostsToInclude = eventType.hosts.filter((host) =>
+        bookingAttendees.some((attendee) => attendee.email === host.user.email)
+      );
+
+      const hostsWithoutOrganizerData = hostsToInclude.filter((host) => host.user.email !== user.email);
+
       const hostsWithoutOrganizer = await Promise.all(
-        eventType.hosts.filter((h) => h.user.email !== user.email).map((h) => _buildPersonFromUser(h.user))
+        hostsWithoutOrganizerData.map((host) => _buildPersonFromUser(host.user))
       );
 
       const hostCalendars = [
-        ...eventType.hosts.map((h) => h.user.destinationCalendar).filter(Boolean),
+        user.destinationCalendar,
+        ...hostsWithoutOrganizerData.map((h) => h.user.destinationCalendar).filter(Boolean),
         user.destinationCalendar,
       ].filter(Boolean) as NonNullable<DestinationCalendar>[];
 
@@ -495,6 +511,14 @@ export class CalendarEventBuilder {
     this.event = {
       ...this.event,
       oneTimePassword,
+    };
+    return this;
+  }
+
+  withOrganization(organizationId?: number | null) {
+    this.event = {
+      ...this.event,
+      organizationId,
     };
     return this;
   }

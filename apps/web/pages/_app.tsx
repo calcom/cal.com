@@ -1,4 +1,4 @@
-import type { IncomingMessage } from "http";
+import type { IncomingMessage } from "node:http";
 import type { NextPageContext } from "next";
 import { SessionProvider } from "next-auth/react";
 import React from "react";

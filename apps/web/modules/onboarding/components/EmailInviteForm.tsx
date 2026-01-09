@@ -50,7 +50,7 @@ export function EmailInviteForm({
     <div className="flex h-full w-full flex-col gap-4">
       <div className="flex flex-col gap-2">
         {showTeamSelect ? (
-          <div className="grid grid-cols-2">
+          <div className="mr-7 grid grid-cols-2">
             <Label className="text-emphasis mb-0 text-sm font-medium" htmlFor="invites.0.email">
               {t("email")}
             </Label>

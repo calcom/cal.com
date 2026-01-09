@@ -7,15 +7,16 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
+import posthog from "posthog-js";
 import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
 import { Toaster } from "sonner";
 import { z } from "zod";
-import posthog from "posthog-js";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
+import { fetchSignup, isUserAlreadyExistsError, hasCheckoutSession } from "@calcom/features/auth/signup/lib/fetchSignup";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -35,13 +36,14 @@ import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { INVALID_CLOUDFLARE_TOKEN_ERROR } from "@calcom/lib/server/checkCfTurnstileToken";
 import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { PasswordField, CheckboxField, TextField, Form } from "@calcom/ui/components/form";
+import { PasswordField, CheckboxField, TextField, Form, SelectField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -191,6 +193,7 @@ export default function Signup({
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [displayEmailForm, setDisplayEmailForm] = useState(token);
+  const [turnstileKey, setTurnstileKey] = useState(0);
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -207,7 +210,6 @@ export default function Signup({
 
   useEffect(() => {
     if (redirectUrl) {
-      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       localStorage.setItem("onBoardingRedirect", redirectUrl);
     }
   }, [redirectUrl]);
@@ -220,23 +222,6 @@ export default function Signup({
 
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
   const displayBackButton = token ? false : displayEmailForm;
-
-  const handleErrorsAndStripe = async (resp: Response) => {
-    if (!resp.ok) {
-      const err = await resp.json();
-      if (err.checkoutSessionId) {
-        const stripe = await getStripe();
-        if (stripe) {
-          const { error } = await stripe.redirectToCheckout({
-            sessionId: err.checkoutSessionId,
-          });
-          console.warn(error.message);
-        }
-      } else {
-        throw new Error(err.message);
-      }
-    }
-  };
 
   const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
 
@@ -251,70 +236,90 @@ export default function Signup({
       username_taken: usernameTaken,
     });
 
-    await fetch("/api/auth/signup", {
-      body: JSON.stringify({
-        ...data,
-        language: i18n.language,
-        token,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-        "cf-access-token": cfToken ?? "invalid-token",
-      },
-      method: "POST",
-    })
-      .then(handleErrorsAndStripe)
-      .then(async () => {
-        if (process.env.NEXT_PUBLIC_GTM_ID)
-          pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
-
-        // telemetry.event(telemetryEventTypes.signup, collectPageParameters());
-
-        const gettingStartedPath = onboardingV3Enabled ? "onboarding/getting-started" : "getting-started";
-        const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : gettingStartedPath;
-        const gettingStartedWithPlatform = "settings/platform/new";
-
-        const constructCallBackIfUrlPresent = () => {
-          if (isOrgInviteByLink) {
-            return `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`;
-          }
-
-          return addOrUpdateQueryParam(`${WEBAPP_URL}/${searchParams.get("callbackUrl")}`, "from", "signup");
-        };
-
-        const constructCallBackIfUrlNotPresent = () => {
-          if (isPlatformUser) {
-            return `${WEBAPP_URL}/${gettingStartedWithPlatform}?from=signup`;
-          }
-
-          return `${WEBAPP_URL}/${verifyOrGettingStarted}?from=signup`;
-        };
-
-        const constructCallBackUrl = () => {
-          const callbackUrlSearchParams = searchParams?.get("callbackUrl");
-
-          return callbackUrlSearchParams
-            ? constructCallBackIfUrlPresent()
-            : constructCallBackIfUrlNotPresent();
-        };
-
-        const callBackUrl = constructCallBackUrl();
-
-        await signIn<"credentials">("credentials", {
+    try {
+      const result = await fetchSignup(
+        {
           ...data,
-          callbackUrl: callBackUrl,
-        });
-      })
-      .catch((err) => {
-        posthog.capture("signup_form_submit_error", {
-          has_token: !!token,
-          is_org_invite: isOrgInviteByLink,
-          org_slug: orgSlug,
-          is_premium_username: premiumUsername,
-          error_message: err.message,
-        });
-        formMethods.setError("apiError", { message: err.message });
+          language: i18n.language,
+          token,
+        },
+        cfToken
+      );
+
+      if (!result.ok) {
+        if (isUserAlreadyExistsError(result)) {
+          showToast(t("account_already_exists_please_login"), "warning");
+          const callbackUrl = token ? `/teams?token=${token}` : "/event-types";
+          setTimeout(() => {
+            router.push(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+          }, 3000);
+          return;
+        }
+
+        if (hasCheckoutSession(result)) {
+          const stripe = await getStripe();
+          if (stripe) {
+            const { error } = await stripe.redirectToCheckout({
+              sessionId: result.error.checkoutSessionId,
+            });
+            if (error) console.warn(error.message);
+          }
+          return;
+        }
+
+        throw new Error(result.error.message);
+      }
+
+      if (process.env.NEXT_PUBLIC_GTM_ID) {
+        pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
+      }
+
+      const gettingStartedPath = onboardingV3Enabled ? "onboarding/getting-started" : "getting-started";
+      const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : gettingStartedPath;
+      const gettingStartedWithPlatform = "settings/platform/new";
+
+      const constructCallBackIfUrlPresent = () => {
+        if (isOrgInviteByLink) {
+          return `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`;
+        }
+        return addOrUpdateQueryParam(`${WEBAPP_URL}/${searchParams.get("callbackUrl")}`, "from", "signup");
+      };
+
+      const constructCallBackIfUrlNotPresent = () => {
+        if (isPlatformUser) {
+          return `${WEBAPP_URL}/${gettingStartedWithPlatform}?from=signup`;
+        }
+        return `${WEBAPP_URL}/${verifyOrGettingStarted}?from=signup`;
+      };
+
+      const constructCallBackUrl = () => {
+        const callbackUrlSearchParams = searchParams?.get("callbackUrl");
+        return callbackUrlSearchParams ? constructCallBackIfUrlPresent() : constructCallBackIfUrlNotPresent();
+      };
+
+      await signIn<"credentials">("credentials", {
+        ...data,
+        callbackUrl: constructCallBackUrl(),
       });
+    } catch (err) {
+      setTurnstileKey((k) => k + 1);
+      formMethods.setValue("cfToken", undefined);
+
+      const errorMessage = err instanceof Error ? err.message : t("unexpected_error_try_again");
+
+      if (errorMessage === INVALID_CLOUDFLARE_TOKEN_ERROR) {
+        return;
+      }
+
+      posthog.capture("signup_form_submit_error", {
+        has_token: !!token,
+        is_org_invite: isOrgInviteByLink,
+        org_slug: orgSlug,
+        is_premium_username: premiumUsername,
+        error_message: errorMessage,
+      });
+      formMethods.setError("apiError", { message: errorMessage });
+    }
   };
 
   return (
@@ -337,7 +342,6 @@ export default function Signup({
                 }}
               />
               <noscript
-
                 dangerouslySetInnerHTML={{
                   __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
                 }}
@@ -381,7 +385,7 @@ export default function Signup({
               </div>
             )}
             <div className="flex flex-col gap-2">
-              <h1 className="font-cal text-[28px] leading-none ">
+              <h1 className="font-heading text-[28px] leading-none ">
                 {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
               </h1>
               {IS_CALCOM ? (
@@ -392,6 +396,56 @@ export default function Signup({
                     appName: APP_NAME,
                   })}
                 </p>
+              )}
+              {IS_CALCOM && (
+                <div className="mt-4">
+                  <SelectField
+                    label={t("data_region")}
+                    value={{
+                      label: t(
+                        // Use WEBAPP_URL for SSR-safe region detection
+                        WEBAPP_URL.includes("cal.eu") ||
+                          (typeof window !== "undefined" &&
+                            window.location.hostname === "localhost" &&
+                            new URL(window.location.href).searchParams.get("region") === "eu")
+                          ? "european_union"
+                          : "united_states"
+                      ),
+                      value:
+                        // Use WEBAPP_URL for SSR-safe region detection
+                        WEBAPP_URL.includes("cal.eu") ||
+                        (typeof window !== "undefined" &&
+                          window.location.hostname === "localhost" &&
+                          new URL(window.location.href).searchParams.get("region") === "eu")
+                          ? "eu"
+                          : "us",
+                    }}
+                    options={[
+                      { label: t("united_states"), value: "us" },
+                      { label: t("european_union"), value: "eu" },
+                    ]}
+                    onChange={(option) => {
+                      if (option && "value" in option) {
+                        const currentUrl = new URL(window.location.href);
+
+                        // Handle localhost - add region as URL parameter
+                        if (currentUrl.hostname === "localhost") {
+                          currentUrl.searchParams.set("region", option.value);
+                          window.location.href = currentUrl.toString();
+                          return;
+                        }
+
+                        // Handle production domains - modify hostname only to preserve query params
+                        if (option.value === "eu") {
+                          currentUrl.hostname = currentUrl.hostname.replace("cal.com", "cal.eu");
+                        } else {
+                          currentUrl.hostname = currentUrl.hostname.replace("cal.eu", "cal.com");
+                        }
+                        window.location.href = currentUrl.toString();
+                      }
+                    }}
+                  />
+                </div>
               )}
             </div>
 
@@ -426,14 +480,14 @@ export default function Signup({
                       addOnLeading={
                         orgSlug
                           ? truncateDomain(
-                            `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
-                              URL_PROTOCOL_REGEX,
-                              ""
-                            )}/`
-                          )
+                              `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
+                                URL_PROTOCOL_REGEX,
+                                ""
+                              )}/`
+                            )
                           : truncateDomain(
-                            `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
-                          )
+                              `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
+                            )
                       }
                     />
                   ) : null}
@@ -463,9 +517,16 @@ export default function Signup({
                   {/* Cloudflare Turnstile Captcha */}
                   {CLOUDFLARE_SITE_ID ? (
                     <TurnstileCaptcha
+                      key={turnstileKey}
                       appearance="interaction-only"
                       onVerify={(token) => {
                         formMethods.setValue("cfToken", token);
+                      }}
+                      onExpire={() => {
+                        formMethods.setValue("cfToken", undefined);
+                      }}
+                      onError={() => {
+                        formMethods.setValue("cfToken", undefined);
                       }}
                     />
                   ) : null}
@@ -499,7 +560,7 @@ export default function Signup({
                         const username = formMethods.getValues("username");
                         if (!username) {
                           // should not be reached but needed to bypass type errors
-                          showToast("error", t("username_required"));
+                          showToast(t("username_required"), "error");
                           return;
                         }
 
@@ -509,7 +570,6 @@ export default function Signup({
                           org_slug: orgSlug,
                         });
 
-                        // eslint-disable-next-line @calcom/eslint/avoid-web-storage
                         localStorage.setItem("username", username);
                         const sp = new URLSearchParams();
                         // @NOTE: don't remove username query param as it's required right now for stripe payment page
@@ -539,9 +599,7 @@ export default function Signup({
                         !!formMethods.formState.errors.email ||
                         !formMethods.getValues("email") ||
                         !formMethods.getValues("password") ||
-                        (CLOUDFLARE_SITE_ID &&
-                          !process.env.NEXT_PUBLIC_IS_E2E &&
-                          !formMethods.getValues("cfToken")) ||
+                        (CLOUDFLARE_SITE_ID && !process.env.NEXT_PUBLIC_IS_E2E && !watch("cfToken")) ||
                         isSubmitting ||
                         usernameTaken
                       }>
@@ -565,7 +623,10 @@ export default function Signup({
                         <>
                           {/* eslint-disable @next/next/no-img-element */}
                           <img
-                            className={classNames("text-subtle  mr-2 h-4 w-4", premiumUsername && "opacity-50")}
+                            className={classNames(
+                              "text-subtle  mr-2 h-4 w-4",
+                              premiumUsername && "opacity-50"
+                            )}
                             src="/google-icon-colored.svg"
                             alt="Continue with Google Icon"
                           />
@@ -588,7 +649,6 @@ export default function Signup({
                         if (prepopulateFormValues?.username) {
                           // If username is present we save it in query params to check for premium
                           searchQueryParams.set("username", prepopulateFormValues.username);
-                          // eslint-disable-next-line @calcom/eslint/avoid-web-storage
                           localStorage.setItem("username", prepopulateFormValues.username);
                         }
                         if (token) {
@@ -748,7 +808,7 @@ export default function Signup({
                 </div>
               </>
             )}
-            <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/3 dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
+            <div className="border-default bg-black/3 hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
               <img className="block dark:hidden" src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
               {/* eslint-disable @next/next/no-img-element */}
               <img
