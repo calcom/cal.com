@@ -1,16 +1,15 @@
 "use client";
 
-import type { ReactElement } from "react";
-
 import type { FeatureState } from "@calcom/features/flags/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
-import { ToggleGroup } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { SettingsToggle, ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import type { ReactElement } from "react";
+import { useMemo } from "react";
 
 import { getOptInFeatureConfig } from "../config";
 import type { NormalizedFeature, UseFeatureOptInResult } from "../types";
@@ -71,11 +70,22 @@ function FeatureItem({
   t: (key: string) => string;
 }): ReactElement | null {
   const config = getOptInFeatureConfig(feature.slug);
-  if (!config) return null;
 
   const blockedWarning = getBlockedWarning(feature);
-  const isBlocked = isBlockedByHigherLevel(feature);
   const enabledViaAutoOptInFlag = isEnabledViaAutoOptIn(feature, autoOptIn);
+  const blockedByHigherLevel = isBlockedByHigherLevel(feature);
+
+  const finalToggleOptions = useMemo(() => {
+    if (!blockedByHigherLevel) {
+      return toggleOptions;
+    }
+    return toggleOptions.map((option) => ({
+      ...option,
+      disabled: true,
+    }));
+  }, [toggleOptions, blockedByHigherLevel]);
+
+  if (!config) return null;
 
   return (
     <div key={feature.slug}>
@@ -106,9 +116,10 @@ function FeatureItem({
         </div>
         <ToggleGroup
           value={feature.currentState}
-          onValueChange={(val: string | undefined): void => handleValueChange(val, feature.slug, setFeatureState)}
-          options={toggleOptions}
-          disabled={isBlocked}
+          onValueChange={(val: string | undefined): void =>
+            handleValueChange(val, feature.slug, setFeatureState)
+          }
+          options={finalToggleOptions}
         />
       </div>
     </div>
