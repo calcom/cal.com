@@ -1,6 +1,5 @@
 {
   "version": 1.2,
-  "_comment": "When adding new locales, also update SUPPORTED_LOCALES in packages/platform/constants/api.ts",
   "locale": {
     "source": "en",
     "targets": [
@@ -44,7 +43,9 @@
   },
   "buckets": {
     "json": {
-      "include": ["apps/web/public/static/locales/[locale]/common.json"]
+      "include": [
+        "apps/web/public/static/locales/[locale]/common.json"
+      ]
     }
   },
   "$schema": "https://lingo.dev/schema/i18n.json"
