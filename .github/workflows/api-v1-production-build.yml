@@ -69,13 +69,16 @@ jobs:
         ports:
           - 5432:5432
     steps:
-      - uses: actions/checkout@v4
+      - name: Restore git checkout from cache
+        uses: actions/cache/restore@v4
         with:
-          sparse-checkout: .github
-      - uses: ./.github/actions/cache-checkout
-        with:
-          mode: restore
-          commit-sha: ${{ inputs.commit-sha }}
+          path: |
+            .
+            !.git
+            !node_modules
+            !**/node_modules
+          key: git-checkout-${{ inputs.commit-sha }}
+          fail-on-cache-miss: true
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
       - name: Cache API v1 production build

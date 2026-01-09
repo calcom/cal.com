@@ -14,13 +14,16 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Restore git checkout from cache
+        uses: actions/cache/restore@v4
         with:
-          sparse-checkout: .github
-      - uses: ./.github/actions/cache-checkout
-        with:
-          mode: restore
-          commit-sha: ${{ inputs.commit-sha }}
+          path: |
+            .
+            !.git
+            !node_modules
+            !**/node_modules
+          key: git-checkout-${{ inputs.commit-sha }}
+          fail-on-cache-miss: true
       - uses: ./.github/actions/yarn-install
       - name: Run Lint
         run: yarn lint
