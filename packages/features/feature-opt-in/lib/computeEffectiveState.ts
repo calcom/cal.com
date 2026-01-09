@@ -38,7 +38,7 @@ export function computeEffectiveStateAcrossTeams({
   orgState,
   teamStates,
   userState,
-  policy = "permissive",
+  policy,
 }: {
   /**
    * Acts as a global kill switch. When false, the feature is disabled for everyone.
@@ -51,9 +51,8 @@ export function computeEffectiveStateAcrossTeams({
   userState: FeatureState;
   /**
    * Policy that determines how feature opt-in states are evaluated.
-   * Defaults to "permissive" if not specified.
    */
-  policy?: OptInFeaturePolicy;
+  policy: OptInFeaturePolicy;
 }): EffectiveStateResult {
   // Derive all conditions upfront
   const orgEnabled = orgState === "enabled";
