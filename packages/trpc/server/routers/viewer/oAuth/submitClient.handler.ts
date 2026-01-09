@@ -19,13 +19,14 @@ type SubmitClientOptions = {
 };
 
 export const submitClientHandler = async ({ ctx, input }: SubmitClientOptions) => {
-  const { name, redirectUri, logo, websiteUrl, enablePkce } = input;
+  const { name, purpose, redirectUri, logo, websiteUrl, enablePkce } = input;
   const userId = ctx.user.id;
 
   const oAuthClientRepository = new OAuthClientRepository(ctx.prisma);
 
   const client = await oAuthClientRepository.create({
     name,
+    purpose,
     redirectUri,
     logo,
     websiteUrl,
@@ -39,6 +40,7 @@ export const submitClientHandler = async ({ ctx, input }: SubmitClientOptions) =
   await sendAdminOAuthClientNotification({
     t,
     clientName: client.name,
+    purpose: client.purpose,
     clientId: client.clientId,
     redirectUri: client.redirectUri,
     submitterEmail: ctx.user.email,
@@ -48,6 +50,7 @@ export const submitClientHandler = async ({ ctx, input }: SubmitClientOptions) =
   return {
     clientId: client.clientId,
     name: client.name,
+    purpose: client.purpose,
     clientSecret: client.clientSecret,
     redirectUri: client.redirectUri,
     logo: client.logo,

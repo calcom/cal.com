@@ -13,7 +13,7 @@ export const OAuthClientsSkeleton = () => {
       <div className="border-subtle rounded-lg border">
         {skeletonItems.map((i, index) => (
           <div
-            key={i}
+            key={`oauth-client-skeleton-${index}`}
             className={`flex items-center justify-between p-4 ${
               index !== skeletonItems.length - 1 ? "border-subtle border-b" : ""
             }`}>

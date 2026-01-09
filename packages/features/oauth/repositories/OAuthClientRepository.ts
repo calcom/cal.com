@@ -16,10 +16,12 @@ export class OAuthClientRepository {
         redirectUri: true,
         clientType: true,
         name: true,
+        purpose: true,
         logo: true,
         clientId: true,
         isTrusted: true,
         websiteUrl: true,
+        rejectionReason: true,
         approvalStatus: true,
         userId: true,
         createdAt: true,
@@ -42,7 +44,19 @@ export class OAuthClientRepository {
   async findByClientIdIncludeUser(clientId: string) {
     return this.prisma.oAuthClient.findUnique({
       where: { clientId },
-      include: {
+      select: {
+        clientId: true,
+        redirectUri: true,
+        clientType: true,
+        name: true,
+        purpose: true,
+        logo: true,
+        websiteUrl: true,
+        rejectionReason: true,
+        isTrusted: true,
+        approvalStatus: true,
+        userId: true,
+        createdAt: true,
         user: {
           select: {
             id: true,
@@ -61,8 +75,10 @@ export class OAuthClientRepository {
         clientId: true,
         redirectUri: true,
         name: true,
+        purpose: true,
         logo: true,
         websiteUrl: true,
+        rejectionReason: true,
         clientType: true,
         approvalStatus: true,
         userId: true,
@@ -81,7 +97,18 @@ export class OAuthClientRepository {
 
   async findAll() {
     return this.prisma.oAuthClient.findMany({
-      include: {
+      select: {
+        clientId: true,
+        redirectUri: true,
+        name: true,
+        purpose: true,
+        logo: true,
+        websiteUrl: true,
+        rejectionReason: true,
+        clientType: true,
+        approvalStatus: true,
+        userId: true,
+        createdAt: true,
         user: {
           select: {
             id: true,
@@ -97,7 +124,18 @@ export class OAuthClientRepository {
   async findByStatus(approvalStatus: OAuthClientApprovalStatus) {
     return this.prisma.oAuthClient.findMany({
       where: { approvalStatus },
-      include: {
+      select: {
+        clientId: true,
+        redirectUri: true,
+        name: true,
+        purpose: true,
+        logo: true,
+        websiteUrl: true,
+        rejectionReason: true,
+        clientType: true,
+        approvalStatus: true,
+        userId: true,
+        createdAt: true,
         user: {
           select: {
             id: true,
@@ -112,6 +150,7 @@ export class OAuthClientRepository {
 
   async create(data: {
     name: string;
+    purpose: string;
     redirectUri: string;
     logo?: string;
     websiteUrl?: string;
@@ -119,7 +158,7 @@ export class OAuthClientRepository {
     userId?: number;
     approvalStatus: OAuthClientApprovalStatus;
   }) {
-    const { name, redirectUri, logo, websiteUrl, enablePkce, userId, approvalStatus } = data;
+    const { name, purpose, redirectUri, logo, websiteUrl, enablePkce, userId, approvalStatus } = data;
 
     const clientId = randomBytes(32).toString("hex");
 
@@ -134,6 +173,7 @@ export class OAuthClientRepository {
     const client = await this.prisma.oAuthClient.create({
       data: {
         name,
+        purpose,
         redirectUri,
         clientId,
         clientType: enablePkce ? "PUBLIC" : "CONFIDENTIAL",
@@ -152,6 +192,7 @@ export class OAuthClientRepository {
     return {
       clientId: client.clientId,
       name: client.name,
+      purpose: client.purpose,
       redirectUri: client.redirectUri,
       logo: client.logo,
       clientType: client.clientType,
@@ -172,6 +213,7 @@ export class OAuthClientRepository {
     clientId: string,
     data: {
       name?: string;
+      purpose?: string;
       redirectUri?: string;
       logo?: string;
       websiteUrl?: string;

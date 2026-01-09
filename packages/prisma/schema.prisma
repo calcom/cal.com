@@ -1773,19 +1773,21 @@ enum OAuthClientApprovalStatus {
 }
 
 model OAuthClient {
-  clientId       String                    @id @unique
-  redirectUri    String
-  clientSecret   String?
-  clientType     OAuthClientType           @default(CONFIDENTIAL)
-  name           String
-  logo           String?
-  websiteUrl     String?
-  isTrusted      Boolean                   @default(false)
-  accessCodes    AccessCode[]
-  approvalStatus OAuthClientApprovalStatus @default(APPROVED)
-  userId         Int?
-  user           User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt      DateTime                  @default(now())
+  clientId        String                    @id @unique
+  redirectUri     String
+  clientSecret    String?
+  clientType      OAuthClientType           @default(CONFIDENTIAL)
+  name            String
+  purpose         String                    @default("")
+  logo            String?
+  websiteUrl      String?
+  rejectionReason String?
+  isTrusted       Boolean                   @default(false)
+  accessCodes     AccessCode[]
+  approvalStatus  OAuthClientApprovalStatus @default(APPROVED)
+  userId          Int?
+  user            User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt       DateTime                  @default(now())
 
   @@index([userId])
 }

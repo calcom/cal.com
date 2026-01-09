@@ -11,12 +11,13 @@ type AddClientOptions = {
 };
 
 export const addClientHandler = async ({ ctx, input }: AddClientOptions) => {
-  const { name, redirectUri, logo, websiteUrl, enablePkce } = input;
+  const { name, purpose, redirectUri, logo, websiteUrl, enablePkce } = input;
 
   const oAuthClientRepository = new OAuthClientRepository(ctx.prisma);
 
   const client = await oAuthClientRepository.create({
     name,
+    purpose,
     redirectUri,
     logo,
     websiteUrl,
@@ -27,6 +28,7 @@ export const addClientHandler = async ({ ctx, input }: AddClientOptions) => {
   return {
     clientId: client.clientId,
     name: client.name,
+    purpose: client.purpose,
     redirectUri: client.redirectUri,
     logo: client.logo,
     clientType: client.clientType,

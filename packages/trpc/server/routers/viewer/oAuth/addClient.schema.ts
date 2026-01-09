@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export type TAddClientInputSchemaInput = {
   name: string;
+  purpose: string;
   redirectUri: string;
   logo: string;
   websiteUrl?: string;
@@ -10,6 +11,7 @@ export type TAddClientInputSchemaInput = {
 
 export type TAddClientInputSchema = {
   name: string;
+  purpose: string;
   redirectUri: string;
   logo: string;
   websiteUrl?: string;
@@ -18,6 +20,7 @@ export type TAddClientInputSchema = {
 
 export const ZAddClientInputSchema: z.ZodType<TAddClientInputSchema, z.ZodTypeDef, TAddClientInputSchemaInput> = z.object({
   name: z.string(),
+  purpose: z.string().min(1),
   redirectUri: z.string(),
   logo: z.string(),
   websiteUrl: z.string().url().optional(),

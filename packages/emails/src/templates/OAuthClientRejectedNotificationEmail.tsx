@@ -4,32 +4,28 @@ import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
-type AdminOAuthClientNotification = {
+type OAuthClientRejectedNotification = {
   language: TFunction;
+  userName: string | null;
   clientName: string;
-  purpose: string;
   clientId: string;
-  redirectUri: string;
-  submitterEmail: string;
-  submitterName: string | null;
+  rejectionReason: string;
 };
 
-export const AdminOAuthClientNotificationEmail = ({
+export const OAuthClientRejectedNotificationEmail = ({
+  userName,
   clientName,
-  purpose,
   clientId,
-  redirectUri,
-  submitterEmail,
-  submitterName,
+  rejectionReason,
   language,
-}: AdminOAuthClientNotification) => {
+}: OAuthClientRejectedNotification) => {
   return (
     <BaseEmailHtml
-      subject={language("admin_oauth_notification_email_subject", { clientName, appName: APP_NAME })}
+      subject={language("oauth_client_rejected_email_subject", { clientName, appName: APP_NAME })}
       callToAction={
         <CallToAction
-          label={language("admin_oauth_notification_email_cta")}
-          href={`${WEBAPP_URL}/settings/admin/oauth`}
+          label={language("oauth_client_rejected_email_cta")}
+          href={`${WEBAPP_URL}/settings/developer/oauth`}
           endIconName="white-arrow-right"
         />
       }>
@@ -39,14 +35,10 @@ export const AdminOAuthClientNotificationEmail = ({
           fontSize: "24px",
           lineHeight: "38px",
         }}>
-        <>{language("admin_oauth_notification_email_title", { clientName })}</>
+        {language("oauth_client_rejected_email_title", { clientName })}
       </p>
-      <p style={{ fontWeight: 400 }}>
-        <>{language("hi_admin")}!</>
-      </p>
-      <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-        {language("admin_oauth_notification_email_body", { submitterEmail })}
-      </p>
+      <p style={{ fontWeight: 400 }}>{language("hi_user", { name: userName || language("there") })}!</p>
+      <p style={{ fontWeight: 400, lineHeight: "24px" }}>{language("oauth_client_rejected_email_body")}</p>
       <table
         role="presentation"
         border={0}
@@ -79,17 +71,7 @@ export const AdminOAuthClientNotificationEmail = ({
                 padding: "12px",
                 borderBottom: "1px solid #e5e7eb",
                 fontWeight: 600,
-              }}>
-              {language("purpose")}
-            </td>
-            <td style={{ padding: "12px", borderBottom: "1px solid #e5e7eb" }}>{purpose}</td>
-          </tr>
-          <tr style={{ lineHeight: "24px" }}>
-            <td
-              style={{
-                padding: "12px",
-                borderBottom: "1px solid #e5e7eb",
-                fontWeight: 600,
+                width: "30%",
               }}>
               {language("client_id")}
             </td>
@@ -101,23 +83,18 @@ export const AdminOAuthClientNotificationEmail = ({
             <td
               style={{
                 padding: "12px",
-                borderBottom: "1px solid #e5e7eb",
                 fontWeight: 600,
               }}>
-              {language("redirect_uri")}
+              {language("oauth_client_rejected_email_reason_label")}
             </td>
-            <td style={{ padding: "12px", borderBottom: "1px solid #e5e7eb" }}>{redirectUri}</td>
-          </tr>
-          <tr style={{ lineHeight: "24px" }}>
-            <td style={{ padding: "12px", fontWeight: 600 }}>{language("submitted_by")}</td>
             <td style={{ padding: "12px" }}>
-              {submitterName ? `${submitterName} (${submitterEmail})` : submitterEmail}
+              <span style={{ whiteSpace: "pre-wrap" }}>{rejectionReason}</span>
             </td>
           </tr>
         </tbody>
       </table>
       <p style={{ fontWeight: 400, lineHeight: "24px", marginTop: "20px" }}>
-        {language("admin_oauth_notification_email_footer")}
+        {language("oauth_client_rejected_email_footer")}
       </p>
     </BaseEmailHtml>
   );

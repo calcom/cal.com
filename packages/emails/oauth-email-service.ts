@@ -4,6 +4,8 @@ import type { OAuthClientNotification } from "./templates/admin-oauth-client-not
 import AdminOAuthClientNotification from "./templates/admin-oauth-client-notification";
 import type { OAuthClientApprovedNotification } from "./templates/oauth-client-approved-notification";
 import OAuthClientApprovedEmail from "./templates/oauth-client-approved-notification";
+import type { OAuthClientRejectedNotification } from "./templates/oauth-client-rejected-notification";
+import OAuthClientRejectedEmail from "./templates/oauth-client-rejected-notification";
 
 const sendEmail = (prepare: () => BaseEmail) => {
   return new Promise((resolve, reject) => {
@@ -22,4 +24,8 @@ export const sendAdminOAuthClientNotification = async (input: OAuthClientNotific
 
 export const sendOAuthClientApprovedNotification = async (input: OAuthClientApprovedNotification) => {
   await sendEmail(() => new OAuthClientApprovedEmail(input));
+};
+
+export const sendOAuthClientRejectedNotification = async (input: OAuthClientRejectedNotification) => {
+  await sendEmail(() => new OAuthClientRejectedEmail(input));
 };

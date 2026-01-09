@@ -6,7 +6,8 @@ import { ZGenerateAuthCodeInputSchema } from "./generateAuthCode.schema";
 import { ZGetClientInputSchema } from "./getClient.schema";
 import { ZListClientsInputSchema } from "./listClients.schema";
 import { ZSubmitClientInputSchema, ZSubmitClientOutputSchema } from "./submitClient.schema";
-import { ZUpdateClientStatusInputSchema } from "./updateClientStatus.schema";
+import { ZUpdateClientInputSchema, ZUpdateClientStatusInputSchema } from "./updateClientStatus.schema";
+import { ZDeleteClientInputSchema } from "./deleteClient.schema";
 
 type _OAuthRouterHandlerCache = {
   getClient?: typeof import("./getClient.handler").getClientHandler;
@@ -15,7 +16,9 @@ type _OAuthRouterHandlerCache = {
   submitClient?: typeof import("./submitClient.handler").submitClientHandler;
   listClients?: typeof import("./listClients.handler").listClientsHandler;
   listUserClients?: typeof import("./listUserClients.handler").listUserClientsHandler;
+  updateClient?: typeof import("./updateClientStatus.handler").updateClientStatusHandler;
   updateClientStatus?: typeof import("./updateClientStatus.handler").updateClientStatusHandler;
+  deleteClient?: typeof import("./deleteClient.handler").deleteClientHandler;
 };
 
 export const oAuthRouter = router({
@@ -74,10 +77,28 @@ export const oAuthRouter = router({
     });
   }),
 
+  updateClient: authedProcedure.input(ZUpdateClientInputSchema).mutation(async ({ ctx, input }) => {
+    const { updateClientStatusHandler } = await import("./updateClientStatus.handler");
+
+    return updateClientStatusHandler({
+      ctx,
+      input,
+    });
+  }),
+
   updateClientStatus: authedAdminProcedure.input(ZUpdateClientStatusInputSchema).mutation(async ({ ctx, input }) => {
     const { updateClientStatusHandler } = await import("./updateClientStatus.handler");
 
     return updateClientStatusHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  deleteClient: authedProcedure.input(ZDeleteClientInputSchema).mutation(async ({ ctx, input }) => {
+    const { deleteClientHandler } = await import("./deleteClient.handler");
+
+    return deleteClientHandler({
       ctx,
       input,
     });

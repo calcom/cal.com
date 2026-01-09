@@ -1,73 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 
-import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { OAuthClientsAdminSkeleton } from "./oauth-clients-admin-skeleton";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogClose,
-} from "@calcom/ui/components/dialog";
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Form, Label, Switch, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
-import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-type FormValues = {
-  name: string;
-  redirectUri: string;
-  websiteUrl: string;
-  logo: string;
-  enablePkce: boolean;
-};
+import {
+  OAuthClientCreateDialog,
+  type OAuthClientCreateFormValues,
+} from "../oauth/OAuthClientCreateDialog";
+import { OAuthClientDetailsDialog, type OAuthClientDetails } from "../oauth/OAuthClientDetailsDialog";
+import { OAuthClientsList } from "../oauth/OAuthClientsList";
+
+type OAuthClientRow = RouterOutputs["viewer"]["oAuth"]["listClients"][number];
 
 export default function OAuthClientsAdminView() {
   const { t } = useLocale();
-  const { copyToClipboard } = useCopy();
   const utils = trpc.useUtils();
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [logo, setLogo] = useState("");
-  const [createdClient, setCreatedClient] = useState<{
-    clientId: string;
-    clientSecret?: string;
-    name: string;
-  } | null>(null);
-  const [approvedClient, setApprovedClient] = useState<{
-    clientId: string;
-    clientSecret?: string;
-    name: string;
-  } | null>(null);
+  const [createdClient, setCreatedClient] = useState<OAuthClientDetails | null>(null);
+  const [selectedClient, setSelectedClient] = useState<OAuthClientDetails | null>(null);
 
-  const oAuthForm = useForm<FormValues>({
-    defaultValues: {
-      name: "",
-      redirectUri: "",
-      websiteUrl: "",
-      logo: "",
-      enablePkce: false,
-    },
+  const { data: pendingClients, isLoading: isPendingClientsLoading } = trpc.viewer.oAuth.listClients.useQuery({
+    status: "PENDING",
   });
-
-  const { data: oAuthClients, isLoading } = trpc.viewer.oAuth.listClients.useQuery({});
+  const { data: rejectedClients, isLoading: isRejectedClientsLoading } = trpc.viewer.oAuth.listClients.useQuery({
+    status: "REJECTED",
+  });
+  const { data: approvedClients, isLoading: isApprovedClientsLoading } = trpc.viewer.oAuth.listClients.useQuery({
+    status: "APPROVED",
+  });
 
   const addMutation = trpc.viewer.oAuth.addClient.useMutation({
     onSuccess: async (data) => {
@@ -75,6 +44,10 @@ export default function OAuthClientsAdminView() {
         clientId: data.clientId,
         clientSecret: data.clientSecret,
         name: data.name,
+        purpose: data.purpose,
+        approvalStatus: "APPROVED",
+        redirectUri: data.redirectUri,
+        logo: data.logo || null,
       });
       showToast(t("oauth_client_created"), "success");
       utils.viewer.oAuth.listClients.invalidate();
@@ -90,6 +63,17 @@ export default function OAuthClientsAdminView() {
         t("oauth_client_status_updated", { name: data.name, status: data.approvalStatus }),
         "success"
       );
+
+      setSelectedClient((prev) => {
+        if (!prev) return prev;
+        if (prev.clientId !== data.clientId) return prev;
+        return {
+          ...prev,
+          approvalStatus: data.approvalStatus,
+          rejectionReason: data.rejectionReason,
+        };
+      });
+
       utils.viewer.oAuth.listClients.invalidate();
     },
     onError: (error) => {
@@ -97,11 +81,12 @@ export default function OAuthClientsAdminView() {
     },
   });
 
-  const handleAddClient = (values: FormValues) => {
+  const handleAddClient = (values: OAuthClientCreateFormValues) => {
     addMutation.mutate({
       name: values.name,
+      purpose: values.purpose,
       redirectUri: values.redirectUri,
-      websiteUrl: values.websiteUrl || undefined,
+      websiteUrl: values.websiteUrl,
       logo: values.logo,
       enablePkce: values.enablePkce,
     });
@@ -110,37 +95,35 @@ export default function OAuthClientsAdminView() {
   const handleCloseDialog = () => {
     setShowAddDialog(false);
     setCreatedClient(null);
-    setLogo("");
-    oAuthForm.reset();
   };
 
-  const handleCloseApprovedDialog = () => {
-    setApprovedClient(null);
+  const handleCloseClientDialog = () => {
+    setSelectedClient(null);
   };
 
   const handleApprove = (clientId: string) => {
     updateStatusMutation.mutate({ clientId, status: "APPROVED" });
   };
 
-  const handleReject = (clientId: string) => {
-    updateStatusMutation.mutate({ clientId, status: "REJECTED" });
+  const handleReject = (input: { clientId: string; rejectionReason: string }) => {
+    updateStatusMutation.mutate({ clientId: input.clientId, status: "REJECTED", rejectionReason: input.rejectionReason });
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "APPROVED":
-        return <Badge variant="success">{t("approved")}</Badge>;
-      case "REJECTED":
-        return <Badge variant="red">{t("rejected")}</Badge>;
-      case "PENDING":
-      default:
-        return <Badge variant="orange">{t("pending")}</Badge>;
-    }
-  };
-
-  if (isLoading) {
+  if (isPendingClientsLoading || isRejectedClientsLoading || isApprovedClientsLoading) {
     return <OAuthClientsAdminSkeleton />;
   }
+
+  const toClientDetails = (client: OAuthClientRow): OAuthClientDetails => ({
+    clientId: client.clientId,
+    name: client.name,
+    purpose: client.purpose,
+    redirectUri: client.redirectUri,
+    websiteUrl: client.websiteUrl,
+    logo: client.logo,
+    approvalStatus: client.approvalStatus,
+    rejectionReason: client.rejectionReason,
+    clientType: client.clientType,
+  });
 
   const NewOAuthClientButton = () => (
     <Button
@@ -153,113 +136,44 @@ export default function OAuthClientsAdminView() {
     </Button>
   );
 
+  const hasClients =
+    (pendingClients && pendingClients.length > 0) ||
+    (rejectedClients && rejectedClients.length > 0) ||
+    (approvedClients && approvedClients.length > 0);
+
   return (
     <SettingsHeader
       title={t("oauth_clients_admin")}
       description={t("oauth_clients_admin_description")}
-      CTA={oAuthClients && oAuthClients.length > 0 ? <NewOAuthClientButton /> : null}>
-      {oAuthClients && oAuthClients.length > 0 ? (
-        <div className="border-subtle overflow-hidden rounded-lg border">
-          <table className="w-full">
-            <thead className="bg-subtle">
-              <tr>
-                <th className="text-emphasis px-4 py-3 text-left text-sm font-medium">{t("client_name")}</th>
-                <th className="text-emphasis px-4 py-3 text-left text-sm font-medium">{t("redirect_uri")}</th>
-                <th className="text-emphasis px-4 py-3 text-left text-sm font-medium">{t("submitted_by")}</th>
-                <th className="text-emphasis px-4 py-3 text-left text-sm font-medium">{t("status")}</th>
-                <th className="text-emphasis px-4 py-3 text-left text-sm font-medium">{t("actions")}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-subtle divide-y">
-              {oAuthClients.map((client) => (
-                <tr key={client.clientId} className="hover:bg-subtle/50">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <Avatar
-                        alt={client.name}
-                        imageSrc={client.logo || undefined}
-                        fallback={<Icon name="key" className="text-subtle h-4 w-4" />}
-                        size="sm"
-                      />
-                      <span className="text-emphasis font-medium">{client.name}</span>
-                    </div>
-                  </td>
-                  <td className="text-default px-4 py-3 text-sm">{client.redirectUri}</td>
-                  <td className="text-default px-4 py-3 text-sm">
-                    {client.user ? (
-                      <span>
-                        {client.user.name || client.user.email}
-                      </span>
-                    ) : (
-                      <span className="text-subtle">{t("admin")}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">{getStatusBadge(client.approvalStatus)}</td>
-                  <td className="px-4 py-3">
-                    <Dropdown>
-                      <DropdownMenuTrigger asChild>
-                        <Button color="minimal" size="sm" StartIcon="ellipsis" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {client.approvalStatus === "PENDING" && (
-                          <>
-                            <DropdownMenuItem>
-                              <DropdownItem
-                                type="button"
-                                StartIcon="check"
-                                onClick={() => handleApprove(client.clientId)}>
-                                {t("approve")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <DropdownItem
-                                type="button"
-                                StartIcon="x"
-                                onClick={() => handleReject(client.clientId)}>
-                                {t("reject")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                        {client.approvalStatus === "REJECTED" && (
-                          <DropdownMenuItem>
-                            <DropdownItem
-                              type="button"
-                              StartIcon="check"
-                              onClick={() => handleApprove(client.clientId)}>
-                              {t("approve")}
-                            </DropdownItem>
-                          </DropdownMenuItem>
-                        )}
-                        {client.approvalStatus === "APPROVED" && (
-                          <DropdownMenuItem>
-                            <DropdownItem
-                              type="button"
-                              StartIcon="x"
-                              onClick={() => handleReject(client.clientId)}>
-                              {t("reject")}
-                            </DropdownItem>
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem>
-                          <DropdownItem
-                            type="button"
-                            StartIcon="clipboard"
-                            onClick={() => {
-                              copyToClipboard(client.clientId, {
-                                onSuccess: () => showToast(t("client_id_copied"), "success"),
-                              });
-                            }}>
-                            {t("copy_client_id")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </Dropdown>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      CTA={<NewOAuthClientButton />}>
+      {hasClients ? (
+        <div className="space-y-10">
+          <div className="space-y-3">
+            <h2 className="text-emphasis text-base font-semibold">{t("pending")}</h2>
+            <OAuthClientsList
+              clients={(pendingClients ?? []).map(toClientDetails)}
+              onSelectClient={(client) => setSelectedClient(client)}
+              showStatus
+            />
+          </div>
+
+          <div className="space-y-3">
+            <h2 className="text-emphasis text-base font-semibold">{t("rejected")}</h2>
+            <OAuthClientsList
+              clients={(rejectedClients ?? []).map(toClientDetails)}
+              onSelectClient={(client) => setSelectedClient(client)}
+              showStatus
+            />
+          </div>
+
+          <div className="space-y-3">
+            <h2 className="text-emphasis text-base font-semibold">{t("approved")}</h2>
+            <OAuthClientsList
+              clients={(approvedClients ?? []).map(toClientDetails)}
+              onSelectClient={(client) => setSelectedClient(client)}
+              showStatus
+            />
+          </div>
         </div>
       ) : (
         <EmptyScreen
@@ -272,196 +186,28 @@ export default function OAuthClientsAdminView() {
         />
       )}
 
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent
-          type="creation"
-          enableOverflow
-          title={createdClient ? t("oauth_client_created") : t("add_oauth_client")}
-          description={
-            createdClient ? t("oauth_client_created_description") : t("add_oauth_client_description")
-          }>
-          {!createdClient ? (
-            <Form form={oAuthForm} handleSubmit={handleAddClient} className="space-y-4">
-              <TextField
-                {...oAuthForm.register("name", { required: true })}
-                label={t("client_name")}
-                type="text"
-                id="name"
-                placeholder={t("client_name_placeholder")}
-                required
-              />
-              <TextField
-                {...oAuthForm.register("redirectUri", { required: true })}
-                label={t("redirect_uri")}
-                type="url"
-                id="redirectUri"
-                placeholder="https://example.com/callback"
-                required
-              />
+      <OAuthClientCreateDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        title={t("create_oauth_client")}
+        submitLabel={t("create")}
+        isSubmitting={addMutation.isPending}
+        onSubmit={handleAddClient}
+        resultClient={createdClient}
+        resultTitle={t("oauth_client_created")}
+        resultDescription={t("oauth_client_created_description")}
+        clientSecretInfoKey="copy_client_secret_info"
+        onClose={handleCloseDialog}
+      />
 
-              <TextField
-                {...oAuthForm.register("websiteUrl")}
-                label={t("website_url")}
-                type="url"
-                id="websiteUrl"
-                placeholder="https://example.com"
-              />
-
-              <div>
-                <Label className="text-emphasis mb-2 block text-sm font-medium">
-                  {t("authentication_mode")}
-                </Label>
-                <div className="flex items-center space-x-3">
-                  <Switch
-                    checked={oAuthForm.watch("enablePkce")}
-                    onCheckedChange={(checked) => oAuthForm.setValue("enablePkce", checked)}
-                  />
-                  <span className="text-default text-sm">{t("use_pkce")}</span>
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-emphasis mb-2 block text-sm font-medium">{t("logo")}</Label>
-                <div className="flex items-center gap-4">
-                  <Avatar
-                    alt=""
-                    fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
-                    imageSrc={logo}
-                    size="lg"
-                  />
-                  <ImageUploader
-                    target="avatar"
-                    id="avatar-upload"
-                    buttonMsg={t("upload_logo")}
-                    handleAvatarChange={(newLogo: string) => {
-                      setLogo(newLogo);
-                      oAuthForm.setValue("logo", newLogo);
-                    }}
-                    imageSrc={logo}
-                  />
-                </div>
-              </div>
-
-              <DialogFooter>
-                <DialogClose onClick={handleCloseDialog}>{t("cancel")}</DialogClose>
-                <Button type="submit" loading={addMutation.isPending}>
-                  {t("add_client")}
-                </Button>
-              </DialogFooter>
-            </Form>
-          ) : (
-            <div>
-              <div className="text-emphasis mb-5 text-xl font-semibold">{createdClient.name}</div>
-              <div className="text-subtle mb-1 text-sm">{t("client_id")}</div>
-              <div className="flex">
-                <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
-                  {createdClient.clientId}
-                </code>
-                <Tooltip side="top" content={t("copy_to_clipboard")}>
-                  <Button
-                    onClick={() => {
-                      copyToClipboard(createdClient.clientId, {
-                        onSuccess: () => showToast(t("client_id_copied"), "success"),
-                      });
-                    }}
-                    type="button"
-                    size="sm"
-                    className="rounded-l-none"
-                    StartIcon="clipboard">
-                    {t("copy")}
-                  </Button>
-                </Tooltip>
-              </div>
-              {createdClient.clientSecret && (
-                <>
-                  <div className="text-subtle mb-1 mt-4 text-sm">{t("client_secret")}</div>
-                  <div className="flex">
-                    <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
-                      {createdClient.clientSecret}
-                    </code>
-                    <Tooltip side="top" content={t("copy_to_clipboard")}>
-                      <Button
-                        onClick={() => {
-                          copyToClipboard(createdClient.clientSecret || "", {
-                            onSuccess: () => showToast(t("client_secret_copied"), "success"),
-                          });
-                        }}
-                        type="button"
-                        size="sm"
-                        className="rounded-l-none"
-                        StartIcon="clipboard">
-                        {t("copy")}
-                      </Button>
-                    </Tooltip>
-                  </div>
-                  <div className="text-subtle mt-2 text-sm">{t("copy_client_secret_info")}</div>
-                </>
-              )}
-              <DialogFooter className="mt-6">
-                <Button onClick={handleCloseDialog}>{t("done")}</Button>
-              </DialogFooter>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!approvedClient} onOpenChange={(open) => !open && handleCloseApprovedDialog()}>
-        <DialogContent type="creation" title={t("oauth_client_approved")} description={t("oauth_client_approved_description")}>
-          {approvedClient && (
-            <div>
-              <div className="text-emphasis mb-5 text-xl font-semibold">{approvedClient.name}</div>
-              <div className="text-subtle mb-1 text-sm">{t("client_id")}</div>
-              <div className="flex">
-                <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
-                  {approvedClient.clientId}
-                </code>
-                <Tooltip side="top" content={t("copy_to_clipboard")}>
-                  <Button
-                    onClick={() => {
-                      copyToClipboard(approvedClient.clientId, {
-                        onSuccess: () => showToast(t("client_id_copied"), "success"),
-                      });
-                    }}
-                    type="button"
-                    size="sm"
-                    className="rounded-l-none"
-                    StartIcon="clipboard">
-                    {t("copy")}
-                  </Button>
-                </Tooltip>
-              </div>
-              {approvedClient.clientSecret && (
-                <>
-                  <div className="text-subtle mb-1 mt-4 text-sm">{t("client_secret")}</div>
-                  <div className="flex">
-                    <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
-                      {approvedClient.clientSecret}
-                    </code>
-                    <Tooltip side="top" content={t("copy_to_clipboard")}>
-                      <Button
-                        onClick={() => {
-                          copyToClipboard(approvedClient.clientSecret || "", {
-                            onSuccess: () => showToast(t("client_secret_copied"), "success"),
-                          });
-                        }}
-                        type="button"
-                        size="sm"
-                        className="rounded-l-none"
-                        StartIcon="clipboard">
-                        {t("copy")}
-                      </Button>
-                    </Tooltip>
-                  </div>
-                  <div className="text-subtle mt-2 text-sm">{t("copy_client_secret_info")}</div>
-                </>
-              )}
-              <DialogFooter className="mt-6">
-                <Button onClick={handleCloseApprovedDialog}>{t("done")}</Button>
-              </DialogFooter>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <OAuthClientDetailsDialog
+        open={Boolean(selectedClient)}
+        onOpenChange={(open) => !open && handleCloseClientDialog()}
+        client={selectedClient}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        isStatusChangePending={updateStatusMutation.isPending}
+      />
     </SettingsHeader>
   );
 }
