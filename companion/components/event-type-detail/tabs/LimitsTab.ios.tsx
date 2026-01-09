@@ -96,7 +96,7 @@ function SettingRow({
           <Switch
             value={value}
             onValueChange={onValueChange}
-            trackColor={{ false: "#E9E9EA", true: "#34C759" }}
+            trackColor={{ false: "#E9E9EA", true: "#000000" }}
             thumbColor="#FFFFFF"
           />
         </View>

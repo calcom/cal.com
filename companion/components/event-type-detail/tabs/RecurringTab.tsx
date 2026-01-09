@@ -57,7 +57,7 @@ export function RecurringTab({
           <Switch
             value={recurringEnabled}
             onValueChange={setRecurringEnabled}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+            trackColor={{ false: "#E5E5EA", true: "#000000" }}
             thumbColor="#FFFFFF"
           />
         </View>
