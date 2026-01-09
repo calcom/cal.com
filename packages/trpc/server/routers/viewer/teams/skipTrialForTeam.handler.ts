@@ -44,7 +44,7 @@ export const skipTrialForTeamHandler = async ({ ctx, input }: SkipTrialForTeamOp
 
   try {
     const teams = await MembershipRepository.findAllAcceptedTeamMemberships(ctx.user.id, {
-      role: "OWNER",
+      role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] },
     });
 
     const team = teams.find((t) => t.id === teamId);
@@ -52,7 +52,7 @@ export const skipTrialForTeamHandler = async ({ ctx, input }: SkipTrialForTeamOp
     if (!team) {
       throw new TRPCError({
         code: "NOT_FOUND",
-        message: "Team not found or you are not the owner",
+        message: "Team not found or you are not an owner or admin",
       });
     }
 
