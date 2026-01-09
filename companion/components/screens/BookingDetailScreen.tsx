@@ -888,45 +888,47 @@ export function BookingDetailScreen({
       )}
 
       {/* Cancel Event AlertDialog (Android only) */}
-      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader className="items-start">
-            <AlertDialogTitle>
-              <UIText className="text-left text-lg font-semibold">Cancel event</UIText>
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              <UIText className="text-left text-sm text-muted-foreground">
-                Cancellation reason will be shared with guests
-              </UIText>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+      {Platform.OS === "android" && (
+        <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader className="items-start">
+              <AlertDialogTitle>
+                <UIText className="text-left text-lg font-semibold">Cancel event</UIText>
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                <UIText className="text-left text-sm text-muted-foreground">
+                  Cancellation reason will be shared with guests
+                </UIText>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
 
-          <View>
-            <UIText className="mb-2 text-sm font-medium">Reason for cancellation</UIText>
-            <TextInput
-              className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827]"
-              placeholder="Why are you cancelling?"
-              placeholderTextColor="#9CA3AF"
-              value={cancellationReason}
-              onChangeText={setCancellationReason}
-              autoFocus
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-              style={{ minHeight: 80 }}
-            />
-          </View>
+            <View>
+              <UIText className="mb-2 text-sm font-medium">Reason for cancellation</UIText>
+              <TextInput
+                className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827]"
+                placeholder="Why are you cancelling?"
+                placeholderTextColor="#9CA3AF"
+                value={cancellationReason}
+                onChangeText={setCancellationReason}
+                autoFocus
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                style={{ minHeight: 80 }}
+              />
+            </View>
 
-          <AlertDialogFooter>
-            <AlertDialogCancel onPress={handleCloseCancelDialog}>
-              <UIText>Nevermind</UIText>
-            </AlertDialogCancel>
-            <AlertDialogAction onPress={handleConfirmCancel}>
-              <UIText className="text-white">Cancel event</UIText>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            <AlertDialogFooter>
+              <AlertDialogCancel onPress={handleCloseCancelDialog}>
+                <UIText>Nevermind</UIText>
+              </AlertDialogCancel>
+              <AlertDialogAction onPress={handleConfirmCancel}>
+                <UIText className="text-white">Cancel event</UIText>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 }

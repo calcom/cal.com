@@ -9,6 +9,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Modal,
   Pressable,
@@ -87,8 +88,9 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
         },
         {
           onSuccess: () => {
-            showSuccessAlert("Success", "Booking rescheduled successfully");
-            onSuccess();
+            Alert.alert("Success", "Booking rescheduled successfully", [
+              { text: "OK", onPress: onSuccess },
+            ]);
           },
           onError: (error) => {
             safeLogError("[RescheduleScreen] Failed to reschedule:", error);
