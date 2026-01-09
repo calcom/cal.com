@@ -1,11 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { MonthlyProrationService } from "../MonthlyProrationService";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SeatChangeTrackingService } from "../../seatTracking/SeatChangeTrackingService";
+import { MonthlyProrationService } from "../MonthlyProrationService";
 
 vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
   default: {
@@ -64,7 +62,7 @@ describe("MonthlyProrationService Integration Tests", () => {
         subscriptionItemId: `si_test_${timestamp}`,
         customerId: `cus_test_${timestamp}`,
         billingPeriod: "ANNUALLY",
-        pricePerSeat: 120.0,
+        pricePerSeat: 12000,
         subscriptionStart,
         subscriptionEnd,
         subscriptionTrialEnd,
