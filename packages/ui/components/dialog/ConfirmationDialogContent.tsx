@@ -75,7 +75,7 @@ export const ConfirmationContent = (
           <DialogPrimitive.Title className="font-cal text-emphasis mt-1 text-xl">
             {title}
           </DialogPrimitive.Title>
-          <DialogPrimitive.Description asChild className="-mt-4">
+          <DialogPrimitive.Description asChild>
             <div className="text-subtle text-sm">{children}</div>
           </DialogPrimitive.Description>
         </div>
