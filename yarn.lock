@@ -2008,6 +2008,7 @@ __metadata:
     "@calcom/features": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/prisma": "workspace:*"
+    "@calcom/testing": "workspace:*"
     "@calcom/trpc": "workspace:*"
     "@calcom/tsconfig": "workspace:*"
     "@calcom/types": "workspace:*"
@@ -2057,6 +2058,7 @@ __metadata:
     "@calcom/features": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/office365video": "workspace:*"
+    "@calcom/testing": "workspace:*"
     "@calcom/types": "workspace:*"
     "@calcom/ui": "workspace:*"
     "@calcom/zoomvideo": "workspace:*"
@@ -2410,6 +2412,7 @@ __metadata:
   dependencies:
     "@calcom/dayjs": "workspace:*"
     "@calcom/lib": "workspace:*"
+    "@calcom/testing": "workspace:*"
     "@calcom/tsconfig": "workspace:*"
     "@calcom/types": "workspace:*"
     rrule: "npm:2.7.1"
@@ -2577,6 +2580,7 @@ __metadata:
     "@calcom/atoms": "workspace:*"
     "@calcom/dayjs": "workspace:*"
     "@calcom/lib": "workspace:*"
+    "@calcom/testing": "workspace:*"
     "@calcom/trpc": "workspace:*"
     "@calcom/ui": "workspace:*"
     "@evyweb/ioctopus": "npm:1.2.0"
@@ -3296,7 +3300,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/testing@workspace:packages/testing":
+"@calcom/testing@workspace:*, @calcom/testing@workspace:packages/testing":
   version: 0.0.0-use.local
   resolution: "@calcom/testing@workspace:packages/testing"
   dependencies:
@@ -3478,6 +3482,7 @@ __metadata:
     "@calcom/platform-enums": "workspace:*"
     "@calcom/platform-types": "workspace:*"
     "@calcom/prisma": "workspace:*"
+    "@calcom/testing": "workspace:*"
     "@calcom/trpc": "workspace:*"
     "@calcom/tsconfig": "workspace:*"
     "@calcom/types": "workspace:*"

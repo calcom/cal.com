@@ -1,31 +1,36 @@
 "use client";
 
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { domainRegex, emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WatchlistType } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Input, Label, TextArea, ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { showToast } from "@calcom/ui/components/toast";
 
-interface CreateBlocklistEntryModalProps {
+import type { BlocklistScope, CreateBlocklistEntryFormData } from "../types";
+
+export interface CreateBlocklistEntryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  scope: BlocklistScope;
+  onCreateEntry: (data: CreateBlocklistEntryFormData) => void;
+  isPending: boolean;
 }
 
-interface FormData {
-  type: WatchlistType;
-  value: string;
-  description?: string;
-}
-
-export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEntryModalProps) {
+export function CreateBlocklistEntryModal({
+  isOpen,
+  onClose,
+  scope,
+  onCreateEntry,
+  isPending,
+}: CreateBlocklistEntryModalProps) {
   const { t } = useLocale();
-  const utils = trpc.useUtils();
+  const isSystem = scope === "system";
 
   const {
     control,
@@ -34,7 +39,7 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
     setValue,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({
+  } = useForm<CreateBlocklistEntryFormData>({
     defaultValues: {
       type: WatchlistType.EMAIL,
       value: "",
@@ -44,24 +49,19 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
 
   const watchType = watch("type");
 
-  const createWatchlistEntry = trpc.viewer.organizations.createWatchlistEntry.useMutation({
-    onSuccess: async () => {
-      await utils.viewer.organizations.listWatchlistEntries.invalidate();
-      showToast(t("blocklist_entry_created"), "success");
-      onClose();
+  useEffect(() => {
+    if (isOpen) {
       reset();
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+    }
+  }, [isOpen, reset]);
 
-  const onSubmit = (data: FormData) => {
-    createWatchlistEntry.mutate({
-      type: data.type,
-      value: data.value,
-      description: data.description,
-    });
+  const onSubmit = (data: CreateBlocklistEntryFormData) => {
+    onCreateEntry(data);
+  };
+
+  const handleClose = () => {
+    onClose();
+    reset();
   };
 
   const validateValue = (value: string) => {
@@ -86,11 +86,19 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
   ];
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent enableOverflow>
-        <DialogHeader title={t("add_to_blocklist")} />
+        <DialogHeader title={t(isSystem ? "add_to_system_blocklist" : "add_to_blocklist")} />
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="stack-y-4">
+          <div className="space-y-4">
+            {isSystem && (
+              <Alert
+                severity="warning"
+                title={t("system_wide_blocklist_warning")}
+                message={t("system_wide_blocklist_warning_description")}
+              />
+            )}
+
             <div>
               <Label htmlFor="type" className="text-emphasis mb-2 block text-sm font-medium">
                 {t("what_would_you_like_to_block")}
@@ -151,18 +159,11 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
           </div>
 
           <DialogFooter className="mt-6">
-            <Button
-              type="button"
-              color="secondary"
-              onClick={onClose}
-              disabled={isSubmitting || createWatchlistEntry.isPending}>
+            <Button type="button" color="secondary" onClick={handleClose} disabled={isSubmitting || isPending}>
               {t("cancel")}
             </Button>
-            <Button
-              type="submit"
-              loading={isSubmitting || createWatchlistEntry.isPending}
-              disabled={isSubmitting || createWatchlistEntry.isPending}>
-              {t("add_to_blocklist")}
+            <Button type="submit" loading={isSubmitting || isPending} disabled={isSubmitting || isPending}>
+              {t(isSystem ? "add_to_system_blocklist" : "add_to_blocklist")}
             </Button>
           </DialogFooter>
         </form>

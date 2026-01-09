@@ -110,53 +110,53 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
           Tap a day to edit its hours
         </Text>
 
-        <View className="overflow-hidden rounded-lg border border-gray-200">
+        <View>
           {DAYS.map((day, dayIndex) => {
             const daySlots = availability[dayIndex] || [];
             const isEnabled = daySlots.length > 0;
 
             return (
-              <AppPressable
-                key={day}
-                className={`flex-row items-center px-4 py-3.5 ${
-                  dayIndex > 0 ? "border-t border-gray-200" : ""
-                }`}
-                onPress={() => onDayPress(dayIndex)}
-              >
-                {/* Day status indicator */}
+              <AppPressable key={day} onPress={() => onDayPress(dayIndex)}>
                 <View
-                  className={`mr-3 h-2.5 w-2.5 rounded-full ${
-                    isEnabled ? "bg-green-500" : "bg-gray-300"
-                  }`}
-                />
-
-                {/* Day name */}
-                <Text
-                  className={`w-24 text-[17px] font-medium ${
-                    isEnabled ? "text-black" : "text-gray-400"
+                  className={`mb-2.5 flex-row items-center rounded-xl border-2 px-4 py-4 ${
+                    isEnabled ? "border-gray-200 bg-white" : "border-gray-100 bg-gray-50"
                   }`}
                 >
-                  {day}
-                </Text>
+                  {/* Day status indicator */}
+                  <View
+                    className={`mr-3 h-2.5 w-2.5 rounded-full ${
+                      isEnabled ? "bg-green-500" : "bg-gray-300"
+                    }`}
+                  />
 
-                {/* Time slots or unavailable */}
-                <View className="flex-1">
-                  {isEnabled ? (
-                    daySlots.map((slot, slotIndex) => (
-                      <Text
-                        key={`${slotIndex}-${slot.startTime}`}
-                        className={`text-[15px] text-gray-500 ${slotIndex > 0 ? "mt-0.5" : ""}`}
-                      >
-                        {formatTime12Hour(slot.startTime)} – {formatTime12Hour(slot.endTime)}
-                      </Text>
-                    ))
-                  ) : (
-                    <Text className="text-[15px] text-gray-400">Unavailable</Text>
-                  )}
+                  {/* Day name */}
+                  <Text
+                    className={`w-28 text-[17px] font-medium ${
+                      isEnabled ? "text-black" : "text-gray-400"
+                    }`}
+                  >
+                    {day}
+                  </Text>
+
+                  {/* Time slots or unavailable */}
+                  <View className="flex-1">
+                    {isEnabled ? (
+                      daySlots.map((slot, slotIndex) => (
+                        <Text
+                          key={`${slotIndex}-${slot.startTime}`}
+                          className={`text-[15px] text-gray-600 ${slotIndex > 0 ? "mt-0.5" : ""}`}
+                        >
+                          {formatTime12Hour(slot.startTime)} – {formatTime12Hour(slot.endTime)}
+                        </Text>
+                      ))
+                    ) : (
+                      <Text className="text-[15px] text-gray-400">Unavailable</Text>
+                    )}
+                  </View>
+
+                  {/* Chevron */}
+                  <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
                 </View>
-
-                {/* Chevron */}
-                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
               </AppPressable>
             );
           })}

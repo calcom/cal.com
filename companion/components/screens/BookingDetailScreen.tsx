@@ -599,7 +599,7 @@ export function BookingDetailScreen({
           }}
         />
       )}
-      <View className="flex-1 bg-[#]">
+      <View className="flex-1 bg-[#f8f9fa]">
         <ScrollView
           className="flex-1"
           contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
