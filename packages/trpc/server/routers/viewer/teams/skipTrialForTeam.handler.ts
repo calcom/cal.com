@@ -1,8 +1,10 @@
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
@@ -43,16 +45,13 @@ export const skipTrialForTeamHandler = async ({ ctx, input }: SkipTrialForTeamOp
   }
 
   try {
-    const teams = await MembershipRepository.findAllAcceptedTeamMemberships(ctx.user.id, {
-      role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] },
-    });
-
-    const team = teams.find((t) => t.id === teamId);
+    const teamRepository = new TeamRepository(prisma);
+    const team = await teamRepository.findById({ id: teamId });
 
     if (!team) {
       throw new TRPCError({
         code: "NOT_FOUND",
-        message: "Team not found or you are not an owner or admin",
+        message: "Team not found",
       });
     }
 
