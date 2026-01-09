@@ -259,11 +259,16 @@ export class MonthlyProrationService {
     subscriptionItemId: string,
     quantity: number
   ): Promise<void> {
-    await this.billingService.handleSubscriptionUpdate({
-      subscriptionId,
-      subscriptionItemId,
-      membershipCount: quantity,
-    });
+    try {
+      await this.billingService.handleSubscriptionUpdate({
+        subscriptionId,
+        subscriptionItemId,
+        membershipCount: quantity,
+      });
+    } catch (error) {
+      this.logger.error(`Failed to update subscription ${subscriptionId} quantity to ${quantity}:`, error);
+      throw error;
+    }
   }
 
   async handleProrationPaymentFailure(params: { prorationId: string; reason: string }) {
@@ -310,7 +315,7 @@ export class MonthlyProrationService {
         throw new Error(`Subscription ${billing.subscriptionId} not found`);
       }
 
-      const billingPeriod =
+      const billingPeriod: "ANNUALLY" | "MONTHLY" =
         subscription.items[0]?.price.recurring?.interval === "year" ? "ANNUALLY" : "MONTHLY";
 
       const pricePerSeat = subscription.items[0]?.price.unit_amount ?? 0;

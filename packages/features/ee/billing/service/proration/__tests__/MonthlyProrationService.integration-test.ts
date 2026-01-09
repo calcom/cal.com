@@ -285,4 +285,61 @@ describe("MonthlyProrationService Integration Tests", () => {
     expect(updated?.failureReason).toBe("insufficient funds");
     expect(updated?.retryCount).toBe(1);
   });
+
+  it("should call handleSubscriptionUpdate when updating subscription quantity", async () => {
+    const seatTracker = new SeatChangeTrackingService();
+    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
+
+    // Reset the mock to track calls
+    vi.mocked(mockBillingService.handleSubscriptionUpdate).mockClear();
+
+    await seatTracker.logSeatAddition({
+      teamId: testTeam.id,
+      userId: testUser.id,
+      triggeredBy: testUser.id,
+      seatCount: 2,
+    });
+
+    const proration = await prorationService.createProrationForTeam({
+      teamId: testTeam.id,
+      monthKey,
+    });
+
+    expect(proration?.status).toBe("INVOICE_CREATED");
+
+    await prorationService.handleProrationPaymentSuccess(proration!.id);
+
+    // Verify handleSubscriptionUpdate was called with correct parameters
+    expect(mockBillingService.handleSubscriptionUpdate).toHaveBeenCalledWith({
+      subscriptionId: proration!.subscriptionId,
+      subscriptionItemId: proration!.subscriptionItemId,
+      membershipCount: proration!.seatsAtEnd,
+    });
+  });
+
+  it("should throw error when subscription update fails", async () => {
+    const seatTracker = new SeatChangeTrackingService();
+    const failingBillingService = {
+      ...mockBillingService,
+      handleSubscriptionUpdate: vi.fn().mockRejectedValue(new Error("Subscription not found")),
+    };
+    const prorationService = new MonthlyProrationService(undefined, failingBillingService);
+
+    await seatTracker.logSeatAddition({
+      teamId: testTeam.id,
+      userId: testUser.id,
+      triggeredBy: testUser.id,
+      seatCount: 2,
+    });
+
+    const proration = await prorationService.createProrationForTeam({
+      teamId: testTeam.id,
+      monthKey,
+    });
+
+    // Should throw when trying to update subscription
+    await expect(prorationService.handleProrationPaymentSuccess(proration!.id)).rejects.toThrow(
+      "Subscription not found"
+    );
+  });
 });
