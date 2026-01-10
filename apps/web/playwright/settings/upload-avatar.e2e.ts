@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import path from "node:path"
+import path from "path";
 
 import { CAL_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";

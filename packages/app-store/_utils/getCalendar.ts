@@ -2,12 +2,10 @@ import { CalendarSubscriptionService } from "@calcom/features/calendar-subscript
 import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository";
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import { CalendarCacheWrapper } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheWrapper";
-import { CalendarTelemetryWrapper } from "@calcom/features/calendar-subscription/lib/telemetry/CalendarTelemetryWrapper";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
-import { isTelemetryEnabled } from "@calcom/lib/sentryWrapper";
 import { prisma } from "@calcom/prisma";
-import type { Calendar, CalendarFetchMode } from "@calcom/types/Calendar";
+import type { Calendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { CalendarServiceMap } from "../calendar.services.generated";
@@ -16,7 +14,7 @@ const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendar = async (
   credential: CredentialForCalendarService | null,
-  mode: CalendarFetchMode = "none"
+  shouldServeCache?: boolean
 ): Promise<Calendar | null> => {
   if (!credential || !credential.key) return null;
   let { type: calendarType } = credential;
@@ -44,14 +42,8 @@ export const getCalendar = async (
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
-
-  // Determine if we should use cache based on mode:
-  // - "slots": Check feature flags and use cache when available (for getting actual calendar availability)
-  // - "overlay": Don't use cache (for overlay calendar availability)
-  // - "booking": Don't use cache (for booking confirmation)
-  // - "none": Don't use cache (for operations that don't use getAvailability, e.g., deleteEvent, listCalendars)
-  let shouldServeCache = false;
-  if (mode === "slots") {
+  // if shouldServeCache is not supplied, determine on the fly.
+  if (typeof shouldServeCache === "undefined") {
     const featuresRepository = new FeaturesRepository(prisma);
     const [isCalendarSubscriptionCacheEnabled, isCalendarSubscriptionCacheEnabledForUser] = await Promise.all(
       [
@@ -65,56 +57,21 @@ export const getCalendar = async (
       ]
     );
     shouldServeCache = isCalendarSubscriptionCacheEnabled && isCalendarSubscriptionCacheEnabledForUser;
-    log.debug("Cache feature flag check", {
-      credentialId: credential.id,
-      userId: credential.userId,
-      mode,
-      isCalendarSubscriptionCacheEnabled,
-      isCalendarSubscriptionCacheEnabledForUser,
-      shouldServeCache,
-    });
-  } else {
-    log.debug("Cache disabled for mode", {
-      credentialId: credential.id,
-      userId: credential.userId,
-      mode,
-    });
   }
-
-  const isCacheSupported = CalendarCacheEventService.isCalendarTypeSupported(calendarType);
+  if (CalendarCacheEventService.isCalendarTypeSupported(calendarType) && shouldServeCache) {
+    log.info(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const originalCalendar = createCalendarService(credential as any);
+    if (originalCalendar) {
+      // return cacheable calendar
+      const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
+      return new CalendarCacheWrapper({
+        originalCalendar,
+        calendarCacheEventRepository,
+      });
+    }
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const originalCalendar = createCalendarService(credential as any);
-
-  if (!originalCalendar) {
-    return null;
-  }
-
-  const useCache = isCacheSupported && shouldServeCache;
-
-  let calendar: Calendar = originalCalendar;
-
-  if (useCache) {
-    log.info(`Calendar Cache is enabled, using CalendarCacheWrapper for credential ${credential.id}`);
-    const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
-    calendar = new CalendarCacheWrapper({
-      originalCalendar: calendar,
-      calendarCacheEventRepository,
-    });
-  }
-
-  if (isTelemetryEnabled()) {
-    log.info(
-      `Using CalendarTelemetryWrapper for credential ${credential.id} (cacheSupported: ${isCacheSupported}, cacheEnabled: ${useCache})`
-    );
-    calendar = new CalendarTelemetryWrapper({
-      originalCalendar: calendar,
-      calendarType,
-      cacheSupported: isCacheSupported,
-      cacheEnabled: useCache,
-      credentialId: credential.id,
-    });
-  }
-
-  return calendar;
+  return createCalendarService(credential as any);
 };

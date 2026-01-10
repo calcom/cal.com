@@ -39,7 +39,6 @@ export type CreateBookingMeta = {
   forcedSlug?: string;
   noEmail?: boolean;
   traceContext?: TraceContext;
-  impersonatedByUserUuid?: string;
 } & PlatformParams;
 
 export type BookingHandlerInput = {

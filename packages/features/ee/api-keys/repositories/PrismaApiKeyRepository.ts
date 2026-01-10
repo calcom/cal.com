@@ -21,7 +21,6 @@ export class PrismaApiKeyRepository {
         expiresAt: true,
         user: {
           select: {
-            uuid: true,
             role: true,
             locked: true,
             email: true,

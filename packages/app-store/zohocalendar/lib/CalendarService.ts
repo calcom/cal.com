@@ -1,4 +1,4 @@
-import { stringify } from "node:querystring";
+import { stringify } from "querystring";
 
 import dayjs from "@calcom/dayjs";
 import { getLocation } from "@calcom/lib/CalEventParser";
@@ -9,7 +9,6 @@ import type {
   CalendarServiceEvent,
   CalendarEvent,
   EventBusyDate,
-  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
@@ -303,8 +302,11 @@ class ZohoCalendarService implements Calendar {
     }
   }
 
-  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
-    const { dateFrom, dateTo, selectedCalendars } = params;
+  async getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyDate[]> {
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
       .map((e) => e.externalId);

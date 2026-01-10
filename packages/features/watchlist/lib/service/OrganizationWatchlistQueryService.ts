@@ -48,7 +48,7 @@ export class OrganizationWatchlistQueryService {
   async listWatchlistEntries(input: ListWatchlistEntriesInput) {
     await this.checkReadPermission(input.userId, input.organizationId);
 
-    const result = await this.deps.watchlistRepo.findOrgAndGlobalEntries({
+    const result = await this.deps.watchlistRepo.findAllEntriesWithLatestAudit({
       organizationId: input.organizationId,
       limit: input.limit,
       offset: input.offset,
@@ -95,13 +95,8 @@ export class OrganizationWatchlistQueryService {
       throw WatchlistErrors.notFound("Blocklist entry not found");
     }
 
-    const isOrgEntry = result.entry.organizationId === input.organizationId;
-    const isGlobalEntry = result.entry.isGlobal && result.entry.organizationId === null;
-
-    if (!isOrgEntry && !isGlobalEntry) {
-      throw WatchlistErrors.permissionDenied(
-        "You can only view blocklist entries from your organization or global entries"
-      );
+    if (result.entry.organizationId !== input.organizationId) {
+      throw WatchlistErrors.permissionDenied("You can only view blocklist entries from your organization");
     }
 
     const userIds = result.auditHistory
@@ -122,7 +117,6 @@ export class OrganizationWatchlistQueryService {
     return {
       entry: result.entry,
       auditHistory: auditHistoryWithUsers,
-      isReadOnly: isGlobalEntry,
     };
   }
 }

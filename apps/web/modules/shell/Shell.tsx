@@ -156,7 +156,7 @@ export function ShellMain(props: LayoutProps) {
                 {props.heading && (
                   <h3
                     className={classNames(
-                      "font-heading text-emphasis max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-lg tracking-wide sm:text-xl md:block xl:max-w-full",
+                      "font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
                       props.smallHeading ? "text-base" : "text-xl"
                     )}>
                     {!isLocaleReady ? <SkeletonText invisible /> : props.heading}

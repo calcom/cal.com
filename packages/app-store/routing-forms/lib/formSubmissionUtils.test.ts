@@ -1,6 +1,3 @@
-/**
- * @vitest-environment node
- */
 import "@calcom/lib/__mocks__/logger";
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
 

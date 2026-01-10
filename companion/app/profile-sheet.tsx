@@ -2,11 +2,17 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { Stack, useRouter } from "expo-router";
-import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import { useUserProfile } from "@/hooks";
-import { showSuccessAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { getAvatarUrl } from "@/utils/getAvatarUrl";
 
@@ -70,7 +76,7 @@ export default function ProfileSheet() {
         if (publicPageUrl) {
           await Clipboard.setStringAsync(publicPageUrl);
           await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          showSuccessAlert("Copied!", "Public page link copied to clipboard");
+          Alert.alert("Copied!", "Public page link copied to clipboard");
         }
       },
       external: false,
@@ -110,11 +116,9 @@ export default function ProfileSheet() {
           },
           headerLeft: () => null,
           headerRight: () => (
-            <HeaderButtonWrapper side="right">
-              <TouchableOpacity onPress={handleClose} style={{ padding: 8 }}>
-                <Ionicons name="close" size={24} color="#000" />
-              </TouchableOpacity>
-            </HeaderButtonWrapper>
+            <TouchableOpacity onPress={handleClose} style={{ padding: 8 }}>
+              <Ionicons name="close" size={24} color="#000" />
+            </TouchableOpacity>
           ),
         }}
       />

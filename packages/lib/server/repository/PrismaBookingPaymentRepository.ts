@@ -5,7 +5,6 @@ import type {
   IBookingPaymentRepository,
   BookingPaymentWithCredentials,
   CreatePaymentData,
-  PaymentForAwaitingEmail,
 } from "./BookingPaymentRepository.interface";
 
 export class PrismaBookingPaymentRepository implements IBookingPaymentRepository {
@@ -45,24 +44,5 @@ export class PrismaBookingPaymentRepository implements IBookingPaymentRepository
       data,
     });
     return createdPayment;
-  }
-
-  async findByIdForAwaitingPaymentEmail(id: number): Promise<PaymentForAwaitingEmail | null> {
-    return await this.prismaClient.payment.findUnique({
-      where: { id },
-      select: {
-        success: true,
-        externalId: true,
-        uid: true,
-        paymentOption: true,
-        amount: true,
-        currency: true,
-        app: {
-          select: {
-            slug: true,
-          },
-        },
-      },
-    });
   }
 }

@@ -104,8 +104,7 @@ export const handleNoShowFee = async ({
   };
 
   if (teamId) {
-    const membershipRepository = new MembershipRepository();
-    const userIsInTeam = await membershipRepository.findUniqueByUserIdAndTeamId({
+    const userIsInTeam = await MembershipRepository.findUniqueByUserIdAndTeamId({
       userId,
       teamId,
     });

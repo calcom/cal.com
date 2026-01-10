@@ -28,7 +28,6 @@ import type {
   Calendar,
   CalendarEvent,
   EventBusyDate,
-  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
@@ -144,8 +143,11 @@ class ExchangeCalendarService implements Calendar {
     }
   }
 
-  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
-    const { dateFrom, dateTo, selectedCalendars } = params;
+  async getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyDate[]> {
     try {
       const externalCalendars = await this.listCalendars();
       const calendarsToGetAppointmentsFrom = [];

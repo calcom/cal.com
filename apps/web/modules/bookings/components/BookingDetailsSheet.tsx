@@ -45,8 +45,7 @@ import { usePaymentStatus } from "../hooks/usePaymentStatus";
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 import { JoinMeetingButton } from "./JoinMeetingButton";
-import { BookingHistory } from "@calcom/features/booking-audit/client/components/BookingHistory";
-import { SegmentedControl } from "@calcom/ui/components/segmented-control";
+
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
 
 interface BookingDetailsSheetProps {
@@ -54,7 +53,6 @@ interface BookingDetailsSheetProps {
   userTimeFormat?: number;
   userId?: number;
   userEmail?: string;
-  bookingAuditEnabled?: boolean;
 }
 
 export function BookingDetailsSheet({
@@ -62,7 +60,6 @@ export function BookingDetailsSheet({
   userTimeFormat,
   userId,
   userEmail,
-  bookingAuditEnabled = false,
 }: BookingDetailsSheetProps) {
   const booking = useBookingDetailsSheetStore((state) => state.getSelectedBooking());
 
@@ -77,7 +74,6 @@ export function BookingDetailsSheet({
         userTimeFormat={userTimeFormat}
         userId={userId}
         userEmail={userEmail}
-        bookingAuditEnabled={bookingAuditEnabled}
       />
     </BookingActionsStoreProvider>
   );
@@ -89,26 +85,6 @@ interface BookingDetailsSheetInnerProps {
   userTimeFormat?: number;
   userId?: number;
   userEmail?: string;
-  bookingAuditEnabled?: boolean;
-}
-
-function useActiveSegment(bookingAuditEnabled: boolean) {
-  const [activeSegment, setActiveSegmentInStore] = useBookingDetailsSheetStore((state) => [state.activeSegment, state.setActiveSegment]);
-
-  const getDerivedActiveSegment = ({ activeSegment, bookingAuditEnabled }: { activeSegment: "info" | "history" | null, bookingAuditEnabled: boolean }) => {
-    if (!bookingAuditEnabled && activeSegment === "history") {
-      return "info";
-    }
-    return activeSegment ?? "info";
-  }
-
-  const derivedActiveSegment = getDerivedActiveSegment({ activeSegment, bookingAuditEnabled });
-
-  const setDerivedActiveSegment = (segment: "info" | "history") => {
-    setActiveSegmentInStore(getDerivedActiveSegment({ activeSegment: segment, bookingAuditEnabled }));
-  };
-
-  return [derivedActiveSegment, setDerivedActiveSegment] as const;
 }
 
 function BookingDetailsSheetInner({
@@ -117,10 +93,8 @@ function BookingDetailsSheetInner({
   userTimeFormat,
   userId,
   userEmail,
-  bookingAuditEnabled = false,
 }: BookingDetailsSheetInnerProps) {
   const { t } = useLocale();
-  const [activeSegment, setActiveSegment] = useActiveSegment(bookingAuditEnabled);
 
   // Fetch additional booking details for reschedule information
   const { data: bookingDetails } = trpc.viewer.bookings.getBookingDetails.useQuery(
@@ -143,7 +117,6 @@ function BookingDetailsSheetInner({
       navigatePrevious: state.navigatePrevious,
       isTransitioning: state.isTransitioning,
       setSelectedBookingUid: state.setSelectedBookingUid,
-      setActiveSegment: state.setActiveSegment,
       canGoNext: hasNextInArray || (isLastInArray && state.capabilities?.canNavigateToNextPeriod()),
       canGoPrev: hasPreviousInArray || (isFirstInArray && state.capabilities?.canNavigateToPreviousPeriod()),
     };
@@ -151,7 +124,6 @@ function BookingDetailsSheetInner({
 
   const handleClose = () => {
     navigation.setSelectedBookingUid(null);
-    navigation.setActiveSegment(null);
   };
 
   const handleNext = () => {
@@ -195,15 +167,15 @@ function BookingDetailsSheetInner({
   const recurringInfo =
     booking.recurringEventId && booking.eventType?.recurringEvent
       ? {
-        count: booking.eventType.recurringEvent.count,
-        recurringEvent: booking.eventType.recurringEvent,
-      }
+          count: booking.eventType.recurringEvent.count,
+          recurringEvent: booking.eventType.recurringEvent,
+        }
       : null;
 
   const customResponses = booking.responses
     ? Object.entries(booking.responses as Record<string, unknown>)
-      .filter(([fieldName]) => shouldShowFieldInCustomResponses(fieldName))
-      .map(([question, answer]) => [question, answer] as [string, unknown])
+        .filter(([fieldName]) => shouldShowFieldInCustomResponses(fieldName))
+        .map(([question, answer]) => [question, answer] as [string, unknown])
     : [];
 
   const reason = booking.assignmentReason?.[0];
@@ -282,59 +254,43 @@ function BookingDetailsSheetInner({
               </SheetTitle>
             </div>
 
-            {bookingAuditEnabled && (
-              <SegmentedControl
-                data={[{ value: "info", label: t("info") }, { value: "history", label: t("history") }]}
-                value={activeSegment}
-                onChange={(value) => setActiveSegment(value)}
-              />
-            )}
+            <WhenSection
+              rescheduled={booking.rescheduled || false}
+              startTime={startTime}
+              endTime={endTime}
+              timeZone={userTimeZone}
+              previousBooking={bookingDetails?.previousBooking}
+            />
 
-            {activeSegment === "info" && (
-              <>
-                <WhenSection
-                  rescheduled={booking.rescheduled || false}
-                  startTime={startTime}
-                  endTime={endTime}
-                  timeZone={userTimeZone}
-                  previousBooking={bookingDetails?.previousBooking}
-                />
+            <OldRescheduledBookingInfo
+              booking={booking}
+              rescheduledToBooking={bookingDetails?.rescheduledToBooking}
+            />
 
-                <OldRescheduledBookingInfo
-                  booking={booking}
-                  rescheduledToBooking={bookingDetails?.rescheduledToBooking}
-                />
+            <NewRescheduledBookingInfo booking={booking} />
 
-                <NewRescheduledBookingInfo booking={booking} />
+            <CancelledBookingInfo booking={booking} />
 
-                <CancelledBookingInfo booking={booking} />
+            <WhoSection booking={booking} />
 
-                <WhoSection booking={booking} />
+            <WhereSection booking={booking} meta={bookingMetadata} />
 
-                <WhereSection booking={booking} meta={bookingMetadata} />
+            <RecurringInfoSection recurringInfo={recurringInfo} />
 
-                <RecurringInfoSection recurringInfo={recurringInfo} />
+            <AssignmentReasonSection booking={booking} />
 
-                <AssignmentReasonSection booking={booking} />
+            {booking.payment?.[0] && <PaymentSection booking={booking} payment={booking.payment[0]} />}
 
-                {booking.payment?.[0] && <PaymentSection booking={booking} payment={booking.payment[0]} />}
+            <SlotsSection booking={booking} />
 
-                <SlotsSection booking={booking} />
+            <AdditionalNotesSection booking={booking} />
 
-                <AdditionalNotesSection booking={booking} />
+            <CustomQuestionsSection
+              customResponses={customResponses}
+              bookingFields={booking.eventType?.bookingFields}
+            />
 
-                <CustomQuestionsSection
-                  customResponses={customResponses}
-                  bookingFields={booking.eventType?.bookingFields}
-                />
-
-                <TrackingSection tracking={bookingDetails?.tracking} />
-              </>
-            )}
-
-            {bookingAuditEnabled && activeSegment === "history" && (
-              <BookingHistory bookingUid={booking.uid} />
-            )}
+            <TrackingSection tracking={bookingDetails?.tracking} />
           </div>
         </SheetBody>
 

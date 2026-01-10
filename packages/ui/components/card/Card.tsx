@@ -85,7 +85,7 @@ const cvaCardTypeByVariant = cva("", {
     {
       variant: "SidebarCard",
       structure: "title",
-      className: "text-sm font-heading",
+      className: "text-sm font-cal",
     },
     {
       variant: "SidebarCard",
@@ -107,7 +107,7 @@ const cvaCardTypeByVariant = cva("", {
     {
       variant: "NewLaunchSidebarCard",
       structure: "title",
-      className: "text-sm font-heading text-white",
+      className: "text-sm font-cal text-white",
     },
     {
       variant: "NewLaunchSidebarCard",

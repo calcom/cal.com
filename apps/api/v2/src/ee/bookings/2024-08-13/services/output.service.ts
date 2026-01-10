@@ -203,17 +203,17 @@ export class OutputBookingsService_2024_08_13 {
   }
 
   async getOutputRecurringBookings(bookingsIds: number[]) {
-    const databaseBookings = await this.bookingsRepository.getByIdsWithAttendeesAndUserAndEvent(bookingsIds);
-    
-    const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
-    
-    const transformed = bookingsIds.map(bookingId => {
-      const databaseBooking = bookingsMap.get(bookingId);
+    const transformed = [];
+
+    for (const bookingId of bookingsIds) {
+      const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUserAndEvent(bookingId);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
       }
-      return this.getOutputRecurringBooking(databaseBooking);
-    });
+
+      transformed.push(this.getOutputRecurringBooking(databaseBooking));
+    }
+
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }
 
@@ -362,17 +362,17 @@ export class OutputBookingsService_2024_08_13 {
   }
 
   async getOutputRecurringSeatedBookings(bookingsIds: number[], showAttendees: boolean) {
-    const databaseBookings = await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(bookingsIds);
-    
-    const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
-    
-    const transformed = bookingsIds.map(bookingId => {
-      const databaseBooking = bookingsMap.get(bookingId);
+    const transformed = [];
+
+    for (const bookingId of bookingsIds) {
+      const databaseBooking =
+        await this.bookingsRepository.getByIdWithAttendeesWithBookingSeatAndUserAndEvent(bookingId);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
       }
-      return this.getOutputRecurringSeatedBooking(databaseBooking, showAttendees);
-    });
+
+      transformed.push(this.getOutputRecurringSeatedBooking(databaseBooking, showAttendees));
+    }
 
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }

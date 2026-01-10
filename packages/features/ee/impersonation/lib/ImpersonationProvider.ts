@@ -87,7 +87,6 @@ const auditAndReturnNextUser = async (
       },
       select: {
         id: true,
-        uuid: true,
         role: true,
       },
     });
@@ -96,9 +95,8 @@ const auditAndReturnNextUser = async (
     return {
       ...obj,
       impersonatedBy: {
-        id: impersonatedByUser.id,
-        uuid: impersonatedByUser.uuid,
-        role: impersonatedByUser.role,
+        id: impersonatedByUser?.id,
+        role: impersonatedByUser?.role,
       },
     };
   }

@@ -128,7 +128,7 @@ import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
 import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
-import { makeGuestActor } from "@calcom/features/booking-audit/lib/makeActor";
+import { makeGuestActor } from "../types/actor";
 
 const translator = short();
 
@@ -795,8 +795,7 @@ async function handler(
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
-  // Use "booking" mode to bypass cache for booking confirmation
-  const calendarFetchMode = "booking" as const;
+  const shouldServeCache = false;
 
   tracingLogger.info(
     `Booking eventType ${eventTypeId} started`,
@@ -1003,7 +1002,7 @@ async function handler(
                   originalRescheduledBooking: originalRescheduledBooking ?? null,
                 },
                 tracingLogger,
-                calendarFetchMode
+                shouldServeCache
               );
             }
           }
@@ -1018,7 +1017,7 @@ async function handler(
                 originalRescheduledBooking,
               },
               tracingLogger,
-              calendarFetchMode
+              shouldServeCache
             );
           }
         }
@@ -1037,7 +1036,7 @@ async function handler(
               originalRescheduledBooking,
             },
             tracingLogger,
-            calendarFetchMode
+            shouldServeCache
           );
         } else {
           availableUsers = [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[];
@@ -1066,7 +1065,7 @@ async function handler(
                 originalRescheduledBooking,
               },
               tracingLogger,
-              calendarFetchMode
+              shouldServeCache
             );
           } else {
             availableUsers = [...additionalFallbackRRUsers, ...fixedUsers] as IsFixedAwareUser[];
@@ -1179,7 +1178,7 @@ async function handler(
                       originalRescheduledBooking,
                     },
                     tracingLogger,
-                    calendarFetchMode
+                    shouldServeCache
                   );
                 }
               }

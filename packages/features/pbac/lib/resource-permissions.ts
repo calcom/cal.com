@@ -166,8 +166,7 @@ export async function getRoutingFormPermissions({
     };
   }
 
-  const membershipRepository = new MembershipRepository();
-  const membership = await membershipRepository.findUniqueByUserIdAndTeamId({
+  const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
     userId,
     teamId: formTeamId,
   });

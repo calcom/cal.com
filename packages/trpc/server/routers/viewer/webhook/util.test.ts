@@ -28,9 +28,9 @@ vi.mock("@calcom/prisma", () => ({
 const mockCheckPermission = vi.fn();
 
 vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
-  PermissionCheckService: vi.fn().mockImplementation(function() { return {
+  PermissionCheckService: vi.fn().mockImplementation(() => ({
     checkPermission: mockCheckPermission,
-  }; }),
+  })),
 }));
 
 vi.mock("../../../procedures/authedProcedure", () => ({

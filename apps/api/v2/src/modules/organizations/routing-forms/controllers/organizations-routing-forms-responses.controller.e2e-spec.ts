@@ -1,4 +1,4 @@
-import { bootstrap } from "@/bootstrap";
+import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";

@@ -38,19 +38,17 @@ export default function Bookings() {
         type: "action",
         label: option.label,
         icon: {
-          name: isSelected
-            ? "checkmark.circle.fill"
-            : option.key === "upcoming"
-              ? "calendar"
+          name:
+            option.key === "upcoming"
+              ? "calendar.badge.clock"
               : option.key === "unconfirmed"
-                ? "questionmark.circle"
-                : option.key === "recurring"
-                  ? "repeat.circle"
-                  : option.key === "past"
-                    ? "checkmark.circle"
-                    : "xmark.circle",
+                ? "calendar.badge.exclamationmark"
+                : option.key === "past"
+                  ? "calendar.badge.checkmark"
+                  : "calendar.badge.minus",
           type: "sfSymbol",
         },
+        state: isSelected ? "on" : "off",
         onPress: () => {
           handleFilterChange(option.key);
         },

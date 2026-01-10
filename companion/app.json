@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Calcom",
+    "name": "expo-wxt-app",
     "slug": "calcom-companion",
     "scheme": "expo-wxt-app",
     "version": "1.0.0",
@@ -16,14 +16,13 @@
     "ios": {
       "supportsTablet": true,
       "deploymentTarget": "18.0",
-      "bundleIdentifier": "com.cal.companion",
+      "bundleIdentifier": "com.calcom.companion",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
       "entitlements": {
         "com.apple.developer.default-data-protection": "NSFileProtectionComplete"
-      },
-      "icon": "./assets/cal-logo.icon"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -45,20 +44,7 @@
       }
     },
     "owner": "calcoms-organization",
-    "plugins": [
-      "expo-router",
-      "expo-secure-store",
-      "expo-web-browser",
-      "expo-image",
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#ffffff",
-          "image": "./assets/splash-icon.png",
-          "imageWidth": 200
-        }
-      ]
-    ],
+    "plugins": ["expo-router", "expo-secure-store", "expo-web-browser", "expo-image"],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

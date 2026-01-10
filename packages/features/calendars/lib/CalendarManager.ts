@@ -18,7 +18,6 @@ import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFr
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   CalendarEvent,
-  CalendarFetchMode,
   CalendarServiceEvent,
   EventBusyDate,
   IntegrationCalendar,
@@ -35,7 +34,7 @@ export const getCalendarCredentials = (credentials: Array<CredentialForCalendarS
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
-        const calendar = () => getCalendar(credential, "slots");
+        const calendar = () => getCalendar(credential);
         return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
       });
 
@@ -237,7 +236,7 @@ export const getBusyCalendarTimes = async (
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
-  mode?: CalendarFetchMode,
+  shouldServeCache?: boolean,
   includeTimeZone?: boolean
 ) => {
   let results: (EventBusyDate & { timeZone?: string })[][] = [];
@@ -275,7 +274,7 @@ export const getBusyCalendarTimes = async (
         startDate,
         endDate,
         selectedCalendars,
-        mode ?? "slots"
+        shouldServeCache
       );
     }
   } catch (e) {
@@ -296,7 +295,7 @@ export const createEvent = async (
   // Some calendar libraries may edit the original event so let's clone it
   const formattedEvent = formatCalEvent(originalEvent);
   const uid: string = getUid(formattedEvent);
-  const calendar = await getCalendar(credential, "booking");
+  const calendar = await getCalendar(credential);
   let success = true;
   let calError: string | undefined = undefined;
 
@@ -390,7 +389,7 @@ export const updateEvent = async (
   const formattedEvent = formatCalEvent(rawCalEvent);
   const calEvent = processEvent(formattedEvent);
   const uid = getUid(calEvent);
-  const calendar = await getCalendar(credential, "booking");
+  const calendar = await getCalendar(credential);
   let success = false;
   let calError: string | undefined = undefined;
   let calWarnings: string[] | undefined = [];
@@ -473,7 +472,7 @@ export const deleteEvent = async ({
   event: CalendarEvent;
   externalCalendarId?: string | null;
 }): Promise<unknown> => {
-  const calendar = await getCalendar(credential, "booking");
+  const calendar = await getCalendar(credential);
   log.debug(
     "Deleting calendar event",
     safeStringify({

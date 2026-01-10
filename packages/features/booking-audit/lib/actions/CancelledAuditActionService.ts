@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { StringChangeSchema, BookingStatusChangeSchema } from "../common/changeSchemas";
+import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
 
@@ -11,9 +11,9 @@ import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams,
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
-    cancellationReason: z.string().nullable(),
-    cancelledBy: z.string().nullable(),
-    status: BookingStatusChangeSchema,
+    cancellationReason: StringChangeSchema,
+    cancelledBy: StringChangeSchema,
+    status: StringChangeSchema,
 });
 
 export class CancelledAuditActionService implements IAuditActionService {
@@ -69,8 +69,10 @@ export class CancelledAuditActionService implements IAuditActionService {
     }: GetDisplayJsonParams): CancelledAuditDisplayData {
         const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
         return {
-            cancellationReason: fields.cancellationReason ?? null,
-            cancelledBy: fields.cancelledBy ?? null,
+            cancellationReason: fields.cancellationReason.new ?? null,
+            previousReason: fields.cancellationReason.old ?? null,
+            cancelledBy: fields.cancelledBy.new ?? null,
+            previousCancelledBy: fields.cancelledBy.old ?? null,
             previousStatus: fields.status.old ?? null,
             newStatus: fields.status.new ?? null,
         };
@@ -81,7 +83,9 @@ export type CancelledAuditData = z.infer<typeof fieldsSchemaV1>;
 
 export type CancelledAuditDisplayData = {
     cancellationReason: string | null;
+    previousReason: string | null;
     cancelledBy: string | null;
+    previousCancelledBy: string | null;
     previousStatus: string | null;
     newStatus: string | null;
 };

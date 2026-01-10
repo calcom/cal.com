@@ -1,5 +1,5 @@
 import { admin_directory_v1 } from "@googleapis/admin";
-import { OAuth2Client } from "google-auth-library";
+import { OAuth2Client } from "googleapis-common";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
@@ -33,7 +33,7 @@ export const checkForGWorkspace = async ({ ctx }: CheckForGCalOptions) => {
   return { id: gWorkspacePresent?.id };
 };
 
-export const getUsersFromGWorkspace = async ({ ctx }: CheckForGCalOptions) => {
+export const getUsersFromGWorkspace = async ({}: CheckForGCalOptions) => {
   const { client_id, client_secret } = await getAppKeysFromSlug("google-calendar");
   if (!client_id || typeof client_id !== "string") throw new Error("Google client_id missing.");
   if (!client_secret || typeof client_secret !== "string") throw new Error("Google client_secret missing.");
@@ -41,7 +41,6 @@ export const getUsersFromGWorkspace = async ({ ctx }: CheckForGCalOptions) => {
   const hasExistingCredentials = await prisma.credential.findFirst({
     where: {
       type: "google_workspace_directory",
-      userId: ctx.user.id,
     },
   });
   if (!hasExistingCredentials) {
@@ -57,7 +56,7 @@ export const getUsersFromGWorkspace = async ({ ctx }: CheckForGCalOptions) => {
 
   // Create a new instance of the Admin SDK directory API
   const directory = new admin_directory_v1.Admin({
-    auth: oAuth2Client,
+    auth: oAuth2Client as any,
   });
   const { data } = await directory.users.list({
     maxResults: 200, // Up this if we ever need to get more than 200 users

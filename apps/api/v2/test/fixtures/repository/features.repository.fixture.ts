@@ -2,19 +2,15 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 
-import type { FeatureId } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { Prisma } from "@calcom/prisma/client";
 
 export class FeaturesRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
-  private featuresRepository: FeaturesRepository;
 
   constructor(module: TestingModule) {
     this.prismaReadClient = module.get(PrismaReadService).prisma;
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
-    this.featuresRepository = new FeaturesRepository(this.prismaWriteClient);
   }
   async create(data: Prisma.FeatureCreateInput) {
     // note(Lauris): upserting because this create function is called in multiple tests in parallel and otherwise would lead to unique
@@ -26,32 +22,52 @@ export class FeaturesRepositoryFixture {
     });
   }
 
+  async createTeamFeature(data: Prisma.TeamFeaturesCreateInput) {
+    return await this.prismaWriteClient.teamFeatures.create({
+      data,
+    });
+  }
+
   async setTeamFeatureState(
-    input:
-      | { teamId: number; featureId: string; state: "enabled" | "disabled"; assignedBy?: string }
-      | { teamId: number; featureId: string; state: "inherit" }
+    teamId: number,
+    featureId: string,
+    state: "enabled" | "disabled" | "inherit",
+    assignedBy = "test"
   ) {
-    if (input.state === "inherit") {
-      await this.featuresRepository.setTeamFeatureState({
-        teamId: input.teamId,
-        featureId: input.featureId as FeatureId,
-        state: input.state,
+    if (state === "enabled" || state === "disabled") {
+      await this.prismaWriteClient.teamFeatures.upsert({
+        where: {
+          teamId_featureId: {
+            teamId,
+            featureId,
+          },
+        },
+        create: {
+          teamId,
+          featureId,
+          assignedBy,
+          enabled: state === "enabled",
+        },
+        update: {
+          enabled: state === "enabled",
+        },
       });
-    } else {
-      await this.featuresRepository.setTeamFeatureState({
-        teamId: input.teamId,
-        featureId: input.featureId as FeatureId,
-        state: input.state,
-        assignedBy: input.assignedBy ?? "test",
+    } else if (state === "inherit") {
+      await this.prismaWriteClient.teamFeatures.deleteMany({
+        where: {
+          teamId,
+          featureId,
+        },
       });
     }
   }
 
   async disableFeatureForTeam(teamId: number, featureSlug: string) {
-    await this.featuresRepository.setTeamFeatureState({
-      teamId,
-      featureId: featureSlug as FeatureId,
-      state: "inherit",
+    return await this.prismaWriteClient.teamFeatures.deleteMany({
+      where: {
+        teamId,
+        featureId: featureSlug,
+      },
     });
   }
 
@@ -62,10 +78,11 @@ export class FeaturesRepositoryFixture {
   }
 
   async deleteTeamFeature(teamId: number, featureSlug: string) {
-    await this.featuresRepository.setTeamFeatureState({
-      teamId,
-      featureId: featureSlug as FeatureId,
-      state: "inherit",
+    return await this.prismaWriteClient.teamFeatures.deleteMany({
+      where: {
+        teamId,
+        featureId: featureSlug,
+      },
     });
   }
 }

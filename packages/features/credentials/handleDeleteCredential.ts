@@ -455,7 +455,7 @@ const handleDeleteCredential = async ({
   // If it's a calendar remove it from the SelectedCalendars
   if (credential.app?.categories.includes(AppCategories.calendar)) {
     try {
-      const calendar = await getCalendar(buildNonDelegationCredential(credential), "slots");
+      const calendar = await getCalendar(buildNonDelegationCredential(credential));
 
       const calendars = await calendar?.listCalendars();
 

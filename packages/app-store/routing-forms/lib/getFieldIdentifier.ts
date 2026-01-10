@@ -1,1 +1,5 @@
-export { default } from "@calcom/features/routing-forms/lib/getFieldIdentifier";
+import type { Field } from "../types/types";
+
+const getFieldIdentifier = (field: Field) => field.identifier || field.label;
+
+export default getFieldIdentifier;

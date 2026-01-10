@@ -577,9 +577,16 @@ test.describe("Booking on different layouts", () => {
 
     await page.click('[data-testid="toggle-group-item-column_view"]');
 
-    // Use the standard helper to select an available time slot next month
-    // This is more robust than manually clicking incrementMonth and reloading
-    await selectFirstAvailableTimeSlotNextMonth(page);
+    await page.click('[data-testid="incrementMonth"]');
+
+    await page.waitForURL((url) => {
+      return url.searchParams.has("month");
+    })
+
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+
+    await page.locator('[data-testid="time"]').nth(1).click();
 
     // Fill what is this meeting about? name email and notes
     await page.locator('[name="name"]').fill("Test name");

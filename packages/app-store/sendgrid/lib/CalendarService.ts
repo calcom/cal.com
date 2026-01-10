@@ -8,7 +8,6 @@ import type {
   Calendar,
   CalendarEvent,
   EventBusyDate,
-  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
@@ -88,7 +87,11 @@ class SendgridCalendarService implements Calendar {
     return Promise.resolve();
   }
 
-  async getAvailability(_params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+  async getAvailability(
+    _dateFrom: string,
+    _dateTo: string,
+    _selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyDate[]> {
     return Promise.resolve([]);
   }
 

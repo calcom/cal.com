@@ -32,9 +32,7 @@ export function generateTextResponse({
   status?: number;
   statusText?: string;
 }) {
-  // Status 204 (No Content) doesn't allow a body, so pass null for body
-  const body = status === 204 ? null : text;
-  return new Response(body, {
+  return new Response(text, {
     status: status,
     statusText: statusText,
   });

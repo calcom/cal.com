@@ -1,4 +1,4 @@
-const path = require("node:path");
+const path = require("path");
 const i18nConfig = require("@calcom/config/next-i18next.config");
 
 /** @type {import("next-i18next").UserConfig} */
