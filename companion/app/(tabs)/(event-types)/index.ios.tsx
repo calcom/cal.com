@@ -28,7 +28,7 @@ import {
 } from "@/hooks";
 import { useEventTypeFilter } from "@/hooks/useEventTypeFilter";
 import { CalComAPIService, type EventType } from "@/services/calcom";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { getAvatarUrl } from "@/utils/getAvatarUrl";
 import { getEventDuration } from "@/utils/getEventDuration";
@@ -113,7 +113,7 @@ export default function EventTypesIOS() {
     try {
       const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
       await Clipboard.setStringAsync(link);
-      Alert.alert("Link Copied", "Event type link copied!");
+      showSuccessAlert("Link Copied", "Event type link copied!");
     } catch {
       showErrorAlert("Error", "Failed to copy link. Please try again.");
     }
@@ -160,7 +160,7 @@ export default function EventTypesIOS() {
           onPress: () => {
             deleteEventTypeMutation(eventType.id, {
               onSuccess: () => {
-                Alert.alert("Success", "Event type deleted successfully");
+                showSuccessAlert("Success", "Event type deleted successfully");
               },
               onError: (deleteError) => {
                 const message =
@@ -184,7 +184,7 @@ export default function EventTypesIOS() {
       { eventType, existingEventTypes: eventTypes },
       {
         onSuccess: (duplicatedEventType) => {
-          Alert.alert("Success", "Event type duplicated successfully");
+          showSuccessAlert("Success", "Event type duplicated successfully");
 
           const duration = getEventDuration(eventType);
 
@@ -243,13 +243,13 @@ export default function EventTypesIOS() {
           text: "Continue",
           onPress: (title?: string) => {
             if (!title?.trim()) {
-              Alert.alert("Error", "Please enter a title for your event type");
+              showErrorAlert("Error", "Please enter a title for your event type");
               return;
             }
 
             const autoSlug = slugify(title.trim());
             if (!autoSlug) {
-              Alert.alert("Error", "Title must contain at least one letter or number");
+              showErrorAlert("Error", "Title must contain at least one letter or number");
               return;
             }
 

@@ -1,9 +1,9 @@
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useRef } from "react";
-import { Alert } from "react-native";
 import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingByUid } from "@/hooks/useBookings";
+import { showErrorAlert, showInfoAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 
 // Empty actions result for when no booking is loaded
@@ -64,7 +64,7 @@ export default function BookingDetail() {
     if (actionHandlersRef.current?.openRescheduleModal) {
       actionHandlersRef.current.openRescheduleModal();
     } else {
-      Alert.alert("Error", "Unable to reschedule. Please try again.");
+      showErrorAlert("Error", "Unable to reschedule. Please try again.");
     }
   }, []);
 
@@ -72,7 +72,7 @@ export default function BookingDetail() {
     if (actionHandlersRef.current?.openEditLocationModal) {
       actionHandlersRef.current.openEditLocationModal();
     } else {
-      Alert.alert("Error", "Unable to edit location. Please try again.");
+      showErrorAlert("Error", "Unable to edit location. Please try again.");
     }
   }, []);
 
@@ -80,7 +80,7 @@ export default function BookingDetail() {
     if (actionHandlersRef.current?.openAddGuestsModal) {
       actionHandlersRef.current.openAddGuestsModal();
     } else {
-      Alert.alert("Error", "Unable to add guests. Please try again.");
+      showErrorAlert("Error", "Unable to add guests. Please try again.");
     }
   }, []);
 
@@ -88,7 +88,7 @@ export default function BookingDetail() {
     if (actionHandlersRef.current?.openViewRecordingsModal) {
       actionHandlersRef.current.openViewRecordingsModal();
     } else {
-      Alert.alert("Error", "Unable to view recordings. Please try again.");
+      showErrorAlert("Error", "Unable to view recordings. Please try again.");
     }
   }, []);
 
@@ -96,7 +96,7 @@ export default function BookingDetail() {
     if (actionHandlersRef.current?.openMeetingSessionDetailsModal) {
       actionHandlersRef.current.openMeetingSessionDetailsModal();
     } else {
-      Alert.alert("Error", "Unable to view session details. Please try again.");
+      showErrorAlert("Error", "Unable to view session details. Please try again.");
     }
   }, []);
 
@@ -104,19 +104,19 @@ export default function BookingDetail() {
     if (actionHandlersRef.current?.openMarkNoShowModal) {
       actionHandlersRef.current.openMarkNoShowModal();
     } else {
-      Alert.alert("Error", "Unable to mark no-show. Please try again.");
+      showErrorAlert("Error", "Unable to mark no-show. Please try again.");
     }
   }, []);
 
   const handleReport = useCallback(() => {
-    Alert.alert("Report Booking", "Report booking functionality is not yet available");
+    showInfoAlert("Report Booking", "Report booking functionality is not yet available");
   }, []);
 
   const handleCancel = useCallback(() => {
     if (actionHandlersRef.current?.handleCancelBooking) {
       actionHandlersRef.current.handleCancelBooking();
     } else {
-      Alert.alert("Error", "Unable to cancel. Please try again.");
+      showErrorAlert("Error", "Unable to cancel. Please try again.");
     }
   }, []);
 

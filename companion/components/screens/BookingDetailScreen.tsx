@@ -10,8 +10,10 @@ import {
   ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
+import { FullScreenModal } from "@/components/FullScreenModal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   AlertDialog,
@@ -38,7 +40,7 @@ import { SvgImage } from "@/components/SvgImage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCancelBooking } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 import { openInAppBrowser } from "@/utils/browser";
 import { defaultLocations, getDefaultLocationIconUrl } from "@/utils/defaultLocations";
@@ -273,12 +275,8 @@ export function BookingDetailScreen({
         { uid: booking.uid, reason },
         {
           onSuccess: () => {
-            Alert.alert("Success", "Booking cancelled successfully", [
-              {
-                text: "OK",
-                onPress: () => router.back(),
-              },
-            ]);
+            showSuccessAlert("Success", "Booking cancelled successfully");
+            router.back();
           },
           onError: (err) => {
             console.error("Failed to cancel booking");
@@ -297,7 +295,7 @@ export function BookingDetailScreen({
   const handleCancelBooking = useCallback(() => {
     if (!booking) return;
 
-    if (Platform.OS === "android") {
+    if (Platform.OS === "android" || Platform.OS === "web") {
       setCancellationReason("");
       setShowCancelDialog(true);
     } else {
@@ -347,7 +345,7 @@ export function BookingDetailScreen({
   }, []);
 
   const handleReportBooking = useCallback(() => {
-    Alert.alert("Report Booking", "Report booking functionality is not yet available");
+    showInfoAlert("Report Booking", "Report booking functionality is not yet available");
   }, []);
 
   // Navigate to reschedule screen (same pattern as senior's - navigate to screen in same folder)
@@ -822,46 +820,115 @@ export function BookingDetailScreen({
         )}
       </View>
 
-      {/* Cancel Event AlertDialog (Android only) */}
-      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader className="items-start">
-            <AlertDialogTitle>
-              <UIText className="text-left text-lg font-semibold">Cancel event</UIText>
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              <UIText className="text-left text-sm text-muted-foreground">
-                Cancellation reason will be shared with guests
-              </UIText>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+      {/* Web/Extension: Cancel Event Modal */}
+      {Platform.OS === "web" && (
+        <FullScreenModal
+          visible={showCancelDialog}
+          animationType="fade"
+          onRequestClose={handleCloseCancelDialog}
+        >
+          <View className="flex-1 items-center justify-center bg-black/50 p-4">
+            <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+              <View className="p-6">
+                <View className="flex-row">
+                  {/* Danger icon */}
+                  <View className="mr-3 self-start rounded-full bg-red-50 p-2">
+                    <Ionicons name="alert-circle" size={20} color="#800000" />
+                  </View>
 
-          <View>
-            <UIText className="mb-2 text-sm font-medium">Reason for cancellation</UIText>
-            <TextInput
-              className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827]"
-              placeholder="Why are you cancelling?"
-              placeholderTextColor="#9CA3AF"
-              value={cancellationReason}
-              onChangeText={setCancellationReason}
-              autoFocus
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-              style={{ minHeight: 80 }}
-            />
+                  {/* Title and description */}
+                  <View className="flex-1">
+                    <Text className="mb-2 text-xl font-semibold text-gray-900">Cancel Event</Text>
+                    <Text className="text-sm leading-5 text-gray-600">
+                      Are you sure you want to cancel "{booking?.title}"? Cancellation reason will
+                      be shared with guests.
+                    </Text>
+
+                    {/* Reason Input */}
+                    <View className="mt-4">
+                      <Text className="mb-2 text-sm font-medium text-gray-700">
+                        Reason for cancellation
+                      </Text>
+                      <TextInput
+                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900"
+                        placeholder="Why are you cancelling?"
+                        placeholderTextColor="#9CA3AF"
+                        value={cancellationReason}
+                        onChangeText={setCancellationReason}
+                        multiline
+                        numberOfLines={3}
+                        textAlignVertical="top"
+                        style={{ minHeight: 80 }}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* Buttons */}
+              <View className="flex-row-reverse gap-2 px-6 pb-6 pt-2">
+                <TouchableOpacity
+                  className="rounded-lg px-4 py-2.5"
+                  style={{ backgroundColor: "#111827" }}
+                  onPress={handleConfirmCancel}
+                >
+                  <Text className="text-center text-base font-medium text-white">Cancel Event</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2.5"
+                  onPress={handleCloseCancelDialog}
+                >
+                  <Text className="text-center text-base font-medium text-gray-700">Nevermind</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
+        </FullScreenModal>
+      )}
 
-          <AlertDialogFooter>
-            <AlertDialogCancel onPress={handleCloseCancelDialog}>
-              <UIText>Nevermind</UIText>
-            </AlertDialogCancel>
-            <AlertDialogAction onPress={handleConfirmCancel}>
-              <UIText className="text-white">Cancel event</UIText>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Cancel Event AlertDialog (Android only) */}
+      {Platform.OS === "android" && (
+        <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader className="items-start">
+              <AlertDialogTitle>
+                <UIText className="text-left text-lg font-semibold">Cancel event</UIText>
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                <UIText className="text-left text-sm text-muted-foreground">
+                  Cancellation reason will be shared with guests
+                </UIText>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <View>
+              <UIText className="mb-2 text-sm font-medium">Reason for cancellation</UIText>
+              <TextInput
+                className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827]"
+                placeholder="Why are you cancelling?"
+                placeholderTextColor="#9CA3AF"
+                value={cancellationReason}
+                onChangeText={setCancellationReason}
+                autoFocus
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                style={{ minHeight: 80 }}
+              />
+            </View>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel onPress={handleCloseCancelDialog}>
+                <UIText>Nevermind</UIText>
+              </AlertDialogCancel>
+              <AlertDialogAction onPress={handleConfirmCancel}>
+                <UIText className="text-white">Cancel event</UIText>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 }
