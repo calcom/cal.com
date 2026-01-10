@@ -1,17 +1,11 @@
 name: Cache Git Checkout
-description: "Save or restore git checkout from cache to speed up CI workflows"
-inputs:
-  mode:
-    description: "Mode of operation: 'save' to cache the checkout, 'restore' to restore from cache"
-    required: true
-
+description: "Cache or restore git checkout to speed up CI workflows"
 runs:
   using: "composite"
   steps:
-    - name: Restore git checkout from cache
-      if: ${{ inputs.mode == 'restore' }}
-      uses: actions/cache/restore@v4
-      id: cache-restore
+    - name: Cache git checkout
+      uses: actions/cache@v4
+      id: cache-checkout
       with:
         path: |
           .
@@ -19,15 +13,14 @@ runs:
           !node_modules
           !**/node_modules
         key: git-checkout-${{ github.head_ref || github.ref_name }}-${{ github.event.pull_request.head.sha || github.sha }}
-        fail-on-cache-miss: true
-
-    - name: Save git checkout to cache
-      if: ${{ inputs.mode == 'save' }}
-      uses: actions/cache/save@v4
+    - name: Checkout PR code (on cache miss)
+      if: steps.cache-checkout.outputs.cache-hit != 'true'
+      uses: actions/checkout@v4
       with:
-        path: |
-          .
-          !.git
-          !node_modules
-          !**/node_modules
-        key: git-checkout-${{ github.head_ref || github.ref_name }}-${{ github.event.pull_request.head.sha || github.sha }}
+        ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 2
+        sparse-checkout-cone-mode: false
+        sparse-checkout: |
+          /*
+          !/example-apps/
+          !**/*.mp4
