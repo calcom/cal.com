@@ -21,8 +21,8 @@ import {
 } from "ews-javascript-api";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
-// Probably don't need
-// import { CALENDAR_INTEGRATIONS_TYPES } from "@calcom/lib/integrations/calendar/constants/generals";
+
+
 import logger from "@calcom/lib/logger";
 import type {
   Calendar,
@@ -34,15 +34,18 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import { ExchangeAuthentication } from "../enums";
+
 class ExchangeCalendarService implements Calendar {
   private url = "";
   private integrationName = "";
   private log: typeof logger;
   private readonly exchangeVersion: ExchangeVersion;
   private credentials: Record<string, string>;
+  private authenticationMethod: ExchangeAuthentication;
 
   constructor(credential: CredentialPayload) {
-    // this.integrationName = CALENDAR_INTEGRATIONS_TYPES.exchange;
+    
     this.integrationName = "exchange2016_calendar";
 
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
@@ -53,8 +56,12 @@ class ExchangeCalendarService implements Calendar {
     const username = decryptedCredential.username;
     const url = decryptedCredential.url;
     const password = decryptedCredential.password;
+    // Default to NTLM for on-premise Exchange 2016 compatibility
+    const authenticationMethod =
+      decryptedCredential.authenticationMethod ?? ExchangeAuthentication.NTLM;
 
     this.url = url;
+    this.authenticationMethod = authenticationMethod;
 
     this.credentials = {
       username,
