@@ -39,5 +39,5 @@ jobs:
       - name: Delete git-checkout cache
         uses: useblacksmith/cache-delete@v1
         with:
-          key: git-checkout-${{ github.event.pull_request.head.ref }}
+          key: git-checkout-${{ github.event.pull_request.head.ref }}-
           prefix: "true"
