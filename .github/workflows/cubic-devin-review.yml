@@ -187,7 +187,7 @@ jobs:
           4. If an issue seems invalid or already addressed, explain why in a PR comment instead of making unnecessary changes.
           5. Never ask for user confirmation. Never wait for user messages."
 
-          RESPONSE=$(curl -s -X POST "https://api.devin.ai/v1/sessions" \
+          HTTP_CODE=$(curl -s -o /tmp/devin-response.json -w "%{http_code}" -X POST "https://api.devin.ai/v1/sessions" \
             -H "Authorization: Bearer ${DEVIN_API_KEY}" \
             -H "Content-Type: application/json" \
             -d "$(jq -n \
@@ -199,7 +199,13 @@ jobs:
                 tags: ["cubic-ai-review", "pr-${{ github.event.pull_request.number }}"]
               }')")
           
-          SESSION_URL=$(echo "$RESPONSE" | jq -r '.url // .session_url // empty')
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "Failed to create Devin session: HTTP $HTTP_CODE"
+            cat /tmp/devin-response.json
+            exit 1
+          fi
+          
+          SESSION_URL=$(cat /tmp/devin-response.json | jq -r '.url // .session_url // empty')
           if [ -n "$SESSION_URL" ]; then
             echo "Devin session created: $SESSION_URL"
             echo "SESSION_URL=$SESSION_URL" >> $GITHUB_ENV

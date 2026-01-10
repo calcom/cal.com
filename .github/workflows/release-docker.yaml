@@ -65,8 +65,10 @@ jobs:
             if [ "${{ inputs.BUILD_FROM_BRANCH }}" = "true" ]; then
               # Extract branch name and short SHA for the tag
               BRANCH_NAME="${GITHUB_REF#refs/heads/}"
-              # Sanitize branch name: replace slashes with dashes for valid Docker tag
-              SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | tr '/' '-')
+              # Sanitize branch name: replace all invalid Docker tag characters with dashes
+              # Docker tags can only contain lowercase/uppercase letters, digits, underscores, periods, and dashes
+              # Also remove any leading dashes or periods
+              SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9_.-]/-/g' | sed 's/^[-.]*//')
               SHORT_SHA=$(git rev-parse --short HEAD)
               echo "release_tag=${SANITIZED_BRANCH}-${SHORT_SHA}" >> $GITHUB_OUTPUT
             else
