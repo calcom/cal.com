@@ -13291,6 +13291,7 @@
       "patch": {
         "operationId": "MeController_updateMe",
         "summary": "Update my profile",
+        "description": "Updates the authenticated user's profile. Email changes require verification and the primary email stays unchanged until verification completes, unless the new email is already a verified secondary email or the user is platform-managed.",
         "parameters": [
           {
             "name": "Authorization",
@@ -15535,6 +15536,31 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -18098,6 +18124,49 @@
           "label",
           "required",
           "placeholder",
+          "hidden"
+        ]
+      },
+      "PhoneDefaultFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "phone"
+          },
+          "slug": {
+            "type": "string",
+            "default": "attendeePhoneNumber"
+          },
+          "isDefault": {
+            "type": "object",
+            "description": "This property is always true because it's a default field",
+            "example": true,
+            "default": true
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&attendeePhoneNumber=+37122222222`,      the phone field will be prefilled with this value and disabled."
+          }
+        },
+        "required": [
+          "type",
+          "slug",
+          "isDefault",
+          "required",
           "hidden"
         ]
       },
@@ -33704,154 +33773,6 @@
         ]
       },
       "AddGuestsOutput_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BookingOutput_2024_08_13"
-              },
-              {
-                "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
-                }
-              },
-              {
-                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
-              },
-              {
-                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
-                }
-              }
-            ],
-            "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdateBookingLocationInput_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "location": {
-            "description": "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/UpdateInputAddressLocation_2024_08_13"
-              },
-              {
-                "$ref": "#/components/schemas/UpdateBookingInputAttendeeAddressLocation_2024_08_13"
-              },
-              {
-                "$ref": "#/components/schemas/UpdateBookingInputAttendeeDefinedLocation_2024_08_13"
-              },
-              {
-                "$ref": "#/components/schemas/UpdateBookingInputAttendeePhoneLocation_2024_08_13"
-              },
-              {
-                "$ref": "#/components/schemas/UpdateBookingInputLinkLocation_2024_08_13"
-              },
-              {
-                "$ref": "#/components/schemas/UpdateBookingInputPhoneLocation_2024_08_13"
-              }
-            ]
-          }
-        }
-      },
-      "UpdateBookingLocationOutput_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/BookingOutput_2024_08_13"
-              },
-              {
-                "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
-                }
-              },
-              {
-                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
-              },
-              {
-                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
-                }
-              }
-            ],
-            "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdateBookingLocationInput_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "location": {
-            "description": "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/UpdateInputAddressLocation_2024_08_13"
-              },
-              {
-                "$ref": "#/components/schemas/UpdateBookingInputAttendeeAddressLocation_2024_08_13"
-              },
-              {
-                "$ref": "#/components/schemas/UpdateBookingInputAttendeeDefinedLocation_2024_08_13"
-              },
-              {
-                "$ref": "#/components/schemas/UpdateBookingInputAttendeePhoneLocation_2024_08_13"
-              },
-              {
-                "$ref": "#/components/schemas/UpdateBookingInputLinkLocation_2024_08_13"
-              },
-              {
-                "$ref": "#/components/schemas/UpdateBookingInputPhoneLocation_2024_08_13"
-              }
-            ]
-          }
-        }
-      },
-      "UpdateBookingLocationOutput_2024_08_13": {
         "type": "object",
         "properties": {
           "status": {
