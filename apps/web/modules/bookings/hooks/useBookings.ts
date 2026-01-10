@@ -26,8 +26,8 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { useBookingSuccessRedirect } from "../../../lib/bookingSuccessRedirect";
-import type { UseBookingFormReturnType } from "./useBookingForm";
+import { useBookingSuccessRedirect } from "@calcom/web/modules/lib/bookingSuccessRedirect";
+import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 
 export interface IUseBookings {
   event: {

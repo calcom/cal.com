@@ -2,16 +2,94 @@ import type React from "react";
 
 import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
-import type { UseBookingsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
-import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
-import type { UseSlotsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
-import type { UseVerifyCodeReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
-import type { UseVerifyEmailReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 import type { GetBookingType } from "../lib/get-booking";
+
+export type UseBookingsReturnType = {
+  handleBookEvent: () => void;
+  expiryTime: Date | undefined;
+  bookingForm: UseBookingFormReturnType["bookingForm"];
+  bookerFormErrorRef: React.RefObject<HTMLDivElement>;
+  errors: {
+    hasDataErrors: boolean;
+    dataErrors: unknown;
+  };
+  loadingStates: {
+    creatingBooking: boolean;
+    creatingRecurringBooking: boolean;
+    creatingInstantBooking: boolean;
+  };
+  instantVideoMeetingUrl: string | undefined;
+  instantConnectCooldownMs: number;
+};
+
+export type UseCalendarsReturnType = {
+  overlayBusyDates:
+    | {
+        start: Date;
+        end: Date;
+      }[]
+    | undefined;
+  isOverlayCalendarEnabled: boolean;
+  connectedCalendars: RouterOutputs["viewer"]["calendars"]["connectedCalendars"]["connectedCalendars"];
+  loadingConnectedCalendar: boolean;
+  onToggleCalendar: (
+    data: Set<{
+      credentialId: number;
+      externalId: string;
+    }>
+  ) => void;
+};
+
+export type UseSlotsReturnType = {
+  setSelectedTimeslot: (timeslot: string | null) => void;
+  setTentativeSelectedTimeslots: (timeslots: string[]) => void;
+  selectedTimeslot: string | null;
+  tentativeSelectedTimeslots: string[];
+  slotReservationId: string | null;
+  allSelectedTimeslots: string[];
+  quickAvailabilityChecks: Array<{
+    utcStartIso: string;
+    utcEndIso: string;
+    status: "available" | "unavailable";
+  }>;
+};
+
+export type UseVerifyCodeReturnType = {
+  verifyCodeWithSessionRequired: (code: string, email: string) => void;
+  verifyCodeWithSessionNotRequired: (code: string, email: string) => void;
+  isPending: boolean;
+  setIsPending: React.Dispatch<React.SetStateAction<boolean>>;
+  error: string;
+  value: string;
+  hasVerified: boolean;
+  setValue: React.Dispatch<React.SetStateAction<string>>;
+  setHasVerified: React.Dispatch<React.SetStateAction<boolean>>;
+  resetErrors: () => void;
+};
+
+export type UseVerifyEmailReturnType = {
+  handleVerifyEmail: () => void;
+  isEmailVerificationModalVisible: boolean;
+  setEmailVerificationModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  setVerifiedEmail: (email: string | null) => void;
+  renderConfirmNotVerifyEmailButtonCond: boolean;
+  isVerificationCodeSending: boolean;
+};
+
+export interface IUseBookingLoadingStates {
+  creatingBooking: boolean;
+  creatingRecurringBooking: boolean;
+  creatingInstantBooking: boolean;
+}
+
+export interface IUseBookingErrors {
+  hasDataErrors: boolean;
+  dataErrors: unknown;
+}
 
 export type useScheduleForEventReturnType = {
   data: RouterOutputs["viewer"]["slots"]["getSchedule"] | undefined;
