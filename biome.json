@@ -79,16 +79,6 @@
       "formatter": { "enabled": false }
     },
     {
-      "includes": ["apps/api/v2/**/*.ts", "apps/api/v2/**/*.controller.ts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useImportType": "off"
-          }
-        }
-      }
-    },
-    {
       "includes": ["**/*.tsx"],
       "javascript": {
         "jsxRuntime": "transparent"
@@ -154,6 +144,35 @@
           "security": {
             "noBlankTarget": "warn",
             "noDangerouslySetInnerHtml": "warn"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/api/v2/**/*.ts", "apps/api/v2/**/*.controller.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useImportType": "off"
+          },
+          "correctness": {
+            "noProcessGlobal": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "apps/api/v2/src/config/app.ts",
+        "apps/api/v2/src/config/bootstrap.ts",
+        "apps/api/v2/src/config/env.ts",
+        "apps/api/v2/src/env.ts",
+        "apps/api/v2/test/setEnvVars.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noProcessEnv": "off"
           }
         }
       }
