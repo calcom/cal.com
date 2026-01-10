@@ -72,8 +72,6 @@ jobs:
             /*
             !/docs
             !/example-apps
-            !/apps/api/v2
-            !/apps/web
           sparse-checkout-cone-mode: false
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
