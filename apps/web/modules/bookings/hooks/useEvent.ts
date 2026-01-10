@@ -5,7 +5,7 @@ import { useSchedule } from "@calcom/web/modules/schedules/hooks/useSchedule";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useBookerTime } from "./useBookerTime";
 
 export type useEventReturnType = ReturnType<typeof useEvent>;
 export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEvent>;

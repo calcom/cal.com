@@ -12,9 +12,9 @@ import {
   useBookerStoreContext,
   BookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
-import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
-import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
+import { useBookerLayout } from "@calcom/web/modules/bookings/hooks/useBookerLayout";
+import { useBookingForm } from "@calcom/web/modules/bookings/hooks/useBookingForm";
+import { useLocalSet } from "@calcom/web/modules/bookings/hooks/useLocalSet";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { ConnectedDestinationCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";

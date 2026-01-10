@@ -14,7 +14,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewer/slots/isAvailable.schema";
 
-import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/features/bookings/Booker/components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
+import { useIsQuickAvailabilityCheckFeatureEnabled } from "./useIsQuickAvailabilityCheckFeatureEnabled";
 
 export type QuickAvailabilityCheck = TIsAvailableOutputSchema["slots"][number];
 

@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 
 import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/types";
-import { useOverlayCalendar } from "@calcom/features/bookings/Booker/components/hooks/useOverlayCalendar";
+import { useOverlayCalendar } from "@calcom/web/modules/bookings/hooks/useOverlayCalendar";
 import { OverlayCalendarContinueModal } from "./OverlayCalendarContinueModal";
 import { OverlayCalendarSettingsModal } from "./OverlayCalendarSettingsModal";
 import { OverlayCalendarSwitch } from "./OverlayCalendarSwitch";

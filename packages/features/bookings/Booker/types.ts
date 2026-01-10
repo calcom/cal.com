@@ -1,12 +1,51 @@
 import type React from "react";
+import type { UseFormReturn } from "react-hook-form";
 
-import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
-import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
+import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 import type { GetBookingType } from "../lib/get-booking";
+
+export type UseBookerLayoutType = {
+  shouldShowFormInDialog: boolean;
+  hasDarkBackground: boolean;
+  extraDays: number;
+  columnViewExtraDays: React.MutableRefObject<number>;
+  isMobile: boolean;
+  isEmbed: boolean;
+  isTablet: boolean;
+  layout: BookerLayout;
+  defaultLayout: BookerLayouts;
+  hideEventTypeDetails: boolean;
+  bookerLayouts: {
+    enabledLayouts: BookerLayouts[];
+    defaultLayout: BookerLayouts;
+  };
+};
+
+export type UseBookingFormReturnType = {
+  bookingForm: UseFormReturn<{
+    locationType?: string;
+    responses: Record<string, unknown> | null;
+    globalError: undefined;
+    cfToken?: string;
+  }>;
+  bookerFormErrorRef: React.RefObject<HTMLDivElement>;
+  key: string;
+  formEmail: string | undefined;
+  formName: string | undefined;
+  beforeVerifyEmail: () => void;
+  formErrors: {
+    hasFormErrors: boolean;
+    formErrors: unknown;
+  };
+  errors: {
+    hasFormErrors: boolean;
+    formErrors: unknown;
+  };
+};
 
 export type UseBookingsReturnType = {
   handleBookEvent: () => void;

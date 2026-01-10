@@ -8,10 +8,10 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 
-import { extraDaysConfig } from "../../config";
-import type { BookerLayout } from "../../types";
-import { validateLayout } from "../../utils/layout";
-import { getQueryParam } from "../../utils/query-param";
+import { extraDaysConfig } from "@calcom/features/bookings/Booker/config";
+import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
+import { validateLayout } from "@calcom/features/bookings/Booker/utils/layout";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 
 export type UseBookerLayoutType = ReturnType<typeof useBookerLayout>;
 

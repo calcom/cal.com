@@ -27,7 +27,7 @@ import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useBookingSuccessRedirect } from "@calcom/web/modules/lib/bookingSuccessRedirect";
-import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
+import type { UseBookingFormReturnType } from "./useBookingForm";
 
 export interface IUseBookings {
   event: {
