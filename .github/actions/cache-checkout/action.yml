@@ -18,7 +18,7 @@ runs:
           !.git
           !node_modules
           !**/node_modules
-        key: git-checkout-${{ github.head_ref || github.ref_name }}-${{ github.sha }}
+        key: git-checkout-${{ github.head_ref || github.ref_name }}-${{ github.event.pull_request.head.sha || github.sha }}
         fail-on-cache-miss: true
 
     - name: Delete previous git-checkout caches for this branch
@@ -37,4 +37,4 @@ runs:
           !.git
           !node_modules
           !**/node_modules
-        key: git-checkout-${{ github.head_ref || github.ref_name }}-${{ github.sha }}
+        key: git-checkout-${{ github.head_ref || github.ref_name }}-${{ github.event.pull_request.head.sha || github.sha }}
