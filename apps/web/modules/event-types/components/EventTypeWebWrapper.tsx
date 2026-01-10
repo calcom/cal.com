@@ -24,7 +24,7 @@ import { TRPCClientError } from "@trpc/react-query";
 import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
-import type { ChildrenEventType } from "../ChildrenEventTypeSelect";
+import type { ChildrenEventType } from "./ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "./EventType";
 import { useEventTypeForm } from "../../../../../packages/platform/atoms/event-types/hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../../../../../packages/platform/atoms/event-types/hooks/useHandleRouteChange";
@@ -45,9 +45,9 @@ type EventPermissions = {
   };
 };
 
-const ManagedEventTypeDialog = dynamic(() => import("../dialogs/ManagedEventDialog"));
+const ManagedEventTypeDialog = dynamic(() => import("./dialogs/ManagedEventDialog"));
 
-const AssignmentWarningDialog = dynamic(() => import("../dialogs/AssignmentWarningDialog"));
+const AssignmentWarningDialog = dynamic(() => import("./dialogs/AssignmentWarningDialog"));
 
 const EventSetupTab = dynamic(
   () => import("./tabs/setup/EventSetupTabWebWrapper").then((mod) => mod),

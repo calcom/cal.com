@@ -1,7 +1,7 @@
 import {
   EventTeamAssignmentTab,
   type EventTeamAssignmentTabBaseProps,
-} from "../tabs/assignment/EventTeamAssignmentTab";
+} from "./EventTeamAssignmentTab";
 
 const EventTeamAssignmentTabWebWrapper = (
   props: Omit<EventTeamAssignmentTabBaseProps, "isSegmentApplicable">
