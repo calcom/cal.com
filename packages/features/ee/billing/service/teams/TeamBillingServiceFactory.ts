@@ -1,3 +1,5 @@
+import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
+
 import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
@@ -19,7 +21,9 @@ export class TeamBillingServiceFactory {
 
   /** Initialize a single team billing */
   init(team: TeamBillingInput): ITeamBillingService {
-    if (!this.deps.isTeamBillingEnabled) {
+    // Use stub service if team billing is disabled OR if Stripe is not configured.
+    // This prevents errors when disbanding teams on self-hosted instances without Stripe.
+    if (!this.deps.isTeamBillingEnabled || !IS_STRIPE_ENABLED) {
       return new StubTeamBillingService(team);
     }
 
