@@ -18,12 +18,13 @@ describe("isAuthorized", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCheckPermission = vi.fn();
-    mockPermissionCheckService.mockImplementation(function () {
-      return {
-        checkPermission: mockCheckPermission,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
-    });
+    mockPermissionCheckService.mockImplementation(
+      () =>
+        ({
+          checkPermission: mockCheckPermission,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
+    );
   });
 
   describe("null workflow", () => {

@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash } from "crypto";
 
 export function verifyCodeChallenge(
   codeVerifier: string,

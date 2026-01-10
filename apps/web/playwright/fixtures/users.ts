@@ -6,8 +6,7 @@ import { v4 } from "uuid";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import type { AppFlags, FeatureId } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { AppFlags } from "@calcom/features/flags/config";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -254,17 +253,15 @@ const createTeamAndAddUser = async (
 
   // Enable feature flags for the team if specified
   if (teamFeatureFlags && teamFeatureFlags.length > 0) {
-    const featuresRepository = new FeaturesRepository(prisma);
-    await Promise.all(
-      teamFeatureFlags.map((featureFlag) =>
-        featuresRepository.setTeamFeatureState({
-          teamId: team.id,
-          featureId: featureFlag as FeatureId,
-          state: "enabled",
-          assignedBy: "e2e-fixture",
-        })
-      )
-    );
+    await prisma.teamFeatures.createMany({
+      data: teamFeatureFlags.map((featureFlag) => ({
+        teamId: team.id,
+        featureId: featureFlag,
+        assignedBy: "e2e-fixture",
+        assignedAt: new Date(),
+        enabled: true,
+      })),
+    });
   }
 
   return team;
@@ -426,17 +423,15 @@ export const createUsersFixture = (
       // Default to DEFAULT_USER_FEATURE_FLAGS if not specified
       const userFeatureFlags = opts?.userFeatureFlags ?? DEFAULT_USER_FEATURE_FLAGS;
       if (userFeatureFlags.length > 0) {
-        const featuresRepository = new FeaturesRepository(prisma);
-        await Promise.all(
-          userFeatureFlags.map((featureFlag) =>
-            featuresRepository.setUserFeatureState({
-              userId: user.id,
-              featureId: featureFlag as FeatureId,
-              state: "enabled",
-              assignedBy: "e2e-fixture",
-            })
-          )
-        );
+        await prisma.userFeatures.createMany({
+          data: userFeatureFlags.map((featureFlag) => ({
+            userId: user.id,
+            featureId: featureFlag,
+            assignedBy: "e2e-fixture",
+            assignedAt: new Date(),
+            enabled: true,
+          })),
+        });
       }
 
       if (scenario.hasTeam) {
@@ -1111,49 +1106,17 @@ export async function login(
   await responsePromise;
 }
 
-/**
- * Helper to retry network requests that may fail with transient errors like ECONNRESET
- */
-async function retryOnNetworkError<T>(
-  fn: () => Promise<T>,
-  maxRetries = 3,
-  delayMs = 500
-): Promise<T> {
-  let lastError: Error | undefined;
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error as Error;
-      const errorMessage = lastError.message || "";
-      // Only retry on transient network errors
-      const isRetryable =
-        errorMessage.includes("ECONNRESET") ||
-        errorMessage.includes("ECONNREFUSED") ||
-        errorMessage.includes("ETIMEDOUT") ||
-        errorMessage.includes("socket hang up");
-
-      if (!isRetryable || attempt === maxRetries) {
-        throw lastError;
-      }
-      // Wait before retrying with exponential backoff
-      await new Promise((resolve) => setTimeout(resolve, delayMs * attempt));
-    }
-  }
-  throw lastError;
-}
-
 export async function apiLogin(
   user: Pick<User, "username"> & Partial<Pick<User, "email">> & { password: string | null },
   page: Page,
   navigateToUrl?: string
 ) {
-  // Get CSRF token with retry for transient network errors
-  const csrfToken = await retryOnNetworkError(async () => {
-    const response = await page.context().request.get("/api/auth/csrf");
-    const json = await response.json();
-    return json.csrfToken;
-  });
+  // Get CSRF token
+  const csrfToken = await page
+    .context()
+    .request.get("/api/auth/csrf")
+    .then((response) => response.json())
+    .then((json) => json.csrfToken);
 
   // Make the login request
   const loginData = {
@@ -1165,11 +1128,9 @@ export async function apiLogin(
     csrfToken,
   };
 
-  const response = await retryOnNetworkError(() =>
-    page.context().request.post("/api/auth/callback/credentials", {
-      data: loginData,
-    })
-  );
+  const response = await page.context().request.post("/api/auth/callback/credentials", {
+    data: loginData,
+  });
 
   expect(response.status()).toBe(200);
 
@@ -1177,8 +1138,10 @@ export async function apiLogin(
    * Critical: Navigate to a protected page to trigger NextAuth session loading
    * This forces NextAuth to run the jwt and session callbacks that populate
    * the session with profile, org, and other important data
+   * We picked /settings/my-account/profile due to it being one of
+   * our lighest protected pages and doesnt do anything other than load the user profile
    */
-  await page.goto(navigateToUrl || "/e2e/session-warmup");
+  await page.goto(navigateToUrl || "/settings/my-account/profile");
 
   // Wait for the session API call to complete to ensure session is fully established
   // Only wait if we're on a protected page that would trigger the session API call

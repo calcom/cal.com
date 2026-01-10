@@ -4,7 +4,6 @@ import type {
   Calendar,
   CalendarEvent,
   EventBusyDate,
-  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
@@ -30,7 +29,7 @@ function getFileExtension(url: string): string {
   return fileName.substring(fileName.lastIndexOf(".") + 1);
 }
 
-export default class BasecampCalendarService implements Calendar {
+class BasecampCalendarService implements Calendar {
   private credentials: Record<string, string> = {};
   private auth: Promise<{ configureToken: () => Promise<void> }>;
   private headers: Record<string, string> = {};
@@ -92,7 +91,7 @@ export default class BasecampCalendarService implements Calendar {
     });
     const baseString = `<div>Event title: ${event.title}<br/>Date and time: ${date}, ${startTime} - ${endTime} ${timeZone}<br/>View on Cal.com: <a target="_blank" rel="noreferrer" class="autolinked" data-behavior="truncate" href="https://app.cal.com/booking/${event.uid}">https://app.cal.com/booking/${event.uid}</a> `;
     const guestString = `<br/>Guests: ${event.attendees.reduce((acc, attendee) => {
-      return `${acc}<br/><a target=\"_blank\" rel=\"noreferrer\" class=\"autolinked\" data-behavior=\"truncate\" href=\"mailto:${attendee.email}\">${attendee.email}</a>`;
+      return `${acc}<br/><a target="_blank" rel="noreferrer" class="autolinked" data-behavior="truncate" href="mailto:${attendee.email}">${attendee.email}</a>`;
     }, "")}`;
 
     const videoString = event.videoCallData
@@ -248,11 +247,24 @@ export default class BasecampCalendarService implements Calendar {
     return true;
   };
 
-  async getAvailability(_params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+  async getAvailability(
+    _dateFrom: string,
+    _dateTo: string,
+    _selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyDate[]> {
     return Promise.resolve([]);
   }
 
   async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
     return Promise.resolve([]);
   }
+}
+
+/**
+ * Factory function that creates a Basecamp Calendar service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export default function BuildCalendarService(credential: CredentialPayload): Calendar {
+  return new BasecampCalendarService(credential);
 }

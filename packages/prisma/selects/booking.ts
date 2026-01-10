@@ -10,7 +10,6 @@ export const bookingMinimalSelect = {
   endTime: true,
   attendees: true,
   metadata: true,
-  createdAt: true,
 } satisfies Prisma.BookingSelect;
 
 export const bookingAuthorizationCheckSelect = {

@@ -1,9 +1,9 @@
 import chokidar from "chokidar";
-import fs from "node:fs"
+import fs from "fs";
 // eslint-disable-next-line no-restricted-imports
 import { debounce } from "lodash";
-import { spawnSync } from "node:child_process";
-import path from "node:path"
+import { spawnSync } from "child_process";
+import path from "path";
 import type { AppMeta } from "@calcom/types/App";
 import { AppMetaSchema } from "@calcom/types/AppMetaSchema";
 

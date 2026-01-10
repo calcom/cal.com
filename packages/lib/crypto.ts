@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import crypto from "crypto";
 
 const ALGORITHM = "aes256";
 const INPUT_ENCODING = "utf8";

@@ -7,9 +7,9 @@ import { shouldSkipAttendeeEmailWithSettings, fetchOrganizationEmailSettings } f
 const mockGetEmailSettings = vi.fn();
 
 vi.mock("@calcom/features/organizations/repositories/OrganizationSettingsRepository", () => ({
-  OrganizationSettingsRepository: vi.fn().mockImplementation(function() { return {
+  OrganizationSettingsRepository: vi.fn().mockImplementation(() => ({
     getEmailSettings: mockGetEmailSettings,
-  }; }),
+  })),
 }));
 
 vi.mock("@calcom/prisma", () => ({

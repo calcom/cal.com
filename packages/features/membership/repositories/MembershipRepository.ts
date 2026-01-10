@@ -329,8 +329,8 @@ export class MembershipRepository {
     });
   }
 
-  async findUniqueByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
-    return await this.prismaClient.membership.findUnique({
+  static async findUniqueByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
+    return await prisma.membership.findUnique({
       where: {
         userId_teamId: {
           userId,
@@ -531,7 +531,6 @@ export class MembershipRepository {
           select: {
             id: true,
             parentId: true,
-            isOrganization: true,
           },
         },
       },

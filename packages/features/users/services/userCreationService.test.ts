@@ -27,9 +27,7 @@ const mockUserRepository = {
 
 vi.mock("@calcom/features/users/repositories/UserRepository", () => {
   return {
-    UserRepository: vi.fn(function () {
-      return mockUserRepository;
-    }),
+    UserRepository: vi.fn().mockImplementation(() => mockUserRepository),
   };
 });
 

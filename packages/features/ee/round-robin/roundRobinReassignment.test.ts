@@ -1,4 +1,4 @@
-import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 
 import {
   getDate,
@@ -7,19 +7,19 @@ import {
   getMockBookingAttendee,
   TestData,
   addWorkflowReminders,
-} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import {
   expectBookingToBeInDatabase,
   expectSuccessfulRoundRobinReschedulingEmails,
   expectWorkflowToBeTriggered,
-} from "@calcom/testing/lib/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
+} from "@calcom/web/test/utils/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, vi, expect } from "vitest";
 
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
-import { test } from "@calcom/testing/lib/fixtures/fixtures";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 vi.mock("@calcom/features/bookings/lib/EventManager");
 
@@ -64,8 +64,6 @@ describe("roundRobinReassignment test", () => {
     const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
-    // Clear any existing mock calls from previous tests
-    eventManagerSpy.mockClear();
     eventManagerSpy.mockResolvedValue({ referencesToCreate: [] });
 
     const users = testUsers;
@@ -199,8 +197,6 @@ describe("roundRobinReassignment test", () => {
     const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
-    // Clear any existing mock calls from previous tests
-    eventManagerSpy.mockClear();
 
     const users = testUsers;
 

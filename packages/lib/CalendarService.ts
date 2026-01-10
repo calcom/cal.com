@@ -24,7 +24,6 @@ import type {
   CalendarEvent,
   CalendarEventType,
   EventBusyDate,
-  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
   TeamMember,
@@ -359,8 +358,11 @@ export default abstract class BaseCalendarService implements Calendar {
     return true;
   };
 
-  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
-    const { dateFrom, dateTo, selectedCalendars } = params;
+  async getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyDate[]> {
     const startISOString = new Date(dateFrom).toISOString();
 
     const objects = await this.fetchObjectsWithOptionalExpand({

@@ -1,11 +1,10 @@
 import * as Clipboard from "expo-clipboard";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Alert } from "react-native";
 import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBookingByUid } from "@/hooks/useBookings";
-import type { Booking } from "@/services/calcom";
-import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
+import { type Booking, CalComAPIService } from "@/services/calcom";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 import { openInAppBrowser } from "@/utils/browser";
 
@@ -60,11 +59,10 @@ const getMeetingUrl = (booking: Booking | null): string | null => {
 };
 
 export default function BookingDetailIOS() {
+  "use no memo";
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const { userInfo } = useAuth();
-
-  // Use React Query hook for booking data - single source of truth
-  const { data: booking, isLoading, error, refetch, isRefetching } = useBookingByUid(uid);
+  const [booking, setBooking] = useState<Booking | null>(null);
 
   // Ref to store action handlers from BookingDetailScreen
   const actionHandlersRef = useRef<ActionHandlers | null>(null);
@@ -74,6 +72,17 @@ export default function BookingDetailIOS() {
     actionHandlersRef.current = handlers;
   }, []);
 
+  // Fetch booking data for the iOS header menu actions
+  useEffect(() => {
+    if (uid) {
+      CalComAPIService.getBookingByUid(uid)
+        .then(setBooking)
+        .catch(() => {
+          // Error handling is done in BookingDetailScreen
+        });
+    }
+  }, [uid]);
+
   // Get the month name from booking start date for back button
   const monthName = useMemo(() => {
     const startTime = booking?.start || booking?.startTime;
@@ -81,7 +90,7 @@ export default function BookingDetailIOS() {
   }, [booking?.start, booking?.startTime]);
 
   // Get meeting URL for Join button
-  const meetingUrl = useMemo(() => getMeetingUrl(booking ?? null), [booking]);
+  const meetingUrl = useMemo(() => getMeetingUrl(booking), [booking]);
 
   // Handle join meeting
   const handleJoinMeeting = useCallback(() => {
@@ -94,7 +103,7 @@ export default function BookingDetailIOS() {
   const handleCopyMeetingLink = useCallback(async () => {
     if (meetingUrl) {
       await Clipboard.setStringAsync(meetingUrl);
-      showSuccessAlert("Copied", "Meeting link copied to clipboard");
+      Alert.alert("Copied", "Meeting link copied to clipboard");
     }
   }, [meetingUrl]);
 
@@ -110,44 +119,89 @@ export default function BookingDetailIOS() {
     });
   }, [booking, userInfo?.id, userInfo?.email]);
 
-  // Invoke a handler by name - only accesses ref at invocation time (event handler)
-  // This avoids creating closures that capture the ref during render
-  const invokeHandler = useCallback((handlerName: keyof ActionHandlers, errorMessage: string) => {
-    const handlers = actionHandlersRef.current;
-    if (handlers?.[handlerName]) {
-      (handlers[handlerName] as () => void)();
+  // Action handlers that use the booking data
+  const handleReschedule = useCallback(() => {
+    if (actionHandlersRef.current?.openRescheduleModal) {
+      actionHandlersRef.current.openRescheduleModal();
     } else {
-      showErrorAlert("Error", errorMessage);
+      Alert.alert("Error", "Unable to reschedule. Please try again.");
     }
   }, []);
 
-  // Define and filter booking actions
-  // Actions store handler metadata instead of closures to avoid capturing ref during render
+  const handleEditLocation = useCallback(() => {
+    if (actionHandlersRef.current?.openEditLocationModal) {
+      actionHandlersRef.current.openEditLocationModal();
+    } else {
+      Alert.alert("Error", "Unable to edit location. Please try again.");
+    }
+  }, []);
+
+  const handleAddGuests = useCallback(() => {
+    if (actionHandlersRef.current?.openAddGuestsModal) {
+      actionHandlersRef.current.openAddGuestsModal();
+    } else {
+      Alert.alert("Error", "Unable to add guests. Please try again.");
+    }
+  }, []);
+
+  const handleViewRecordings = useCallback(() => {
+    if (actionHandlersRef.current?.openViewRecordingsModal) {
+      actionHandlersRef.current.openViewRecordingsModal();
+    } else {
+      Alert.alert("Error", "Unable to view recordings. Please try again.");
+    }
+  }, []);
+
+  const handleSessionDetails = useCallback(() => {
+    if (actionHandlersRef.current?.openMeetingSessionDetailsModal) {
+      actionHandlersRef.current.openMeetingSessionDetailsModal();
+    } else {
+      Alert.alert("Error", "Unable to view session details. Please try again.");
+    }
+  }, []);
+
+  const handleMarkNoShow = useCallback(() => {
+    if (actionHandlersRef.current?.openMarkNoShowModal) {
+      actionHandlersRef.current.openMarkNoShowModal();
+    } else {
+      Alert.alert("Error", "Unable to mark no-show. Please try again.");
+    }
+  }, []);
+
+  const handleReport = useCallback(() => {
+    Alert.alert("Report Booking", "Report booking functionality is not yet available");
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    if (actionHandlersRef.current?.handleCancelBooking) {
+      actionHandlersRef.current.handleCancelBooking();
+    } else {
+      Alert.alert("Error", "Unable to cancel. Please try again.");
+    }
+  }, []);
+
+  // Define booking actions organized by sections
   const bookingActionsSections = useMemo(() => {
-    // Define all actions with handler metadata (not closures)
     const allEditEventActions = [
       {
         id: "reschedule",
         label: "Reschedule Booking",
         icon: "calendar" as const,
-        handlerName: "openRescheduleModal" as const,
-        errorMessage: "Unable to reschedule. Please try again.",
+        onPress: handleReschedule,
         gatingKey: "reschedule" as const,
       },
       {
         id: "edit-location",
         label: "Edit Location",
         icon: "location" as const,
-        handlerName: "openEditLocationModal" as const,
-        errorMessage: "Unable to edit location. Please try again.",
+        onPress: handleEditLocation,
         gatingKey: "changeLocation" as const,
       },
       {
         id: "add-guests",
         label: "Add Guests",
         icon: "person.badge.plus" as const,
-        handlerName: "openAddGuestsModal" as const,
-        errorMessage: "Unable to add guests. Please try again.",
+        onPress: handleAddGuests,
         gatingKey: "addGuests" as const,
       },
     ];
@@ -157,24 +211,21 @@ export default function BookingDetailIOS() {
         id: "view-recordings",
         label: "View Recordings",
         icon: "video" as const,
-        handlerName: "openViewRecordingsModal" as const,
-        errorMessage: "Unable to view recordings. Please try again.",
+        onPress: handleViewRecordings,
         gatingKey: "viewRecordings" as const,
       },
       {
         id: "session-details",
         label: "Meeting Session Details",
         icon: "info.circle" as const,
-        handlerName: "openMeetingSessionDetailsModal" as const,
-        errorMessage: "Unable to view session details. Please try again.",
+        onPress: handleSessionDetails,
         gatingKey: "meetingSessionDetails" as const,
       },
       {
         id: "mark-no-show",
         label: "Mark as No-Show",
         icon: "eye.slash" as const,
-        handlerName: "openMarkNoShowModal" as const,
-        errorMessage: "Unable to mark no-show. Please try again.",
+        onPress: handleMarkNoShow,
         gatingKey: "markNoShow" as const,
       },
     ];
@@ -184,11 +235,7 @@ export default function BookingDetailIOS() {
         id: "report",
         label: "Report Booking",
         icon: "flag" as const,
-        handlerName: null,
-        errorMessage: null,
-        customHandler: () => {
-          showInfoAlert("Report Booking", "Report booking functionality is not yet available");
-        },
+        onPress: handleReport,
         destructive: true,
         gatingKey: null,
       },
@@ -196,14 +243,12 @@ export default function BookingDetailIOS() {
         id: "cancel",
         label: "Cancel Event",
         icon: "xmark.circle" as const,
-        handlerName: "handleCancelBooking" as const,
-        errorMessage: "Unable to cancel. Please try again.",
+        onPress: handleCancel,
         destructive: true,
         gatingKey: "cancel" as const,
       },
     ];
 
-    // Filter actions based on gating logic
     const filterAction = (action: { gatingKey: keyof typeof actions | null }) => {
       if (action.gatingKey === null) return true;
       const gating = actions[action.gatingKey];
@@ -215,7 +260,17 @@ export default function BookingDetailIOS() {
       afterEvent: allAfterEventActions.filter(filterAction),
       standalone: allStandaloneActions.filter(filterAction),
     };
-  }, [actions]);
+  }, [
+    actions,
+    handleReschedule,
+    handleEditLocation,
+    handleAddGuests,
+    handleViewRecordings,
+    handleSessionDetails,
+    handleMarkNoShow,
+    handleReport,
+    handleCancel,
+  ]);
 
   return (
     <>
@@ -261,7 +316,7 @@ export default function BookingDetailIOS() {
                 <Stack.Header.MenuAction
                   key={action.id}
                   icon={action.icon}
-                  onPress={() => invokeHandler(action.handlerName, action.errorMessage)}
+                  onPress={action.onPress}
                 >
                   {action.label}
                 </Stack.Header.MenuAction>
@@ -274,7 +329,7 @@ export default function BookingDetailIOS() {
                 <Stack.Header.MenuAction
                   key={action.id}
                   icon={action.icon}
-                  onPress={() => invokeHandler(action.handlerName, action.errorMessage)}
+                  onPress={action.onPress}
                 >
                   {action.label}
                 </Stack.Header.MenuAction>
@@ -287,13 +342,7 @@ export default function BookingDetailIOS() {
                 <Stack.Header.MenuAction
                   key={action.id}
                   icon={action.icon}
-                  onPress={() => {
-                    if (action.customHandler) {
-                      action.customHandler();
-                    } else if (action.handlerName && action.errorMessage) {
-                      invokeHandler(action.handlerName, action.errorMessage);
-                    }
-                  }}
+                  onPress={action.onPress}
                   destructive
                 >
                   {action.label}
@@ -304,14 +353,7 @@ export default function BookingDetailIOS() {
         </Stack.Header.Right>
       </Stack.Header>
 
-      <BookingDetailScreen
-        booking={booking}
-        isLoading={isLoading}
-        error={error ?? null}
-        refetch={refetch}
-        isRefetching={isRefetching}
-        onActionsReady={handleActionsReady}
-      />
+      <BookingDetailScreen uid={uid} onActionsReady={handleActionsReady} />
     </>
   );
 }

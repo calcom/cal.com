@@ -1,22 +1,20 @@
-import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/generated/prisma/client";
+import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 export class PrismaAttributeToUserRepository {
-  constructor(private prismaClient: PrismaClient) {}
-
-  async createManySkipDuplicates(data: Prisma.AttributeToUserCreateManyInput[]) {
-    return await this.prismaClient.attributeToUser.createMany({ data, skipDuplicates: true });
+  static async createManySkipDuplicates(data: Prisma.AttributeToUserCreateManyInput[]) {
+    return await prisma.attributeToUser.createMany({ data, skipDuplicates: true });
   }
 
-  async deleteMany(where: Prisma.AttributeToUserWhereInput) {
+  static async deleteMany(where: Prisma.AttributeToUserWhereInput) {
     if (Object.keys(where).length === 0) {
       throw new Error("Empty where clause provided to deleteMany. Potential data loss risk.");
     }
-    return await this.prismaClient.attributeToUser.deleteMany({ where });
+    return await prisma.attributeToUser.deleteMany({ where });
   }
 
-  async findManyIncludeAttribute(where: Prisma.AttributeToUserWhereInput) {
-    return await this.prismaClient.attributeToUser.findMany({
+  static async findManyIncludeAttribute(where: Prisma.AttributeToUserWhereInput) {
+    return await prisma.attributeToUser.findMany({
       where,
       include: {
         attributeOption: {
@@ -30,12 +28,12 @@ export class PrismaAttributeToUserRepository {
     });
   }
 
-  async findManyByOrgMembershipIds({ orgMembershipIds }: { orgMembershipIds: number[] }) {
+  static async findManyByOrgMembershipIds({ orgMembershipIds }: { orgMembershipIds: number[] }) {
     if (!orgMembershipIds.length) {
       return [];
     }
 
-    const attributesAssignedToTeamMembers = await this.prismaClient.attributeToUser.findMany({
+    const attributesAssignedToTeamMembers = await prisma.attributeToUser.findMany({
       where: {
         memberId: {
           in: orgMembershipIds,

@@ -1,11 +1,10 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { createHmac } from "node:crypto";
+import { createHmac } from "crypto";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import {
   sendDailyVideoRecordingEmails,
   sendDailyVideoTranscriptEmails,
@@ -75,7 +74,7 @@ export async function postHandler(request: NextRequest) {
     }
   }
 
-  log.info(
+  log.debug(
     "Daily video webhook Request Body:",
     safeStringify({
       body,
@@ -99,54 +98,46 @@ export async function postHandler(request: NextRequest) {
       const bookingReference = await getBookingReference(room_name);
       const booking = await getBooking(bookingReference.bookingId as number);
 
-      const bookingRepository = new BookingRepository(prisma);
+      const evt = await getCalendarEvent(booking);
 
-      const [evt, updateRecordStatus, downloadLink, teamId] = await Promise.all([
-        getCalendarEvent(booking),
-        bookingRepository.updateRecordedStatus({
-          bookingUid: booking.uid,
+      await prisma.booking.update({
+        where: {
+          uid: booking.uid,
+        },
+        data: {
           isRecorded: true,
-        }),
-        getProxyDownloadLinkOfCalVideo(recording_id),
-        getTeamIdFromEventType({
-          eventType: {
-            team: { id: booking?.eventType?.teamId ?? null },
-            parentId: booking?.eventType?.parentId ?? null,
-          },
-        }),
-      ]);
-
-      const tasks = [
-        {
-          fn: triggerRecordingReadyWebhook({
-            evt,
-            downloadLink,
-            booking: {
-              userId: booking?.user?.id,
-              eventTypeId: booking.eventTypeId,
-              eventTypeParentId: booking.eventType?.parentId,
-              teamId,
-            },
-          }),
-          errorMsg: "trigger recording ready webhook",
         },
-        {
-          fn: submitBatchProcessorTranscriptionJob(recording_id),
-          errorMsg: "submit transcription batch processor job",
-        },
-        {
-          fn: sendDailyVideoRecordingEmails(evt, downloadLink),
-          errorMsg: "send recording emails",
-        },
-      ];
-
-      const results = await Promise.allSettled(tasks.map((t) => t.fn));
-
-      results.forEach((result, index) => {
-        if (result.status === "rejected") {
-          log.error(`Failed to ${tasks[index].errorMsg}:`, safeStringify(result.reason));
-        }
       });
+
+      const downloadLink = await getProxyDownloadLinkOfCalVideo(recording_id);
+
+      const teamId = await getTeamIdFromEventType({
+        eventType: {
+          team: { id: booking?.eventType?.teamId ?? null },
+          parentId: booking?.eventType?.parentId ?? null,
+        },
+      });
+
+      await triggerRecordingReadyWebhook({
+        evt,
+        downloadLink,
+        booking: {
+          userId: booking?.user?.id,
+          eventTypeId: booking.eventTypeId,
+          eventTypeParentId: booking.eventType?.parentId,
+          teamId,
+        },
+      });
+
+      try {
+        // Submit Transcription Batch Processor Job
+        await submitBatchProcessorTranscriptionJob(recording_id);
+      } catch (err) {
+        log.error("Failed to Submit Transcription Batch Processor Job:", safeStringify(err));
+      }
+
+      // send emails to all attendees only when user has team plan
+      await sendDailyVideoRecordingEmails(evt, downloadLink);
 
       return NextResponse.json({ message: "Success" });
     } else if (body.type === "meeting.ended") {
@@ -198,11 +189,10 @@ export async function postHandler(request: NextRequest) {
         },
       });
 
-      const [evt, recording, batchProcessorJobAccessLink] = await Promise.all([
-        getCalendarEvent(booking),
-        getProxyDownloadLinkOfCalVideo(input.recordingId),
-        getBatchProcessorJobAccessLink(id),
-      ]);
+      const evt = await getCalendarEvent(booking);
+
+      const recording = await getProxyDownloadLinkOfCalVideo(input.recordingId);
+      const batchProcessorJobAccessLink = await getBatchProcessorJobAccessLink(id);
 
       await triggerTranscriptionGeneratedWebhook({
         evt,
@@ -221,9 +211,7 @@ export async function postHandler(request: NextRequest) {
       return NextResponse.json({ message: "Success" });
     } else {
       log.error("Invalid type in /recorded-daily-video", body);
-      return NextResponse.json({
-        message: "Invalid type in /recorded-daily-video",
-      });
+      return NextResponse.json({ message: "Invalid type in /recorded-daily-video" });
     }
   } catch (err) {
     log.error("Error in /recorded-daily-video", err);

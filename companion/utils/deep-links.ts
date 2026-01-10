@@ -8,7 +8,6 @@
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import { Alert } from "react-native";
-import { showErrorAlert } from "@/utils/alerts";
 
 // Default Cal.com web URL - can be overridden for self-hosted instances
 const DEFAULT_CAL_WEB_URL = "https://app.cal.com";
@@ -42,7 +41,7 @@ export async function openBookingInWeb(bookingUid: string): Promise<void> {
     try {
       await Linking.openURL(url);
     } catch {
-      showErrorAlert("Error", "Failed to open booking in browser. Please try again.");
+      Alert.alert("Error", "Failed to open booking in browser. Please try again.");
     }
   }
 }
@@ -99,7 +98,7 @@ export async function openReschedulePage(
     try {
       await Linking.openURL(url);
     } catch {
-      showErrorAlert("Error", "Failed to open reschedule page. Please try again.");
+      Alert.alert("Error", "Failed to open reschedule page. Please try again.");
     }
   }
 }
@@ -123,7 +122,7 @@ export async function openCancelBookingInWeb(bookingUid: string): Promise<void> 
     try {
       await Linking.openURL(url);
     } catch {
-      showErrorAlert("Error", "Failed to open booking page. Please try again.");
+      Alert.alert("Error", "Failed to open booking page. Please try again.");
     }
   }
 }

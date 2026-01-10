@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import type { RenderOptions } from "@testing-library/react";
-import type React from "react";
+import React from "react";
 import type { ReactElement } from "react";
 import { vi } from "vitest";
 import type { StoreApi } from "zustand";
@@ -15,7 +15,6 @@ interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {
   mockStore?: Partial<BookerStore>;
 }
 
-// biome-ignore lint/complexity/noExcessiveLinesPerFunction: mock store requires many properties
 const createMockStore = (initialState?: Partial<BookerStore>): StoreApi<BookerStore> => {
   let state: BookerStore = {
     username: null,
@@ -70,8 +69,6 @@ const createMockStore = (initialState?: Partial<BookerStore>): StoreApi<BookerSt
     crmRecordId: null,
     isPlatform: false,
     allowUpdatingUrlParams: true,
-    verificationCode: null,
-    setVerificationCode: vi.fn(),
     ...initialState,
   };
 
@@ -94,13 +91,10 @@ const createMockStore = (initialState?: Partial<BookerStore>): StoreApi<BookerSt
   } as unknown as StoreApi<BookerStore>;
 };
 
-export const renderWithBookerStore = (
-  ui: ReactElement,
-  options?: CustomRenderOptions
-): ReturnType<typeof render> => {
+export const renderWithBookerStore = (ui: ReactElement, options?: CustomRenderOptions) => {
   const mockStore = createMockStore(options?.mockStore);
 
-  const Wrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => (
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <BookerStoreContext.Provider value={mockStore}>{children}</BookerStoreContext.Provider>
   );
 

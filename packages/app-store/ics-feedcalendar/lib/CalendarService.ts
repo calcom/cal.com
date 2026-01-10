@@ -9,7 +9,6 @@ import type {
   IntegrationCalendar,
   EventBusyDate,
   CalendarEvent,
-  GetAvailabilityParams,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -39,7 +38,7 @@ const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
-export default class ICSFeedCalendarService implements Calendar {
+class ICSFeedCalendarService implements Calendar {
   private urls: string[] = [];
   protected integrationName = "ics-feed_calendar";
 
@@ -135,8 +134,11 @@ export default class ICSFeedCalendarService implements Calendar {
     return selectedCalendars[0].userId || null;
   };
 
-  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
-    const { dateFrom, dateTo, selectedCalendars } = params;
+  async getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyDate[]> {
     const startISOString = new Date(dateFrom).toISOString();
 
     const calendars = await this.fetchCalendars();
@@ -305,4 +307,13 @@ export default class ICSFeedCalendarService implements Calendar {
       };
     });
   }
+}
+
+/**
+ * Factory function that creates an ICS Feed Calendar service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export default function BuildCalendarService(credential: CredentialPayload): Calendar {
+  return new ICSFeedCalendarService(credential);
 }

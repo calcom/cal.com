@@ -56,18 +56,14 @@ jobs:
       - uses: ./.github/actions/yarn-install
 
       - name: Bump version
-        env:
-          VERSION: ${{ inputs.next_version }}
         run: |
           cd apps/web
-          yarn version "$VERSION"
+          yarn version ${{ inputs.next_version }}
 
       - name: Commit changes
-        env:
-          VERSION: ${{ inputs.next_version }}
         run: |
           git add .
-          git commit -m "chore: release v$VERSION"
+          git commit -m "chore: release v${{ inputs.next_version }}"
           git push
 
       - name: Draft release

@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execSync } from "child_process";
 
 function checkCommandExists(command: string): boolean {
   try {

@@ -1,6 +1,6 @@
 "use client";
 
-import { AboutOrganizationForm } from "~/ee/organizations/components/AboutOrganizationForm";
+import { AboutOrganizationForm } from "@calcom/features/ee/organizations/components";
 
 import { OrganizationWizardLayout } from "./_components/OrganizationWizardLayout";
 

@@ -15,7 +15,6 @@ export default function TabLayout() {
         default: { color: "#8E8E93", fontSize: 8.5 }, // Gray text when unselected
         selected: { color: "#000000", fontSize: 10 }, // Black text when selected
       }}
-      disableTransparentOnScrollEdge={true}
     >
       <NativeTabs.Trigger name="(event-types)">
         <NativeTabs.Trigger.Icon
@@ -70,12 +69,6 @@ function WebTabs() {
         },
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          href: null,
-        }}
-      />
       <Tabs.Screen
         name="(event-types)"
         options={{

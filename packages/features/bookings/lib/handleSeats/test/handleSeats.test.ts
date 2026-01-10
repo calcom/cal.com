@@ -1,4 +1,4 @@
-import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
+import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import {
   getBooker,
@@ -12,11 +12,11 @@ import {
   BookingLocations,
   getDate,
   getMockBookingAttendee,
-} from "@calcom/testing/lib/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/testing/lib/bookingScenario/createMockNextJsRequest";
-import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
-import { getMockRequestDataForCancelBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForCancelBooking";
-import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
+import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { getMockRequestDataForCancelBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForCancelBooking";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, test, vi, expect } from "vitest";
 
@@ -33,11 +33,9 @@ describe("handleSeats", () => {
 
   describe("Correct parameters being passed into handleSeats from handleNewBooking", () => {
     vi.mock("./handleSeats");
-
     test("On new booking handleSeats is not called", async () => {
       const handleNewBooking = getNewBookingHandler();
       const spy = vi.spyOn(handleSeatsModule, "default");
-      spy.mockClear();
 
       const booker = getBooker({
         email: "booker@example.com",
@@ -99,7 +97,6 @@ describe("handleSeats", () => {
 
     test("handleSeats is called when a new attendee is added", async () => {
       const spy = vi.spyOn(handleSeatsModule, "default");
-      spy.mockClear();
       const handleNewBooking = getNewBookingHandler();
 
       const booker = getBooker({
@@ -245,7 +242,6 @@ describe("handleSeats", () => {
 
     test("handleSeats is called on rescheduling a seated event", async () => {
       const spy = vi.spyOn(handleSeatsModule, "default");
-      spy.mockClear();
       const handleNewBooking = getNewBookingHandler();
 
       const booker = getBooker({

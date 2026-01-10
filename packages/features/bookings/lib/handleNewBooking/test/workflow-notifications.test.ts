@@ -11,20 +11,20 @@ import {
   getDate,
   Timezones,
   createOrganization,
-} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import {
   expectWorkflowToBeTriggered,
   expectSMSWorkflowToBeTriggered,
   expectSMSWorkflowToBeNotTriggered,
-} from "@calcom/testing/lib/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
+} from "@calcom/web/test/utils/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, beforeEach, vi } from "vitest";
 
 import { resetTestSMS } from "@calcom/lib/testSMS";
 import { SMSLockState, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/testing/lib/fixtures/fixtures";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 

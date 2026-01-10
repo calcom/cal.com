@@ -3,9 +3,8 @@
 import { useReactTable, getCoreRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useMemo } from "react";
 
-import { ColumnFilterType, DataTableProvider } from "@calcom/features/data-table";
+import { ColumnFilterType, DateRangeFilter, DataTableProvider } from "@calcom/features/data-table";
 import type { DateRangeFilterOptions } from "@calcom/features/data-table/lib/types";
-import { DateRangeFilter } from "~/data-table/components/filters/DateRangeFilter";
 
 type DemoRow = {
   id: number;

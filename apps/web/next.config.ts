@@ -245,8 +245,8 @@ const nextConfig = (phase: string): NextConfig => {
       "@coss/ui",
     ],
     modularizeImports: {
-      "@calcom/web/modules/insights/components": {
-        transform: "@calcom/web/modules/insights/components/{{member}}",
+      "@calcom/features/insights/components": {
+        transform: "@calcom/features/insights/components/{{member}}",
         skipDefaultConversion: true,
         preventFullImport: true,
       },

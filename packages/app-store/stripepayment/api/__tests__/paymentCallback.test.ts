@@ -20,15 +20,11 @@ vi.mock("@calcom/prisma", () => ({
 
 vi.mock("../../lib/getCustomerAndCheckoutSession");
 vi.mock("@calcom/features/auth/lib/sendVerificationRequest");
-vi.mock("@calcom/lib/server/service/VerificationTokenService", () => ({
-  VerificationTokenService: {
-    create: vi.fn(),
-  },
-}));
+vi.mock("@calcom/lib/server/service/VerificationTokenService");
 
 const mockGetCustomerAndCheckoutSession = vi.mocked(getCustomerAndCheckoutSession);
 const mockSendVerificationRequest = vi.mocked(sendVerificationRequest);
-const mockVerificationTokenServiceCreate = vi.mocked(VerificationTokenService.create);
+const mockVerificationTokenService = vi.mocked(VerificationTokenService);
 
 // Type the mocked prisma properly
 const mockPrisma = prisma as unknown as {
@@ -88,7 +84,7 @@ describe("paymentCallback", () => {
       username: "premium-user",
     } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-    mockVerificationTokenServiceCreate.mockResolvedValue("test-token-123");
+    mockVerificationTokenService.create.mockResolvedValue("test-token-123");
     mockSendVerificationRequest.mockResolvedValue(undefined);
   });
 
@@ -98,12 +94,12 @@ describe("paymentCallback", () => {
 
       await handler(mockReq as NextApiRequest, mockRes as NextApiResponse);
 
-      expect(mockVerificationTokenServiceCreate).toHaveBeenCalledWith({
+      expect(mockVerificationTokenService.create).toHaveBeenCalledWith({
         identifier: "test@example.com",
         expires: expect.any(Date),
       });
 
-      const callArgs = mockVerificationTokenServiceCreate.mock.calls[0][0];
+      const callArgs = mockVerificationTokenService.create.mock.calls[0][0];
       const expiresDate = callArgs.expires;
       const now = Date.now();
       const oneDayInMs = 86400 * 1000;
@@ -128,7 +124,7 @@ describe("paymentCallback", () => {
       const { default: handler } = await import("../paymentCallback");
       const callOrder: string[] = [];
 
-      mockVerificationTokenServiceCreate.mockImplementation(async function () {
+      mockVerificationTokenService.create.mockImplementation(async () => {
         callOrder.push("create-token");
         return "test-token";
       });
@@ -158,7 +154,7 @@ describe("paymentCallback", () => {
 
       await handler(mockReq as NextApiRequest, mockRes as NextApiResponse);
 
-      expect(mockVerificationTokenServiceCreate).not.toHaveBeenCalled();
+      expect(mockVerificationTokenService.create).not.toHaveBeenCalled();
       expect(mockSendVerificationRequest).not.toHaveBeenCalled();
     });
 
@@ -177,7 +173,7 @@ describe("paymentCallback", () => {
 
       await handler(mockReq as NextApiRequest, mockRes as NextApiResponse);
 
-      expect(mockVerificationTokenServiceCreate).toHaveBeenCalledWith({
+      expect(mockVerificationTokenService.create).toHaveBeenCalledWith({
         identifier: "different@example.com", // Should use user.email from found user
         expires: expect.any(Date),
       });
@@ -192,7 +188,7 @@ describe("paymentCallback", () => {
         return {} as any; // eslint-disable-line @typescript-eslint/no-explicit-any
       });
 
-      mockVerificationTokenServiceCreate.mockImplementation(async function () {
+      mockVerificationTokenService.create.mockImplementation(async () => {
         callOrder.push("create-token");
         return "token";
       });
@@ -229,7 +225,7 @@ describe("paymentCallback", () => {
         expect((error as HttpError).statusCode).toBe(404);
       }
 
-      expect(mockVerificationTokenServiceCreate).not.toHaveBeenCalled();
+      expect(mockVerificationTokenService.create).not.toHaveBeenCalled();
     });
 
     it("should not create verification token when user is not found", async () => {
@@ -244,7 +240,7 @@ describe("paymentCallback", () => {
         expect((error as HttpError).statusCode).toBe(404);
       }
 
-      expect(mockVerificationTokenServiceCreate).not.toHaveBeenCalled();
+      expect(mockVerificationTokenService.create).not.toHaveBeenCalled();
     });
 
     it("should use user email if stripe customer email is missing", async () => {
@@ -261,7 +257,7 @@ describe("paymentCallback", () => {
 
       await handler(mockReq as NextApiRequest, mockRes as NextApiResponse);
 
-      expect(mockVerificationTokenServiceCreate).toHaveBeenCalledWith({
+      expect(mockVerificationTokenService.create).toHaveBeenCalledWith({
         identifier: "test@example.com", // Should use user.email
         expires: expect.any(Date),
       });

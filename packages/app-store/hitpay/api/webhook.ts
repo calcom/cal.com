@@ -1,4 +1,4 @@
-import { createHmac } from "node:crypto";
+import { createHmac } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type z from "zod";
 

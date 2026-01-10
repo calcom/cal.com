@@ -5,9 +5,6 @@ import { getDelegationCredentialOrRegularCredential } from "@calcom/app-store/de
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails/email-manager";
-import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
@@ -46,10 +43,9 @@ type RequestRescheduleOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TRequestRescheduleInputSchema;
-  source: ActionSource;
 };
 const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
-export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRescheduleOptions) => {
+export const requestRescheduleHandler = async ({ ctx, input }: RequestRescheduleOptions) => {
   const { user } = ctx;
   const { bookingUid, rescheduleReason: cancellationReason } = input;
   log.debug("Started", safeStringify({ bookingUid }));
@@ -309,16 +305,4 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     })
   );
   await Promise.all(promises);
-
-  const bookingEventHandlerService = getBookingEventHandlerService();
-  await bookingEventHandlerService.onRescheduleRequested({
-    bookingUid: bookingToReschedule.uid,
-    actor: makeUserActor(user.uuid),
-    organizationId: orgId ?? null,
-    source,
-    auditData: {
-      rescheduleReason: cancellationReason ?? null,
-      rescheduledRequestedBy: user.email,
-    },
-  });
 };

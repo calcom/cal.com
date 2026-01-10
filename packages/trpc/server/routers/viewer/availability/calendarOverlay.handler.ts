@@ -83,14 +83,12 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
     };
   });
 
-  // get all calendar services
-  // Use "overlay" mode to bypass cache for overlay calendar availability
+  // get all clanedar services
   const calendarBusyTimesQuery = await getBusyCalendarTimes(
     credentials,
     dateFrom,
     dateTo,
-    composedSelectedCalendars,
-    "overlay"
+    composedSelectedCalendars
   );
 
   if (!calendarBusyTimesQuery.success) {

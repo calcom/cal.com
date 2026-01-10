@@ -1,10 +1,9 @@
 import { platform } from "@todesktop/client-core";
-import type { IncomingMessage } from "node:http";
+import type { IncomingMessage } from "http";
 import { dir } from "i18next";
 import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
 
-import { fontHeading, fontSans } from "@coss/ui/fonts";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 import { applyTheme, applyToDesktopClass } from "./../lib/pages/document/_applyThemeForDocument";
@@ -83,7 +82,7 @@ class MyDocument extends Document<Props> {
         </Head>
 
         <body
-          className={`${fontSans.variable} ${fontHeading.variable} font-sans dark:bg-default bg-subtle antialiased`}
+          className="dark:bg-default bg-subtle antialiased"
           style={
             isEmbed
               ? {

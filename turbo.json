@@ -4,7 +4,6 @@
   "globalEnv": [
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
-    "AWAITING_PAYMENT_EMAIL_DELAY_MINUTES",
     "API_KEY_PREFIX",
     "ATOMS_E2E_API_URL",
     "ATOMS_E2E_OAUTH_CLIENT_ID",
@@ -228,6 +227,10 @@
     "LOCAL_TESTING_DOMAIN_VERCEL",
     "AUTH_BEARER_TOKEN_CLOUDFLARE",
     "CLOUDFLARE_ZONE_ID",
+    "MINTLIFY_CHAT_API_KEY",
+    "NEXT_PUBLIC_CHAT_API_URL",
+    "NEXT_PUBLIC_DOCS_URL",
+    "NEXT_PUBLIC_ENABLE_MINTLIFY_CHAT",
     "CLOUDFLARE_VERCEL_CNAME",
     "CLOUDFLARE_DNS",
     "EMBED_PUBLIC_EMBED_FINGER_PRINT",
@@ -318,6 +321,9 @@
     "@calcom/prisma#dx": {
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-up"]
+    },
+    "@calcom/app-store#build:types": {
+      "outputs": ["types/**"]
     },
     "@calcom/trpc#build": {
       "dependsOn": ["@calcom/prisma#post-install"],
@@ -453,10 +459,6 @@
     "clean": {
       "cache": false,
       "outputs": ["dist/**", "build/**"]
-    },
-    "@calcom/web#dev": {
-      "dependsOn": ["@calcom/trpc#build", "//#env-check:common", "//#env-check:app-store"],
-      "cache": false
     },
     "dev": {
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],

@@ -54,19 +54,14 @@ export async function getServerSession(options: {
     return cachedSession;
   }
 
-  const userId = token.sub ? Number(token.sub) : null;
-
-  if (!userId || userId <= 0) {
-    log.warn("Invalid or missing user ID in token", { sub: token.sub });
-    return null;
-  }
+  const email = token.email.toLowerCase();
 
   const userFromDb = await prisma.user.findUnique({
-    where: { id: userId },
+    where: { email },
   });
 
   if (!userFromDb) {
-    log.warn("No user found for valid token", { userId });
+    log.debug("No user found");
     return null;
   }
 
@@ -96,7 +91,6 @@ export async function getServerSession(options: {
     expires: new Date(typeof token.exp === "number" ? token.exp * 1000 : Date.now()).toISOString(),
     user: {
       id: user.id,
-      uuid: user.uuid,
       name: user.name,
       username: user.username,
       email: user.email,
@@ -124,14 +118,12 @@ export async function getServerSession(options: {
       },
       select: {
         id: true,
-        uuid: true,
         role: true,
       },
     });
     if (impersonatedByUser) {
       session.user.impersonatedBy = {
         id: impersonatedByUser?.id,
-        uuid: impersonatedByUser.uuid,
         role: impersonatedByUser.role,
       };
     }

@@ -2,8 +2,11 @@
 import type { calendar_v3 } from "@googleapis/calendar";
 import type { GaxiosResponse } from "googleapis-common";
 import { RRule } from "rrule";
+import { v4 as uuid } from "uuid";
+
 import { MeetLocationType } from "@calcom/app-store/constants";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
+import { uniqueBy } from "@calcom/lib/array";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -14,11 +17,10 @@ import type {
   CalendarServiceEvent,
   CalendarEvent,
   EventBusyDate,
-  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
-  SelectedCalendarEventTypeIds,
 } from "@calcom/types/Calendar";
+import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
@@ -28,14 +30,39 @@ type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] 
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
+/**
+ * Extended interface for Google Calendar service that includes Google-specific methods.
+ * This interface is used by internal Google Calendar modules (callback, tests, etc.)
+ * that need access to Google-specific functionality beyond the generic Calendar interface.
+ */
+export interface GoogleCalendar extends Calendar {
+  getPrimaryCalendar(calendar?: unknown): Promise<{ id?: string | null; timeZone?: string | null } | null>;
+
+  upsertSelectedCalendar(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">
+  ): Promise<unknown>;
+
+  createSelectedCalendar(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId">
+  ): Promise<unknown>;
+
+  authedCalendar(): Promise<calendar_v3.Calendar>;
+}
+
 interface GoogleCalError extends Error {
   code?: number;
 }
 
-const isGaxiosResponse= (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
+ 
+const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
+const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
+
+const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   typeof error === "object" && !!error && Object.prototype.hasOwnProperty.call(error, "config");
 
-export default class GoogleCalendarService implements Calendar {
+class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: CalendarAuth;
   private log: typeof logger;
@@ -111,6 +138,50 @@ export default class GoogleCalendarService implements Calendar {
 
     return attendees;
   };
+
+  private async stopWatchingCalendarsInGoogle(
+    channels: { googleChannelResourceId: string | null; googleChannelId: string | null }[]
+  ) {
+    const calendar = await this.authedCalendar();
+    logger.debug(`Unsubscribing from calendars ${channels.map((c) => c.googleChannelId).join(", ")}`);
+    const uniqueChannels = uniqueBy(channels, ["googleChannelId", "googleChannelResourceId"]);
+    await Promise.allSettled(
+      uniqueChannels.map(({ googleChannelResourceId, googleChannelId }) =>
+        calendar.channels
+          .stop({
+            requestBody: {
+              resourceId: googleChannelResourceId,
+              id: googleChannelId,
+            },
+          })
+          .catch((err) => {
+            console.warn(JSON.stringify(err));
+          })
+      )
+    );
+  }
+
+  private async startWatchingCalendarsInGoogle({ calendarId }: { calendarId: string }) {
+    const calendar = await this.authedCalendar();
+    logger.debug(`Subscribing to calendar ${calendarId}`, safeStringify({ GOOGLE_WEBHOOK_URL }));
+
+    const res = await calendar.events.watch({
+      // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
+      calendarId,
+      requestBody: {
+        // A UUID or similar unique string that identifies this channel.
+        id: uuid(),
+        type: "web_hook",
+        address: GOOGLE_WEBHOOK_URL,
+        token: process.env.GOOGLE_WEBHOOK_TOKEN,
+        params: {
+          // The time-to-live in seconds for the notification channel. Default is 604800 seconds.
+          ttl: `${Math.round(ONE_MONTH_IN_MS / 1000)}`,
+        },
+      },
+    });
+    return res.data;
+  }
 
   async createEvent(
     calEvent: CalendarServiceEvent,
@@ -439,8 +510,15 @@ export default class GoogleCalendarService implements Calendar {
     return result;
   }
 
-  async getAvailabilityWithTimeZones(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
-    const { dateFrom, dateTo, selectedCalendars, fallbackToPrimary } = params;
+  async getAvailabilityWithTimeZones(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[],
+    /**
+     * If true, we will fallback to the primary calendar if no valid selected calendars are found
+     */
+    fallbackToPrimary?: boolean
+  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
     const calendar = await this.authedCalendar();
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
@@ -606,8 +684,15 @@ export default class GoogleCalendarService implements Calendar {
     return busyData;
   }
 
-  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
-    const { dateFrom, dateTo, selectedCalendars, fallbackToPrimary } = params;
+  async getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[],
+    /**
+     * If true, we will fallback to the primary calendar if no valid selected calendars are found
+     */
+    fallbackToPrimary?: boolean
+  ): Promise<EventBusyDate[]> {
     this.log.debug("Getting availability", safeStringify({ dateFrom, dateTo, selectedCalendars }));
 
     const selectedCalendarIds = selectedCalendars
@@ -776,4 +861,27 @@ export default class GoogleCalendarService implements Calendar {
       throw error;
     }
   }
+}
+
+/**
+ * Factory function that creates a Google Calendar service instance.
+ * This is exported instead of the class to prevent SDK types (like calendar_v3.Calendar)
+ * from leaking into the emitted .d.ts file, which would cause TypeScript to load
+ * all Google API SDK declaration files when type-checking dependent packages.
+ */
+export default function BuildCalendarService(
+  credential: CredentialForCalendarServiceWithEmail
+): Calendar {
+  return new GoogleCalendarService(credential);
+}
+
+/**
+ * Factory function that creates a Google Calendar service instance with the extended GoogleCalendar type.
+ * This is used by internal Google Calendar modules (callback, tests, etc.) that need access to
+ * Google-specific methods beyond the generic Calendar interface.
+ */
+export function createGoogleCalendarServiceWithGoogleType(
+  credential: CredentialForCalendarServiceWithEmail
+): GoogleCalendar {
+  return new GoogleCalendarService(credential);
 }

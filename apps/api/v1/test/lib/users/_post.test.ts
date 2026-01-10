@@ -35,9 +35,9 @@ vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.contr
 
 const mockCreate = vi.fn();
 vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
-  UserRepository: vi.fn().mockImplementation(function() { return {
+  UserRepository: vi.fn().mockImplementation(() => ({
     create: mockCreate,
-  }; }),
+  })),
 }));
 
 vi.mock("@calcom/lib/auth/hashPassword", () => ({

@@ -18,13 +18,10 @@ import { expect, test, beforeEach, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
 import logger from "@calcom/lib/logger";
-
-import CalendarService from "../CalendarService";
-import {
-  createMockJWTInstance,
-  createCredentialForCalendarService,
-} from "./utils";
 import { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
+
+import BuildCalendarService, { createGoogleCalendarServiceWithGoogleType } from "../CalendarService";
+import { createMockJWTInstance, createCredentialForCalendarService } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["CalendarService.test"] });
 
@@ -46,7 +43,7 @@ const mockCredential: CredentialForCalendarServiceWithEmail = {
   appId: "google-calendar",
   type: "google_calendar",
   key: {
-    access_token: "<INVALID_TOKEN>"
+    access_token: "<INVALID_TOKEN>",
   },
   user: {
     email: "user@example.com",
@@ -59,8 +56,7 @@ const mockCredential: CredentialForCalendarServiceWithEmail = {
 
 describe("getAvailability", () => {
   test("returns availability for selected calendars", async () => {
-
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
     const mockedBusyTimes1 = [
       {
@@ -105,23 +101,21 @@ describe("getAvailability", () => {
       };
     });
 
-    const availabilityWithPrimaryAsFallback = await calendarService.getAvailability({
-      dateFrom: "2024-01-01",
-      dateTo: "2024-01-02",
-      selectedCalendars: [],
-      mode: "slots",
-      fallbackToPrimary: true,
-    });
+    const availabilityWithPrimaryAsFallback = await calendarService.getAvailability(
+      "2024-01-01",
+      "2024-01-02",
+      [],
+      true
+    );
 
     expect(availabilityWithPrimaryAsFallback).toEqual(mockedBusyTimes1);
 
-    const availabilityWithAllCalendarsAsFallback = await calendarService.getAvailability({
-      dateFrom: "2024-01-01",
-      dateTo: "2024-01-02",
-      selectedCalendars: [],
-      mode: "slots",
-      fallbackToPrimary: false,
-    });
+    const availabilityWithAllCalendarsAsFallback = await calendarService.getAvailability(
+      "2024-01-01",
+      "2024-01-02",
+      [],
+      false
+    );
 
     expect(availabilityWithAllCalendarsAsFallback).toEqual([...mockedBusyTimes1, ...mockedBusyTimes2]);
   });
@@ -129,7 +123,7 @@ describe("getAvailability", () => {
 
 describe("getPrimaryCalendar", () => {
   test("should fetch primary calendar using 'primary' keyword", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = createGoogleCalendarServiceWithGoogleType(mockCredential);
     setFullMockOAuthManagerRequest();
     const mockPrimaryCalendar = {
       id: "user@example.com",
@@ -331,7 +325,7 @@ describe("Date Optimization Benchmarks", () => {
   });
 
   test("fetchAvailabilityData should handle both single API call and chunked scenarios correctly", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     const mockBusyData = [
@@ -375,7 +369,7 @@ describe("Date Optimization Benchmarks", () => {
 
 describe("createEvent", () => {
   test("should create event with correct input/output format and handle all expected properties", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock Google Calendar API response
@@ -573,7 +567,7 @@ describe("createEvent", () => {
   });
 
   test("should handle recurring events correctly", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock recurring event response

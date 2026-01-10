@@ -1,4 +1,4 @@
-import { bootstrap } from "@/bootstrap";
+import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { GetRoutingFormsOutput } from "@/modules/organizations/routing-forms/outputs/get-routing-forms.output";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";

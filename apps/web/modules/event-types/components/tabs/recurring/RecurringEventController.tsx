@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { LearnMoreLink } from "@calcom/web/modules/event-types/components/LearnMoreLink";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type {
   EventTypeSetup,
   InputClassNames,

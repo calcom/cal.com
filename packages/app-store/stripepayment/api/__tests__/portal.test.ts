@@ -124,9 +124,7 @@ describe("Portal API - Service-Based Architecture", () => {
       mockTeamRepo = {
         findById: vi.fn(),
       };
-      mockTeamRepository.mockImplementation(function () {
-        return mockTeamRepo as unknown as TeamRepository;
-      });
+      mockTeamRepository.mockImplementation(() => mockTeamRepo as unknown as TeamRepository);
     });
 
     it("should create OrganizationBillingPortalService for organizations", async () => {
@@ -169,16 +167,14 @@ describe("Portal API - Service-Based Architecture", () => {
         checkPermission: vi.fn().mockResolvedValue(true),
       };
 
-      vi.mocked(PermissionCheckService).mockImplementation(function () {
-        return mockPermissionServiceInstance as unknown as PermissionCheckService;
-      });
+      vi.mocked(PermissionCheckService).mockImplementation(
+        () => mockPermissionServiceInstance as unknown as PermissionCheckService
+      );
 
       const mockTeamRepo: MockTeamRepository = {
         findById: vi.fn(),
       };
-      mockTeamRepository.mockImplementation(function () {
-        return mockTeamRepo as unknown as TeamRepository;
-      });
+      mockTeamRepository.mockImplementation(() => mockTeamRepo as unknown as TeamRepository);
 
       service = new TeamBillingPortalService();
     });
@@ -205,9 +201,9 @@ describe("Portal API - Service-Based Architecture", () => {
         checkPermission: vi.fn().mockResolvedValue(true),
       };
 
-      vi.mocked(PermissionCheckService).mockImplementation(function () {
-        return mockPermissionServiceInstance as unknown as PermissionCheckService;
-      });
+      vi.mocked(PermissionCheckService).mockImplementation(
+        () => mockPermissionServiceInstance as unknown as PermissionCheckService
+      );
 
       service = new OrganizationBillingPortalService();
     });

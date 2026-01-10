@@ -1,4 +1,4 @@
-import { IncomingHttpHeaders } from "node:http";
+import { IncomingHttpHeaders } from "http";
 
 export function filterReqHeaders(headers: IncomingHttpHeaders): Partial<IncomingHttpHeaders> {
   return {

@@ -1,7 +1,5 @@
 import { uuid } from "short-uuid";
 
-import type { FeatureId } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import prisma from "@calcom/prisma";
@@ -53,12 +51,14 @@ export async function createPBACOrganization() {
   });
 
   // Add the feature flag
-  const featuresRepository = new FeaturesRepository(prisma);
-  await featuresRepository.setTeamFeatureState({
-    teamId: organization.id,
-    featureId: "pbac" as FeatureId,
-    state: "enabled",
-    assignedBy: "system (Seed script)",
+  await prisma.teamFeatures.create({
+    data: {
+      featureId: "pbac",
+      teamId: organization.id,
+      assignedBy: "system (Seed script)",
+      assignedAt: new Date(),
+      enabled: true,
+    },
   });
 
   console.log(`✅ Created organization: ${organization.name} (ID: ${organization.id})`);

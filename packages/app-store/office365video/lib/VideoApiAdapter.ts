@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
-import logger from "@calcom/lib/logger";
 import {
   CalendarAppDelegationCredentialConfigurationError,
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -267,11 +266,9 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
         throw new HttpError({
           statusCode: 500,
-          message: `Error creating MS Teams meeting: ${resultObject.error?.message || "missing required fields in response"}`,
+          message: `Error creating MS Teams meeting: ${resultObject.error.message}`,
         });
       }
-
-      logger.debug("Teams meeting created", { meetingId: resultObject.id });
 
       return Promise.resolve({
         type: "office365_video",

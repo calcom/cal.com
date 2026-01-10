@@ -4,7 +4,7 @@ import {
   getScenarioData,
   TestData,
   mockSuccessfulVideoMeetingCreation,
-} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
 import { describe, it, beforeEach, vi, expect } from "vitest";
 

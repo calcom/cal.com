@@ -18,17 +18,14 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAddGuests } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
-import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
+import { CalComAPIService } from "@/services/calcom";
 import { safeLogError } from "@/utils/safeLogger";
 
 export interface AddGuestsScreenProps {
   booking: Booking | null;
   onSuccess: () => void;
   onSavingChange?: (isSaving: boolean) => void;
-  onGuestCountChange?: (count: number) => void;
-  transparentBackground?: boolean;
 }
 
 // Handle type for parent component to call submit
@@ -42,44 +39,32 @@ function isValidEmail(email: string): boolean {
 }
 
 export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreenProps>(
-  function AddGuestsScreen(
-    { booking, onSuccess, onSavingChange, onGuestCountChange, transparentBackground = false },
-    ref
-  ) {
+  function AddGuestsScreen({ booking, onSuccess, onSavingChange }, ref) {
     const insets = useSafeAreaInsets();
-    const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
-    const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
     const [guests, setGuests] = useState<{ email: string; name?: string }[]>([]);
-
-    // Use React Query mutation for automatic cache invalidation
-    const { mutate: addGuestsMutation, isPending: isSaving } = useAddGuests();
+    const [isSaving, setIsSaving] = useState(false);
 
     // Notify parent of saving state changes
     useEffect(() => {
       onSavingChange?.(isSaving);
     }, [isSaving, onSavingChange]);
 
-    // Notify parent of guest count changes
-    useEffect(() => {
-      onGuestCountChange?.(guests.length);
-    }, [guests.length, onGuestCountChange]);
-
     const handleAddGuest = useCallback(() => {
       const trimmedEmail = email.trim();
       if (!trimmedEmail) {
-        showErrorAlert("Error", "Please enter an email address");
+        Alert.alert("Error", "Please enter an email address");
         return;
       }
 
       if (!isValidEmail(trimmedEmail)) {
-        showErrorAlert("Error", "Please enter a valid email address");
+        Alert.alert("Error", "Please enter a valid email address");
         return;
       }
 
       if (guests.some((g) => g.email.toLowerCase() === trimmedEmail.toLowerCase())) {
-        showErrorAlert("Error", "This guest has already been added");
+        Alert.alert("Error", "This guest has already been added");
         return;
       }
 
@@ -95,37 +80,25 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
       [guests]
     );
 
-    const handleSubmit = useCallback(() => {
-      if (!booking || isSaving) return;
+    const handleSubmit = useCallback(async () => {
+      if (!booking) return;
 
       if (guests.length === 0) {
-        showErrorAlert("Error", "Please add at least one guest");
+        Alert.alert("Error", "Please add at least one guest");
         return;
       }
 
-      addGuestsMutation(
-        {
-          uid: booking.uid,
-          guests,
-        },
-        {
-          onSuccess: () => {
-            if (Platform.OS === "web") {
-              showSuccessAlert("Success", "Guests added successfully");
-              onSuccess();
-            } else {
-              Alert.alert("Success", "Guests added successfully", [
-                { text: "OK", onPress: onSuccess },
-              ]);
-            }
-          },
-          onError: (error) => {
-            safeLogError("[AddGuestsScreen] Failed to add guests:", error);
-            showErrorAlert("Error", "Failed to add guests. Please try again.");
-          },
-        }
-      );
-    }, [booking, guests, onSuccess, isSaving, addGuestsMutation]);
+      setIsSaving(true);
+      try {
+        await CalComAPIService.addGuests(booking.uid, guests);
+        Alert.alert("Success", "Guests added successfully", [{ text: "OK", onPress: onSuccess }]);
+        setIsSaving(false);
+      } catch (error) {
+        safeLogError("[AddGuestsScreen] Failed to add guests:", error);
+        Alert.alert("Error", "Failed to add guests. Please try again.");
+        setIsSaving(false);
+      }
+    }, [booking, guests, onSuccess]);
 
     // Expose submit function to parent via ref (same pattern as senior's actionHandlersRef)
     useImperativeHandle(
@@ -138,7 +111,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
 
     if (!booking) {
       return (
-        <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
+        <View className="flex-1 items-center justify-center bg-[#F2F2F7]">
           <Text className="text-gray-500">No booking data</Text>
         </View>
       );
@@ -147,75 +120,62 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className={`flex-1 ${backgroundStyle}`}
+        className="flex-1 bg-[#F2F2F7]"
       >
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{
-            padding: 16,
-            paddingBottom: insets.bottom + 16,
-          }}
+          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16 }}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={!transparentBackground}
         >
-          {/* Email input */}
-          {transparentBackground && (
-            <Text className="mb-2 px-1 text-[13px] font-medium text-gray-500">Email *</Text>
-          )}
-          <View
-            className={`mb-3 overflow-hidden rounded-xl px-4 py-3 ${
-              transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
-            }`}
-          >
-            {!transparentBackground && (
-              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Email *</Text>
-            )}
-            <TextInput
-              className="h-10 text-[17px] text-[#000]"
-              placeholder="guest@example.com"
-              placeholderTextColor="#9CA3AF"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!isSaving}
-            />
+          {/* Info note */}
+          <View className="mb-4 flex-row items-start rounded-xl bg-[#E3F2FD] p-4">
+            <Ionicons name="information-circle" size={20} color="#1976D2" />
+            <Text className="ml-3 flex-1 text-[15px] leading-5 text-[#1565C0]">
+              Guests will receive an email notification about this booking.
+            </Text>
           </View>
 
-          {/* Name input */}
-          {transparentBackground && (
-            <Text className="mb-2 px-1 text-[13px] font-medium text-gray-500">Name (optional)</Text>
-          )}
-          <View
-            className={`mb-4 overflow-hidden rounded-xl px-4 py-3 ${
-              transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
-            }`}
-          >
-            {!transparentBackground && (
+          {/* Form Card */}
+          <View className="mb-4 overflow-hidden rounded-xl bg-white">
+            {/* Email input */}
+            <View className="border-b border-gray-100 px-4 py-3">
+              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Email *</Text>
+              <TextInput
+                className="h-10 text-[17px] text-[#000]"
+                placeholder="guest@example.com"
+                placeholderTextColor="#9CA3AF"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!isSaving}
+              />
+            </View>
+
+            {/* Name input */}
+            <View className="px-4 py-3">
               <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Name (optional)</Text>
-            )}
-            <TextInput
-              className="h-10 text-[17px] text-[#000]"
-              placeholder="Guest Name"
-              placeholderTextColor="#9CA3AF"
-              value={name}
-              onChangeText={setName}
-              editable={!isSaving}
-            />
+              <TextInput
+                className="h-10 text-[17px] text-[#000]"
+                placeholder="Guest Name"
+                placeholderTextColor="#9CA3AF"
+                value={name}
+                onChangeText={setName}
+                editable={!isSaving}
+              />
+            </View>
           </View>
 
           {/* Add button */}
           <TouchableOpacity
-            className={`mb-6 flex-row items-center justify-center rounded-xl py-3 ${
-              transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
-            }`}
+            className="mb-6 flex-row items-center justify-center rounded-xl bg-white py-3"
             onPress={handleAddGuest}
             activeOpacity={0.7}
             disabled={isSaving}
           >
             <Ionicons name="add-circle" size={22} color="#007AFF" />
-            <Text className="ml-2 text-[17px] font-medium text-[#007AFF]">Add</Text>
+            <Text className="ml-2 text-[17px] font-medium text-[#007AFF]">Add Guest</Text>
           </TouchableOpacity>
 
           {/* Guest list */}
@@ -224,21 +184,15 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
               <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
                 Guests to add ({guests.length})
               </Text>
-              <View
-                className={`overflow-hidden rounded-xl ${
-                  transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
-                }`}
-              >
+              <View className="overflow-hidden rounded-xl bg-white">
                 {guests.map((guest, index) => (
                   <View
                     key={guest.email}
                     className={`flex-row items-center px-4 py-3 ${
-                      index < guests.length - 1 ? "border-b border-gray-100/50" : ""
+                      index < guests.length - 1 ? "border-b border-gray-100" : ""
                     }`}
                   >
-                    <View
-                      className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}
-                    >
+                    <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
                       <Ionicons name="person" size={20} color="#6B7280" />
                     </View>
                     <View className="flex-1">

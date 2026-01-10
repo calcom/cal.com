@@ -19,7 +19,7 @@ export function AvailabilityScheduleSkeleton() {
             {/* Title section */}
             <header className="flex w-full max-w-full items-center truncate">
               <div className="w-full truncate ltr:mr-4 rtl:ml-4 md:block">
-                <SkeletonText className="font-heading max-w-28 sm:max-w-72 md:max-w-80 hidden h-6 truncate text-xl tracking-wide md:block" />
+                <SkeletonText className="font-cal max-w-28 sm:max-w-72 md:max-w-80 hidden h-6 truncate text-xl font-semibold tracking-wide md:block" />
                 {/* Title */}
                 <SkeletonText className="mt-1 hidden h-4 w-64 text-sm md:block" /> {/* Subtitle */}
               </div>
