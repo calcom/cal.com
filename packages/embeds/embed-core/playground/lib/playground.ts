@@ -602,6 +602,35 @@ if (only === "all" || only == "ns:columnView") {
   });
 }
 
+if (only === "all" || only == "ns:twoStepSlotSelection") {
+  Cal("init", "twoStepSlotSelection", {
+    debug: true,
+    origin: origin,
+  });
+
+  Cal.ns.twoStepSlotSelection(
+    "inline",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    {
+      elementOrSelector: "#cal-booking-place-twoStepSlotSelection .place",
+      calLink: "free/30min",
+      config: {
+        iframeAttrs: {
+          id: "cal-booking-place-twoStepSlotSelection-iframe",
+        },
+        "flag.coep": "true",
+        enableTwoStepSlotSelection: "true",
+      },
+    }
+  );
+
+  Cal.ns.twoStepSlotSelection("on", {
+    action: "*",
+    callback,
+  });
+}
+
 if (only === "all" || only == "ns:columnViewHideEventTypeDetails") {
   // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
   Cal("init", "columnViewHideEventTypeDetails", {

@@ -33,6 +33,7 @@ export type UiConfig = {
   layout?: BookerLayouts;
   colorScheme?: string | null;
   disableAutoScroll?: boolean;
+  enableTwoStepSlotSelection?: boolean;
 };
 
 declare global {
@@ -71,6 +72,8 @@ export type KnownConfig = {
   "cal.embed.pageType"?: EmbedPageType;
   // If true, then when doing a "connect" with pre-rendered iframe, we won't fetch slots. This is useful when we are reusing the iframe fully as is.
   "cal.embed.noSlotsFetchOnConnect"?: "true" | "false";
+  // If true, enables two-step slot selection flow in the booker
+  enableTwoStepSlotSelection?: "true" | "false";
 };
 
 export type EmbedBookerState =

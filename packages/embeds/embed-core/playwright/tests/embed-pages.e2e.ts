@@ -127,4 +127,49 @@ test.describe("Embed Pages", () => {
       expect(embedTheme).toBe(theme);
     });
   });
+
+  test.describe("enableTwoStepSlotSelection", () => {
+    test("should enable two-step slot selection when parameter is 'true'", async ({
+      page,
+    }) => {
+      await page.evaluate(() => {
+        window.name = "cal-embed=";
+      });
+      await page.goto("http://localhost:3000/free/30min/embed?enableTwoStepSlotSelection=true");
+
+      const enableTwoStepSlotSelection = await page.evaluate(() => {
+        return window.CalEmbed?.embedStore?.uiConfig?.enableTwoStepSlotSelection;
+      });
+
+      expect(enableTwoStepSlotSelection).toBe(true);
+    });
+
+    test("should default to false when parameter is not present", async ({
+      page,
+    }) => {
+      await page.evaluate(() => {
+        window.name = "cal-embed=";
+      });
+      await page.goto("http://localhost:3000/free/30min/embed");
+
+      const enableTwoStepSlotSelection = await page.evaluate(() => {
+        return window.CalEmbed?.embedStore?.uiConfig?.enableTwoStepSlotSelection;
+      });
+
+      expect(enableTwoStepSlotSelection).toBe(false);
+    });
+
+    test("should be false when parameter is 'false'", async ({ page }) => {
+      await page.evaluate(() => {
+        window.name = "cal-embed=";
+      });
+      await page.goto("http://localhost:3000/free/30min/embed?enableTwoStepSlotSelection=false");
+
+      const enableTwoStepSlotSelection = await page.evaluate(() => {
+        return window.CalEmbed?.embedStore?.uiConfig?.enableTwoStepSlotSelection;
+      });
+
+      expect(enableTwoStepSlotSelection).toBe(false);
+    });
+  });
 });
