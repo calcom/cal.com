@@ -24,12 +24,11 @@ import { TRPCClientError } from "@trpc/react-query";
 import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
-import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
-import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
-import { useTabsNavigations } from "@calcom/atoms/event-types/hooks/useTabsNavigations";
-
 import type { ChildrenEventType } from "./ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "./EventType";
+import { useEventTypeForm } from "../../../../../packages/platform/atoms/event-types/hooks/useEventTypeForm";
+import { useHandleRouteChange } from "../../../../../packages/platform/atoms/event-types/hooks/useHandleRouteChange";
+import { useTabsNavigations } from "../../../../../packages/platform/atoms/event-types/hooks/useTabsNavigations";
 
 type EventPermissions = {
   eventTypes: {
