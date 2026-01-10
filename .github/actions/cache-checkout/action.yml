@@ -18,7 +18,7 @@ runs:
           !.git
           !node_modules
           !**/node_modules
-        key: git-checkout-${{ github.event.pull_request.head.ref }}-${{ github.event.pull_request.head.sha }}
+        key: git-checkout-${{ github.head_ref || github.ref_name }}-${{ github.sha }}
         fail-on-cache-miss: true
 
     - name: Save git checkout to cache
@@ -30,4 +30,4 @@ runs:
           !.git
           !node_modules
           !**/node_modules
-        key: git-checkout-${{ github.event.pull_request.head.ref }}-${{ github.event.pull_request.head.sha }}
+        key: git-checkout-${{ github.head_ref || github.ref_name }}-${{ github.sha }}
