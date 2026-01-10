@@ -500,6 +500,9 @@ export const getOptions = ({
   /** Ad tracking data for Stripe customer metadata */
   getTrackingData: () => TrackingData;
 }): AuthOptions => ({
+  // Trust the host header from reverse proxies (Kubernetes ingress, nginx, etc.)
+  // This fixes redirect issues when deployed behind a proxy
+  trustHost: true,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
