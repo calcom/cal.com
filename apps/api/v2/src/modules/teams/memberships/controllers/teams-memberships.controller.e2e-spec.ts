@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
@@ -334,7 +334,9 @@ describe("Teams Memberships Endpoints", () => {
       const collectiveEventBeforePatch = teamEventTypesBeforePatch?.find(
         (eventType) => eventType.slug === teamEventType.slug
       );
-      const userHostBeforePatch = collectiveEventBeforePatch?.hosts.find((host) => host.userId === pendingUser.id);
+      const userHostBeforePatch = collectiveEventBeforePatch?.hosts.find(
+        (host) => host.userId === pendingUser.id
+      );
       expect(userHostBeforePatch).toBeFalsy();
 
       const updateToAcceptedBody: UpdateTeamMembershipInput = {

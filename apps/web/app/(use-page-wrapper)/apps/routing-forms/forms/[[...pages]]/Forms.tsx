@@ -7,7 +7,7 @@ import { useFormContext } from "react-hook-form";
 
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";

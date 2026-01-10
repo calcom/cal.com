@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { CreateTeamRoleInput } from "@/modules/organizations/teams/roles/inputs/create-team-role.input";
 import type { CreateTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/create-team-role.output";
@@ -58,7 +58,11 @@ describe("Organizations Roles Permissions Endpoints", () => {
     });
 
     await featuresRepositoryFixture.create({ slug: "pbac", enabled: true });
-    await featuresRepositoryFixture.setTeamFeatureState(pbacEnabledOrganization.id, "pbac", "enabled");
+    await featuresRepositoryFixture.setTeamFeatureState({
+      teamId: pbacEnabledOrganization.id,
+      featureId: "pbac",
+      state: "enabled",
+    });
 
     // Create user + membership in org
     pbacOrgUserWithRolePermission = await userRepositoryFixture.create({

@@ -1,7 +1,7 @@
 // !IMPORTANT! changes to this file requires publishing new version of platform libraries in order for the changes to be applied to APIV2
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import type { GetServerSidePropsContext } from "next";
-import { stringify } from "querystring";
+import { stringify } from "node:querystring";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 

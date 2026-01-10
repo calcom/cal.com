@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 

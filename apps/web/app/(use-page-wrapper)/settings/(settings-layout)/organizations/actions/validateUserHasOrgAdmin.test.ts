@@ -44,6 +44,7 @@ describe("validateUserHasOrgAdmin", () => {
     hasValidLicense: true,
     user: {
       id: 123,
+      uuid: "test-uuid-123",
       email: "test@example.com",
       name: "Test User",
       org: {
@@ -95,6 +96,7 @@ describe("validateUserHasOrgAdmin", () => {
       const mockSession = createMockSession({
         user: {
           id: 123,
+          uuid: "test-uuid-123",
           email: "test@example.com",
           name: "Test User",
           org: {
@@ -136,6 +138,7 @@ describe("validateUserHasOrgAdmin", () => {
       const mockSession = createMockSession({
         user: {
           id: 123,
+          uuid: "test-uuid-123",
           email: "test@example.com",
           name: "Test User",
           org: undefined,
@@ -187,6 +190,7 @@ describe("validateUserHasOrgAdmin", () => {
       const mockSession = createMockSession({
         user: {
           id: 123,
+          uuid: "test-uuid-123",
           email: "test@example.com",
           name: "Test User",
           org: undefined,
@@ -216,6 +220,7 @@ describe("validateUserHasOrgAdmin", () => {
       const mockSession = createMockSession({
         user: {
           id: 123,
+          uuid: "test-uuid-123",
           email: "test@example.com",
           name: "Test User",
           org: {
@@ -260,6 +265,7 @@ describe("validateUserHasOrgAdmin", () => {
       const mockSession = createMockSession({
         user: {
           id: 123,
+          uuid: "test-uuid-123",
           email: "test@example.com",
           name: "Test User",
           org: undefined,
@@ -324,6 +330,7 @@ describe("validateUserHasOrgAdmin", () => {
       const mockSession = createMockSession({
         user: {
           id: 123,
+          uuid: "test-uuid-123",
           email: "test@example.com",
           name: "Test User",
           org: {
@@ -366,6 +373,7 @@ describe("validateUserHasOrgAdmin", () => {
       const mockSession = createMockSession({
         user: {
           id: 123,
+          uuid: "test-uuid-123",
           email: "test@example.com",
           name: "Test User",
           org: undefined,

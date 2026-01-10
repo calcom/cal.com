@@ -1325,6 +1325,7 @@ export class EventTypeRepository {
             team: {
               select: {
                 id: true,
+                parentId: true,
                 bookingLimits: true,
                 includeManagedEventsInLimits: true,
               },
@@ -1362,6 +1363,7 @@ export class EventTypeRepository {
             groupId: true,
             user: {
               select: {
+                locked: true,
                 credentials: { select: credentialForCalendarServiceSelect },
                 ...availabilityUserSelect,
               },
@@ -1384,6 +1386,7 @@ export class EventTypeRepository {
         },
         users: {
           select: {
+            locked: true,
             credentials: { select: credentialForCalendarServiceSelect },
             ...availabilityUserSelect,
           },

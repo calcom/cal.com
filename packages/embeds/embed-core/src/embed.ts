@@ -8,7 +8,7 @@ import {
   EMBED_MODAL_PRERENDER_PREVENT_THRESHOLD_MS,
 } from "./constants";
 import type { InterfaceWithParent, interfaceWithParent } from "./embed-iframe";
-import css from "./embed.css";
+import css from "./embed.css?inline";
 import { getScrollableAncestor } from "./lib/domUtils";
 import { getScrollByDistanceHandler } from "./lib/eventHandlers/scrollByDistanceEventHandler";
 import {

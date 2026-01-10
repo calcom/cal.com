@@ -45,7 +45,12 @@ export type SelectInnerClassNames = {
 };
 
 export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
-  [Key in FieldPath<TFieldValues>]: FieldPathValue<TFieldValues, Key> extends TValue ? Key : never;
+  [Key in FieldPath<TFieldValues>]: FieldPathValue<
+    TFieldValues,
+    Key
+  > extends TValue
+    ? Key
+    : never;
 }[FieldPath<TFieldValues>];
 
 export const ScheduleDay = <TFieldValues extends FieldValues>({
@@ -404,12 +409,35 @@ const TimeRangeField = ({
   );
 };
 
+export function parseTimeString(
+  input: string,
+  timeFormat: number | null
+): Date | null {
+  if (!input.trim()) return null;
+
+  const formats = timeFormat === 12 ? ["h:mma", "HH:mm"] : ["HH:mm", "h:mma"];
+  const parsed = dayjs(input, formats, true); // strict parsing
+
+  if (!parsed.isValid()) return null;
+
+  const hours = parsed.hour();
+  const minutes = parsed.minute();
+
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    return null;
+  }
+
+  return new Date(new Date().setUTCHours(hours, minutes, 0, 0));
+}
+
 const LazySelect = ({
   value,
   min,
   max,
   userTimeFormat,
   menuPlacement,
+  innerClassNames,
+  onChange,
   ...props
 }: Omit<Props<IOption, false, GroupBase<IOption>>, "value"> & {
   value: ConfigType;
@@ -426,31 +454,100 @@ const LazySelect = ({
   }, [filter, value]);
 
   const [inputValue, setInputValue] = React.useState("");
+  const [timeInputError, setTimeInputError] = React.useState(false);
   const defaultFilter = React.useMemo(() => createFilter(), []);
+
+  const handleInputChange = React.useCallback(
+    (newValue: string, actionMeta: { action: string }) => {
+      setInputValue(newValue);
+
+      if (actionMeta.action === "input-change" && newValue.trim()) {
+        const trimmedValue = newValue.trim();
+
+        const formats =
+          userTimeFormat === 12 ? ["h:mma", "HH:mm"] : ["HH:mm", "h:mma"];
+        const parsedTime = dayjs(trimmedValue, formats, true);
+        const looksLikeTime = /^\d{1,2}:\d{2}(a|p|am|pm)?$/i.test(trimmedValue);
+
+        if (looksLikeTime && !parsedTime.isValid()) {
+          setTimeInputError(true);
+        } else if (parsedTime.isValid()) {
+          const parsedDate = parseTimeString(trimmedValue, userTimeFormat);
+          if (parsedDate) {
+            const parsedDayjs = dayjs(parsedDate);
+            const violatesMin = min ? !parsedDayjs.isAfter(min) : false;
+            const violatesMax = max ? !parsedDayjs.isBefore(max) : false;
+            setTimeInputError(Boolean(violatesMin || violatesMax));
+          } else {
+            setTimeInputError(false);
+          }
+        } else {
+          setTimeInputError(false);
+        }
+      } else {
+        setTimeInputError(false);
+      }
+    },
+    [userTimeFormat, min, max]
+  );
+
   const filteredOptions = React.useMemo(() => {
-    const regex = /^(\d{1,2})(a|p|am|pm)$/i;
-    const match = inputValue.replaceAll(" ", "").match(regex);
-    if (!match) {
-      return options.filter((option) =>
-        defaultFilter({ ...option, data: option.label, value: option.label }, inputValue)
-      );
+    const dropdownOptions = options.filter((option) =>
+      defaultFilter(
+        { ...option, data: option.label, value: option.label },
+        inputValue
+      )
+    );
+
+    const trimmedInput = inputValue.trim();
+    if (trimmedInput) {
+      const parsedTime = parseTimeString(trimmedInput, userTimeFormat);
+
+      if (parsedTime) {
+        const parsedDayjs = dayjs(parsedTime);
+        // Validate against min/max bounds using same logic as filter function
+        const withinBounds =
+          (!min || parsedDayjs.isAfter(min)) &&
+          (!max || parsedDayjs.isBefore(max));
+
+        if (withinBounds) {
+          const parsedTimestamp = parsedTime.valueOf();
+          const existsInOptions = options.some(
+            (option) => option.value === parsedTimestamp
+          );
+
+          if (!existsInOptions) {
+            const manualOption: IOption = {
+              label: dayjs(parsedTime)
+                .utc()
+                .format(userTimeFormat === 12 ? "h:mma" : "HH:mm"),
+              value: parsedTimestamp,
+            };
+            return [manualOption, ...dropdownOptions];
+          }
+        }
+      }
     }
 
-    const [, numberPart, periodPart] = match;
-    const periodLower = periodPart.toLowerCase();
-    const scoredOptions = options
-      .filter((option) => option.label && option.label.toLowerCase().includes(periodLower))
-      .map((option) => {
-        const labelLower = option.label.toLowerCase();
-        const index = labelLower.indexOf(numberPart);
-        const score = index >= 0 ? index + labelLower.length : Infinity;
-        return { score, option };
-      })
-      .sort((a, b) => a.score - b.score);
+    return dropdownOptions;
+  }, [inputValue, options, defaultFilter, userTimeFormat, min, max]);
 
-    const maxScore = scoredOptions[0]?.score;
-    return scoredOptions.filter((item) => item.score === maxScore).map((item) => item.option);
-  }, [inputValue, options, defaultFilter]);
+  const currentValue = dayjs(value).toDate().valueOf();
+  const currentOption =
+    options.find((option) => option.value === currentValue) ||
+    (value
+      ? {
+          value: currentValue,
+          label: dayjs(value)
+            .utc()
+            .format(userTimeFormat === 12 ? "h:mma" : "HH:mm"),
+        }
+      : null);
+
+  const errorInnerClassNames: SelectInnerClassNames = {
+    ...innerClassNames,
+    control: cn(innerClassNames?.control, timeInputError && "!border-error"),
+  };
 
   return (
     <Select
@@ -461,11 +558,16 @@ const LazySelect = ({
         if (!min && !max) filter({ offset: 0, limit: 0 });
       }}
       menuPlacement={menuPlacement}
-      value={options.find((option) => option.value === dayjs(value).toDate().valueOf())}
+      value={currentOption}
       onMenuClose={() => filter({ current: value })}
-      components={{ DropdownIndicator: () => null, IndicatorSeparator: () => null }}
-      onInputChange={setInputValue}
+      components={{
+        DropdownIndicator: () => null,
+        IndicatorSeparator: () => null,
+      }}
+      onInputChange={handleInputChange}
       filterOption={() => true}
+      innerClassNames={errorInnerClassNames}
+      onChange={onChange}
       {...props}
     />
   );
@@ -514,17 +616,34 @@ const useOptions = (timeFormat: number | null) => {
   const filter = useCallback(
     ({ offset, limit, current }: { offset?: ConfigType; limit?: ConfigType; current?: ConfigType }) => {
       if (current) {
-        const currentOption = options.find((option) => option.value === dayjs(current).toDate().valueOf());
-        if (currentOption) setFilteredOptions([currentOption]);
+        const currentValue = dayjs(current).toDate().valueOf();
+        const currentOption = options.find(
+          (option) => option.value === currentValue
+        );
+        if (currentOption) {
+          setFilteredOptions([currentOption]);
+        } else {
+          // Create temporary option for custom time not in predefined options
+          const customOption: IOption = {
+            value: currentValue,
+            label: dayjs(current)
+              .utc()
+              .format(timeFormat === 12 ? "h:mma" : "HH:mm"),
+          };
+          setFilteredOptions([customOption]);
+        }
       } else
         setFilteredOptions(
           options.filter((option) => {
             const time = dayjs(option.value);
-            return (!limit || time.isBefore(limit)) && (!offset || time.isAfter(offset));
+            return (
+              (!limit || time.isBefore(limit)) &&
+              (!offset || time.isAfter(offset))
+            );
           })
         );
     },
-    [options]
+    [options, timeFormat]
   );
 
   return { options: filteredOptions, filter };

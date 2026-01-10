@@ -1,12 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { Image } from "expo-image";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/hooks";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
+import { getAvatarUrl } from "@/utils/getAvatarUrl";
 
 interface MoreMenuItem {
   name: string;
@@ -20,6 +23,7 @@ export default function More() {
   const router = useRouter();
   const { logout } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { data: userProfile } = useUserProfile();
 
   const performLogout = async () => {
     try {
@@ -88,10 +92,20 @@ export default function More() {
       >
         <Stack.Header.Title large>More</Stack.Header.Title>
         <Stack.Header.Right>
-          {/* Profile Button */}
-          <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
-            <Stack.Header.Icon sf="person.circle.fill" />
-          </Stack.Header.Button>
+          {userProfile?.avatarUrl ? (
+            <Stack.Header.View>
+              <Pressable onPress={() => router.push("/profile-sheet")}>
+                <Image
+                  source={{ uri: getAvatarUrl(userProfile.avatarUrl) }}
+                  style={{ width: 32, height: 32, borderRadius: 16 }}
+                />
+              </Pressable>
+            </Stack.Header.View>
+          ) : (
+            <Stack.Header.Button onPress={() => router.push("/profile-sheet")}>
+              <Stack.Header.Icon sf="person.circle.fill" />
+            </Stack.Header.Button>
+          )}
         </Stack.Header.Right>
       </Stack.Header>
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { Actor } from "../../../bookings/lib/types/actor";
+import type { Actor, BookingAuditContext } from "../dto/types";
 import type { ActionSource } from "../types/actionSource";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
@@ -38,6 +38,7 @@ export interface BookingAuditProducerService {
                 source: ActionSource;
                 operationId?: string | null;
                 data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema>;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         queueRescheduledAudit(params: {
@@ -47,6 +48,7 @@ export interface BookingAuditProducerService {
                 source: ActionSource;
                 operationId?: string | null;
                 data: z.infer<typeof RescheduledAuditActionService.latestFieldsSchema>;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         queueAcceptedAudit(params: {
@@ -56,6 +58,7 @@ export interface BookingAuditProducerService {
                 source: ActionSource;
                 operationId?: string | null;
                 data: z.infer<typeof AcceptedAuditActionService.latestFieldsSchema>;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         queueCancelledAudit(params: {
@@ -65,6 +68,7 @@ export interface BookingAuditProducerService {
                 source: ActionSource;
                 operationId?: string | null;
                 data: z.infer<typeof CancelledAuditActionService.latestFieldsSchema>;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         queueRescheduleRequestedAudit(params: {
@@ -74,6 +78,7 @@ export interface BookingAuditProducerService {
                 source: ActionSource;
                 operationId?: string | null;
                 data: z.infer<typeof RescheduleRequestedAuditActionService.latestFieldsSchema>;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         queueAttendeeAddedAudit(params: {
@@ -83,6 +88,7 @@ export interface BookingAuditProducerService {
                 source: ActionSource;
                 operationId?: string | null;
                 data: z.infer<typeof AttendeeAddedAuditActionService.latestFieldsSchema>;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         queueHostNoShowUpdatedAudit(params: {
@@ -92,6 +98,7 @@ export interface BookingAuditProducerService {
                 source: ActionSource;
                 operationId?: string | null;
                 data: z.infer<typeof HostNoShowUpdatedAuditActionService.latestFieldsSchema>;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         queueRejectedAudit(params: {
@@ -101,6 +108,7 @@ export interface BookingAuditProducerService {
                 source: ActionSource;
                 operationId?: string | null;
                 data: z.infer<typeof RejectedAuditActionService.latestFieldsSchema>;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         queueAttendeeRemovedAudit(params: {
@@ -110,6 +118,7 @@ export interface BookingAuditProducerService {
                 source: ActionSource;
                 operationId?: string | null;
                 data: z.infer<typeof AttendeeRemovedAuditActionService.latestFieldsSchema>;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         queueReassignmentAudit(params: {
@@ -119,6 +128,7 @@ export interface BookingAuditProducerService {
                 source: ActionSource;
                 operationId?: string | null;
                 data: z.infer<typeof ReassignmentAuditActionService.latestFieldsSchema>;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         queueLocationChangedAudit(params: {
@@ -128,6 +138,7 @@ export interface BookingAuditProducerService {
                 source: ActionSource;
                 operationId?: string | null;
                 data: z.infer<typeof LocationChangedAuditActionService.latestFieldsSchema>;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         queueAttendeeNoShowUpdatedAudit(params: {
@@ -137,6 +148,7 @@ export interface BookingAuditProducerService {
                 source: ActionSource;
                 operationId?: string | null;
                 data: z.infer<typeof AttendeeNoShowUpdatedAuditActionService.latestFieldsSchema>;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         queueSeatBookedAudit(params: {
@@ -146,6 +158,7 @@ export interface BookingAuditProducerService {
                 source: ActionSource;
                 operationId?: string | null;
                 data: z.infer<typeof SeatBookedAuditActionService.latestFieldsSchema>;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         queueSeatRescheduledAudit(params: {
@@ -155,6 +168,7 @@ export interface BookingAuditProducerService {
                 source: ActionSource;
                 operationId?: string | null;
                 data: z.infer<typeof SeatRescheduledAuditActionService.latestFieldsSchema>;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         /**
@@ -169,6 +183,7 @@ export interface BookingAuditProducerService {
                 organizationId: number | null;
                 source: ActionSource;
                 operationId?: string | null;
+                context?: BookingAuditContext;
         }): Promise<void>;
 
         /**
@@ -183,6 +198,7 @@ export interface BookingAuditProducerService {
                 organizationId: number | null;
                 source: ActionSource;
                 operationId?: string | null;
+                context?: BookingAuditContext;
         }): Promise<void>;
 }
 

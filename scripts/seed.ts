@@ -7,11 +7,24 @@ import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
-import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import {
+  DEFAULT_SCHEDULE,
+  getAvailabilityFromSchedule,
+} from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
-import type { Membership, Team, User, UserPermissionRole } from "@calcom/prisma/client";
+import type {
+  Membership,
+  Team,
+  User,
+  UserPermissionRole,
+} from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
-import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
+import {
+  BookingStatus,
+  MembershipRole,
+  RedirectType,
+  SchedulingType,
+} from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
 import type { teamMetadataSchema } from "../packages/prisma/zod-utils";
@@ -97,7 +110,8 @@ const setupPlatformUser = async (user: PlatformUser) => {
 
 const createTeam = async (team: Prisma.TeamCreateInput) => {
   try {
-    const requestedSlug = (team.metadata as z.infer<typeof teamMetadataSchema>)?.requestedSlug;
+    const requestedSlug = (team.metadata as z.infer<typeof teamMetadataSchema>)
+      ?.requestedSlug;
     if (requestedSlug) {
       const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
       if (unpublishedTeam) {
@@ -110,7 +124,10 @@ const createTeam = async (team: Prisma.TeamCreateInput) => {
       },
     });
   } catch (_err) {
-    if (_err instanceof Error && _err.message.indexOf("Unique constraint failed on the fields") !== -1) {
+    if (
+      _err instanceof Error &&
+      _err.message.indexOf("Unique constraint failed on the fields") !== -1
+    ) {
       console.log(`Team '${team.name}' already exists, skipping.`);
       return;
     }
@@ -118,7 +135,12 @@ const createTeam = async (team: Prisma.TeamCreateInput) => {
   }
 };
 
-const associateUserAndOrg = async ({ teamId, userId, role, username }: AssociateUserAndOrgProps) => {
+const associateUserAndOrg = async ({
+  teamId,
+  userId,
+  role,
+  username,
+}: AssociateUserAndOrgProps) => {
   await prisma.membership.create({
     data: {
       createdAt: new Date(),
@@ -200,7 +222,9 @@ async function createPlatformAndSetupUser({
         },
       });
     }
-    console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${membershipRole}'`);
+    console.log(
+      `\t👤 Added '${teamInput.name}' membership for '${username}' with role '${membershipRole}'`
+    );
   }
 }
 
@@ -230,6 +254,9 @@ async function createTeamAndAddUsers(
       return await prisma.team.create({
         data: {
           ...team,
+        },
+        include: {
+          eventTypes: true,
         },
       });
     } catch (_err) {
@@ -264,6 +291,27 @@ async function createTeamAndAddUsers(
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
   }
 
+  // Connect users and create hosts for team event types
+  for (const eventType of team.eventTypes) {
+    const isCollective = eventType.schedulingType === SchedulingType.COLLECTIVE;
+    await prisma.eventType.update({
+      where: {
+        id: eventType.id,
+      },
+      data: {
+        users: {
+          connect: users.map((user) => ({ id: user.id })),
+        },
+        hosts: {
+          create: users.map((user) => ({
+            userId: user.id,
+            isFixed: isCollective,
+          })),
+        },
+      },
+    });
+  }
+
   return team;
 }
 
@@ -277,7 +325,10 @@ async function createOrganizationAndAddMembersAndTeams({
       organizationSettings: Prisma.OrganizationSettingsCreateWithoutOrganizationInput;
     };
     members: {
-      memberData: Ensure<Partial<Prisma.UserCreateInput>, "username" | "name" | "email" | "password">;
+      memberData: Ensure<
+        Partial<Prisma.UserCreateInput>,
+        "username" | "name" | "email" | "password"
+      >;
       orgMembership: Partial<Membership>;
       orgProfile: {
         username: string;
@@ -286,8 +337,14 @@ async function createOrganizationAndAddMembersAndTeams({
     }[];
   };
   teams: {
-    teamData: Omit<Ensure<Partial<Prisma.TeamCreateInput>, "name" | "slug">, "members">;
-    nonOrgMembers: Ensure<Partial<Prisma.UserCreateInput>, "username" | "name" | "email" | "password">[];
+    teamData: Omit<
+      Ensure<Partial<Prisma.TeamCreateInput>, "name" | "slug">,
+      "members"
+    >;
+    nonOrgMembers: Ensure<
+      Partial<Prisma.UserCreateInput>,
+      "username" | "name" | "email" | "password"
+    >[];
   }[];
   usersOutsideOrg: {
     name: string;
@@ -305,7 +362,9 @@ async function createOrganizationAndAddMembersAndTeams({
   });
 
   if (existingTeam) {
-    console.log(`Organization with slug '${orgData.slug}' already exists, skipping.`);
+    console.log(
+      `Organization with slug '${orgData.slug}' already exists, skipping.`
+    );
     return;
   }
 
@@ -329,7 +388,8 @@ async function createOrganizationAndAddMembersAndTeams({
             user: {
               ...member.memberData,
               theme:
-                member.memberData.theme === "dark" || member.memberData.theme === "light"
+                member.memberData.theme === "dark" ||
+                member.memberData.theme === "light"
                   ? member.memberData.theme
                   : undefined,
               password: member.memberData.password.create?.hash ?? "",
@@ -368,13 +428,17 @@ async function createOrganizationAndAddMembersAndTeams({
               },
             },
             update: {
-              toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username}`,
+              toUrl: `${getOrgFullOrigin(orgData.slug)}/${
+                member.orgProfile.username
+              }`,
             },
             create: {
               fromOrgId: 0,
               type: RedirectType.User,
               from: member.memberData.username,
-              toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username}`,
+              toUrl: `${getOrgFullOrigin(orgData.slug)}/${
+                member.orgProfile.username
+              }`,
             },
           });
 
@@ -387,7 +451,9 @@ async function createOrganizationAndAddMembersAndTeams({
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002") {
-        console.log(`One of the organization members already exists, skipping the entire seeding`);
+        console.log(
+          `One of the organization members already exists, skipping the entire seeding`
+        );
         return;
       }
     }
@@ -419,7 +485,9 @@ async function createOrganizationAndAddMembersAndTeams({
     data: {
       ...restOrgData,
       metadata: {
-        ...(orgData.metadata && typeof orgData.metadata === "object" ? orgData.metadata : {}),
+        ...(orgData.metadata && typeof orgData.metadata === "object"
+          ? orgData.metadata
+          : {}),
         isOrganization: true,
       },
       orgProfiles: {
@@ -758,7 +826,11 @@ async function main() {
             title: "Yoga class",
             recurringEventId: Buffer.from("yoga-class").toString("base64"),
             startTime: dayjs().add(1, "day").add(1, "week").toDate(),
-            endTime: dayjs().add(1, "day").add(1, "week").add(30, "minutes").toDate(),
+            endTime: dayjs()
+              .add(1, "day")
+              .add(1, "week")
+              .add(30, "minutes")
+              .toDate(),
             status: BookingStatus.ACCEPTED,
           },
           {
@@ -766,7 +838,11 @@ async function main() {
             title: "Yoga class",
             recurringEventId: Buffer.from("yoga-class").toString("base64"),
             startTime: dayjs().add(1, "day").add(2, "week").toDate(),
-            endTime: dayjs().add(1, "day").add(2, "week").add(30, "minutes").toDate(),
+            endTime: dayjs()
+              .add(1, "day")
+              .add(2, "week")
+              .add(30, "minutes")
+              .toDate(),
             status: BookingStatus.ACCEPTED,
           },
           {
@@ -774,7 +850,11 @@ async function main() {
             title: "Yoga class",
             recurringEventId: Buffer.from("yoga-class").toString("base64"),
             startTime: dayjs().add(1, "day").add(3, "week").toDate(),
-            endTime: dayjs().add(1, "day").add(3, "week").add(30, "minutes").toDate(),
+            endTime: dayjs()
+              .add(1, "day")
+              .add(3, "week")
+              .add(30, "minutes")
+              .toDate(),
             status: BookingStatus.ACCEPTED,
           },
           {
@@ -782,7 +862,11 @@ async function main() {
             title: "Yoga class",
             recurringEventId: Buffer.from("yoga-class").toString("base64"),
             startTime: dayjs().add(1, "day").add(4, "week").toDate(),
-            endTime: dayjs().add(1, "day").add(4, "week").add(30, "minutes").toDate(),
+            endTime: dayjs()
+              .add(1, "day")
+              .add(4, "week")
+              .add(30, "minutes")
+              .toDate(),
             status: BookingStatus.ACCEPTED,
           },
           {
@@ -790,14 +874,19 @@ async function main() {
             title: "Yoga class",
             recurringEventId: Buffer.from("yoga-class").toString("base64"),
             startTime: dayjs().add(1, "day").add(5, "week").toDate(),
-            endTime: dayjs().add(1, "day").add(5, "week").add(30, "minutes").toDate(),
+            endTime: dayjs()
+              .add(1, "day")
+              .add(5, "week")
+              .add(30, "minutes")
+              .toDate(),
             status: BookingStatus.ACCEPTED,
           },
           {
             uid: uuid(),
             title: "Seeded Yoga class",
             description: "seeded",
-            recurringEventId: Buffer.from("seeded-yoga-class").toString("base64"),
+            recurringEventId:
+              Buffer.from("seeded-yoga-class").toString("base64"),
             startTime: dayjs().subtract(4, "day").toDate(),
             endTime: dayjs().subtract(4, "day").add(30, "minutes").toDate(),
             status: BookingStatus.ACCEPTED,
@@ -806,27 +895,42 @@ async function main() {
             uid: uuid(),
             title: "Seeded Yoga class",
             description: "seeded",
-            recurringEventId: Buffer.from("seeded-yoga-class").toString("base64"),
+            recurringEventId:
+              Buffer.from("seeded-yoga-class").toString("base64"),
             startTime: dayjs().subtract(4, "day").add(1, "week").toDate(),
-            endTime: dayjs().subtract(4, "day").add(1, "week").add(30, "minutes").toDate(),
+            endTime: dayjs()
+              .subtract(4, "day")
+              .add(1, "week")
+              .add(30, "minutes")
+              .toDate(),
             status: BookingStatus.ACCEPTED,
           },
           {
             uid: uuid(),
             title: "Seeded Yoga class",
             description: "seeded",
-            recurringEventId: Buffer.from("seeded-yoga-class").toString("base64"),
+            recurringEventId:
+              Buffer.from("seeded-yoga-class").toString("base64"),
             startTime: dayjs().subtract(4, "day").add(2, "week").toDate(),
-            endTime: dayjs().subtract(4, "day").add(2, "week").add(30, "minutes").toDate(),
+            endTime: dayjs()
+              .subtract(4, "day")
+              .add(2, "week")
+              .add(30, "minutes")
+              .toDate(),
             status: BookingStatus.ACCEPTED,
           },
           {
             uid: uuid(),
             title: "Seeded Yoga class",
             description: "seeded",
-            recurringEventId: Buffer.from("seeded-yoga-class").toString("base64"),
+            recurringEventId:
+              Buffer.from("seeded-yoga-class").toString("base64"),
             startTime: dayjs().subtract(4, "day").add(3, "week").toDate(),
-            endTime: dayjs().subtract(4, "day").add(3, "week").add(30, "minutes").toDate(),
+            endTime: dayjs()
+              .subtract(4, "day")
+              .add(3, "week")
+              .add(30, "minutes")
+              .toDate(),
             status: BookingStatus.ACCEPTED,
           },
         ],
@@ -851,7 +955,11 @@ async function main() {
             title: "Tennis class",
             recurringEventId: Buffer.from("tennis-class").toString("base64"),
             startTime: dayjs().add(2, "day").add(2, "week").toDate(),
-            endTime: dayjs().add(2, "day").add(2, "week").add(60, "minutes").toDate(),
+            endTime: dayjs()
+              .add(2, "day")
+              .add(2, "week")
+              .add(60, "minutes")
+              .toDate(),
             status: BookingStatus.PENDING,
           },
           {
@@ -859,7 +967,11 @@ async function main() {
             title: "Tennis class",
             recurringEventId: Buffer.from("tennis-class").toString("base64"),
             startTime: dayjs().add(2, "day").add(4, "week").toDate(),
-            endTime: dayjs().add(2, "day").add(4, "week").add(60, "minutes").toDate(),
+            endTime: dayjs()
+              .add(2, "day")
+              .add(4, "week")
+              .add(60, "minutes")
+              .toDate(),
             status: BookingStatus.PENDING,
           },
           {
@@ -867,7 +979,11 @@ async function main() {
             title: "Tennis class",
             recurringEventId: Buffer.from("tennis-class").toString("base64"),
             startTime: dayjs().add(2, "day").add(8, "week").toDate(),
-            endTime: dayjs().add(2, "day").add(8, "week").add(60, "minutes").toDate(),
+            endTime: dayjs()
+              .add(2, "day")
+              .add(8, "week")
+              .add(60, "minutes")
+              .toDate(),
             status: BookingStatus.PENDING,
           },
           {
@@ -875,7 +991,11 @@ async function main() {
             title: "Tennis class",
             recurringEventId: Buffer.from("tennis-class").toString("base64"),
             startTime: dayjs().add(2, "day").add(10, "week").toDate(),
-            endTime: dayjs().add(2, "day").add(10, "week").add(60, "minutes").toDate(),
+            endTime: dayjs()
+              .add(2, "day")
+              .add(10, "week")
+              .add(60, "minutes")
+              .toDate(),
             status: BookingStatus.PENDING,
           },
         ],
@@ -1034,7 +1154,12 @@ async function main() {
     },
   });
 
-  if (!!(process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD)) {
+  if (
+    !!(
+      process.env.E2E_TEST_CALCOM_QA_EMAIL &&
+      process.env.E2E_TEST_CALCOM_QA_PASSWORD
+    )
+  ) {
     await createUserAndEventType({
       user: {
         email: process.env.E2E_TEST_CALCOM_QA_EMAIL || "qa@example.com",
@@ -1053,7 +1178,9 @@ async function main() {
         !!process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS
           ? {
               type: "google_calendar",
-              key: JSON.parse(process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS) as Prisma.JsonObject,
+              key: JSON.parse(
+                process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS
+              ) as Prisma.JsonObject,
               appId: "google-calendar",
             }
           : null,
@@ -1386,7 +1513,9 @@ async function main() {
     },
   });
   if (form) {
-    console.log(`Skipping Routing Form - Form Seed, "Seeded Form - Pro" already exists`);
+    console.log(
+      `Skipping Routing Form - Form Seed, "Seeded Form - Pro" already exists`
+    );
   } else {
     const proUser = await prisma.user.findFirst({
       where: {
@@ -1424,7 +1553,10 @@ async function main() {
             },
             {
               id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
-              action: { type: "customPageMessage", value: "Custom Page Result" },
+              action: {
+                type: "customPageMessage",
+                value: "Custom Page Result",
+              },
               queryValue: {
                 id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
                 type: "group",
@@ -1464,7 +1596,10 @@ async function main() {
             },
             {
               id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
-              action: { type: "customPageMessage", value: "Multiselect chosen" },
+              action: {
+                type: "customPageMessage",
+                value: "Multiselect chosen",
+              },
               queryValue: {
                 id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
                 type: "group",
@@ -1486,7 +1621,10 @@ async function main() {
               id: "898899aa-4567-489a-bcde-f1823f708646",
               action: { type: "customPageMessage", value: "Fallback Message" },
               isFallback: true,
-              queryValue: { id: "898899aa-4567-489a-bcde-f1823f708646", type: "group" },
+              queryValue: {
+                id: "898899aa-4567-489a-bcde-f1823f708646",
+                type: "group",
+              },
             },
           ],
           fields: [

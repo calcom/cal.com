@@ -5,15 +5,11 @@ import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } fro
 import { useMemo, useReducer, useState } from "react";
 
 import {
-  DataTableWrapper,
   DataTableProvider,
-  DataTableToolbar,
-  DataTableSelectionBar,
-  DataTableFilters,
-  DataTableSegment,
   useColumnFilters,
   useDataTable,
 } from "@calcom/features/data-table";
+import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment, DataTableSelectionBar } from "~/data-table/components";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

@@ -6,6 +6,38 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 
+/**
+ * Helper to retry network requests that may fail with transient errors like ECONNRESET
+ */
+async function retryOnNetworkError<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  delayMs = 500
+): Promise<T> {
+  let lastError: Error | undefined;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+      const errorMessage = lastError.message || "";
+      // Only retry on transient network errors
+      const isRetryable =
+        errorMessage.includes("ECONNRESET") ||
+        errorMessage.includes("ECONNREFUSED") ||
+        errorMessage.includes("ETIMEDOUT") ||
+        errorMessage.includes("socket hang up");
+
+      if (!isRetryable || attempt === maxRetries) {
+        throw lastError;
+      }
+      // Wait before retrying with exponential backoff
+      await new Promise((resolve) => setTimeout(resolve, delayMs * attempt));
+    }
+  }
+  throw lastError;
+}
+
 test.describe("Booking Confirmation and Rejection via API", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
@@ -64,9 +96,14 @@ test.describe("Booking Confirmation and Rejection via API", () => {
 
     const url = `/api/verify-booking-token?action=accept&token=${oneTimePassword}&bookingUid=${booking.uid}&userId=${organizer.id}`;
 
-    const response = await page.request.get(url, {
-      maxRedirects: 0,
-    });
+    const response = await retryOnNetworkError(
+      () =>
+        page.request.get(url, {
+          maxRedirects: 0,
+        }),
+      3,
+      500
+    );
 
     expect(response.status()).toBe(303);
     const location = response.headers()["location"];
@@ -133,10 +170,15 @@ test.describe("Booking Confirmation and Rejection via API", () => {
 
     const url = `/api/verify-booking-token?action=reject&token=${oneTimePassword}&bookingUid=${booking.uid}&userId=${organizer.id}`;
 
-    const response = await page.request.post(url, {
-      data: { reason: "Not available at this time" },
-      maxRedirects: 0,
-    });
+    const response = await retryOnNetworkError(
+      () =>
+        page.request.post(url, {
+          data: { reason: "Not available at this time" },
+          maxRedirects: 0,
+        }),
+      3,
+      500
+    );
 
     expect(response.status()).toBe(303);
     const location = response.headers()["location"];

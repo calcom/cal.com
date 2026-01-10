@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import type { createUsersFixture } from "playwright/fixtures/users";
+import type { createUsersFixture } from "./fixtures/users";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { PrismaClient } from "@calcom/prisma";
@@ -53,6 +53,7 @@ test.describe("Update Profile", () => {
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await page.waitForLoadState("networkidle");
 
     const emailInput = page.getByTestId("profile-form-email-0");
 
@@ -219,6 +220,7 @@ test.describe("Update Profile", () => {
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await page.waitForLoadState("networkidle");
 
     await page.getByTestId("add-secondary-email").click();
 

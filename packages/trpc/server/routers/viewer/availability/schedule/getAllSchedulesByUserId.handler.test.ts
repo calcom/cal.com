@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
@@ -14,9 +14,9 @@ vi.mock("@calcom/lib/hasEditPermissionForUser", () => ({
 }));
 
 vi.mock("@calcom/features/schedules/repositories/ScheduleRepository", () => ({
-  ScheduleRepository: vi.fn().mockImplementation(() => ({
+  ScheduleRepository: vi.fn().mockImplementation(function() { return {
     getDefaultScheduleId: vi.fn().mockResolvedValue(DEFAULT_SCHEDULE_ID),
-  })),
+  }; }),
 }));
 
 import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";

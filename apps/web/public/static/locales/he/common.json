@@ -403,6 +403,7 @@
   "set_up_later": "להגדיר מאוחר יותר",
   "current_time": "השעה הנוכחית",
   "details": "פרטים",
+  "info": "מידע",
   "welcome": "ברוך הבא",
   "welcome_back": "ברוך שובך",
   "welcome_to_calcom": "ברוך הבא אל {{appName}}",
@@ -1298,6 +1299,8 @@
   "schedule_deleted_successfully": "מחיקת התזמון בוצעה בהצלחה",
   "default_schedule_name": "שעות עבודה",
   "new_schedule_heading": "יצירת לוח זמנים של מועדים פנויים",
+  "no_schedules_created_yet": "עדיין לא יצרת לוחות זמנים לזמינות. צור אחד כדי להתחיל.",
+  "create_availability_schedule": "יצירת לוח זמנים לזמינות",
   "new_schedule_description": "יצירת לוחות זמנים להצגת זמינות מאפשרת לנהל את הזמינות של סוגי אירועים שונים. ניתן להחיל אותם על סוג אירוע אחד או יותר.",
   "requires_ownership_of_a_token": "מחייב בעלות על טוקן ששייך לכתובת הבאה:",
   "example_name": "ישראל ישראלי",
@@ -3185,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "ההזמנה נותבה מחדש בהצלחה. מפנה לדף ההזמנות",
   "on_booking_write_to_event_object": "בעת ההזמנה, כתוב לאובייקט האירוע",
   "field_name": "שם השדה",
+  "field_name_cannot_be_empty": "שם השדה לא יכול להיות רוק",
+  "field_already_exists": "השדה כבר קיים",
   "add_new_field": "הוסף שדה חדש",
   "you_dont_have_access_to_reroute_this_booking": "אין לך גישה לניתוב מחדש של הזמנה זו",
   "form_response_not_found": "תגובת הטופס לא נמצאה",
@@ -4160,7 +4165,9 @@
     "attendee_no_show_updated": "עדכון אי-הגעה של משתתף",
     "type": "סוג ההקצאה",
     "assignmentType_manual": "הקצאה ידנית",
-    "assignmentType_roundRobin": "הקצאה לפי תורות"
+    "assignmentType_roundRobin": "הקצאה לפי תורות",
+    "actor_impersonated_by": "מתחזה",
+    "source": "מקור"
   },
   "error_loading_booking_logs": "שגיאה בטעינת יומני ההזמנה",
   "no_audit_logs_found": "לא נמצאו יומני ביקורת",
@@ -4177,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "בעל ההזמנה אינו חבר בארגון שלך.",
   "audit_logs_permission_denied": "אין לך הרשאה לצפות ביומני ביקורת עבור הזמנה זו.",
   "audit_logs_permission_check_error": "אירעה שגיאה במהלך בדיקת ההרשאות.",
+  "account_already_exists_please_login": "חשבון עם כתובת דוא\"ל זו כבר קיים. אנא התחבר כדי לקבל את ההזמנה.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

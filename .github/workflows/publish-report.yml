@@ -63,10 +63,12 @@ jobs:
       - name: Cleanup old HTML reports
         if: ${{ env.BRANCH_REPORTS_EXIST == 'true' }}
         timeout-minutes: 3
+        env:
+          HEAD_BRANCH: ${{ inputs.head_branch }}
         run: |
-          rm -rf $BRANCH_REPORTS_DIR
+          rm -rf "$BRANCH_REPORTS_DIR"
           git add .
-          git commit -m "workflow: remove all reports for branch ${{ inputs.head_branch }}"
+          git commit -m "workflow: remove all reports for branch $HEAD_BRANCH"
       - name: Download zipped HTML report
         uses: actions/download-artifact@v4
         with:
@@ -76,9 +78,12 @@ jobs:
         timeout-minutes: 3
         # commit report, then try push-rebase-loop until it's able to merge the HTML report to the gh-pages branch
         # this is necessary when this job running at least twice at the same time (e.g. through two pushes at the same time)
+        env:
+          RUN_ID: ${{ inputs.source_run_id }}
+          RUN_ATTEMPT: ${{ inputs.source_run_attempt }}
         run: |
           git add .
-          git commit -m "workflow: add HTML report for run-id ${{ inputs.source_run_id }} (attempt:  ${{ inputs.source_run_attempt }})"
+          git commit -m "workflow: add HTML report for run-id $RUN_ID (attempt: $RUN_ATTEMPT)"
 
           while true; do
             git pull --rebase

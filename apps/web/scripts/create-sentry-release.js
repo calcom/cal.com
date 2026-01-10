@@ -1,4 +1,4 @@
-const { execSync } = require("child_process");
+const { execSync } = require("node:child_process");
 
 const CLIENT_FILES_PATH = ".next/static/chunks";
 

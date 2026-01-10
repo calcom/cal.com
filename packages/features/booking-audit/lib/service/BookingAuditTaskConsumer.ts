@@ -4,7 +4,7 @@ import logger from "@calcom/lib/logger";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
-import type { PiiFreeActor } from "../../../bookings/lib/types/actor";
+import type { PiiFreeActor, BookingAuditContext } from "../dto/types";
 import type {
     SingleBookingAuditTaskConsumerPayload,
     BulkBookingAuditTaskConsumerPayload,
@@ -33,6 +33,7 @@ type CreateBookingAuditInput = {
     operationId: string;
     data: JsonValue;
     timestamp: Date; // Required: actual time of the booking change (business event)
+    context?: BookingAuditContext;
 };
 
 type BookingAudit = {
@@ -84,7 +85,7 @@ export class BookingAuditTaskConsumer {
      * Process single booking Audit Task
      */
     async processAuditTask(payload: SingleBookingAuditTaskConsumerPayload, taskId: string): Promise<void> {
-        const { action, bookingUid, actor, organizationId, data, timestamp, source, operationId } = payload;
+        const { action, bookingUid, actor, organizationId, data, timestamp, source, operationId, context } = payload;
 
         if (!await this.shouldProcessAudit({
             organizationId,
@@ -96,14 +97,14 @@ export class BookingAuditTaskConsumer {
 
         const dataInLatestFormat = await this.migrateIfNeeded({ action, data, payload, taskId });
 
-        await this.onBookingAction({ bookingUid, actor, action, source, operationId, data: dataInLatestFormat, timestamp });
+        await this.onBookingAction({ bookingUid, actor, action, source, operationId, data: dataInLatestFormat, timestamp, context });
     }
 
     /**
      * Process Bulk bookings Audit Task
      */
     async processBulkAuditTask(payload: BulkBookingAuditTaskConsumerPayload, taskId: string): Promise<void> {
-        const { bookings, action, actor, organizationId, timestamp, source, operationId } = payload;
+        const { bookings, action, actor, organizationId, timestamp, source, operationId, context } = payload;
 
         if (!await this.shouldProcessAudit({
             organizationId,
@@ -127,6 +128,7 @@ export class BookingAuditTaskConsumer {
             source,
             operationId,
             timestamp,
+            context,
         });
     }
 
@@ -319,6 +321,7 @@ export class BookingAuditTaskConsumer {
             action: input.action,
             source: input.source,
             timestamp: input.timestamp,
+            context: input.context,
         }));
 
         return this.bookingAuditRepository.create({
@@ -330,6 +333,7 @@ export class BookingAuditTaskConsumer {
             timestamp: input.timestamp,
             operationId: input.operationId,
             data: input.data ?? null,
+            context: input.context,
         });
     }
 
@@ -382,8 +386,9 @@ export class BookingAuditTaskConsumer {
         source: ActionSource;
         operationId: string;
         timestamp: number;
+        context?: BookingAuditContext;
     }): Promise<void> {
-        const { bookings, actor, action, source, operationId, timestamp } = params;
+        const { bookings, actor, action, source, operationId, timestamp, context } = params;
 
         const actorId = await this.resolveActorId(actor);
         const recordType = this.getRecordType({ action });
@@ -400,6 +405,7 @@ export class BookingAuditTaskConsumer {
                 operationId,
                 data: versionedData as JsonValue,
                 timestamp: new Date(timestamp),
+                context,
             };
         });
 
@@ -418,8 +424,9 @@ export class BookingAuditTaskConsumer {
         operationId: string;
         data: Record<string, unknown>;
         timestamp: number;
+        context?: BookingAuditContext;
     }): Promise<BookingAudit> {
-        const { bookingUid, actor, action, source, operationId, data, timestamp } = params;
+        const { bookingUid, actor, action, source, operationId, data, timestamp, context } = params;
         const actionService = this.actionServiceRegistry.getActionService(action);
         const versionedData = actionService.getVersionedData(data);
         const actorId = await this.resolveActorId(actor);
@@ -435,6 +442,7 @@ export class BookingAuditTaskConsumer {
             // versionedData is { version: number; fields: unknown } which is JsonValue-compatible
             data: versionedData as JsonValue,
             timestamp: new Date(timestamp),
+            context,
         });
     }
 }

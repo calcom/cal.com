@@ -21,14 +21,17 @@ export class PermissionCheckService {
   private readonly logger = logger.getSubLogger({ prefix: ["PermissionCheckService"] });
   private readonly featuresRepository: FeaturesRepository;
   private readonly permissionService: PermissionService;
+  private readonly membershipRepository: MembershipRepository;
 
   constructor(
     private readonly repository: IPermissionRepository = new PermissionRepository(),
     featuresRepository: FeaturesRepository = new FeaturesRepository(prisma),
-    permissionService: PermissionService = new PermissionService()
+    permissionService: PermissionService = new PermissionService(),
+    membershipRepository: MembershipRepository = new MembershipRepository()
   ) {
     this.featuresRepository = featuresRepository;
     this.permissionService = permissionService;
+    this.membershipRepository = membershipRepository;
   }
 
   async getUserPermissions(userId: number): Promise<TeamPermissions[]> {
@@ -119,7 +122,7 @@ export class PermissionCheckService {
       }
 
       // Fallback to role-based check - use highest role between team and org membership
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      const membership = await this.membershipRepository.findUniqueByUserIdAndTeamId({
         userId,
         teamId,
       });
@@ -129,7 +132,7 @@ export class PermissionCheckService {
       // Check if team has parent org and get org membership
       const team = await this.repository.getTeamById(teamId);
       if (team?.parentId) {
-        const orgMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+        const orgMembership = await this.membershipRepository.findUniqueByUserIdAndTeamId({
           userId,
           teamId: team.parentId,
         });
@@ -183,7 +186,7 @@ export class PermissionCheckService {
       }
 
       // Fallback to role-based check - use highest role between team and org membership
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      const membership = await this.membershipRepository.findUniqueByUserIdAndTeamId({
         userId,
         teamId,
       });
@@ -193,7 +196,7 @@ export class PermissionCheckService {
       // Check if team has parent org and get org membership
       const team = await this.repository.getTeamById(teamId);
       if (team?.parentId) {
-        const orgMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+        const orgMembership = await this.membershipRepository.findUniqueByUserIdAndTeamId({
           userId,
           teamId: team.parentId,
         });

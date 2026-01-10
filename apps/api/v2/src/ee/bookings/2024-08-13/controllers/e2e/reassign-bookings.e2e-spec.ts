@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { BOOKING_REASSIGN_PERMISSION_ERROR } from "@/ee/bookings/2024-08-13/services/bookings.service";

@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
@@ -174,5 +174,3 @@ describe("Event Types Private Links Endpoints", () => {
     await app.close();
   });
 });
-
-

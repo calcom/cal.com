@@ -4,7 +4,7 @@ import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/rea
 import React, { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { DataTableFilters } from "@calcom/features/data-table";
+import { DataTableFilters } from "~/data-table/components/filters";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";

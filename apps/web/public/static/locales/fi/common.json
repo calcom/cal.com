@@ -403,6 +403,7 @@
   "set_up_later": "Määritä myöhemmin",
   "current_time": "Nykyinen aika",
   "details": "Tiedot",
+  "info": "Tiedot",
   "welcome": "Tervetuloa",
   "welcome_back": "Tervetuloa takaisin",
   "welcome_to_calcom": "Tervetuloa {{appName}}:iin",
@@ -1298,6 +1299,8 @@
   "schedule_deleted_successfully": "Aikataulu poistettu onnistuneesti",
   "default_schedule_name": "Työajat",
   "new_schedule_heading": "Luo saatavuusaikataulu",
+  "no_schedules_created_yet": "Et ole vielä luonut yhtään saatavuusaikataulua. Luo ensimmäinen aloittaaksesi.",
+  "create_availability_schedule": "Luo saatavuusaikataulu",
   "new_schedule_description": "Saatavuusaikataulujen luominen mahdollistaa saatavuuden hallinnan eri tapahtumatyypeissä. Niitä voidaan soveltaa yhteen tai useampaan tapahtumatyyppiin.",
   "requires_ownership_of_a_token": "Vaatii token-omistuksen seuraavasta osoitteesta:",
   "example_name": "Matti Meikäläinen",
@@ -3185,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Varauksen uudelleenohjaus onnistui. Siirrytään varaussivulle",
   "on_booking_write_to_event_object": "Kirjoita varauksen yhteydessä tapahtumaobjektiin",
   "field_name": "Kentän nimi",
+  "field_name_cannot_be_empty": "Kentän nimi ei voi olla tyhjä",
+  "field_already_exists": "Kenttä on jo olemassa",
   "add_new_field": "Lisää uusi kenttä",
   "you_dont_have_access_to_reroute_this_booking": "Sinulla ei ole oikeuksia uudelleenohjata tätä varausta",
   "form_response_not_found": "Lomakkeen vastausta ei löytynyt",
@@ -4160,7 +4165,9 @@
     "attendee_no_show_updated": "Osallistujan poissaolo päivitetty",
     "type": "Määrityksen tyyppi",
     "assignmentType_manual": "Manuaalinen määritys",
-    "assignmentType_roundRobin": "Round Robin -määritys"
+    "assignmentType_roundRobin": "Round Robin -määritys",
+    "actor_impersonated_by": "Esiintyjä",
+    "source": "Lähde"
   },
   "error_loading_booking_logs": "Virhe ladattaessa varauslokeja",
   "no_audit_logs_found": "Tarkastuslokeja ei löytynyt",
@@ -4177,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Varauksen omistaja ei ole organisaatiosi jäsen.",
   "audit_logs_permission_denied": "Sinulla ei ole oikeutta tarkastella tämän varauksen tarkastuslokeja.",
   "audit_logs_permission_check_error": "Oikeuksien tarkistuksessa tapahtui virhe.",
+  "account_already_exists_please_login": "Tili tällä sähköpostiosoitteella on jo olemassa. Kirjaudu sisään hyväksyäksesi kutsun.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

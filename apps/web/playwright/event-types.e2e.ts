@@ -1,8 +1,7 @@
-import type { Page } from "@playwright/test";
-import { expect } from "@playwright/test";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { randomString } from "@calcom/lib/random";
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 import {
@@ -550,7 +549,7 @@ test.describe("Event Types tests", () => {
         await expect(page.locator(`text="Ihr Name"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="E-Mail Adresse"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="Zusätzliche Notizen"`).nth(0)).toBeVisible();
-        await expect(page.locator(`text="+ Weitere Gäste"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Weitere Gäste"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="Zurück"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="Bestätigen"`).nth(0)).toBeVisible();
       });

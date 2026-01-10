@@ -5,7 +5,7 @@
  * see: https://github.com/calcom/cal.com/pull/10480
  *      https://github.com/calcom/cal.com/pull/10968
  */
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import {
   TestData,
@@ -19,16 +19,16 @@ import {
   BookingLocations,
   mockSuccessfulVideoMeetingCreation,
   mockCalendarToHaveNoBusySlots,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { expectBookingToBeInDatabase } from "@calcom/testing/lib/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, expect, vi } from "vitest";
 
 import { PeriodType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 

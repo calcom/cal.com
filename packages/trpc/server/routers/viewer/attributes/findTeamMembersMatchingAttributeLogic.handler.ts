@@ -1,4 +1,4 @@
-import type { ServerResponse } from "http";
+import type { ServerResponse } from "node:http";
 import type { NextApiResponse } from "next";
 
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";

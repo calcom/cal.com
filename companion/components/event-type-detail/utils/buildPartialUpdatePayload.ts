@@ -124,7 +124,9 @@ interface EventTypeFormState {
   disableCancelling: boolean;
   disableRescheduling: boolean;
   sendCalVideoTranscription: boolean;
-  autoTranslate: boolean;
+
+  interfaceLanguage: string;
+  showOptimizedSlots: boolean;
 
   // Seats
   seatsEnabled: boolean;
@@ -728,32 +730,43 @@ export function buildPartialUpdatePayload(
   const metadataChanges: Record<string, unknown> = {};
   const originalMetadata = original.metadata || {};
 
-  if (
-    currentState.disableCancelling !==
-    (originalMetadata.disableCancelling || original.disableCancelling || false)
-  ) {
-    metadataChanges.disableCancelling = currentState.disableCancelling;
+  // Disable Cancelling
+  const originalDisableCancelling =
+    typeof original.disableCancelling === "object"
+      ? original.disableCancelling.disabled
+      : original.disableCancelling || false;
+
+  if (currentState.disableCancelling !== originalDisableCancelling) {
+    payload.disableCancelling = { disabled: currentState.disableCancelling };
   }
 
-  if (
-    currentState.disableRescheduling !==
-    (originalMetadata.disableRescheduling || original.disableRescheduling || false)
-  ) {
-    metadataChanges.disableRescheduling = currentState.disableRescheduling;
+  // Disable Rescheduling
+  const originalDisableRescheduling =
+    typeof original.disableRescheduling === "object"
+      ? original.disableRescheduling.disabled
+      : original.disableRescheduling || false;
+
+  if (currentState.disableRescheduling !== originalDisableRescheduling) {
+    payload.disableRescheduling = { disabled: currentState.disableRescheduling };
   }
 
-  if (
-    currentState.sendCalVideoTranscription !==
-    (originalMetadata.sendCalVideoTranscription || original.sendCalVideoTranscription || false)
-  ) {
-    metadataChanges.sendCalVideoTranscription = currentState.sendCalVideoTranscription;
+  // Cal Video Settings
+  const originalSendTranscription = original.calVideoSettings?.sendTranscriptionEmails ?? false;
+
+  if (currentState.sendCalVideoTranscription !== originalSendTranscription) {
+    payload.calVideoSettings = {
+      sendTranscriptionEmails: currentState.sendCalVideoTranscription,
+    };
   }
 
-  if (
-    currentState.autoTranslate !==
-    (originalMetadata.autoTranslate || original.autoTranslate || false)
-  ) {
-    metadataChanges.autoTranslate = currentState.autoTranslate;
+  // Interface Language (API V2)
+  if (currentState.interfaceLanguage !== (original.interfaceLanguage || "")) {
+    payload.interfaceLanguage = currentState.interfaceLanguage || null;
+  }
+
+  // Show Optimized Slots (API V2)
+  if (currentState.showOptimizedSlots !== (original.showOptimizedSlots || false)) {
+    payload.showOptimizedSlots = currentState.showOptimizedSlots;
   }
 
   if ((currentState.calendarEventName || "") !== (originalMetadata.calendarEventName || "")) {

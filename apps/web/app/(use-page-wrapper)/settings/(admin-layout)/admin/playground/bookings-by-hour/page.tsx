@@ -1,7 +1,7 @@
 "use client";
 
-import { ChartCard } from "@calcom/features/insights/components/ChartCard";
-import { BookingsByHourChartContent } from "@calcom/features/insights/components/booking/BookingsByHourChart";
+import { ChartCard } from "@calcom/web/modules/insights/components/ChartCard";
+import { BookingsByHourChartContent } from "@calcom/web/modules/insights/components/booking/BookingsByHourChart";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 // Sample data for playground testing

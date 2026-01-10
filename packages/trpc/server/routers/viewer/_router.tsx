@@ -22,6 +22,7 @@ import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
 import { eventTypesRouter as heavyEventTypesRouter } from "./eventTypes/heavy/_router";
+import { featureOptInRouter } from "./featureOptIn/_router";
 import { filterSegmentsRouter } from "./filterSegments/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { holidaysRouter } from "./holidays/_router";
@@ -76,6 +77,7 @@ export const viewerRouter = router({
   // After that there would just one merge call here for all the apps.
   appRoutingForms: app_RoutingForms,
   features: featureFlagRouter,
+  featureOptIn: featureOptInRouter,
   users: userAdminRouter,
   oAuth: oAuthRouter,
   googleWorkspace: googleWorkspaceRouter,

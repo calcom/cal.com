@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { CreateTeamInput } from "@/modules/teams/teams/inputs/create-team.input";
@@ -47,7 +47,7 @@ describe("Teams endpoint", () => {
       imports: [AppModule, TeamsModule],
     }).compile();
 
-    jest.spyOn(StripeService.prototype, "getStripe").mockImplementation(() => ({} as unknown as Stripe));
+    jest.spyOn(StripeService.prototype, "getStripe").mockImplementation(() => ({}) as unknown as Stripe);
 
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);

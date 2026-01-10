@@ -3,7 +3,6 @@ import type React from "react";
 import { useMemo } from "react";
 import {
   ActivityIndicator,
-  Alert,
   ScrollView,
   Text,
   TextInput,
@@ -13,6 +12,7 @@ import {
 import { BookingActionsModal } from "@/components/BookingActionsModal";
 import { FullScreenModal } from "@/components/FullScreenModal";
 import type { Booking, EventType } from "@/services/calcom";
+import { showInfoAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 
 // Empty actions result for when no booking is selected
@@ -40,7 +40,7 @@ interface BookingModalsProps {
   rejectReason: string;
   isDeclining: boolean;
   onRejectClose: () => void;
-  onRejectSubmit: () => void;
+  onRejectSubmit: (reason?: string) => void;
   onRejectReasonChange: (reason: string) => void;
 
   // Filter modal props (optional for iOS)
@@ -150,7 +150,9 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
                       onPress={() => onEventTypeSelect(eventType.id, eventType.title)}
                     >
                       <Text
-                        className={`text-base text-[#333] ${selectedEventTypeId === eventType.id ? "font-semibold" : ""}`}
+                        className={`text-base text-[#333] ${
+                          selectedEventTypeId === eventType.id ? "font-semibold" : ""
+                        }`}
                       >
                         {eventType.title}
                       </Text>
@@ -205,7 +207,7 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
           }
         }}
         onReportBooking={() => {
-          Alert.alert("Report Booking", "Report booking functionality is not yet available");
+          showInfoAlert("Report Booking", "Report booking functionality is not yet available");
         }}
         onCancelBooking={onCancel}
       />
@@ -272,7 +274,7 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
                 {/* Reject Button */}
                 <TouchableOpacity
                   className="rounded-md bg-gray-900 px-4 py-2"
-                  onPress={onRejectSubmit}
+                  onPress={() => onRejectSubmit()}
                   disabled={isDeclining}
                   style={{ opacity: isDeclining ? 0.5 : 1 }}
                 >

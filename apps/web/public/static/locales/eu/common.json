@@ -403,6 +403,7 @@
   "set_up_later": "Konfiguratu geroago",
   "current_time": "Uneko ordua",
   "details": "Xehetasunak",
+  "info": "Informazioa",
   "welcome": "Ongi etorri",
   "welcome_back": "Ongi etorri",
   "welcome_to_calcom": "Ongi etorri {{appName}}(e)ra",
@@ -1298,6 +1299,8 @@
   "schedule_deleted_successfully": "Ordutegia ongi ezabatu da",
   "default_schedule_name": "Lanorduak",
   "new_schedule_heading": "Sortu eskuragarritasun ordutegi bat",
+  "no_schedules_created_yet": "Oraindik ez duzu eskuragarritasun ordutegi bat sortu. Sortu bat hasteko.",
+  "create_availability_schedule": "Sortu eskuragarritasun ordutegia",
   "new_schedule_description": "Eskuragarritasun ordutegiak sortzeak gertaera mota guztietan eskuragarritasuna kudeatzea ahalbidetzen du. Gertaera mota bat edo gehiagotan aplikatu daitezke.",
   "requires_ownership_of_a_token": "Hurrengo helbidera dagokion token baten jabetza behar du:",
   "example_name": "Mikel Biteri",
@@ -3185,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Erreserba berriro bideratu da. Erreserba orrira berbideratzen",
   "on_booking_write_to_event_object": "Erreserban, idatzi gertaera objektuan",
   "field_name": "Eremuaren izena",
+  "field_name_cannot_be_empty": "Eremuaren izena ezin da hutsik egon",
+  "field_already_exists": "Eremua dagoeneko existitzen da",
   "add_new_field": "Gehitu eremu berria",
   "you_dont_have_access_to_reroute_this_booking": "Ez duzu erreserba hau berbideratzeko baimenik",
   "form_response_not_found": "Ez da inprimaki erantzunik aurkitu",
@@ -4160,7 +4165,9 @@
     "attendee_no_show_updated": "Parte-hartzailearen agertu ez eguneratua",
     "type": "Esleipena mota",
     "assignmentType_manual": "Eskuzko esleipen",
-    "assignmentType_roundRobin": "Round Robin esleipen"
+    "assignmentType_roundRobin": "Round Robin esleipen",
+    "actor_impersonated_by": "Ordezkaritza egilea",
+    "source": "Iturria"
   },
   "error_loading_booking_logs": "Errorea erreserba erregistroak kargatzean",
   "no_audit_logs_found": "Ez da auditoria erregistrorik aurkitu",
@@ -4177,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Erreserbaren jabea ez da zure erakundeko kidea.",
   "audit_logs_permission_denied": "Ez duzu erreserba honen auditoretza erregistroak ikusteko baimenik.",
   "audit_logs_permission_check_error": "Errore bat gertatu da baimenak egiaztatzean.",
+  "account_already_exists_please_login": "Email hau duen kontu bat dagoeneko existitzen da. Hasi saioa gonbidapena onartzeko.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

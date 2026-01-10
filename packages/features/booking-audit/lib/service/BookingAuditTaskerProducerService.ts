@@ -7,7 +7,8 @@ import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.s
 
 import type { BookingAuditAction } from "../types/bookingAuditTask";
 import type { ActionSource } from "../types/actionSource";
-import { makeActorById, type PiiFreeActor, type Actor, buildActorEmail } from "../../../bookings/lib/types/actor";
+import type { PiiFreeActor, Actor, BookingAuditContext } from "../dto/types";
+import { makeActorById, buildActorEmail } from "../makeActor";
 import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
@@ -98,6 +99,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         source: ActionSource;
         operationId?: string | null;
         data: unknown;
+        context?: BookingAuditContext;
     }): Promise<void> {
         // Skip queueing for non-organization bookings
         if (params.organizationId === null) {
@@ -123,6 +125,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
                 source: params.source,
                 operationId,
                 data: params.data,
+                context: params.context,
             });
         } catch (error) {
             this.log.error(`Error while queueing ${params.action} audit`, safeStringify(error));
@@ -335,6 +338,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         action: string;
         source: ActionSource;
         operationId?: string | null;
+        context?: BookingAuditContext;
     }): Promise<void> {
         // Skip queueing for non-organization bookings
         if (params.organizationId === null) {
@@ -359,6 +363,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
                 action: params.action as BookingAuditAction,
                 source: params.source,
                 operationId,
+                context: params.context,
             });
         } catch (error) {
             this.log.error(`Error while queueing bulk ${params.action} audit`, safeStringify(error));

@@ -403,6 +403,7 @@
   "set_up_later": "稍後設定",
   "current_time": "現在時間",
   "details": "詳細資訊",
+  "info": "資訊",
   "welcome": "歡迎",
   "welcome_back": "歡迎回來",
   "welcome_to_calcom": "歡迎使用 {{appName}}",
@@ -1298,6 +1299,8 @@
   "schedule_deleted_successfully": "成功刪除行程表",
   "default_schedule_name": "工作時間",
   "new_schedule_heading": "新增開放時間行程表",
+  "no_schedules_created_yet": "您尚未建立任何可用性排程。請先建立一個來開始使用。",
+  "create_availability_schedule": "建立可用性排程",
   "new_schedule_description": "新增開放時間行程表，就可以管理每個活動類型的開放時間。可以用在單一或多個活動類型。",
   "requires_ownership_of_a_token": "必須有屬於以下位址的 Token 所有權：",
   "example_name": "王小明",
@@ -3185,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "成功重新路由預約。正在重新導向到預約頁面",
   "on_booking_write_to_event_object": "預訂時，寫入活動對象",
   "field_name": "欄位名稱",
+  "field_name_cannot_be_empty": "欄位名稱不能為空",
+  "field_already_exists": "欄位已存在",
   "add_new_field": "新增欄位",
   "you_dont_have_access_to_reroute_this_booking": "您沒有權限重新安排此預訂",
   "form_response_not_found": "找不到表單回應",
@@ -4160,7 +4165,9 @@
     "attendee_no_show_updated": "與會者未出席狀態已更新",
     "type": "分配類型",
     "assignmentType_manual": "手動分配",
-    "assignmentType_roundRobin": "循環分配"
+    "assignmentType_roundRobin": "循環分配",
+    "actor_impersonated_by": "模擬者",
+    "source": "來源"
   },
   "error_loading_booking_logs": "載入預約日誌時出錯",
   "no_audit_logs_found": "未找到審計日誌",
@@ -4177,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "預約擁有者不是您組織的成員。",
   "audit_logs_permission_denied": "您沒有權限檢視此預約的稽核記錄。",
   "audit_logs_permission_check_error": "檢查權限時發生錯誤。",
+  "account_already_exists_please_login": "此電子郵件已註冊帳號，請登入以接受邀請。",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

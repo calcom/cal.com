@@ -335,4 +335,84 @@ export class WatchlistRepository implements IWatchlistRepository {
 
     return { watchlistEntry, value: params.value };
   }
+
+  async findOrgAndGlobalEntries(params: {
+    organizationId: number;
+    limit: number;
+    offset: number;
+    searchTerm?: string;
+    filters?: {
+      type?: NonNullable<FindAllEntriesInput["filters"]>["type"];
+      source?: NonNullable<FindAllEntriesInput["filters"]>["source"];
+    };
+  }): Promise<{
+    rows: (WatchlistEntry & {
+      latestAudit: { changedByUserId: number | null } | null;
+      isReadOnly: boolean;
+    })[];
+    meta: { totalRowCount: number };
+  }> {
+    const where = {
+      OR: [
+        { organizationId: params.organizationId, isGlobal: false },
+        { isGlobal: true, organizationId: null },
+      ],
+      ...(params.searchTerm && {
+        value: {
+          contains: params.searchTerm,
+          mode: "insensitive" as const,
+        },
+      }),
+      ...(params.filters?.type && {
+        type: params.filters.type,
+      }),
+      ...(params.filters?.source && {
+        source: params.filters.source,
+      }),
+    };
+
+    const [entries, totalRowCount] = await Promise.all([
+      this.prismaClient.watchlist.findMany({
+        where,
+        take: params.limit,
+        skip: params.offset,
+        orderBy: {
+          lastUpdatedAt: "desc",
+        },
+        select: {
+          id: true,
+          type: true,
+          value: true,
+          action: true,
+          description: true,
+          organizationId: true,
+          isGlobal: true,
+          source: true,
+          lastUpdatedAt: true,
+          audits: {
+            take: 1,
+            orderBy: {
+              changedAt: "desc",
+            },
+            select: {
+              changedByUserId: true,
+            },
+          },
+        },
+      }),
+      this.prismaClient.watchlist.count({ where }),
+    ]);
+
+    const rows = entries.map((entry) => ({
+      ...entry,
+      latestAudit: entry.audits[0] ?? null,
+      audits: undefined,
+      isReadOnly: entry.isGlobal,
+    }));
+
+    return {
+      rows,
+      meta: { totalRowCount },
+    };
+  }
 }

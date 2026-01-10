@@ -112,9 +112,7 @@ runs:
     - name: Install dependencies
       if: ${{ inputs.skip-install-if-cache-hit != 'true' || steps.all-caches-check.outputs.all-hit != 'true' }}
       shell: bash
-      run: |
-        yarn install --inline-builds
-        yarn prisma generate
+      run: yarn install --inline-builds
       env:
         # CI optimizations. Overrides yarnrc.yml options (or their defaults) in the CI action.
         YARN_ENABLE_IMMUTABLE_INSTALLS: "false" # So it doesn't try to remove our private submodule deps

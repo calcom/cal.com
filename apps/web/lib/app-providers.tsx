@@ -15,7 +15,7 @@ import type { SSRConfig } from "next-i18next/dist/types/types";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import { NuqsAdapter } from "nuqs/adapters/next/pages";
-import type { ParsedUrlQuery } from "querystring";
+import type { ParsedUrlQuery } from "node:querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
 

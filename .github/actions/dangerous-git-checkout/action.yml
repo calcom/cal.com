@@ -8,3 +8,8 @@ runs:
       with:
         ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: 2
+        sparse-checkout-cone-mode: false
+        sparse-checkout: |
+          /*
+          !/example-apps/
+          !**/*.mp4

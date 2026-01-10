@@ -51,7 +51,7 @@ test.describe("Admin Users Management", () => {
 
     await page.waitForLoadState();
 
-    await expect(page.locator('input[name="name"]')).toHaveValue("Edit User");
+    await expect(page.locator('input[name="name"]').first()).toHaveValue("Edit User");
 
     await page.fill('input[name="name"]', "Updated User");
 

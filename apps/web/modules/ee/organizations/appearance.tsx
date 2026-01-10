@@ -6,8 +6,8 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import BrandColorsForm from "@calcom/features/ee/components/BrandColorsForm";
-import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
+import BrandColorsForm from "~/ee/common/components/BrandColorsForm";
+import { AppearanceSkeletonLoader } from "~/ee/common/components/CommonSkeletonLoaders";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";

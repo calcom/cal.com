@@ -14,7 +14,7 @@
     "@calcom/platform-constants": "workspace:*",
     "@calcom/platform-enums": "workspace:*",
     "@nestjs/common": "10.4.20",
-    "@nestjs/swagger": "7.3.0",
+    "@nestjs/swagger": "7.4.2",
     "class-transformer": "0.5.1",
     "class-validator": "0.14.3",
     "libphonenumber-js": "1.10.49",

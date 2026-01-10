@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import getRawBody from "raw-body";
 import { z } from "zod";

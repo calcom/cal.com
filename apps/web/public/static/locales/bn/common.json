@@ -403,6 +403,7 @@
   "set_up_later": "পরে সেট আপ",
   "current_time": "বর্তমান সময়",
   "details": "বিশদ",
+  "info": "তথ্য",
   "welcome": "স্বাগতম",
   "welcome_back": "স্বাগতম",
   "welcome_to_calcom": "স্বাগতম {{appName}}",
@@ -1298,6 +1299,8 @@
   "schedule_deleted_successfully": "শিডিউল সফলভাবে মুছে ফেলা",
   "default_schedule_name": "কাজের সময়",
   "new_schedule_heading": "একটি প্রাপ্যতা সময়সূচী তৈরি করুন",
+  "no_schedules_created_yet": "আপনি এখনও কোনো প্রাপ্যতা সময়সূচী তৈরি করেননি। শুরু করতে একটি তৈরি করুন।",
+  "create_availability_schedule": "প্রাপ্যতা সময়সূচী তৈরি করুন",
   "new_schedule_description": "প্রাপ্যতার সময়সূচি তৈরি করা আপনাকে ইভেন্টের প্রকারগুলিতে প্রাপ্যতা পরিচালনা করতে দেয়। ",
   "requires_ownership_of_a_token": "নিম্নলিখিত ঠিকানার অন্তর্গত একটি টোকেনের মালিকানা প্রয়োজন:",
   "example_name": "জন দো",
@@ -3185,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "সাফল্যের সাথে বুকিং পুনরায় সাজানো। ",
   "on_booking_write_to_event_object": "বুকিংয়ে, ইভেন্ট অবজেক্টে লিখুন",
   "field_name": "মাঠের নাম",
+  "field_name_cannot_be_empty": "মাঠের নাম খালি রাখা যাবে না",
+  "field_already_exists": "মাঠটি ইতিমধ্যে বিদ্যমান",
   "add_new_field": "নতুন ক্ষেত্র যুক্ত করুন",
   "you_dont_have_access_to_reroute_this_booking": "এই বুকিংটি পুনরায় করতে আপনার অ্যাক্সেস নেই",
   "form_response_not_found": "ফর্ম প্রতিক্রিয়া পাওয়া যায় নি",
@@ -4160,7 +4165,9 @@
     "attendee_no_show_updated": "অংশগ্রহণকারী নো-শো আপডেট করা হয়েছে",
     "type": "নিয়োগের ধরন",
     "assignmentType_manual": "ম্যানুয়াল নিয়োগ",
-    "assignmentType_roundRobin": "রাউন্ড রবিন নিয়োগ"
+    "assignmentType_roundRobin": "রাউন্ড রবিন নিয়োগ",
+    "actor_impersonated_by": "ছদ্মবেশী",
+    "source": "উৎস"
   },
   "error_loading_booking_logs": "বুকিং লগ লোড করতে সমস্যা হয়েছে",
   "no_audit_logs_found": "কোন অডিট লগ পাওয়া যায়নি",
@@ -4177,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "বুকিং মালিক আপনার সংস্থার সদস্য নন।",
   "audit_logs_permission_denied": "এই বুকিংয়ের জন্য অডিট লগ দেখার অনুমতি আপনার নেই।",
   "audit_logs_permission_check_error": "অনুমতি যাচাই করার সময় একটি ত্রুটি ঘটেছে।",
+  "account_already_exists_please_login": "এই ইমেইল দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট আছে। আমন্ত্রণ গ্রহণ করতে অনুগ্রহ করে লগ ইন করুন।",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑ুষান্ত"
 }

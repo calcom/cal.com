@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -70,7 +70,7 @@ function CreateAttributeHeader(props: { isPending: boolean }) {
             href="/settings/organizations/attributes">
             <span className="sr-only">{t("back_to_attributes")}</span>
           </Button>
-          <div className="font-cal text-cal flex space-x-1 text-xl font-semibold leading-none">
+          <div className="font-heading text-cal flex space-x-1 text-xl leading-none">
             <h1 className="text-emphasis">{t("attribute")}</h1>
             {watchedTitle && (
               <>

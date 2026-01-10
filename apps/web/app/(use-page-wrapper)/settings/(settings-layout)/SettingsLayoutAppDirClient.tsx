@@ -241,6 +241,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "admin", page: "locked_sms" },
         },
         {
+          name: "pbac_resource_blocklist",
+          href: "/settings/admin/blocklist",
+          trackingMetadata: { section: "admin", page: "blocklist" },
+        },
+        {
           name: "oAuth",
           href: "/settings/admin/oAuth",
           trackingMetadata: { section: "admin", page: "oauth" },

@@ -6,7 +6,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";

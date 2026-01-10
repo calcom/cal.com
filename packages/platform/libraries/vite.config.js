@@ -1,9 +1,9 @@
 // vite.config.ts
 import react from "@vitejs/plugin-react";
-import { resolve } from "path";
-import path from "path";
-import { dirname } from "path";
-import { fileURLToPath } from "url";
+import { resolve } from "node:path";
+import path from "node:path"
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 
@@ -38,6 +38,7 @@ export default defineConfig({
         organizations: resolve(__dirname, "./organizations.ts"),
         "private-links": resolve(__dirname, "./private-links.ts"),
         pbac: resolve(__dirname, "./pbac.ts"),
+        errors: resolve(__dirname, "./errors.ts"),
       },
       name: "calcom-lib",
       fileName: "calcom-lib",

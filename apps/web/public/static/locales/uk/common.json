@@ -403,6 +403,7 @@
   "set_up_later": "Налаштувати пізніше",
   "current_time": "Поточний час",
   "details": "Докладні дані",
+  "info": "Інформація",
   "welcome": "Вітаємо!",
   "welcome_back": "З поверненням!",
   "welcome_to_calcom": "Вітаємо в {{appName}}",
@@ -1298,6 +1299,8 @@
   "schedule_deleted_successfully": "Розклад видалено",
   "default_schedule_name": "Робочі години",
   "new_schedule_heading": "Створення розкладу доступності",
+  "no_schedules_created_yet": "Ви ще не створили жодного розкладу доступності. Створіть його, щоб розпочати.",
+  "create_availability_schedule": "Створити розклад доступності",
   "new_schedule_description": "Розклад доступності дає змогу керувати своєю доступністю для участі в заходах різних типів. Його можна застосовувати як до одного, так і до кількох різних типів заходів.",
   "requires_ownership_of_a_token": "Потрібен токен, що належить такій адресі:",
   "example_name": "Василь Петренко",
@@ -3185,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Бронювання успішно перенаправлено. Перенаправлення на сторінку бронювання",
   "on_booking_write_to_event_object": "При бронюванні записати в об'єкт події",
   "field_name": "Назва поля",
+  "field_name_cannot_be_empty": "Назва поля не може бути порожньою",
+  "field_already_exists": "Поле вже існує",
   "add_new_field": "Додати нове поле",
   "you_dont_have_access_to_reroute_this_booking": "У вас немає доступу для перенаправлення цього бронювання",
   "form_response_not_found": "Відповідь форми не знайдено",
@@ -4160,7 +4165,9 @@
     "attendee_no_show_updated": "Неявку учасника оновлено",
     "type": "Тип призначення",
     "assignmentType_manual": "Ручне призначення",
-    "assignmentType_roundRobin": "Призначення за ротацією"
+    "assignmentType_roundRobin": "Призначення за ротацією",
+    "actor_impersonated_by": "Виконавець",
+    "source": "Джерело"
   },
   "error_loading_booking_logs": "Помилка завантаження журналів бронювання",
   "no_audit_logs_found": "Журнали аудиту не знайдено",
@@ -4177,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Власник бронювання не є членом вашої організації.",
   "audit_logs_permission_denied": "Ви не маєте дозволу на перегляд журналів аудиту для цього бронювання.",
   "audit_logs_permission_check_error": "Сталася помилка під час перевірки дозволів.",
+  "account_already_exists_please_login": "Обліковий запис з цією електронною адресою вже існує. Будь ласка, увійдіть, щоб прийняти запрошення.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

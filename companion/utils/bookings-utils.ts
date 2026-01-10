@@ -29,6 +29,12 @@ export const getEmptyStateContent = (activeFilter: BookingFilter) => {
         title: "No cancelled bookings",
         text: "Your canceled bookings will show up here.",
       };
+    case "recurring":
+      return {
+        icon: "repeat-outline" as const,
+        title: "No recurring bookings",
+        text: "Your recurring bookings will show up here.",
+      };
     default:
       return {
         icon: "calendar-outline" as const,
@@ -155,11 +161,67 @@ export const getMonthYearKey = (dateString: string): string => {
 };
 
 /**
+ * Format recurrence pattern into human-readable text
+ * @param bookings Array of bookings in the recurring series
+ * @returns Formatted recurrence text (e.g., "Every week for 5 occurrences")
+ */
+export const formatRecurrencePattern = (bookings: Booking[]): string | null => {
+  if (bookings.length === 0) return null;
+
+  // Try to determine frequency from booking dates
+  if (bookings.length < 2) {
+    return `${bookings.length} occurrence`;
+  }
+
+  // Sort bookings by date
+  const sortedBookings = [...bookings].sort((a, b) => {
+    const aTime = new Date(a.start || a.startTime || "").getTime();
+    const bTime = new Date(b.start || b.startTime || "").getTime();
+    return aTime - bTime;
+  });
+
+  // Calculate interval between first two bookings
+  const first = new Date(sortedBookings[0].start || sortedBookings[0].startTime || "");
+  const second = new Date(sortedBookings[1].start || sortedBookings[1].startTime || "");
+  const diffMs = second.getTime() - first.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  let frequency = "";
+  if (diffDays === 1) {
+    frequency = "day";
+  } else if (diffDays === 7) {
+    frequency = "week";
+  } else if (diffDays >= 28 && diffDays <= 31) {
+    frequency = "month";
+  } else if (diffDays >= 365 && diffDays <= 366) {
+    frequency = "year";
+  } else {
+    // Unknown frequency, just show count
+    return `${bookings.length} occurrences`;
+  }
+
+  return `Every ${frequency} for ${bookings.length} occurrences`;
+};
+
+/**
+ * Represents a group of recurring bookings with the same recurringBookingUid
+ */
+export interface RecurringBookingGroup {
+  recurringBookingUid: string;
+  bookings: Booking[];
+  firstUpcoming: Booking;
+  remainingCount: number;
+  hasUnconfirmed: boolean;
+  recurrenceText: string | null;
+}
+
+/**
  * Type definition for list items (used in FlatList)
  */
 export type ListItem =
   | { type: "monthHeader"; monthYear: string; key: string }
-  | { type: "booking"; booking: Booking; key: string };
+  | { type: "booking"; booking: Booking; key: string }
+  | { type: "recurringGroup"; group: RecurringBookingGroup; key: string };
 
 /**
  * Group bookings by month for display in a sectioned list
@@ -194,6 +256,76 @@ export const groupBookingsByMonth = (bookings: Booking[]): ListItem[] => {
   });
 
   return grouped;
+};
+
+/**
+ * Group recurring bookings by their recurringBookingUid
+ * @param bookings Array of recurring bookings to group
+ * @returns Array of RecurringBookingGroup objects
+ */
+export const groupRecurringBookings = (bookings: Booking[]): RecurringBookingGroup[] => {
+  const now = new Date();
+  const groupMap = new Map<string, Booking[]>();
+
+  // Group bookings by recurringBookingUid
+  bookings.forEach((booking) => {
+    const uid = booking.recurringBookingUid;
+    if (!uid) return;
+
+    if (!groupMap.has(uid)) {
+      groupMap.set(uid, []);
+    }
+    groupMap.get(uid)?.push(booking);
+  });
+
+  // Convert map to RecurringBookingGroup array
+  const groups: RecurringBookingGroup[] = [];
+
+  groupMap.forEach((groupBookings, recurringBookingUid) => {
+    // Sort bookings by start time (ascending)
+    const sortedBookings = [...groupBookings].sort((a, b) => {
+      const aStart = new Date(a.start || a.startTime || "").getTime();
+      const bStart = new Date(b.start || b.startTime || "").getTime();
+      return aStart - bStart;
+    });
+
+    // Find first upcoming (non-cancelled) booking
+    const upcomingBookings = sortedBookings.filter((b) => {
+      const startTime = new Date(b.start || b.startTime || "");
+      const isCancelled = b.status?.toLowerCase() === "cancelled";
+      const isRejected = b.status?.toLowerCase() === "rejected";
+      return startTime >= now && !isCancelled && !isRejected;
+    });
+
+    const firstUpcoming = upcomingBookings[0] || sortedBookings[0];
+
+    // Count remaining (non-cancelled, non-rejected) bookings - reuse upcomingBookings
+    const remainingCount = upcomingBookings.length;
+
+    // Check if any booking requires confirmation
+    const hasUnconfirmed = sortedBookings.some(
+      (b) =>
+        b.status?.toLowerCase() === "pending" ||
+        b.status?.toLowerCase() === "requires_confirmation" ||
+        b.requiresConfirmation
+    );
+
+    groups.push({
+      recurringBookingUid,
+      bookings: sortedBookings,
+      firstUpcoming,
+      remainingCount,
+      hasUnconfirmed,
+      recurrenceText: formatRecurrencePattern(sortedBookings),
+    });
+  });
+
+  // Sort groups by first upcoming booking date
+  return groups.sort((a, b) => {
+    const aStart = new Date(a.firstUpcoming.start || a.firstUpcoming.startTime || "").getTime();
+    const bStart = new Date(b.firstUpcoming.start || b.firstUpcoming.startTime || "").getTime();
+    return aStart - bStart;
+  });
 };
 
 /**

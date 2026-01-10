@@ -403,6 +403,7 @@
   "set_up_later": "Configura più tardi",
   "current_time": "Orario corrente",
   "details": "Dettagli",
+  "info": "Info",
   "welcome": "Benvenuto",
   "welcome_back": "Bentornato",
   "welcome_to_calcom": "Benvenuto in {{appName}}",
@@ -1298,6 +1299,8 @@
   "schedule_deleted_successfully": "Programma eliminato",
   "default_schedule_name": "Orario lavorativo",
   "new_schedule_heading": "Crea un programma di disponibilità",
+  "no_schedules_created_yet": "Non hai ancora creato alcun programma di disponibilità. Creane uno per iniziare.",
+  "create_availability_schedule": "Crea programma di disponibilità",
   "new_schedule_description": "La creazione di programmi di disponibilità consente di gestire la disponibilità per i diversi tipi di eventi. I programmi possono essere applicati a uno o più tipi di evento.",
   "requires_ownership_of_a_token": "Richiede il possesso di un token appartenente al seguente indirizzo:",
   "example_name": "Paolo Rossi",
@@ -3185,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Prenotazione reindirizzata con successo. Reindirizzamento alla pagina di prenotazione",
   "on_booking_write_to_event_object": "Alla prenotazione, scrivi nell'oggetto evento",
   "field_name": "Nome del campo",
+  "field_name_cannot_be_empty": "Il nome del campo non può essere vuoto",
+  "field_already_exists": "Il campo esiste già",
   "add_new_field": "Aggiungi nuovo campo",
   "you_dont_have_access_to_reroute_this_booking": "Non hai l'accesso per reindirizzare questa prenotazione",
   "form_response_not_found": "Risposta del modulo non trovata",
@@ -4160,7 +4165,9 @@
     "attendee_no_show_updated": "Assenza partecipante aggiornata",
     "type": "Tipo di assegnazione",
     "assignmentType_manual": "Assegnazione manuale",
-    "assignmentType_roundRobin": "Assegnazione round robin"
+    "assignmentType_roundRobin": "Assegnazione round robin",
+    "actor_impersonated_by": "Impersonificatore",
+    "source": "Origine"
   },
   "error_loading_booking_logs": "Errore nel caricamento dei log della prenotazione",
   "no_audit_logs_found": "Nessun log di audit trovato",
@@ -4177,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Il proprietario della prenotazione non è membro della tua organizzazione.",
   "audit_logs_permission_denied": "Non hai i permessi per visualizzare i log di audit di questa prenotazione.",
   "audit_logs_permission_check_error": "Si è verificato un errore durante la verifica dei permessi.",
+  "account_already_exists_please_login": "Esiste già un account con questa email. Effettua il login per accettare l'invito.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

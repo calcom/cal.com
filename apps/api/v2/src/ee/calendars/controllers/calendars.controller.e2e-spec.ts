@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { CreateIcsFeedOutput, CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
 import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";

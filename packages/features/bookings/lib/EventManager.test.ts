@@ -2,6 +2,24 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
+vi.mock("@calcom/features/watchlist/lib/utils/normalization", () => ({
+  normalizeEmail: vi.fn(),
+  extractDomainFromEmail: vi.fn(),
+  normalizeDomain: vi.fn(),
+}));
+vi.mock("@calcom/features/watchlist/lib/service/GlobalBlockingService", () => ({
+  GlobalBlockingService: vi.fn(),
+}));
+vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
+  checkIfFreeEmailDomain: vi.fn(),
+}));
+vi.mock("@calcom/features/watchlist/operations/check-if-users-are-blocked.controller", () => ({
+  checkIfUsersAreBlocked: vi.fn(),
+}));
+vi.mock("@calcom/features/watchlist/lib/telemetry", () => ({
+  sentrySpan: vi.fn(),
+}));
+
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import type { DestinationCalendar } from "@calcom/prisma/client";

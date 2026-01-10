@@ -76,6 +76,41 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
     });
   }
 
+  /**
+   * Batch find blocking entries for multiple emails and domains within an organization.
+   * Single query for N users - eliminates N+1.
+   */
+  async findBlockingEntriesForEmailsAndDomains(params: {
+    emails: string[];
+    domains: string[];
+    organizationId: number;
+  }): Promise<Watchlist[]> {
+    const { emails, domains, organizationId } = params;
+
+    if (emails.length === 0 && domains.length === 0) {
+      return [];
+    }
+
+    const conditions: Array<{ type: WatchlistType; value: { in: string[] } }> = [];
+
+    if (emails.length > 0) {
+      conditions.push({ type: WatchlistType.EMAIL, value: { in: emails } });
+    }
+
+    if (domains.length > 0) {
+      conditions.push({ type: WatchlistType.DOMAIN, value: { in: domains } });
+    }
+
+    return this.prisma.watchlist.findMany({
+      select: this.selectFields,
+      where: {
+        organizationId,
+        action: WatchlistAction.BLOCK,
+        OR: conditions,
+      },
+    });
+  }
+
   async findById(id: string, organizationId: number): Promise<Watchlist | null> {
     return this.prisma.watchlist.findFirst({
       select: this.selectFields,

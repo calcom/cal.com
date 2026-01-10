@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import dayjs from "@calcom/dayjs";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import type { ITimezone } from "@calcom/features/components/timezone-select";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";

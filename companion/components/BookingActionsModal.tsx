@@ -66,8 +66,8 @@ function ActionButton({
 }: ActionButtonProps) {
   if (!visible) return null;
 
-  const iconColor = !enabled ? "#D1D5DB" : isDanger ? "#DC2626" : "#6B7280";
-  const textColor = !enabled ? "#D1D5DB" : isDanger ? "#DC2626" : "#111827";
+  const iconColor = !enabled ? "#D1D5DB" : isDanger ? "#800020" : "#6B7280";
+  const textColor = !enabled ? "#D1D5DB" : isDanger ? "#800020" : "#111827";
 
   return (
     <TouchableOpacity

@@ -6,16 +6,16 @@ import {
   getScenarioData,
   getGoogleCalendarCredential,
   Timezones,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 // TODO: we should rename this - it doesnt get a mockRequestDataForBooking - it just gets mock booking data.
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, expect, vi, beforeAll } from "vitest";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./test/getNewBookingHandler";
 

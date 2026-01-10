@@ -85,11 +85,20 @@ export default function LocationSelect({
   ...props
 }: Props<LocationOption, false, GroupOptionType> & { customClassNames?: LocationSelectCustomClassNames }) {
   const isPlatform = useIsPlatform();
+  const { innerClassNames: propsInnerClassNames, ...restProps } = props as typeof props & {
+    innerClassNames?: {
+      option?: string;
+    };
+  };
   return (
     <Select<LocationOption>
       name="location"
       id="location-select"
       data-testid="location-select"
+      innerClassNames={{
+        ...propsInnerClassNames,
+        option: classNames("mb-1 last:mb-0", propsInnerClassNames?.option),
+      }}
       components={{
         Option: (props) => {
           return (
@@ -137,7 +146,7 @@ export default function LocationSelect({
           {e.label}
         </p>
       )}
-      {...props}
+      {...restProps}
     />
   );
 }

@@ -1,4 +1,4 @@
-import { createHmac } from "crypto";
+import { createHmac } from "node:crypto";
 import { compile } from "handlebars";
 
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";

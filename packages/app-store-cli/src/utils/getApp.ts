@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs"
+import path from "node:path"
 
 import { APP_STORE_PATH, TEMPLATES_PATH } from "../constants";
 import { getAppName } from "./getAppName";

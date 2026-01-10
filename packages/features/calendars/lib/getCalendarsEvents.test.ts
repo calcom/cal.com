@@ -1,4 +1,4 @@
-import "../../../../tests/libs/__mocks__/prisma";
+import "@calcom/testing/lib/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
@@ -145,7 +145,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-02",
-        []
+        [],
+        "slots"
       );
 
       expect(result).toEqual([]);
@@ -161,7 +162,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-02",
-        []
+        [],
+        "slots"
       );
 
       expect(result).toEqual([[]]);
@@ -184,7 +186,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-02",
-        [selectedCalendar]
+        [selectedCalendar],
+        "slots"
       );
 
       expect(result).toEqual([[]]);
@@ -220,7 +223,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-04",
-        [selectedCalendar]
+        [selectedCalendar],
+        "slots"
       );
 
       expect(mockGoogleGetAvailability).toHaveBeenCalledWith(
@@ -287,7 +291,8 @@ describe("getCalendarsEvents", () => {
         ],
         "2010-12-01",
         "2010-12-04",
-        [selectedGoogleCalendar, selectedOfficeCalendar]
+        [selectedGoogleCalendar, selectedOfficeCalendar],
+        "slots"
       );
 
       expect(mockGoogleGetAvailability).toHaveBeenCalledWith(
@@ -323,7 +328,8 @@ describe("getCalendarsEvents", () => {
         [buildRegularCredential(credential)],
         "2010-12-01",
         "2010-12-02",
-        []
+        [],
+        "slots"
       );
 
       expect(mockGoogleGetAvailability).not.toHaveBeenCalled();
@@ -339,7 +345,7 @@ describe("getCalendarsEvents", () => {
       const credentials = [delegationCredential];
       mockGoogleGetAvailability.mockResolvedValueOnce([]);
 
-      const result = await getCalendarsEvents(credentials, startDate, endDate, []);
+      const result = await getCalendarsEvents(credentials, startDate, endDate, [], "slots");
 
       expect(mockGoogleGetAvailability).toHaveBeenCalledWith(startDate, endDate, [], undefined, true);
       expect(result).toEqual([[]]);

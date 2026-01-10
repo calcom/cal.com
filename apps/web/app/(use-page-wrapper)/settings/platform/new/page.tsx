@@ -3,7 +3,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";

@@ -3,7 +3,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -181,7 +181,7 @@ function OrganizationAttributesPage({
             <div className="bg-emphasis text-emphasis flex h-16 w-16 items-center justify-center rounded-full p-2">
               <Icon name="tags" />
             </div>
-            <h2 className="font-cal text-emphasis mt-6 text-xl font-semibold leading-none">
+            <h2 className="font-heading text-emphasis mt-6 text-xl leading-none">
               {t("add_attributes")}
             </h2>
 

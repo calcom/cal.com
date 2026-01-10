@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { HOSTS_REQUIRED_WHEN_SWITCHING_SCHEDULING_TYPE_ERROR } from "@/modules/organizations/event-types/services/input.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";

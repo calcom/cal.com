@@ -72,6 +72,7 @@ export async function getBooking(bookingId: number) {
             },
           },
           slug: true,
+          schedulingType: true,
           workflows: {
             select: {
               workflow: {
