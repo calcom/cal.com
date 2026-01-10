@@ -68,3 +68,9 @@ jobs:
         with:
           name: bundle
           path: apps/web/.next/analyze/__bundle_analysis.json
+
+      - name: Delete cached build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh cache list --key prod-build-main- --json id --jq '.[].id' | xargs -I {} gh cache delete {} || true
