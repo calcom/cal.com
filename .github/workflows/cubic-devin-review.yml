@@ -88,7 +88,7 @@ jobs:
               }
             }
             
-            // PR was not created through Devin - check comments for previous Cubic review sessions
+            // PR was not created through Devin - check for existing Devin session from PR comments
             const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
