@@ -687,13 +687,19 @@ async function handler(input: CancelBookingInput) {
   }
 
   try {
-    // TODO: if emails fail try to requeue them
-    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
-      await sendCancelledEmailsAndSMS(
-        evt,
-        { eventName: bookingToDelete?.eventType?.eventName },
-        bookingToDelete?.eventType?.metadata as EventTypeMetadata
-      );
+    const eventTypeMetadata = bookingToDelete?.eventType?.metadata as EventTypeMetadata;
+    const disableStandardEmails = eventTypeMetadata?.disableStandardEmails;
+
+    if (!disableStandardEmails) {
+      // TODO: if emails fail try to requeue them
+      if (!platformClientId || (platformClientId && arePlatformEmailsEnabled)) {
+        await sendCancelledEmailsAndSMS(
+          evt,
+          { eventName: bookingToDelete?.eventType?.eventName },
+          eventTypeMetadata // Use the variable we just defined
+        );
+      }
+    }
   } catch (error) {
     log.error("Error deleting event", error);
   }
