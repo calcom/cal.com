@@ -12,8 +12,8 @@ const IV_LENGTH = 16; // AES blocksize
  *
  * @returns Encrypted value using key
  */
-export const symmetricEncrypt = function (text: string, key: string) {
-  const _key = Buffer.from(key, "latin1");
+export const symmetricEncrypt = (text: string, key: string): string => {
+  const _key = Buffer.from(key, "base64");
   const iv = crypto.randomBytes(IV_LENGTH);
   const cipher = crypto.createCipheriv(ALGORITHM, _key, iv);
   let ciphered = cipher.update(text, INPUT_ENCODING, OUTPUT_ENCODING);
@@ -28,8 +28,8 @@ export const symmetricEncrypt = function (text: string, key: string) {
  * @param text Value to decrypt
  * @param key Key used to decrypt value must be 32 bytes for AES256 encryption algorithm
  */
-export const symmetricDecrypt = function (text: string, key: string) {
-  const _key = Buffer.from(key, "latin1");
+export const symmetricDecrypt = (text: string, key: string): string => {
+  const _key = Buffer.from(key, "base64");
 
   const components = text.split(":");
   const iv_from_ciphertext = Buffer.from(components.shift() || "", OUTPUT_ENCODING);
