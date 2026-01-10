@@ -2069,131 +2069,197 @@ export default function EventTypeDetail() {
           ) : null}
 
           {activeTab === "other" ? (
-            <View className="rounded-2xl bg-white p-5 shadow-md">
-              <Text className="mb-2 text-lg font-semibold text-[#333]">Additional Settings</Text>
-              <Text className="mb-5 text-sm leading-5 text-[#666]">
-                Manage these settings on the web for full functionality.
-              </Text>
-
-              <View className="overflow-hidden rounded-lg border border-[#E5E5EA]">
-                {/* Apps */}
-                <TouchableOpacity
-                  onPress={() => {
-                    if (id === "new") {
-                      showInfoAlert("Info", "Save the event type first to configure this setting.");
-                    } else {
-                      openInAppBrowser(
-                        `https://app.cal.com/event-types/${id}?tabName=apps`,
-                        "Apps settings"
-                      );
-                    }
-                  }}
-                  className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
-                  style={{ borderBottomWidth: 1, borderBottomColor: "#E5E5EA" }}
+            <View className="gap-6">
+              {/* Configure on Web */}
+              <View>
+                <Text
+                  className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
+                  style={{ letterSpacing: 0.5 }}
                 >
-                  <View className="flex-1 flex-row items-center">
-                    <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#F3F4F6]">
-                      <Ionicons name="grid" size={18} color="#333" />
-                    </View>
-                    <View className="ml-3 flex-1">
-                      <Text className="text-base font-semibold text-[#333]">Apps</Text>
-                      <Text className="text-sm text-[#666]">Manage app integrations</Text>
-                    </View>
+                  Configure on Web
+                </Text>
+                <View className="overflow-hidden rounded-[10px] bg-white">
+                  {/* Apps */}
+                  <View className="bg-white pl-4">
+                    <TouchableOpacity
+                      className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
+                      style={{ minHeight: 56 }}
+                      onPress={() => {
+                        if (id === "new") {
+                          showInfoAlert(
+                            "Info",
+                            "Save the event type first to configure this setting."
+                          );
+                        } else {
+                          openInAppBrowser(
+                            `https://app.cal.com/event-types/${id}?tabName=apps`,
+                            "Apps settings"
+                          );
+                        }
+                      }}
+                      activeOpacity={0.5}
+                    >
+                      <View className="flex-row items-center py-2">
+                        <View className="mr-3 h-8 w-8 items-center justify-center rounded-lg bg-[#007AFF]/10">
+                          <Ionicons name="grid" size={18} color="#007AFF" />
+                        </View>
+                        <View>
+                          <Text className="text-[17px] text-black">Apps</Text>
+                          <Text className="text-[13px] text-[#8E8E93]">Manage integrations</Text>
+                        </View>
+                      </View>
+                      <Ionicons name="open-outline" size={18} color="#C7C7CC" />
+                    </TouchableOpacity>
                   </View>
-                  <Ionicons name="open-outline" size={20} color="#C7C7CC" />
-                </TouchableOpacity>
 
-                {/* Workflows */}
-                <TouchableOpacity
-                  onPress={() => {
-                    if (id === "new") {
-                      showInfoAlert("Info", "Save the event type first to configure this setting.");
-                    } else {
-                      openInAppBrowser(
-                        `https://app.cal.com/event-types/${id}?tabName=workflows`,
-                        "Workflows settings"
-                      );
-                    }
-                  }}
-                  className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
-                  style={{ borderBottomWidth: 1, borderBottomColor: "#E5E5EA" }}
-                >
-                  <View className="flex-1 flex-row items-center">
-                    <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#F3F4F6]">
-                      <Ionicons name="flash" size={18} color="#333" />
-                    </View>
-                    <View className="ml-3 flex-1">
-                      <Text className="text-base font-semibold text-[#333]">Workflows</Text>
-                      <Text className="text-sm text-[#666]">Configure automated actions</Text>
-                    </View>
+                  {/* Workflows */}
+                  <View className="bg-white pl-4">
+                    <TouchableOpacity
+                      className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
+                      style={{ minHeight: 56 }}
+                      onPress={() => {
+                        if (id === "new") {
+                          showInfoAlert(
+                            "Info",
+                            "Save the event type first to configure this setting."
+                          );
+                        } else {
+                          openInAppBrowser(
+                            `https://app.cal.com/event-types/${id}?tabName=workflows`,
+                            "Workflows settings"
+                          );
+                        }
+                      }}
+                      activeOpacity={0.5}
+                    >
+                      <View className="flex-row items-center py-2">
+                        <View className="mr-3 h-8 w-8 items-center justify-center rounded-lg bg-[#FF9500]/10">
+                          <Ionicons name="flash" size={18} color="#FF9500" />
+                        </View>
+                        <View>
+                          <Text className="text-[17px] text-black">Workflows</Text>
+                          <Text className="text-[13px] text-[#8E8E93]">Automated actions</Text>
+                        </View>
+                      </View>
+                      <Ionicons name="open-outline" size={18} color="#C7C7CC" />
+                    </TouchableOpacity>
                   </View>
-                  <Ionicons name="open-outline" size={20} color="#C7C7CC" />
-                </TouchableOpacity>
 
-                {/* Webhooks */}
-                <TouchableOpacity
-                  onPress={() => {
-                    if (id === "new") {
-                      showInfoAlert("Info", "Save the event type first to configure this setting.");
-                    } else {
-                      openInAppBrowser(
-                        `https://app.cal.com/event-types/${id}?tabName=webhooks`,
-                        "Webhooks settings"
-                      );
-                    }
-                  }}
-                  className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
-                >
-                  <View className="flex-1 flex-row items-center">
-                    <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#F3F4F6]">
-                      <Ionicons name="code" size={18} color="#333" />
-                    </View>
-                    <View className="ml-3 flex-1">
-                      <Text className="text-base font-semibold text-[#333]">Webhooks</Text>
-                      <Text className="text-sm text-[#666]">Set up event notifications</Text>
-                    </View>
+                  {/* Webhooks */}
+                  <View className="bg-white pl-4">
+                    <TouchableOpacity
+                      className="flex-row items-center justify-between pr-4"
+                      style={{ minHeight: 56 }}
+                      onPress={() => {
+                        if (id === "new") {
+                          showInfoAlert(
+                            "Info",
+                            "Save the event type first to configure this setting."
+                          );
+                        } else {
+                          openInAppBrowser(
+                            `https://app.cal.com/event-types/${id}?tabName=webhooks`,
+                            "Webhooks settings"
+                          );
+                        }
+                      }}
+                      activeOpacity={0.5}
+                    >
+                      <View className="flex-row items-center py-2">
+                        <View className="mr-3 h-8 w-8 items-center justify-center rounded-lg bg-[#5856D6]/10">
+                          <Ionicons name="code" size={18} color="#5856D6" />
+                        </View>
+                        <View>
+                          <Text className="text-[17px] text-black">Webhooks</Text>
+                          <Text className="text-[13px] text-[#8E8E93]">Event notifications</Text>
+                        </View>
+                      </View>
+                      <Ionicons name="open-outline" size={18} color="#C7C7CC" />
+                    </TouchableOpacity>
                   </View>
-                  <Ionicons name="open-outline" size={20} color="#C7C7CC" />
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
           ) : null}
 
           {activeTab === "basics" && (
-            <View className="rounded-2xl bg-white p-5 mt-3 gap-3">
-              <View className="h-12 flex-row items-center justify-between">
-                <Text>Hidden</Text>
-                <Switch
-                  value={isHidden}
-                  onValueChange={setIsHidden}
-                  trackColor={{ false: "#E5E5EA", true: "#000" }}
-                  thumbColor="#FFFFFF"
-                />
+            <View className="mt-6 gap-6">
+              {/* Visibility */}
+              <View>
+                <Text
+                  className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
+                  style={{ letterSpacing: 0.5 }}
+                >
+                  Visibility
+                </Text>
+                <View className="overflow-hidden rounded-[10px] bg-white">
+                  <View className="bg-white pl-4">
+                    <View
+                      className="flex-row items-center justify-between pr-4"
+                      style={{ height: 44 }}
+                    >
+                      <Text className="text-[17px] text-black">Hidden</Text>
+                      <Switch
+                        value={isHidden}
+                        onValueChange={setIsHidden}
+                        trackColor={{ false: "#E5E5EA", true: "#000000" }}
+                        thumbColor="#FFFFFF"
+                      />
+                    </View>
+                  </View>
+                </View>
               </View>
 
-              <TouchableOpacity
-                className="h-12 flex-row items-center justify-between"
-                onPress={handlePreview}
-              >
-                <Text>Preview</Text>
-                <Ionicons name="open-outline" size={20} color="#000" />
-              </TouchableOpacity>
+              {/* Quick Actions */}
+              <View>
+                <Text
+                  className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
+                  style={{ letterSpacing: 0.5 }}
+                >
+                  Quick Actions
+                </Text>
+                <View className="overflow-hidden rounded-[10px] bg-white">
+                  <View className="bg-white pl-4">
+                    <TouchableOpacity
+                      className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
+                      style={{ height: 44 }}
+                      onPress={handlePreview}
+                      activeOpacity={0.5}
+                    >
+                      <Text className="text-[17px] text-black">Preview</Text>
+                      <Ionicons name="open-outline" size={18} color="#C7C7CC" />
+                    </TouchableOpacity>
+                  </View>
+                  <View className="bg-white pl-4">
+                    <TouchableOpacity
+                      className="flex-row items-center justify-between pr-4"
+                      style={{ height: 44 }}
+                      onPress={handleCopyLink}
+                      activeOpacity={0.5}
+                    >
+                      <Text className="text-[17px] text-black">Copy Link</Text>
+                      <Ionicons name="link-outline" size={18} color="#C7C7CC" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
 
-              <TouchableOpacity
-                className="h-12 flex-row items-center justify-between"
-                onPress={handleCopyLink}
-              >
-                <Text>Copy Link</Text>
-                <Ionicons name="link-outline" size={20} color="#000" />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="h-12 flex-row items-center justify-between"
-                onPress={handleDelete}
-              >
-                <Text className="text-red-500">Delete</Text>
-                <Ionicons name="trash-outline" size={20} color="#ef4444" />
-              </TouchableOpacity>
+              {/* Danger Zone */}
+              <View>
+                <View className="overflow-hidden rounded-[10px] bg-white">
+                  <View className="bg-white pl-4">
+                    <TouchableOpacity
+                      className="flex-row items-center justify-between pr-4"
+                      style={{ height: 44 }}
+                      onPress={handleDelete}
+                      activeOpacity={0.5}
+                    >
+                      <Text className="text-[17px] text-[#FF3B30]">Delete Event Type</Text>
+                      <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
             </View>
           )}
         </ScrollView>

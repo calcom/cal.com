@@ -173,7 +173,7 @@ export function BasicsTab(props: BasicsTabProps) {
   return (
     <View className="gap-6">
       {/* Event Details */}
-      <SettingsGroup header="Event Details">
+      <SettingsGroup>
         <InputRow
           label="Title"
           value={props.eventTitle}
