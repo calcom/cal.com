@@ -48,6 +48,9 @@
     ]
   },
   "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
     "formatter": {
       "arrowParentheses": "always",
       "bracketSpacing": true,
@@ -71,6 +74,11 @@
   },
   "overrides": [
     {
+      "includes": ["docs/api-reference/v2/openapi.json"],
+      "linter": { "enabled": false },
+      "formatter": { "enabled": false }
+    },
+    {
       "includes": ["**/*.tsx"],
       "javascript": {
         "jsxRuntime": "transparent"
@@ -92,9 +100,9 @@
         "rules": {
           "nursery": {
             "useQwikValidLexicalScope": "off",
-            "useExplicitType": "warn",
+            "useExplicitType": "info",
             "noReactForwardRef": "warn",
-            "noTernary": "warn",
+            "noTernary": "info",
             "noUnresolvedImports": "warn"
           },
           "correctness": {
@@ -112,7 +120,8 @@
           "style": {
             "useExportsLast": "warn",
             "noProcessEnv": "warn",
-            "useNodejsImportProtocol": "error"
+            "useNodejsImportProtocol": "error",
+            "noNestedTernary": "warn"
           },
           "complexity": {
             "noExcessiveLinesPerFunction": "warn"
@@ -140,7 +149,36 @@
       }
     },
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "includes": ["apps/api/v2/**/*.ts", "apps/api/v2/**/*.controller.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useImportType": "off"
+          },
+          "correctness": {
+            "noProcessGlobal": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "apps/api/v2/src/config/app.ts",
+        "apps/api/v2/src/config/bootstrap.ts",
+        "apps/api/v2/src/config/env.ts",
+        "apps/api/v2/src/env.ts",
+        "apps/api/v2/test/setEnvVars.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noProcessEnv": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.e2e-spec.ts"],
       "linter": {
         "rules": {
           "complexity": {
@@ -218,6 +256,14 @@
                   {
                     "group": ["../trpc/**"],
                     "message": "features package should not import from trpc to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["@calcom/web", "@calcom/web/**"],
+                    "message": "features package should not import from @calcom/web to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["../../apps/web/**"],
+                    "message": "features package should not import from apps/web to avoid circular dependencies."
                   }
                 ]
               }
@@ -238,6 +284,38 @@
                   {
                     "group": ["../apps/web/**"],
                     "message": "trpc package should not import from apps/web to avoid circular dependencies."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/testing/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@calcom/web", "@calcom/web/**"],
+                    "message": "testing package should not import from @calcom/web to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["@calcom/features", "@calcom/features/**"],
+                    "message": "testing package should not import from @calcom/features to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["../../apps/web/**"],
+                    "message": "testing package should not import from apps/web to avoid circular dependencies."
+                  },
+                  {
+                    "group": ["../features/**"],
+                    "message": "testing package should not import from features to avoid circular dependencies."
                   }
                 ]
               }
