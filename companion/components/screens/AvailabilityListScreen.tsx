@@ -70,9 +70,6 @@ export function AvailabilityListScreen({
     refetch,
   } = useSchedules();
 
-  // Show refresh indicator when fetching
-  const refreshing = isFetching && !loading;
-
   const { mutate: createScheduleMutation, isPending: creating } = useCreateSchedule();
   const { mutate: deleteScheduleMutation, isPending: deleting } = useDeleteSchedule();
   const { mutate: duplicateScheduleMutation } = useDuplicateSchedule();
