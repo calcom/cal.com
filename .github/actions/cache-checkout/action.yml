@@ -1,0 +1,40 @@
+name: Cache Git Checkout
+description: "Save or restore git checkout from cache to speed up CI workflows"
+inputs:
+  mode:
+    description: "Mode of operation: 'save' to cache the checkout, 'restore' to restore from cache"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Restore git checkout from cache
+      if: ${{ inputs.mode == 'restore' }}
+      uses: actions/cache/restore@v4
+      id: cache-restore
+      with:
+        path: |
+          .
+          !.git
+          !node_modules
+          !**/node_modules
+        key: git-checkout-${{ github.head_ref || github.ref_name }}-${{ github.sha }}
+        fail-on-cache-miss: true
+
+    - name: Delete previous git-checkout caches for this branch
+      if: ${{ inputs.mode == 'save' }}
+      uses: useblacksmith/cache-delete@v1
+      with:
+        key: git-checkout-${{ github.head_ref || github.ref_name }}-
+        prefix: "true"
+
+    - name: Save git checkout to cache
+      if: ${{ inputs.mode == 'save' }}
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          .
+          !.git
+          !node_modules
+          !**/node_modules
+        key: git-checkout-${{ github.head_ref || github.ref_name }}-${{ github.sha }}
