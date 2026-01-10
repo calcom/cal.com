@@ -11,8 +11,6 @@ import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
-export type { ICalendarSwitchProps };
-
 type UserCalendarSwitchProps = Omit<ICalendarSwitchProps, "eventTypeId">;
 
 type EventCalendarSwitchProps = ICalendarSwitchProps & {
