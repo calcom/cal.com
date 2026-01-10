@@ -224,11 +224,17 @@ jobs:
               console.log(`Creating Devin session for PR #${pr.number}: ${pr.title}${pr.is_fork ? ' (fork)' : ''}`);
               
               const forkInstructions = pr.is_fork ? `
-            IMPORTANT: This PR is from a fork. The contributor has enabled "Allow edits from maintainers".
+            IMPORTANT: This PR is from a fork.
             - Clone the FORK repository: ${pr.head_repo_owner}/${pr.head_repo_name}
             - The branch to work on is: ${pr.head_ref}
             - Add the upstream remote: git remote add upstream https://github.com/${owner}/${repo}.git
-            - Fetch upstream and merge: git fetch upstream && git merge upstream/${pr.base_ref}` : `
+            - Fetch upstream and merge: git fetch upstream && git merge upstream/${pr.base_ref}
+            
+            IMPORTANT - Pushing to Fork PRs:
+            Since this is a fork PR, you need to use the DEVIN_ACTIONS_PAT secret for authentication when pushing.
+            Before pushing, configure git to use the PAT:
+            git remote set-url origin https://x-access-token:\${DEVIN_ACTIONS_PAT}@github.com/${pr.head_repo_owner}/${pr.head_repo_name}.git
+            Then push your changes normally: git push origin ${pr.head_ref}` : `
             - Clone the repository: ${owner}/${repo}
             - Check out the PR branch: ${pr.head_ref}
             - Merge the base branch: git merge origin/${pr.base_ref}`;
@@ -261,7 +267,7 @@ jobs:
             3. Run lint and type checks before pushing to ensure the code is valid.
             4. If a conflict seems too complex or risky to resolve automatically, explain the situation in a PR comment instead.
             5. Never ask for user confirmation. Never wait for user messages.
-            6. CRITICAL: If this is a fork PR and you encounter ANY error when pushing (permission denied, authentication failure, etc.), you MUST fail the task immediately. Do NOT attempt to push to a new branch in the main ${owner}/${repo} repository as a workaround. Simply report the error and stop.`;
+            6. CRITICAL: If this is a fork PR and you encounter ANY error when pushing (permission denied, authentication failure, etc.) even after using the DEVIN_ACTIONS_PAT, you MUST fail the task immediately. Do NOT attempt to push to a new branch in the main ${owner}/${repo} repository as a workaround. Simply report the error and stop.`;
 
               try {
                 const response = await fetch('https://api.devin.ai/v1/sessions', {
