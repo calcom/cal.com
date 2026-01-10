@@ -253,13 +253,15 @@ jobs:
             2. Test that the code still works after resolving conflicts (run lint/type checks).
             3. Commit the merge resolution with a clear commit message.
             4. Push the resolved changes to the PR branch.
+            5. After successfully pushing the resolved changes, remove the \`devin-conflict-resolution\` label from the PR using the GitHub API.
 
             Rules and Guidelines:
             1. Be careful when resolving conflicts - understand the context of both changes.
             2. Follow the existing code style and conventions in the repository.
             3. Run lint and type checks before pushing to ensure the code is valid.
             4. If a conflict seems too complex or risky to resolve automatically, explain the situation in a PR comment instead.
-            5. Never ask for user confirmation. Never wait for user messages.`;
+            5. Never ask for user confirmation. Never wait for user messages.
+            6. CRITICAL: If this is a fork PR and you encounter ANY error when pushing (permission denied, authentication failure, etc.), you MUST fail the task immediately. Do NOT attempt to push to a new branch in the main ${owner}/${repo} repository as a workaround. Simply report the error and stop.`;
 
               try {
                 const response = await fetch('https://api.devin.ai/v1/sessions', {
