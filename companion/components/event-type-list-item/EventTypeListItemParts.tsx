@@ -134,7 +134,15 @@ export function EventTypeBadges({
 
       {/* Price Badge */}
       {hasPrice && formattedPrice ? (
-        <Text className="text-sm font-medium text-cal-accent-success">{formattedPrice}</Text>
+        <View
+          className="rounded-md border border-cal-border bg-cal-border"
+          style={{ height: 24, paddingHorizontal: 8, flexDirection: "row", alignItems: "center" }}
+        >
+          <Ionicons name="card-outline" size={14} color="#000000" />
+          <Text className="ml-1.5 text-xs font-semibold text-cal-brand-black">
+            {formattedPrice}
+          </Text>
+        </View>
       ) : null}
 
       {/* Repeats Badge */}

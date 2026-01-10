@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Buchung erfolgreich umgeleitet. Weiterleitung zur Buchungsseite",
   "on_booking_write_to_event_object": "Bei Buchung in Ereignisobjekt schreiben",
   "field_name": "Feldname",
+  "field_name_cannot_be_empty": "Feldname darf nicht leer sein",
+  "field_already_exists": "Feld existiert bereits",
   "add_new_field": "Neues Feld hinzufügen",
   "you_dont_have_access_to_reroute_this_booking": "Sie haben keine Berechtigung, diese Buchung umzuleiten",
   "form_response_not_found": "Formularantwort nicht gefunden",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Der Buchungsinhaber ist kein Mitglied Ihrer Organisation.",
   "audit_logs_permission_denied": "Sie haben keine Berechtigung, Audit-Logs für diese Buchung anzuzeigen.",
   "audit_logs_permission_check_error": "Beim Überprüfen der Berechtigungen ist ein Fehler aufgetreten.",
+  "account_already_exists_please_login": "Ein Konto mit dieser E-Mail-Adresse existiert bereits. Bitte melden Sie sich an, um die Einladung anzunehmen.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
