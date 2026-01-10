@@ -11,6 +11,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          sparse-checkout: |
+            /*
+            !/docs
+            !/example-apps
+          sparse-checkout-cone-mode: "false"
       - uses: ./.github/actions/yarn-install
       - name: Run Lint
         run: yarn lint

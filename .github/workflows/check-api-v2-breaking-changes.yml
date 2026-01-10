@@ -35,6 +35,11 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          sparse-checkout: |
+            /*
+            !/example-apps
+          sparse-checkout-cone-mode: "false"
       - uses: ./.github/actions/yarn-install
 
       - name: Generate Swagger

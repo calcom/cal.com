@@ -1,5 +1,14 @@
 name: Dangerous git Checkout
 description: "Git Checkout from PR code so we can run checks from forks"
+inputs:
+  sparse-checkout:
+    description: "Sparse checkout patterns (newline-separated). Leave empty for full checkout."
+    required: false
+    default: ""
+  sparse-checkout-cone-mode:
+    description: "Use cone mode for sparse checkout (faster but less flexible patterns)"
+    required: false
+    default: "true"
 runs:
   using: "composite"
   steps:
@@ -8,3 +17,5 @@ runs:
       with:
         ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: 2
+        sparse-checkout: ${{ inputs.sparse-checkout }}
+        sparse-checkout-cone-mode: ${{ inputs.sparse-checkout-cone-mode }}
