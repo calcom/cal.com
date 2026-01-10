@@ -99,8 +99,11 @@ export function AvailabilityListScreen({
   // Handle pull-to-refresh (offline-aware)
   const onRefresh = async () => {
     setIsManualRefreshing(true);
-    await offlineAwareRefresh(refetch);
-    setIsManualRefreshing(false);
+    try {
+      await offlineAwareRefresh(refetch);
+    } finally {
+      setIsManualRefreshing(false);
+    }
   };
 
   const handleSearch = (query: string) => {
