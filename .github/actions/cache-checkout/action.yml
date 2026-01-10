@@ -21,6 +21,13 @@ runs:
         key: git-checkout-${{ github.head_ref || github.ref_name }}-${{ github.sha }}
         fail-on-cache-miss: true
 
+    - name: Delete previous git-checkout caches for this branch
+      if: ${{ inputs.mode == 'save' }}
+      uses: useblacksmith/cache-delete@v1
+      with:
+        key: git-checkout-${{ github.head_ref || github.ref_name }}
+        prefix: "true"
+
     - name: Save git checkout to cache
       if: ${{ inputs.mode == 'save' }}
       uses: actions/cache/save@v4
