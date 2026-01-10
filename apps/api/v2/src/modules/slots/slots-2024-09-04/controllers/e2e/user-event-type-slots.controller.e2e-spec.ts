@@ -210,25 +210,9 @@ describe("Slots 2024-09-04 Endpoints", () => {
       await app.init();
     });
 
-    // Set system time to 2050-09-04 so that the 2050-09-05 to 2050-09-09 date range
-    // is within 1 year from "now" and doesn't get clamped by the date range limit
-    // We need to mock both jest-date-mock (for new Date()) and Luxon's Settings.now (for DateTime.utc())
-    let originalSettingsNow: typeof Settings.now;
-    beforeEach(() => {
-      const mockDate = new Date("2050-09-04T00:00:00.000Z");
-      advanceTo(mockDate);
-      originalSettingsNow = Settings.now;
-      Settings.now = () => mockDate.getTime();
-    });
-
-    afterEach(() => {
-      clear();
-      Settings.now = originalSettingsNow;
-    });
-
     it("should get slots in UTC by event type id", async () => {
       return request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2026-09-05&end=2026-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {
@@ -245,7 +229,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     it("should get slots in specified time zone by event type id", async () => {
       return request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&timeZone=Europe/Rome`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2026-09-05&end=2026-09-09&timeZone=Europe/Rome`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {
@@ -263,7 +247,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get slots in UTC by event type slug", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2050-09-05&end=2050-09-09`
+          `/v2/slots?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2026-09-05&end=2026-09-09`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -282,7 +266,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get slots in specified time zone by event type slug", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2050-09-05&end=2050-09-09&timeZone=Europe/Rome`
+          `/v2/slots?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2026-09-05&end=2026-09-09&timeZone=Europe/Rome`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -301,7 +285,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     it("should get slots by event type id and with start hours specified", async () => {
       return request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05T09:00:00.000Z&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2026-09-05T09:00:00.000Z&end=2026-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {
@@ -313,14 +297,14 @@ describe("Slots 2024-09-04 Endpoints", () => {
           const days = Object.keys(slots);
           expect(days.length).toEqual(5);
 
-          const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].slice(2);
-          expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+          const expectedSlotsUTC2026_09_05 = expectedSlotsUTC["2026-09-05"].slice(2);
+          expect(slots).toEqual({ ...expectedSlotsUTC, "2026-09-05": expectedSlotsUTC2026_09_05 });
         });
     });
 
     it("should get slots by event type id and with end hours specified", async () => {
       return request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09T12:00:00.000Z`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2026-09-05&end=2026-09-09T12:00:00.000Z`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {
@@ -332,15 +316,15 @@ describe("Slots 2024-09-04 Endpoints", () => {
           const days = Object.keys(slots);
           expect(days.length).toEqual(5);
 
-          const expectedSlotsUTC2050_09_09 = expectedSlotsUTC["2050-09-09"].slice(0, 5);
-          expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-09": expectedSlotsUTC2050_09_09 });
+          const expectedSlotsUTC2026_09_09 = expectedSlotsUTC["2026-09-09"].slice(0, 5);
+          expect(slots).toEqual({ ...expectedSlotsUTC, "2026-09-09": expectedSlotsUTC2026_09_09 });
         });
     });
 
     it("should get slots in specified time zone by event type id and with start hours specified", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05T09:00:00.000Z&end=2050-09-09&timeZone=Europe/Rome`
+          `/v2/slots?eventTypeId=${eventTypeId}&start=2026-09-05T09:00:00.000Z&end=2026-09-09&timeZone=Europe/Rome`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -353,15 +337,15 @@ describe("Slots 2024-09-04 Endpoints", () => {
           const days = Object.keys(slots);
           expect(days.length).toEqual(5);
 
-          const expectedSlotsRome2050_09_05 = expectedSlotsRome["2050-09-05"].slice(2);
-          expect(slots).toEqual({ ...expectedSlotsRome, "2050-09-05": expectedSlotsRome2050_09_05 });
+          const expectedSlotsRome2026_09_05 = expectedSlotsRome["2026-09-05"].slice(2);
+          expect(slots).toEqual({ ...expectedSlotsRome, "2026-09-05": expectedSlotsRome2026_09_05 });
         });
     });
 
     it("should get slots in specified time zone by event type id and with end hours specified", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09T12:00:00.000Z&timeZone=Europe/Rome`
+          `/v2/slots?eventTypeId=${eventTypeId}&start=2026-09-05&end=2026-09-09T12:00:00.000Z&timeZone=Europe/Rome`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -374,14 +358,14 @@ describe("Slots 2024-09-04 Endpoints", () => {
           const days = Object.keys(slots);
           expect(days.length).toEqual(5);
 
-          const expectedSlotsRome2050_09_09 = expectedSlotsRome["2050-09-09"].slice(0, 5);
-          expect(slots).toEqual({ ...expectedSlotsRome, "2050-09-09": expectedSlotsRome2050_09_09 });
+          const expectedSlotsRome2026_09_09 = expectedSlotsRome["2026-09-09"].slice(0, 5);
+          expect(slots).toEqual({ ...expectedSlotsRome, "2026-09-09": expectedSlotsRome2026_09_09 });
         });
     });
 
     it("should get slots in UTC by event type id in range format", async () => {
       return request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-10&format=range`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2026-09-05&end=2026-09-10&format=range`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .expect((res) => {
@@ -395,7 +379,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get slots in specified time zone by event type id in range format", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-10&timeZone=Europe/Rome&format=range`
+          `/v2/slots?eventTypeId=${eventTypeId}&start=2026-09-05&end=2026-09-10&timeZone=Europe/Rome&format=range`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -410,7 +394,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get slots in UTC by event type slug in range format", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2050-09-05&end=2050-09-09&format=range`
+          `/v2/slots?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2026-09-05&end=2026-09-09&format=range`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -429,7 +413,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get slots in specified time zone by event type slug in range format", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2050-09-05&end=2050-09-09&timeZone=Europe/Rome&format=range`
+          `/v2/slots?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2026-09-05&end=2026-09-09&timeZone=Europe/Rome&format=range`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -447,14 +431,14 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     it("should reserve a slot and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
-      // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+      // Use 2026-09-05 so that the slot date (2026-09-05) is within 1 year from "now"
       // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
-      const now = "2050-09-05T08:00:00.000Z";
+      const now = "2026-09-05T08:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
       Settings.now = () => newDate.getTime();
 
-      const slotStartTime = "2050-09-05T10:00:00.000Z";
+      const slotStartTime = "2026-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
         .post(`/v2/slots/reservations`)
         .send({
@@ -483,7 +467,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       reservedSlot = responseReservedSlot;
 
       const response = await request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2026-09-05&end=2026-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -495,10 +479,10 @@ describe("Slots 2024-09-04 Endpoints", () => {
       const days = Object.keys(slots);
       expect(days.length).toEqual(5);
 
-      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+      const expectedSlotsUTC2026_09_05 = expectedSlotsUTC["2026-09-05"].filter(
         (slot) => slot.start !== slotStartTime
       );
-      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2026-09-05": expectedSlotsUTC2026_09_05 });
 
       const dbSlot = await selectedSlotRepositoryFixture.getByUid(reservedSlot.reservationUid);
       expect(dbSlot).toBeDefined();
@@ -584,14 +568,14 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     it("should update a reserved slot and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
-      // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+      // Use 2026-09-05 so that the slot date (2026-09-05) is within 1 year from "now"
       // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
-      const now = "2050-09-05T12:00:00.000Z";
+      const now = "2026-09-05T12:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
       Settings.now = () => newDate.getTime();
 
-      const slotStartTime = "2050-09-05T13:00:00.000Z";
+      const slotStartTime = "2026-09-05T13:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
         .patch(`/v2/slots/reservations/${reservedSlot.reservationUid}`)
         .send({
@@ -620,7 +604,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       reservedSlot = responseReservedSlot;
 
       const response = await request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2026-09-05&end=2026-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -632,10 +616,10 @@ describe("Slots 2024-09-04 Endpoints", () => {
       const days = Object.keys(slots);
       expect(days.length).toEqual(5);
 
-      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+      const expectedSlotsUTC2026_09_05 = expectedSlotsUTC["2026-09-05"].filter(
         (slot) => slot.start !== slotStartTime
       );
-      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2026-09-05": expectedSlotsUTC2026_09_05 });
 
       const dbSlot = await selectedSlotRepositoryFixture.getByUid(reservedSlot.reservationUid);
       expect(dbSlot).toBeDefined();
@@ -654,7 +638,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         .expect(200);
 
       const response = await request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2026-09-05&end=2026-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -673,7 +657,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         .post(`/v2/slots/reservations`)
         .send({
           eventTypeId,
-          slotStart: "2050-09-05T10:00:00.000Z",
+          slotStart: "2026-09-05T10:00:00.000Z",
           reservationDuration: 10,
         })
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
@@ -685,7 +669,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         .post(`/v2/slots/reservations`)
         .send({
           eventTypeId,
-          slotStart: "2050-09-05T10:00:00.000Z",
+          slotStart: "2026-09-05T10:00:00.000Z",
           reservationDuration: 10,
         })
         .set({ Authorization: `Bearer cal_test_${unrelatedUserApiKeyString}` })
@@ -695,14 +679,14 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     it("should reserve a slot as event type owner with custom duration and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
-      // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+      // Use 2026-09-05 so that the slot date (2026-09-05) is within 1 year from "now"
       // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
-      const now = "2050-09-05T08:00:00.000Z";
+      const now = "2026-09-05T08:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
       Settings.now = () => newDate.getTime();
 
-      const slotStartTime = "2050-09-05T10:00:00.000Z";
+      const slotStartTime = "2026-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
         .post(`/v2/slots/reservations`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
@@ -724,7 +708,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       reservedSlot = responseReservedSlot;
 
       const response = await request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2026-09-05&end=2026-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -736,10 +720,10 @@ describe("Slots 2024-09-04 Endpoints", () => {
       const days = Object.keys(slots);
       expect(days.length).toEqual(5);
 
-      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+      const expectedSlotsUTC2026_09_05 = expectedSlotsUTC["2026-09-05"].filter(
         (slot) => slot.start !== slotStartTime
       );
-      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2026-09-05": expectedSlotsUTC2026_09_05 });
 
       const dbSlot = await selectedSlotRepositoryFixture.getByUid(reservedSlot.reservationUid);
       expect(dbSlot).toBeDefined();
@@ -753,14 +737,14 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     it("should reserve a slot as someone who shares team with event type owner with custom duration and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
-      // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+      // Use 2026-09-05 so that the slot date (2026-09-05) is within 1 year from "now"
       // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
-      const now = "2050-09-05T08:00:00.000Z";
+      const now = "2026-09-05T08:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
       Settings.now = () => newDate.getTime();
 
-      const slotStartTime = "2050-09-05T10:00:00.000Z";
+      const slotStartTime = "2026-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
         .post(`/v2/slots/reservations`)
         .set({ Authorization: `Bearer cal_test_${teammateUserApiKeyString}` })
@@ -782,7 +766,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       reservedSlot = responseReservedSlot;
 
       const response = await request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2026-09-05&end=2026-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -794,10 +778,10 @@ describe("Slots 2024-09-04 Endpoints", () => {
       const days = Object.keys(slots);
       expect(days.length).toEqual(5);
 
-      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+      const expectedSlotsUTC2026_09_05 = expectedSlotsUTC["2026-09-05"].filter(
         (slot) => slot.start !== slotStartTime
       );
-      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2026-09-05": expectedSlotsUTC2026_09_05 });
 
       const dbSlot = await selectedSlotRepositoryFixture.getByUid(reservedSlot.reservationUid);
       expect(dbSlot).toBeDefined();
@@ -810,12 +794,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
     });
 
     it("should do a booking and slot should not be available at that time", async () => {
-      const startTime = "2050-09-05T11:00:00.000Z";
+      const startTime = "2026-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
         uid: `booking-uid-${eventTypeId}-${randomString()}`,
         title: "booking title",
         startTime,
-        endTime: "2050-09-05T12:00:00.000Z",
+        endTime: "2026-09-05T12:00:00.000Z",
         eventType: {
           connect: {
             id: eventTypeId,
@@ -835,7 +819,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       const response = await request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2026-09-05&end=2026-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -847,20 +831,20 @@ describe("Slots 2024-09-04 Endpoints", () => {
       const days = Object.keys(slots);
       expect(days.length).toEqual(5);
 
-      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+      const expectedSlotsUTC2026_09_05 = expectedSlotsUTC["2026-09-05"].filter(
         (slot) => slot.start !== startTime
       );
-      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2026-09-05": expectedSlotsUTC2026_09_05 });
       await bookingsRepositoryFixture.deleteById(booking.id);
     });
 
     it("should do a booking for seated event and slot should show attendees count and bookingUid", async () => {
-      const startTime = "2050-09-05T11:00:00.000Z";
+      const startTime = "2026-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
         uid: `booking-uid-${seatedEventType.id}-${randomString()}`,
         title: "booking title",
         startTime,
-        endTime: "2050-09-05T12:00:00.000Z",
+        endTime: "2026-09-05T12:00:00.000Z",
         eventType: {
           connect: {
             id: seatedEventType.id,
@@ -906,7 +890,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/slots?eventTypeId=${seatedEventType.id}&start=2050-09-05&end=2050-09-10`)
+        .get(`/api/v2/slots?eventTypeId=${seatedEventType.id}&start=2026-09-05&end=2026-09-10`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -919,62 +903,62 @@ describe("Slots 2024-09-04 Endpoints", () => {
       expect(days.length).toEqual(5);
 
       const expectedSlotsUTC = {
-        "2050-09-05": [
-          { start: "2050-09-05T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-05T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-05T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-05T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+        "2026-09-05": [
+          { start: "2026-09-05T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-05T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-05T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-05T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
           // note(Lauris): this is when booking was made
           {
-            start: "2050-09-05T11:00:00.000Z",
+            start: "2026-09-05T11:00:00.000Z",
             seatsBooked: 1,
             seatsRemaining: 4,
             seatsTotal: 5,
             bookingUid: booking.uid,
           },
-          { start: "2050-09-05T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-05T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-05T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-05T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-05T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-05T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
         ],
-        "2050-09-06": [
-          { start: "2050-09-06T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-06T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-06T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-06T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-06T11:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-06T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-06T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-06T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+        "2026-09-06": [
+          { start: "2026-09-06T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-06T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-06T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-06T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-06T11:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-06T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-06T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-06T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
         ],
-        "2050-09-07": [
-          { start: "2050-09-07T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-07T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-07T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-07T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-07T11:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-07T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-07T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-07T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+        "2026-09-07": [
+          { start: "2026-09-07T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-07T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-07T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-07T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-07T11:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-07T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-07T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-07T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
         ],
-        "2050-09-08": [
-          { start: "2050-09-08T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-08T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-08T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-08T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-08T11:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-08T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-08T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-08T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+        "2026-09-08": [
+          { start: "2026-09-08T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-08T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-08T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-08T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-08T11:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-08T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-08T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-08T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
         ],
-        "2050-09-09": [
-          { start: "2050-09-09T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-09T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-09T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-09T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-09T11:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-09T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-09T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
-          { start: "2050-09-09T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+        "2026-09-09": [
+          { start: "2026-09-09T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-09T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-09T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-09T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-09T11:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-09T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-09T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2026-09-09T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
         ],
       };
 
@@ -984,12 +968,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
     });
 
     it("should do a booking for seated event and slot should show attendees count and bookingUid and return range format", async () => {
-      const startTime = "2050-09-05T11:00:00.000Z";
+      const startTime = "2026-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
         uid: `booking-uid-${seatedEventType.id}-range-${randomString()}`,
         title: "booking title",
         startTime,
-        endTime: "2050-09-05T12:00:00.000Z",
+        endTime: "2026-09-05T12:00:00.000Z",
         eventType: {
           connect: {
             id: seatedEventType.id,
@@ -1035,7 +1019,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/slots?eventTypeId=${seatedEventType.id}&start=2050-09-05&end=2050-09-10&format=range`)
+        .get(`/api/v2/slots?eventTypeId=${seatedEventType.id}&start=2026-09-05&end=2026-09-10&format=range`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -1048,293 +1032,293 @@ describe("Slots 2024-09-04 Endpoints", () => {
       expect(days.length).toEqual(5);
 
       const expectedSlotsUTC = {
-        "2050-09-05": [
+        "2026-09-05": [
           {
-            start: "2050-09-05T07:00:00.000Z",
-            end: "2050-09-05T08:00:00.000Z",
+            start: "2026-09-05T07:00:00.000Z",
+            end: "2026-09-05T08:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-05T08:00:00.000Z",
-            end: "2050-09-05T09:00:00.000Z",
+            start: "2026-09-05T08:00:00.000Z",
+            end: "2026-09-05T09:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-05T09:00:00.000Z",
-            end: "2050-09-05T10:00:00.000Z",
+            start: "2026-09-05T09:00:00.000Z",
+            end: "2026-09-05T10:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-05T10:00:00.000Z",
-            end: "2050-09-05T11:00:00.000Z",
+            start: "2026-09-05T10:00:00.000Z",
+            end: "2026-09-05T11:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           // note(Lauris): this is when booking was made
           {
-            start: "2050-09-05T11:00:00.000Z",
-            end: "2050-09-05T12:00:00.000Z",
+            start: "2026-09-05T11:00:00.000Z",
+            end: "2026-09-05T12:00:00.000Z",
             seatsBooked: 1,
             seatsRemaining: 4,
             seatsTotal: 5,
             bookingUid: booking.uid,
           },
           {
-            start: "2050-09-05T12:00:00.000Z",
-            end: "2050-09-05T13:00:00.000Z",
+            start: "2026-09-05T12:00:00.000Z",
+            end: "2026-09-05T13:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-05T13:00:00.000Z",
-            end: "2050-09-05T14:00:00.000Z",
+            start: "2026-09-05T13:00:00.000Z",
+            end: "2026-09-05T14:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-05T14:00:00.000Z",
-            end: "2050-09-05T15:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-        ],
-        "2050-09-06": [
-          {
-            start: "2050-09-06T07:00:00.000Z",
-            end: "2050-09-06T08:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-          {
-            start: "2050-09-06T08:00:00.000Z",
-            end: "2050-09-06T09:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-          {
-            start: "2050-09-06T09:00:00.000Z",
-            end: "2050-09-06T10:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-          {
-            start: "2050-09-06T10:00:00.000Z",
-            end: "2050-09-06T11:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-          {
-            start: "2050-09-06T11:00:00.000Z",
-            end: "2050-09-06T12:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-          {
-            start: "2050-09-06T12:00:00.000Z",
-            end: "2050-09-06T13:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-          {
-            start: "2050-09-06T13:00:00.000Z",
-            end: "2050-09-06T14:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-          {
-            start: "2050-09-06T14:00:00.000Z",
-            end: "2050-09-06T15:00:00.000Z",
+            start: "2026-09-05T14:00:00.000Z",
+            end: "2026-09-05T15:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
         ],
-        "2050-09-07": [
+        "2026-09-06": [
           {
-            start: "2050-09-07T07:00:00.000Z",
-            end: "2050-09-07T08:00:00.000Z",
+            start: "2026-09-06T07:00:00.000Z",
+            end: "2026-09-06T08:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-07T08:00:00.000Z",
-            end: "2050-09-07T09:00:00.000Z",
+            start: "2026-09-06T08:00:00.000Z",
+            end: "2026-09-06T09:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-07T09:00:00.000Z",
-            end: "2050-09-07T10:00:00.000Z",
+            start: "2026-09-06T09:00:00.000Z",
+            end: "2026-09-06T10:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-07T10:00:00.000Z",
-            end: "2050-09-07T11:00:00.000Z",
+            start: "2026-09-06T10:00:00.000Z",
+            end: "2026-09-06T11:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-07T11:00:00.000Z",
-            end: "2050-09-07T12:00:00.000Z",
+            start: "2026-09-06T11:00:00.000Z",
+            end: "2026-09-06T12:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-07T12:00:00.000Z",
-            end: "2050-09-07T13:00:00.000Z",
+            start: "2026-09-06T12:00:00.000Z",
+            end: "2026-09-06T13:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-07T13:00:00.000Z",
-            end: "2050-09-07T14:00:00.000Z",
+            start: "2026-09-06T13:00:00.000Z",
+            end: "2026-09-06T14:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-07T14:00:00.000Z",
-            end: "2050-09-07T15:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-        ],
-        "2050-09-08": [
-          {
-            start: "2050-09-08T07:00:00.000Z",
-            end: "2050-09-08T08:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-          {
-            start: "2050-09-08T08:00:00.000Z",
-            end: "2050-09-08T09:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-          {
-            start: "2050-09-08T09:00:00.000Z",
-            end: "2050-09-08T10:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-          {
-            start: "2050-09-08T10:00:00.000Z",
-            end: "2050-09-08T11:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-          {
-            start: "2050-09-08T11:00:00.000Z",
-            end: "2050-09-08T12:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-          {
-            start: "2050-09-08T12:00:00.000Z",
-            end: "2050-09-08T13:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-          {
-            start: "2050-09-08T13:00:00.000Z",
-            end: "2050-09-08T14:00:00.000Z",
-            seatsBooked: 0,
-            seatsRemaining: 5,
-            seatsTotal: 5,
-          },
-          {
-            start: "2050-09-08T14:00:00.000Z",
-            end: "2050-09-08T15:00:00.000Z",
+            start: "2026-09-06T14:00:00.000Z",
+            end: "2026-09-06T15:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
         ],
-        "2050-09-09": [
+        "2026-09-07": [
           {
-            start: "2050-09-09T07:00:00.000Z",
-            end: "2050-09-09T08:00:00.000Z",
+            start: "2026-09-07T07:00:00.000Z",
+            end: "2026-09-07T08:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-09T08:00:00.000Z",
-            end: "2050-09-09T09:00:00.000Z",
+            start: "2026-09-07T08:00:00.000Z",
+            end: "2026-09-07T09:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-09T09:00:00.000Z",
-            end: "2050-09-09T10:00:00.000Z",
+            start: "2026-09-07T09:00:00.000Z",
+            end: "2026-09-07T10:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-09T10:00:00.000Z",
-            end: "2050-09-09T11:00:00.000Z",
+            start: "2026-09-07T10:00:00.000Z",
+            end: "2026-09-07T11:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-09T11:00:00.000Z",
-            end: "2050-09-09T12:00:00.000Z",
+            start: "2026-09-07T11:00:00.000Z",
+            end: "2026-09-07T12:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-09T12:00:00.000Z",
-            end: "2050-09-09T13:00:00.000Z",
+            start: "2026-09-07T12:00:00.000Z",
+            end: "2026-09-07T13:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-09T13:00:00.000Z",
-            end: "2050-09-09T14:00:00.000Z",
+            start: "2026-09-07T13:00:00.000Z",
+            end: "2026-09-07T14:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
           },
           {
-            start: "2050-09-09T14:00:00.000Z",
-            end: "2050-09-09T15:00:00.000Z",
+            start: "2026-09-07T14:00:00.000Z",
+            end: "2026-09-07T15:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+        ],
+        "2026-09-08": [
+          {
+            start: "2026-09-08T07:00:00.000Z",
+            end: "2026-09-08T08:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2026-09-08T08:00:00.000Z",
+            end: "2026-09-08T09:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2026-09-08T09:00:00.000Z",
+            end: "2026-09-08T10:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2026-09-08T10:00:00.000Z",
+            end: "2026-09-08T11:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2026-09-08T11:00:00.000Z",
+            end: "2026-09-08T12:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2026-09-08T12:00:00.000Z",
+            end: "2026-09-08T13:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2026-09-08T13:00:00.000Z",
+            end: "2026-09-08T14:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2026-09-08T14:00:00.000Z",
+            end: "2026-09-08T15:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+        ],
+        "2026-09-09": [
+          {
+            start: "2026-09-09T07:00:00.000Z",
+            end: "2026-09-09T08:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2026-09-09T08:00:00.000Z",
+            end: "2026-09-09T09:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2026-09-09T09:00:00.000Z",
+            end: "2026-09-09T10:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2026-09-09T10:00:00.000Z",
+            end: "2026-09-09T11:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2026-09-09T11:00:00.000Z",
+            end: "2026-09-09T12:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2026-09-09T12:00:00.000Z",
+            end: "2026-09-09T13:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2026-09-09T13:00:00.000Z",
+            end: "2026-09-09T14:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2026-09-09T14:00:00.000Z",
+            end: "2026-09-09T15:00:00.000Z",
             seatsBooked: 0,
             seatsRemaining: 5,
             seatsTotal: 5,
@@ -1350,7 +1334,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     describe("variable length", () => {
       let responseReservedVariableSlot: ReserveSlotOutputData_2024_09_04;
       it("should not be able to reserve a slot for variable length event type with invalid duration", async () => {
-        const slotStartTime = "2050-09-05T10:00:00.000Z";
+        const slotStartTime = "2026-09-05T10:00:00.000Z";
         const reserveResponse = await request(app.getHttpServer())
           .post(`/v2/slots/reservations`)
           .send({
@@ -1368,15 +1352,15 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
       it("should reserve a slot with slot duration for variable event type length", async () => {
         // note(Lauris): mock current date to test slots release time
-        // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+        // Use 2026-09-05 so that the slot date (2026-09-05) is within 1 year from "now"
         // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
-        const now = "2050-09-05T08:00:00.000Z";
+        const now = "2026-09-05T08:00:00.000Z";
         const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
         advanceTo(newDate);
         Settings.now = () => newDate.getTime();
 
         const slotDuration = 60;
-        const slotStartTime = "2050-09-05T10:00:00.000Z";
+        const slotStartTime = "2026-09-05T10:00:00.000Z";
         const reserveResponse = await request(app.getHttpServer())
           .post(`/v2/slots/reservations`)
           .send({
@@ -1405,7 +1389,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
         const response = await request(app.getHttpServer())
           .get(
-            `/v2/slots?eventTypeId=${variableLengthEventType.id}&start=2050-09-05&end=2050-09-09&duration=60`
+            `/v2/slots?eventTypeId=${variableLengthEventType.id}&start=2026-09-05&end=2026-09-09&duration=60`
           )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
           .expect(200);
@@ -1418,10 +1402,10 @@ describe("Slots 2024-09-04 Endpoints", () => {
         const days = Object.keys(slots);
         expect(days.length).toEqual(5);
 
-        const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+        const expectedSlotsUTC2026_09_05 = expectedSlotsUTC["2026-09-05"].filter(
           (slot) => slot.start !== slotStartTime
         );
-        expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+        expect(slots).toEqual({ ...expectedSlotsUTC, "2026-09-05": expectedSlotsUTC2026_09_05 });
 
         const dbSlot = await selectedSlotRepositoryFixture.getByUid(
           responseReservedVariableSlot.reservationUid
@@ -1488,8 +1472,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       it("should not returns slots for ooo days", async () => {
-        const oooStart = new Date("2050-09-06T00:00:00.000Z");
-        const oooEnd = new Date("2050-09-09T23:59:59.999Z");
+        const oooStart = new Date("2026-09-06T00:00:00.000Z");
+        const oooEnd = new Date("2026-09-09T23:59:59.999Z");
 
         const oooEntry = await oooRepositoryFixture.create({
           uuid: randomString(),
@@ -1507,7 +1491,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         oooEntryId = oooEntry.id;
 
         const response = await request(app.getHttpServer())
-          .get(`/v2/slots?eventTypeId=${oooTestUserEventType.id}&start=2050-09-05&end=2050-09-09&duration=60`)
+          .get(`/v2/slots?eventTypeId=${oooTestUserEventType.id}&start=2026-09-05&end=2026-09-09&duration=60`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
           .expect(200);
 
@@ -1519,7 +1503,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         const days = Object.keys(slots);
         expect(days.length).toBe(1);
         expect(slots).toEqual({
-          "2050-09-05": expectedSlotsUTC["2050-09-05"],
+          "2026-09-05": expectedSlotsUTC["2026-09-05"],
         });
 
         await oooRepositoryFixture.delete(oooEntryId);
@@ -1527,7 +1511,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     });
 
     describe("booking status", () => {
-      const startTime = "2050-09-12T11:00:00.000Z";
+      const startTime = "2026-09-12T11:00:00.000Z";
 
       describe("cant reserve", () => {
         it("should not be able to reserve a slot if booking is accepted during that time", async () => {
@@ -1536,7 +1520,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
             uid: `booking-uid-${eventTypeId}-accepted-${randomString()}`,
             title: "booking title",
             startTime,
-            endTime: "2050-09-12T12:00:00.000Z",
+            endTime: "2026-09-12T12:00:00.000Z",
             eventType: {
               connect: {
                 id: eventTypeId,
@@ -1576,7 +1560,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
             uid: `booking-uid-${eventTypeId}-pending-${randomString()}`,
             title: "booking title",
             startTime,
-            endTime: "2050-09-12T12:00:00.000Z",
+            endTime: "2026-09-12T12:00:00.000Z",
             eventType: {
               connect: {
                 id: eventTypeId,
@@ -1616,7 +1600,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
             uid: `booking-uid-${eventTypeId}-awaiting-${randomString()}`,
             title: "booking title",
             startTime,
-            endTime: "2050-09-12T12:00:00.000Z",
+            endTime: "2026-09-12T12:00:00.000Z",
             eventType: {
               connect: {
                 id: eventTypeId,
@@ -1658,7 +1642,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
             uid: `booking-uid-${eventTypeId}-cancelled-${randomString()}`,
             title: "booking title",
             startTime,
-            endTime: "2050-09-12T12:00:00.000Z",
+            endTime: "2026-09-12T12:00:00.000Z",
             eventType: {
               connect: {
                 id: eventTypeId,
@@ -1707,7 +1691,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
             uid: `booking-uid-${eventTypeId}-rejected-${randomString()}`,
             title: "booking title",
             startTime,
-            endTime: "2050-09-12T12:00:00.000Z",
+            endTime: "2026-09-12T12:00:00.000Z",
             eventType: {
               connect: {
                 id: eventTypeId,

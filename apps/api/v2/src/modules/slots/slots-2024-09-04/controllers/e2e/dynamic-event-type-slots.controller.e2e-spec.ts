@@ -15,8 +15,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { advanceTo, clear } from "jest-date-mock";
-import { Settings } from "luxon";
 import * as request from "supertest";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
@@ -135,26 +133,10 @@ describe("Slots 2024-09-04 Endpoints", () => {
       await app.init();
     });
 
-    // Set system time to 2050-09-04 so that the 2050-09-05 to 2050-09-09 date range
-    // is within 1 year from "now" and doesn't get clamped by the date range limit
-    // We need to mock both jest-date-mock (for new Date()) and Luxon's Settings.now (for DateTime.utc())
-    let originalSettingsNow: typeof Settings.now;
-    beforeEach(() => {
-      const mockDate = new Date("2050-09-04T00:00:00.000Z");
-      advanceTo(mockDate);
-      originalSettingsNow = Settings.now;
-      Settings.now = () => mockDate.getTime();
-    });
-
-    afterEach(() => {
-      clear();
-      Settings.now = originalSettingsNow;
-    });
-
     it("should get slots in UTC by usernames", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?usernames=${orgProfileOne.username},${orgProfileTwo.username}&organizationSlug=${organization.slug}&start=2050-09-05&end=2050-09-09&duration=60`
+          `/v2/slots?usernames=${orgProfileOne.username},${orgProfileTwo.username}&organizationSlug=${organization.slug}&start=2026-09-05&end=2026-09-09&duration=60`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -173,7 +155,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get slots in specified timezone and in specified duration by usernames", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?usernames=${orgProfileOne.username},${orgProfileTwo.username}&organizationSlug=${organization.slug}&start=2050-09-05&end=2050-09-09&duration=60&timeZone=Europe/Rome`
+          `/v2/slots?usernames=${orgProfileOne.username},${orgProfileTwo.username}&organizationSlug=${organization.slug}&start=2026-09-05&end=2026-09-09&duration=60&timeZone=Europe/Rome`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)

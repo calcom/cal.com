@@ -343,25 +343,9 @@ describe("Slots 2024-09-04 Endpoints", () => {
       await app.init();
     });
 
-    // Set system time to 2050-09-04 so that the 2050-09-05 to 2050-09-09 date range
-    // is within 1 year from "now" and doesn't get clamped by the date range limit
-    // We need to mock both jest-date-mock (for new Date()) and Luxon's Settings.now (for DateTime.utc())
-    let originalSettingsNow: typeof Settings.now;
-    beforeEach(() => {
-      const mockDate = new Date("2050-09-04T00:00:00.000Z");
-      advanceTo(mockDate);
-      originalSettingsNow = Settings.now;
-      Settings.now = () => mockDate.getTime();
-    });
-
-    afterEach(() => {
-      clear();
-      Settings.now = originalSettingsNow;
-    });
-
     it("should get collective team event slots in UTC", async () => {
       return request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${collectiveEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${collectiveEventTypeId}&start=2026-09-05&end=2026-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {
@@ -379,7 +363,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get collective team event slots in UTC using teamSlug and eventTypeSlug", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?teamSlug=${teamSlug}&eventTypeSlug=${collectiveEventTypeSlug}&start=2050-09-05&end=2050-09-09`
+          `/v2/slots?teamSlug=${teamSlug}&eventTypeSlug=${collectiveEventTypeSlug}&start=2026-09-05&end=2026-09-09`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -397,7 +381,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     it("should get round robin team event slots in UTC", async () => {
       return request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${roundRobinEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${roundRobinEventTypeId}&start=2026-09-05&end=2026-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {
@@ -415,7 +399,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get round robin team event without fixed hosts slots in UTC with subsetIds for teammateThree who has a smaller schedule", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeId=${roundRobinEventTypeWithoutFixedHostsId}&start=2050-09-05&end=2050-09-09&rrHostSubsetIds[]=${teammateThree.id}`
+          `/v2/slots?eventTypeId=${roundRobinEventTypeWithoutFixedHostsId}&start=2026-09-05&end=2026-09-09&rrHostSubsetIds[]=${teammateThree.id}`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -432,7 +416,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get round robin team event  without fixed hosts slots in UTC with subsetIds for teammateOne", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeId=${roundRobinEventTypeWithoutFixedHostsId}&start=2050-09-05&end=2050-09-09&rrHostSubsetIds[]=${teammateOne.id}`
+          `/v2/slots?eventTypeId=${roundRobinEventTypeWithoutFixedHostsId}&start=2026-09-05&end=2026-09-09&rrHostSubsetIds[]=${teammateOne.id}`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -451,7 +435,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get round robin team event with and without fixed hosts slots in UTC with subsetIds for teammateOne(fixed) and teammateThree(not fixed) ", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeId=${roundRobinEventTypeWithFixedAndNonFixedHostsId}&start=2050-09-05&end=2050-09-09&rrHostSubsetIds[]=${teammateOne.id}&rrHostSubsetIds[]=${teammateThree.id}`
+          `/v2/slots?eventTypeId=${roundRobinEventTypeWithFixedAndNonFixedHostsId}&start=2026-09-05&end=2026-09-09&rrHostSubsetIds[]=${teammateOne.id}&rrHostSubsetIds[]=${teammateThree.id}`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -469,7 +453,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get round robin team event with and without fixed hosts slots in UTC with subsetIds for teammateOne(fixed) and teammateTwo(not fixed) ", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeId=${roundRobinEventTypeWithFixedAndNonFixedHostsId}&start=2050-09-05&end=2050-09-09&rrHostSubsetIds[]=${teammateOne.id}&rrHostSubsetIds[]=${teammateTwo.id}`
+          `/v2/slots?eventTypeId=${roundRobinEventTypeWithFixedAndNonFixedHostsId}&start=2026-09-05&end=2026-09-09&rrHostSubsetIds[]=${teammateOne.id}&rrHostSubsetIds[]=${teammateTwo.id}`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -490,7 +474,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         .post(`/v2/slots/reservations`)
         .send({
           eventTypeId: collectiveEventTypeId,
-          slotStart: "2050-09-05T10:00:00.000Z",
+          slotStart: "2026-09-05T10:00:00.000Z",
           reservationDuration: 10,
         })
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
@@ -502,7 +486,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         .post(`/v2/slots/reservations`)
         .send({
           eventTypeId: collectiveEventTypeId,
-          slotStart: "2050-09-05T10:00:00.000Z",
+          slotStart: "2026-09-05T10:00:00.000Z",
           reservationDuration: 10,
         })
         .set({ Authorization: `Bearer cal_test_${outsiderApiKeyString}` })
@@ -515,7 +499,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         .post(`/v2/slots/reservations`)
         .send({
           eventTypeId: collectiveEventTypeWithoutHostsId,
-          slotStart: "2050-09-05T10:00:00.000Z",
+          slotStart: "2026-09-05T10:00:00.000Z",
         })
         .set({ Authorization: `Bearer cal_test_${teammateApiKeyString}` })
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
@@ -524,14 +508,14 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     it("should reserve a slot as team member of the team that owns the team event type", async () => {
       // note(Lauris): mock current date to test slots release time
-      // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+      // Use 2026-09-05 so that the slot date (2026-09-05) is within 1 year from "now"
       // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
-      const now = "2050-09-05T08:00:00.000Z";
+      const now = "2026-09-05T08:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
       Settings.now = () => newDate.getTime();
 
-      const slotStartTime = "2050-09-05T10:00:00.000Z";
+      const slotStartTime = "2026-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
         .post(`/v2/slots/reservations`)
         .set({ Authorization: `Bearer cal_test_${teammateApiKeyString}` })
@@ -553,7 +537,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       reservedSlot = responseReservedSlot;
 
       const response = await request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${collectiveEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${collectiveEventTypeId}&start=2026-09-05&end=2026-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -565,10 +549,10 @@ describe("Slots 2024-09-04 Endpoints", () => {
       const days = Object.keys(slots);
       expect(days.length).toEqual(5);
 
-      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+      const expectedSlotsUTC2026_09_05 = expectedSlotsUTC["2026-09-05"].filter(
         (slot) => slot.start !== slotStartTime
       );
-      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2026-09-05": expectedSlotsUTC2026_09_05 });
 
       const dbSlot = await selectedSlotRepositoryFixture.getByUid(reservedSlot.reservationUid);
       expect(dbSlot).toBeDefined();
@@ -582,12 +566,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
     });
 
     it("should book collective event type and slot should not be available at that time", async () => {
-      const startTime = "2050-09-05T11:00:00.000Z";
+      const startTime = "2026-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
         uid: `booking-uid-${collectiveEventTypeId}-${randomString()}`,
         title: "booking title",
         startTime,
-        endTime: "2050-09-05T12:00:00.000Z",
+        endTime: "2026-09-05T12:00:00.000Z",
         eventType: {
           connect: {
             id: collectiveEventTypeId,
@@ -608,7 +592,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       collectiveBookingId = booking.id;
 
       const response = await request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${collectiveEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${collectiveEventTypeId}&start=2026-09-05&end=2026-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -620,20 +604,20 @@ describe("Slots 2024-09-04 Endpoints", () => {
       const days = Object.keys(slots);
       expect(days.length).toEqual(5);
 
-      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+      const expectedSlotsUTC2026_09_05 = expectedSlotsUTC["2026-09-05"].filter(
         (slot) => slot.start !== startTime
       );
-      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2026-09-05": expectedSlotsUTC2026_09_05 });
       bookingsRepositoryFixture.deleteById(booking.id);
     });
 
     it("should book round robin event type and slot should be available at that time", async () => {
-      const startTime = "2050-09-05T11:00:00.000Z";
+      const startTime = "2026-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
         uid: `booking-uid-${roundRobinEventTypeId}-${randomString()}`,
         title: "booking title",
         startTime,
-        endTime: "2050-09-05T12:00:00.000Z",
+        endTime: "2026-09-05T12:00:00.000Z",
         eventType: {
           connect: {
             id: roundRobinEventTypeId,
@@ -654,7 +638,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       roundRobinBookingId = booking.id;
 
       const response = await request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${roundRobinEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${roundRobinEventTypeId}&start=2026-09-05&end=2026-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -666,20 +650,20 @@ describe("Slots 2024-09-04 Endpoints", () => {
       const days = Object.keys(slots);
       expect(days.length).toEqual(5);
 
-      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+      const expectedSlotsUTC2026_09_05 = expectedSlotsUTC["2026-09-05"].filter(
         (slot) => slot.start !== startTime
       );
-      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2026-09-05": expectedSlotsUTC2026_09_05 });
       bookingsRepositoryFixture.deleteById(booking.id);
     });
 
     it("should fully book round robin event type and slot should not be available at that time", async () => {
-      const startTime = "2050-09-05T11:00:00.000Z";
+      const startTime = "2026-09-05T11:00:00.000Z";
       const bookingOne = await bookingsRepositoryFixture.create({
         uid: `booking-uid-${roundRobinEventTypeId}-1-${randomString()}`,
         title: "booking title",
         startTime,
-        endTime: "2050-09-05T12:00:00.000Z",
+        endTime: "2026-09-05T12:00:00.000Z",
         eventType: {
           connect: {
             id: roundRobinEventTypeId,
@@ -703,7 +687,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         uid: `booking-uid-${roundRobinEventTypeId}-2-${randomString()}`,
         title: "booking title",
         startTime,
-        endTime: "2050-09-05T12:00:00.000Z",
+        endTime: "2026-09-05T12:00:00.000Z",
         eventType: {
           connect: {
             id: roundRobinEventTypeId,
@@ -724,7 +708,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       fullyBookedRoundRobinBookingIdTwo = bookingTwo.id;
 
       const response = await request(app.getHttpServer())
-        .get(`/v2/slots?eventTypeId=${roundRobinEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${roundRobinEventTypeId}&start=2026-09-05&end=2026-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -736,23 +720,23 @@ describe("Slots 2024-09-04 Endpoints", () => {
       const days = Object.keys(slots);
       expect(days.length).toEqual(5);
 
-      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+      const expectedSlotsUTC2026_09_05 = expectedSlotsUTC["2026-09-05"].filter(
         (slot) => slot.start !== startTime
       );
-      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2026-09-05": expectedSlotsUTC2026_09_05 });
       bookingsRepositoryFixture.deleteById(bookingOne.id);
       bookingsRepositoryFixture.deleteById(bookingTwo.id);
     });
 
     it("should reserve all available slots for round robin event type with non-fixed hosts", async () => {
-      // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+      // Use 2026-09-05 so that the slot date (2026-09-05) is within 1 year from "now"
       // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
-      const now = "2050-09-05T08:00:00.000Z";
+      const now = "2026-09-05T08:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
       Settings.now = () => newDate.getTime();
 
-      const slotStartTime = "2050-09-05T10:00:00.000Z";
+      const slotStartTime = "2026-09-05T10:00:00.000Z";
 
       const reserveResponseOne = await request(app.getHttpServer())
         .post(`/v2/slots/reservations`)
@@ -827,14 +811,14 @@ describe("Slots 2024-09-04 Endpoints", () => {
     });
 
     it("should reserve available slot for round robin event type with fixed and non-fixed hosts and should not be able to reserve another slot", async () => {
-      // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+      // Use 2026-09-05 so that the slot date (2026-09-05) is within 1 year from "now"
       // The mocked "now" must be BEFORE the slotStartTime to reserve a future slot
-      const now = "2050-09-05T08:00:00.000Z";
+      const now = "2026-09-05T08:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
       Settings.now = () => newDate.getTime();
 
-      const slotStartTime = "2050-09-05T10:00:00.000Z";
+      const slotStartTime = "2026-09-05T10:00:00.000Z";
 
       const reserveResponseOne = await request(app.getHttpServer())
         .post(`/v2/slots/reservations`)
