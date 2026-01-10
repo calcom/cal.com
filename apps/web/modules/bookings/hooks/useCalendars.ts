@@ -3,12 +3,11 @@ import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useTimePreferences } from "@calcom/features/bookings/lib";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
+import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
-
-import { useBookerStore } from "../../store";
-import { useOverlayCalendarStore } from "../OverlayCalendar/store";
-import { useLocalSet } from "./useLocalSet";
 
 export type UseCalendarsReturnType = ReturnType<typeof useCalendars>;
 type UseCalendarsProps = {
