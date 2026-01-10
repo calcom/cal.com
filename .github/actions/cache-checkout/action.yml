@@ -18,6 +18,7 @@ runs:
           !.git
           !node_modules
           !**/node_modules
+          !apps/web/public/app-store
         key: git-checkout-${{ github.head_ref || github.ref_name }}-${{ github.event.pull_request.head.sha || github.sha }}
         fail-on-cache-miss: true
 
@@ -37,4 +38,5 @@ runs:
           !.git
           !node_modules
           !**/node_modules
+          !apps/web/public/app-store
         key: git-checkout-${{ github.head_ref || github.ref_name }}-${{ github.event.pull_request.head.sha || github.sha }}
