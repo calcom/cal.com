@@ -12,7 +12,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Select } from "@calcom/ui/components/form";
 import { List } from "@calcom/ui/components/list";
 
-import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
+import { SelectedCalendarsSettings } from "@calcom/atoms/selected-calendars/SelectedCalendarsSettings";
 
 export enum SelectedCalendarSettingsScope {
   User = "user",
@@ -147,7 +147,6 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
 
   const query = trpc.viewer.calendars.connectedCalendars.useQuery(
     {
-       
       eventTypeId: scope === SelectedCalendarSettingsScope.EventType ? eventTypeId! : null,
     },
     {
