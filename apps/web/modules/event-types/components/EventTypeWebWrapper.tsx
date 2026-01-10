@@ -158,6 +158,7 @@ const EventTypeWeb = ({
     teamId: eventType.team?.id || eventType.parent?.teamId,
   });
 
+  // Check workflow permissions
   const { hasPermission: canReadWorkflows } = useWorkflowPermission("canRead");
   const updateMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
     onSuccess: async () => {
@@ -169,9 +170,12 @@ const EventTypeWeb = ({
       }));
       currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
 
+      // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
       revalidateEventTypeEditPage(eventType.id);
       if (eventType.team?.slug) {
+        // When an event-type is updated,
+        // guests could still hit a stale cache and see the old page.
         revalidateTeamEventTypeCache({
           teamSlug: eventType.team.slug,
           meetingSlug: eventType.slug,
@@ -318,6 +322,7 @@ const EventTypeWeb = ({
       ];
 
       Components.forEach((C) => {
+        // how to preload with app dir?
         // @ts-expect-error Property 'render' does not exist on type 'ComponentClass
         C.render?.preload();
       });
@@ -359,6 +364,8 @@ const EventTypeWeb = ({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
       if (team?.slug) {
+        // When a team event-type is deleted,
+        // guests could still hit a stale cache and see the old page.
         revalidateTeamEventTypeCache({
           teamSlug: team.slug,
           meetingSlug: eventType.slug,
@@ -420,6 +427,7 @@ const EventTypeWeb = ({
             onConfirm={(e: { preventDefault: () => void }) => {
               e.preventDefault();
               handleSubmit(form.getValues());
+              // telemetry.event(telemetryEventTypes.slugReplacementAction);
               setSlugExistsChildrenDialogOpen([]);
             }}
           />
