@@ -1044,6 +1044,9 @@ export default class EventManager {
         `Falling back to "daily" video integration for event with location: ${event.location} because credential is missing for the app`
       );
       videoCredential = { ...FAKE_DAILY_CREDENTIAL };
+      // Update event location to match the fallback video integration so that
+      // the email and booking display the correct conferencing app (Cal Video instead of the original)
+      event.location = DailyLocationType;
     }
 
     return videoCredential;
