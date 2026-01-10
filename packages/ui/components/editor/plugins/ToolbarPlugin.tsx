@@ -441,13 +441,17 @@ export default function ToolbarPlugin(props: TextEditorProps) {
     );
   }, [editor, updateToolbar]);
 
-  const insertLink = useCallback(() => {
-    if (!isLink) {
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, "https://");
-    } else {
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
-    }
-  }, [editor, isLink]);
+  const insertLink = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (!isLink) {
+        editor.dispatchCommand(TOGGLE_LINK_COMMAND, "https://");
+      } else {
+        editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
+      }
+    },
+    [editor, isLink]
+  );
 
   if (!props.editable) return null;
   return (
