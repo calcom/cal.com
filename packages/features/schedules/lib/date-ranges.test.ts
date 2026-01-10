@@ -718,6 +718,74 @@ describe("buildDateRanges", () => {
       end: dayjs.utc("2023-06-12T10:00:00Z").tz(timeZone),
     });
   });
+
+  it("should merge overlapping working hours with different end times.", () => {
+    const items = [
+      {
+        days: [1],
+        startTime: new Date(Date.UTC(0, 0, 0, 9, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 15, 30)),
+      },
+      {
+        days: [1],
+        startTime: new Date(Date.UTC(0, 0, 0, 15, 15)),
+        endTime: new Date(Date.UTC(0, 0, 0, 17, 0)),
+      },
+    ];
+
+    const dateFrom = dayjs("2023-06-12T00:00:00Z");
+    const dateTo = dayjs("2023-06-13T00:00:00Z");
+    const timeZone = "UTC";
+
+    const { dateRanges: results } = buildDateRanges({
+      availability: items,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    expect(results.length).toBe(1);
+
+    expect(results[0]).toEqual({
+      start: dayjs.utc("2023-06-12T09:00:00Z").tz(timeZone),
+      end: dayjs.utc("2023-06-12T17:00:00Z").tz(timeZone),
+    });
+  });
+
+  it("should merge adjacent working hours.", () => {
+    const items = [
+      {
+        days: [1],
+        startTime: new Date(Date.UTC(0, 0, 0, 9, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 15, 0)),
+      },
+      {
+        days: [1],
+        startTime: new Date(Date.UTC(0, 0, 0, 15, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 17, 0)),
+      },
+    ];
+
+    const dateFrom = dayjs("2023-06-12T00:00:00Z");
+    const dateTo = dayjs("2023-06-13T00:00:00Z");
+    const timeZone = "UTC";
+
+    const { dateRanges: results } = buildDateRanges({
+      availability: items,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    expect(results.length).toBe(1);
+
+    expect(results[0]).toEqual({
+      start: dayjs.utc("2023-06-12T09:00:00Z").tz(timeZone),
+      end: dayjs.utc("2023-06-12T17:00:00Z").tz(timeZone),
+    });
+  });
 });
 
 describe("subtract", () => {
