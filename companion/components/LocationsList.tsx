@@ -3,19 +3,13 @@
  * Reusable component for displaying and managing multiple event type locations
  */
 
+import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
+import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import type React from "react";
 import { useState } from "react";
-import {
-  ActionSheetIOS,
-  Modal,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import type { LocationItem, LocationOptionGroup } from "@/types/locations";
 import {
   createLocationItemFromOption,
@@ -40,6 +34,12 @@ interface LocationsListProps {
   disabled?: boolean;
   /** Whether locations are loading */
   loading?: boolean;
+  /** Whether to hide the internal add button */
+  hideAddButton?: boolean;
+  /** External control for the add modal */
+  showAddModal?: boolean;
+  /** Callback to change modal visibility */
+  onShowAddModalChange?: (visible: boolean) => void;
 }
 
 function isLocationAlreadyAdded(locations: LocationItem[], optionValue: string): boolean {
@@ -54,6 +54,94 @@ function isLocationAlreadyAdded(locations: LocationItem[], optionValue: string):
   });
 }
 
+const getSFSymbolForType = (type: string) => {
+  switch (type) {
+    case "address":
+      return "mappin.and.ellipse";
+    case "link":
+      return "link";
+    case "phone":
+      return "phone";
+    default:
+      return "video";
+  }
+};
+
+export const AddLocationTrigger = ({
+  isHeader = false,
+  locationOptions,
+  locations,
+  onSelectOption,
+  disabled = false,
+  loading = false,
+  onPressFallback,
+}: {
+  isHeader?: boolean;
+  locationOptions: LocationOptionGroup[];
+  locations: LocationItem[];
+  onSelectOption: (value: string, label: string) => void;
+  disabled?: boolean;
+  loading?: boolean;
+  onPressFallback?: () => void;
+}) => {
+  const trigger = isHeader ? (
+    <TouchableOpacity
+      disabled={disabled || loading}
+      onPress={Platform.OS !== "ios" ? onPressFallback : undefined}
+      hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+      className="flex-row items-center rounded-full border border-[#E5E5E5] bg-[#F2F2F7] p-1"
+    >
+      <Ionicons name="add" size={18} color="#000000" />
+    </TouchableOpacity>
+  ) : (
+    <TouchableOpacity
+      disabled={disabled || loading}
+      onPress={Platform.OS !== "ios" ? onPressFallback : undefined}
+      className={`flex-row items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-3 ${
+        disabled ? "opacity-50" : "active:bg-gray-100"
+      }`}
+    >
+      {loading ? (
+        <Text className="text-sm text-gray-500">Loading options...</Text>
+      ) : (
+        <>
+          <Ionicons name="add-circle-outline" size={20} color="#6B7280" />
+          <Text className="ml-2 text-sm font-medium text-gray-600">Add Location</Text>
+        </>
+      )}
+    </TouchableOpacity>
+  );
+
+  if (Platform.OS !== "ios") {
+    return trigger;
+  }
+
+  return (
+    <Host matchContents>
+      <ContextMenu
+        modifiers={!isHeader ? [buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")] : []}
+        activationMethod="singlePress"
+      >
+        <ContextMenu.Items>
+          {locationOptions.flatMap((group) =>
+            group.options
+              .filter((opt) => !isLocationAlreadyAdded(locations, opt.value))
+              .map((option) => (
+                <Button
+                  key={option.value}
+                  onPress={() => onSelectOption(option.value, option.label)}
+                  label={option.label}
+                  systemImage={getSFSymbolForType(option.value)}
+                />
+              ))
+          )}
+        </ContextMenu.Items>
+        <ContextMenu.Trigger>{trigger}</ContextMenu.Trigger>
+      </ContextMenu>
+    </Host>
+  );
+};
+
 export const LocationsList: React.FC<LocationsListProps> = ({
   locations,
   onAdd,
@@ -62,39 +150,16 @@ export const LocationsList: React.FC<LocationsListProps> = ({
   locationOptions,
   disabled = false,
   loading = false,
+  hideAddButton = false,
+  showAddModal: controlledShowAddModal,
+  onShowAddModalChange,
 }) => {
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [internalShowAddModal, setInternalShowAddModal] = useState(false);
+  const showAddModal = controlledShowAddModal ?? internalShowAddModal;
+  const setShowAddModal = onShowAddModalChange ?? setInternalShowAddModal;
 
   const handleAddLocation = () => {
-    if (Platform.OS === "ios") {
-      const allOptions: { label: string; value: string }[] = [];
-      locationOptions.forEach((group) => {
-        group.options.forEach((option) => {
-          if (!isLocationAlreadyAdded(locations, option.value)) {
-            allOptions.push({ label: option.label, value: option.value });
-          }
-        });
-      });
-
-      const options = [...allOptions.map((o) => o.label), "Cancel"];
-
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options,
-          cancelButtonIndex: options.length - 1,
-          title: "Add Location",
-        },
-        (buttonIndex) => {
-          if (buttonIndex !== options.length - 1 && buttonIndex < allOptions.length) {
-            const selected = allOptions[buttonIndex];
-            const newLocation = createLocationItemFromOption(selected.value, selected.label);
-            onAdd(newLocation);
-          }
-        }
-      );
-    } else {
-      setShowAddModal(true);
-    }
+    setShowAddModal(true);
   };
 
   const handleSelectOption = (optionValue: string, optionLabel: string) => {
@@ -105,11 +170,15 @@ export const LocationsList: React.FC<LocationsListProps> = ({
 
   const renderLocationIcon = (location: LocationItem) => {
     if (location.iconUrl) {
-      return <SvgImage uri={location.iconUrl} width={20} height={20} style={{ marginRight: 12 }} />;
+      return (
+        <View className="mr-3 h-8 w-8 items-center justify-center rounded-lg bg-[#F2F2F7]">
+          <SvgImage uri={location.iconUrl} width={20} height={20} />
+        </View>
+      );
     }
     return (
-      <View style={{ marginRight: 12 }}>
-        <Ionicons name="location-outline" size={20} color="#6B7280" />
+      <View className="mr-3 h-8 w-8 items-center justify-center rounded-lg bg-[#F2F2F7]">
+        <Ionicons name="location" size={18} color="#000000" />
       </View>
     );
   };
@@ -142,9 +211,9 @@ export const LocationsList: React.FC<LocationsListProps> = ({
 
     return (
       <View className="mt-2">
-        <Text className="mb-1 text-xs text-gray-500">{label}</Text>
+        <Text className="mb-1 text-[13px] text-[#6D6D72]">{label}</Text>
         <TextInput
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+          className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
           placeholder={placeholder}
           value={value}
           onChangeText={(text) => onUpdate(location.id, { [fieldKey]: text })}
@@ -157,56 +226,59 @@ export const LocationsList: React.FC<LocationsListProps> = ({
   };
 
   return (
-    <View>
+    <View className="bg-white">
       {/* Locations List */}
       {locations.length > 0 ? (
-        <View className="mb-3 space-y-2">
-          {locations.map((location, _index) => (
-            <View key={location.id} className="rounded-lg border border-gray-200 bg-white p-3">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-1 flex-row items-center">
-                  {renderLocationIcon(location)}
-                  <Text className="flex-1 text-base text-gray-900" numberOfLines={1}>
-                    {location.displayName}
-                  </Text>
+        <View className="mb-2">
+          {locations.map((location, index) => (
+            <View
+              key={location.id}
+              className={`pl-4 ${
+                index !== locations.length - 1 ? "border-b border-[#E5E5E5]" : ""
+              }`}
+            >
+              <View
+                className={`pr-4 ${
+                  index === 0 ? "pt-4 pb-3" : index === locations.length - 1 ? "pt-3 pb-4" : "py-3"
+                }`}
+              >
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-1 flex-row items-center">
+                    {renderLocationIcon(location)}
+                    <Text className="flex-1 text-[17px] text-black font-normal" numberOfLines={1}>
+                      {location.displayName}
+                    </Text>
+                  </View>
+                  {!disabled ? (
+                    <TouchableOpacity
+                      onPress={() => onRemove(location.id)}
+                      className="ml-2"
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Ionicons name="close-circle" size={20} color="#C7C7CC" />
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
-                {!disabled ? (
-                  <TouchableOpacity
-                    onPress={() => onRemove(location.id)}
-                    className="ml-2 p-1"
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <Ionicons name="close-circle" size={20} color="#9CA3AF" />
-                  </TouchableOpacity>
-                ) : null}
+                {renderLocationInput(location)}
               </View>
-              {renderLocationInput(location)}
             </View>
           ))}
         </View>
-      ) : (
-        <View className="mb-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4">
-          <Text className="text-center text-sm text-gray-500">No locations added yet</Text>
-        </View>
-      )}
+      ) : null}
 
       {/* Add Location Button */}
-      <TouchableOpacity
-        onPress={handleAddLocation}
-        disabled={disabled || loading}
-        className={`flex-row items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-3 ${
-          disabled ? "opacity-50" : "active:bg-gray-100"
-        }`}
-      >
-        {loading ? (
-          <Text className="text-sm text-gray-500">Loading options...</Text>
-        ) : (
-          <>
-            <Ionicons name="add-circle-outline" size={20} color="#6B7280" />
-            <Text className="ml-2 text-sm font-medium text-gray-600">Add Location</Text>
-          </>
-        )}
-      </TouchableOpacity>
+      {!hideAddButton && (
+        <View className="pb-2 pt-1 items-center justify-center">
+          <AddLocationTrigger
+            locationOptions={locationOptions}
+            locations={locations}
+            onSelectOption={handleSelectOption}
+            onPressFallback={handleAddLocation}
+            disabled={disabled}
+            loading={loading}
+          />
+        </View>
+      )}
 
       {/* Add Location Modal (for non-iOS) */}
       <Modal

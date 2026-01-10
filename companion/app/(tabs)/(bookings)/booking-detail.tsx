@@ -1,9 +1,9 @@
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert } from "react-native";
+import { useCallback, useMemo, useRef } from "react";
 import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
 import { useAuth } from "@/contexts/AuthContext";
-import { type Booking, CalComAPIService } from "@/services/calcom";
+import { useBookingByUid } from "@/hooks/useBookings";
+import { showErrorAlert, showInfoAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 
 // Empty actions result for when no booking is loaded
@@ -33,7 +33,9 @@ export default function BookingDetail() {
   "use no memo";
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const { userInfo } = useAuth();
-  const [booking, setBooking] = useState<Booking | null>(null);
+
+  // Use React Query hook for booking data - single source of truth
+  const { data: booking, isLoading, error, refetch, isRefetching } = useBookingByUid(uid);
 
   // Ref to store action handlers from BookingDetailScreen
   const actionHandlersRef = useRef<ActionHandlers | null>(null);
@@ -42,17 +44,6 @@ export default function BookingDetail() {
   const handleActionsReady = useCallback((handlers: ActionHandlers) => {
     actionHandlersRef.current = handlers;
   }, []);
-
-  // Fetch booking data for the iOS header menu actions
-  useEffect(() => {
-    if (uid) {
-      CalComAPIService.getBookingByUid(uid)
-        .then(setBooking)
-        .catch(() => {
-          // Error handling is done in BookingDetailScreen
-        });
-    }
-  }, [uid]);
 
   // Compute actions using centralized gating (same as BookingDetailScreen)
   const actions = useMemo(() => {
@@ -73,7 +64,7 @@ export default function BookingDetail() {
     if (actionHandlersRef.current?.openRescheduleModal) {
       actionHandlersRef.current.openRescheduleModal();
     } else {
-      Alert.alert("Error", "Unable to reschedule. Please try again.");
+      showErrorAlert("Error", "Unable to reschedule. Please try again.");
     }
   }, []);
 
@@ -81,7 +72,7 @@ export default function BookingDetail() {
     if (actionHandlersRef.current?.openEditLocationModal) {
       actionHandlersRef.current.openEditLocationModal();
     } else {
-      Alert.alert("Error", "Unable to edit location. Please try again.");
+      showErrorAlert("Error", "Unable to edit location. Please try again.");
     }
   }, []);
 
@@ -89,7 +80,7 @@ export default function BookingDetail() {
     if (actionHandlersRef.current?.openAddGuestsModal) {
       actionHandlersRef.current.openAddGuestsModal();
     } else {
-      Alert.alert("Error", "Unable to add guests. Please try again.");
+      showErrorAlert("Error", "Unable to add guests. Please try again.");
     }
   }, []);
 
@@ -97,7 +88,7 @@ export default function BookingDetail() {
     if (actionHandlersRef.current?.openViewRecordingsModal) {
       actionHandlersRef.current.openViewRecordingsModal();
     } else {
-      Alert.alert("Error", "Unable to view recordings. Please try again.");
+      showErrorAlert("Error", "Unable to view recordings. Please try again.");
     }
   }, []);
 
@@ -105,7 +96,7 @@ export default function BookingDetail() {
     if (actionHandlersRef.current?.openMeetingSessionDetailsModal) {
       actionHandlersRef.current.openMeetingSessionDetailsModal();
     } else {
-      Alert.alert("Error", "Unable to view session details. Please try again.");
+      showErrorAlert("Error", "Unable to view session details. Please try again.");
     }
   }, []);
 
@@ -113,19 +104,19 @@ export default function BookingDetail() {
     if (actionHandlersRef.current?.openMarkNoShowModal) {
       actionHandlersRef.current.openMarkNoShowModal();
     } else {
-      Alert.alert("Error", "Unable to mark no-show. Please try again.");
+      showErrorAlert("Error", "Unable to mark no-show. Please try again.");
     }
   }, []);
 
   const handleReport = useCallback(() => {
-    Alert.alert("Report Booking", "Report booking functionality is not yet available");
+    showInfoAlert("Report Booking", "Report booking functionality is not yet available");
   }, []);
 
   const handleCancel = useCallback(() => {
     if (actionHandlersRef.current?.handleCancelBooking) {
       actionHandlersRef.current.handleCancelBooking();
     } else {
-      Alert.alert("Error", "Unable to cancel. Please try again.");
+      showErrorAlert("Error", "Unable to cancel. Please try again.");
     }
   }, []);
 
@@ -286,7 +277,14 @@ export default function BookingDetail() {
         </Stack.Header.Right>
       </Stack.Header>
 
-      <BookingDetailScreen uid={uid} onActionsReady={handleActionsReady} />
+      <BookingDetailScreen
+        booking={booking}
+        isLoading={isLoading}
+        error={error ?? null}
+        refetch={refetch}
+        isRefetching={isRefetching}
+        onActionsReady={handleActionsReady}
+      />
 
       {/* Action Modals for iOS header menu */}
     </>
