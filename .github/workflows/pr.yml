@@ -174,11 +174,7 @@ jobs:
       db-cache-hit: ${{ steps.cache-db-check.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
-      - name: Cache git checkout
-        uses: ./.github/actions/cache-checkout
-        with:
-          mode: save
+      - uses: ./.github/actions/cache-checkout
       - name: Generate DB cache key
         id: cache-db-key
         uses: ./.github/actions/cache-db-key
