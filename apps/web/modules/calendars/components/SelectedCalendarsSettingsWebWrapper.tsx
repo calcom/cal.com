@@ -12,7 +12,7 @@ import AppListCard from "../../apps/components/AppListCard";
 import CredentialActionsDropdown from "../../apps/components/CredentialActionsDropdown";
 import AdditionalCalendarSelector from "./AdditionalCalendarSelector";
 import { CalendarSwitch } from "./CalendarSwitch";
-import { SelectedCalendarsSettings } from "./SelectedCalendarsSettings";
+import { SelectedCalendarsSettings } from "../../../../../packages/platform/atoms/selected-calendars/SelectedCalendarsSettings";
 
 export enum SelectedCalendarSettingsScope {
   User = "user",
