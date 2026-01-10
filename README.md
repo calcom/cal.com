@@ -123,7 +123,7 @@ Here is what you need to be able to run Cal.com.
 
 ### Setup
 
-1. Clone the repo into a public GitHub repository (or fork https://github.com/calcom/cal.com/fork). If you plan to distribute the code, keep the source code public to comply with [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE). To clone in a private repository, [acquire a commercial license](https://cal.com/sales)
+1. Clone the repo (or fork https://github.com/calcom/cal.com/fork). The code is licensed under [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE), which requires you to provide source code to users who interact with the software over a network. For commercial use without these requirements, [acquire a commercial license](https://cal.com/sales)
 
    ```sh
    git clone https://github.com/calcom/cal.com.git
