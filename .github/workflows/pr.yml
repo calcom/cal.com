@@ -169,6 +169,7 @@ jobs:
       has-files-requiring-all-checks: ${{ steps.filter.outputs.has-files-requiring-all-checks }}
       has_companion: ${{ steps.filter.outputs.has_companion }}
       has-api-v2-changes: ${{ steps.filter.outputs.has-api-v2-changes }}
+      commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
       db-cache-hit: ${{ steps.cache-db-check.outputs.cache-hit }}
     steps:
@@ -215,6 +216,10 @@ jobs:
               - "packages/trpc/**"
               - "packages/prisma/schema.prisma"
               - "docs/api-reference/v2/**"
+      - name: Get Latest Commit SHA
+        id: get_sha
+        run: |
+          echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Check if PR exists with ready-for-e2e label for this SHA
         id: check-if-pr-has-label
         uses: actions/github-script@v7
