@@ -9,23 +9,28 @@ export function EventTypeListItemSkeleton({ isLast = false }: EventTypeListItemS
   return (
     <View className={`bg-cal-bg ${!isLast ? "border-b border-cal-border" : ""}`}>
       <View
-        style={{ paddingHorizontal: 16, paddingVertical: 16 }}
-        className="flex-row items-center justify-between"
+        style={{
+          paddingHorizontal: 16,
+          paddingVertical: 16,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
       >
         <View style={{ flex: 1, marginRight: 12 }}>
-          <View className="mb-1 flex-row flex-wrap items-baseline">
-            <Skeleton className="h-5 w-32 rounded" />
-            <Skeleton className="ml-2 h-4 w-24 rounded" />
+          <View style={{ flexDirection: "row", alignItems: "baseline", marginBottom: 4 }}>
+            <Skeleton style={{ height: 20, width: 120, borderRadius: 4 }} />
+            <Skeleton style={{ height: 16, width: 100, borderRadius: 4, marginLeft: 8 }} />
           </View>
 
-          <View className="mt-2 flex-row flex-wrap items-center gap-2">
-            <Skeleton className="h-6 w-14 rounded-md" />
-            <Skeleton className="h-6 w-16 rounded-md" />
-            <Skeleton className="h-6 w-20 rounded-md" />
+          <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8, gap: 8 }}>
+            <Skeleton style={{ height: 24, width: 56, borderRadius: 6 }} />
+            <Skeleton style={{ height: 24, width: 64, borderRadius: 6 }} />
+            <Skeleton style={{ height: 24, width: 80, borderRadius: 6 }} />
           </View>
         </View>
 
-        <Skeleton className="h-9 w-9 rounded-lg" />
+        <Skeleton style={{ height: 36, width: 36, borderRadius: 8 }} />
       </View>
     </View>
   );
