@@ -6,7 +6,9 @@ import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils"
 import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
+  allowDisablingAttendeeCancellationEmails,
   allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostCancellationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { HashedLinkRepository } from "@calcom/features/hashedLink/lib/repository/HashedLinkRepository";
@@ -560,6 +562,39 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (input.metadata?.disableStandardEmails.confirmation?.attendee) {
       if (!allowDisablingAttendeeConfirmationEmails(workflows)) {
         input.metadata.disableStandardEmails.confirmation.attendee = false;
+      }
+    }
+  }
+
+  if(input.metadata?.disableStandardEmails?.cancellation) {
+    //check if user is allowed to disabled standard emails
+    const workflows = await ctx.prisma.workflow.findMany({
+      where: {
+        activeOn: {
+          some: {
+            eventTypeId: input.id,
+          },
+        },
+        trigger: WorkflowTriggerEvents.EVENT_CANCELLED,
+      },
+      include: {
+        steps: {
+          select: {
+            action: true,
+          },
+        },
+      },
+    });
+
+    if(input.metadata.disableStandardEmails.cancellation.host) {
+      if(!allowDisablingHostCancellationEmails(workflows)) {
+        input.metadata.disableStandardEmails.cancellation.host = false;
+      }
+    }
+    
+    if(input.metadata.disableStandardEmails.cancellation.host) {
+      if(!allowDisablingAttendeeCancellationEmails(workflows)) {
+        input.metadata.disableStandardEmails.cancellation.attendee = false;
       }
     }
   }
