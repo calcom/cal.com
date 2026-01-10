@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { z } from "zod";
 
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -76,8 +76,8 @@ export function useInitialFormValues({
     values: {},
     key: "",
   });
-  const bookingData = useBookerStore((state) => state.bookingData);
-  const formValues = useBookerStore((state) => state.formValues);
+  const bookingData = useBookerStoreContext((state) => state.bookingData);
+  const formValues = useBookerStoreContext((state) => state.formValues);
 
   // Check if organization has disabled autofill from URL parameters
   const isAutofillDisabledByOrg =
