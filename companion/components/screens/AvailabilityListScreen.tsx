@@ -324,7 +324,7 @@ export function AvailabilityListScreen({
             padding: 20,
             paddingBottom: 90,
           }}
-          refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
+          refreshControl={<RefreshControl refreshing={isManualRefreshing} onRefresh={onRefresh} />}
           contentInsetAdjustmentBehavior="automatic"
         >
           <EmptyScreen
@@ -350,7 +350,9 @@ export function AvailabilityListScreen({
               padding: 20,
               paddingBottom: 90,
             }}
-            refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
+            refreshControl={
+              <RefreshControl refreshing={isManualRefreshing} onRefresh={onRefresh} />
+            }
           >
             <EmptyScreen
               icon="search-outline"

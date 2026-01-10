@@ -676,7 +676,9 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
             contentContainerStyle={{
               padding: 20,
             }}
-            refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
+            refreshControl={
+              <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
+            }
             contentInsetAdjustmentBehavior="automatic"
             style={{ backgroundColor: "white" }}
           >
@@ -696,7 +698,9 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
             contentContainerStyle={{
               padding: 20,
             }}
-            refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
+            refreshControl={
+              <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
+            }
             contentInsetAdjustmentBehavior="automatic"
             style={{ backgroundColor: "white" }}
           >
