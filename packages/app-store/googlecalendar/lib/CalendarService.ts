@@ -7,6 +7,7 @@ import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { Prisma } from "@calcom/prisma/client";
 import type {
@@ -46,6 +47,31 @@ export default class GoogleCalendarService implements Calendar {
     this.credential = credential;
     this.auth = new CalendarAuth(credential);
     this.log = log.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+  }
+
+  private async getReminderDuration(credentialId: number): Promise<number | null> {
+    try {
+      return await DestinationCalendarRepository.getInstance().getCustomReminderByCredentialId(credentialId);
+    } catch (error) {
+      this.log.warn("Failed to fetch custom calendar reminder", safeStringify(error));
+      return null;
+    }
+  }
+
+  private getReminders(customReminderMinutes: number | null): {
+    useDefault: boolean;
+    overrides?: { method: string; minutes: number }[];
+  } {
+    if (customReminderMinutes !== null) {
+      return {
+        useDefault: false,
+        overrides: [
+          { method: "popup", minutes: customReminderMinutes },
+          { method: "email", minutes: customReminderMinutes },
+        ],
+      };
+    }
+    return { useDefault: true };
   }
 
   public getCredentialId() {
@@ -119,6 +145,9 @@ export default class GoogleCalendarService implements Calendar {
   ): Promise<NewCalendarEventType> {
     this.log.debug("Creating event");
 
+    // Fetch custom reminder duration for this credential's destination calendar
+    const customReminderMinutes = await this.getReminderDuration(credentialId);
+
     const payload: calendar_v3.Schema$Event = {
       summary: calEvent.title,
       description: calEvent.calendarDescription,
@@ -131,9 +160,7 @@ export default class GoogleCalendarService implements Calendar {
         timeZone: calEvent.organizer.timeZone,
       },
       attendees: this.getAttendees({ event: calEvent, hostExternalCalendarId: externalCalendarId }),
-      reminders: {
-        useDefault: true,
-      },
+      reminders: this.getReminders(customReminderMinutes),
       guestsCanSeeOtherGuests: calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
       iCalUID: calEvent.iCalUID,
     };
@@ -278,6 +305,9 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId: string): Promise<any> {
+    // Fetch custom reminder duration for this credential's destination calendar
+    const customReminderMinutes = await this.getReminderDuration(this.credential.id);
+
     const payload: calendar_v3.Schema$Event = {
       summary: event.title,
       description: event.calendarDescription,
@@ -290,9 +320,7 @@ export default class GoogleCalendarService implements Calendar {
         timeZone: event.organizer.timeZone,
       },
       attendees: this.getAttendees({ event, hostExternalCalendarId: externalCalendarId }),
-      reminders: {
-        useDefault: true,
-      },
+      reminders: this.getReminders(customReminderMinutes),
       guestsCanSeeOtherGuests: event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
     };
 

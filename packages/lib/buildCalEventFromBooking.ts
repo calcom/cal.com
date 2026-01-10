@@ -16,6 +16,7 @@ type DestinationCalendar = {
   domainWideDelegationCredentialId: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
+  customCalendarReminder: number | null;
 } | null;
 
 type Attendee = {
