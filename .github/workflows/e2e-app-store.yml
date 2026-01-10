@@ -87,6 +87,8 @@ jobs:
             /*
             !/docs
             !/example-apps
+            !/apps/api/v1
+            !/apps/api/v2
           sparse-checkout-cone-mode: "false"
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
