@@ -72,6 +72,7 @@ export function BookingListSkeleton({ count = 4, iosStyle = false }: BookingList
           <Skeleton style={{ height: 16, width: 80, borderRadius: 4 }} />
         </View>
         {Array.from({ length: count }).map((_, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton items don't reorder
           <BookingListItemSkeleton key={`booking-skeleton-${index}`} isLast={index === count - 1} />
         ))}
       </ScrollView>
@@ -93,6 +94,7 @@ export function BookingListSkeleton({ count = 4, iosStyle = false }: BookingList
           <Skeleton style={{ height: 16, width: 80, borderRadius: 4 }} />
         </View>
         {Array.from({ length: count }).map((_, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton items don't reorder
           <BookingListItemSkeleton key={`booking-skeleton-${index}`} isLast={index === count - 1} />
         ))}
       </View>

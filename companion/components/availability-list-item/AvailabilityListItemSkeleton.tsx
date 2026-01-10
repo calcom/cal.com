@@ -79,6 +79,7 @@ export function AvailabilityListSkeleton({
         >
           {Array.from({ length: count }).map((_, index) => (
             <AvailabilityListItemSkeleton
+              // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton items don't reorder
               key={`availability-skeleton-${index}`}
               isLast={index === count - 1}
             />
@@ -95,6 +96,7 @@ export function AvailabilityListSkeleton({
     >
       {Array.from({ length: count }).map((_, index) => (
         <AvailabilityListItemSkeleton
+          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton items don't reorder
           key={`availability-skeleton-${index}`}
           isLast={index === count - 1}
         />

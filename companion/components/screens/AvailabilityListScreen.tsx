@@ -62,13 +62,7 @@ export function AvailabilityListScreen({
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   // Use React Query hooks
-  const {
-    data: schedules = [],
-    isLoading: loading,
-    isFetching,
-    error: queryError,
-    refetch,
-  } = useSchedules();
+  const { data: schedules = [], isLoading: loading, error: queryError, refetch } = useSchedules();
 
   const { mutate: createScheduleMutation, isPending: creating } = useCreateSchedule();
   const { mutate: deleteScheduleMutation, isPending: deleting } = useDeleteSchedule();
@@ -99,11 +93,9 @@ export function AvailabilityListScreen({
   // Handle pull-to-refresh (offline-aware)
   const onRefresh = async () => {
     setIsManualRefreshing(true);
-    try {
-      await offlineAwareRefresh(refetch);
-    } finally {
+    await offlineAwareRefresh(refetch).finally(() => {
       setIsManualRefreshing(false);
-    }
+    });
   };
 
   const handleSearch = (query: string) => {

@@ -110,6 +110,7 @@ export function EventTypeListSkeleton({ count = 5 }: EventTypeListSkeletonProps)
     <View className="px-2 pt-4 md:px-4">
       <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
         {Array.from({ length: count }).map((_, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton items don't reorder
           <EventTypeListItemSkeleton key={`skeleton-${index}`} isLast={index === count - 1} />
         ))}
       </View>
