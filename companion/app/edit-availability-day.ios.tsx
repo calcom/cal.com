@@ -2,11 +2,12 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { EditAvailabilityDayScreenHandle } from "@/components/screens/EditAvailabilityDayScreen.ios";
 import EditAvailabilityDayScreenComponent from "@/components/screens/EditAvailabilityDayScreen.ios";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -39,13 +40,13 @@ export default function EditAvailabilityDayIOS() {
       CalComAPIService.getScheduleById(Number(id))
         .then(setSchedule)
         .catch(() => {
-          Alert.alert("Error", "Failed to load schedule details");
+          showErrorAlert("Error", "Failed to load schedule details");
           router.back();
         })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
-      Alert.alert("Error", "Schedule ID is missing");
+      showErrorAlert("Error", "Schedule ID is missing");
       router.back();
     }
   }, [id, router]);
