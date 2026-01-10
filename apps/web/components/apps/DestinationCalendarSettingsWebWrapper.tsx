@@ -1,7 +1,7 @@
 import { trpc } from "@calcom/trpc/react";
 
-import { AtomsWrapper } from "../../src/components/atoms-wrapper";
-import { DestinationCalendarSettings } from "../DestinationCalendar";
+import { AtomsWrapper } from "../../../../packages/platform/atoms/src/components/atoms-wrapper";
+import { DestinationCalendarSettings } from "../../../../packages/platform/atoms/destination-calendar/DestinationCalendar";
 
 export const DestinationCalendarSettingsWebWrapper = () => {
   const calendars = trpc.viewer.calendars.connectedCalendars.useQuery();

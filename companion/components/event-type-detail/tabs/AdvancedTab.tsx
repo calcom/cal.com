@@ -1,6 +1,14 @@
-import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
-import { Stack } from "expo-router";
+/**
+ * AdvancedTab Component
+ *
+ * Unified Settings app style for iOS, Android, and Web.
+ * Uses native iOS pickers via ContextMenu and grouped rows for consistency.
+ */
+
+import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
+import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { useState } from "react";
 import {
   Alert,
@@ -14,6 +22,7 @@ import {
   View,
 } from "react-native";
 
+import { showInfoAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 
 // Interface language options matching API V2 enum
@@ -58,47 +67,207 @@ const interfaceLanguageOptions = [
   { label: "中文（台灣）", value: "zh-TW" },
 ];
 
-interface ConfigureOnWebCardProps {
-  title: string;
-  description: string;
-  eventTypeId: string;
-  browserTitle: string;
+// Section header
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <Text
+      className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
+      style={{ letterSpacing: 0.5 }}
+    >
+      {title}
+    </Text>
+  );
 }
 
-function ConfigureOnWebCard({
+// Settings group container
+function SettingsGroup({
+  children,
+  header,
+  footer,
+}: {
+  children: React.ReactNode;
+  header?: string;
+  footer?: string;
+}) {
+  return (
+    <View>
+      {header ? <SectionHeader title={header} /> : null}
+      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
+      {footer ? <Text className="ml-4 mt-2 text-[13px] text-[#6D6D72]">{footer}</Text> : null}
+    </View>
+  );
+}
+
+// Toggle row with indented separator
+function SettingRow({
   title,
   description,
-  eventTypeId,
-  browserTitle,
-}: ConfigureOnWebCardProps) {
+  value,
+  onValueChange,
+  learnMoreUrl,
+  isFirst = false,
+  isLast = false,
+}: {
+  title: string;
+  description?: string;
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+  learnMoreUrl?: string;
+  isFirst?: boolean;
+  isLast?: boolean;
+}) {
+  const height = isFirst || isLast ? 52 : 44;
+  const showDescription = () => {
+    if (!description) return;
+
+    const buttons: {
+      text: string;
+      onPress?: () => void;
+      style?: "cancel" | "default" | "destructive";
+    }[] = [{ text: "OK", style: "cancel" }];
+
+    if (learnMoreUrl) {
+      buttons.unshift({
+        text: "Learn more",
+        onPress: () => openInAppBrowser(learnMoreUrl, "Learn more"),
+      });
+    }
+
+    Alert.alert(title, description, buttons);
+  };
+
   return (
-    <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-      <Text className="mb-1.5 text-base font-medium text-[#333]">{title}</Text>
-      <Text className="mb-3 text-sm text-[#666]">{description}</Text>
-      <TouchableOpacity
-        className="flex-row items-center justify-center rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-2 py-3 md:px-4"
-        onPress={() => {
-          if (eventTypeId && eventTypeId !== "new") {
-            openInAppBrowser(
-              `https://app.cal.com/event-types/${eventTypeId}?tabName=advanced`,
-              browserTitle
-            );
-          } else {
-            Alert.alert("Info", "Save the event type first to configure this setting.");
-          }
-        }}
+    <View className="bg-white pl-4">
+      <View
+        className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
+        style={{ height }}
       >
-        <Ionicons name="settings-outline" size={20} color="#666" />
-        <Text className="ml-2 text-base text-[#666]">Configure on Web</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          className="flex-1 flex-row items-center"
+          style={{ height }}
+          onPress={description ? showDescription : undefined}
+          activeOpacity={description ? 0.7 : 1}
+          disabled={!description}
+        >
+          <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
+            {title}
+          </Text>
+          {description ? (
+            <Ionicons name="chevron-down" size={12} color="#C7C7CC" style={{ marginLeft: 6 }} />
+          ) : null}
+        </TouchableOpacity>
+        <View style={{ alignSelf: "center" }}>
+          <Switch
+            value={value}
+            onValueChange={onValueChange}
+            trackColor={{ false: "#E9E9EA", true: "#000000" }}
+            thumbColor={Platform.OS === "android" ? "#FFFFFF" : undefined}
+          />
+        </View>
+      </View>
     </View>
+  );
+}
+
+// Navigation row (with chevron)
+function NavigationRow({
+  title,
+  value,
+  onPress,
+  isFirst = false,
+  isLast = false,
+  options,
+  onSelect,
+}: {
+  title: string;
+  value?: string;
+  onPress: () => void;
+  isFirst?: boolean;
+  isLast?: boolean;
+  options?: { label: string; value: string }[];
+  onSelect?: (value: string) => void;
+}) {
+  const height = isFirst || isLast ? 52 : 44;
+  return (
+    <View className="bg-white pl-4" style={{ height }}>
+      <View
+        className={`flex-1 flex-row items-center justify-between pr-4 ${
+          !isLast ? "border-b border-[#E5E5E5]" : ""
+        }`}
+        style={{ height }}
+      >
+        <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
+          {title}
+        </Text>
+        <View className="flex-row items-center">
+          {Platform.OS === "ios" && options && onSelect ? (
+            <>
+              {value ? (
+                <Text className="mr-2 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                  {value}
+                </Text>
+              ) : null}
+              <IOSPickerTrigger options={options} selectedValue={value || ""} onSelect={onSelect} />
+            </>
+          ) : (
+            <TouchableOpacity
+              className="flex-row items-center"
+              onPress={onPress}
+              activeOpacity={0.5}
+            >
+              {value ? (
+                <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                  {value}
+                </Text>
+              ) : null}
+              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// iOS Native Picker trigger component
+function IOSPickerTrigger({
+  options,
+  selectedValue,
+  onSelect,
+}: {
+  options: { label: string; value: string }[];
+  selectedValue: string;
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <Host matchContents>
+      <ContextMenu
+        modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
+        activationMethod="singlePress"
+      >
+        <ContextMenu.Items>
+          {options.map((opt) => (
+            <Button
+              key={opt.value}
+              systemImage={selectedValue === opt.label ? "checkmark" : undefined}
+              onPress={() => onSelect(opt.value)}
+              label={opt.label}
+            />
+          ))}
+        </ContextMenu.Items>
+        <ContextMenu.Trigger>
+          <HStack>
+            <Image systemName="chevron.up.chevron.down" color="primary" size={13} />
+          </HStack>
+        </ContextMenu.Trigger>
+      </ContextMenu>
+    </Host>
   );
 }
 
 interface AdvancedTabProps {
   requiresConfirmation: boolean;
   setRequiresConfirmation: (value: boolean) => void;
-
   requiresBookerEmailVerification: boolean;
   setRequiresBookerEmailVerification: (value: boolean) => void;
   hideCalendarNotes: boolean;
@@ -134,7 +303,6 @@ interface AdvancedTabProps {
   showAvailabilityCount: boolean;
   setShowAvailabilityCount: (value: boolean) => void;
   eventTypeId: string;
-  // New API V2 props
   disableCancelling: boolean;
   setDisableCancelling: (value: boolean) => void;
   disableRescheduling: boolean;
@@ -156,162 +324,225 @@ export function AdvancedTab(props: AdvancedTabProps) {
   };
 
   return (
-    <View className="gap-3">
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">Requires confirmation</Text>
-            <Text className="text-sm text-[#666]">
-              The booking needs to be manually confirmed before it is pushed to your calendar and a
-              confirmation is sent.
-            </Text>
-          </View>
-          <Switch
-            value={props.requiresConfirmation}
-            onValueChange={props.setRequiresConfirmation}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
+    <View className="gap-6">
+      {/* Booking Confirmation Group */}
+      <SettingsGroup header="Confirmation">
+        <SettingRow
+          isFirst
+          title="Requires confirmation"
+          description="The booking needs to be manually confirmed before it is pushed to your calendar and a confirmation is sent."
+          value={props.requiresConfirmation}
+          onValueChange={props.setRequiresConfirmation}
+        />
+        <SettingRow
+          title="Email verification"
+          description="To ensure booker's email verification before scheduling events."
+          value={props.requiresBookerEmailVerification}
+          onValueChange={props.setRequiresBookerEmailVerification}
+          isLast
+        />
+      </SettingsGroup>
 
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">Disable Cancelling</Text>
-            <Text className="text-sm text-[#666]">
-              Guests and Organizer can no longer cancel the event with calendar invite or email.
-            </Text>
-          </View>
-          <Switch
-            value={props.disableCancelling}
-            onValueChange={props.setDisableCancelling}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
+      {/* Cancellation & Rescheduling Group */}
+      <SettingsGroup header="Cancellation & Rescheduling">
+        <SettingRow
+          isFirst
+          title="Disable Cancelling"
+          description="Guests and Organizer can no longer cancel the event with calendar invite or email."
+          value={props.disableCancelling}
+          onValueChange={props.setDisableCancelling}
+        />
+        <SettingRow
+          title="Disable Rescheduling"
+          description="Guests and Organizer can no longer reschedule the event with calendar invite or email."
+          value={props.disableRescheduling}
+          onValueChange={props.setDisableRescheduling}
+        />
+        <SettingRow
+          title="Reschedule past events"
+          description="Enabling this option allows for past events to be rescheduled."
+          value={props.allowReschedulingPastEvents}
+          onValueChange={props.setAllowReschedulingPastEvents}
+        />
+        <SettingRow
+          title="Book via reschedule link"
+          description="When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+          value={props.allowBookingThroughRescheduleLink}
+          onValueChange={props.setAllowBookingThroughRescheduleLink}
+          isLast
+        />
+      </SettingsGroup>
 
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">Disable Rescheduling</Text>
-            <Text className="text-sm text-[#666]">
-              Guests and Organizer can no longer reschedule the event with calendar invite or email.
-            </Text>
-          </View>
-          <Switch
-            value={props.disableRescheduling}
-            onValueChange={props.setDisableRescheduling}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
+      {/* Privacy Group */}
+      <SettingsGroup header="Privacy">
+        <SettingRow
+          isFirst
+          title="Hide notes in calendar"
+          description="For privacy reasons, additional inputs and notes will be hidden in the calendar entry. They will still be sent to your email."
+          value={props.hideCalendarNotes}
+          onValueChange={props.setHideCalendarNotes}
+        />
+        <SettingRow
+          title="Hide calendar event details"
+          description="When a calendar is shared, events are visible to readers but their details are hidden from those without write access."
+          value={props.hideCalendarEventDetails}
+          onValueChange={props.setHideCalendarEventDetails}
+        />
+        <SettingRow
+          title="Hide organizer's email"
+          description="Hide organizer's email address from the booking screen, email notifications, and calendar events."
+          value={props.hideOrganizerEmail}
+          onValueChange={props.setHideOrganizerEmail}
+          isLast
+        />
+      </SettingsGroup>
 
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">
-              Send Cal Video Transcription Emails
-            </Text>
-            <Text className="text-sm text-[#666]">
-              Send emails with the transcription of the Cal Video after the meeting ends.
-            </Text>
-          </View>
-          <Switch
-            value={props.sendCalVideoTranscription}
-            onValueChange={props.setSendCalVideoTranscription}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
+      {/* Features Group */}
+      <SettingsGroup header="Features">
+        <SettingRow
+          isFirst
+          title="Cal Video Transcription"
+          description="Send emails with the transcription of the Cal Video after the meeting ends."
+          value={props.sendCalVideoTranscription}
+          onValueChange={props.setSendCalVideoTranscription}
+        />
+        <SettingRow
+          title="Optimized slots"
+          description="Arrange time slots to optimize availability."
+          value={props.showOptimizedSlots}
+          onValueChange={props.setShowOptimizedSlots}
+        />
+        <SettingRow
+          title="Lock timezone"
+          description="To lock the timezone on booking page, useful for in-person events."
+          value={props.lockTimezone}
+          onValueChange={props.setLockTimezone}
+          learnMoreUrl="https://cal.com/help/event-types/lock-timezone"
+        />
+        <SettingRow
+          title="Offer seats"
+          description="Offer seats for booking. This automatically disables guest & opt-in bookings."
+          value={props.seatsEnabled}
+          onValueChange={props.setSeatsEnabled}
+          learnMoreUrl="https://cal.com/help/event-types/offer-seats"
+          isLast
+        />
+      </SettingsGroup>
 
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <Text className="mb-1.5 text-base font-medium text-[#333]">Interface Language</Text>
-        <Text className="mb-3 text-sm text-[#666]">
-          Set your preferred language for the booking interface.
-        </Text>
-        <TouchableOpacity
-          className="flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
+      {/* Timezone selector - shown when lock timezone is enabled */}
+      {props.lockTimezone ? (
+        <SettingsGroup header="Timezone">
+          <NavigationRow
+            isFirst
+            isLast
+            title="Locked Timezone"
+            value={props.lockedTimezone || "Europe/London"}
+            onPress={() => openInAppBrowser("https://app.cal.com/event-types", "Select Timezone")}
+          />
+        </SettingsGroup>
+      ) : null}
+
+      {/* Seats Configuration - shown when enabled */}
+      {props.seatsEnabled ? (
+        <SettingsGroup header="Seats">
+          <View className="bg-white pl-4">
+            <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
+              <Text className="mb-2 text-[13px] text-[#6D6D72]">Seats per booking</Text>
+              <TextInput
+                className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+                value={props.seatsPerTimeSlot}
+                onChangeText={props.setSeatsPerTimeSlot}
+                placeholder="2"
+                placeholderTextColor="#8E8E93"
+                keyboardType="numeric"
+              />
+            </View>
+          </View>
+          <SettingRow
+            title="Share attendee info"
+            description="Share attendee information between guests."
+            value={props.showAttendeeInfo}
+            onValueChange={props.setShowAttendeeInfo}
+          />
+          <SettingRow
+            title="Show available seats"
+            description="Show the number of available seats to bookers."
+            value={props.showAvailabilityCount}
+            onValueChange={props.setShowAvailabilityCount}
+            isLast
+          />
+        </SettingsGroup>
+      ) : null}
+
+      {/* Language */}
+      <SettingsGroup header="Language">
+        <NavigationRow
+          isFirst
+          isLast
+          title="Interface Language"
+          value={getLanguageLabel(props.interfaceLanguage)}
           onPress={() => setShowLanguagePicker(true)}
+          options={interfaceLanguageOptions}
+          onSelect={props.setInterfaceLanguage}
+        />
+      </SettingsGroup>
+
+      {/* Language Picker Modal */}
+      <Modal
+        visible={showLanguagePicker}
+        animationType="slide"
+        transparent={Platform.OS !== "ios"}
+        presentationStyle={Platform.OS === "ios" ? "formSheet" : undefined}
+        onRequestClose={() => setShowLanguagePicker(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: Platform.OS === "ios" ? "#F2F2F7" : "rgba(0,0,0,0.5)",
+          }}
         >
-          <Text className="text-base text-[#333]">{getLanguageLabel(props.interfaceLanguage)}</Text>
-          <Ionicons name="chevron-down" size={20} color="#666" />
-        </TouchableOpacity>
-
-        {/* Language Picker Modal */}
-        <Modal
-          visible={showLanguagePicker}
-          animationType="slide"
-          transparent={Platform.OS !== "ios"}
-          presentationStyle={Platform.OS === "ios" ? "formSheet" : undefined}
-          onRequestClose={() => setShowLanguagePicker(false)}
-        >
-          {Platform.OS === "ios" ? (
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: isLiquidGlassAvailable() ? "transparent" : "#F2F2F7",
-              }}
-            >
-              {/* Glass Header */}
-              {isLiquidGlassAvailable() ? (
-                <GlassView
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: 60, // Standard header height
-                    zIndex: 10,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    paddingHorizontal: 16,
-                  }}
-                  glassEffectStyle="regular"
-                >
-                  <TouchableOpacity
-                    onPress={() => setShowLanguagePicker(false)}
-                    className="h-[30px] w-[30px] items-center justify-center rounded-full bg-[#E5E5EA]"
-                  >
-                    <Ionicons name="close" size={20} color="#8E8E93" />
-                  </TouchableOpacity>
-
-                  <Text className="text-[17px] font-semibold text-black">Select Language</Text>
-
-                  {/* Spacer to balance the centered title since we removed the right button */}
-                  <View className="h-8 w-8" />
-                </GlassView>
-              ) : (
-                <View className="absolute left-0 right-0 top-0 z-10 h-[60px] flex-row items-center justify-between border-b border-[#E5E5EA] bg-white px-4">
-                  <TouchableOpacity
-                    onPress={() => setShowLanguagePicker(false)}
-                    className="h-8 w-8 items-center justify-center rounded-full bg-[#E5E5EA]"
-                  >
-                    <Ionicons name="close" size={20} color="#8E8E93" />
-                  </TouchableOpacity>
-
-                  <Text className="text-[17px] font-semibold text-black">Select Language</Text>
-
-                  {/* Spacer to balance the centered title */}
-                  <View className="h-8 w-8" />
-                </View>
-              )}
-
-              <ScrollView
-                className="flex-1"
-                contentContainerStyle={{ paddingTop: 80, paddingHorizontal: 16, paddingBottom: 40 }}
+          {Platform.OS !== "ios" ? (
+            <TouchableOpacity
+              style={{ flex: 1 }}
+              activeOpacity={1}
+              onPress={() => setShowLanguagePicker(false)}
+            />
+          ) : null}
+          <View
+            style={
+              Platform.OS === "ios"
+                ? { flex: 1 }
+                : {
+                    backgroundColor: "#F2F2F7",
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                    maxHeight: "70%",
+                  }
+            }
+          >
+            {/* Header */}
+            <View className="h-[60px] flex-row items-center justify-between border-b border-[#E5E5E5] bg-white px-4">
+              <TouchableOpacity
+                onPress={() => setShowLanguagePicker(false)}
+                className="h-8 w-8 items-center justify-center rounded-full bg-[#E5E5EA]"
               >
-                <View className="overflow-hidden rounded-xl border border-gray-300/40 bg-white/60">
-                  {interfaceLanguageOptions.map((option, index) => (
+                <Ionicons name="close" size={20} color="#8E8E93" />
+              </TouchableOpacity>
+              <Text className="text-[17px] font-semibold text-black">Select Language</Text>
+              <View className="h-8 w-8" />
+            </View>
+
+            <ScrollView
+              className="flex-1"
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, paddingTop: 16 }}
+            >
+              <View className="overflow-hidden rounded-[10px] bg-white">
+                {interfaceLanguageOptions.map((option, index) => (
+                  <View key={option.value} className="bg-white pl-4">
                     <TouchableOpacity
-                      key={option.value}
-                      className={`flex-row items-center justify-between px-4 py-3 active:bg-white/80 ${
+                      className={`flex-row items-center justify-between py-3 pr-4 ${
                         index !== interfaceLanguageOptions.length - 1
-                          ? "border-b border-gray-300/40"
+                          ? "border-b border-[#E5E5E5]"
                           : ""
                       }`}
                       onPress={() => {
@@ -319,147 +550,56 @@ export function AdvancedTab(props: AdvancedTabProps) {
                         setShowLanguagePicker(false);
                       }}
                     >
-                      <Text className="text-base text-[#333]">{option.label}</Text>
+                      <Text className="text-[17px] text-black">{option.label}</Text>
                       {props.interfaceLanguage === option.value ? (
-                        <Ionicons name="checkmark" size={20} color="#007AFF" />
+                        <Ionicons name="checkmark" size={20} color="#000000" />
                       ) : null}
                     </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
-            </View>
-          ) : (
-            <View className="flex-1 justify-end bg-black/50">
-              <View className="max-h-[70%] rounded-t-3xl bg-white">
-                <View className="flex-row items-center justify-between border-b border-[#E5E5EA] p-4">
-                  <Text className="text-lg font-semibold text-[#333]">Select Language</Text>
-                  <TouchableOpacity onPress={() => setShowLanguagePicker(false)}>
-                    <Ionicons name="close" size={24} color="#666" />
-                  </TouchableOpacity>
-                </View>
-                <ScrollView className="p-2">
-                  {interfaceLanguageOptions.map((option) => (
-                    <TouchableOpacity
-                      key={option.value}
-                      className={`flex-row items-center justify-between rounded-lg p-4 ${
-                        props.interfaceLanguage === option.value ? "bg-[#F0F0F0]" : ""
-                      }`}
-                      onPress={() => {
-                        props.setInterfaceLanguage(option.value);
-                        setShowLanguagePicker(false);
-                      }}
-                    >
-                      <Text className="text-base text-[#333]">{option.label}</Text>
-                      {props.interfaceLanguage === option.value ? (
-                        <Ionicons name="checkmark" size={20} color="#007AFF" />
-                      ) : null}
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                  </View>
+                ))}
               </View>
-            </View>
-          )}
-        </Modal>
-      </View>
-
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">
-              Requires booker email verification
-            </Text>
-            <Text className="text-sm text-[#666]">
-              To ensure booker's email verification before scheduling events.
-            </Text>
+            </ScrollView>
           </View>
-          <Switch
-            value={props.requiresBookerEmailVerification}
-            onValueChange={props.setRequiresBookerEmailVerification}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
         </View>
-      </View>
+      </Modal>
 
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">Hide notes in calendar</Text>
-            <Text className="text-sm text-[#666]">
-              For privacy reasons, additional inputs and notes will be hidden in the calendar entry.
-              They will still be sent to your email.
+      {/* Redirect */}
+      <SettingsGroup header="Redirect">
+        <View className="bg-white pl-4">
+          <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
+            <Text className="mb-2 text-[13px] text-[#6D6D72]">
+              Redirect URL after successful booking
             </Text>
+            <TextInput
+              className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+              value={props.successRedirectUrl}
+              onChangeText={props.setSuccessRedirectUrl}
+              placeholder="https://example.com/thank-you"
+              placeholderTextColor="#8E8E93"
+              keyboardType="url"
+              autoCapitalize="none"
+            />
+            {props.successRedirectUrl ? (
+              <Text className="mt-2 text-[13px] text-[#FF9500]">
+                Adding a redirect will disable the success page.
+              </Text>
+            ) : null}
           </View>
-          <Switch
-            value={props.hideCalendarNotes}
-            onValueChange={props.setHideCalendarNotes}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
         </View>
-      </View>
-
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">
-              Hide calendar event details on shared calendars
-            </Text>
-            <Text className="text-sm text-[#666]">
-              When a calendar is shared, events are visible to readers but their details are hidden
-              from those without write access.
-            </Text>
-          </View>
-          <Switch
-            value={props.hideCalendarEventDetails}
-            onValueChange={props.setHideCalendarEventDetails}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
-
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <Text className="mb-1.5 text-base font-medium text-[#333]">Redirect on booking</Text>
-        <Text className="mb-3 text-sm text-[#666]">
-          Redirect to a custom URL after a successful booking.
-        </Text>
-        <TextInput
-          className="mb-3 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
-          value={props.successRedirectUrl}
-          onChangeText={props.setSuccessRedirectUrl}
-          placeholder="https://example.com/thank-you"
-          placeholderTextColor="#8E8E93"
-          keyboardType="url"
-          autoCapitalize="none"
+        <SettingRow
+          title="Forward parameters"
+          description="Forward parameters such as ?email=...&name=... to the redirect URL."
+          value={props.forwardParamsSuccessRedirect}
+          onValueChange={props.setForwardParamsSuccessRedirect}
+          isLast
         />
-        <View className="flex-row items-center justify-between">
-          <Text className="flex-1 text-sm text-[#333]">
-            Forward parameters such as ?email=...&name=...
-          </Text>
-          <Switch
-            value={props.forwardParamsSuccessRedirect}
-            onValueChange={props.setForwardParamsSuccessRedirect}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-        {props.successRedirectUrl ? (
-          <Text className="mt-2 text-xs text-[#FF9500]">
-            Adding a redirect will disable the success page. Make sure to mention "Booking
-            Confirmed" on your custom success page.
-          </Text>
-        ) : null}
-      </View>
+      </SettingsGroup>
 
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <Text className="mb-1.5 text-base font-medium text-[#333]">Private Links</Text>
-        <Text className="mb-3 text-sm text-[#666]">
-          Generate private URLs without exposing the username, with configurable expiry and usage
-          limits.
-        </Text>
-        <TouchableOpacity
-          className="flex-row items-center justify-center rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-2 py-3 md:px-4"
+      {/* Configure on Web Section */}
+      <SettingsGroup header="Advanced Settings">
+        <NavigationRow
+          isFirst
+          title="Private Links"
           onPress={() => {
             if (props.eventTypeId && props.eventTypeId !== "new") {
               openInAppBrowser(
@@ -467,235 +607,34 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 "Private Links"
               );
             } else {
-              Alert.alert("Info", "Save the event type first to manage private links.");
+              showInfoAlert("Info", "Save the event type first to configure this setting.");
             }
           }}
-        >
-          <Ionicons name="link-outline" size={20} color="#666" />
-          <Text className="ml-2 text-base text-[#666]">Manage Private Links</Text>
-        </TouchableOpacity>
-      </View>
+        />
+        <NavigationRow
+          title="Custom Reply-To Email"
+          onPress={() => {
+            if (props.eventTypeId && props.eventTypeId !== "new") {
+              openInAppBrowser(
+                `https://app.cal.com/event-types/${props.eventTypeId}?tabName=advanced`,
+                "Custom Reply-To"
+              );
+            } else {
+              showInfoAlert("Info", "Save the event type first to configure this setting.");
+            }
+          }}
+          isLast
+        />
+      </SettingsGroup>
 
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white">
-        <View className="flex-row items-start justify-between p-5">
-          <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">Offer seats</Text>
-            <Text className="text-sm text-[#666]">
-              Offer seats for booking. This automatically disables guest & opt-in bookings.{" "}
-              <Text
-                className="text-sm text-[#007AFF]"
-                onPress={() =>
-                  openInAppBrowser("https://cal.com/help/event-types/offer-seats", "Learn more")
-                }
-              >
-                Learn more
-              </Text>
-            </Text>
-          </View>
-          <Switch
-            value={props.seatsEnabled}
-            onValueChange={props.setSeatsEnabled}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-
-        {/* Seats Configuration - shown when enabled */}
-        {props.seatsEnabled ? (
-          <View className="gap-4 border-t border-[#E5E5EA] p-5">
-            {/* Number of seats per booking */}
-            <View>
-              <Text className="mb-2 text-sm font-medium text-[#333]">
-                Number of seats per booking
-              </Text>
-              <View className="flex-row items-center">
-                <TextInput
-                  className="w-20 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-center text-base text-black"
-                  value={props.seatsPerTimeSlot}
-                  onChangeText={props.setSeatsPerTimeSlot}
-                  placeholder="2"
-                  placeholderTextColor="#8E8E93"
-                  keyboardType="numeric"
-                />
-                <Text className="ml-3 text-base text-[#666]">seats</Text>
-              </View>
-            </View>
-
-            {/* Share attendee information between guests - Checkbox style */}
-            <TouchableOpacity
-              className="flex-row items-center"
-              onPress={() => props.setShowAttendeeInfo(!props.showAttendeeInfo)}
-              activeOpacity={0.7}
-            >
-              <View
-                className={`mr-3 h-5 w-5 items-center justify-center rounded border ${
-                  props.showAttendeeInfo
-                    ? "border-[#111827] bg-[#111827]"
-                    : "border-gray-300 bg-white"
-                }`}
-              >
-                {props.showAttendeeInfo && <Ionicons name="checkmark" size={14} color="#fff" />}
-              </View>
-              <Text className="text-sm text-[#333]">Share attendee information between guests</Text>
-            </TouchableOpacity>
-
-            {/* Show the number of available seats - Checkbox style */}
-            <TouchableOpacity
-              className="flex-row items-center"
-              onPress={() => props.setShowAvailabilityCount(!props.showAvailabilityCount)}
-              activeOpacity={0.7}
-            >
-              <View
-                className={`mr-3 h-5 w-5 items-center justify-center rounded border ${
-                  props.showAvailabilityCount
-                    ? "border-[#111827] bg-[#111827]"
-                    : "border-gray-300 bg-white"
-                }`}
-              >
-                {props.showAvailabilityCount ? (
-                  <Ionicons name="checkmark" size={14} color="#fff" />
-                ) : null}
-              </View>
-              <Text className="text-sm text-[#333]">Show the number of available seats</Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-      </View>
-
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">Hide organizer's email</Text>
-            <Text className="text-sm text-[#666]">
-              Hide organizer's email address from the booking screen, email notifications, and
-              calendar events.
-            </Text>
-          </View>
-          <Switch
-            value={props.hideOrganizerEmail}
-            onValueChange={props.setHideOrganizerEmail}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
-
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white">
-        <View className="flex-row items-start justify-between p-5">
-          <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">
-              Lock timezone on booking page
-            </Text>
-            <Text className="text-sm text-[#666]">
-              To lock the timezone on booking page, useful for in-person events.{" "}
-              <Text
-                className="text-sm text-[#007AFF]"
-                onPress={() =>
-                  openInAppBrowser("https://cal.com/help/event-types/lock-timezone", "Learn more")
-                }
-              >
-                Learn more
-              </Text>
-            </Text>
-          </View>
-          <Switch
-            value={props.lockTimezone}
-            onValueChange={props.setLockTimezone}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-
-        {/* Timezone selector - shown when enabled */}
-        {props.lockTimezone ? (
-          <View className="border-t border-[#E5E5EA] p-5">
-            <Text className="mb-2 text-sm font-medium text-[#333]">Timezone</Text>
-            <TouchableOpacity
-              className="flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
-              onPress={() => {
-                Alert.alert(
-                  "Select Timezone",
-                  "To change the timezone, please use the Cal.com website for the full timezone selector.",
-                  [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                      text: "Open Website",
-                      onPress: () =>
-                        openInAppBrowser("https://app.cal.com/event-types", "Cal.com Event Types"),
-                    },
-                  ]
-                );
-              }}
-            >
-              <Text className="text-base text-[#333]">
-                {props.lockedTimezone || "Europe/London"}
-              </Text>
-              <Ionicons name="chevron-down" size={20} color="#666" />
-            </TouchableOpacity>
-          </View>
-        ) : null}
-      </View>
-
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">
-              Allow rescheduling past events
-            </Text>
-            <Text className="text-sm text-[#666]">
-              Enabling this option allows for past events to be rescheduled.
-            </Text>
-          </View>
-          <Switch
-            value={props.allowReschedulingPastEvents}
-            onValueChange={props.setAllowReschedulingPastEvents}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
-
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">
-              Allow booking through reschedule link
-            </Text>
-            <Text className="text-sm text-[#666]">
-              When enabled, users will be able to create a new booking when trying to reschedule a
-              cancelled booking.
-            </Text>
-          </View>
-          <Switch
-            value={props.allowBookingThroughRescheduleLink}
-            onValueChange={props.setAllowBookingThroughRescheduleLink}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
-
-      <ConfigureOnWebCard
-        title="Custom 'Reply-To' email"
-        description="Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
-        eventTypeId={props.eventTypeId}
-        browserTitle="Custom Reply-To Email"
-      />
-
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <Text className="mb-1.5 text-base font-medium text-[#333]">Event type color</Text>
-        <Text className="mb-3 text-sm text-[#666]">
-          This is only used for event type & booking differentiation within the app. It is not
-          displayed to bookers.
-        </Text>
-        <View className="gap-3">
-          <View>
-            <Text className="mb-2 text-sm font-medium text-[#333]">
-              Event Type Color (Light Theme)
-            </Text>
+      {/* Event type colors */}
+      <SettingsGroup header="Event Type Colors">
+        <View className="bg-white pl-4">
+          <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
+            <Text className="mb-2 text-[13px] text-[#6D6D72]">Light Theme</Text>
             <View className="flex-row items-center gap-3">
               <View
-                className="h-12 w-12 rounded-lg border border-[#E5E5EA]"
+                className="h-8 w-8 rounded-lg border border-[#C6C6C8]"
                 style={{
                   backgroundColor: props.eventTypeColorLight.startsWith("#")
                     ? props.eventTypeColorLight
@@ -703,7 +642,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 }}
               />
               <TextInput
-                className="flex-1 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
+                className="flex-1 rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
                 value={props.eventTypeColorLight}
                 onChangeText={props.setEventTypeColorLight}
                 placeholder="292929"
@@ -712,13 +651,13 @@ export function AdvancedTab(props: AdvancedTabProps) {
               />
             </View>
           </View>
-          <View>
-            <Text className="mb-2 text-sm font-medium text-[#333]">
-              Event Type Color (Dark Theme)
-            </Text>
+        </View>
+        <View className="bg-white pl-4">
+          <View className="pt-3 pb-4 pr-4">
+            <Text className="mb-2 text-[13px] text-[#6D6D72]">Dark Theme</Text>
             <View className="flex-row items-center gap-3">
               <View
-                className="h-12 w-12 rounded-lg border border-[#E5E5EA]"
+                className="h-8 w-8 rounded-lg border border-[#C6C6C8]"
                 style={{
                   backgroundColor: props.eventTypeColorDark.startsWith("#")
                     ? props.eventTypeColorDark
@@ -726,7 +665,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 }}
               />
               <TextInput
-                className="flex-1 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
+                className="flex-1 rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
                 value={props.eventTypeColorDark}
                 onChangeText={props.setEventTypeColorDark}
                 placeholder="fafafa"
@@ -736,24 +675,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
             </View>
           </View>
         </View>
-      </View>
-
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-3 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">Optimized slots</Text>
-            <Text className="text-sm text-[#666]">
-              Arrange time slots to optimize availability.
-            </Text>
-          </View>
-          <Switch
-            value={props.showOptimizedSlots}
-            onValueChange={props.setShowOptimizedSlots}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
+      </SettingsGroup>
     </View>
   );
 }
