@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "Booking omdirigeret med succes. Omdirigerer til bookingsiden",
   "on_booking_write_to_event_object": "Ved booking, skriv til begivenhedsobjekt",
   "field_name": "Feltnavn",
+  "field_name_cannot_be_empty": "Feltnavn må ikke være tomt",
+  "field_already_exists": "Feltet findes allerede",
   "add_new_field": "Tilføj nyt felt",
   "you_dont_have_access_to_reroute_this_booking": "Du har ikke adgang til at omdirigere denne booking",
   "form_response_not_found": "Formularbesvarelse ikke fundet",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "Bookingens ejer er ikke medlem af din organisation.",
   "audit_logs_permission_denied": "Du har ikke tilladelse til at se revisionslogfiler for denne booking.",
   "audit_logs_permission_check_error": "Der opstod en fejl under kontrol af tilladelser.",
+  "account_already_exists_please_login": "Der findes allerede en konto med denne e-mail. Log venligst ind for at acceptere invitationen.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
