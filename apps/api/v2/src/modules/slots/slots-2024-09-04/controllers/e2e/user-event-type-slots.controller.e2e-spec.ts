@@ -508,7 +508,6 @@ describe("Slots 2024-09-04 Endpoints", () => {
         expect(dbReleaseAt).toEqual(expectedReleaseAt);
         expect(responseReservedSlot.reservationUntil).toEqual(expectedReleaseAt);
       }
-      clear();
     });
 
     it("should get reserved slot", async () => {
@@ -646,7 +645,6 @@ describe("Slots 2024-09-04 Endpoints", () => {
         expect(dbReleaseAt).toEqual(expectedReleaseAt);
         expect(responseReservedSlot.reservationUntil).toEqual(expectedReleaseAt);
       }
-      clear();
     });
 
     it("should delete reserved slot and it should not appear in available slots", async () => {
@@ -751,7 +749,6 @@ describe("Slots 2024-09-04 Endpoints", () => {
         expect(dbReleaseAt).toEqual(expectedReleaseAt);
       }
       await selectedSlotRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
-      clear();
     });
 
     it("should reserve a slot as someone who shares team with event type owner with custom duration and it should not appear in available slots", async () => {
@@ -810,7 +807,6 @@ describe("Slots 2024-09-04 Endpoints", () => {
         expect(dbReleaseAt).toEqual(expectedReleaseAt);
       }
       await selectedSlotRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
-      clear();
     });
 
     it("should do a booking and slot should not be available at that time", async () => {
@@ -1437,7 +1433,6 @@ describe("Slots 2024-09-04 Endpoints", () => {
           expect(dbReleaseAt).toEqual(expectedReleaseAt);
           expect(responseReservedVariableSlot.reservationUntil).toEqual(expectedReleaseAt);
         }
-        clear();
       });
 
       it("request slot contains already existing reserved slot", async () => {
