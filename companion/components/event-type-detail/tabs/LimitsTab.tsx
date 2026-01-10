@@ -1,11 +1,14 @@
 /**
- * LimitsTab Component (Android/Web)
+ * LimitsTab Component
  *
  * Settings app style with grouped rows, section headers, and compact toggles.
- * Descriptions shown via Alert.alert on tap.
+ * Uses native iOS ContextMenu for pickers on iOS, Modal-based dropdowns on Android/Web.
  */
 
+import { Button, ContextMenu, Host, HStack, Image, Text as SwiftUIText } from "@expo/ui/swift-ui";
+import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import {
   Alert,
   Animated,
@@ -30,6 +33,45 @@ interface DurationLimit {
   value: string;
   unit: string;
 }
+
+// Buffer time options
+const BUFFER_TIME_OPTIONS = [
+  "No buffer time",
+  "5 Minutes",
+  "10 Minutes",
+  "15 Minutes",
+  "20 Minutes",
+  "30 Minutes",
+  "45 Minutes",
+  "60 Minutes",
+  "90 Minutes",
+  "120 Minutes",
+];
+
+// Time unit options
+const TIME_UNIT_OPTIONS = ["Minutes", "Hours", "Days"];
+
+// Slot interval options
+const SLOT_INTERVAL_OPTIONS = [
+  "Default",
+  "5 Minutes",
+  "10 Minutes",
+  "15 Minutes",
+  "20 Minutes",
+  "30 Minutes",
+  "45 Minutes",
+  "60 Minutes",
+  "75 Minutes",
+  "90 Minutes",
+  "105 Minutes",
+  "120 Minutes",
+];
+
+// Frequency unit options
+const FREQUENCY_UNIT_OPTIONS = ["Per day", "Per week", "Per month", "Per year"];
+
+// Duration unit options
+const DURATION_UNIT_OPTIONS = ["Per day", "Per week", "Per month"];
 
 // Section header
 function SectionHeader({ title }: { title: string }) {
@@ -56,7 +98,7 @@ function SettingsGroup({
   return (
     <View>
       {header ? <SectionHeader title={header} /> : null}
-      <View className="overflow-hidden rounded-[10px] bg-white">{children}</View>
+      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
       {footer ? <Text className="ml-4 mt-2 text-[13px] text-[#6D6D72]">{footer}</Text> : null}
     </View>
   );
@@ -114,54 +156,120 @@ function SettingRow({
   );
 }
 
-// Navigation row
-function NavigationRow({
+// iOS Native Picker using ContextMenu - only renders the chevron trigger
+function IOSPickerTrigger({
+  options,
+  selectedValue,
+  onSelect,
+}: {
+  options: string[];
+  selectedValue: string;
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <Host matchContents>
+      <ContextMenu
+        modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
+        activationMethod="singlePress"
+      >
+        <ContextMenu.Items>
+          {options.map((opt) => (
+            <Button
+              key={opt}
+              systemImage={selectedValue === opt ? "checkmark" : undefined}
+              onPress={() => onSelect(opt)}
+              label={opt}
+            />
+          ))}
+        </ContextMenu.Items>
+        <ContextMenu.Trigger>
+          <HStack>
+            <Image systemName="chevron.up.chevron.down" color="primary" size={13} />
+          </HStack>
+        </ContextMenu.Trigger>
+      </ContextMenu>
+    </Host>
+  );
+}
+
+// Android/Web picker button (opens modal)
+function ModalPickerButton({ value, onPress }: { value: string; onPress: () => void }) {
+  return (
+    <TouchableOpacity
+      className="flex-row items-center rounded-lg bg-[#F2F2F7] px-2 py-1.5"
+      onPress={onPress}
+    >
+      <Text className="text-[15px] text-black">{value}</Text>
+      <Ionicons name="chevron-down" size={14} color="#8E8E93" style={{ marginLeft: 4 }} />
+    </TouchableOpacity>
+  );
+}
+
+// Navigation row with native iOS picker or modal button
+function PickerNavigationRow({
   title,
   value,
-  onPress,
+  options,
+  onSelect,
+  onPressModal,
   isLast = false,
 }: {
   title: string;
-  value?: string;
-  onPress: () => void;
+  value: string;
+  options: string[];
+  onSelect: (value: string) => void;
+  onPressModal: () => void;
   isLast?: boolean;
 }) {
   return (
-    <View className="bg-white pl-4" style={{ minHeight: 44 }}>
-      <TouchableOpacity
+    <View className="bg-white pl-4" style={{ height: 44 }}>
+      <View
         className={`flex-1 flex-row items-center justify-between pr-4 ${
           !isLast ? "border-b border-[#E5E5E5]" : ""
         }`}
-        style={{ minHeight: 44 }}
-        onPress={onPress}
-        activeOpacity={0.5}
+        style={{ height: 44 }}
       >
         <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
           {title}
         </Text>
         <View className="flex-row items-center">
-          {value ? (
-            <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
-              {value}
-            </Text>
-          ) : null}
-          <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+          {Platform.OS === "ios" ? (
+            <>
+              <Text className="mr-2 text-[17px] text-[#8E8E93]">{value}</Text>
+              <IOSPickerTrigger options={options} selectedValue={value} onSelect={onSelect} />
+            </>
+          ) : (
+            <TouchableOpacity
+              className="flex-row items-center"
+              onPress={onPressModal}
+              activeOpacity={0.5}
+            >
+              <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                {value}
+              </Text>
+              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+            </TouchableOpacity>
+          )}
         </View>
-      </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 interface LimitsTabProps {
   beforeEventBuffer: string;
+  setBeforeEventBuffer: (value: string) => void;
   setShowBeforeBufferDropdown: (show: boolean) => void;
   afterEventBuffer: string;
+  setAfterEventBuffer: (value: string) => void;
   setShowAfterBufferDropdown: (show: boolean) => void;
   minimumNoticeValue: string;
   setMinimumNoticeValue: (value: string) => void;
   minimumNoticeUnit: string;
+  setMinimumNoticeUnit: (value: string) => void;
   setShowMinimumNoticeUnitDropdown: (show: boolean) => void;
   slotInterval: string;
+  setSlotInterval: (value: string) => void;
   setShowSlotIntervalDropdown: (show: boolean) => void;
   limitBookingFrequency: boolean;
   toggleBookingFrequency: (value: boolean) => void;
@@ -206,15 +314,19 @@ export function LimitsTab(props: LimitsTabProps) {
     <View className="gap-6">
       {/* Buffer & Notice Settings */}
       <SettingsGroup header="Buffer & Notice">
-        <NavigationRow
+        <PickerNavigationRow
           title="Before event"
           value={props.beforeEventBuffer}
-          onPress={() => props.setShowBeforeBufferDropdown(true)}
+          options={BUFFER_TIME_OPTIONS}
+          onSelect={props.setBeforeEventBuffer}
+          onPressModal={() => props.setShowBeforeBufferDropdown(true)}
         />
-        <NavigationRow
+        <PickerNavigationRow
           title="After event"
           value={props.afterEventBuffer}
-          onPress={() => props.setShowAfterBufferDropdown(true)}
+          options={BUFFER_TIME_OPTIONS}
+          onSelect={props.setAfterEventBuffer}
+          onPressModal={() => props.setShowAfterBufferDropdown(true)}
         />
         <View className="bg-white pl-4">
           <View
@@ -237,20 +349,30 @@ export function LimitsTab(props: LimitsTabProps) {
                 placeholderTextColor="#8E8E93"
                 keyboardType="numeric"
               />
-              <TouchableOpacity
-                className="flex-row items-center rounded-lg bg-[#F2F2F7] px-2 py-1.5"
-                onPress={() => props.setShowMinimumNoticeUnitDropdown(true)}
-              >
-                <Text className="text-[15px] text-black">{props.minimumNoticeUnit}</Text>
-                <Ionicons name="chevron-down" size={14} color="#8E8E93" style={{ marginLeft: 4 }} />
-              </TouchableOpacity>
+              {Platform.OS === "ios" ? (
+                <View className="flex-row items-center">
+                  <Text className="mr-1 text-[17px] text-[#8E8E93]">{props.minimumNoticeUnit}</Text>
+                  <IOSPickerTrigger
+                    options={TIME_UNIT_OPTIONS}
+                    selectedValue={props.minimumNoticeUnit}
+                    onSelect={props.setMinimumNoticeUnit}
+                  />
+                </View>
+              ) : (
+                <ModalPickerButton
+                  value={props.minimumNoticeUnit}
+                  onPress={() => props.setShowMinimumNoticeUnitDropdown(true)}
+                />
+              )}
             </View>
           </View>
         </View>
-        <NavigationRow
+        <PickerNavigationRow
           title="Time-slot intervals"
           value={props.slotInterval === "Default" ? "Event length" : props.slotInterval}
-          onPress={() => props.setShowSlotIntervalDropdown(true)}
+          options={SLOT_INTERVAL_OPTIONS}
+          onSelect={props.setSlotInterval}
+          onPressModal={() => props.setShowSlotIntervalDropdown(true)}
           isLast
         />
       </SettingsGroup>
@@ -316,18 +438,23 @@ export function LimitsTab(props: LimitsTabProps) {
                     keyboardType="numeric"
                   />
                   <Text className="text-[15px] text-[#6D6D72]">per</Text>
-                  <TouchableOpacity
-                    className="flex-row items-center rounded-lg bg-[#F2F2F7] px-2 py-1.5"
-                    onPress={() => props.setShowFrequencyUnitDropdown(limit.id)}
-                  >
-                    <Text className="text-[15px] text-black">{limit.unit}</Text>
-                    <Ionicons
-                      name="chevron-down"
-                      size={14}
-                      color="#8E8E93"
-                      style={{ marginLeft: 4 }}
+                  {Platform.OS === "ios" ? (
+                    <View className="flex-row items-center">
+                      <Text className="mr-1 text-[17px] text-[#8E8E93]">{limit.unit}</Text>
+                      <IOSPickerTrigger
+                        options={FREQUENCY_UNIT_OPTIONS}
+                        selectedValue={limit.unit}
+                        onSelect={(value: string) =>
+                          props.updateFrequencyLimit(limit.id, "unit", value)
+                        }
+                      />
+                    </View>
+                  ) : (
+                    <ModalPickerButton
+                      value={limit.unit}
+                      onPress={() => props.setShowFrequencyUnitDropdown(limit.id)}
                     />
-                  </TouchableOpacity>
+                  )}
                 </View>
                 {props.frequencyLimits.length > 1 ? (
                   <TouchableOpacity onPress={() => props.removeFrequencyLimit(limit.id)}>
@@ -373,18 +500,23 @@ export function LimitsTab(props: LimitsTabProps) {
                     keyboardType="numeric"
                   />
                   <Text className="text-[15px] text-[#6D6D72]">minutes per</Text>
-                  <TouchableOpacity
-                    className="flex-row items-center rounded-lg bg-[#F2F2F7] px-2 py-1.5"
-                    onPress={() => props.setShowDurationUnitDropdown(limit.id)}
-                  >
-                    <Text className="text-[15px] text-black">{limit.unit}</Text>
-                    <Ionicons
-                      name="chevron-down"
-                      size={14}
-                      color="#8E8E93"
-                      style={{ marginLeft: 4 }}
+                  {Platform.OS === "ios" ? (
+                    <View className="flex-row items-center">
+                      <Text className="mr-1 text-[17px] text-[#8E8E93]">{limit.unit}</Text>
+                      <IOSPickerTrigger
+                        options={DURATION_UNIT_OPTIONS}
+                        selectedValue={limit.unit}
+                        onSelect={(value: string) =>
+                          props.updateDurationLimit(limit.id, "unit", value)
+                        }
+                      />
+                    </View>
+                  ) : (
+                    <ModalPickerButton
+                      value={limit.unit}
+                      onPress={() => props.setShowDurationUnitDropdown(limit.id)}
                     />
-                  </TouchableOpacity>
+                  )}
                 </View>
                 {props.durationLimits.length > 1 ? (
                   <TouchableOpacity onPress={() => props.removeDurationLimit(limit.id)}>

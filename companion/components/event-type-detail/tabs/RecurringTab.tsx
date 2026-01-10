@@ -4,7 +4,10 @@
  * iOS Settings style with grouped rows and section headers.
  */
 
+import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
+import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Alert, Platform, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 import { openInAppBrowser } from "@/utils/browser";
@@ -45,7 +48,7 @@ function SettingsGroup({ children, header }: { children: React.ReactNode; header
   return (
     <View>
       {header ? <SectionHeader title={header} /> : null}
-      <View className="overflow-hidden rounded-[10px] bg-white">{children}</View>
+      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
     </View>
   );
 }
@@ -117,41 +120,39 @@ function SettingRow({
   );
 }
 
-// Navigation row with value and chevron
-function NavigationRow({
-  title,
-  value,
-  onPress,
-  isLast = false,
+// iOS Native Picker trigger component
+function IOSPickerTrigger({
+  options,
+  selectedValue,
+  onSelect,
 }: {
-  title: string;
-  value?: string;
-  onPress: () => void;
-  isLast?: boolean;
+  options: { label: string; value: string }[];
+  selectedValue: string;
+  onSelect: (value: string) => void;
 }) {
   return (
-    <View className="bg-white pl-4" style={{ minHeight: 44 }}>
-      <TouchableOpacity
-        className={`flex-1 flex-row items-center justify-between pr-4 ${
-          !isLast ? "border-b border-[#E5E5E5]" : ""
-        }`}
-        style={{ minHeight: 44 }}
-        onPress={onPress}
-        activeOpacity={0.5}
+    <Host matchContents>
+      <ContextMenu
+        modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
+        activationMethod="singlePress"
       >
-        <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
-          {title}
-        </Text>
-        <View className="flex-row items-center">
-          {value ? (
-            <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
-              {value}
-            </Text>
-          ) : null}
-          <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-        </View>
-      </TouchableOpacity>
-    </View>
+        <ContextMenu.Items>
+          {options.map((opt) => (
+            <Button
+              key={opt.value}
+              systemImage={selectedValue === opt.label ? "checkmark" : undefined}
+              onPress={() => onSelect(opt.value)}
+              label={opt.label}
+            />
+          ))}
+        </ContextMenu.Items>
+        <ContextMenu.Trigger>
+          <HStack>
+            <Image systemName="chevron.up.chevron.down" color="primary" size={13} />
+          </HStack>
+        </ContextMenu.Trigger>
+      </ContextMenu>
+    </Host>
   );
 }
 
@@ -161,6 +162,7 @@ export function RecurringTab({
   recurringInterval,
   setRecurringInterval,
   recurringFrequency,
+  setRecurringFrequency,
   recurringOccurrences,
   setRecurringOccurrences,
   setShowFrequencyDropdown,
@@ -208,20 +210,37 @@ export function RecurringTab({
                   placeholderTextColor="#8E8E93"
                   keyboardType="numeric"
                 />
-                <TouchableOpacity
-                  className="flex-row items-center rounded-lg bg-[#F2F2F7] px-2 py-1.5"
-                  onPress={() => setShowFrequencyDropdown(true)}
-                >
-                  <Text className="text-[15px] text-black">
-                    {frequencyToLabel[recurringFrequency] || recurringFrequency}
-                  </Text>
-                  <Ionicons
-                    name="chevron-down"
-                    size={14}
-                    color="#8E8E93"
-                    style={{ marginLeft: 4 }}
-                  />
-                </TouchableOpacity>
+                {Platform.OS === "ios" ? (
+                  <View className="flex-row items-center">
+                    <Text className="mr-1 text-[17px] text-[#8E8E93]">
+                      {frequencyToLabel[recurringFrequency] || recurringFrequency}
+                    </Text>
+                    <IOSPickerTrigger
+                      options={[
+                        { label: "week", value: "weekly" },
+                        { label: "month", value: "monthly" },
+                        { label: "year", value: "yearly" },
+                      ]}
+                      selectedValue={frequencyToLabel[recurringFrequency] || recurringFrequency}
+                      onSelect={(val) => setRecurringFrequency(val as any)}
+                    />
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    className="flex-row items-center rounded-lg bg-[#F2F2F7] px-2 py-1.5"
+                    onPress={() => setShowFrequencyDropdown(true)}
+                  >
+                    <Text className="text-[15px] text-black">
+                      {frequencyToLabel[recurringFrequency] || recurringFrequency}
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={14}
+                      color="#8E8E93"
+                      style={{ marginLeft: 4 }}
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </View>

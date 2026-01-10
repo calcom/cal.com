@@ -1,11 +1,14 @@
 /**
- * AdvancedTab Component (Android/Web)
+ * AdvancedTab Component
  *
- * Settings app style with grouped rows, section headers, and compact toggles.
- * Descriptions shown via Alert.alert on tap.
+ * Unified Settings app style for iOS, Android, and Web.
+ * Uses native iOS pickers via ContextMenu and grouped rows for consistency.
  */
 
+import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
+import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { useState } from "react";
 import {
   Alert,
@@ -89,7 +92,7 @@ function SettingsGroup({
   return (
     <View>
       {header ? <SectionHeader title={header} /> : null}
-      <View className="overflow-hidden rounded-[10px] bg-white">{children}</View>
+      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
       {footer ? <Text className="ml-4 mt-2 text-[13px] text-[#6D6D72]">{footer}</Text> : null}
     </View>
   );
@@ -102,6 +105,7 @@ function SettingRow({
   value,
   onValueChange,
   learnMoreUrl,
+  isFirst = false,
   isLast = false,
 }: {
   title: string;
@@ -109,8 +113,10 @@ function SettingRow({
   value: boolean;
   onValueChange: (value: boolean) => void;
   learnMoreUrl?: string;
+  isFirst?: boolean;
   isLast?: boolean;
 }) {
+  const height = isFirst || isLast ? 52 : 44;
   const showDescription = () => {
     if (!description) return;
 
@@ -134,11 +140,11 @@ function SettingRow({
     <View className="bg-white pl-4">
       <View
         className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
-        style={{ height: 44 }}
+        style={{ height }}
       >
         <TouchableOpacity
           className="flex-1 flex-row items-center"
-          style={{ height: 44 }}
+          style={{ height }}
           onPress={description ? showDescription : undefined}
           activeOpacity={description ? 0.7 : 1}
           disabled={!description}
@@ -168,36 +174,94 @@ function NavigationRow({
   title,
   value,
   onPress,
+  isFirst = false,
   isLast = false,
+  options,
+  onSelect,
 }: {
   title: string;
   value?: string;
   onPress: () => void;
+  isFirst?: boolean;
   isLast?: boolean;
+  options?: { label: string; value: string }[];
+  onSelect?: (value: string) => void;
 }) {
+  const height = isFirst || isLast ? 52 : 44;
   return (
-    <View className="bg-white pl-4" style={{ minHeight: 44 }}>
-      <TouchableOpacity
+    <View className="bg-white pl-4" style={{ height }}>
+      <View
         className={`flex-1 flex-row items-center justify-between pr-4 ${
           !isLast ? "border-b border-[#E5E5E5]" : ""
         }`}
-        style={{ minHeight: 44 }}
-        onPress={onPress}
-        activeOpacity={0.5}
+        style={{ height }}
       >
         <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
           {title}
         </Text>
         <View className="flex-row items-center">
-          {value ? (
-            <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
-              {value}
-            </Text>
-          ) : null}
-          <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+          {Platform.OS === "ios" && options && onSelect ? (
+            <>
+              {value ? (
+                <Text className="mr-2 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                  {value}
+                </Text>
+              ) : null}
+              <IOSPickerTrigger options={options} selectedValue={value || ""} onSelect={onSelect} />
+            </>
+          ) : (
+            <TouchableOpacity
+              className="flex-row items-center"
+              onPress={onPress}
+              activeOpacity={0.5}
+            >
+              {value ? (
+                <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                  {value}
+                </Text>
+              ) : null}
+              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+            </TouchableOpacity>
+          )}
         </View>
-      </TouchableOpacity>
+      </View>
     </View>
+  );
+}
+
+// iOS Native Picker trigger component
+function IOSPickerTrigger({
+  options,
+  selectedValue,
+  onSelect,
+}: {
+  options: { label: string; value: string }[];
+  selectedValue: string;
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <Host matchContents>
+      <ContextMenu
+        modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
+        activationMethod="singlePress"
+      >
+        <ContextMenu.Items>
+          {options.map((opt) => (
+            <Button
+              key={opt.value}
+              systemImage={selectedValue === opt.label ? "checkmark" : undefined}
+              onPress={() => onSelect(opt.value)}
+              label={opt.label}
+            />
+          ))}
+        </ContextMenu.Items>
+        <ContextMenu.Trigger>
+          <HStack>
+            <Image systemName="chevron.up.chevron.down" color="primary" size={13} />
+          </HStack>
+        </ContextMenu.Trigger>
+      </ContextMenu>
+    </Host>
   );
 }
 
@@ -264,6 +328,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
       {/* Booking Confirmation Group */}
       <SettingsGroup header="Confirmation">
         <SettingRow
+          isFirst
           title="Requires confirmation"
           description="The booking needs to be manually confirmed before it is pushed to your calendar and a confirmation is sent."
           value={props.requiresConfirmation}
@@ -281,6 +346,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
       {/* Cancellation & Rescheduling Group */}
       <SettingsGroup header="Cancellation & Rescheduling">
         <SettingRow
+          isFirst
           title="Disable Cancelling"
           description="Guests and Organizer can no longer cancel the event with calendar invite or email."
           value={props.disableCancelling}
@@ -310,6 +376,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
       {/* Privacy Group */}
       <SettingsGroup header="Privacy">
         <SettingRow
+          isFirst
           title="Hide notes in calendar"
           description="For privacy reasons, additional inputs and notes will be hidden in the calendar entry. They will still be sent to your email."
           value={props.hideCalendarNotes}
@@ -333,6 +400,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
       {/* Features Group */}
       <SettingsGroup header="Features">
         <SettingRow
+          isFirst
           title="Cal Video Transcription"
           description="Send emails with the transcription of the Cal Video after the meeting ends."
           value={props.sendCalVideoTranscription}
@@ -365,10 +433,11 @@ export function AdvancedTab(props: AdvancedTabProps) {
       {props.lockTimezone ? (
         <SettingsGroup header="Timezone">
           <NavigationRow
+            isFirst
+            isLast
             title="Locked Timezone"
             value={props.lockedTimezone || "Europe/London"}
             onPress={() => openInAppBrowser("https://app.cal.com/event-types", "Select Timezone")}
-            isLast
           />
         </SettingsGroup>
       ) : null}
@@ -377,7 +446,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
       {props.seatsEnabled ? (
         <SettingsGroup header="Seats">
           <View className="bg-white pl-4">
-            <View className="border-b border-[#E5E5E5] py-3 pr-4">
+            <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
               <Text className="mb-2 text-[13px] text-[#6D6D72]">Seats per booking</Text>
               <TextInput
                 className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
@@ -408,10 +477,13 @@ export function AdvancedTab(props: AdvancedTabProps) {
       {/* Language */}
       <SettingsGroup header="Language">
         <NavigationRow
+          isFirst
+          isLast
           title="Interface Language"
           value={getLanguageLabel(props.interfaceLanguage)}
           onPress={() => setShowLanguagePicker(true)}
-          isLast
+          options={interfaceLanguageOptions}
+          onSelect={props.setInterfaceLanguage}
         />
       </SettingsGroup>
 
@@ -480,7 +552,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
                     >
                       <Text className="text-[17px] text-black">{option.label}</Text>
                       {props.interfaceLanguage === option.value ? (
-                        <Ionicons name="checkmark" size={20} color="#007AFF" />
+                        <Ionicons name="checkmark" size={20} color="#000000" />
                       ) : null}
                     </TouchableOpacity>
                   </View>
@@ -494,7 +566,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
       {/* Redirect */}
       <SettingsGroup header="Redirect">
         <View className="bg-white pl-4">
-          <View className="border-b border-[#E5E5E5] py-3 pr-4">
+          <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
             <Text className="mb-2 text-[13px] text-[#6D6D72]">
               Redirect URL after successful booking
             </Text>
@@ -526,6 +598,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
       {/* Configure on Web Section */}
       <SettingsGroup header="Advanced Settings">
         <NavigationRow
+          isFirst
           title="Private Links"
           onPress={() => {
             if (props.eventTypeId && props.eventTypeId !== "new") {
@@ -557,7 +630,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
       {/* Event type colors */}
       <SettingsGroup header="Event Type Colors">
         <View className="bg-white pl-4">
-          <View className="border-b border-[#E5E5E5] py-3 pr-4">
+          <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
             <Text className="mb-2 text-[13px] text-[#6D6D72]">Light Theme</Text>
             <View className="flex-row items-center gap-3">
               <View
@@ -580,7 +653,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
           </View>
         </View>
         <View className="bg-white pl-4">
-          <View className="py-3 pr-4">
+          <View className="pt-3 pb-4 pr-4">
             <Text className="mb-2 text-[13px] text-[#6D6D72]">Dark Theme</Text>
             <View className="flex-row items-center gap-3">
               <View

@@ -5,8 +5,11 @@
  * Matches the beautiful styling from AvailabilityDetailScreen.
  */
 
+import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
+import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
-import { Text, TouchableOpacity, View } from "react-native";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { Platform, Text, TouchableOpacity, View } from "react-native";
 import type { Schedule } from "@/services/calcom";
 
 interface DaySchedule {
@@ -25,6 +28,8 @@ interface AvailabilityTabProps {
   getDaySchedules: () => DaySchedule[];
   formatTime: (time: string) => string;
   selectedTimezone: string;
+  schedules: Schedule[];
+  setSelectedSchedule: (schedule: Schedule) => void;
 }
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -56,7 +61,7 @@ function SettingsGroup({ children, header }: { children: React.ReactNode; header
   return (
     <View>
       {header ? <SectionHeader title={header} /> : null}
-      <View className="overflow-hidden rounded-[10px] bg-white">{children}</View>
+      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
     </View>
   );
 }
@@ -68,37 +73,92 @@ function NavigationRow({
   onPress,
   isLast = false,
   disabled = false,
+  options,
+  onSelect,
 }: {
   title: string;
   value?: string;
   onPress: () => void;
   isLast?: boolean;
   disabled?: boolean;
+  options?: { label: string; value: string }[];
+  onSelect?: (value: string) => void;
 }) {
   return (
-    <View className="bg-white pl-4" style={{ minHeight: 44 }}>
-      <TouchableOpacity
+    <View className="bg-white pl-4" style={{ height: 44 }}>
+      <View
         className={`flex-1 flex-row items-center justify-between pr-4 ${
           !isLast ? "border-b border-[#E5E5E5]" : ""
         }`}
-        style={{ minHeight: 44 }}
-        onPress={onPress}
-        activeOpacity={0.5}
-        disabled={disabled}
+        style={{ height: 44 }}
       >
         <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
           {title}
         </Text>
         <View className="flex-row items-center">
-          {value ? (
-            <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
-              {value}
-            </Text>
-          ) : null}
-          <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+          {Platform.OS === "ios" && options && onSelect ? (
+            <>
+              {value ? (
+                <Text className="mr-2 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                  {value}
+                </Text>
+              ) : null}
+              <IOSPickerTrigger options={options} selectedValue={value || ""} onSelect={onSelect} />
+            </>
+          ) : (
+            <TouchableOpacity
+              className="flex-row items-center"
+              onPress={onPress}
+              activeOpacity={0.5}
+              disabled={disabled}
+            >
+              {value ? (
+                <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                  {value}
+                </Text>
+              ) : null}
+              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+            </TouchableOpacity>
+          )}
         </View>
-      </TouchableOpacity>
+      </View>
     </View>
+  );
+}
+
+// iOS Native Picker trigger component
+function IOSPickerTrigger({
+  options,
+  selectedValue,
+  onSelect,
+}: {
+  options: { label: string; value: string }[];
+  selectedValue: string;
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <Host matchContents>
+      <ContextMenu
+        modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
+        activationMethod="singlePress"
+      >
+        <ContextMenu.Items>
+          {options.map((opt) => (
+            <Button
+              key={opt.value}
+              systemImage={selectedValue === opt.label ? "checkmark" : undefined}
+              onPress={() => onSelect(opt.value)}
+              label={opt.label}
+            />
+          ))}
+        </ContextMenu.Items>
+        <ContextMenu.Trigger>
+          <HStack>
+            <Image systemName="chevron.up.chevron.down" color="primary" size={13} />
+          </HStack>
+        </ContextMenu.Trigger>
+      </ContextMenu>
+    </Host>
   );
 }
 
@@ -111,13 +171,19 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
       {/* Schedule Selector */}
       <SettingsGroup header="Schedule">
         <NavigationRow
-          title={
+          title="Schedule"
+          value={
             props.schedulesLoading
               ? "Loading..."
               : props.selectedSchedule?.name || "Select schedule"
           }
           onPress={() => props.setShowScheduleDropdown(true)}
           disabled={props.schedulesLoading}
+          options={props.schedules.map((s) => ({ label: s.name, value: s.id.toString() }))}
+          onSelect={(id) => {
+            const schedule = props.schedules.find((s) => s.id.toString() === id);
+            if (schedule) props.setSelectedSchedule(schedule);
+          }}
           isLast
         />
       </SettingsGroup>

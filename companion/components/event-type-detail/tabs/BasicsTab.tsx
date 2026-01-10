@@ -4,12 +4,18 @@
  * iOS Settings style with grouped input rows and section headers.
  */
 
+import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
+import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Platform, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-import { LocationsList } from "@/components/LocationsList";
+import { LocationsList, AddLocationTrigger } from "@/components/LocationsList";
+import { createLocationItemFromOption } from "@/utils/locationHelpers";
 import type { LocationItem, LocationOptionGroup } from "@/types/locations";
 import { slugify } from "@/utils/slugify";
+import type React from "react";
+import { useState } from "react";
 
 interface BasicsTabProps {
   eventTitle: string;
@@ -26,6 +32,7 @@ interface BasicsTabProps {
   selectedDurations: string[];
   setShowDurationDropdown: (show: boolean) => void;
   defaultDuration: string;
+  setDefaultDuration: (value: string) => void;
   setShowDefaultDurationDropdown: (show: boolean) => void;
   locations: LocationItem[];
   onAddLocation: (location: LocationItem) => void;
@@ -36,23 +43,34 @@ interface BasicsTabProps {
 }
 
 // Section header
-function SectionHeader({ title }: { title: string }) {
+function SectionHeader({ title, rightElement }: { title: string; rightElement?: React.ReactNode }) {
   return (
-    <Text
-      className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
-      style={{ letterSpacing: 0.5 }}
-    >
-      {title}
-    </Text>
+    <View className="flex-row items-center justify-between mb-2 px-4">
+      <Text
+        className="text-[13px] uppercase tracking-wide text-[#6D6D72]"
+        style={{ letterSpacing: 0.5 }}
+      >
+        {title}
+      </Text>
+      {rightElement}
+    </View>
   );
 }
 
 // Settings group container
-function SettingsGroup({ children, header }: { children: React.ReactNode; header?: string }) {
+function SettingsGroup({
+  children,
+  header,
+  headerRight,
+}: {
+  children: React.ReactNode;
+  header?: string;
+  headerRight?: React.ReactNode;
+}) {
   return (
     <View>
-      {header ? <SectionHeader title={header} /> : null}
-      <View className="overflow-hidden rounded-[10px] bg-white">{children}</View>
+      {header ? <SectionHeader title={header} rightElement={headerRight} /> : null}
+      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
     </View>
   );
 }
@@ -66,6 +84,7 @@ function InputRow({
   multiline = false,
   numberOfLines = 1,
   keyboardType = "default",
+  isFirst = false,
   isLast = false,
 }: {
   label: string;
@@ -75,11 +94,16 @@ function InputRow({
   multiline?: boolean;
   numberOfLines?: number;
   keyboardType?: "default" | "numeric" | "email-address" | "url";
+  isFirst?: boolean;
   isLast?: boolean;
 }) {
   return (
     <View className="bg-white pl-4">
-      <View className={`pr-4 py-3 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}>
+      <View
+        className={`pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""} ${
+          isFirst ? "pt-4 pb-3" : isLast ? "pt-3 pb-4" : "py-3"
+        }`}
+      >
         <Text className="mb-2 text-[13px] text-[#6D6D72]">{label}</Text>
         <TextInput
           className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
@@ -102,36 +126,94 @@ function NavigationRow({
   title,
   value,
   onPress,
+  isFirst = false,
   isLast = false,
+  options,
+  onSelect,
 }: {
   title: string;
   value?: string;
   onPress: () => void;
+  isFirst?: boolean;
   isLast?: boolean;
+  options?: string[];
+  onSelect?: (value: string) => void;
 }) {
+  const height = isFirst || isLast ? 52 : 44;
   return (
-    <View className="bg-white pl-4" style={{ minHeight: 44 }}>
-      <TouchableOpacity
+    <View className="bg-white pl-4" style={{ height }}>
+      <View
         className={`flex-1 flex-row items-center justify-between pr-4 ${
           !isLast ? "border-b border-[#E5E5E5]" : ""
         }`}
-        style={{ minHeight: 44 }}
-        onPress={onPress}
-        activeOpacity={0.5}
+        style={{ height }}
       >
         <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
           {title}
         </Text>
         <View className="flex-row items-center">
-          {value ? (
-            <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
-              {value}
-            </Text>
-          ) : null}
-          <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+          {Platform.OS === "ios" && options && onSelect ? (
+            <>
+              {value ? (
+                <Text className="mr-2 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                  {value}
+                </Text>
+              ) : null}
+              <IOSPickerTrigger options={options} selectedValue={value || ""} onSelect={onSelect} />
+            </>
+          ) : (
+            <TouchableOpacity
+              className="flex-row items-center"
+              onPress={onPress}
+              activeOpacity={0.5}
+            >
+              {value ? (
+                <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                  {value}
+                </Text>
+              ) : null}
+              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+            </TouchableOpacity>
+          )}
         </View>
-      </TouchableOpacity>
+      </View>
     </View>
+  );
+}
+
+// iOS Native Picker trigger component
+function IOSPickerTrigger({
+  options,
+  selectedValue,
+  onSelect,
+}: {
+  options: string[];
+  selectedValue: string;
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <Host matchContents>
+      <ContextMenu
+        modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
+        activationMethod="singlePress"
+      >
+        <ContextMenu.Items>
+          {options.map((opt) => (
+            <Button
+              key={opt}
+              systemImage={selectedValue === opt ? "checkmark" : undefined}
+              onPress={() => onSelect(opt)}
+              label={opt}
+            />
+          ))}
+        </ContextMenu.Items>
+        <ContextMenu.Trigger>
+          <HStack>
+            <Image systemName="chevron.up.chevron.down" color="primary" size={13} />
+          </HStack>
+        </ContextMenu.Trigger>
+      </ContextMenu>
+    </Host>
   );
 }
 
@@ -140,18 +222,21 @@ function SettingRow({
   title,
   value,
   onValueChange,
+  isFirst = false,
   isLast = false,
 }: {
   title: string;
   value: boolean;
   onValueChange: (value: boolean) => void;
+  isFirst?: boolean;
   isLast?: boolean;
 }) {
+  const height = isFirst || isLast ? 52 : 44;
   return (
     <View className="bg-white pl-4">
       <View
         className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
-        style={{ height: 44 }}
+        style={{ height }}
       >
         <Text className="flex-1 text-[17px] text-black" style={{ fontWeight: "400" }}>
           {title}
@@ -169,12 +254,21 @@ function SettingRow({
   );
 }
 
-export function BasicsTab(props: BasicsTabProps) {
+export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
+  const [showLocationModal, setShowLocationModal] = useState(false);
+
+  const onSelectLocation = (value: string, label: string) => {
+    const newLocation = createLocationItemFromOption(value, label);
+    props.onAddLocation(newLocation);
+    setShowLocationModal(false);
+  };
+
   return (
     <View className="gap-6">
       {/* Event Details */}
       <SettingsGroup>
         <InputRow
+          isFirst
           label="Title"
           value={props.eventTitle}
           onChangeText={props.setEventTitle}
@@ -190,7 +284,7 @@ export function BasicsTab(props: BasicsTabProps) {
         />
         {/* URL Input */}
         <View className="bg-white pl-4">
-          <View className="pr-4 py-3">
+          <View className="pr-4 pt-3 pb-4">
             <Text className="mb-2 text-[13px] text-[#6D6D72]">URL</Text>
             <View className="flex-row items-center overflow-hidden rounded-lg bg-[#F2F2F7]">
               <Text className="bg-[#E5E5EA] px-3 py-2 text-[15px] text-[#666]">
@@ -211,10 +305,10 @@ export function BasicsTab(props: BasicsTabProps) {
       {/* Duration */}
       <SettingsGroup header="Duration">
         {!props.allowMultipleDurations ? (
-          <View className="bg-white pl-4">
+          <View className="bg-white pl-4" style={{ height: 52 }}>
             <View
               className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
-              style={{ height: 44 }}
+              style={{ height: 52 }}
             >
               <Text className="text-[17px] text-black">Duration</Text>
               <View className="flex-row items-center gap-2">
@@ -233,6 +327,7 @@ export function BasicsTab(props: BasicsTabProps) {
         ) : (
           <>
             <NavigationRow
+              isFirst
               title="Available durations"
               value={
                 props.selectedDurations.length > 0
@@ -246,6 +341,8 @@ export function BasicsTab(props: BasicsTabProps) {
                 title="Default duration"
                 value={props.defaultDuration || "Select"}
                 onPress={() => props.setShowDefaultDurationDropdown(true)}
+                options={props.selectedDurations}
+                onSelect={props.setDefaultDuration}
               />
             ) : null}
           </>
@@ -259,18 +356,31 @@ export function BasicsTab(props: BasicsTabProps) {
       </SettingsGroup>
 
       {/* Locations */}
-      <SettingsGroup header="Locations">
-        <View className="bg-white p-4">
-          <LocationsList
+      <SettingsGroup
+        header="Locations"
+        headerRight={
+          <AddLocationTrigger
+            isHeader
             locations={props.locations}
-            onAdd={props.onAddLocation}
-            onRemove={props.onRemoveLocation}
-            onUpdate={props.onUpdateLocation}
             locationOptions={props.locationOptions}
-            loading={props.conferencingLoading}
+            onSelectOption={onSelectLocation}
+            onPressFallback={() => setShowLocationModal(true)}
+            disabled={props.conferencingLoading}
           />
-        </View>
+        }
+      >
+        <LocationsList
+          locations={props.locations}
+          onAdd={props.onAddLocation}
+          onRemove={props.onRemoveLocation}
+          onUpdate={props.onUpdateLocation}
+          locationOptions={props.locationOptions}
+          loading={props.conferencingLoading}
+          hideAddButton={true}
+          showAddModal={showLocationModal}
+          onShowAddModalChange={setShowLocationModal}
+        />
       </SettingsGroup>
     </View>
   );
-}
+};

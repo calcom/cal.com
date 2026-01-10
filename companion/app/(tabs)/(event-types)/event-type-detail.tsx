@@ -44,7 +44,7 @@ import {
   validateLocationItem,
 } from "@/utils/locationHelpers";
 import { safeLogError } from "@/utils/safeLogger";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 
 // Type definitions for extended EventType fields not in the base type
 interface EventTypeExtended {
@@ -1260,7 +1260,7 @@ export default function EventTypeDetail() {
   const renderHeaderLeft = () => (
     <HeaderButtonWrapper side="left">
       <AppPressable onPress={() => router.back()} className="px-2 py-2">
-        <Ionicons name="close" size={24} color="#007AFF" />
+        <Ionicons name="close" size={24} color="#000000" />
       </AppPressable>
     </HeaderButtonWrapper>
   );
@@ -1272,13 +1272,13 @@ export default function EventTypeDetail() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <AppPressable className="flex-row items-center gap-1 px-2 py-2">
-              <Text className="text-[16px] font-semibold text-[#007AFF]" numberOfLines={1}>
+              <Text className="text-[16px] font-semibold text-[#000000]" numberOfLines={1}>
                 {tabs.find((tab) => tab.id === activeTab)?.label ?? "Basics"}
               </Text>
               <Ionicons
                 name="chevron-down"
                 size={16}
-                color="#007AFF"
+                color="#000000"
                 style={{ marginLeft: 2, flexShrink: 0 }}
               />
             </AppPressable>
@@ -1298,11 +1298,11 @@ export default function EventTypeDetail() {
                     <Ionicons
                       name={isSelected ? "checkmark-circle" : tab.icon}
                       size={16}
-                      color={isSelected ? "#007AFF" : "#666"}
+                      color={isSelected ? "#000000" : "#666"}
                     />
                     <Text
                       className={
-                        isSelected ? "text-base font-semibold text-[#007AFF]" : "text-base"
+                        isSelected ? "text-base font-semibold text-[#000000]" : "text-base"
                       }
                     >
                       {tab.label}
@@ -1322,7 +1322,7 @@ export default function EventTypeDetail() {
         >
           <Text
             className={`text-[16px] font-semibold ${
-              saving || !isDirty ? "text-[#C7C7CC]" : "text-[#007AFF]"
+              saving || !isDirty ? "text-[#C7C7CC]" : "text-[#000000]"
             }`}
           >
             {saveButtonText}
@@ -1416,6 +1416,7 @@ export default function EventTypeDetail() {
               selectedDurations={selectedDurations}
               setShowDurationDropdown={setShowDurationDropdown}
               defaultDuration={defaultDuration}
+              setDefaultDuration={setDefaultDuration}
               setShowDefaultDurationDropdown={setShowDefaultDurationDropdown}
               // Multiple locations support
               locations={locations}
@@ -1435,41 +1436,88 @@ export default function EventTypeDetail() {
             onRequestClose={() => setShowDurationDropdown(false)}
           >
             <TouchableOpacity
-              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              className="flex-1 items-center justify-center bg-black/30"
+              activeOpacity={1}
               onPress={() => setShowDurationDropdown(false)}
             >
-              <View className="max-h-[80%] min-w-[300px] max-w-[90%] rounded-2xl bg-white p-5">
-                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
-                  Select Available Durations
-                </Text>
-                <ScrollView style={{ maxHeight: 400, marginBottom: 16 }}>
-                  {availableDurations.map((duration) => (
-                    <TouchableOpacity
-                      key={duration}
-                      className={`mb-1 flex-row items-center justify-between rounded-lg px-2 py-3 md:px-4 ${
-                        selectedDurations.includes(duration) ? "bg-[#F0F0F0]" : ""
-                      }`}
-                      onPress={() => toggleDurationSelection(duration)}
-                    >
-                      <Text
-                        className={`text-base text-[#333] ${
-                          selectedDurations.includes(duration) ? "font-semibold" : ""
-                        }`}
-                      >
-                        {duration}
+              <View className="max-h-[80%] min-w-[320px] max-w-[90%] overflow-hidden rounded-[28px]">
+                {isLiquidGlassAvailable() && Platform.OS === "ios" ? (
+                  <GlassView glassEffectStyle="regular" className="p-0">
+                    <View className="flex-col p-6">
+                      <Text className="mb-5 text-center text-[19px] font-bold text-black">
+                        Select Available Durations
                       </Text>
-                      {selectedDurations.includes(duration) ? (
-                        <Ionicons name="checkmark" size={20} color="#000" />
-                      ) : null}
+                      <ScrollView style={{ maxHeight: 400, marginBottom: 20 }}>
+                        {availableDurations.map((duration, index) => (
+                          <TouchableOpacity
+                            key={duration}
+                            className={`flex-row items-center justify-between py-3.5 ${
+                              index < availableDurations.length - 1
+                                ? "border-b border-black/10"
+                                : ""
+                            }`}
+                            onPress={() => toggleDurationSelection(duration)}
+                          >
+                            <Text
+                              className={`text-[17px] text-black ${
+                                selectedDurations.includes(duration) ? "font-bold" : "font-medium"
+                              }`}
+                            >
+                              {duration}
+                            </Text>
+                            {selectedDurations.includes(duration) ? (
+                              <Ionicons name="checkmark-circle" size={24} color="#000" />
+                            ) : (
+                              <View className="h-6 w-6 rounded-full border-2 border-black/20" />
+                            )}
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                      <TouchableOpacity
+                        className="items-center rounded-2xl bg-black py-4 active:opacity-80"
+                        onPress={() => setShowDurationDropdown(false)}
+                      >
+                        <Text className="text-[17px] font-bold text-white">Done</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </GlassView>
+                ) : (
+                  <View className="bg-white p-6">
+                    <Text className="mb-5 text-center text-[19px] font-bold text-[#333]">
+                      Select Available Durations
+                    </Text>
+                    <ScrollView style={{ maxHeight: 400, marginBottom: 20 }}>
+                      {availableDurations.map((duration, index) => (
+                        <TouchableOpacity
+                          key={duration}
+                          className={`flex-row items-center justify-between py-3.5 ${
+                            index < availableDurations.length - 1 ? "border-b border-gray-100" : ""
+                          }`}
+                          onPress={() => toggleDurationSelection(duration)}
+                        >
+                          <Text
+                            className={`text-[17px] text-[#333] ${
+                              selectedDurations.includes(duration) ? "font-bold" : "font-medium"
+                            }`}
+                          >
+                            {duration}
+                          </Text>
+                          {selectedDurations.includes(duration) ? (
+                            <Ionicons name="checkmark-circle" size={24} color="#000" />
+                          ) : (
+                            <View className="h-6 w-6 rounded-full border-2 border-gray-200" />
+                          )}
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                    <TouchableOpacity
+                      className="items-center rounded-2xl bg-black py-4"
+                      onPress={() => setShowDurationDropdown(false)}
+                    >
+                      <Text className="text-[17px] font-bold text-white">Done</Text>
                     </TouchableOpacity>
-                  ))}
-                </ScrollView>
-                <TouchableOpacity
-                  className="items-center rounded-lg bg-black px-6 py-3"
-                  onPress={() => setShowDurationDropdown(false)}
-                >
-                  <Text className="text-base font-semibold text-white">Done</Text>
-                </TouchableOpacity>
+                  </View>
+                )}
               </View>
             </TouchableOpacity>
           </Modal>
@@ -1482,36 +1530,76 @@ export default function EventTypeDetail() {
             onRequestClose={() => setShowDefaultDurationDropdown(false)}
           >
             <TouchableOpacity
-              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              className="flex-1 items-center justify-center bg-black/30"
+              activeOpacity={1}
               onPress={() => setShowDefaultDurationDropdown(false)}
             >
-              <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
-                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
-                  Select Default Duration
-                </Text>
-                {selectedDurations.map((duration) => (
-                  <TouchableOpacity
-                    key={duration}
-                    className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
-                      defaultDuration === duration ? "bg-[#F0F0F0]" : ""
-                    }`}
-                    onPress={() => {
-                      setDefaultDuration(duration);
-                      setShowDefaultDurationDropdown(false);
-                    }}
-                  >
-                    <Text
-                      className={`text-base text-[#333] ${
-                        defaultDuration === duration ? "font-semibold" : ""
-                      }`}
-                    >
-                      {duration}
+              <View className="max-h-[80%] min-w-[320px] max-w-[90%] overflow-hidden rounded-[28px]">
+                {isLiquidGlassAvailable() && Platform.OS === "ios" ? (
+                  <GlassView glassEffectStyle="regular" className="p-0">
+                    <View className="flex-col p-6">
+                      <Text className="mb-5 text-center text-[19px] font-bold text-black">
+                        Select Default Duration
+                      </Text>
+                      <ScrollView style={{ maxHeight: 400 }}>
+                        {selectedDurations.map((duration, index) => (
+                          <TouchableOpacity
+                            key={duration}
+                            className={`flex-row items-center justify-between py-3.5 ${
+                              index < selectedDurations.length - 1 ? "border-b border-black/10" : ""
+                            }`}
+                            onPress={() => {
+                              setDefaultDuration(duration);
+                              setShowDefaultDurationDropdown(false);
+                            }}
+                          >
+                            <Text
+                              className={`text-[17px] text-black ${
+                                defaultDuration === duration ? "font-bold" : "font-medium"
+                              }`}
+                            >
+                              {duration}
+                            </Text>
+                            {defaultDuration === duration ? (
+                              <Ionicons name="checkmark-circle" size={24} color="#000" />
+                            ) : null}
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  </GlassView>
+                ) : (
+                  <View className="bg-white p-6">
+                    <Text className="mb-5 text-center text-[19px] font-bold text-[#333]">
+                      Select Default Duration
                     </Text>
-                    {defaultDuration === duration ? (
-                      <Ionicons name="checkmark" size={20} color="#000" />
-                    ) : null}
-                  </TouchableOpacity>
-                ))}
+                    <ScrollView style={{ maxHeight: 400 }}>
+                      {selectedDurations.map((duration, index) => (
+                        <TouchableOpacity
+                          key={duration}
+                          className={`flex-row items-center justify-between py-3.5 ${
+                            index < selectedDurations.length - 1 ? "border-b border-gray-100" : ""
+                          }`}
+                          onPress={() => {
+                            setDefaultDuration(duration);
+                            setShowDefaultDurationDropdown(false);
+                          }}
+                        >
+                          <Text
+                            className={`text-[17px] text-[#333] ${
+                              defaultDuration === duration ? "font-bold" : "font-medium"
+                            }`}
+                          >
+                            {duration}
+                          </Text>
+                          {defaultDuration === duration ? (
+                            <Ionicons name="checkmark-circle" size={24} color="#000" />
+                          ) : null}
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
             </TouchableOpacity>
           </Modal>
@@ -1524,44 +1612,88 @@ export default function EventTypeDetail() {
             onRequestClose={() => setShowScheduleDropdown(false)}
           >
             <TouchableOpacity
-              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              className="flex-1 items-center justify-center bg-black/30"
+              activeOpacity={1}
               onPress={() => setShowScheduleDropdown(false)}
             >
-              <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
-                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
-                  Select Schedule
-                </Text>
-                {schedules.map((schedule) => (
-                  <TouchableOpacity
-                    key={schedule.id}
-                    className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
-                      selectedSchedule?.id === schedule.id ? "bg-[#F0F0F0]" : ""
-                    }`}
-                    onPress={() => {
-                      setSelectedSchedule(schedule);
-                      setShowScheduleDropdown(false);
-                      fetchScheduleDetails(schedule.id);
-                    }}
-                  >
-                    <View className="flex-1 flex-row items-center justify-between">
-                      <Text
-                        className={`text-base text-[#333] ${
-                          selectedSchedule?.id === schedule.id ? "font-semibold" : ""
-                        }`}
-                      >
-                        {schedule.name}
+              <View className="max-h-[80%] min-w-[320px] max-w-[90%] overflow-hidden rounded-[28px]">
+                {isLiquidGlassAvailable() && Platform.OS === "ios" ? (
+                  <GlassView glassEffectStyle="regular" className="p-0">
+                    <View className="flex-col p-6">
+                      <Text className="mb-5 text-center text-[19px] font-bold text-black">
+                        Select Schedule
                       </Text>
-                      {schedule.isDefault ? (
-                        <Text className="rounded bg-[#E8F5E8] px-1.5 py-0.5 text-xs font-medium text-[#34C759]">
-                          Default
-                        </Text>
-                      ) : null}
+                      <ScrollView style={{ maxHeight: 400 }}>
+                        {schedules.map((schedule, index) => (
+                          <TouchableOpacity
+                            key={schedule.id}
+                            className={`flex-row items-center justify-between py-3.5 ${
+                              index < schedules.length - 1 ? "border-b border-black/10" : ""
+                            }`}
+                            onPress={() => {
+                              setSelectedSchedule(schedule);
+                              fetchScheduleDetails(schedule.id);
+                              setShowScheduleDropdown(false);
+                            }}
+                          >
+                            <View className="flex-1">
+                              <Text
+                                className={`text-[17px] text-black ${
+                                  selectedSchedule?.id === schedule.id ? "font-bold" : "font-medium"
+                                }`}
+                              >
+                                {schedule.name}
+                              </Text>
+                              {schedule.isDefault && (
+                                <Text className="text-[13px] text-black/50">Default</Text>
+                              )}
+                            </View>
+                            {selectedSchedule?.id === schedule.id ? (
+                              <Ionicons name="checkmark-circle" size={24} color="#000" />
+                            ) : null}
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
                     </View>
-                    {selectedSchedule?.id === schedule.id ? (
-                      <Ionicons name="checkmark" size={20} color="#000" />
-                    ) : null}
-                  </TouchableOpacity>
-                ))}
+                  </GlassView>
+                ) : (
+                  <View className="bg-white p-6">
+                    <Text className="mb-5 text-center text-[19px] font-bold text-[#333]">
+                      Select Schedule
+                    </Text>
+                    <ScrollView style={{ maxHeight: 400 }}>
+                      {schedules.map((schedule, index) => (
+                        <TouchableOpacity
+                          key={schedule.id}
+                          className={`flex-row items-center justify-between py-3.5 ${
+                            index < schedules.length - 1 ? "border-b border-gray-100" : ""
+                          }`}
+                          onPress={() => {
+                            setSelectedSchedule(schedule);
+                            fetchScheduleDetails(schedule.id);
+                            setShowScheduleDropdown(false);
+                          }}
+                        >
+                          <View className="flex-1">
+                            <Text
+                              className={`text-[17px] text-[#333] ${
+                                selectedSchedule?.id === schedule.id ? "font-bold" : "font-medium"
+                              }`}
+                            >
+                              {schedule.name}
+                            </Text>
+                            {schedule.isDefault && (
+                              <Text className="text-[13px] text-gray-500">Default</Text>
+                            )}
+                          </View>
+                          {selectedSchedule?.id === schedule.id ? (
+                            <Ionicons name="checkmark-circle" size={24} color="#000" />
+                          ) : null}
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
             </TouchableOpacity>
           </Modal>
@@ -1945,20 +2077,26 @@ export default function EventTypeDetail() {
               getDaySchedules={getDaySchedule}
               formatTime={formatTime}
               selectedTimezone={selectedTimezone}
+              schedules={schedules}
+              setSelectedSchedule={setSelectedSchedule}
             />
           ) : null}
 
           {activeTab === "limits" ? (
             <LimitsTab
               beforeEventBuffer={beforeEventBuffer}
+              setBeforeEventBuffer={setBeforeEventBuffer}
               setShowBeforeBufferDropdown={setShowBeforeBufferDropdown}
               afterEventBuffer={afterEventBuffer}
+              setAfterEventBuffer={setAfterEventBuffer}
               setShowAfterBufferDropdown={setShowAfterBufferDropdown}
               minimumNoticeValue={minimumNoticeValue}
               setMinimumNoticeValue={setMinimumNoticeValue}
               minimumNoticeUnit={minimumNoticeUnit}
+              setMinimumNoticeUnit={setMinimumNoticeUnit}
               setShowMinimumNoticeUnitDropdown={setShowMinimumNoticeUnitDropdown}
               slotInterval={slotInterval}
+              setSlotInterval={setSlotInterval}
               setShowSlotIntervalDropdown={setShowSlotIntervalDropdown}
               limitBookingFrequency={limitBookingFrequency}
               toggleBookingFrequency={toggleBookingFrequency}
@@ -2100,8 +2238,8 @@ export default function EventTypeDetail() {
                       activeOpacity={0.5}
                     >
                       <View className="flex-row items-center py-2">
-                        <View className="mr-3 h-8 w-8 items-center justify-center rounded-lg bg-[#007AFF]/10">
-                          <Ionicons name="grid" size={18} color="#007AFF" />
+                        <View className="mr-3 h-8 w-8 items-center justify-center rounded-lg bg-[#F2F2F7]">
+                          <Ionicons name="grid" size={18} color="#000000" />
                         </View>
                         <View>
                           <Text className="text-[17px] text-black">Apps</Text>
@@ -2133,8 +2271,8 @@ export default function EventTypeDetail() {
                       activeOpacity={0.5}
                     >
                       <View className="flex-row items-center py-2">
-                        <View className="mr-3 h-8 w-8 items-center justify-center rounded-lg bg-[#FF9500]/10">
-                          <Ionicons name="flash" size={18} color="#FF9500" />
+                        <View className="mr-3 h-8 w-8 items-center justify-center rounded-lg bg-[#F2F2F7]">
+                          <Ionicons name="flash" size={18} color="#000000" />
                         </View>
                         <View>
                           <Text className="text-[17px] text-black">Workflows</Text>
@@ -2166,8 +2304,8 @@ export default function EventTypeDetail() {
                       activeOpacity={0.5}
                     >
                       <View className="flex-row items-center py-2">
-                        <View className="mr-3 h-8 w-8 items-center justify-center rounded-lg bg-[#5856D6]/10">
-                          <Ionicons name="code" size={18} color="#5856D6" />
+                        <View className="mr-3 h-8 w-8 items-center justify-center rounded-lg bg-[#F2F2F7]">
+                          <Ionicons name="code" size={18} color="#000000" />
                         </View>
                         <View>
                           <Text className="text-[17px] text-black">Webhooks</Text>
