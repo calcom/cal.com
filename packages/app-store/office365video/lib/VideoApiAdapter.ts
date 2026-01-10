@@ -237,6 +237,13 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
           },
         });
 
+        if (!response.ok) {
+          throw new HttpError({
+            statusCode: response.status,
+            message: response.statusText,
+          });
+        }
+
         const resultString = await response.text();
         const resultObject = JSON.parse(resultString);
 
@@ -248,13 +255,16 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         });
       } catch (error) {
         log.error(`Error creating MS Teams meeting for booking ${event.uid}`, error);
+        if (error instanceof HttpError) {
+          throw error;
+        }
         throw new HttpError({
           statusCode: 500,
           message: `Error updating MS Teams meeting for booking ${event.uid}`,
         });
       }
     },
-    deleteMeeting: () => {
+    deleteMeeting:() => {
       return Promise.resolve([]);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
@@ -267,6 +277,14 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
             body: JSON.stringify(translateEvent(event)),
           },
         });
+
+        if (!response.ok) {
+          throw new HttpError({
+            statusCode: response.status,
+            message: response.statusText,
+          });
+        }
+
         const resultString = await response.text();
 
         const resultObject = JSON.parse(resultString);
@@ -288,6 +306,9 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         });
       } catch (error) {
         log.error(`Error creating MS Teams meeting for booking ${event.uid}`, error);
+        if (error instanceof HttpError) {
+          throw error;
+        }
         throw new HttpError({
           statusCode: 500,
           message: `Error creating MS Teams meeting for booking ${event.uid}`,
