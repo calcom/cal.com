@@ -255,9 +255,9 @@ for Logger level to be set at info, for example.
    - [Setup postgres DB with Northflank](https://northflank.com/guides/deploy-postgres-database-on-northflank)
    - [Setup postgres DB with render](https://render.com/docs/databases)
 
-1. Copy and paste your `DATABASE_URL` from `.env` to `.env.appStore`.
+2. Copy and paste your `DATABASE_URL` from `.env` to `.env.appStore`.
 
-1. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
+3. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
 
    In a development environment, run:
 
@@ -271,7 +271,7 @@ for Logger level to be set at info, for example.
    yarn workspace @calcom/prisma db-deploy
    ```
 
-1. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
+4. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
 
    > **_NOTE:_** Required when `E2E_TEST_MAILHOG_ENABLED` is "1"
 
@@ -280,7 +280,7 @@ for Logger level to be set at info, for example.
    docker run -d -p 8025:8025 -p 1025:1025 mailhog/mailhog
    ```
 
-1. Run (in development mode)
+5. Run (in development mode)
 
    ```sh
    yarn dev
