@@ -34,12 +34,12 @@ beforeEach(() => {
 export const constantsScenarios = {
   enableTeamBilling: () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
+    // @ts-ignore
     mockedConstants.IS_TEAM_BILLING_ENABLED = true;
   },
   setWebsiteUrl: (url: string) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
+    // @ts-ignore
     mockedConstants.WEBSITE_URL = url;
   },
   set: (envVariables: Record<string, string>) => {
