@@ -26,9 +26,9 @@ import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/
 
 import type { ChildrenEventType } from "../ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "../EventType";
-import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
-import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
-import { useTabsNavigations } from "@calcom/atoms/event-types/hooks/useTabsNavigations";
+import { useEventTypeForm } from "../../../../../../packages/platform/atoms/event-types/hooks/useEventTypeForm";
+import { useHandleRouteChange } from "../../../../../../packages/platform/atoms/event-types/hooks/useHandleRouteChange";
+import { useTabsNavigations } from "../../../../../../packages/platform/atoms/event-types/hooks/useTabsNavigations";
 
 type EventPermissions = {
   eventTypes: {
