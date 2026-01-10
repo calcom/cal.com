@@ -1,11 +1,9 @@
 name: Devin PR Conflict Resolver
 
 on:
-  # Run every 5 minutes instead of on push to main.
-  # This saves runner costs by avoiding the 20-second sleep that was needed
-  # to wait for GitHub to compute mergeable status after merges to main.
-  schedule:
-    - cron: '*/5 * * * *'
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       pr_number:
@@ -154,7 +152,10 @@ jobs:
             }
             
             if (unknownPRs.length > 0) {
-              console.log(`\n${unknownPRs.length} PRs have UNKNOWN mergeable status, retrying via REST API...`);
+              console.log(`\n${unknownPRs.length} PRs have UNKNOWN mergeable status, waiting 20 seconds before retrying...`);
+              await new Promise(resolve => setTimeout(resolve, 20000));
+              
+              console.log(`Retrying ${unknownPRs.length} PRs via REST API...`);
               
               for (const pr of unknownPRs) {
                 try {
@@ -180,7 +181,7 @@ jobs:
                     conflictingPRs.push(result.data);
                     if (result.isTargetPR) break;
                   } else if (result.unknown) {
-                    console.log(`PR #${pr.number} still has UNKNOWN status, will be checked on next run`);
+                    console.log(`PR #${pr.number} still has UNKNOWN status after retry`);
                   }
                 } catch (error) {
                   console.error(`Error retrying PR #${pr.number}: ${error.message}`);
