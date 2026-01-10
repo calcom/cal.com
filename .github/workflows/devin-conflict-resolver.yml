@@ -226,11 +226,11 @@ jobs:
             IMPORTANT: This PR is from a fork. The contributor has enabled "Allow edits from maintainers".
             - Clone the FORK repository: ${pr.head_repo_owner}/${pr.head_repo_name}
             - The branch to work on is: ${pr.head_ref}
-            - Add the upstream remote: git remote add upstream https://github.com/${owner}/${repo}.git
-            - Fetch upstream and merge: git fetch upstream && git merge upstream/${pr.base_ref}` : `
+            - Add the upstream remote for ${owner}/${repo}
+            - Fetch and merge the upstream ${pr.base_ref} branch using standard git merge` : `
             - Clone the repository: ${owner}/${repo}
             - Check out the PR branch: ${pr.head_ref}
-            - Merge the base branch: git merge origin/${pr.base_ref}`;
+            - Merge the base branch (${pr.base_ref}) using standard git merge`;
               
               const prompt = `You are resolving merge conflicts on PR #${pr.number} in repository ${owner}/${repo}.
 
@@ -251,8 +251,15 @@ jobs:
                - If unsure about a conflict, prefer keeping both changes where possible
             2. Test that the code still works after resolving conflicts (run lint/type checks).
             3. Commit the merge resolution with a clear commit message.
-            4. Push the resolved changes to the PR branch.
-            5. After successfully pushing the resolved changes, remove the \`devin-conflict-resolution\` label from the PR using the GitHub API.
+            4. CRITICAL VALIDATION BEFORE PUSHING: You MUST validate your merge commit before pushing:
+               - Run: git diff --stat HEAD^1...HEAD (shows changes relative to PR branch parent)
+               - Run: git diff --stat HEAD^2...HEAD (shows changes relative to base branch parent)
+               - The changes relative to the base branch parent (HEAD^2) should be SIMILAR to the original PR changes, NOT include all the new commits from ${pr.base_ref}
+               - If your merge commit shows hundreds of files changed or includes changes that were already in ${pr.base_ref}, STOP IMMEDIATELY
+               - A proper merge commit only contains conflict resolutions, not reproduced changes from the target branch
+               - If validation fails: DO NOT PUSH. Log the error, explain what went wrong, and abort the task.
+            5. Push the resolved changes to the PR branch only after validation passes.
+            6. After successfully pushing the resolved changes, remove the \`devin-conflict-resolution\` label from the PR using the GitHub API.
 
             Rules and Guidelines:
             1. Be careful when resolving conflicts - understand the context of both changes.
@@ -260,7 +267,8 @@ jobs:
             3. Run lint and type checks before pushing to ensure the code is valid.
             4. If a conflict seems too complex or risky to resolve automatically, explain the situation in a PR comment instead.
             5. Never ask for user confirmation. Never wait for user messages.
-            6. CRITICAL: If this is a fork PR and you encounter ANY error when pushing (permission denied, authentication failure, etc.), you MUST fail the task immediately. Do NOT attempt to push to a new branch in the main ${owner}/${repo} repository as a workaround. Simply report the error and stop.`;
+            6. CRITICAL: If this is a fork PR and you encounter ANY error when pushing (permission denied, authentication failure, etc.), you MUST fail the task immediately. Do NOT attempt to push to a new branch in the main ${owner}/${repo} repository as a workaround. Simply report the error and stop.
+            7. CRITICAL: Never reproduce or recreate changes from the target branch. Your merge commit should ONLY contain conflict resolutions. If you find yourself manually copying file contents from ${pr.base_ref} or creating changes that mirror what's already in ${pr.base_ref}, you are doing it wrong. Use git's merge functionality properly - it handles bringing in changes automatically.`;
 
               try {
                 const response = await fetch('https://api.devin.ai/v1/sessions', {
