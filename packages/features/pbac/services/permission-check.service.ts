@@ -1,6 +1,6 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import logger from "@calcom/lib/logger";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import prisma from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
@@ -21,14 +21,17 @@ export class PermissionCheckService {
   private readonly logger = logger.getSubLogger({ prefix: ["PermissionCheckService"] });
   private readonly featuresRepository: FeaturesRepository;
   private readonly permissionService: PermissionService;
+  private readonly membershipRepository: MembershipRepository;
 
   constructor(
     private readonly repository: IPermissionRepository = new PermissionRepository(),
     featuresRepository: FeaturesRepository = new FeaturesRepository(prisma),
-    permissionService: PermissionService = new PermissionService()
+    permissionService: PermissionService = new PermissionService(),
+    membershipRepository: MembershipRepository = new MembershipRepository()
   ) {
     this.featuresRepository = featuresRepository;
     this.permissionService = permissionService;
+    this.membershipRepository = membershipRepository;
   }
 
   async getUserPermissions(userId: number): Promise<TeamPermissions[]> {
@@ -118,14 +121,33 @@ export class PermissionCheckService {
         return this.hasPermission({ userId, teamId }, permission);
       }
 
-      // Fallback to role-based check only if user has team membership
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      // Fallback to role-based check - use highest role between team and org membership
+      const membership = await this.membershipRepository.findUniqueByUserIdAndTeamId({
         userId,
         teamId,
       });
 
-      if (!membership) return false;
-      return this.checkFallbackRoles(membership.role, fallbackRoles);
+      let effectiveRole: MembershipRole | null = membership?.role ?? null;
+
+      // Check if team has parent org and get org membership
+      const team = await this.repository.getTeamById(teamId);
+      if (team?.parentId) {
+        const orgMembership = await this.membershipRepository.findUniqueByUserIdAndTeamId({
+          userId,
+          teamId: team.parentId,
+        });
+        
+        // Use the highest role between team and org
+        if (orgMembership) {
+          effectiveRole = this.getHighestRole(effectiveRole, orgMembership.role);
+        }
+      }
+
+      if (!effectiveRole) {
+        return false;
+      }
+
+      return this.checkFallbackRoles(effectiveRole, fallbackRoles);
     } catch (error) {
       this.logger.error(error);
       return false;
@@ -163,14 +185,33 @@ export class PermissionCheckService {
         return this.hasPermissions({ userId, teamId }, permissions);
       }
 
-      // Fallback to role-based check only if user has team membership
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      // Fallback to role-based check - use highest role between team and org membership
+      const membership = await this.membershipRepository.findUniqueByUserIdAndTeamId({
         userId,
         teamId,
       });
 
-      if (!membership) return false;
-      return this.checkFallbackRoles(membership.role, fallbackRoles);
+      let effectiveRole: MembershipRole | null = membership?.role ?? null;
+
+      // Check if team has parent org and get org membership
+      const team = await this.repository.getTeamById(teamId);
+      if (team?.parentId) {
+        const orgMembership = await this.membershipRepository.findUniqueByUserIdAndTeamId({
+          userId,
+          teamId: team.parentId,
+        });
+        
+        // Use the highest role between team and org
+        if (orgMembership) {
+          effectiveRole = this.getHighestRole(effectiveRole, orgMembership.role);
+        }
+      }
+
+      if (!effectiveRole) {
+        return false;
+      }
+
+      return this.checkFallbackRoles(effectiveRole, fallbackRoles);
     } catch (error) {
       this.logger.error(error);
       return false;
@@ -250,6 +291,22 @@ export class PermissionCheckService {
 
   private checkFallbackRoles(userRole: MembershipRole, allowedRoles: MembershipRole[]): boolean {
     return allowedRoles.includes(userRole);
+  }
+
+  private getHighestRole(
+    role1: MembershipRole | null,
+    role2: MembershipRole | null
+  ): MembershipRole | null {
+    if (!role1) return role2;
+    if (!role2) return role1;
+
+    const roleHierarchy: Record<MembershipRole, number> = {
+      OWNER: 3,
+      ADMIN: 2,
+      MEMBER: 1,
+    };
+
+    return roleHierarchy[role1] >= roleHierarchy[role2] ? role1 : role2;
   }
 
   /**

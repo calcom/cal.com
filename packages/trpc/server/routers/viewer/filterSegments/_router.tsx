@@ -4,7 +4,7 @@ import {
   ZListFilterSegmentsInputSchema,
   ZSetFilterSegmentPreferenceInputSchema,
   ZUpdateFilterSegmentInputSchema,
-} from "@calcom/lib/server/repository/filterSegment.type";
+} from "@calcom/features/data-table/repositories/filterSegment.type";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";

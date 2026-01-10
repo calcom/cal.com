@@ -1,14 +1,9 @@
-import { TRPCClientError } from "@trpc/client";
-
 import { HttpError } from "./http-error";
 
 export function getClientErrorFromUnknown(cause: unknown): Error {
   if (cause instanceof HttpError) {
     const message = `${cause.statusCode}: ${cause.message}`;
     return new Error(message);
-  }
-  if (cause instanceof TRPCClientError) {
-    return new Error(cause.message);
   }
   if (cause instanceof Error) {
     return new Error(cause.message);

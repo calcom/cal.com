@@ -3,10 +3,10 @@
 import { useEffect, Suspense } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
-import { DestinationCalendarSettingsWebWrapper } from "@calcom/atoms/destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper";
-import { SelectedCalendarsSettingsWebWrapper } from "@calcom/atoms/selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
-import AppListCard from "@calcom/features/apps/components/AppListCard";
-import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
+import { DestinationCalendarSettingsWebWrapper } from "./DestinationCalendarSettingsWebWrapper";
+import { SelectedCalendarsSettingsWebWrapper } from "@calcom/web/modules/calendars/components/SelectedCalendarsSettingsWebWrapper";
+import AppListCard from "@calcom/web/modules/apps/components/AppListCard";
+import { SkeletonLoader } from "@calcom/web/modules/apps/components/SkeletonLoader";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -106,7 +106,7 @@ export function CalendarListContainer({
   const { error, setQuery: setError } = useRouterQuery("error");
 
   useEffect(() => {
-    if (error === "account_already_linked") {
+    if (error === "account_already_linked" || error === "no_default_calendar") {
       showToast(t(error), "error", { id: error });
       setError(undefined);
     }

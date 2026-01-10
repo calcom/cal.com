@@ -1,5 +1,5 @@
-import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/booking-references.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { CalendarsController } from "@/ee/calendars/controllers/calendars.controller";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";

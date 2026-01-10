@@ -67,6 +67,9 @@ tsconfig.tsbuildinfo
 
 # Prisma generated files
 packages/prisma/client/*
+!packages/prisma/client/index.ts
+apps/api/v2/generated/prisma/*
+packages/prisma/generated/prisma/*
 packages/prisma/zod/**/*.ts
 packages/prisma/enums
 
@@ -102,3 +105,6 @@ packages/**/.yarn/ci-cache/
 
 # AI
 .claude
+
+# trigger.dev
+.trigger

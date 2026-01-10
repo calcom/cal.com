@@ -29,7 +29,7 @@ async function handler(req: NextRequest) {
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: piiHasher.hash(ip),
+    identifier: `forgotPassword:${piiHasher.hash(ip)}`,
   });
 
   try {
