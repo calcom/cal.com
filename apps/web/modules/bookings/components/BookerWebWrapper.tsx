@@ -68,6 +68,7 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   const timezone = searchParams?.get("cal.tz") || null;
 
   useEffect(() => {
+    // This event isn't processed by BookingPageTagManager because BookingPageTagManager hasn't loaded when it is fired. I think we should have a queue in fire method to handle this.
     sdkActionManager?.fire("navigatedToBooker", {});
   }, []);
   useInitializeBookerStore({
@@ -136,6 +137,10 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   const isEmbed = useIsEmbed();
 
+  /**
+   * Prioritize dateSchedule load
+   * Component will render but use data already fetched from here, and no duplicate requests will be made
+   * */
   const schedule = useScheduleForEvent({
     eventId: props.entity.eventTypeId ?? event.data?.id,
     username: props.username,
@@ -175,6 +180,7 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     },
   });
 
+  // Toggle query param for overlay calendar
   const onOverlaySwitchStateChange = useCallback(
     (state: boolean) => {
       const url = new URL(window.location.href);
