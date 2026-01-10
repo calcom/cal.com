@@ -3188,6 +3188,8 @@
   "rerouted_booking_successfully_redirecting_to_booking_page": "成功重新路由预约。正在重定向到预约页面",
   "on_booking_write_to_event_object": "预订时，写入事件对象",
   "field_name": "字段名称",
+  "field_name_cannot_be_empty": "字段名称不能为空",
+  "field_already_exists": "字段已存在",
   "add_new_field": "添加新字段",
   "you_dont_have_access_to_reroute_this_booking": "您无权重新路由此预订",
   "form_response_not_found": "未找到表单响应",
@@ -4182,5 +4184,6 @@
   "audit_logs_owner_not_in_organization": "预约所有者不是您所在组织的成员。",
   "audit_logs_permission_denied": "您没有权限查看此预订的审计日志。",
   "audit_logs_permission_check_error": "检查权限时发生错误。",
+  "account_already_exists_please_login": "该邮箱的账户已存在，请登录以接受邀请。",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
