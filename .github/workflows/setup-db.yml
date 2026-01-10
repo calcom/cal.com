@@ -53,6 +53,9 @@ jobs:
             /*
             !/docs
             !/example-apps
+            !/apps/api/v1
+            !/apps/api/v2
+            !/apps/web
           sparse-checkout-cone-mode: "false"
       - uses: ./.github/actions/yarn-install
         if: inputs.DB_CACHE_HIT != 'true'
