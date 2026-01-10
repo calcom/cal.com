@@ -253,7 +253,6 @@ jobs:
             2. Test that the code still works after resolving conflicts (run lint/type checks).
             3. Commit the merge resolution with a clear commit message.
             4. Push the resolved changes to the PR branch.
-
             5. After successfully pushing the resolved changes, remove the \`devin-conflict-resolution\` label from the PR using the GitHub API.
 
             Rules and Guidelines:
