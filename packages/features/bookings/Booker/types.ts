@@ -10,11 +10,11 @@ import type { GetBookingType } from "../lib/get-booking";
 
 export type UseBookerLayoutType = {
   shouldShowFormInDialog: boolean;
-  hasDarkBackground: boolean;
+  hasDarkBackground: boolean | undefined;
   extraDays: number;
   columnViewExtraDays: React.MutableRefObject<number>;
   isMobile: boolean;
-  isEmbed: boolean;
+  isEmbed: boolean | undefined;
   isTablet: boolean;
   layout: BookerLayout;
   defaultLayout: BookerLayouts;
@@ -35,7 +35,7 @@ export type UseBookingFormReturnType = {
   bookerFormErrorRef: React.RefObject<HTMLDivElement>;
   key: string;
   formEmail: string | undefined;
-  formName: string | undefined;
+  formName: string | { firstName: string; lastName?: string } | undefined;
   beforeVerifyEmail: () => void;
   formErrors: {
     hasFormErrors: boolean;
@@ -68,8 +68,8 @@ export type UseBookingsReturnType = {
 export type UseCalendarsReturnType = {
   overlayBusyDates:
     | {
-        start: Date;
-        end: Date;
+        start: string | Date;
+        end: string | Date;
       }[]
     | undefined;
   isOverlayCalendarEnabled: boolean;
@@ -83,6 +83,13 @@ export type UseCalendarsReturnType = {
   ) => void;
 };
 
+export type QuickAvailabilityCheck = {
+  utcStartIso: string;
+  utcEndIso: string;
+  status: "available" | "reserved" | "minBookNoticeViolation" | "slotInPast";
+  realStatus?: "available" | "reserved" | "minBookNoticeViolation" | "slotInPast";
+};
+
 export type UseSlotsReturnType = {
   setSelectedTimeslot: (timeslot: string | null) => void;
   setTentativeSelectedTimeslots: (timeslots: string[]) => void;
@@ -90,11 +97,7 @@ export type UseSlotsReturnType = {
   tentativeSelectedTimeslots: string[];
   slotReservationId: string | null;
   allSelectedTimeslots: string[];
-  quickAvailabilityChecks: Array<{
-    utcStartIso: string;
-    utcEndIso: string;
-    status: "available" | "unavailable";
-  }>;
+  quickAvailabilityChecks: QuickAvailabilityCheck[];
 };
 
 export type UseVerifyCodeReturnType = {

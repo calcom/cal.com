@@ -6,7 +6,7 @@ import { useTimePreferences } from "@calcom/features/bookings/lib";
 
 import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
 import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/types";
-import { useLocalSet } from "./useLocalSet";
+import { useLocalSet } from "@calcom/atoms/hooks/booker/useLocalSet";
 
 export type UseOverlayCalendarReturnType = ReturnType<typeof useOverlayCalendar>;
 

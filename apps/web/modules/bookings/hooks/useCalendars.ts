@@ -5,7 +5,7 @@ import { shallow } from "zustand/shallow";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
-import { useLocalSet } from "./useLocalSet";
+import { useLocalSet } from "@calcom/atoms/hooks/booker/useLocalSet";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
