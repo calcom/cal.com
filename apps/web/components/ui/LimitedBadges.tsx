@@ -1,6 +1,5 @@
 "use client";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -37,7 +36,6 @@ function LimitedBadges({
   maxVisible = MAX_VISIBLE_BADGES,
   className,
 }: LimitedBadgesProps): JSX.Element | null {
-  const { t } = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -78,7 +76,7 @@ function LimitedBadges({
             <Button
               color="minimal"
               className="h-auto p-0 border-0 hover:border-0"
-              aria-label={t("show_x_more_items", { count: hiddenItems.length })}
+              aria-label={`Show ${hiddenItems.length} more items`}
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}>
               <Badge variant="gray">+{hiddenItems.length}</Badge>
