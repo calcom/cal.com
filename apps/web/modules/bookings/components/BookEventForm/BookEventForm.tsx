@@ -18,7 +18,7 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
 
 import { formatEventFromTime } from "@calcom/features/bookings/Booker/utils/dates";
-import { useBookerTime } from "@calcom/web/modules/bookings/hooks/useBookerTime";
+import { useBookerTime } from "@calcom/atoms/hooks/booker/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/types";
 import type { IUseBookingErrors, IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/types";
 import { BookingFields } from "./BookingFields";

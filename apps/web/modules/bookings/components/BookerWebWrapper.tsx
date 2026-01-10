@@ -17,8 +17,8 @@ import {
   useInitializeBookerStoreContext,
   useBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerLayout } from "@calcom/web/modules/bookings/hooks/useBookerLayout";
-import { useBookingForm } from "@calcom/web/modules/bookings/hooks/useBookingForm";
+import { useBookerLayout } from "@calcom/atoms/hooks/booker/useBookerLayout";
+import { useBookingForm } from "@calcom/atoms/hooks/booker/useBookingForm";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useBookings } from "@calcom/web/modules/bookings/hooks/useBookings";
 import { useCalendars } from "@calcom/web/modules/bookings/hooks/useCalendars";

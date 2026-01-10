@@ -2,7 +2,7 @@ import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { useAvailableTimeSlots } from "@calcom/web/modules/bookings/hooks/useAvailableTimeSlots";
+import { useAvailableTimeSlots } from "@calcom/atoms/hooks/booker/useAvailableTimeSlots";
 import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";

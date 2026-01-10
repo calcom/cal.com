@@ -19,7 +19,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import { useBookerTime } from "@calcom/web/modules/bookings/hooks/useBookerTime";
+import { useBookerTime } from "@calcom/atoms/hooks/booker/useBookerTime";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useCheckOverlapWithOverlay } from "@calcom/features/bookings/lib/useCheckOverlapWithOverlay";
 import type { Slots } from "@calcom/features/bookings/types";

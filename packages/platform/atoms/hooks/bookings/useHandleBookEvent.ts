@@ -2,7 +2,7 @@ import { useSearchParams } from "next/navigation";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerTime } from "@calcom/web/modules/bookings/hooks/useBookerTime";
+import { useBookerTime } from "../booker/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/types";
 import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
