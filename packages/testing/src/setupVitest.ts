@@ -162,6 +162,8 @@ vi.mock("@calcom/app-store/payment.services.generated", () => ({
   },
 }));
 
-vi.mock("@calcom/app-store/salesforce/lib/graphql/documents/queries", () => ({
-  GetAccountRecordsForRRSkip: {},
-}));
+if (!process.env.INTEGRATION_TESTS) {
+  vi.mock("@calcom/app-store/salesforce/lib/graphql/documents/queries", () => ({
+    GetAccountRecordsForRRSkip: {},
+  }));
+}
