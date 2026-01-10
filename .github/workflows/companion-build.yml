@@ -17,9 +17,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 2
           sparse-checkout: |
             companion
             .github

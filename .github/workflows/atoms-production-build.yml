@@ -12,14 +12,13 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 2
           sparse-checkout: |
             /*
             !/docs
             !/example-apps
-          sparse-checkout-cone-mode: false
+          sparse-checkout-cone-mode: "false"
       - uses: ./.github/actions/yarn-install
       - name: Cache atoms production build
         uses: actions/cache@v4

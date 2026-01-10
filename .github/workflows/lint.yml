@@ -10,14 +10,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 2
           sparse-checkout: |
             /*
             !/docs
             !/example-apps
-          sparse-checkout-cone-mode: false
+          sparse-checkout-cone-mode: "false"
       - uses: ./.github/actions/yarn-install
       - name: Run Lint
         run: yarn lint
