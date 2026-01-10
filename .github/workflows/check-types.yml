@@ -12,13 +12,14 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
           sparse-checkout: |
             /*
             !/docs
             !/example-apps
-          sparse-checkout-cone-mode: "false"
+          sparse-checkout-cone-mode: false
       - uses: ./.github/actions/yarn-install
       - name: Show info
         run: node -e "console.log(require('v8').getHeapStatistics())"

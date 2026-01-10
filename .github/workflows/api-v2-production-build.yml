@@ -35,15 +35,16 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
           sparse-checkout: |
             /*
             !/docs
             !/example-apps
             !/apps/api/v1
             !/apps/web
-          sparse-checkout-cone-mode: "false"
+          sparse-checkout-cone-mode: false
       - uses: ./.github/actions/yarn-install
       - name: Generate Prisma schemas
         working-directory: apps/api/v2

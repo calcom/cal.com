@@ -47,8 +47,9 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
           sparse-checkout: |
             /*
             !/docs
@@ -56,7 +57,7 @@ jobs:
             !/apps/api/v1
             !/apps/api/v2
             !/apps/web
-          sparse-checkout-cone-mode: "false"
+          sparse-checkout-cone-mode: false
       - uses: ./.github/actions/yarn-install
         if: inputs.DB_CACHE_HIT != 'true'
       - run: yarn prisma generate
