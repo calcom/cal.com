@@ -519,7 +519,7 @@ export default function EventTypes() {
       <ScrollView
         style={{ backgroundColor: "white" }}
         contentContainerStyle={{ paddingBottom: 90 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >

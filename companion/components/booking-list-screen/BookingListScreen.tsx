@@ -676,9 +676,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
             contentContainerStyle={{
               padding: 20,
             }}
-            refreshControl={
-              <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
-            }
+            refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
             contentInsetAdjustmentBehavior="automatic"
             style={{ backgroundColor: "white" }}
           >
@@ -698,9 +696,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
             contentContainerStyle={{
               padding: 20,
             }}
-            refreshControl={
-              <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
-            }
+            refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
             contentInsetAdjustmentBehavior="automatic"
             style={{ backgroundColor: "white" }}
           >
@@ -725,9 +721,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                 keyExtractor={(item) => item.key}
                 renderItem={renderListItem}
                 contentContainerStyle={{ paddingBottom: 90 }}
-                refreshControl={
-                  <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
-                }
+                refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
                 showsVerticalScrollIndicator={false}
                 contentInsetAdjustmentBehavior="automatic"
                 style={{ backgroundColor: "white" }}
@@ -742,9 +736,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                     keyExtractor={(item) => item.key}
                     renderItem={renderListItem}
                     contentContainerStyle={{ paddingBottom: 90 }}
-                    refreshControl={
-                      <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
-                    }
+                    refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
                     showsVerticalScrollIndicator={false}
                   />
                 </View>
