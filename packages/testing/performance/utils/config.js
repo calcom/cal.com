@@ -55,5 +55,5 @@ export function randomSleep(min = SLEEP_DURATION.SHORT, max = SLEEP_DURATION.MED
     throw new Error("min cannot be greater than max");
   }
   const sleepTime = Math.random() * (max - min) + min;
-  sleep(sleepTime);
+  return sleep(sleepTime);
 }
