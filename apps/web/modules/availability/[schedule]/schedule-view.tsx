@@ -3,7 +3,7 @@
 import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
 import { revalidateSchedulePage } from "app/(use-page-wrapper)/availability/[schedule]/actions";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { AvailabilitySettings } from "@calcom/atoms/availability/AvailabilitySettings";
 import type { BulkUpdatParams } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
@@ -33,6 +33,7 @@ export const AvailabilitySettingsWebWrapper = ({
   const scheduleId = schedule.id;
   const { timeFormat } = me.data || { timeFormat: null };
   const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
+  const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
   const bulkUpdateDefaultAvailabilityMutation =
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
 
@@ -82,12 +83,14 @@ export const AvailabilitySettingsWebWrapper = ({
         }),
         "success"
       );
+      callbacksRef.current?.onSuccess?.();
     },
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
+      callbacksRef.current?.onError?.(err);
     },
   });
 
@@ -120,13 +123,15 @@ export const AvailabilitySettingsWebWrapper = ({
         scheduleId && deleteMutation.mutate({ scheduleId });
       }}
       handleSubmit={async ({ dateOverrides, ...values }) => {
-        scheduleId &&
-          updateMutation.mutate({
+        if (scheduleId) {
+          await updateMutation.mutateAsync({
             scheduleId,
             dateOverrides: dateOverrides.flatMap((override) => override.ranges),
             ...values,
           });
+        }
       }}
+      callbacksRef={callbacksRef}
       bulkUpdateModalProps={{
         isOpen: isBulkUpdateModalOpen,
         setIsOpen: setIsBulkUpdateModalOpen,
