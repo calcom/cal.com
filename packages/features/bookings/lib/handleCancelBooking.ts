@@ -690,13 +690,17 @@ async function handler(input: CancelBookingInput) {
     const eventTypeMetadata = bookingToDelete?.eventType?.metadata as EventTypeMetadata;
     const disableStandardEmails = eventTypeMetadata?.disableStandardEmails;
 
-    if (!disableStandardEmails) {
+    const isHostDisabled = disableStandardEmails?.all?.host === true;
+    const isAttendeeDisabled = disableStandardEmails?.all?.attendee === true;
+    const shouldSkipEmail = isHostDisabled && isAttendeeDisabled;
+
+    if (!shouldSkipEmail) {
       // TODO: if emails fail try to requeue them
       if (!platformClientId || (platformClientId && arePlatformEmailsEnabled)) {
         await sendCancelledEmailsAndSMS(
           evt,
           { eventName: bookingToDelete?.eventType?.eventName },
-          eventTypeMetadata // Use the variable we just defined
+          eventTypeMetadata
         );
       }
     }
