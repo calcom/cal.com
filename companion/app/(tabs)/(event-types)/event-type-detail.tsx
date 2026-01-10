@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -164,6 +164,7 @@ export default function EventTypeDetail() {
   const [schedulesLoading, setSchedulesLoading] = useState(false);
   const [scheduleDetailsLoading, setScheduleDetailsLoading] = useState(false);
   const [initialScheduleId, setInitialScheduleId] = useState<number | null>(null);
+  const hasAutoSelectedScheduleRef = useRef(false);
   const [isHidden, setIsHidden] = useState(false);
   const [selectedTimezone, setSelectedTimezone] = useState("");
   const [showTimezoneDropdown, setShowTimezoneDropdown] = useState(false);
@@ -401,9 +402,9 @@ export default function EventTypeDetail() {
       const schedulesData = await CalComAPIService.getSchedules();
       setSchedules(schedulesData);
 
-      // Only auto-select a schedule if none is currently selected
-      // This prevents overwriting the schedule loaded from the event type
-      if (!selectedSchedule) {
+      // Only auto-select a schedule if we haven't already done so
+      // This prevents unnecessary re-fetches when the callback is recreated
+      if (!hasAutoSelectedScheduleRef.current) {
         // Use the event type's schedule if we have it, otherwise use default
         let scheduleToSelect: Schedule | undefined;
 
@@ -416,6 +417,7 @@ export default function EventTypeDetail() {
         }
 
         if (scheduleToSelect) {
+          hasAutoSelectedScheduleRef.current = true;
           setSelectedSchedule(scheduleToSelect);
           await fetchScheduleDetails(scheduleToSelect.id);
         }
@@ -425,7 +427,7 @@ export default function EventTypeDetail() {
       safeLogError("Failed to fetch schedules:", error);
       setSchedulesLoading(false);
     }
-  }, [fetchScheduleDetails, selectedSchedule, initialScheduleId]);
+  }, [fetchScheduleDetails, initialScheduleId]);
 
   const fetchConferencingOptions = useCallback(async () => {
     setConferencingLoading(true);
