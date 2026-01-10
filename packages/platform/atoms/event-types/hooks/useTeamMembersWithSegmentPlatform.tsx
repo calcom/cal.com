@@ -10,7 +10,6 @@ import type {
   TeamMemberDto,
   FindTeamMembersMatchingAttributeOutputDto,
 } from "@calcom/platform-types";
-import { trpc } from "@calcom/trpc/react";
 
 import { useAtomsContext } from "../../hooks/useAtomsContext";
 import http from "../../lib/http";
