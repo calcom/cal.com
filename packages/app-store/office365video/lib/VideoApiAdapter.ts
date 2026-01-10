@@ -254,7 +254,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
           url: resultObject.joinWebUrl || resultObject.joinUrl,
         });
       } catch (error) {
-        log.error(`Error creating MS Teams meeting for booking ${event.uid}`, error);
+        log.error(`Error updating MS Teams meeting for booking ${event.uid}`, error);
         if (error instanceof HttpError) {
           throw error;
         }
