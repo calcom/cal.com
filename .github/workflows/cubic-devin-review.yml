@@ -77,11 +77,15 @@ jobs:
             if (prSessionMatch) {
               const sessionId = prSessionMatch[1];
               console.log(`PR was created by Devin session: ${sessionId}`);
-              console.log('Using PR creator session for all Cubic reviews');
-              core.exportVariable('EXISTING_SESSION_ID', sessionId);
-              core.exportVariable('SESSION_URL', `https://app.devin.ai/sessions/${sessionId}`);
-              core.setOutput('has-active-session', 'true');
-              return;
+              
+              const session = await checkSessionStatus(sessionId);
+              if (session) {
+                console.log(`PR creator session status: ${session.status_enum}`);
+                core.exportVariable('EXISTING_SESSION_ID', sessionId);
+                core.exportVariable('SESSION_URL', `https://app.devin.ai/sessions/${sessionId}`);
+                core.setOutput('has-active-session', 'true');
+                return;
+              }
             }
             
             // PR was not created through Devin - check comments for previous Cubic review sessions
@@ -91,32 +95,42 @@ jobs:
               issue_number: context.payload.pull_request.number
             });
             
+            let sessionId = null;
             for (const comment of comments.data.reverse()) {
               if (comment.body.includes('Devin AI is addressing Cubic AI')) {
                 const match = comment.body.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
                 if (match) {
-                  const sessionId = match[1];
-                  console.log(`Found session ID from previous Cubic review: ${sessionId}`);
-                  
-                  const session = await checkSessionStatus(sessionId);
-                  if (session) {
-                    const activeStatuses = ['working', 'blocked', 'resumed'];
-                    if (activeStatuses.includes(session.status_enum)) {
-                      console.log(`Session ${sessionId} is active (status: ${session.status_enum}), reusing it`);
-                      core.exportVariable('EXISTING_SESSION_ID', sessionId);
-                      core.exportVariable('SESSION_URL', `https://app.devin.ai/sessions/${sessionId}`);
-                      core.setOutput('has-active-session', 'true');
-                      return;
-                    } else {
-                      console.log(`Session ${sessionId} is not active (status: ${session.status_enum})`);
-                    }
-                  }
+                  sessionId = match[1];
+                  break;
                 }
               }
             }
             
-            console.log('No existing session to reuse, will create new session');
-            core.setOutput('has-active-session', 'false');
+            if (!sessionId) {
+              console.log('No existing Devin session found in PR comments');
+              core.setOutput('has-active-session', 'false');
+              return;
+            }
+            
+            console.log(`Found session ID from comment: ${sessionId}`);
+            
+            const session = await checkSessionStatus(sessionId);
+            if (!session) {
+              core.setOutput('has-active-session', 'false');
+              return;
+            }
+            
+            const activeStatuses = ['working', 'blocked', 'resumed'];
+            
+            if (activeStatuses.includes(session.status_enum)) {
+              console.log(`Session ${sessionId} is active (status: ${session.status_enum})`);
+              core.exportVariable('EXISTING_SESSION_ID', sessionId);
+              core.exportVariable('SESSION_URL', `https://app.devin.ai/sessions/${sessionId}`);
+              core.setOutput('has-active-session', 'true');
+            } else {
+              console.log(`Session ${sessionId} is not active (status: ${session.status_enum})`);
+              core.setOutput('has-active-session', 'false');
+            }
 
       - name: Send message to existing Devin session
         if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has-active-session == 'true'
