@@ -151,7 +151,7 @@ type ModalState = {
   credentialId: null | number;
 };
 
-export const useDisconnectIntegrationModalController = () => {
+const useDisconnectIntegrationModalController = () => {
   const [modal, updateModal] = useReducer(
     (data: ModalState, partialData: Partial<ModalState>) => ({ ...data, ...partialData }),
     {
