@@ -321,16 +321,22 @@ export default function EventTypesIOS() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-white">
+      <>
+        <Stack.Header
+          style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
+          blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
+        >
+          <Stack.Header.Title large>Event Types</Stack.Header.Title>
+        </Stack.Header>
         <ScrollView
           style={{ backgroundColor: "white" }}
-          contentContainerStyle={{ paddingBottom: 120 }}
+          contentContainerStyle={{ paddingBottom: 120, paddingTop: 16 }}
           showsVerticalScrollIndicator={false}
           contentInsetAdjustmentBehavior="automatic"
         >
           <EventTypeListSkeleton />
         </ScrollView>
-      </View>
+      </>
     );
   }
 

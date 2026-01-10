@@ -13,23 +13,88 @@ export function EventTypeListItemSkeleton({ isLast = false }: EventTypeListItemS
           paddingHorizontal: 16,
           paddingVertical: 16,
           flexDirection: "row",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "space-between",
         }}
       >
         <View style={{ flex: 1, marginRight: 12 }}>
-          <View style={{ flexDirection: "row", alignItems: "baseline", marginBottom: 4 }}>
-            <Skeleton style={{ height: 20, width: 120, borderRadius: 4 }} />
-            <Skeleton style={{ height: 16, width: 100, borderRadius: 4, marginLeft: 8 }} />
+          {/* Title + Link row - matches EventTypeTitle */}
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              alignItems: "baseline",
+              marginBottom: 4,
+            }}
+          >
+            <Skeleton style={{ height: 18, width: 130, borderRadius: 4 }} />
+            <Skeleton style={{ height: 14, width: 120, borderRadius: 4, marginLeft: 4 }} />
           </View>
 
-          <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8, gap: 8 }}>
-            <Skeleton style={{ height: 24, width: 56, borderRadius: 6 }} />
-            <Skeleton style={{ height: 24, width: 64, borderRadius: 6 }} />
-            <Skeleton style={{ height: 24, width: 80, borderRadius: 6 }} />
+          {/* Badges row - matches EventTypeBadges */}
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              alignItems: "center",
+              marginTop: 8,
+              gap: 8,
+            }}
+          >
+            {/* Duration badge skeleton */}
+            <View
+              style={{
+                height: 24,
+                paddingHorizontal: 8,
+                flexDirection: "row",
+                alignItems: "center",
+                borderRadius: 6,
+                borderWidth: 1,
+                borderColor: "#E5E5EA",
+                backgroundColor: "#F5F5F5",
+              }}
+            >
+              <Skeleton style={{ height: 14, width: 14, borderRadius: 3 }} />
+              <Skeleton style={{ height: 12, width: 28, borderRadius: 3, marginLeft: 6 }} />
+            </View>
+
+            {/* Hidden badge skeleton */}
+            <View
+              style={{
+                height: 24,
+                paddingHorizontal: 8,
+                flexDirection: "row",
+                alignItems: "center",
+                borderRadius: 6,
+                borderWidth: 1,
+                borderColor: "#E5E5EA",
+                backgroundColor: "#F5F5F5",
+              }}
+            >
+              <Skeleton style={{ height: 14, width: 14, borderRadius: 3 }} />
+              <Skeleton style={{ height: 12, width: 40, borderRadius: 3, marginLeft: 6 }} />
+            </View>
+
+            {/* Recurrence badge skeleton */}
+            <View
+              style={{
+                height: 24,
+                paddingHorizontal: 8,
+                flexDirection: "row",
+                alignItems: "center",
+                borderRadius: 6,
+                borderWidth: 1,
+                borderColor: "#E5E5EA",
+                backgroundColor: "#F5F5F5",
+              }}
+            >
+              <Skeleton style={{ height: 14, width: 14, borderRadius: 3 }} />
+              <Skeleton style={{ height: 12, width: 44, borderRadius: 3, marginLeft: 6 }} />
+            </View>
           </View>
         </View>
 
+        {/* Menu button - matches the three-dot menu */}
         <Skeleton style={{ height: 36, width: 36, borderRadius: 8 }} />
       </View>
     </View>
