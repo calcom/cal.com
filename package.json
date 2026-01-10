@@ -43,7 +43,7 @@
     "dev:website": "turbo run dev --filter=\"@calcom/web\" --filter=\"@calcom/website\"",
     "dev:trigger": "turbo run dev:trigger --filter=\"@calcom/features\"",
     "deploy:trigger": "turbo run deploy:trigger --filter=\"@calcom/features\"",
-    "dev": "set NODE_OPTIONS=--openssl-legacy-provider && turbo run dev --filter=\"@calcom/web\","
+    "dev": "cross-env NODE_OPTIONS='--openssl-legacy-provider' turbo run dev --filter='@calcom/web'",
     "dx": "turbo run dx",
     "i-dev": "infisical run -- turbo run dev --filter=\"@calcom/web\"",
     "i-dx": "infisical run -- turbo run dx",
