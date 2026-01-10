@@ -5,6 +5,8 @@ import type { Booking, Credential, User } from "@calcom/prisma/client";
 
 import { BookingReferenceRepository } from "./BookingReferenceRepository";
 
+const testRunId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+
 describe("BookingReferenceRepository Integration Tests", () => {
   let testUser: User;
   let testCredential: Credential;
@@ -14,8 +16,8 @@ describe("BookingReferenceRepository Integration Tests", () => {
   beforeAll(async () => {
     testUser = await prisma.user.create({
       data: {
-        email: "bookingreference-test@example.com",
-        username: "bookingreference-test",
+        email: `bookingreference-test-${testRunId}@example.com`,
+        username: `bookingreference-test-${testRunId}`,
       },
     });
 
@@ -29,7 +31,7 @@ describe("BookingReferenceRepository Integration Tests", () => {
 
     testBooking = await prisma.booking.create({
       data: {
-        uid: "test-booking-uid-123",
+        uid: `test-booking-uid-${testRunId}`,
         title: "Test Booking",
         startTime: new Date(),
         endTime: new Date(),
@@ -52,19 +54,25 @@ describe("BookingReferenceRepository Integration Tests", () => {
   });
 
   afterAll(async () => {
-    await prisma.booking.delete({
+    await prisma.bookingReference.deleteMany({
+      where: {
+        bookingId: testBooking.id,
+      },
+    });
+
+    await prisma.booking.deleteMany({
       where: {
         id: testBooking.id,
       },
     });
 
-    await prisma.credential.delete({
+    await prisma.credential.deleteMany({
       where: {
         id: testCredential.id,
       },
     });
 
-    await prisma.user.delete({
+    await prisma.user.deleteMany({
       where: {
         id: testUser.id,
       },
