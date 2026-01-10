@@ -128,8 +128,6 @@ export const PriorityDialog = (
   );
 };
 
-export { sortHosts };
-
 export type WeightDialogCustomClassNames = {
   container?: string;
   label?: string;
