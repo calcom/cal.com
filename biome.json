@@ -153,11 +153,27 @@
       "linter": {
         "rules": {
           "style": {
-            "useImportType": "off",
-            "noProcessEnv": "off"
+            "useImportType": "off"
           },
           "correctness": {
             "noProcessGlobal": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "apps/api/v2/src/config/app.ts",
+        "apps/api/v2/src/config/app.ts",
+        "apps/api/v2/src/config/bootstrap.ts",
+        "apps/api/v2/src/config/env.ts",
+        "apps/api/v2/src/env.ts",
+        "apps/api/v2/test/setEnvVars.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noProcessEnv": "off"
           }
         }
       }
