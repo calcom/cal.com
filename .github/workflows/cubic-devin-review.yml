@@ -70,25 +70,21 @@ jobs:
               return await response.json();
             }
             
-            // First, check PR description for the original Devin session that created the PR
+            // If PR was created through Devin, always use that session
             const prBody = context.payload.pull_request.body || '';
             const prSessionMatch = prBody.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
             
             if (prSessionMatch) {
               const sessionId = prSessionMatch[1];
-              console.log(`Found session ID from PR description: ${sessionId}`);
-              
-              const session = await checkSessionStatus(sessionId);
-              if (session) {
-                console.log(`PR creator session ${sessionId} status: ${session.status_enum}`);
-                core.exportVariable('EXISTING_SESSION_ID', sessionId);
-                core.exportVariable('SESSION_URL', `https://app.devin.ai/sessions/${sessionId}`);
-                core.setOutput('has-active-session', 'true');
-                return;
-              }
+              console.log(`PR was created by Devin session: ${sessionId}`);
+              console.log('Using PR creator session for all Cubic reviews');
+              core.exportVariable('EXISTING_SESSION_ID', sessionId);
+              core.exportVariable('SESSION_URL', `https://app.devin.ai/sessions/${sessionId}`);
+              core.setOutput('has-active-session', 'true');
+              return;
             }
             
-            // Fallback: check PR comments for sessions from previous Cubic AI reviews
+            // PR was not created through Devin - check comments for previous Cubic review sessions
             const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -100,26 +96,26 @@ jobs:
                 const match = comment.body.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
                 if (match) {
                   const sessionId = match[1];
-                  console.log(`Found session ID from comment: ${sessionId}`);
+                  console.log(`Found session ID from previous Cubic review: ${sessionId}`);
                   
                   const session = await checkSessionStatus(sessionId);
                   if (session) {
                     const activeStatuses = ['working', 'blocked', 'resumed'];
                     if (activeStatuses.includes(session.status_enum)) {
-                      console.log(`Comment session ${sessionId} is active (status: ${session.status_enum})`);
+                      console.log(`Session ${sessionId} is active (status: ${session.status_enum}), reusing it`);
                       core.exportVariable('EXISTING_SESSION_ID', sessionId);
                       core.exportVariable('SESSION_URL', `https://app.devin.ai/sessions/${sessionId}`);
                       core.setOutput('has-active-session', 'true');
                       return;
                     } else {
-                      console.log(`Comment session ${sessionId} is not active (status: ${session.status_enum})`);
+                      console.log(`Session ${sessionId} is not active (status: ${session.status_enum})`);
                     }
                   }
                 }
               }
             }
             
-            console.log('No active Devin session found');
+            console.log('No existing session to reuse, will create new session');
             core.setOutput('has-active-session', 'false');
 
       - name: Send message to existing Devin session
