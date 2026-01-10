@@ -12,7 +12,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Select } from "@calcom/ui/components/form";
 import { List } from "@calcom/ui/components/list";
 
-import { SelectedCalendarsSettings } from "../../../../../packages/platform/atoms/selected-calendars/SelectedCalendarsSettings";
+import { SelectedCalendarsSettings } from "@calcom/atoms/selected-calendars/SelectedCalendarsSettings";
 
 export enum SelectedCalendarSettingsScope {
   User = "user",
