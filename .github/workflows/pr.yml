@@ -97,6 +97,15 @@ jobs:
             // NOTE: We use workflow run created_at instead of commit timestamp because
             // git commit timestamps can be arbitrarily backdated by attackers
             if (pr.labels?.some(l => l.name === 'run-ci')) {
+              // Skip stale check if this is a re-run (run_attempt > 1)
+              // Re-runs are explicitly triggered by maintainers
+              const runAttempt = parseInt(process.env.GITHUB_RUN_ATTEMPT || '1', 10);
+              if (runAttempt > 1) {
+                console.log(`Re-run detected (attempt ${runAttempt}), trusting existing 'run-ci' label`);
+                core.setOutput('is-trusted', true);
+                return;
+              }
+
               const events = await github.paginate(github.rest.issues.listEvents, {
                 owner,
                 repo,
@@ -166,6 +175,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
+      - name: Cache git checkout
+        uses: ./.github/actions/cache-checkout
+        with:
+          mode: save
       - name: Generate DB cache key
         id: cache-db-key
         uses: ./.github/actions/cache-db-key

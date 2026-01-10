@@ -10,7 +10,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+        with:
+          mode: restore
       - uses: ./.github/actions/yarn-install
       - name: Run Lint
         run: yarn lint
