@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface BookingListItemSkeletonProps {
@@ -55,7 +55,11 @@ interface BookingListSkeletonProps {
 export function BookingListSkeleton({ count = 4, iosStyle = false }: BookingListSkeletonProps) {
   if (iosStyle) {
     return (
-      <View style={{ backgroundColor: "white" }}>
+      <ScrollView
+        style={{ backgroundColor: "white" }}
+        contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
+      >
         <View
           style={{
             backgroundColor: "#f1f1f1",
@@ -70,7 +74,7 @@ export function BookingListSkeleton({ count = 4, iosStyle = false }: BookingList
         {Array.from({ length: count }).map((_, index) => (
           <BookingListItemSkeleton key={`booking-skeleton-${index}`} isLast={index === count - 1} />
         ))}
-      </View>
+      </ScrollView>
     );
   }
 
