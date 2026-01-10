@@ -314,10 +314,10 @@ jobs:
             If you prefer to resolve conflicts manually, you can close the Devin session and handle it yourself.`
                   });
                 } else {
-                  console.log(`Failed to get session URL for PR #${pr.number}:`, data);
+                  console.log(`Failed to get session URL for PR #${pr.number}`);
                 }
               } catch (error) {
-                console.error(`Error creating Devin session for PR #${pr.number}:`, error);
+                console.error(`Error creating Devin session for PR #${pr.number}: ${error.message}`);
               }
               
               await new Promise(resolve => setTimeout(resolve, 1000));

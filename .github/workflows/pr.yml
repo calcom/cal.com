@@ -175,6 +175,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
+      - name: Cache git checkout
+        uses: ./.github/actions/cache-checkout
+        with:
+          mode: save
       - name: Generate DB cache key
         id: cache-db-key
         uses: ./.github/actions/cache-db-key
