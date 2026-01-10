@@ -38,7 +38,7 @@ import {
 } from "@/hooks";
 import { useEventTypeFilter } from "@/hooks/useEventTypeFilter";
 import { CalComAPIService, type EventType } from "@/services/calcom";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { getEventDuration } from "@/utils/getEventDuration";
 import { offlineAwareRefresh } from "@/utils/network";
@@ -91,18 +91,6 @@ export default function EventTypes() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [eventTypeToDelete, setEventTypeToDelete] = useState<EventType | null>(null);
 
-  // Toast state for web platform
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  // Function to show toast
-  const showToastMessage = (message: string) => {
-    setToastMessage(message);
-    setShowToast(true);
-    setTimeout(() => {
-      setShowToast(false);
-    }, 2000);
-  };
-
   // Handle pull-to-refresh
   // Handle pull-to-refresh (offline-aware)
   const onRefresh = () => offlineAwareRefresh(refetch);
@@ -149,17 +137,9 @@ export default function EventTypes() {
       const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
       await Clipboard.setStringAsync(link);
 
-      if (Platform.OS === "web") {
-        showToastMessage("Link copied!");
-      } else {
-        Alert.alert("Link Copied", "Event type link copied!");
-      }
+      showSuccessAlert("Link Copied", "Event type link copied!");
     } catch {
-      if (Platform.OS === "web") {
-        showToastMessage("Failed to copy link");
-      } else {
-        showErrorAlert("Error", "Failed to copy link. Please try again.");
-      }
+      showErrorAlert("Error", "Failed to copy link. Please try again.");
     }
   };
 
@@ -205,7 +185,7 @@ export default function EventTypes() {
             onPress: () => {
               deleteEventTypeMutation(eventType.id, {
                 onSuccess: () => {
-                  Alert.alert("Success", "Event type deleted successfully");
+                  showSuccessAlert("Success", "Event type deleted successfully");
                 },
                 onError: (error) => {
                   const message = error instanceof Error ? error.message : String(error);
@@ -241,11 +221,7 @@ export default function EventTypes() {
         setShowDeleteModal(false);
         setEventTypeToDelete(null);
 
-        if (Platform.OS === "web") {
-          showToastMessage("Event type deleted successfully");
-        } else {
-          Alert.alert("Success", "Event type deleted successfully");
-        }
+        showSuccessAlert("Success", "Event type deleted successfully");
       },
       onError: (error) => {
         const message = error instanceof Error ? error.message : String(error);
@@ -257,11 +233,7 @@ export default function EventTypes() {
             stack,
           });
         }
-        if (Platform.OS === "web") {
-          showToastMessage("Failed to delete event type");
-        } else {
-          showErrorAlert("Error", "Failed to delete event type. Please try again.");
-        }
+        showErrorAlert("Error", "Failed to delete event type. Please try again.");
       },
     });
   };
@@ -271,11 +243,7 @@ export default function EventTypes() {
       { eventType, existingEventTypes: eventTypes },
       {
         onSuccess: (duplicatedEventType) => {
-          if (Platform.OS === "web") {
-            showToastMessage("Event type duplicated successfully");
-          } else {
-            Alert.alert("Success", "Event type duplicated successfully");
-          }
+          showSuccessAlert("Success", "Event type duplicated successfully");
 
           const duration = getEventDuration(eventType);
 
@@ -305,11 +273,7 @@ export default function EventTypes() {
               stack,
             });
           }
-          if (Platform.OS === "web") {
-            showToastMessage("Failed to duplicate event type");
-          } else {
-            showErrorAlert("Error", "Failed to duplicate event type. Please try again.");
-          }
+          showErrorAlert("Error", "Failed to duplicate event type. Please try again.");
         },
       }
     );
@@ -327,11 +291,7 @@ export default function EventTypes() {
       }
     } catch {
       console.error("Failed to open preview");
-      if (Platform.OS === "web") {
-        showToastMessage("Failed to open preview");
-      } else {
-        showErrorAlert("Error", "Failed to open preview. Please try again.");
-      }
+      showErrorAlert("Error", "Failed to open preview. Please try again.");
     }
   };
 
@@ -354,11 +314,11 @@ export default function EventTypes() {
     setTitleError("");
 
     if (!newEventTitle.trim()) {
-      // Use inline error for Android AlertDialog, Alert for others
+      // Use inline error for Android AlertDialog, showErrorAlert for others
       if (Platform.OS === "android") {
         setTitleError("Please enter a title for your event type");
       } else {
-        Alert.alert("Error", "Please enter a title for your event type");
+        showErrorAlert("Error", "Please enter a title for your event type");
       }
       return;
     }
@@ -368,7 +328,7 @@ export default function EventTypes() {
       if (Platform.OS === "android") {
         setTitleError("Title must contain at least one letter or number");
       } else {
-        Alert.alert("Error", "Title must contain at least one letter or number");
+        showErrorAlert("Error", "Title must contain at least one letter or number");
       }
       return;
     }
@@ -930,15 +890,6 @@ export default function EventTypes() {
           </View>
         </View>
       </FullScreenModal>
-
-      {/* Toast for Web Platform */}
-      {showToast ? (
-        <View className="absolute bottom-8 left-1/2 z-50 -translate-x-1/2 transform">
-          <View className="rounded-full bg-gray-800 px-6 py-3 shadow-lg">
-            <Text className="text-sm font-medium text-white">{toastMessage}</Text>
-          </View>
-        </View>
-      ) : null}
     </>
   );
 }
