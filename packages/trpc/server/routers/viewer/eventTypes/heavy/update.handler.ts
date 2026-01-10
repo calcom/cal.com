@@ -592,7 +592,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       }
     }
     
-    if(input.metadata.disableStandardEmails.cancellation.host) {
+    if(input.metadata.disableStandardEmails.cancellation.attendee) {
       if(!allowDisablingAttendeeCancellationEmails(workflows)) {
         input.metadata.disableStandardEmails.cancellation.attendee = false;
       }

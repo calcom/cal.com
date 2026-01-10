@@ -108,14 +108,6 @@ const eventTypeDisableHostEmail = (metadata?: EventTypeMetadata) => {
   return !!metadata?.disableStandardEmails?.all?.host;
 };
 
-const eventTypeDisableHostCancellationEmail = (metadata?: EventTypeMetadata) => {
-  return !!metadata?.disableStandardEmails?.all?.host || !!metadata?.disableStandardEmails?.cancellation?.host
-}
-
-const eventTypeDisableAttendeeCancellationEmail = (metadata?: EventTypeMetadata) => {
-  return !!metadata?.disableStandardEmails?.all?.attendee || !!metadata?.disableStandardEmails?.cancellation?.attendee
-}
-
 const _sendScheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   eventNameObject?: EventNameObjectType,
@@ -508,7 +500,9 @@ export const sendDeclinedEmailsAndSMS = async (
 export const sendCancelledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   eventNameObject: Pick<EventNameObjectType, "eventName">,
-  eventTypeMetadata?: EventTypeMetadata
+  eventTypeMetadata?: EventTypeMetadata,
+  hostEmailDisabled?: boolean,
+  attendeeEmailDisabled?: boolean,
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
@@ -523,7 +517,7 @@ export const sendCancelledEmailsAndSMS = async (
     );
   }
 
-  if (!eventTypeDisableHostCancellationEmail(eventTypeMetadata)) {
+  if (!hostEmailDisabled && !eventTypeDisableHostEmail(eventTypeMetadata)) {
     emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent })));
 
     if (calendarEvent.team?.members) {
@@ -536,7 +530,7 @@ export const sendCancelledEmailsAndSMS = async (
   }
 
   if (
-    !eventTypeDisableAttendeeCancellationEmail(eventTypeMetadata) 
+    !attendeeEmailDisabled 
     && !shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.CANCELLATION)
   ) {
     emailsToSend.push(
