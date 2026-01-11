@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 import type { ScheduleAvailability } from "@/services/types";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -186,7 +186,7 @@ export const AvailabilityDetailScreen = forwardRef<
 
   const handleSetAsDefault = useCallback(async () => {
     if (isDefault) {
-      Alert.alert("Info", "This schedule is already set as default");
+      showInfoAlert("Info", "This schedule is already set as default");
       return;
     }
 
@@ -195,7 +195,7 @@ export const AvailabilityDetailScreen = forwardRef<
         isDefault: true,
       });
       setIsDefault(true);
-      Alert.alert("Success", "Availability set as default successfully");
+      showSuccessAlert("Success", "Availability set as default successfully");
     } catch {
       showErrorAlert("Error", "Failed to set availability as default. Please try again.");
     }
@@ -203,7 +203,7 @@ export const AvailabilityDetailScreen = forwardRef<
 
   const handleDelete = useCallback(() => {
     if (isDefault) {
-      Alert.alert(
+      showInfoAlert(
         "Cannot Delete",
         "You cannot delete the default schedule. Please set another schedule as default first."
       );

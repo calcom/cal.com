@@ -1,11 +1,11 @@
 import * as Clipboard from "expo-clipboard";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useRef } from "react";
-import { Alert } from "react-native";
 import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingByUid } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
+import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 import { openInAppBrowser } from "@/utils/browser";
 
@@ -94,7 +94,7 @@ export default function BookingDetailIOS() {
   const handleCopyMeetingLink = useCallback(async () => {
     if (meetingUrl) {
       await Clipboard.setStringAsync(meetingUrl);
-      Alert.alert("Copied", "Meeting link copied to clipboard");
+      showSuccessAlert("Copied", "Meeting link copied to clipboard");
     }
   }, [meetingUrl]);
 
@@ -117,7 +117,7 @@ export default function BookingDetailIOS() {
     if (handlers?.[handlerName]) {
       (handlers[handlerName] as () => void)();
     } else {
-      Alert.alert("Error", errorMessage);
+      showErrorAlert("Error", errorMessage);
     }
   }, []);
 
@@ -187,7 +187,7 @@ export default function BookingDetailIOS() {
         handlerName: null,
         errorMessage: null,
         customHandler: () => {
-          Alert.alert("Report Booking", "Report booking functionality is not yet available");
+          showInfoAlert("Report Booking", "Report booking functionality is not yet available");
         },
         destructive: true,
         gatingKey: null,
