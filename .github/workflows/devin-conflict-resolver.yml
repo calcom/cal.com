@@ -84,11 +84,13 @@ jobs:
             const conflictingPRs = [];
             const unknownPRs = [];
             
+            const isManualTrigger = context.eventName === 'workflow_dispatch';
+            
             function processPR(pr, mergeableStatus) {
               const isTargetPR = manualPrNumber && pr.number === manualPrNumber;
               const isFork = pr.headRepository?.owner?.login !== owner;
               
-              if (!isTargetPR && pr.isDraft) {
+              if (!isTargetPR && !isManualTrigger && pr.isDraft) {
                 console.log(`PR #${pr.number} is a draft, skipping`);
                 return { skip: true };
               }
