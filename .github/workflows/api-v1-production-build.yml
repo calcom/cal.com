@@ -43,7 +43,7 @@ env:
 jobs:
   build:
     name: Build API v1
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
     services:
       postgres:
@@ -56,33 +56,33 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: calendso
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+          --health-start-period 2s
         ports:
           - 5432:5432
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
       - name: Cache API v1 production build
-        uses: buildjet/cache@v4
+        uses: actions/cache@v4
         id: cache-api-v1-build
         env:
           cache-name: api-v1-build
           key-1: ${{ hashFiles('yarn.lock') }}
           key-2: ${{ hashFiles('apps/api/v1/**.[jt]s', 'apps/api/v1/**.[jt]sx', '!**/node_modules') }}
-          key-3: ${{ github.event.pull_request.number || github.ref }}
-          # Ensures production-build.yml will always be fresh
-          key-4: ${{ github.sha }}
         with:
           path: |
             ${{ github.workspace }}/apps/api/v1/.next
             **/.turbo/**
             **/dist/**
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
+          key: ${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}
       - name: Log Cache Hit
         if: steps.cache-api-v1-build.outputs.cache-hit == 'true'
         run: echo "Cache hit for API v1 build. Skipping build."

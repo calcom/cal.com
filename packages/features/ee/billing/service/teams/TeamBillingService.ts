@@ -4,6 +4,7 @@ import { BillingPortalServiceFactory } from "@calcom/app-store/stripepayment/lib
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { sendSubscriptionPaymentFailedEmail } from "@calcom/emails/email-manager";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import logger from "@calcom/lib/logger";

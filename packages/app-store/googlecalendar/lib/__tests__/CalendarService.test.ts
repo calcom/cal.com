@@ -105,21 +105,23 @@ describe("getAvailability", () => {
       };
     });
 
-    const availabilityWithPrimaryAsFallback = await calendarService.getAvailability(
-      "2024-01-01",
-      "2024-01-02",
-      [],
-      true
-    );
+    const availabilityWithPrimaryAsFallback = await calendarService.getAvailability({
+      dateFrom: "2024-01-01",
+      dateTo: "2024-01-02",
+      selectedCalendars: [],
+      mode: "slots",
+      fallbackToPrimary: true,
+    });
 
     expect(availabilityWithPrimaryAsFallback).toEqual(mockedBusyTimes1);
 
-    const availabilityWithAllCalendarsAsFallback = await calendarService.getAvailability(
-      "2024-01-01",
-      "2024-01-02",
-      [],
-      false
-    );
+    const availabilityWithAllCalendarsAsFallback = await calendarService.getAvailability({
+      dateFrom: "2024-01-01",
+      dateTo: "2024-01-02",
+      selectedCalendars: [],
+      mode: "slots",
+      fallbackToPrimary: false,
+    });
 
     expect(availabilityWithAllCalendarsAsFallback).toEqual([...mockedBusyTimes1, ...mockedBusyTimes2]);
   });
