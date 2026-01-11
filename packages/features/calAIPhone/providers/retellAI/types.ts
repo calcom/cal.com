@@ -1,6 +1,6 @@
 import type { Retell } from "retell-sdk";
 
-import type { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
+import type { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
 
 export type RetellLLM = Retell.LlmResponse;
 export type RetellPhoneNumber = Retell.PhoneNumberResponse;
@@ -114,6 +114,7 @@ export type RetellAgentWithDetails = {
   userId: number | null;
   teamId: number | null;
   inboundEventTypeId?: number | null;
+  outboundEventTypeId?: number | null;
   outboundPhoneNumbers: Array<{
     id: number;
     phoneNumber: string;

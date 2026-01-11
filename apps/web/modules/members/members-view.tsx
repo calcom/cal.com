@@ -1,11 +1,11 @@
 "use client";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
-import type { UserListTableProps } from "@calcom/features/users/components/UserTable/UserListTable";
-import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { UserListTable } from "@calcom/web/modules/users/components/UserTable/UserListTable";
+import type { UserListTableProps } from "@calcom/web/modules/users/components/UserTable/UserListTable";
+import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 
 export const MembersView = (props: UserListTableProps & { permissions?: MemberPermissions }) => {
   const { t } = useLocale();

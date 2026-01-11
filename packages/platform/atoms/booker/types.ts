@@ -1,7 +1,7 @@
 import type React from "react";
 
 import type { BookerProps } from "@calcom/features/bookings/Booker";
-import type { BookerStore } from "@calcom/features/bookings/Booker/store";
+import type { BookerStore, CountryCode } from "@calcom/features/bookings/Booker/store";
 import type { Timezone, VIEW_TYPE } from "@calcom/features/bookings/Booker/types";
 import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
 import type { BookingResponse } from "@calcom/platform-libraries";
@@ -32,7 +32,7 @@ export type BookerStoreValues = Omit<
   | "setSelectedDuration"
   | "setBookingData"
   | "setRecurringEventCount"
-  | "setOccurenceCount"
+  | "setRecurringEventCountQueryParam"
   | "setTentativeSelectedTimeslots"
   | "setSelectedTimeslot"
   | "setFormValues"
@@ -88,6 +88,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   roundRobinHideOrgAndTeam?: boolean;
   silentlyHandleCalendarFailures?: boolean;
   hideEventMetadata?: boolean;
+  defaultPhoneCountry?: CountryCode;
 };
 
 export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
@@ -101,4 +102,5 @@ export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomPro
   isTeamEvent: true;
   teamId: number;
   routingFormSearchParams?: RoutingFormSearchParams;
+  rrHostSubsetIds?: number[];
 };

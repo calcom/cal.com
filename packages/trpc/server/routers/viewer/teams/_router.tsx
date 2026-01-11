@@ -1,3 +1,5 @@
+import type { NextApiRequest } from "next";
+
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
@@ -25,6 +27,9 @@ import { ZPublishInputSchema } from "./publish.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
 import { ZResendInvitationInputSchema } from "./resendInvitation.schema";
+import { ZGetManagedEventUsersToReassignInputSchema } from "./managedEvents/getManagedEventUsersToReassign.schema";
+import { ZManagedEventManualReassignInputSchema } from "./managedEvents/managedEventManualReassign.schema";
+import { ZManagedEventReassignInputSchema } from "./managedEvents/managedEventReassign.schema";
 import { ZGetRoundRobinHostsInputSchema } from "./roundRobin/getRoundRobinHostsToReasign.schema";
 import { ZRoundRobinManualReassignInputSchema } from "./roundRobin/roundRobinManualReassign.schema";
 import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
@@ -33,9 +38,6 @@ import { ZSkipTeamTrialsInputSchema } from "./skipTeamTrials.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
-
-const NAMESPACE = "teams";
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const viewerTeamsRouter = router({
   // Retrieves team by id
@@ -53,9 +55,9 @@ export const viewerTeamsRouter = router({
     const { default: handler } = await import("./list.handler");
     return handler(opts);
   }),
-  create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
+  create: authedProcedure.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
     const { default: handler } = await import("./create.handler");
-    return handler(opts);
+    return handler({ ctx: { ...ctx, req: ctx.req as NextApiRequest }, input });
   }),
   // Allows team owner to update team metadata
   update: authedProcedure.input(ZUpdateInputSchema).mutation(async (opts) => {
@@ -160,6 +162,23 @@ export const viewerTeamsRouter = router({
     }),
   getRoundRobinHostsToReassign: authedProcedure.input(ZGetRoundRobinHostsInputSchema).query(async (opts) => {
     const { default: handler } = await import("./roundRobin/getRoundRobinHostsToReasign.handler");
+    return handler(opts);
+  }),
+  // Managed Events Reassignment
+  managedEventReassign: authedProcedure.input(ZManagedEventReassignInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./managedEvents/managedEventReassign.handler");
+    return handler(opts);
+  }),
+  managedEventManualReassign: authedProcedure
+    .input(ZManagedEventManualReassignInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./managedEvents/managedEventManualReassign.handler");
+      return handler(opts);
+    }),
+  getManagedEventUsersToReassign: authedProcedure
+    .input(ZGetManagedEventUsersToReassignInputSchema)
+    .query(async (opts) => {
+      const { default: handler } = await import("./managedEvents/getManagedEventUsersToReassign.handler");
     return handler(opts);
   }),
   checkIfMembershipExists: authedProcedure

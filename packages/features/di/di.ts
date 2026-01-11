@@ -1,4 +1,4 @@
-import type { Container, Module } from "@evyweb/ioctopus";
+import type { Container, Module, ResolveFunction } from "@evyweb/ioctopus";
 import { createContainer, createModule } from "@evyweb/ioctopus";
 
 export type ModuleLoader = { token: string | symbol; loadModule: (container: Container) => void };
@@ -111,4 +111,4 @@ export function bindModuleToClassOnToken<TClass extends new (deps: any) => any>(
     }
   };
 }
-export { createContainer, createModule, type Container, type Module };
+export { createContainer, createModule, type Container, type Module, type ResolveFunction };

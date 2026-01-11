@@ -25,6 +25,7 @@ const defaultState: CalendarComponentProps = {
   showBackgroundPattern: true,
   showBorder: true,
   borderColor: "default",
+  showTimezone: false,
 };
 
 export function createCalendarStore(initial?: Partial<CalendarComponentProps>): StoreApi<CalendarStoreProps> {
@@ -49,6 +50,7 @@ export function createCalendarStore(initial?: Partial<CalendarComponentProps>): 
         ...state,
         blockingDates,
         events,
+        selectedBookingUid: state.selectedBookingUid,
       });
     },
     setSelectedEvent: (event) => set({ selectedEvent: event }),

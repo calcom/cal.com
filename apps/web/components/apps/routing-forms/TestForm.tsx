@@ -15,7 +15,7 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
 import { Button } from "@calcom/ui/components/button";
@@ -335,7 +335,7 @@ export const TestFormRenderer = ({
   if (!isMobile) {
     if (isTestPreviewOpen) {
       return (
-        <div className="border-muted bg-muted h-full border-l p-6">
+        <div className="border-muted bg-cal-muted h-full border-l p-6">
           <TestForm
             form={testForm}
             supportsTeamMembersMatchingLogic={isSubTeamForm}

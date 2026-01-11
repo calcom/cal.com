@@ -1,7 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -24,8 +24,9 @@ vi.mock("@calcom/prisma", () => ({
     },
   },
 }));
-vi.mock("@calcom/lib/server/queries/organisations", () => ({
+vi.mock("@calcom/features/pbac/utils/isOrganisationAdmin", () => ({
   isOrganisationAdmin: vi.fn(),
+  isOrganisationOwner: vi.fn(),
 }));
 
 describe("RoleManagementFactory", () => {
@@ -405,6 +406,33 @@ describe("RoleManagementFactory", () => {
             "Only owners or admin can update roles",
             RoleManagementErrorCode.UNAUTHORIZED
           )
+        );
+      });
+
+      it("should prevent changing admin to owner", async () => {
+        vi.mocked(isOrganisationAdmin).mockResolvedValue({
+          id: membershipId,
+          userId,
+          teamId: organizationId,
+          role: MembershipRole.ADMIN,
+          accepted: true,
+          disableImpersonation: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          customRoleId: null,
+        });
+        vi.mocked(isOrganisationOwner).mockResolvedValue(false);
+        const manager = await factory.createRoleManager(organizationId);
+        await expect(
+          manager.checkPermissionToChangeRole(
+            userId,
+            organizationId,
+            "org",
+            membershipId,
+            MembershipRole.OWNER
+          )
+        ).rejects.toThrow(
+          new RoleManagementError("Only owners can update this role", RoleManagementErrorCode.UNAUTHORIZED)
         );
       });
     });

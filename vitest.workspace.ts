@@ -1,8 +1,12 @@
 import { defineWorkspace } from "vitest/config";
 
-const packagedEmbedTestsOnly = process.argv.includes("--packaged-embed-tests-only");
-const timeZoneDependentTestsOnly = process.argv.includes("--timeZoneDependentTestsOnly");
-const integrationTestsOnly = process.argv.includes("--integrationTestsOnly");
+// Vitest 4.0 no longer allows custom CLI flags, so we use environment variables instead
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const packagedEmbedTestsOnly = process.env.VITEST_MODE === "packaged-embed";
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const timeZoneDependentTestsOnly = process.env.VITEST_MODE === "timezone";
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const integrationTestsOnly = process.env.VITEST_MODE === "integration";
 // eslint-disable-next-line turbo/no-undeclared-env-vars
 const envTZ = process.env.TZ;
 if (timeZoneDependentTestsOnly && !envTZ) {
@@ -27,8 +31,7 @@ const workspaces = packagedEmbedTestsOnly
           name: `IntegrationTests`,
           include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
-          globalSetup: new URL("./tests/integration/global-setup.ts", import.meta.url).pathname,
-          setupFiles: ["setupVitest.ts"],
+          setupFiles: ["packages/testing/src/setupVitest.ts"],
         },
         resolve: {
           alias: {
@@ -46,7 +49,7 @@ const workspaces = packagedEmbedTestsOnly
           include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
           // TODO: Ignore the api until tests are fixed
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
-          setupFiles: ["setupVitest.ts"],
+          setupFiles: ["packages/testing/src/setupVitest.ts"],
         },
         resolve: {
           alias: {
@@ -63,7 +66,7 @@ const workspaces = packagedEmbedTestsOnly
           include: ["packages/**/*.timezone.test.ts", "apps/**/*.timezone.test.ts"],
           // TODO: Ignore the api until tests are fixed
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
-          setupFiles: ["setupVitest.ts"],
+          setupFiles: ["packages/testing/src/setupVitest.ts"],
         },
       },
     ]
@@ -81,7 +84,7 @@ const workspaces = packagedEmbedTestsOnly
             "apps/api/v2/**/*",
           ],
           name: "@calcom/lib",
-          setupFiles: ["setupVitest.ts"],
+          setupFiles: ["packages/testing/src/setupVitest.ts"],
         },
         resolve: {
           alias: {
@@ -105,7 +108,7 @@ const workspaces = packagedEmbedTestsOnly
             "apps/api/v2/**/*",
           ],
           name: "@calcom/api",
-          setupFiles: ["setupVitest.ts"],
+          setupFiles: ["packages/testing/src/setupVitest.ts"],
         },
         resolve: {
           alias: {
@@ -148,7 +151,7 @@ const workspaces = packagedEmbedTestsOnly
           name: "@calcom/app-store-delegation-credential",
           include: ["packages/app-store/delegationCredential.test.ts"],
           environment: "node",
-          setupFiles: ["setupVitest.ts"],
+          setupFiles: ["packages/testing/src/setupVitest.ts"],
         },
       },
       {

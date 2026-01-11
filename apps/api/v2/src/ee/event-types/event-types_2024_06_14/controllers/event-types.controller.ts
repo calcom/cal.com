@@ -7,6 +7,7 @@ import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_202
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
+import type { DatabaseEventType } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { VERSION_2024_06_14_VALUE } from "@/lib/api-versions";
 import {
   API_KEY_OR_ACCESS_TOKEN_HEADER,
@@ -25,6 +26,7 @@ import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/op
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
+import type { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -132,10 +134,9 @@ export class EventTypesController_2024_06_14 {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
 
-    const responseEventType =
-      "hosts" in eventType
-        ? await this.outputTeamEventTypesResponsePipe.transform(eventType)
-        : this.eventTypeResponseTransformPipe.transform(eventType);
+    const responseEventType = this.isTeamEventType(eventType)
+      ? await this.outputTeamEventTypesResponsePipe.transform(eventType)
+      : this.eventTypeResponseTransformPipe.transform(eventType);
 
     return {
       status: SUCCESS_STATUS,
@@ -143,10 +144,18 @@ export class EventTypesController_2024_06_14 {
     };
   }
 
+  private isTeamEventType(
+    eventType: DatabaseTeamEventType | ({ ownerId: number } & DatabaseEventType)
+  ): eventType is DatabaseTeamEventType {
+    return !!eventType.teamId;
+  }
+
   @Get("/")
   @ApiOperation({
     summary: "Get all event types",
     description: `Hidden event types are returned only if authentication is provided and it belongs to the event type owner.
+      
+      Use the optional \`sortCreatedAt\` query parameter to order results by creation date (by ID). Accepts "asc" (oldest first) or "desc" (newest first). When not provided, no explicit ordering is applied.
       
       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
       `,
