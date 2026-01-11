@@ -3,8 +3,8 @@
  * Reusable component for displaying and managing multiple event type locations
  */
 
-import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
-import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
+import { Button, ContextMenu, Host } from "@expo/ui/swift-ui";
+import { buttonStyle } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import type React from "react";

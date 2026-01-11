@@ -29,7 +29,7 @@ import WebSchedule, {
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
-import type { RouterOutputs } from "@calcom/trpc/react";
+import type { TravelScheduleRepository } from "@calcom/features/travelSchedule/repositories/TravelScheduleRepository";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -99,7 +99,7 @@ export type AvailabilitySettingsScheduleType = {
 type AvailabilitySettingsProps = {
   skeletonLabel?: string;
   schedule: AvailabilitySettingsScheduleType;
-  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
+  travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
   handleDelete: () => void;
   allowDelete?: boolean;
   allowSetToDefault?: boolean;
@@ -195,7 +195,7 @@ const DateOverride = ({
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
-  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
+  travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   overridesModalClassNames?: string;
   classNames?: {
@@ -642,7 +642,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               form="availability-form"
               loading={isSaving}
               disabled={isLoading || !formHasChanges}
-              >
+            >
               {t("save")}
             </Button>
             <Button

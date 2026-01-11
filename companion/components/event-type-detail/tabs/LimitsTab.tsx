@@ -5,13 +5,13 @@
  * Uses native iOS ContextMenu for pickers on iOS, Modal-based dropdowns on Android/Web.
  */
 
-import { Button, ContextMenu, Host, HStack, Image, Text as SwiftUIText } from "@expo/ui/swift-ui";
-import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
+import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
+import { buttonStyle } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import {
   Alert,
-  Animated,
+  type Animated,
   Platform,
   Switch,
   Text,
@@ -19,8 +19,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-import { openInAppBrowser } from "@/utils/browser";
 
 interface FrequencyLimit {
   id: number;
