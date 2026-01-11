@@ -1,9 +1,10 @@
 import { type TFunction } from "i18next";
 
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import type { Actor } from "@calcom/features/bookings/lib/types/actor";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
@@ -20,7 +21,7 @@ import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
-import { makeGuestActor, makeUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeGuestActor, makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
 export type NoShowAttendees = { email: string; noShow: boolean }[];
@@ -545,9 +546,14 @@ const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
   if (!userId) throw new HttpError({ statusCode: 401 });
 
   const bookingRepo = new BookingRepository(prisma);
-  const booking = await bookingRepo.findBookingByUidAndUserId({ bookingUid, userId });
+  const booking = await bookingRepo.findByUidIncludeEventTypeAndReferences({ bookingUid });
+  const bookingAccessService = new BookingAccessService(prisma);
+  const isAuthorized = await bookingAccessService.doesUserIdHaveAccessToBooking({
+    userId,
+    bookingUid,
+  });
 
-  if (!booking)
+  if (!isAuthorized)
     throw new HttpError({ statusCode: 403, message: "You are not allowed to access this booking" });
 
   const isUpcoming = new Date(booking.endTime) >= new Date();

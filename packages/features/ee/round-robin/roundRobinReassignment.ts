@@ -20,7 +20,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
-import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import AssignmentReasonRecorder, {

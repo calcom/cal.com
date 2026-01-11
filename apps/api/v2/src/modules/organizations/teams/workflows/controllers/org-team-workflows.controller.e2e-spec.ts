@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 // Assuming this is your main app bootstrapper
 import { AppModule } from "@/app.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -904,6 +904,60 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         .patch(`${basePath}/${createdWorkflowId}`)
         .send(partialUpdateDto)
         .expect(401);
+    });
+
+    it("should preserve time and timeUnit when not provided in partial update", async () => {
+      const workflowWithOffset = await request(app.getHttpServer())
+        .post(basePath)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({
+          name: `Workflow With Offset ${randomString()}`,
+          activation: {
+            isActiveOnAllEventTypes: true,
+            activeOnEventTypeIds: [],
+          },
+          trigger: {
+            type: BEFORE_EVENT,
+            offset: {
+              value: 2,
+              unit: DAY,
+            },
+          },
+          steps: [
+            {
+              stepNumber: 1,
+              action: "email_attendee",
+              recipient: ATTENDEE,
+              template: REMINDER,
+              sender: "CalcomE2ETest",
+              includeCalendarEvent: true,
+              message: {
+                subject: "Upcoming: {EVENT_NAME}",
+                html: "<p>Reminder for your event {EVENT_NAME}.</p>",
+              },
+            },
+          ],
+        })
+        .expect(201);
+
+      const workflowId = workflowWithOffset.body.data.id;
+      expect(workflowWithOffset.body.data.trigger?.offset?.value).toEqual(2);
+      expect(workflowWithOffset.body.data.trigger?.offset?.unit).toEqual(DAY);
+
+      const partialUpdateDto = {
+        name: `Updated Workflow Name ${randomString()}`,
+      };
+
+      const updatedWorkflow = await request(app.getHttpServer())
+        .patch(`${basePath}/${workflowId}`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send(partialUpdateDto)
+        .expect(200);
+
+      expect(updatedWorkflow.body.data.trigger?.offset?.value).toEqual(2);
+      expect(updatedWorkflow.body.data.trigger?.offset?.unit).toEqual(DAY);
+
+      await workflowsRepositoryFixture.delete(workflowId);
     });
   });
 

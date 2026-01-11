@@ -6,9 +6,10 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails/email-manager";
 import type { RescheduleRequestedAuditData } from "@calcom/features/booking-audit/lib/actions/RescheduleRequestedAuditActionService";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -46,9 +47,10 @@ type RequestRescheduleOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TRequestRescheduleInputSchema;
+  source: ActionSource;
 };
 const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
-export const requestRescheduleHandler = async ({ ctx, input }: RequestRescheduleOptions) => {
+export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRescheduleOptions) => {
   const { user } = ctx;
   const { bookingUid, rescheduleReason: cancellationReason } = input;
   log.debug("Started", safeStringify({ bookingUid }));
@@ -125,18 +127,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const auditUserId = auditTriggerForUser ? bookingToReschedule.userId : null;
   const auditOrgId = await getOrgIdFromMemberOrTeamId({ memberId: auditUserId, teamId: auditTeamId });
   const auditData: RescheduleRequestedAuditData = {
-    cancellationReason: {
-      old: null, // Original value not available in booking query
-      new: cancellationReason ?? null,
-    },
-    cancelledBy: {
-      old: null, // Original value not available in booking query
-      new: user.email,
-    },
-    rescheduled: {
-      old: false, // We're rescheduling, so original was false
-      new: true,
-    },
+    rescheduleReason: cancellationReason ?? null,
+    rescheduledRequestedBy: user.email,
   };
   await bookingEventHandlerService.onRescheduleRequested({
     bookingUid: bookingToReschedule.uid,

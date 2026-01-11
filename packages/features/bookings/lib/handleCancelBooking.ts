@@ -6,6 +6,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -53,8 +54,8 @@ import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
-import { buildActorEmail, makeGuestActor, makeUserActor, type Actor } from "./types/actor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { buildActorEmail, getUniqueIdentifier, makeGuestActor, makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -78,24 +79,38 @@ export type CancelBookingInput = {
   actionSource?: ActionSource;
 } & PlatformParams;
 
-function getAuditActor({ userUuid, cancelledBy, bookingUid }: {
+/**
+ * Its job is to ensure that an actor is always returned, otherwise we won't be able to audit the action.
+ */
+function getAuditActor({
+  userUuid,
+  cancelledByEmailInQueryParam,
+  bookingUid,
+}: {
   userUuid: string | null;
-  cancelledBy: string | null;
+  cancelledByEmailInQueryParam: string | null;
   bookingUid: string;
 }): Actor {
-  // Prefer user actor when userUuid is available (authenticated action)
   if (userUuid) {
     return makeUserActor(userUuid);
   }
 
-  // Fall back to guest actor for unauthenticated actions (e.g., cancel link)
-  if (!cancelledBy) {
-    log.warn("No cancelledBy email available, creating fallback guest actor for audit", safeStringify({
-      bookingUid,
-    }));
+  let actorEmail: string;
+  // Fallback to guest actor for unauthenticated cancellation
+  if (!cancelledByEmailInQueryParam) {
+    log.warn(
+      "No cancelledBy email in query param available, creating fallback guest actor for audit",
+      safeStringify({
+        bookingUid,
+      })
+    );
+    actorEmail = buildActorEmail({ identifier: getUniqueIdentifier({ prefix: "fallback" }), actorType: "guest" });
   }
-  const cancelledByEmail = cancelledBy || buildActorEmail({ identifier: `fallback-${bookingUid}-${Date.now()}`, actorType: "guest" });
-  return makeGuestActor({ email: cancelledByEmail, name: null });
+  else {
+    actorEmail = buildActorEmail({ identifier: getUniqueIdentifier({ prefix: "param" }), actorType: "guest" });
+  }
+
+  return makeGuestActor({ email: actorEmail, name: null });
 }
 
 async function handler(input: CancelBookingInput) {
@@ -122,19 +137,20 @@ async function handler(input: CancelBookingInput) {
     arePlatformEmailsEnabled,
   } = input;
 
+  const userUuidValue = userUuid ?? null;
+
   // Extract action source once for reuse
   const actionSource = input.actionSource ?? "UNKNOWN";
   if (actionSource === "UNKNOWN") {
-    log.warn("Booking cancellation with unknown actionSource", {
+    log.warn("Booking cancellation with unknown actionSource", safeStringify({
       bookingUid: bookingToDelete.uid,
-      userUuid: input.userUuid,
-    });
+      userUuid: userUuidValue,
+    }));
   }
 
-  // Extract actor once for reuse
   const actorToUse = getAuditActor({
-    userUuid: userUuid ?? null,
-    cancelledBy: cancelledBy ?? null,
+    userUuid: userUuidValue,
+    cancelledByEmailInQueryParam: cancelledBy ?? null,
     bookingUid: bookingToDelete.uid,
   });
 
@@ -440,7 +456,6 @@ async function handler(input: CancelBookingInput) {
 
   const bookingEventHandlerService = getBookingEventHandlerService();
 
-
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
   if (
@@ -494,17 +509,11 @@ async function handler(input: CancelBookingInput) {
       bookings: allUpdatedBookings.map((updatedRecurringBooking) => ({
         bookingUid: updatedRecurringBooking.uid,
         auditData: {
-          cancellationReason: {
-            old: bookingToDelete.cancellationReason,
-            new: cancellationReason ?? null,
-          },
-          cancelledBy: {
-            old: bookingToDelete.cancelledBy,
-            new: cancelledBy ?? null,
-          },
+          cancellationReason: cancellationReason ?? null,
+          cancelledBy: cancelledBy ?? null,
           status: {
             old: bookingToDelete.status,
-            new: "CANCELLED",
+            new: BookingStatus.CANCELLED,
           },
         },
       })),
@@ -555,22 +564,15 @@ async function handler(input: CancelBookingInput) {
       bookingUid: updatedBooking.uid,
       actor: actorToUse,
       organizationId: orgId ?? null,
-      operationId: null,
+      source: actionSource,
       auditData: {
-        cancellationReason: {
-          old: bookingToDelete.cancellationReason,
-          new: cancellationReason ?? null,
-        },
-        cancelledBy: {
-          old: bookingToDelete.cancelledBy,
-          new: cancelledBy ?? null,
-        },
+        cancellationReason: cancellationReason ?? null,
+        cancelledBy: cancelledBy ?? null,
         status: {
           old: bookingToDelete.status,
-          new: "CANCELLED",
+          new: BookingStatus.CANCELLED,
         },
       },
-      source: actionSource,
     });
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {

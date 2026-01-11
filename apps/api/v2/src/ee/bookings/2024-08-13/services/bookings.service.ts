@@ -887,12 +887,12 @@ export class BookingsService_2024_08_13 {
       bookingData: bookingRequest.body,
       userId: bookingRequest.userId,
       userUuid: authUser?.uuid,
+      actionSource: "API_V2",
       arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
       platformClientId: bookingRequest.platformClientId,
       platformCancelUrl: bookingRequest.platformCancelUrl,
       platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
       platformBookingUrl: bookingRequest.platformBookingUrl,
-      actionSource: "API_V2",
     });
 
     if (!res.onlyRemovedAttendee) {

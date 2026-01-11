@@ -4,6 +4,7 @@ import { moduleLoader as bookingAuditRepositoryModuleLoader } from "@calcom/feat
 import { moduleLoader as auditActorRepositoryModuleLoader } from "@calcom/features/booking-audit/di/AuditActorRepository.module";
 import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/Features";
 import { moduleLoader as userRepositoryModuleLoader } from "@calcom/features/di/modules/User";
+import { moduleLoader as bookingRepositoryModuleLoader } from "@calcom/features/di/modules/Booking";
 
 import { createModule, bindModuleToClassOnToken } from "../../di/di";
 
@@ -21,6 +22,7 @@ const loadModule = bindModuleToClassOnToken({
     auditActorRepository: auditActorRepositoryModuleLoader,
     featuresRepository: featuresRepositoryModuleLoader,
     userRepository: userRepositoryModuleLoader,
+    bookingRepository: bookingRepositoryModuleLoader,
   },
 });
 

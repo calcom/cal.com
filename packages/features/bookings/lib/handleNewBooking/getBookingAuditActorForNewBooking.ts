@@ -1,4 +1,4 @@
-import { makeAttendeeActor, makeUserActor, makeGuestActor } from "../types/actor";
+import { makeAttendeeActor, makeUserActor, makeGuestActor } from "@calcom/features/booking-audit/lib/makeActor";
 import { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { safeStringify } from "@calcom/lib/safeStringify";
 /**

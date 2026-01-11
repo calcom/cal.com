@@ -17,7 +17,7 @@ import { LocationChangedAuditActionService, type LocationChangedAuditData } from
 import { AttendeeNoShowUpdatedAuditActionService, type AttendeeNoShowUpdatedAuditData } from "../actions/AttendeeNoShowUpdatedAuditActionService";
 import { SeatBookedAuditActionService, type SeatBookedAuditData } from "../actions/SeatBookedAuditActionService";
 import { SeatRescheduledAuditActionService, type SeatRescheduledAuditData } from "../actions/SeatRescheduledAuditActionService";
-import { BookingRepository } from "bookings/repositories/BookingRepository";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 
 /**
  * Union type for all audit action data types
@@ -56,7 +56,7 @@ export class BookingAuditActionServiceRegistry {
 
     constructor(private deps: BookingAuditActionServiceRegistryDeps) {
         const services: Array<[BookingAuditAction, IAuditActionService]> = [
-            ["CREATED", new CreatedAuditActionService({ userRepository: deps.userRepository, bookingRepository: deps.bookingRepository })],
+            ["CREATED", new CreatedAuditActionService(deps.userRepository)],
             ["CANCELLED", new CancelledAuditActionService()],
             ["RESCHEDULED", new RescheduledAuditActionService()],
             ["ACCEPTED", new AcceptedAuditActionService()],

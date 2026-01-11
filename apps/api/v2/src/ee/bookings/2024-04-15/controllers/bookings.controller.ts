@@ -58,16 +58,15 @@ import { X_CAL_CLIENT_ID, X_CAL_PLATFORM_EMBED } from "@calcom/platform-constant
 import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
 import {
   BookingResponse,
-  HttpError,
   handleMarkNoShow,
   getAllUserBookings,
   getBookingInfo,
   handleCancelBooking,
   getBookingForReschedule,
-  ErrorCode,
 } from "@calcom/platform-libraries";
 import { CreationSource } from "@calcom/platform-libraries";
 import { type InstantBookingCreateResult } from "@calcom/platform-libraries/bookings";
+import { HttpError, ErrorCode } from "@calcom/platform-libraries/errors";
 import {
   GetBookingsInput_2024_04_15,
   CancelBookingInput_2024_04_15,
@@ -125,7 +124,7 @@ export class BookingsController_2024_04_15 {
     private readonly instantBookingCreateService: InstantBookingCreateService,
     private readonly eventTypeRepository: PrismaEventTypeRepository,
     private readonly teamRepository: PrismaTeamRepository
-  ) { }
+  ) {}
 
   @Get("/")
   @UseGuards(ApiAuthGuard)

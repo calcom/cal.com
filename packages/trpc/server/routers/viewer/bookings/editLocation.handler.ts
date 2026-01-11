@@ -5,7 +5,7 @@ import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calc
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
-import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { CredentialAccessService } from "@calcom/features/credentials/services/CredentialAccessService";
@@ -312,7 +312,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
       booking?.eventType?.metadata as EventTypeMetadata
     );
   } catch (error) {
-    console.log("Error sending LocationChangeEmails", safeStringify(error));
+    logger.error("Error sending LocationChangeEmails", safeStringify(error));
   }
 
   // Create audit log for location change

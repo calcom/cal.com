@@ -17,7 +17,7 @@ import type { ActionSource } from "@calcom/features/booking-audit/lib/types/acti
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { Actor } from "../types/actor";
+import type { Actor, BookingAuditContext } from "@calcom/features/booking-audit/lib/dto/types";
 import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types";
 
 interface BookingEventHandlerDeps {
@@ -32,6 +32,7 @@ interface OnBookingCreatedParams {
   auditData: CreatedAuditData;
   source: ActionSource;
   operationId?: string | null;
+  context?: BookingAuditContext;
 }
 
 interface OnBookingRescheduledParams {
@@ -40,6 +41,7 @@ interface OnBookingRescheduledParams {
   auditData: RescheduledAuditData;
   source: ActionSource;
   operationId?: string | null;
+  context?: BookingAuditContext;
 }
 
 interface BaseBookingEventParams<TAuditData> {
@@ -49,6 +51,7 @@ interface BaseBookingEventParams<TAuditData> {
   auditData: TAuditData;
   source: ActionSource;
   operationId?: string | null;
+  context?: BookingAuditContext;
 }
 
 type OnBookingAcceptedParams = BaseBookingEventParams<AcceptedAuditData>;
@@ -74,7 +77,7 @@ export class BookingEventHandlerService {
   }
 
   async onBookingCreated(params: OnBookingCreatedParams) {
-    const { payload, actor, auditData, source, operationId } = params;
+    const { payload, actor, auditData, source, operationId, context } = params;
     this.log.debug("onBookingCreated", safeStringify(payload));
     if (payload.config.isDryRun) {
       return;
@@ -87,11 +90,12 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
   async onBookingRescheduled(params: OnBookingRescheduledParams) {
-    const { payload, actor, auditData, source, operationId } = params;
+    const { payload, actor, auditData, source, operationId, context } = params;
     this.log.debug("onBookingRescheduled", safeStringify(payload));
     await this.onBookingCreatedOrRescheduled(payload);
 
@@ -103,6 +107,7 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
@@ -136,7 +141,7 @@ export class BookingEventHandlerService {
   }
 
   async onBookingAccepted(params: OnBookingAcceptedParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId } = params;
+    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
     await this.bookingAuditProducerService.queueAcceptedAudit({
       bookingUid,
       actor,
@@ -144,11 +149,12 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
   async onBookingCancelled(params: OnBookingCancelledParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId } = params;
+    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
     await this.bookingAuditProducerService.queueCancelledAudit({
       bookingUid,
       actor,
@@ -156,11 +162,12 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
   async onRescheduleRequested(params: OnRescheduleRequestedParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId } = params;
+    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
     await this.bookingAuditProducerService.queueRescheduleRequestedAudit({
       bookingUid,
       actor,
@@ -168,11 +175,12 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
   async onAttendeeAdded(params: OnAttendeeAddedParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId } = params;
+    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
     await this.bookingAuditProducerService.queueAttendeeAddedAudit({
       bookingUid,
       actor,
@@ -180,11 +188,12 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
   async onHostNoShowUpdated(params: OnHostNoShowUpdatedParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId } = params;
+    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
     await this.bookingAuditProducerService.queueHostNoShowUpdatedAudit({
       bookingUid,
       actor,
@@ -192,11 +201,12 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
   async onBookingRejected(params: OnBookingRejectedParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId } = params;
+    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
     await this.bookingAuditProducerService.queueRejectedAudit({
       bookingUid,
       actor,
@@ -204,11 +214,12 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
   async onAttendeeRemoved(params: OnAttendeeRemovedParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId } = params;
+    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
     await this.bookingAuditProducerService.queueAttendeeRemovedAudit({
       bookingUid,
       actor,
@@ -216,11 +227,12 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
   async onReassignment(params: OnReassignmentParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId } = params;
+    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
     await this.bookingAuditProducerService.queueReassignmentAudit({
       bookingUid,
       actor,
@@ -228,11 +240,12 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
   async onLocationChanged(params: OnLocationChangedParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId } = params;
+    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
     await this.bookingAuditProducerService.queueLocationChangedAudit({
       bookingUid,
       actor,
@@ -240,11 +253,12 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
   async onAttendeeNoShowUpdated(params: OnAttendeeNoShowUpdatedParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId } = params;
+    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
     await this.bookingAuditProducerService.queueAttendeeNoShowUpdatedAudit({
       bookingUid,
       actor,
@@ -252,11 +266,12 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
   async onSeatBooked(params: OnSeatBookedParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId } = params;
+    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
     await this.bookingAuditProducerService.queueSeatBookedAudit({
       bookingUid,
       actor,
@@ -264,11 +279,12 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
   async onSeatRescheduled(params: OnSeatRescheduledParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId } = params;
+    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
     await this.bookingAuditProducerService.queueSeatRescheduledAudit({
       bookingUid,
       actor,
@@ -276,6 +292,7 @@ export class BookingEventHandlerService {
       source,
       operationId,
       data: auditData,
+      context,
     });
   }
 
@@ -292,8 +309,9 @@ export class BookingEventHandlerService {
     organizationId: number | null;
     operationId?: string | null;
     source: ActionSource;
+    context?: BookingAuditContext;
   }) {
-    const { bookings, actor, organizationId, operationId, source } = params;
+    const { bookings, actor, organizationId, operationId, source, context } = params;
     await this.bookingAuditProducerService.queueBulkAcceptedAudit({
       bookings: bookings.map((booking) => ({
         bookingUid: booking.bookingUid,
@@ -303,6 +321,7 @@ export class BookingEventHandlerService {
       organizationId,
       source,
       operationId,
+      context,
     });
   }
 
@@ -319,8 +338,9 @@ export class BookingEventHandlerService {
     organizationId: number | null;
     operationId?: string | null;
     source: ActionSource;
+    context?: BookingAuditContext;
   }) {
-    const { bookings, actor, organizationId, operationId, source } = params;
+    const { bookings, actor, organizationId, operationId, source, context } = params;
     await this.bookingAuditProducerService.queueBulkCancelledAudit({
       bookings: bookings.map((booking) => ({
         bookingUid: booking.bookingUid,
@@ -330,6 +350,7 @@ export class BookingEventHandlerService {
       organizationId,
       source,
       operationId,
+      context,
     });
   }
 

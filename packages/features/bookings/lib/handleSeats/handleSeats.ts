@@ -94,7 +94,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   }
 
   // Helper function to get audit actor with logging for guest actors
-  const getAuditActorForSeats = (): import("../types/actor").Actor => {
+  const getAuditActorForSeats = (): import("@calcom/features/booking-audit/lib/dto/types").Actor => {
     return getBookingAuditActorForNewBooking({
       attendeeId: null,
       userUuid: userUuid ?? null,

@@ -16,7 +16,8 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import { makeGuestActor, buildActorEmail, type Actor } from "@calcom/features/bookings/lib/types/actor";
+import { makeGuestActor, buildActorEmail } from "@calcom/features/booking-audit/lib/makeActor";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
