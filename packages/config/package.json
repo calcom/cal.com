@@ -5,31 +5,14 @@
   "version": "0.0.0",
   "main": "index.js",
   "license": "MIT",
-  "files": [
-    "eslint-preset.js",
-    "prettier-preset.js"
-  ],
   "dependencies": {
-    "@calcom/eslint-plugin-eslint": "workspace:*",
-    "@todesktop/tailwind-variants": "^1.0.0",
-    "eslint-config-next": "^13.2.1",
-    "eslint-config-prettier": "^8.6.0",
-    "eslint-config-turbo": "^0.0.7",
-    "eslint-plugin-playwright": "^0.12.0",
-    "eslint-plugin-prettier": "^4.2.1"
+    "@todesktop/tailwind-variants": "1.0.1",
+    "tailwind-scrollbar": "4.0.2",
+    "tailwindcss-radix": "4.0.2",
+    "tw-animate-css": "1.4.0"
   },
   "devDependencies": {
-    "@savvywombat/tailwindcss-grid-areas": "^3.0.0",
-    "@tailwindcss/forms": "^0.5.2",
-    "@tailwindcss/line-clamp": "^0.4.0",
-    "@tailwindcss/typography": "^0.5.4",
-    "@trivago/prettier-plugin-sort-imports": "4.1.1",
-    "@typescript-eslint/eslint-plugin": "^5.52.0",
-    "@typescript-eslint/parser": "^5.52.0",
-    "prettier": "^2.8.6",
-    "prettier-plugin-tailwindcss": "^0.2.5",
-    "tailwind-scrollbar": "^2.0.1",
-    "tailwindcss": "^3.3.3",
-    "typescript": "^5.9.0-beta"
+    "@tailwindcss/typography": "0.5.4",
+    "typescript": "5.9.3"
   }
 }

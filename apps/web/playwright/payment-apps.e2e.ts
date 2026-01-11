@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
-import type { Page } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 import { selectFirstAvailableTimeSlotNextMonth, submitAndWaitForResponse } from "./lib/testUtils";
@@ -11,7 +11,7 @@ test.afterEach(({ users }) => users.deleteAll());
 
 async function goToAppsTab(page: Page, eventTypeId?: number) {
   await page.goto(`event-types/${eventTypeId}?tabName=apps`);
-  await expect(page.getByTestId("vertical-tab-apps")).toHaveAttribute("aria-current", "page");
+  await expect(page.getByTestId("vertical-tab-apps").first()).toHaveAttribute("aria-current", "page");
 }
 
 test.describe("Payment app", () => {
@@ -41,7 +41,7 @@ test.describe("Payment app", () => {
     await page.getByPlaceholder("Price").click();
     await page.getByPlaceholder("Price").fill("200");
     await page.getByText("SatoshissatsCurrencyBTCPayment optionCollect payment on booking").click();
-    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
 

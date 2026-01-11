@@ -1,0 +1,4 @@
+GET /v2/event-types/{eventTypeId} added to the 'data' response property 'oneOf' list for the response status '200'
+GET /v2/event-types/{eventTypeId} added '#/components/schemas/EventTypeOutput_2024_06_14, #/components/schemas/TeamEventTypeOutput_2024_06_14' to the 'data' response property 'oneOf' list for the response status '200'
+GET /v2/bookings/{bookingUid}/recordings added the new required 'header' request parameter 'Authorization'
+GET /v2/bookings/{bookingUid}/transcripts added the new required 'header' request parameter 'Authorization'

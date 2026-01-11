@@ -55,7 +55,7 @@ const DateOverrideList = ({
 
   const timeSpan = ({ start, end }: TimeRange) => {
     if (isPlatform) {
-      return `${formatInTimeZone(start, "UTC", "h a")} - ${formatInTimeZone(end, "UTC", "h a")}`;
+      return `${formatInTimeZone(start, "UTC", "h:mm a")} - ${formatInTimeZone(end, "UTC", "h:mm a")}`;
     }
 
     return `${new Intl.DateTimeFormat(i18n.language, { hour: "numeric", minute: "numeric", hour12 }).format(
@@ -136,7 +136,7 @@ const DateOverrideList = ({
                 data-testid="delete-button"
                 title={t("date_overrides_delete_on_date", {
                   date: isPlatform
-                    ? formatInTimeZone(new Date(item.ranges[0].start), "UTC", "h a")
+                    ? formatInTimeZone(new Date(item.ranges[0].start), "UTC", "h:mm a")
                     : new Intl.DateTimeFormat(i18n.language, {
                         weekday: "long",
                         month: "long",

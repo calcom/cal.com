@@ -23,20 +23,35 @@ type UpdateOptions = {
 };
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
-  const isOrgAdmin = ctx.user?.organization?.isOrgAdmin;
+  const prevTeam = await prisma.team.findUnique({
+    where: {
+      id: input.id,
+    },
+    select: {
+      id: true,
+      parentId: true,
+      slug: true,
+      metadata: true,
+      rrTimestampBasis: true,
+    },
+  });
 
-  if (!isOrgAdmin) {
-    const permissionCheckService = new PermissionCheckService();
-    const hasTeamUpdatePermission = await permissionCheckService.checkPermission({
-      userId: ctx.user?.id || 0,
-      teamId: input.id,
-      permission: "team.update",
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-    });
+  if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
 
-    if (!hasTeamUpdatePermission) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
+  if (!ctx.user?.id) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  const permissionCheckService = new PermissionCheckService();
+  const hasTeamUpdatePermission = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId: input.id,
+    permission: "team.update",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+
+  if (!hasTeamUpdatePermission) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
   if (input.slug) {
@@ -51,14 +66,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "CONFLICT", message: "Slug already in use." });
     }
   }
-
-  const prevTeam = await prisma.team.findUnique({
-    where: {
-      id: input.id,
-    },
-  });
-
-  if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
 
   if (input.bookingLimits) {
     const isValid = validateIntervalLimitOrder(input.bookingLimits);

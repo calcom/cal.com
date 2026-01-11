@@ -2,7 +2,6 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
@@ -13,7 +12,7 @@ vi.mock("@calcom/prisma", () => ({
   prisma,
 }));
 
-vi.mock("@calcom/features/ee/billing/teams");
+vi.mock("@calcom/ee/billing/di/containers/Billing");
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
 vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService");
 vi.mock("@calcom/lib/domainManager/organization");
@@ -51,8 +50,7 @@ const mockTeamRepo = {
     throw new Error(`Team with id ${id} not found`);
   }),
 };
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
+vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepo; });
 
 vi.mocked(deleteDomain).mockImplementation(async (slug) => {
   database.domains.delete(slug);
@@ -62,24 +60,27 @@ vi.mocked(WorkflowService.deleteWorkflowRemindersOfRemovedTeam).mockImplementati
   database.workflowReminders.delete(teamId);
 });
 
-vi.mocked(TeamBilling.findAndInit).mockImplementation(async (teamId) => {
-  // Create a team-specific billing mock
-  const teamSpecificBilling = {
-    ...mockTeamBilling,
-    teamId,
-    cancel: vi.fn().mockImplementation(() => {
-      const billing = database.billings.get(teamId);
-      if (billing) {
-        billing.cancelled = true;
-      }
-    }),
-  };
-  return teamSpecificBilling;
-});
-
 describe("TeamService", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     database.clear();
+    
+    const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
+    vi.mocked(getTeamBillingServiceFactory).mockReturnValue({
+      findAndInit: vi.fn().mockImplementation(async (teamId) => {
+        const teamSpecificBilling = {
+          ...mockTeamBilling,
+          teamId,
+          cancel: vi.fn().mockImplementation(() => {
+            const billing = database.billings.get(teamId);
+            if (billing) {
+              billing.cancelled = true;
+            }
+          }),
+        };
+        return teamSpecificBilling;
+      }),
+      findAndInitMany: vi.fn().mockResolvedValue([mockTeamBilling]),
+    });
 
     database.teams.set(1, {
       id: 1,

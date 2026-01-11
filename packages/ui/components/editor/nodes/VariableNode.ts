@@ -16,7 +16,7 @@ export class VariableNode extends TextNode {
 
   createDOM(config: EditorConfig): HTMLElement {
     const dom = super.createDOM(config);
-    dom.className = "bg-info";
+    dom.className = "bg-cal-info";
     dom.setAttribute("data-lexical-variable", "true");
     return dom;
   }

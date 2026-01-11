@@ -52,7 +52,7 @@ test.describe("Filter Segment Functionality", () => {
 
     await page.goto(`/settings/organizations/${org.slug}/members`);
 
-    const dataTable = page.getByTestId("user-list-data-table");
+    const dataTable = page.getByTestId("user-list-data-table").first();
     await expect(dataTable).toBeVisible();
 
     const segmentName = "Admin Users";
@@ -78,6 +78,7 @@ test.describe("Filter Segment Functionality", () => {
 
     await test.step("Can delete a filter segment", async () => {
       await deleteSegment(page, "Admin Users");
+      await page.reload();
 
       const segments = await listSegments(page);
       expect(segments.includes(segmentName)).toBe(false);
@@ -109,7 +110,7 @@ test.describe("Filter Segment Functionality", () => {
 
     await page.goto(`/settings/organizations/${org.slug}/members`);
 
-    const dataTable = page.getByTestId("user-list-data-table");
+    const dataTable = page.getByTestId("user-list-data-table").first();
     await expect(dataTable).toBeVisible();
 
     await applySelectFilter(page, "role", "admin");
@@ -153,7 +154,7 @@ test.describe("Filter Segment Functionality", () => {
     await orgOwner.apiLogin();
     await page.goto(`/settings/organizations/${org.slug}/members`);
 
-    const dataTable = page.getByTestId("user-list-data-table");
+    const dataTable = page.getByTestId("user-list-data-table").first();
     await expect(dataTable).toBeVisible();
 
     await applySelectFilter(page, "role", "admin");
@@ -165,7 +166,9 @@ test.describe("Filter Segment Functionality", () => {
 
     await page.goto(`/settings/organizations/${org.slug}/members`);
     await expect(locateSelectedSegmentName(page, segmentName)).toBeVisible();
-    await expect(dataTable).toBeVisible();
+    // Redefine dataTable after navigation as page context may have changed
+    const dataTableAfterNav = page.getByTestId("user-list-data-table").first();
+    await expect(dataTableAfterNav).toBeVisible();
 
     await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
     await expect(getByTableColumnText(page, "member", memberUser.email)).toBeHidden();
@@ -194,7 +197,7 @@ test.describe("Filter Segment Functionality", () => {
     await orgOwner.apiLogin();
     await page.goto(`/settings/organizations/${org.slug}/members`);
 
-    await expect(page.getByTestId("user-list-data-table")).toBeVisible();
+    await expect(page.getByTestId("user-list-data-table").first()).toBeVisible();
     await applySelectFilter(page, "role", "admin");
     const segmentName = "Cross Session Admins";
     await createFilterSegment(page, segmentName);
@@ -202,7 +205,7 @@ test.describe("Filter Segment Functionality", () => {
     const [secondContext, secondPage] = await orgOwner.apiLoginOnNewBrowser(browser);
     await secondPage.goto(`/settings/organizations/${org.slug}/members`);
 
-    const dataTable = secondPage.getByTestId("user-list-data-table");
+    const dataTable = secondPage.getByTestId("user-list-data-table").first();
     await expect(dataTable).toBeVisible();
     await expect(locateSelectedSegmentName(secondPage, segmentName)).toBeVisible();
     await expect(getByTableColumnText(secondPage, "member", adminUser.email)).toBeVisible();
@@ -229,7 +232,7 @@ test.describe("Filter Segment Functionality", () => {
     await orgOwner.apiLogin();
     await page.goto(`/settings/organizations/${org.slug}/members`);
 
-    const dataTable = page.getByTestId("user-list-data-table");
+    const dataTable = page.getByTestId("user-list-data-table").first();
     await expect(dataTable).toBeVisible();
 
     await applySelectFilter(page, "role", "admin");
@@ -240,7 +243,9 @@ test.describe("Filter Segment Functionality", () => {
     });
 
     await page.goto(`/settings/organizations/${org.slug}/members`);
-    await expect(dataTable).toBeVisible();
+    // Redefine dataTable after navigation as page context may have changed
+    const dataTableAfterNav = page.getByTestId("user-list-data-table").first();
+    await expect(dataTableAfterNav).toBeVisible();
     await expect(locateSelectedSegmentName(page, segmentName)).toBeVisible();
 
     await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
@@ -264,14 +269,14 @@ test.describe("Filter Segment Functionality", () => {
     await orgOwner.apiLogin();
 
     await page.goto(`/settings/organizations/${org.slug}/members`);
-    await expect(page.getByTestId("user-list-data-table")).toBeVisible();
+    await expect(page.getByTestId("user-list-data-table").first()).toBeVisible();
 
     await applySelectFilter(page, "role", "admin");
     const membersSegmentName = "Members Table Segment";
     await createFilterSegment(page, membersSegmentName);
 
     await page.goto(`/settings/organizations/${org.slug}/members`);
-    await expect(page.getByTestId("user-list-data-table")).toBeVisible();
+    await expect(page.getByTestId("user-list-data-table").first()).toBeVisible();
     await expect(locateSelectedSegmentName(page, membersSegmentName)).toBeVisible();
     await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
 
@@ -306,7 +311,7 @@ test.describe("Filter Segment Functionality", () => {
 
     await page.goto(`/settings/organizations/${org.slug}/members`);
 
-    const dataTable = page.getByTestId("user-list-data-table");
+    const dataTable = page.getByTestId("user-list-data-table").first();
     await expect(dataTable).toBeVisible();
     const segmentName = "Team Admin Filter";
 
@@ -343,7 +348,9 @@ test.describe("Filter Segment Functionality", () => {
       await regularMember.apiLogin();
 
       await page.goto(`/settings/organizations/${org.slug}/members`);
-      await expect(dataTable).toBeVisible();
+      // Redefine dataTable after login change as page context may have changed
+      const dataTableAfterLogin = page.getByTestId("user-list-data-table").first();
+      await expect(dataTableAfterLogin).toBeVisible();
 
       await selectSegment(page, "Team Admin Filter");
       await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();

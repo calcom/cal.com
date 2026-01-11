@@ -177,7 +177,7 @@ const OnboardingPage = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypeGroups]);
 
-  const updateMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
+  const updateMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
     onSuccess: async (data) => {
       showToast(t("event_type_updated_successfully", { eventTypeTitle: data.eventType?.title }), "success");
     },
@@ -233,7 +233,7 @@ const OnboardingPage = ({
   return (
     <div
       key={pathname}
-      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen px-4"
+      className="text-emphasis min-h-screen px-4"
       data-testid="onboarding">
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">

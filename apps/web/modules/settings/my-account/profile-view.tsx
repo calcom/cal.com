@@ -12,9 +12,9 @@ import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -37,6 +37,7 @@ import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
+import { DisplayInfo } from "@calcom/web/modules/users/components/UserTable/EditSheet/DisplayInfo";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import CustomEmailTextField from "@components/settings/CustomEmailTextField";
@@ -45,6 +46,8 @@ import SecondaryEmailModal from "@components/settings/SecondaryEmailModal";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
+
+import { CompanyEmailOrganizationBanner } from "./components/CompanyEmailOrganizationBanner";
 
 interface DeleteAccountValues {
   totpCode: string;
@@ -72,7 +75,8 @@ type Props = {
 const ProfileView = ({ user }: Props) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { update } = useSession();
+  const session = useSession();
+  const { update } = session;
   const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
@@ -138,6 +142,7 @@ const ProfileView = ({ user }: Props) => {
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
+  const [isCompanyEmailAlertDismissed, setIsCompanyEmailAlertDismissed] = useState(false);
   const form = useForm<DeleteAccountValues>();
 
   const onDeleteMeSuccessMutation = async () => {
@@ -250,6 +255,14 @@ const ProfileView = ({ user }: Props) => {
     ],
   };
 
+  // Check if user should see company email alert
+  const shouldShowCompanyEmailAlert =
+    !isCompanyEmailAlertDismissed &&
+    !session.data?.user?.org?.id &&
+    !user.organization?.id &&
+    userEmail &&
+    isCompanyEmail(userEmail);
+
   return (
     <SettingsHeader
       title={t("profile")}
@@ -301,6 +314,12 @@ const ProfileView = ({ user }: Props) => {
         isCALIdentityProvider={isCALIdentityProvider}
       />
 
+      {shouldShowCompanyEmailAlert && (
+        <div className="mt-6">
+          <CompanyEmailOrganizationBanner onDismissAction={() => setIsCompanyEmailAlertDismissed(true)} />
+        </div>
+      )}
+
       <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
         <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
         <p className="text-subtle text-sm">{t("account_deletion_cannot_be_undone")}</p>
@@ -345,7 +364,7 @@ const ProfileView = ({ user }: Props) => {
             <DialogFooter showDivider>
               <DialogClose />
               <Button
-                color="primary"
+                color="destructive"
                 data-testid="delete-account-confirm"
                 onClick={(e) => onConfirmButton(e)}
                 loading={deleteMeMutation.isPending}>
@@ -639,7 +658,7 @@ const ProfileForm = ({
         </div>
         {extraField}
         <p className="text-subtle mt-1 flex gap-1 text-sm">
-          <Icon name="info" className="mt-0.5 flex-shrink-0" />
+          <Icon name="info" className="mt-0.5 shrink-0" />
           <span className="flex-1">{t("tip_username_plus")}</span>
         </p>
         <div className="mt-6">
@@ -700,7 +719,7 @@ const ProfileForm = ({
         {usersAttributes && usersAttributes?.length > 0 && (
           <div className="mt-6 flex flex-col">
             <Label>{t("attributes")}</Label>
-            <div className="flex flex-col space-y-4">
+            <div className="stack-y-4 flex flex-col">
               {usersAttributes.map((attribute, index) => (
                 <>
                   <DisplayInfo
