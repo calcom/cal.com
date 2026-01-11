@@ -5,9 +5,9 @@ import {
   TestData,
   getOrganizer,
   getScenarioData,
-} from "@calcom/testing/lib/bookingScenario/bookingScenario";
-import { expectWebhookToHaveBeenCalledWith } from "@calcom/testing/lib/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { expectWebhookToHaveBeenCalledWith } from "@calcom/web/test/utils/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, vi, test, expect } from "vitest";
 
@@ -21,7 +21,6 @@ import { calculateMaxStartTime } from "./common";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
 import type { TSendNoShowWebhookPayloadSchema } from "./schema";
 import { triggerGuestNoShow } from "./triggerGuestNoShow";
-import { WebhookVersion } from "../../../webhooks/lib/interface/IWebhookRepository";
 
 vi.mock("@calcom/features/tasker/tasks/triggerNoShow/getMeetingSessionsFromRoomName", () => ({
   getMeetingSessionsFromRoomName: vi.fn(),
@@ -142,7 +141,6 @@ describe("Trigger Guest No Show:", () => {
         timeUnit: TimeUnit.MINUTE,
         payloadTemplate: null,
         secret: null,
-        version: WebhookVersion.V_2021_10_20,
       };
 
       const payload = JSON.stringify({
@@ -329,7 +327,6 @@ describe("Trigger Guest No Show:", () => {
         timeUnit: TimeUnit.MINUTE,
         payloadTemplate: null,
         secret: null,
-        version: WebhookVersion.V_2021_10_20,
       };
 
       const payload = JSON.stringify({
@@ -555,7 +552,6 @@ describe("Trigger Guest No Show:", () => {
         timeUnit: TimeUnit.MINUTE,
         payloadTemplate: null,
         secret: null,
-        version: WebhookVersion.V_2021_10_20,
       };
 
       const payload = JSON.stringify({
@@ -741,7 +737,6 @@ describe("Trigger Guest No Show:", () => {
         timeUnit: TimeUnit.MINUTE,
         payloadTemplate: null,
         secret: null,
-        version: WebhookVersion.V_2021_10_20,
       };
 
       const payload = JSON.stringify({
@@ -894,7 +889,6 @@ describe("Trigger Guest No Show:", () => {
         timeUnit: TimeUnit.MINUTE,
         payloadTemplate: null,
         secret: null,
-        version: WebhookVersion.V_2021_10_20,
       };
 
       const payload = JSON.stringify({

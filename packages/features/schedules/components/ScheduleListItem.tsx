@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useState } from "react";
+import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
@@ -17,7 +16,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -43,9 +41,6 @@ export function ScheduleListItem({
   redirectUrl: string;
 }) {
   const { t, i18n } = useLocale();
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  type AvailabilityItem = (typeof schedule.availability)[number];
 
   return (
     <li key={schedule.id}>
@@ -62,24 +57,17 @@ export function ScheduleListItem({
             </div>
             <p className="text-subtle mt-1">
               {schedule.availability
-                .filter(
-                  (availability: AvailabilityItem) => !!availability.days.length
-                )
-                .map((availability: AvailabilityItem) =>
+                .filter((availability) => !!availability.days.length)
+                .map((availability) =>
                   availabilityAsString(availability, {
                     locale: i18n.language,
                     hour12: displayOptions?.hour12,
                   })
                 )
                 // sort the availability strings as per user's weekstart (settings)
-                .sort(
-                  sortAvailabilityStrings(
-                    i18n.language,
-                    displayOptions?.weekStart
-                  )
-                )
-                .map((availabilityString: string) => (
-                  <Fragment key={availabilityString}>
+                .sort(sortAvailabilityStrings(i18n.language, displayOptions?.weekStart))
+                .map((availabilityString, index) => (
+                  <Fragment key={index}>
                     {availabilityString}
                     <br />
                   </Fragment>
@@ -143,7 +131,9 @@ export function ScheduleListItem({
                   if (!isDeletable) {
                     showToast(t("requires_at_least_one_schedule"), "error");
                   } else {
-                    setIsDeleteDialogOpen(true);
+                    deleteFunction({
+                      scheduleId: schedule.id,
+                    });
                   }
                 }}>
                 {t("delete")}
@@ -151,21 +141,6 @@ export function ScheduleListItem({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </Dropdown>
-        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <ConfirmationDialogContent
-            variety="danger"
-            title={t("delete_schedule")}
-            confirmBtnText={t("delete")}
-            loadingText={t("delete")}
-            onConfirm={(e) => {
-              e.preventDefault();
-              deleteFunction({
-                scheduleId: schedule.id,
-              });
-            }}>
-            {t("delete_schedule_description")}
-          </ConfirmationDialogContent>
-        </Dialog>
       </div>
     </li>
   );

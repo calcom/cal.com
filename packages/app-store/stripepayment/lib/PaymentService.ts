@@ -2,14 +2,13 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
-import dayjs from "@calcom/dayjs";
+import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import tasker from "@calcom/features/tasker";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -17,6 +16,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { paymentOptionEnum } from "../zod";
+import { createPaymentLink } from "./client";
 import { retrieveOrCreateStripeCustomerByEmail } from "./customer";
 import type { StripePaymentData, StripeSetupIntentData } from "./server";
 
@@ -382,24 +382,29 @@ export class PaymentService implements IAbstractPaymentService {
       uid: string;
     },
     paymentData: Payment,
-    _eventTypeMetadata?: EventTypeMetadata
+    eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
-    const delayMinutes = Number(process.env.AWAITING_PAYMENT_EMAIL_DELAY_MINUTES) || 15;
-    const scheduledEmailAt = dayjs().add(delayMinutes, "minutes").toDate();
+    const attendeesToEmail = event.attendeeSeatId
+      ? event.attendees.filter((attendee) => attendee.bookingSeat?.referenceUid === event.attendeeSeatId)
+      : event.attendees;
 
-    // we give the user 15 minutes to complete the payment
-    // if the payment is still not processed after 15 minutes, we send an awaiting payment email
-    await tasker.create(
-      "sendAwaitingPaymentEmail",
+    await sendAwaitingPaymentEmailAndSMS(
       {
-        bookingId: booking.id,
-        paymentId: paymentData.id,
-        attendeeSeatId: event.attendeeSeatId || null,
+        ...event,
+        attendees: attendeesToEmail,
+        paymentInfo: {
+          link: createPaymentLink({
+            paymentUid: paymentData.uid,
+            name: booking.user?.name,
+            email: booking.user?.email,
+            date: booking.startTime.toISOString(),
+          }),
+          paymentOption: paymentData.paymentOption || "ON_BOOKING",
+          amount: paymentData.amount,
+          currency: paymentData.currency,
+        },
       },
-      {
-        scheduledAt: scheduledEmailAt,
-        referenceUid: booking.uid,
-      }
+      eventTypeMetadata
     );
   }
 

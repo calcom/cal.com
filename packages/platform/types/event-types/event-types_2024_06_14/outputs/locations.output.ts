@@ -11,11 +11,11 @@ import {
   InputAttendeeDefinedLocation_2024_06_14,
   InputAttendeePhoneLocation_2024_06_14,
   InputLinkLocation_2024_06_14,
-  eventTypeInputLocations,
+  inputLocations,
   InputPhoneLocation_2024_06_14,
 } from "../inputs";
 
-const outputLocations = [...eventTypeInputLocations, "conferencing", "unknown"] as const;
+const outputLocations = [...inputLocations, "conferencing", "unknown"] as const;
 
 export class OutputAddressLocation_2024_06_14 extends InputAddressLocation_2024_06_14 {}
 export class OutputLinkLocation_2024_06_14 extends InputLinkLocation_2024_06_14 {}

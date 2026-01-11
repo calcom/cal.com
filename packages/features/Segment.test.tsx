@@ -6,7 +6,7 @@ import type { Mock } from "vitest";
 import { Segment } from "@calcom/features/Segment";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { AttributeType } from "@calcom/prisma/enums";
-import { trpc, type RouterOutputs } from "@calcom/trpc/react";
+import { trpc, type RouterOutputs } from "@calcom/trpc";
 
 type Attributes = RouterOutputs["viewer"]["appRoutingForms"]["getAttributesForTeam"];
 type MatchingTeamMembersData = RouterOutputs["viewer"]["attributes"]["findTeamMembersMatchingAttributeLogic"];
@@ -62,7 +62,7 @@ const mockAttributesWithSingleSelect = () => {
 };
 
 // Mock the TRPC hooks
-vi.mock("@calcom/trpc/react", () => ({
+vi.mock("@calcom/trpc", () => ({
   trpc: {
     viewer: {
       appRoutingForms: {

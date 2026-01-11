@@ -1,17 +1,6 @@
-module.exports = (api) => {
+module.exports = function (api) {
   api.cache(true);
   return {
-    presets: [
-      [
-        "babel-preset-expo",
-        {
-          jsxImportSource: "nativewind",
-          "react-compiler": {
-            panicThreshold: "all_errors",
-          },
-        },
-      ],
-      "nativewind/babel",
-    ],
+    presets: [["babel-preset-expo", { jsxImportSource: "nativewind" }], "nativewind/babel"],
   };
 };

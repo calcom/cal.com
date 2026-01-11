@@ -1,24 +1,19 @@
 import Link from "next/link";
 
+import { useHasPaidPlan, useHasActiveTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Tooltip } from "../tooltip";
 import { Badge } from "./Badge";
 
-export type UpgradeTeamsBadgeProps = {
-  checkForActiveStatus?: boolean;
-  hasPaidPlan?: boolean;
-  hasActiveTeamPlan?: boolean;
-  isTrial?: boolean;
-};
-
 export const UpgradeTeamsBadge = function UpgradeTeamsBadge({
   checkForActiveStatus,
-  hasPaidPlan = false,
-  hasActiveTeamPlan = false,
-  isTrial = false,
-}: UpgradeTeamsBadgeProps) {
+}: {
+  checkForActiveStatus?: boolean;
+}) {
   const { t } = useLocale();
+  const { hasPaidPlan } = useHasPaidPlan();
+  const { hasActiveTeamPlan, isTrial } = useHasActiveTeamPlan();
 
   if (hasPaidPlan) {
     if (!checkForActiveStatus || hasActiveTeamPlan) return null;

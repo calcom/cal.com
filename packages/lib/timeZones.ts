@@ -1,7 +1,3 @@
-/**
- * IMPORTANT: If you update this timezone array, please also update the TIMEZONES array
- * in companion/constants/timezones.ts to keep the companion apps in sync.
- */
 export const IntlSupportedTimeZones = [
   "Africa/Abidjan",
   "Africa/Accra",

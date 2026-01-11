@@ -1,6 +1,4 @@
-import { organizationRepositoryMock } from "@calcom/features/ee/organizations/__mocks__/organizationMock";
-
-import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
@@ -8,6 +6,7 @@ import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecale
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+import { organizationRepositoryMock } from "@calcom/features/ee/organizations/__mocks__/organizationMock";
 import { SMSLockState, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
@@ -106,7 +105,6 @@ const mockOrganization = {
   hideTeamProfileLink: false,
   rrResetInterval: null,
   rrTimestampBasis: RRTimestampBasis.CREATED_AT,
-  autoOptInFeatures: false,
 };
 
 // Credential Builders
@@ -116,7 +114,7 @@ const buildDelegationCredential = (overrides = {}) => ({
   id: -1,
   delegatedToId: mockDelegationCredential.id,
   userId: mockUser.id,
-  user: { email: mockUser.email, name: null },
+  user: { email: mockUser.email },
   key: { access_token: "NOOP_UNUSED_DELEGATION_TOKEN" },
   invalid: false,
   teamId: null,

@@ -1,23 +1,16 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { Payment } from "@calcom/prisma/client";
 
 import { handleNoShowFee } from "./handleNoShowFee";
 import { processNoShowFeeOnCancellation } from "./processNoShowFeeOnCancellation";
 import { shouldChargeNoShowCancellationFee } from "./shouldChargeNoShowCancellationFee";
 
-const { mockFindUniqueByUserIdAndTeamId, MockMembershipRepository } = vi.hoisted(() => {
-  const mockFindUniqueByUserIdAndTeamId = vi.fn();
-
-  class MockMembershipRepository {
-    findUniqueByUserIdAndTeamId = mockFindUniqueByUserIdAndTeamId;
-  }
-
-  return { mockFindUniqueByUserIdAndTeamId, MockMembershipRepository };
-});
-
 vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: MockMembershipRepository,
+  MembershipRepository: {
+    findUniqueByUserIdAndTeamId: vi.fn(),
+  },
 }));
 
 vi.mock("./handleNoShowFee", () => ({
@@ -172,7 +165,7 @@ describe("processNoShowFeeOnCancellation", () => {
         },
       };
 
-      mockFindUniqueByUserIdAndTeamId.mockResolvedValue({
+      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
         id: 1,
         userId: 999,
         teamId: 1,
@@ -190,7 +183,7 @@ describe("processNoShowFeeOnCancellation", () => {
         cancelledByUserId: 999,
       });
 
-      expect(mockFindUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 999,
         teamId: 1,
       });
@@ -207,7 +200,7 @@ describe("processNoShowFeeOnCancellation", () => {
         },
       };
 
-      mockFindUniqueByUserIdAndTeamId.mockResolvedValue({
+      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
         id: 1,
         userId: 999,
         teamId: 1,
@@ -238,7 +231,7 @@ describe("processNoShowFeeOnCancellation", () => {
         },
       };
 
-      mockFindUniqueByUserIdAndTeamId.mockResolvedValue({
+      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
         id: 1,
         userId: 999,
         teamId: 1,
@@ -271,7 +264,7 @@ describe("processNoShowFeeOnCancellation", () => {
         cancelledByUserId: 999,
       });
 
-      expect(mockFindUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 999,
         teamId: 1,
       });
@@ -288,7 +281,7 @@ describe("processNoShowFeeOnCancellation", () => {
         },
       };
 
-      mockFindUniqueByUserIdAndTeamId.mockResolvedValue(null);
+      vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue(null);
       vi.mocked(shouldChargeNoShowCancellationFee).mockReturnValue(true);
       vi.mocked(handleNoShowFee).mockResolvedValue({
         id: 999,

@@ -21,7 +21,7 @@ type TRPCErrorCode =
   | "TOO_MANY_REQUESTS"
   | "CLIENT_CLOSED_REQUEST";
 
-export function httpStatusToTrpcCode(status: number): TRPCErrorCode {
+function httpStatusToTrpcCode(status: number): TRPCErrorCode {
   switch (status) {
     case 400:
       return "BAD_REQUEST";

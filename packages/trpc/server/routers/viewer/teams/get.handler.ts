@@ -14,8 +14,7 @@ type GetDataOptions = {
 };
 
 export const get = async ({ ctx, input }: GetDataOptions) => {
-  const membershipRepository = new MembershipRepository();
-  const teamMembership = await membershipRepository.findUniqueByUserIdAndTeamId({
+  const teamMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
     userId: ctx.user.id,
     teamId: input.teamId,
   });

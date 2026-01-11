@@ -1,8 +1,6 @@
 import type { NextApiRequest } from "next";
 import z from "zod";
 
-import logger from "./logger";
-
 export function parseIpFromHeaders(value: string | string[]) {
   return Array.isArray(value) ? value[0] : value.split(",")[0];
 }
@@ -31,7 +29,7 @@ export function isIpInBanlist(request: Request | NextApiRequest) {
   const rawBanListJson = process.env.IP_BANLIST || "[]";
   const banList = banlistSchema.parse(JSON.parse(rawBanListJson));
   if (banList.includes(IP)) {
-    logger.warn(`Found banned IP: ${IP} in IP_BANLIST`);
+    console.log(`Found banned IP: ${IP} in IP_BANLIST`);
     return true;
   }
   return false;
@@ -41,7 +39,7 @@ export function isIpInBanListString(identifer: string) {
   const rawBanListJson = process.env.IP_BANLIST || "[]";
   const banList = banlistSchema.parse(JSON.parse(rawBanListJson));
   if (banList.includes(identifer)) {
-    logger.warn(`Found banned IP: ${identifer} in IP_BANLIST`);
+    console.log(`Found banned IP: ${identifer} in IP_BANLIST`);
     return true;
   }
   return false;

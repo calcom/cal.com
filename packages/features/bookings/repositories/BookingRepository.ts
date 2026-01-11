@@ -519,6 +519,78 @@ export class BookingRepository {
     });
   }
 
+  /**
+   * Counts active bookings for an event type by booker email
+   */
+  async countActiveBookingsForEventType({
+    eventTypeId,
+    bookerEmail,
+  }: {
+    eventTypeId: number;
+    bookerEmail: string;
+  }) {
+    return await this.prismaClient.booking.count({
+      where: {
+        eventTypeId,
+        startTime: {
+          gte: new Date(),
+        },
+        status: {
+          in: [BookingStatus.ACCEPTED],
+        },
+        attendees: {
+          some: {
+            email: bookerEmail,
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * Finds active bookings for an event type by booker email with ordering
+   */
+  async findActiveBookingsForEventType({
+    eventTypeId,
+    bookerEmail,
+    limit,
+  }: {
+    eventTypeId: number;
+    bookerEmail: string;
+    limit: number;
+  }) {
+    return await this.prismaClient.booking.findMany({
+      where: {
+        eventTypeId,
+        startTime: {
+          gte: new Date(),
+        },
+        status: {
+          in: [BookingStatus.ACCEPTED],
+        },
+        attendees: {
+          some: {
+            email: bookerEmail,
+          },
+        },
+      },
+      orderBy: {
+        startTime: "desc",
+      },
+      take: limit,
+      select: {
+        uid: true,
+        startTime: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
   async findByUidForAuthorizationCheck({ bookingUid }: { bookingUid: string }) {
     return await this.prismaClient.booking.findUnique({
       where: {
@@ -1910,13 +1982,6 @@ export class BookingRepository {
         startTime: true,
         endTime: true,
       },
-    });
-  }
-
-  async updateRecordedStatus({ bookingUid, isRecorded }: { bookingUid: string; isRecorded: boolean }): Promise<void> {
-    await this.prismaClient.booking.update({
-      where: { uid: bookingUid },
-      data: { isRecorded },
     });
   }
 }

@@ -4,8 +4,8 @@
  */
 
 export {
-  clearQueryCache,
   createQueryPersister,
+  clearQueryCache,
   getCacheMetadata,
   storage,
-} from "@/utils/queryPersister";
+} from "../utils/queryPersister";

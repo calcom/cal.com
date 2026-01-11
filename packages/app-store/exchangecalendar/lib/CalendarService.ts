@@ -32,7 +32,6 @@ import type {
   Calendar,
   CalendarEvent,
   EventBusyDate,
-  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
   Person,
@@ -134,8 +133,11 @@ export default class ExchangeCalendarService implements Calendar {
     });
   }
 
-  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
-    const { dateFrom, dateTo, selectedCalendars } = params;
+  async getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyDate[]> {
     const calendars: IntegrationCalendar[] = await this.listCalendars();
     const promises: Promise<EventBusyDate[]>[] = calendars
       .filter((lcal) => selectedCalendars.some((rcal) => lcal.externalId == rcal.externalId))

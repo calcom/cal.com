@@ -1,5 +1,3 @@
-import logger from "@calcom/lib/logger";
-
 import { Task } from "./repository";
 import type { TaskTypes } from "./tasker";
 import { type TaskerCreate, type Tasker } from "./tasker";
@@ -18,7 +16,7 @@ export class InternalTasker implements Tasker {
 
   async cleanup(): Promise<void> {
     const count = await Task.cleanup();
-    logger.info(`Cleaned up ${count} tasks`);
+    console.info(`Cleaned up ${count} tasks`);
   }
 
   async cancel(id: string): Promise<string> {

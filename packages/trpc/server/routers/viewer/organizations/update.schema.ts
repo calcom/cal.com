@@ -1,28 +1,7 @@
 import { z } from "zod";
 
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
-import { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
-
-/**
- * Optional nullable URL schema with SSRF protections
- * Rejects internal/private networks and cloud metadata endpoints
- */
-const ssrfSafeOptionalUrl: z.ZodEffects<
-  z.ZodOptional<z.ZodNullable<z.ZodString>>,
-  string | null | undefined,
-  string | null | undefined
-> = z
-  .string()
-  .nullable()
-  .optional()
-  .refine(
-    (url) => {
-      if (url == null || url === "") return true;
-      return validateUrlForSSRFSync(url).isValid;
-    },
-    { message: "URL is not allowed for security reasons" }
-  );
 
 // Note: orgId has .transform() that converts string to number, so input accepts string | number but output is always number
 
@@ -107,9 +86,13 @@ export const ZUpdateInputSchema: z.ZodType<TUpdateInputSchema, z.ZodTypeDef, TUp
     .or(z.number())
     .optional(),
   bio: z.string().optional(),
-  logoUrl: ssrfSafeOptionalUrl,
-  calVideoLogo: ssrfSafeOptionalUrl.transform((v) => v || null),
-  banner: ssrfSafeOptionalUrl,
+  logoUrl: z.string().optional().nullable(),
+  calVideoLogo: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((v) => v || null),
+  banner: z.string().nullable().optional(),
   slug: z.string().optional(),
   hideBranding: z.boolean().optional(),
   hideBookATeamMember: z.boolean().optional(),

@@ -11,11 +11,6 @@ import { useBookerStore, type CountryCode } from "@calcom/features/bookings/Book
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 
-const CUSTOM_PHONE_MASKS = {
-  ci: ".. .. .. .. ..",
-  bj: ".. .. .. .. ..",
-};
-
 export type PhoneInputProps = {
   value?: string;
   id?: string;
@@ -72,7 +67,6 @@ function BasePhoneInput({
       enableSearch
       disableSearchIcon
       country={effectiveDefaultCountry}
-      masks={CUSTOM_PHONE_MASKS}
       inputProps={{
         name,
         required: rest.required,
@@ -124,7 +118,6 @@ function BasePhoneInputWeb({
       country={value ? undefined : defaultCountry}
       enableSearch
       disableSearchIcon
-      masks={CUSTOM_PHONE_MASKS}
       inputProps={{
         name,
         required: rest.required,

@@ -1,4 +1,4 @@
-import { bootstrap } from "@/bootstrap";
+import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
@@ -112,11 +112,7 @@ describe("Organizations Roles Endpoints", () => {
     });
 
     await featuresRepositoryFixture.create({ slug: "pbac", enabled: true });
-    await featuresRepositoryFixture.setTeamFeatureState({
-      teamId: pbacEnabledOrganization.id,
-      featureId: "pbac",
-      state: "enabled",
-    });
+    await featuresRepositoryFixture.setTeamFeatureState(pbacEnabledOrganization.id, "pbac", "enabled");
 
     // Create memberships
     await membershipRepositoryFixture.create({

@@ -3,16 +3,20 @@
  * Provides utilities for converting between API format and UI format
  */
 
-import type {
+import { getAppIconUrl } from "./getAppIconUrl";
+import {
+  defaultLocations,
+  getDefaultLocationIconUrl,
+  DefaultLocationType,
+} from "./defaultLocations";
+import { formatAppIdToDisplayName } from "./formatters";
+import {
+  LocationItem,
   ApiLocation,
   ApiLocationInput,
-  LocationItem,
   LocationOption,
   LocationOptionGroup,
-} from "@/types/locations";
-import { DefaultLocationType, defaultLocations } from "./defaultLocations";
-import { formatAppIdToDisplayName } from "./formatters";
-import { getAppIconUrl } from "./getAppIconUrl";
+} from "../types/locations";
 
 // Re-export formatAppIdToDisplayName for backward compatibility
 export { formatAppIdToDisplayName } from "./formatters";

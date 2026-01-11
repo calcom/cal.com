@@ -33,19 +33,14 @@ export function sendWebhookPayload(
   participants: ParticipantsWithEmail,
   originalRescheduledBooking?: OriginalRescheduledBooking,
   hostEmail?: string
-): Promise<{ ok: boolean; status: number } | void> {
+): Promise<any> {
   const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");
 
   return sendGenericWebhookPayload({
     secretKey: webhook.secret,
     triggerEvent,
     createdAt: new Date().toISOString(),
-    webhook: {
-      subscriberUrl: webhook.subscriberUrl,
-      appId: webhook.appId,
-      payloadTemplate: webhook.payloadTemplate,
-      version: webhook.version,
-    },
+    webhook,
     data: {
       title: booking.title,
       bookingId: booking.id,

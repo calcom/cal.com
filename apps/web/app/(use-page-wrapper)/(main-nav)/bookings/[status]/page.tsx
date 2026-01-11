@@ -55,12 +55,9 @@ const Page = async ({ params }: PageProps) => {
   }
 
   const featuresRepository = new FeaturesRepository(prisma);
-  const featureFlags = session?.user?.id
-    ? await featuresRepository.getUserFeaturesStatus(session.user.id, ["bookings-v3", "booking-audit"])
-    : { "bookings-v3": false, "booking-audit": false };
-
-  const bookingsV3Enabled = featureFlags["bookings-v3"] ?? false;
-  const bookingAuditEnabled = featureFlags["booking-audit"] ?? false;
+  const bookingsV3Enabled = session?.user?.id
+    ? await featuresRepository.checkIfUserHasFeature(session.user.id, "bookings-v3")
+    : false;
 
   return (
     <ShellMainAppDir
@@ -72,7 +69,6 @@ const Page = async ({ params }: PageProps) => {
         userId={session?.user?.id}
         permissions={{ canReadOthersBookings }}
         bookingsV3Enabled={bookingsV3Enabled}
-        bookingAuditEnabled={bookingAuditEnabled}
       />
     </ShellMainAppDir>
   );

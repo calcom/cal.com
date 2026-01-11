@@ -16,11 +16,11 @@
 
 ## Lint & Type Check
 
-- `yarn lint` - Run Biome across the codebase
-- `yarn lint:fix` - Run Biome and apply safe fixes
-- `yarn lint:report` - Generate Biome lint report
+- `yarn lint` - Run ESLint on codebase
+- `yarn lint:fix` - Run ESLint and fix issues
+- `yarn lint:report` - Generate lint report
 - `yarn type-check` - Run TypeScript type checking
-- `yarn format` - Format code with Biome
+- `yarn format` - Format code with Prettier
 
 ## Testing Commands
 

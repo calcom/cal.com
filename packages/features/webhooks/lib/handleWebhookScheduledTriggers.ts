@@ -2,7 +2,6 @@ import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 
-import { DEFAULT_WEBHOOK_VERSION } from "./interface/IWebhookRepository";
 import { createWebhookSignature, jsonParse } from "./sendPayload";
 
 export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
@@ -28,13 +27,12 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
       webhook: {
         select: {
           secret: true,
-          version: true,
         },
       },
     },
   });
 
-  const fetchPromises: Promise<Response | void>[] = [];
+  const fetchPromises: Promise<any>[] = [];
 
   // run jobs
   for (const job of jobsToRun) {
@@ -47,7 +45,6 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
       try {
         webhook = await prisma.webhook.findUniqueOrThrow({
           where: { id: subscriberId, appId: appId !== "null" ? appId : null },
-          select: { secret: true, version: true },
         });
       } catch {
         logger.error(`Error finding webhook for subscriberId: ${subscriberId}, appId: ${appId}`);
@@ -57,7 +54,6 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
     const headers: Record<string, string> = {
       "Content-Type":
         !job.payload || jsonParse(job.payload) ? "application/json" : "application/x-www-form-urlencoded",
-      "X-Cal-Webhook-Version": webhook?.version ?? DEFAULT_WEBHOOK_VERSION,
     };
 
     if (webhook) {
@@ -74,6 +70,12 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
         console.error(`Webhook trigger for subscriber url ${job.subscriberUrl} failed with error: ${error}`);
       })
     );
+
+    const parsedJobPayload = JSON.parse(job.payload) as {
+      id: number; // booking id
+      endTime: string;
+      triggerEvent: string;
+    };
 
     // clean finished job
     await prisma.webhookScheduledTriggers.delete({

@@ -1,5 +1,5 @@
-import fs from "node:fs"
-import path from "node:path"
+import fs from "fs";
+import path from "path";
 
 /**
  *  Simple utility to load JSON files from the file system. Needed to avoid certain errors with:

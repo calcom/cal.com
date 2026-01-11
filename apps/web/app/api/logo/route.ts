@@ -18,7 +18,6 @@ import {
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { isTrustedInternalUrl, logBlockedSSRFAttempt, validateUrlForSSRF } from "@calcom/lib/ssrfProtection";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -191,26 +190,7 @@ async function getHandler(request: NextRequest) {
   const filteredLogo = teamLogos[logoDefinition.source] ?? logoDefinition.fallback;
 
   try {
-    let response: Response;
-
-    // Internal URLs (fallbacks from WEBAPP_URL) are trusted
-    if (isTrustedInternalUrl(filteredLogo, WEBAPP_URL)) {
-      response = await fetch(filteredLogo);
-    }
-    // External URLs (including data URLs) need SSRF validation
-    else {
-      const validation = await validateUrlForSSRF(filteredLogo);
-      if (!validation.isValid) {
-        logBlockedSSRFAttempt(filteredLogo, validation.error || "Unknown", { subdomain });
-        // Graceful degradation: use default logo instead of error
-        response = await fetch(logoDefinition.fallback);
-      } else {
-        response = await fetch(filteredLogo, {
-          signal: AbortSignal.timeout(10000), // 10s conservative timeout
-        });
-      }
-    }
-
+    const response = await fetch(filteredLogo);
     const arrayBuffer = await response.arrayBuffer();
     let buffer: Buffer = Buffer.from(arrayBuffer);
     let contentType = response.headers.get("content-type") || "image/png";

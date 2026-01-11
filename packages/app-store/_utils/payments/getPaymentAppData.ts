@@ -1,5 +1,6 @@
 import type { z } from "zod";
 
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { appDataSchemas } from "../../apps.schemas.generated";
@@ -9,9 +10,7 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "../../zod-utils";
 import { getEventTypeAppData } from "../getEventTypeAppData";
 
 export function getPaymentAppData(
-  _eventType: {
-    price: number;
-    currency: string;
+  _eventType: Pick<BookerEvent, "price" | "currency"> & {
     metadata: z.infer<typeof EventTypeMetaDataSchema>;
   },
   forcedGet?: boolean

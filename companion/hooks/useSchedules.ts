@@ -9,9 +9,9 @@
  * - Cache invalidation on create/update/delete
  */
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CACHE_CONFIG, queryKeys } from "@/config/cache.config";
-import { CalComAPIService, type Schedule } from "@/services/calcom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { CalComAPIService, Schedule } from "../services/calcom";
+import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
 
 /**
  * Sort schedules: default first, then alphabetically by name
@@ -110,10 +110,7 @@ export function useSchedules() {
 export function useScheduleById(id: number | undefined) {
   return useQuery({
     queryKey: queryKeys.schedules.detail(id || 0),
-    queryFn: () => {
-      if (!id) throw new Error("id is required");
-      return CalComAPIService.getScheduleById(id);
-    },
+    queryFn: () => CalComAPIService.getScheduleById(id!),
     enabled: !!id, // Only fetch when id is provided
     staleTime: CACHE_CONFIG.schedules.staleTime,
   });
@@ -149,8 +146,8 @@ export function useCreateSchedule() {
       // Optionally, add the new schedule to cache immediately
       queryClient.setQueryData(queryKeys.schedules.detail(newSchedule.id), newSchedule);
     },
-    onError: (_error) => {
-      console.error("Failed to create schedule");
+    onError: (error) => {
+      console.error("Failed to create schedule:", error);
     },
   });
 }
@@ -183,8 +180,8 @@ export function useUpdateSchedule() {
       // Update the specific schedule in cache
       queryClient.setQueryData(queryKeys.schedules.detail(variables.id), updatedSchedule);
     },
-    onError: (_error) => {
-      console.error("Failed to update schedule");
+    onError: (error) => {
+      console.error("Failed to update schedule:", error);
     },
   });
 }
@@ -210,8 +207,8 @@ export function useSetScheduleAsDefault() {
       // Invalidate all schedules to update the default flag
       queryClient.invalidateQueries({ queryKey: queryKeys.schedules.all });
     },
-    onError: (_error) => {
-      console.error("Failed to set schedule as default");
+    onError: (error) => {
+      console.error("Failed to set schedule as default:", error);
     },
   });
 }
@@ -250,12 +247,12 @@ export function useDeleteSchedule() {
 
       return { previousSchedules };
     },
-    onError: (_error, _deletedId, context) => {
+    onError: (error, _deletedId, context) => {
       // Rollback on error
       if (context?.previousSchedules) {
         queryClient.setQueryData(queryKeys.schedules.lists(), context.previousSchedules);
       }
-      console.error("Failed to delete schedule");
+      console.error("Failed to delete schedule:", error);
     },
     onSettled: () => {
       // Always refetch after error or success
@@ -285,8 +282,8 @@ export function useDuplicateSchedule() {
       // Invalidate the list to include the duplicated schedule
       queryClient.invalidateQueries({ queryKey: queryKeys.schedules.lists() });
     },
-    onError: (_error) => {
-      console.error("Failed to duplicate schedule");
+    onError: (error) => {
+      console.error("Failed to duplicate schedule:", error);
     },
   });
 }

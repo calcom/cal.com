@@ -68,11 +68,13 @@ export class OrganizationsUsersService {
       await this.checkForUsernameConflicts(org.id, userCreateBody.username);
     }
 
+    const usernameOrEmail = userCreateBody.username ? userCreateBody.username : userCreateBody.email;
+
     // Create new org user
     const createdUserCall = await createNewUsersConnectToOrgIfExists({
       invitations: [
         {
-          usernameOrEmail: userCreateBody.email,
+          usernameOrEmail: usernameOrEmail,
           role: userCreateBody.organizationRole,
         },
       ],
@@ -82,7 +84,7 @@ export class OrganizationsUsersService {
       parentId: null,
       autoAcceptEmailDomain: "not-required-for-this-endpoint",
       orgConnectInfoByUsernameOrEmail: {
-        [userCreateBody.email]: {
+        [usernameOrEmail]: {
           orgId: org.id,
           autoAccept: userCreateBody.autoAccept,
         },
@@ -104,7 +106,7 @@ export class OrganizationsUsersService {
 
     // Need to send email to new user to create password
     await this.emailService.sendSignupToOrganizationEmail({
-      usernameOrEmail: userCreateBody.email,
+      usernameOrEmail,
       orgName: org.name,
       orgId: org.id,
       locale: user?.locale,

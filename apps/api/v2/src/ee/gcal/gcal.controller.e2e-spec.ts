@@ -1,4 +1,4 @@
-import { bootstrap } from "@/bootstrap";
+import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";

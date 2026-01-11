@@ -1,13 +1,12 @@
 "use client";
 
+import Shell from "@calcom/features/shell/Shell";
 import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
   SkeletonAvatar,
 } from "@calcom/ui/components/skeleton";
-
-import Shell from "~/shell/Shell";
 
 export const EventTypeEditPageSkeleton = () => {
   const backButtonSkeleton = (
@@ -34,7 +33,7 @@ export const EventTypeEditPageSkeleton = () => {
       <div className="flex flex-col xl:flex-row xl:space-x-6">
         <div className="hidden xl:block">
           <div className="primary-navigation w-64 shrink-0">
-            <div className="stack-y-1 flex flex-col">
+            <div className="flex flex-col stack-y-1">
               {/* Tab navigation items */}
               {Array.from({ length: 8 }).map((_, index) => (
                 <div
@@ -59,14 +58,14 @@ export const EventTypeEditPageSkeleton = () => {
                 <SkeletonText className="h-8 w-full max-w-md" />
               </div>
 
-              <div className="stack-y-6 mb-6">
+              <div className="mb-6 stack-y-6">
                 {/* Form fields */}
-                <div className="stack-y-2 flex flex-col">
+                <div className="flex flex-col stack-y-2">
                   <SkeletonText className="h-4 w-32" />
                   <SkeletonText className="h-10 w-full" />
                 </div>
 
-                <div className="stack-y-2 flex flex-col">
+                <div className="flex flex-col stack-y-2">
                   <SkeletonText className="h-4 w-40" />
                   <div className="flex items-center">
                     <SkeletonText className="h-10 w-full" />
@@ -74,12 +73,12 @@ export const EventTypeEditPageSkeleton = () => {
                   </div>
                 </div>
 
-                <div className="stack-y-2 flex flex-col">
+                <div className="flex flex-col stack-y-2">
                   <SkeletonText className="h-4 w-36" />
                   <SkeletonText className="h-24 w-full" />
                 </div>
 
-                <div className="stack-y-2 flex flex-col">
+                <div className="flex flex-col stack-y-2">
                   <SkeletonText className="h-4 w-28" />
                   <div className="flex items-center">
                     <SkeletonText className="h-10 w-full" />
@@ -87,7 +86,7 @@ export const EventTypeEditPageSkeleton = () => {
                   </div>
                 </div>
 
-                <div className="stack-y-2 flex flex-col">
+                <div className="flex flex-col stack-y-2">
                   <SkeletonText className="h-4 w-32" />
                   <SkeletonText className="h-10 w-full" />
                 </div>

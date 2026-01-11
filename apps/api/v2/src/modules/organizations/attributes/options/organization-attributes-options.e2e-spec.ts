@@ -1,4 +1,4 @@
-import { bootstrap } from "@/bootstrap";
+import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
 import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organizations/attributes/options/inputs/organizations-attributes-options-assign.input";

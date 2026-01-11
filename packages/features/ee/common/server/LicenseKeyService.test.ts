@@ -1,4 +1,4 @@
-import "@calcom/testing/lib/__mocks__/prisma";
+import "../../../../../tests/libs/__mocks__/prisma";
 
 import * as cache from "memory-cache";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";

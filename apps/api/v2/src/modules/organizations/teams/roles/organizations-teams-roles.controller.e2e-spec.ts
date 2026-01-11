@@ -1,4 +1,4 @@
-import { bootstrap } from "@/bootstrap";
+import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateTeamRoleInput } from "@/modules/organizations/teams/roles/inputs/create-team-role.input";
 import { UpdateTeamRoleInput } from "@/modules/organizations/teams/roles/inputs/update-team-role.input";
@@ -126,11 +126,7 @@ describe("Organizations Roles Endpoints", () => {
     });
 
     await featuresRepositoryFixture.create({ slug: "pbac", enabled: true });
-    await featuresRepositoryFixture.setTeamFeatureState({
-      teamId: pbacEnabledTeam.id,
-      featureId: "pbac",
-      state: "enabled",
-    });
+    await featuresRepositoryFixture.setTeamFeatureState(pbacEnabledTeam.id, "pbac", "enabled");
 
     // Create memberships
     await membershipRepositoryFixture.create({

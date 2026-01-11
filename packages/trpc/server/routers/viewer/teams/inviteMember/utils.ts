@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes } from "crypto";
 import type { TFunction } from "i18next";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";

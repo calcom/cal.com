@@ -16,8 +16,6 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Use `date-fns` or native `Date` instead of Day.js when timezone awareness isn't needed
 - Put permission checks in `page.tsx`, never in `layout.tsx`
 - Use `ast-grep` for searching if available; otherwise use `rg` (ripgrep), then fall back to `grep`
-- Use Biome for formatting and linting
-
 
 ## Don't
 
@@ -38,8 +36,11 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 # Type check - always run on changed files
 yarn type-check:ci --force
 
-# Lint and format single file
-yarn biome check --write path/to/file.tsx
+# Lint single file
+yarn eslint --fix path/to/file.tsx
+
+# Format single file  
+yarn prettier --write path/to/file.tsx
 
 # Unit test specific file
 yarn vitest run path/to/file.test.ts
@@ -68,9 +69,9 @@ yarn dev              # Start dev server
 yarn dx               # Dev with database setup
 
 # Build & check
-yarn build                   # Build all packages
-yarn biome check --write .   # Lint and format all
-yarn type-check              # Type check all
+yarn build            # Build all packages
+yarn lint:fix         # Lint and fix all
+yarn type-check       # Type check all
 
 # Tests (use TZ=UTC for consistency)
 TZ=UTC yarn test      # All unit tests
@@ -81,14 +82,6 @@ yarn prisma generate  # Regenerate types after schema changes
 yarn workspace @calcom/prisma db-migrate  # Run migrations
 ```
 
-### Biome focused workflow
-+
-```bash
-yarn biome check --write .
-yarn type-check:ci --force
-```
-
-
 ## Boundaries
 
 ### Always do
@@ -96,7 +89,6 @@ yarn type-check:ci --force
 - Run relevant tests before pushing
 - Use `select` in Prisma queries
 - Follow conventional commits for PR titles
-- Run Biome before pushing
 
 ### Ask first
 - Adding new dependencies

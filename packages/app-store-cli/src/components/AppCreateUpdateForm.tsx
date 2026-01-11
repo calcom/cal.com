@@ -1,4 +1,4 @@
-import fs from "node:fs"
+import fs from "fs";
 import { Box, Newline, Text, useApp } from "ink";
 import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";

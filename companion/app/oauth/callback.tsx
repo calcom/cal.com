@@ -1,8 +1,7 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect } from "react";
-import { ActivityIndicator, Platform, Text, View } from "react-native";
-import { useAuth } from "@/contexts";
-import { safeLogError } from "@/utils/safeLogger";
+import React, { useEffect } from "react";
+import { View, Text, ActivityIndicator, Platform } from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { useAuth } from "../../contexts";
 
 export default function OAuthCallback() {
   const router = useRouter();
@@ -12,7 +11,7 @@ export default function OAuthCallback() {
   useEffect(() => {
     if (Platform.OS === "android") {
       if (auth.userInfo) {
-        router.replace("/");
+        router.replace("/(tabs)");
       }
     }
 
@@ -27,7 +26,7 @@ export default function OAuthCallback() {
     // Handle OAuth error response
     if (error) {
       const errorMessage = errorDescription || error || "OAuth authorization failed";
-      safeLogError("OAuth error occurred", { error, errorDescription });
+      console.error("OAuth error:", error, errorDescription);
 
       if (typeof window !== "undefined") {
         if (window.opener) {
@@ -46,7 +45,7 @@ export default function OAuthCallback() {
             window.localStorage.setItem(`oauth_callback_error_${state}`, errorMessage);
             window.localStorage.setItem(`oauth_callback_error_code_${state}`, error);
           }
-          router.replace("/");
+          router.replace("/(tabs)");
         }
       }
       return;
@@ -72,11 +71,11 @@ export default function OAuthCallback() {
           window.close();
         } else {
           // Redirect to main app
-          router.replace("/");
+          router.replace("/(tabs)");
         }
       }
     } else {
-      safeLogError("No authorization code or state in OAuth callback", { code, state });
+      console.error("No authorization code or state in OAuth callback");
 
       // Handle error case
       if (typeof window !== "undefined") {
@@ -90,11 +89,11 @@ export default function OAuthCallback() {
           );
           window.close();
         } else {
-          router.replace("/");
+          router.replace("/(tabs)");
         }
       }
     }
-  }, [params, router, auth.userInfo]);
+  }, [params, router]);
 
   return (
     <View className="flex-1 items-center justify-center bg-white">

@@ -5,8 +5,8 @@ import {
   CalendarAppDelegationCredentialConfigurationError,
   CalendarAppDelegationCredentialInvalidGrantError,
 } from "@calcom/lib/CalendarAppError";
+import { handleErrorsRaw } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
-import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
@@ -38,7 +38,7 @@ const getO365VideoAppKeys = async () => {
 };
 
 const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenantId): VideoApiAdapter => {
-  const log = logger.getSubLogger({ prefix: ["TeamsVideoApiAdapter"] });
+  console.log("TeamsVideoApiAdapter--credential: ", credential);
   let azureUserId: string | null;
   const tokenResponse = oAuthManagerHelper.getTokenObjectFromCredential(credential);
 
@@ -228,92 +228,59 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       return Promise.resolve([]);
     },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent) => {
-      try {
-        const response = await auth.requestRaw({
+      const resultString = await auth
+        .requestRaw({
           url: `${await getUserEndpoint()}/onlineMeetings`,
           options: {
             method: "POST",
             body: JSON.stringify(translateEvent(event)),
           },
-        });
+        })
+        .then(handleErrorsRaw);
 
-        if (!response.ok) {
-          throw new HttpError({
-            statusCode: response.status,
-            message: response.statusText,
-          });
-        }
+      const resultObject = JSON.parse(resultString);
 
-        const resultString = await response.text();
-        const resultObject = JSON.parse(resultString);
-
-        return Promise.resolve({
-          type: "office365_video",
-          id: resultObject.id,
-          password: "",
-          url: resultObject.joinWebUrl || resultObject.joinUrl,
-        });
-      } catch (error) {
-        log.error(`Error updating MS Teams meeting for booking ${event.uid}`, error);
-        if (error instanceof HttpError) {
-          throw error;
-        }
-        throw new HttpError({
-          statusCode: 500,
-          message: `Error updating MS Teams meeting for booking ${event.uid}`,
-        });
-      }
+      return Promise.resolve({
+        type: "office365_video",
+        id: resultObject.id,
+        password: "",
+        url: resultObject.joinWebUrl || resultObject.joinUrl,
+      });
     },
-    deleteMeeting:() => {
+    deleteMeeting: () => {
       return Promise.resolve([]);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
+      console.log("=======>createMeeting: ");
+
       const url = `${await getUserEndpoint()}/onlineMeetings`;
-      try {
-        const response = await auth.requestRaw({
+      console.log("urllllllllllll: ", url);
+      console.log("translateEvent(event): ", translateEvent(event));
+      const resultString = await auth
+        .requestRaw({
           url,
           options: {
             method: "POST",
             body: JSON.stringify(translateEvent(event)),
           },
-        });
+        })
+        .then(handleErrorsRaw);
 
-        if (!response.ok) {
-          throw new HttpError({
-            statusCode: response.status,
-            message: response.statusText,
-          });
-        }
+      const resultObject = JSON.parse(resultString);
 
-        const resultString = await response.text();
-
-        const resultObject = JSON.parse(resultString);
-
-        if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
-          throw new HttpError({
-            statusCode: 500,
-            message: `Error creating MS Teams meeting: ${resultObject.error?.message || "missing required fields in response"}`,
-          });
-        }
-
-        log.debug("Teams meeting created", { meetingId: resultObject.id });
-
-        return Promise.resolve({
-          type: "office365_video",
-          id: resultObject.id,
-          password: "",
-          url: resultObject.joinWebUrl || resultObject.joinUrl,
-        });
-      } catch (error) {
-        log.error(`Error creating MS Teams meeting for booking ${event.uid}`, error);
-        if (error instanceof HttpError) {
-          throw error;
-        }
+      if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
         throw new HttpError({
           statusCode: 500,
-          message: `Error creating MS Teams meeting for booking ${event.uid}`,
+          message: `Error creating MS Teams meeting: ${resultObject.error.message}`,
         });
       }
+
+      return Promise.resolve({
+        type: "office365_video",
+        id: resultObject.id,
+        password: "",
+        url: resultObject.joinWebUrl || resultObject.joinUrl,
+      });
     },
   };
 };

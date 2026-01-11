@@ -14,7 +14,6 @@ export type Availability = {
 export type WeekdayFormat = "short" | "long";
 
 export type AvailabilityFormValues = {
-  availability: number[][];
   name: string;
   schedule: ScheduleType;
   dateOverrides: { ranges: TimeRange[] }[];

@@ -1,4 +1,4 @@
-import { bootstrap } from "@/bootstrap";
+import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { UserOooOutputDto } from "@/modules/ooo/outputs/ooo.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";

@@ -1,103 +1,74 @@
-import { prisma } from "@calcom/prisma";
-import type { Booking, Credential } from "@calcom/prisma/client";
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
+
+import prisma from "@calcom/prisma";
+import type { Booking, Credential, User } from "@calcom/prisma/client";
 
 import { BookingReferenceRepository } from "./BookingReferenceRepository";
 
-const testRunId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-
-let testUserId: number;
-let testCredential: Credential;
-let testBooking: Booking;
-const createdBookingReferenceIds: number[] = [];
-const createdBookingIds: number[] = [];
-
-async function clearTestBookingReferences() {
-  if (createdBookingReferenceIds.length > 0) {
-    await prisma.bookingReference.deleteMany({
-      where: {
-        id: {
-          in: createdBookingReferenceIds,
-        },
-      },
-    });
-    createdBookingReferenceIds.length = 0;
-  }
-}
-
-async function clearTestBookings() {
-  if (createdBookingIds.length > 0) {
-    await prisma.bookingReference.deleteMany({
-      where: {
-        bookingId: {
-          in: createdBookingIds,
-        },
-      },
-    });
-    await prisma.booking.deleteMany({
-      where: {
-        id: {
-          in: createdBookingIds,
-        },
-      },
-    });
-    createdBookingIds.length = 0;
-  }
-}
-
 describe("BookingReferenceRepository Integration Tests", () => {
+  let testUser: User;
+  let testCredential: Credential;
+  let testBooking: Booking;
+  const createdBookingReferenceIds: number[] = [];
+
   beforeAll(async () => {
-    let testUser = await prisma.user.findFirst({
-      where: { email: "member0-acme@example.com" },
+    testUser = await prisma.user.create({
+      data: {
+        email: "bookingreference-test@example.com",
+        username: "bookingreference-test",
+      },
     });
 
-    if (!testUser) {
-      testUser = await prisma.user.create({
-        data: {
-          email: `bookingreference-test-${testRunId}@example.com`,
-          username: `bookingreference-test-${testRunId}`,
-        },
-      });
-    }
-    testUserId = testUser.id;
-
-    let credential = await prisma.credential.findFirst({
-      where: { userId: testUserId, type: "google_calendar" },
+    testCredential = await prisma.credential.create({
+      data: {
+        type: "google_calendar",
+        key: {},
+        userId: testUser.id,
+      },
     });
 
-    if (!credential) {
-      credential = await prisma.credential.create({
-        data: {
-          type: "google_calendar",
-          key: {},
-          userId: testUserId,
-        },
-      });
-    }
-    testCredential = credential;
-  });
-
-  beforeEach(async () => {
     testBooking = await prisma.booking.create({
       data: {
-        uid: `test-booking-uid-${testRunId}-${Date.now()}`,
+        uid: "test-booking-uid-123",
         title: "Test Booking",
         startTime: new Date(),
         endTime: new Date(),
-        userId: testUserId,
+        userId: testUser.id,
       },
     });
-    createdBookingIds.push(testBooking.id);
   });
 
   afterEach(async () => {
-    await clearTestBookingReferences();
-    await clearTestBookings();
+    if (createdBookingReferenceIds.length > 0) {
+      await prisma.bookingReference.deleteMany({
+        where: {
+          id: {
+            in: createdBookingReferenceIds,
+          },
+        },
+      });
+      createdBookingReferenceIds.splice(0, createdBookingReferenceIds.length);
+    }
   });
 
   afterAll(async () => {
-    await clearTestBookingReferences();
-    await clearTestBookings();
+    await prisma.booking.delete({
+      where: {
+        id: testBooking.id,
+      },
+    });
+
+    await prisma.credential.delete({
+      where: {
+        id: testCredential.id,
+      },
+    });
+
+    await prisma.user.delete({
+      where: {
+        id: testUser.id,
+      },
+    });
   });
 
   describe("replaceBookingReferences", () => {

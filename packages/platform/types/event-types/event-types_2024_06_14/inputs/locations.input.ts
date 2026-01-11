@@ -5,7 +5,7 @@ import { IsString, IsUrl, IsIn, IsPhoneNumber, IsBoolean, MinLength } from "clas
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
-export const eventTypeInputLocations = [
+export const inputLocations = [
   "address",
   "link",
   "integration",
@@ -17,7 +17,7 @@ export const eventTypeInputLocations = [
 ] as const;
 
 export class InputAddressLocation_2024_06_14 {
-  @IsIn(eventTypeInputLocations)
+  @IsIn(inputLocations)
   @DocsProperty({ example: "address", description: "only allowed value for type is `address`" })
   type!: "address";
 
@@ -32,7 +32,7 @@ export class InputAddressLocation_2024_06_14 {
 }
 
 export class InputOrganizersDefaultApp_2024_06_14 {
-  @IsIn(eventTypeInputLocations)
+  @IsIn(inputLocations)
   @DocsProperty({
     example: "organizersDefaultApp",
     description: "only allowed value for type is `organizersDefaultApp`",
@@ -41,7 +41,7 @@ export class InputOrganizersDefaultApp_2024_06_14 {
 }
 
 export class InputLinkLocation_2024_06_14 {
-  @IsIn(eventTypeInputLocations)
+  @IsIn(inputLocations)
   @DocsProperty({ example: "link", description: "only allowed value for type is `link`" })
   type!: "link";
 
@@ -54,7 +54,7 @@ export class InputLinkLocation_2024_06_14 {
   public!: boolean;
 }
 
-export const eventTypeSupportedIntegrations = [
+export const supportedIntegrations = [
   "cal-video",
   "google-meet",
   "zoom",
@@ -85,20 +85,20 @@ export const eventTypeSupportedIntegrations = [
   "demodesk-video",
   "campfire-video",
 ] as const;
-export type Integration_2024_06_14 = (typeof eventTypeSupportedIntegrations)[number];
+export type Integration_2024_06_14 = (typeof supportedIntegrations)[number];
 
 export class InputIntegrationLocation_2024_06_14 {
-  @IsIn(eventTypeInputLocations)
+  @IsIn(inputLocations)
   @DocsProperty({ example: "integration", description: "only allowed value for type is `integration`" })
   type!: "integration";
 
-  @IsIn(eventTypeSupportedIntegrations)
-  @DocsProperty({ example: eventTypeSupportedIntegrations[0], enum: eventTypeSupportedIntegrations })
+  @IsIn(supportedIntegrations)
+  @DocsProperty({ example: supportedIntegrations[0], enum: supportedIntegrations })
   integration!: Integration_2024_06_14;
 }
 
 export class InputPhoneLocation_2024_06_14 {
-  @IsIn(eventTypeInputLocations)
+  @IsIn(inputLocations)
   @DocsProperty({ example: "phone", description: "only allowed value for type is `phone`" })
   type!: "phone";
 
@@ -112,7 +112,7 @@ export class InputPhoneLocation_2024_06_14 {
 }
 
 export class InputAttendeeAddressLocation_2024_06_14 {
-  @IsIn(eventTypeInputLocations)
+  @IsIn(inputLocations)
   @DocsProperty({
     example: "attendeeAddress",
     description: "only allowed value for type is `attendeeAddress`",
@@ -120,13 +120,13 @@ export class InputAttendeeAddressLocation_2024_06_14 {
   type!: "attendeeAddress";
 }
 export class InputAttendeePhoneLocation_2024_06_14 {
-  @IsIn(eventTypeInputLocations)
+  @IsIn(inputLocations)
   @DocsProperty({ example: "attendeePhone", description: "only allowed value for type is `attendeePhone`" })
   type!: "attendeePhone";
 }
 
 export class InputAttendeeDefinedLocation_2024_06_14 {
-  @IsIn(eventTypeInputLocations)
+  @IsIn(inputLocations)
   @DocsProperty({
     example: "attendeeDefined",
     description: "only allowed value for type is `attendeeDefined`",

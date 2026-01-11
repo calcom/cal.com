@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID } from "crypto";
 import { v4 as uuid } from "uuid";
 import { describe, expect, it, vi, beforeAll, afterAll } from "vitest";
 

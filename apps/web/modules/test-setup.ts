@@ -1,11 +1,7 @@
-import matchers from "@testing-library/jest-dom/matchers";
 import React from "react";
-import ResizeObserver from "resize-observer-polyfill";
-import { vi, afterEach, expect } from "vitest";
+import { vi, afterEach } from "vitest";
 
 global.React = React;
-global.ResizeObserver = ResizeObserver;
-expect.extend(matchers);
 
 afterEach(() => {
   vi.resetAllMocks();
@@ -47,7 +43,7 @@ vi.mock("@calcom/ee/organizations/lib/orgDomains", () => ({
   getOrgFullOrigin: vi.fn(),
 }));
 
-vi.mock("@calcom/web/modules/event-types/components", () => ({
+vi.mock("@calcom/features/eventtypes/components", () => ({
   EventTypeDescriptionLazy: vi.fn(),
 }));
 
@@ -60,7 +56,7 @@ vi.mock("@calcom/embed-core/embed-iframe", () => {
   };
 });
 
-vi.mock("@calcom/web/modules/bookings/components/event-meta/Price", () => {
+vi.mock("@calcom/features/bookings/components/event-meta/Price", () => {
   return {};
 });
 
@@ -94,8 +90,10 @@ vi.mock("@calcom/lib/hooks/useCompatSearchParams", () => {
 
 vi.mock("@calcom/lib/hooks/useLocale", () => {
   return {
-    useLocale: () => ({
-      t: (text: string) => text,
+    useLocale: vi.fn().mockReturnValue({
+      t: vi.fn().mockImplementation((text: string) => {
+        return text;
+      }),
       i18n: {
         language: "en",
       },
@@ -170,7 +168,6 @@ vi.mock("@calcom/ui/components/unpublished-entity", () => ({
 
 vi.mock("@calcom/ui/components/avatar", () => ({
   UserAvatar: vi.fn(),
-  Avatar: () => null,
 }));
 
 vi.mock("@calcom/web/components/PageWrapper", () => ({

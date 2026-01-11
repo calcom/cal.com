@@ -128,7 +128,7 @@ export const schemaBookingReadPublic = Booking.extend({
   title: true,
   startTime: true,
   endTime: true,
-  // Note: timeZone is not a field on Booking model - it's in nested attendees/user objects
+  timeZone: true,
   attendees: true,
   user: true,
   eventType: true,

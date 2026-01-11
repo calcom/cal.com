@@ -41,12 +41,7 @@ describe("CalendarCacheWrapper", () => {
 
   describe("getAvailability", () => {
     it("should return empty array when no calendars provided", async () => {
-      const result = await wrapper.getAvailability({
-        dateFrom: "2025-01-01",
-        dateTo: "2025-01-02",
-        selectedCalendars: [],
-        mode: "slots",
-      });
+      const result = await wrapper.getAvailability("2025-01-01", "2025-01-02", []);
 
       expect(result).toEqual([]);
       expect(mockRepository.findAllBySelectedCalendarIdsBetween).not.toHaveBeenCalled();
@@ -78,12 +73,7 @@ describe("CalendarCacheWrapper", () => {
 
       vi.mocked(mockRepository.findAllBySelectedCalendarIdsBetween).mockResolvedValue(cachedEvents);
 
-      const result = await wrapper.getAvailability({
-        dateFrom: "2025-01-01",
-        dateTo: "2025-01-02",
-        selectedCalendars,
-        mode: "slots",
-      });
+      const result = await wrapper.getAvailability("2025-01-01", "2025-01-02", selectedCalendars);
 
       expect(result).toEqual(cachedEvents);
       expect(mockRepository.findAllBySelectedCalendarIdsBetween).toHaveBeenCalledWith(
@@ -118,22 +108,15 @@ describe("CalendarCacheWrapper", () => {
 
       vi.mocked(mockOriginalCalendar.getAvailability).mockResolvedValue(originalEvents);
 
-      const result = await wrapper.getAvailability({
-        dateFrom: "2025-01-01",
-        dateTo: "2025-01-02",
-        selectedCalendars,
-        mode: "slots",
-      });
+      const result = await wrapper.getAvailability("2025-01-01", "2025-01-02", selectedCalendars);
 
       expect(result).toEqual(originalEvents);
       expect(mockRepository.findAllBySelectedCalendarIdsBetween).not.toHaveBeenCalled();
-      expect(mockOriginalCalendar.getAvailability).toHaveBeenCalledWith({
-        dateFrom: "2025-01-01",
-        dateTo: "2025-01-02",
-        selectedCalendars,
-        mode: "slots",
-        fallbackToPrimary: undefined,
-      });
+      expect(mockOriginalCalendar.getAvailability).toHaveBeenCalledWith(
+        "2025-01-01",
+        "2025-01-02",
+        selectedCalendars
+      );
     });
 
     it("should fetch from both cache and original calendar when calendars are mixed", async () => {
@@ -165,12 +148,7 @@ describe("CalendarCacheWrapper", () => {
       vi.mocked(mockRepository.findAllBySelectedCalendarIdsBetween).mockResolvedValue(cachedEvents);
       vi.mocked(mockOriginalCalendar.getAvailability).mockResolvedValue(originalEvents);
 
-      const result = await wrapper.getAvailability({
-        dateFrom: "2025-01-01",
-        dateTo: "2025-01-02",
-        selectedCalendars,
-        mode: "slots",
-      });
+      const result = await wrapper.getAvailability("2025-01-01", "2025-01-02", selectedCalendars);
 
       expect(result).toEqual([...cachedEvents, ...originalEvents]);
       expect(mockRepository.findAllBySelectedCalendarIdsBetween).toHaveBeenCalledWith(
@@ -178,13 +156,9 @@ describe("CalendarCacheWrapper", () => {
         new Date("2025-01-01"),
         new Date("2025-01-02")
       );
-      expect(mockOriginalCalendar.getAvailability).toHaveBeenCalledWith({
-        dateFrom: "2025-01-01",
-        dateTo: "2025-01-02",
-        selectedCalendars: [selectedCalendars[1]],
-        mode: "slots",
-        fallbackToPrimary: undefined,
-      });
+      expect(mockOriginalCalendar.getAvailability).toHaveBeenCalledWith("2025-01-01", "2025-01-02", [
+        selectedCalendars[1],
+      ]);
     });
 
     it("should filter out calendars without id when fetching from cache", async () => {
@@ -205,12 +179,7 @@ describe("CalendarCacheWrapper", () => {
         },
       ];
 
-      await wrapper.getAvailability({
-        dateFrom: "2025-01-01",
-        dateTo: "2025-01-02",
-        selectedCalendars,
-        mode: "slots",
-      });
+      await wrapper.getAvailability("2025-01-01", "2025-01-02", selectedCalendars);
 
       expect(mockRepository.findAllBySelectedCalendarIdsBetween).toHaveBeenCalledWith(
         ["cal-1"], // Only cal-1 has a valid id
@@ -222,12 +191,7 @@ describe("CalendarCacheWrapper", () => {
 
   describe("getAvailabilityWithTimeZones", () => {
     it("should return empty array when no calendars provided", async () => {
-      const result = await wrapper.getAvailabilityWithTimeZones({
-        dateFrom: "2025-01-01",
-        dateTo: "2025-01-02",
-        selectedCalendars: [],
-        mode: "slots",
-      });
+      const result = await wrapper.getAvailabilityWithTimeZones("2025-01-01", "2025-01-02", []);
 
       expect(result).toEqual([]);
       expect(mockRepository.findAllBySelectedCalendarIdsBetween).not.toHaveBeenCalled();
@@ -260,12 +224,7 @@ describe("CalendarCacheWrapper", () => {
 
       vi.mocked(mockRepository.findAllBySelectedCalendarIdsBetween).mockResolvedValue(cachedEvents);
 
-      const result = await wrapper.getAvailabilityWithTimeZones({
-        dateFrom: "2025-01-01",
-        dateTo: "2025-01-02",
-        selectedCalendars,
-        mode: "slots",
-      });
+      const result = await wrapper.getAvailabilityWithTimeZones("2025-01-01", "2025-01-02", selectedCalendars);
 
       expect(result).toEqual([
         {
@@ -303,22 +262,15 @@ describe("CalendarCacheWrapper", () => {
 
       vi.mocked(mockOriginalCalendar.getAvailabilityWithTimeZones).mockResolvedValue(originalEvents);
 
-      const result = await wrapper.getAvailabilityWithTimeZones({
-        dateFrom: "2025-01-01",
-        dateTo: "2025-01-02",
-        selectedCalendars,
-        mode: "slots",
-      });
+      const result = await wrapper.getAvailabilityWithTimeZones("2025-01-01", "2025-01-02", selectedCalendars);
 
       expect(result).toEqual(originalEvents);
       expect(mockRepository.findAllBySelectedCalendarIdsBetween).not.toHaveBeenCalled();
-      expect(mockOriginalCalendar.getAvailabilityWithTimeZones).toHaveBeenCalledWith({
-        dateFrom: "2025-01-01",
-        dateTo: "2025-01-02",
-        selectedCalendars,
-        mode: "slots",
-        fallbackToPrimary: undefined,
-      });
+      expect(mockOriginalCalendar.getAvailabilityWithTimeZones).toHaveBeenCalledWith(
+        "2025-01-01",
+        "2025-01-02",
+        selectedCalendars
+      );
     });
 
     it("should fetch from both cache and original calendar when calendars are mixed", async () => {
@@ -358,12 +310,7 @@ describe("CalendarCacheWrapper", () => {
       vi.mocked(mockRepository.findAllBySelectedCalendarIdsBetween).mockResolvedValue(cachedEvents);
       vi.mocked(mockOriginalCalendar.getAvailabilityWithTimeZones).mockResolvedValue(originalEvents);
 
-      const result = await wrapper.getAvailabilityWithTimeZones({
-        dateFrom: "2025-01-01",
-        dateTo: "2025-01-02",
-        selectedCalendars,
-        mode: "slots",
-      });
+      const result = await wrapper.getAvailabilityWithTimeZones("2025-01-01", "2025-01-02", selectedCalendars);
 
       expect(result).toEqual([
         {
@@ -404,12 +351,7 @@ describe("CalendarCacheWrapper", () => {
       vi.mocked(mockRepository.findAllBySelectedCalendarIdsBetween).mockResolvedValue(cachedEvents);
       mockOriginalCalendar.getAvailabilityWithTimeZones = undefined;
 
-      const result = await wrapper.getAvailabilityWithTimeZones({
-        dateFrom: "2025-01-01",
-        dateTo: "2025-01-02",
-        selectedCalendars,
-        mode: "slots",
-      });
+      const result = await wrapper.getAvailabilityWithTimeZones("2025-01-01", "2025-01-02", selectedCalendars);
 
       expect(result).toEqual([
         {
@@ -433,12 +375,7 @@ describe("CalendarCacheWrapper", () => {
 
       vi.mocked(mockOriginalCalendar.getAvailabilityWithTimeZones).mockResolvedValue([]);
 
-      const result = await wrapper.getAvailabilityWithTimeZones({
-        dateFrom: "2025-01-01",
-        dateTo: "2025-01-02",
-        selectedCalendars,
-        mode: "slots",
-      });
+      const result = await wrapper.getAvailabilityWithTimeZones("2025-01-01", "2025-01-02", selectedCalendars);
 
       expect(result).toEqual([]);
     });

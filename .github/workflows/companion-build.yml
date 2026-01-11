@@ -12,14 +12,12 @@ env:
 jobs:
   build:
     name: Build Companion App & Extension
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: buildjet-4vcpu-ubuntu-2204
     timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          sparse-checkout: .github
-      - uses: ./.github/actions/cache-checkout
+      - uses: ./.github/actions/dangerous-git-checkout
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1

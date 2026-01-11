@@ -151,7 +151,6 @@ export const schemaUserCreateBodyParams = schemaUserBaseBodyParams
   .strict();
 
 // @note: These are the values that are always returned when reading a user
-// Note: We pick avatarUrl from the Prisma schema and extend with avatar for API v1 backward compatibility
 export const schemaUserReadPublic = UserSchema.pick({
   id: true,
   username: true,
@@ -159,7 +158,7 @@ export const schemaUserReadPublic = UserSchema.pick({
   email: true,
   emailVerified: true,
   bio: true,
-  avatarUrl: true,
+  avatar: true,
   timeZone: true,
   weekStart: true,
   endTime: true,
@@ -177,9 +176,6 @@ export const schemaUserReadPublic = UserSchema.pick({
   verified: true,
   invitedTo: true,
   role: true,
-}).extend({
-  // API v1 backward compatibility: expose avatarUrl as avatar
-  avatar: UserSchema.shape.avatarUrl,
 });
 
 export const schemaUsersReadPublic = z.array(schemaUserReadPublic);

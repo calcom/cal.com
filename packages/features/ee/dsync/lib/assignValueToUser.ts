@@ -1,17 +1,15 @@
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { PrismaAttributeOptionRepository } from "@calcom/lib/server/repository/PrismaAttributeOptionRepository";
+import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
+import { findAssignmentsForMember } from "@calcom/lib/service/attribute/server/utils";
 import type {
   AttributeId,
   AttributeName,
   BulkAttributeAssigner,
   AttributeOptionAssignment,
-} from "@calcom/app-store/routing-forms/types/types";
-import { findAssignmentsForMember } from "@calcom/features/attributes/lib/utils";
-import { PrismaAttributeOptionRepository } from "@calcom/features/attributes/repositories/PrismaAttributeOptionRepository";
-import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
-
+} from "@calcom/lib/service/attribute/types";
 import {
   doesSupportMultipleValues,
   isAssignmentForLockedAttribute,
@@ -19,7 +17,8 @@ import {
   isAssignmentSame,
   buildSlugFromValue,
   canSetValueBeyondOptions,
-} from "./assignValueToUserUtils";
+} from "@calcom/lib/service/attribute/utils";
+import prisma from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["entity/attribute"] });
 
@@ -424,8 +423,7 @@ export const assignValueToUserInOrgBulk = async ({
   attributeLabelToValueMap: AttributeLabelToValueMap;
   updater: BulkAttributeAssigner;
 }) => {
-  const membershipRepository = new MembershipRepository();
-  const membership = await membershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
+  const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
   const defaultReturn = { numOfAttributeOptionsSet: 0, numOfAttributeOptionsDeleted: 0 };
   if (!membership) {
     console.error(`User ${userId} not a member of org ${orgId}, not assigning attribute options`);

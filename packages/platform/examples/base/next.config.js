@@ -1,7 +1,5 @@
-/* eslint-disable */
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  turbopack: {},
   reactStrictMode: true,
   transpilePackages: ["@calcom/platform-constants"],
   webpack: (config, { webpack, buildId }) => {

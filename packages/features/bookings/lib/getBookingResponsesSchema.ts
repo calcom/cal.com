@@ -4,10 +4,10 @@ import z from "zod";
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
 import { fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";
 import { dbReadResponseSchema } from "@calcom/lib/dbReadResponseSchema";
-import logger from "@calcom/lib/logger";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
 type TranslationFunction = (key: string, options?: Record<string, unknown>) => string;
@@ -72,7 +72,6 @@ function preprocess<T extends z.ZodType>({
   isPartialSchema: boolean;
   checkOptional?: boolean;
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
-  const log = logger.getSubLogger({ prefix: ["getBookingResponsesSchema"] });
   const preprocessed = z.preprocess(
     (responses) => {
       const parsedResponses = z.record(z.any()).nullable().parse(responses) || {};
@@ -118,9 +117,7 @@ function preprocess<T extends z.ZodType>({
           };
           try {
             parsedValue = JSON.parse(value);
-          } catch (e) {
-            log.error(`Failed to parse JSON for field ${field.name}: ${value}`, e);
-          }
+          } catch (e) {}
           const optionsInputs = field.optionsInputs;
           const optionInputField = optionsInputs?.[parsedValue.value];
           if (optionInputField && optionInputField.type === "phone") {
@@ -208,7 +205,7 @@ function preprocess<T extends z.ZodType>({
             const excludedEmails =
               bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
 
-            const match = excludedEmails.find((email) => bookerEmail.endsWith("@" + email));
+            const match = excludedEmails.find((email) => bookerEmail.includes(email));
             if (match) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -220,7 +217,7 @@ function preprocess<T extends z.ZodType>({
                 ?.split(",")
                 .map((domain) => domain.trim())
                 .filter(Boolean) || [];
-            const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.endsWith("@" + email));
+            const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.includes(email));
             if (requiredEmails.length > 0 && !requiredEmailsMatch) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,

@@ -15,7 +15,7 @@ export interface UserProfile {
     id: number;
     isPlatform: boolean;
   };
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, any>;
   brandColor?: string;
   darkBrandColor?: string;
   theme?: string;

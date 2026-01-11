@@ -39,7 +39,9 @@ test.describe("Locale-specific pages must not 404", () => {
         await user.apiLogin();
         const response = await page.goto(`/${locale}/event-types`);
         expect(response?.status()).not.toBe(404);
-        await expect(page.getByTestId("subtitle").first()).toBeVisible();
+        await expect(
+          page.locator("text=Create events to share for people to book on your calendar.")
+        ).toBeVisible();
       });
 
       test(`/${locale}/availability page shouldn't 404`, async ({ page, users }) => {
@@ -47,7 +49,7 @@ test.describe("Locale-specific pages must not 404", () => {
         await user.apiLogin();
         const response = await page.goto(`/${locale}/availability`);
         expect(response?.status()).not.toBe(404);
-        await expect(page.getByTestId("subtitle").first()).toBeVisible();
+        await expect(page.locator("text=Configure times when you are available for bookings.")).toBeVisible();
       });
 
       test(`/${locale}/bookings/upcoming page shouldn't 404`, async ({ page, users }) => {
@@ -63,7 +65,9 @@ test.describe("Locale-specific pages must not 404", () => {
         await user.apiLogin();
         const response = await page.goto(`/${locale}/teams`);
         expect(response?.status()).not.toBe(404);
-        await expect(page.getByTestId("subtitle").first()).toBeVisible();
+        await expect(
+          page.locator("text=Create and manage teams to use collaborative features.")
+        ).toBeVisible();
       });
 
       test(`/${locale}/routing page shouldn't 404`, async ({ page, users }) => {
@@ -71,7 +75,9 @@ test.describe("Locale-specific pages must not 404", () => {
         await user.apiLogin();
         const response = await page.goto(`/${locale}/routing`);
         expect(response?.status()).not.toBe(404);
-        await expect(page.getByTestId("subtitle").first()).toBeVisible();
+        await expect(
+          page.locator("text=Create forms to direct attendees to the correct destinations")
+        ).toBeVisible();
       });
 
       test(`/${locale}/insights page shouldn't 404`, async ({ page, users }) => {
@@ -79,7 +85,7 @@ test.describe("Locale-specific pages must not 404", () => {
         await user.apiLogin();
         const response = await page.goto(`/${locale}/insights`);
         expect(response?.status()).not.toBe(404);
-        await expect(page.getByTestId("subtitle").first()).toBeVisible();
+        await expect(page.locator("text=View booking insights across your events")).toBeVisible();
       });
     });
   }

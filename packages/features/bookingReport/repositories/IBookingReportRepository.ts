@@ -1,4 +1,4 @@
-import type { BookingReportReason, BookingReportStatus, SystemReportStatus } from "@calcom/prisma/enums";
+import type { BookingReportReason, BookingReportStatus } from "@calcom/prisma/enums";
 
 export interface CreateBookingReportInput {
   bookingUid: string;
@@ -25,10 +25,6 @@ export interface ListBookingReportsFilters {
   status?: BookingReportStatus[];
 }
 
-export interface SystemBookingReportsFilters {
-  systemStatus?: SystemReportStatus[];
-}
-
 export interface BookingReportWithDetails {
   id: string;
   bookingUid: string;
@@ -39,10 +35,7 @@ export interface BookingReportWithDetails {
   cancelled: boolean;
   createdAt: Date;
   status: BookingReportStatus;
-  systemStatus: SystemReportStatus;
   watchlistId: string | null;
-  globalWatchlistId: string | null;
-  organizationId: number | null;
   reporter: {
     id: number;
     email: string;
@@ -56,13 +49,6 @@ export interface BookingReportWithDetails {
     endTime: Date;
   };
   watchlist: {
-    id: string;
-    type: string;
-    value: string;
-    action: string;
-    description: string | null;
-  } | null;
-  globalWatchlist: {
     id: string;
     type: string;
     value: string;
@@ -114,24 +100,5 @@ export interface IBookingReportRepository {
     status: BookingReportStatus;
   }): Promise<void>;
 
-  bulkLinkGlobalWatchlistWithSystemStatus(params: {
-    links: Array<{ reportId: string; globalWatchlistId: string }>;
-    systemStatus: SystemReportStatus;
-  }): Promise<void>;
-
   countPendingReports(params: { organizationId: number }): Promise<number>;
-
-  updateSystemReportStatus(params: {
-    reportId: string;
-    systemStatus: SystemReportStatus;
-    globalWatchlistId?: string | null;
-  }): Promise<void>;
-
-  bulkUpdateSystemReportStatus(params: {
-    reportIds: string[];
-    systemStatus: SystemReportStatus;
-    globalWatchlistId?: string | null;
-  }): Promise<{ updated: number }>;
-
-  countSystemPendingReports(): Promise<number>;
 }

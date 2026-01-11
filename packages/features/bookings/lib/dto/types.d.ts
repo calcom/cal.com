@@ -39,7 +39,6 @@ export type CreateBookingMeta = {
   forcedSlug?: string;
   noEmail?: boolean;
   traceContext?: TraceContext;
-  impersonatedByUserUuid?: string;
 } & PlatformParams;
 
 export type BookingHandlerInput = {
@@ -61,4 +60,8 @@ export type InstantBookingCreateResult = {
 // More properties to be added to this config in followup PRs
 export type BookingFlowConfig = {
   isDryRun: boolean;
+  useCacheIfEnabled?: boolean;
+  noEmail?: boolean;
+  hostname?: string | null;
+  forcedSlug?: string | null;
 };

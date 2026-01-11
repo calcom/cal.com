@@ -1,19 +1,21 @@
 import { useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { CalComAPIService } from "@/services/calcom";
+import { useAuth } from "../contexts/AuthContext";
+import { setAuthToken, setWebSession } from "../services/calcom";
 
 export function AuthTokenProvider({ children }: { children: React.ReactNode }) {
-  const { accessToken, isAuthenticated, isWebSession: _isWebSession } = useAuth();
+  const { accessToken, isAuthenticated, isWebSession } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
       if (accessToken) {
-        CalComAPIService.setAccessToken(accessToken);
+        setAuthToken(accessToken);
       }
+      setWebSession(isWebSession);
     } else {
-      CalComAPIService.clearAuth();
+      setAuthToken(null);
+      setWebSession(false);
     }
-  }, [isAuthenticated, accessToken]);
+  }, [isAuthenticated, accessToken, isWebSession]);
 
   return <>{children}</>;
 }

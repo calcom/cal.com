@@ -7,7 +7,6 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
 
 import type { TGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
-import dayjs from "@calcom/dayjs";
 
 type GetMemberAvailabilityOptions = {
   ctx: {
@@ -33,19 +32,12 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
     user: member.user,
   });
 
-  const dayjsDateFrom = dayjs(input.dateFrom);
-  const dayjsDateTo = dayjs(input.dateTo);
-
-  if (!dayjsDateFrom.isValid() || !dayjsDateTo.isValid()) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid date range" });
-  }
-
   // get availability for this member
   return await userAvailabilityService.getUserAvailability(
     {
       username: username,
-      dateFrom: dayjsDateFrom,
-      dateTo: dayjsDateTo,
+      dateFrom: input.dateFrom,
+      dateTo: input.dateTo,
       returnDateOverrides: true,
       bypassBusyCalendarTimes: false,
     },

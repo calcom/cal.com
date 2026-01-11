@@ -24,7 +24,6 @@ import type {
   CalendarEvent,
   CalendarEventType,
   EventBusyDate,
-  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
   TeamMember,
@@ -353,14 +352,17 @@ export default abstract class BaseCalendarService implements Calendar {
     const allowedExtensions = ["eml", "ics"];
     const urlExtension = getFileExtension(url);
     if (!allowedExtensions.includes(urlExtension)) {
-      logger.error(`Unsupported calendar object format: ${urlExtension}`);
+      console.error(`Unsupported calendar object format: ${urlExtension}`);
       return false;
     }
     return true;
   };
 
-  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
-    const { dateFrom, dateTo, selectedCalendars } = params;
+  async getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyDate[]> {
     const startISOString = new Date(dateFrom).toISOString();
 
     const objects = await this.fetchObjectsWithOptionalExpand({
@@ -381,7 +383,7 @@ export default abstract class BaseCalendarService implements Calendar {
         const jcalData = ICAL.parse(sanitizeCalendarObject(object));
         vcalendar = new ICAL.Component(jcalData);
       } catch (e) {
-        logger.error("Error parsing calendar object: ", e);
+        console.error("Error parsing calendar object: ", e);
         return;
       }
       const vevents = vcalendar.getAllSubcomponents("vevent");
@@ -422,10 +424,10 @@ export default abstract class BaseCalendarService implements Calendar {
               vcalendar.addSubcomponent(timezoneComp);
             } catch (e) {
               // Adds try-catch to ensure the code proceeds when Apple Calendar provides non-standard TZIDs
-              logger.warn("error in adding vtimezone", e);
+              console.log("error in adding vtimezone", e);
             }
           } else {
-            logger.warn("No timezone found");
+            console.error("No timezone found");
           }
         }
 
@@ -445,7 +447,7 @@ export default abstract class BaseCalendarService implements Calendar {
         if (event.isRecurring()) {
           let maxIterations = 365;
           if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
-            logger.warn(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
+            console.error(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
             return;
           }
 
@@ -498,7 +500,7 @@ export default abstract class BaseCalendarService implements Calendar {
             }
           }
           if (maxIterations <= 0) {
-            logger.warn("Could not find any occurrence for recurring event in 365 iterations");
+            console.warn("could not find any occurrence for recurring event in 365 iterations");
           }
           return;
         }
@@ -698,7 +700,7 @@ export default abstract class BaseCalendarService implements Calendar {
         });
       return events;
     } catch (reason) {
-      logger.error(reason);
+      console.error(reason);
       throw reason;
     }
   }

@@ -13,7 +13,6 @@ import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
-import type { CalendarFetchMode } from "@calcom/types/Calendar";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { BookingType } from "./originalRescheduledBookingUtils";
@@ -60,7 +59,7 @@ const _ensureAvailableUsers = async (
   },
   input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
   loggerWithEventDetails: Logger<unknown>,
-  mode?: CalendarFetchMode
+  shouldServeCache?: boolean
   // ReturnType hint of at least one IsFixedAwareUser, as it's made sure at least one entry exists
 ): Promise<[IsFixedAwareUser, ...IsFixedAwareUser[]]> => {
   const userAvailabilityService = getUserAvailabilityService();
@@ -103,7 +102,7 @@ const _ensureAvailableUsers = async (
       beforeEventBuffer: eventType.beforeEventBuffer,
       afterEventBuffer: eventType.afterEventBuffer,
       bypassBusyCalendarTimes: false,
-      mode,
+      shouldServeCache,
       withSource: true,
     },
     initialData: {

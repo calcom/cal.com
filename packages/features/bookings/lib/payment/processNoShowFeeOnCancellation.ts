@@ -28,8 +28,7 @@ export const processNoShowFeeOnCancellation = async ({
 
   // Skip no-show fee if the booking was cancelled by a team/org admin
   if (cancelledByUserId && booking.eventType?.teamId) {
-    const membershipRepository = new MembershipRepository();
-    const membership = await membershipRepository.findUniqueByUserIdAndTeamId({
+    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
       userId: cancelledByUserId,
       teamId: booking.eventType.teamId,
     });

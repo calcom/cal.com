@@ -386,7 +386,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
           appId: subscriber.appId,
           subscriberUrl: subscriber.subscriberUrl,
           payloadTemplate: subscriber.payloadTemplate,
-          version: subscriber.version,
         },
         payload
       );

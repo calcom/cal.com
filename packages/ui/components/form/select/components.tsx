@@ -35,11 +35,6 @@ type ExtendedOption = {
   isCalAi?: boolean;
   creditsTeamId?: number;
   isOrganization?: boolean;
-  upgradeTeamsBadgeProps?: {
-    hasPaidPlan?: boolean;
-    hasActiveTeamPlan?: boolean;
-    isTrial?: boolean;
-  };
 };
 
 export const OptionComponent = <
@@ -64,10 +59,7 @@ export const OptionComponent = <
           {props.label || <>&nbsp;</>}
         </span>
         {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? (
-          <UpgradeTeamsBadge
-            checkForActiveStatus={true}
-            {...(props.data as unknown as ExtendedOption).upgradeTeamsBadgeProps}
-          />
+          <UpgradeTeamsBadge checkForActiveStatus={true} />
         ) : (props.data as unknown as ExtendedOption).needsCredits ? (
           <CreditsBadge
             teamId={(props.data as unknown as ExtendedOption).creditsTeamId}

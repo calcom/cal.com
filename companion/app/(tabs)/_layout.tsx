@@ -10,12 +10,7 @@ export default function TabLayout() {
 
   return (
     <NativeTabs
-      tintColor="#000000" // Base tint color (black for selected)
-      labelStyle={{
-        default: { color: "#8E8E93", fontSize: 8.5 }, // Gray text when unselected
-        selected: { color: "#000000", fontSize: 10 }, // Black text when selected
-      }}
-      disableTransparentOnScrollEdge={true}
+      disableTransparentOnScrollEdge={true} // Used to prevent transparent background on iOS 18 and older
     >
       <NativeTabs.Trigger name="(event-types)">
         <NativeTabs.Trigger.Icon
@@ -25,7 +20,7 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Label>Event Types</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="(bookings)">
+      <NativeTabs.Trigger name="bookings">
         <NativeTabs.Trigger.Icon
           sf="calendar"
           src={<VectorIcon family={MaterialCommunityIcons} name="calendar" />}
@@ -33,17 +28,17 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Label>Bookings</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="(availability)">
+      <NativeTabs.Trigger name="availability">
         <NativeTabs.Trigger.Icon
-          sf={{ default: "clock", selected: "clock.fill" }}
+          sf="clock"
           src={<VectorIcon family={MaterialCommunityIcons} name="clock" />}
         />
         <NativeTabs.Trigger.Label>Availability</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="(more)">
+      <NativeTabs.Trigger name="more">
         <NativeTabs.Trigger.Icon
-          sf={{ default: "ellipsis", selected: "ellipsis" }}
+          sf="ellipsis"
           src={<VectorIcon family={MaterialCommunityIcons} name="dots-horizontal" />}
         />
         <NativeTabs.Trigger.Label>More</NativeTabs.Trigger.Label>
@@ -71,12 +66,6 @@ function WebTabs() {
       }}
     >
       <Tabs.Screen
-        name="index"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
         name="(event-types)"
         options={{
           title: "Event Types",
@@ -87,7 +76,7 @@ function WebTabs() {
       />
 
       <Tabs.Screen
-        name="(bookings)"
+        name="bookings"
         options={{
           title: "Bookings",
           tabBarIcon: ({ color, focused }) => (
@@ -97,7 +86,7 @@ function WebTabs() {
       />
 
       <Tabs.Screen
-        name="(availability)"
+        name="availability"
         options={{
           title: "Availability",
           tabBarIcon: ({ color, focused }) => (
@@ -107,7 +96,7 @@ function WebTabs() {
       />
 
       <Tabs.Screen
-        name="(more)"
+        name="more"
         options={{
           title: "More",
           tabBarIcon: ({ color, focused }) => (

@@ -46,6 +46,7 @@ import webex_config_json from "./webex/config.json";
 import whatsapp_config_json from "./whatsapp/config.json";
 import whereby_config_json from "./whereby/config.json";
 import { metadata as zoomvideo__metadata_ts } from "./zoomvideo/_metadata";
+
 export const appStoreMetadata = {
   campfire: campfire_config_json,
   dailyvideo: dailyvideo__metadata_ts,

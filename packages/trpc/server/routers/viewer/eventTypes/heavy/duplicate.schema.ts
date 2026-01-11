@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { EventTypeDuplicateInput } from "@calcom/features/eventtypes/lib/schemas";
+import { EventTypeDuplicateInput } from "@calcom/features/eventtypes/lib/types";
 
 export const ZDuplicateInputSchema = EventTypeDuplicateInput;
 

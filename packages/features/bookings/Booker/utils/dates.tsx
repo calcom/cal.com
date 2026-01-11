@@ -26,15 +26,11 @@ export const formatEventFromTime = ({ date, timeFormat, timeZone, language }: Ev
     timeZone,
     timeStyle: "short",
     hour12: timeFormat === TimeFormat.TWELVE_HOUR ? true : false,
-  }).format(startDate);
+  })
+    .format(startDate)
+    .toLowerCase();
 
-  return {
-    date: formattedDate,
-    time:
-      timeFormat === TimeFormat.TWELVE_HOUR
-        ? formattedTime.toLowerCase()
-        : formattedTime,
-  };
+  return { date: formattedDate, time: formattedTime };
 };
 
 export const formatEventFromToTime = ({
@@ -58,15 +54,11 @@ export const formatEventFromToTime = ({
     timeZone,
     timeStyle: "short",
     hour12: timeFormat === TimeFormat.TWELVE_HOUR ? true : false,
-  }).formatRange(startDate, endDate);
+  })
+    .formatRange(startDate, endDate)
+    .toLowerCase();
 
-  return {
-    date: formattedDate,
-    time:
-      timeFormat === TimeFormat.TWELVE_HOUR
-        ? formattedTime.toLowerCase()
-        : formattedTime,
-  };
+  return { date: formattedDate, time: formattedTime };
 };
 
 export const FromToTime = (props: EventFromToTime) => {

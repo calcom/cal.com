@@ -1,4 +1,4 @@
-import { Prisma } from "./client";
+import { Prisma } from "@calcom/prisma/client";
 
 export async function isPrismaAvailableCheck(): Promise<boolean> {
   try {

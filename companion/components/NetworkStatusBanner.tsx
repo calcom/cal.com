@@ -7,26 +7,24 @@
  * - Shows again on next disconnect
  */
 
+import React, { useEffect, useState, useRef } from "react";
+import { View, Text, TouchableOpacity, Modal, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import NetInfo, { type NetInfoState } from "@react-native-community/netinfo";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, Modal, Text, TouchableOpacity, View } from "react-native";
+import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
 
 export function NetworkStatusBanner() {
-  // eslint-disable-next-line react-compiler/react-compiler -- Animated.Value ref access in JSX is incompatible with React Compiler
-  "use no memo";
   const [showModal, setShowModal] = useState(false);
-  const fadeAnimRef = useRef(new Animated.Value(0));
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Simple refs to track state
   const previousOfflineRef = useRef<boolean | null>(null);
   const userDismissedRef = useRef(false);
 
-  const checkIfOffline = useCallback((state: NetInfoState): boolean => {
+  const checkIfOffline = (state: NetInfoState): boolean => {
     if (state.isConnected === false) return true;
     if (state.isInternetReachable === false) return true;
     return false;
-  }, []);
+  };
 
   useEffect(() => {
     const handleNetworkChange = (state: NetInfoState) => {
@@ -59,22 +57,22 @@ export function NetworkStatusBanner() {
     // Listen for changes
     const unsubscribe = NetInfo.addEventListener(handleNetworkChange);
     return () => unsubscribe();
-  }, [checkIfOffline]);
+  }, []);
 
   useEffect(() => {
     if (showModal) {
-      fadeAnimRef.current.setValue(0);
-      Animated.timing(fadeAnimRef.current, {
+      fadeAnim.setValue(0);
+      Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 250,
         useNativeDriver: true,
       }).start();
     }
-  }, [showModal]);
+  }, [showModal, fadeAnim]);
 
   const handleDismiss = () => {
     userDismissedRef.current = true;
-    Animated.timing(fadeAnimRef.current, {
+    Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 150,
       useNativeDriver: true,
@@ -88,7 +86,7 @@ export function NetworkStatusBanner() {
   return (
     <Modal transparent visible={showModal} animationType="none" onRequestClose={handleDismiss}>
       <Animated.View
-        style={{ opacity: fadeAnimRef.current }}
+        style={{ opacity: fadeAnim }}
         className="flex-1 items-center justify-center bg-black/40 px-8"
       >
         <View className="w-full max-w-xs items-center rounded-2xl bg-white px-6 py-8">

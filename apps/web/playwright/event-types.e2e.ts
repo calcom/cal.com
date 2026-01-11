@@ -1,7 +1,8 @@
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { randomString } from "@calcom/lib/random";
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { randomString } from "@calcom/lib/random";
 
 import { test } from "./lib/fixtures";
 import {
@@ -181,9 +182,6 @@ test.describe("Event Types tests", () => {
        * Verify first organizer address
        */
       await page.goto(previewLink ?? "");
-      await page.waitForURL((url) => {
-        return url.searchParams.get("overlayCalendar") === "true";
-      });
       await selectFirstAvailableTimeSlotNextMonth(page);
       await page.locator(`span:has-text("${locationData[0]}")`).click();
       await bookTimeSlot(page);
@@ -549,7 +547,7 @@ test.describe("Event Types tests", () => {
         await expect(page.locator(`text="Ihr Name"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="E-Mail Adresse"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="Zusätzliche Notizen"`).nth(0)).toBeVisible();
-        await expect(page.locator(`text="Weitere Gäste"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="+ Weitere Gäste"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="Zurück"`).nth(0)).toBeVisible();
         await expect(page.locator(`text="Bestätigen"`).nth(0)).toBeVisible();
       });

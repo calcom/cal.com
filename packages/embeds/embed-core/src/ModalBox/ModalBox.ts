@@ -1,16 +1,10 @@
 import { EmbedElement } from "../EmbedElement";
 import { getErrorString } from "../lib/utils";
-import loaderCss from "../loader.css?inline";
+import loaderCss from "../loader.css";
 import modalBoxHtml, { getSkeletonData } from "./ModalBoxHtml";
 
 export class ModalBox extends EmbedElement {
   static htmlOverflow: string;
-
-  private escHandler = (e: KeyboardEvent) => {
-    if (e.key === "Escape") {
-      this.close();
-    }
-  };
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
@@ -226,7 +220,17 @@ export class ModalBox extends EmbedElement {
     super.connectedCallback();
     this.assertHasShadowRoot();
     const closeEl = this.shadowRoot.querySelector<HTMLElement>(".close");
-    document.addEventListener("keydown", this.escHandler);
+    document.addEventListener(
+      "keydown",
+      (e) => {
+        if (e.key === "Escape") {
+          this.close();
+        }
+      },
+      {
+        once: true,
+      }
+    );
 
     // The backdrop is inside the host element, and a click on host element is only possible if the user clicks outside the iframe.
     // So, it is backdrop click handler
@@ -239,11 +243,6 @@ export class ModalBox extends EmbedElement {
         this.explicitClose();
       };
     }
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    document.removeEventListener("keydown", this.escHandler);
   }
 
   constructor() {

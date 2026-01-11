@@ -677,24 +677,13 @@ export default class EventManager {
     const shouldUpdateBookingReferences =
       !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule || isDailyVideoRoomExpired;
 
-    if (evt.requiresConfirmation) {
-      if (!skipDeleteEventsAndMeetings) {
-        log.debug(
-          "RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking"
-        );
-        // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
-        await this.deleteEventsAndMeetings({
-          event: {
-            ...event,
-            destinationCalendar: previousHostDestinationCalendar,
-          },
-          bookingReferences: booking.references,
-        });
-      } else {
-        log.debug(
-          "RescheduleRequiresConfirmation: Skipping deletion of Event and Meeting due to skipDeleteEventsAndMeetings flag"
-        );
-      }
+    if (evt.requiresConfirmation && !skipDeleteEventsAndMeetings) {
+      log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
+      // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
+      await this.deleteEventsAndMeetings({
+        event: { ...event, destinationCalendar: previousHostDestinationCalendar },
+        bookingReferences: booking.references,
+      });
     } else {
       if (changedOrganizer) {
         if (!skipDeleteEventsAndMeetings) {
@@ -1171,7 +1160,7 @@ export default class EventManager {
           const calendarCredential = await CredentialRepository.findCredentialForCalendarServiceById({
             id: oldCalendarEvent.credentialId,
           });
-          const calendar = await getCalendar(calendarCredential, "booking");
+          const calendar = await getCalendar(calendarCredential);
           await calendar?.deleteEvent(oldCalendarEvent.uid, event, oldCalendarEvent.externalCalendarId);
         }
       }
@@ -1185,7 +1174,7 @@ export default class EventManager {
 
             if (!calendarReference) {
               return {
-                appName: cred.appName || cred.appId || "",
+                appName: cred.appId || "",
                 type: cred.type,
                 success: false,
                 uid: "",
@@ -1278,7 +1267,7 @@ export default class EventManager {
       if (createdEvent) {
         createdEvents.push({
           type: credential.type,
-          appName: credential.appName || credential.appId || "",
+          appName: credential.appId || "",
           uid,
           success,
           createdEvent: {
@@ -1311,7 +1300,7 @@ export default class EventManager {
 
         updatedEvents.push({
           type: credential.type,
-          appName: credential.appName || credential.appId || "",
+          appName: credential.appId || "",
           success,
           uid: updatedEvent?.id || "",
           originalEvent: event,

@@ -242,6 +242,7 @@
       "Courier New", monospace;
     --radius: var(--radius);
     --font-heading: var(--font-heading);
+    --font-cal: var(--font-cal);
     --shadow-dropdown: var(--shadow-dropdown);
     --shadow-switch-thumb: var(--shadow-switch-thumb);
     --shadow-solid-gray-rested: var(--shadow-solid-gray-rested);
@@ -4948,14 +4949,14 @@
   .align-top {
     vertical-align: top;
   }
-  .\!font-heading {
-    font-family: var(--font-heading) !important;
+  .\!font-cal {
+    font-family: var(--font-cal) !important;
   }
   .font-\(family-name\:--font-sans\) {
     font-family: var(--font-sans);
   }
-  .font-heading {
-    font-family: var(--font-heading);
+  .font-cal {
+    font-family: var(--font-cal);
   }
   .font-mono {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New,
@@ -9269,8 +9270,8 @@
   .prose-headings\:text-emphasis :where(h1, h2, h3, h4, h5, h6, th):not(:where([class~="not-prose"] *)) {
     color: var(--cal-text-emphasis);
   }
-  .prose-h3\:font-heading :where(h3):not(:where([class~="not-prose"] *)) {
-    font-family: var(--font-heading);
+  .prose-h3\:font-cal :where(h3):not(:where([class~="not-prose"] *)) {
+    font-family: var(--font-cal);
   }
   .prose-h3\:text-white :where(h3):not(:where([class~="not-prose"] *)) {
     color: var(--color-white);

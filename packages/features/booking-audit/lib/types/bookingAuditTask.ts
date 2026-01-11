@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { PiiFreeActorSchema, BookingAuditContextSchema } from "../dto/types";
+import { PiiFreeActorSchema } from "../../../bookings/lib/types/actor";
 import { ActionSourceSchema } from "./actionSource";
 
 /**
@@ -42,7 +42,6 @@ export const SingleBookingAuditTaskConsumerSchema = z.object({
     action: BookingAuditActionSchema,
     source: ActionSourceSchema.default("UNKNOWN"),
     operationId: z.string(),
-    context: BookingAuditContextSchema.optional(),
 });
 
 export type SingleBookingAuditTaskConsumerPayload = z.infer<typeof SingleBookingAuditTaskConsumerSchema>;
@@ -63,7 +62,6 @@ export const BulkBookingAuditTaskConsumerSchema = z.object({
     action: BookingAuditActionSchema,
     source: ActionSourceSchema.default("UNKNOWN"),
     operationId: z.string(),
-    context: BookingAuditContextSchema.optional(),
 });
 
 export type BulkBookingAuditTaskConsumerPayload = z.infer<typeof BulkBookingAuditTaskConsumerSchema>;

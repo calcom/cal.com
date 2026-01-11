@@ -54,7 +54,7 @@ export function parseGoogleChip(chipElement: HTMLElement): ParsedGoogleChip | nu
         tzMatch = paramsAttr.match(/\\"([^\\]+)\\"\]/);
       }
 
-      if (tzMatch?.[1]) {
+      if (tzMatch && tzMatch[1]) {
         timezone = tzMatch[1]; // e.g., "Asia/Kolkata"
       }
     }
@@ -149,12 +149,7 @@ export function parseGoogleChip(chipElement: HTMLElement): ParsedGoogleChip | nu
       detectedDuration,
     };
   } catch (error) {
-    console.error("Error parsing Google chip");
-    if (__DEV__) {
-      const message = error instanceof Error ? error.message : String(error);
-      const stack = error instanceof Error ? error.stack : undefined;
-      console.debug("[gmailGoogleChipParser] parse failed", { message, stack });
-    }
+    console.error("Error parsing Google chip:", error);
     return null;
   }
 }

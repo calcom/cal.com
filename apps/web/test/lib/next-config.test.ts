@@ -12,7 +12,10 @@ beforeAll(async () => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   process.env.NEXT_PUBLIC_WEBAPP_URL = "http://example.com";
-  const { orgUserRoutePath, orgUserTypeRoutePath } = await import("../../pagesAndRewritePaths");
+  const {
+    orgUserRoutePath,
+    orgUserTypeRoutePath,
+  } = require("../../pagesAndRewritePaths");
 
   orgUserTypeRouteMatch = match(orgUserTypeRoutePath);
 

@@ -274,12 +274,11 @@ export class OrganizationPaymentService {
       })
     );
 
-    const subscriptionData = {
-      ...(ORG_TRIAL_DAYS && { trial_period_days: ORG_TRIAL_DAYS }),
-      metadata: {
-        source: "onboarding",
-      },
-    };
+    const subscriptionData = ORG_TRIAL_DAYS
+      ? {
+          trial_period_days: ORG_TRIAL_DAYS,
+        }
+      : undefined;
 
     return this.billingService.createSubscriptionCheckout({
       customerId: stripeCustomerId,
@@ -293,7 +292,7 @@ export class OrganizationPaymentService {
         pricePerSeat: config.pricePerSeat,
         billingPeriod: config.billingPeriod,
       },
-      subscriptionData,
+      ...(subscriptionData && { subscriptionData }),
     });
   }
 

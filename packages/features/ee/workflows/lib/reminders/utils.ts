@@ -115,48 +115,6 @@ export const getAttendeeToBeUsedInSMS = (
   return attendeeToBeUsedInSMS;
 };
 
-/**
- * Escapes HTML special characters to prevent XSS when inserting text into HTML.
- */
-const escapeHtml = (str: string): string =>
-  str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-
-/**
- * Replaces cloaked links in HTML content with visible URLs.
- * This ensures recipients can see the actual destination of links,
- * helping them identify potentially malicious URLs.
- *
- * Transforms: <a href="https://example.com">Click here</a>
- * Into: <a href="https://example.com">https://example.com</a>
- *
- * Also handles nested HTML tags like: <a href="https://example.com"><b>Click here</b></a>
- */
-export const replaceCloakedLinksInHtml = (html: string): string => {
-  // Match anchor tags with href attribute
-  // Captures: attributes with href, href value, inner content (including nested HTML)
-  const anchorRegex = /<a\s+([^>]*href=["']([^"']+)["'][^>]*)>([\s\S]*?)<\/a>/gi;
-
-  return html.replace(anchorRegex, (match, attributes, href, innerContent) => {
-    // Strip HTML tags from inner content to get plain text for comparison
-    const linkText = innerContent.replace(/<[^>]*>/g, "");
-
-    // If the link text is already the URL (or very similar), keep it as is
-    const normalizedHref = href.toLowerCase().replace(/\/$/, "");
-    const normalizedText = linkText.toLowerCase().trim().replace(/\/$/, "");
-
-    if (normalizedText === normalizedHref || normalizedText === normalizedHref.replace(/^https?:\/\//, "")) {
-      return match;
-    }
-
-    // Replace the link text with the actual URL, escaping HTML to prevent XSS
-    return `<a ${attributes}>${escapeHtml(href)}</a>`;
-  });
-};
-
 export const shouldUseTwilio = (trigger: WorkflowTriggerEvents, scheduledDate: dayjs.Dayjs | null) => {
   if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(trigger)) {
     return true;

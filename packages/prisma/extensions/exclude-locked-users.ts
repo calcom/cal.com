@@ -1,4 +1,4 @@
-import { Prisma } from "../client";
+import { Prisma } from "@calcom/prisma/client";
 
 export function excludeLockedUsersExtension() {
   return Prisma.defineExtension({
@@ -24,7 +24,7 @@ export function excludeLockedUsersExtension() {
   });
 }
 
-function safeJSONStringify(x: unknown) {
+function safeJSONStringify(x: any) {
   try {
     return JSON.stringify(x);
   } catch {

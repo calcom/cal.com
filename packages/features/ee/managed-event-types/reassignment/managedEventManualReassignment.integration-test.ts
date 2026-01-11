@@ -131,31 +131,22 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
-  // Clean up ALL bookings associated with test event types (including those created by reassignment)
-  // This is more robust than tracking bookingIds since it catches indirectly created bookings
-  if (eventTypeIds.length > 0) {
-    const allBookings = await prisma.booking.findMany({
-      where: { eventTypeId: { in: eventTypeIds } },
-      select: { id: true },
+  // Clean up bookings
+  if (bookingIds.length > 0) {
+    await prisma.bookingReference.deleteMany({
+      where: { bookingId: { in: bookingIds } },
     });
-    const allBookingIds = allBookings.map((b) => b.id);
-
-    if (allBookingIds.length > 0) {
-      await prisma.bookingReference.deleteMany({
-        where: { bookingId: { in: allBookingIds } },
-      });
-      await prisma.attendee.deleteMany({
-        where: { bookingId: { in: allBookingIds } },
-      });
-      await prisma.assignmentReason.deleteMany({
-        where: { bookingId: { in: allBookingIds } },
-      });
-      await prisma.booking.deleteMany({
-        where: { id: { in: allBookingIds } },
-      });
-    }
+    await prisma.attendee.deleteMany({
+      where: { bookingId: { in: bookingIds } },
+    });
+    await prisma.assignmentReason.deleteMany({
+      where: { bookingId: { in: bookingIds } },
+    });
+    await prisma.booking.deleteMany({
+      where: { id: { in: bookingIds } },
+    });
+    bookingIds.splice(0, bookingIds.length);
   }
-  bookingIds.splice(0, bookingIds.length);
 
   // Clean up event types
   if (eventTypeIds.length > 0) {
@@ -264,6 +255,12 @@ describe("managedEventManualReassignment - Integration Tests", () => {
   it("should record assignment reason for manual reassignment", async () => {
     const managedEventManualReassignment = (await import("./managedEventManualReassignment")).default;
 
+    await prisma.booking.deleteMany({
+      where: {
+        idempotencyKey: { startsWith: "test-idempotency-" },
+      },
+    });
+
     const originalUser = await createTestUser({
       email: "original2@test.com",
       name: "Original User 2",
@@ -332,6 +329,12 @@ describe("managedEventManualReassignment - Integration Tests", () => {
 
   it("should preserve booking details (attendees, time) during reassignment", async () => {
     const managedEventManualReassignment = (await import("./managedEventManualReassignment")).default;
+
+    await prisma.booking.deleteMany({
+      where: {
+        idempotencyKey: { startsWith: "test-idempotency-" },
+      },
+    });
 
     const originalUser = await createTestUser({
       email: "original3@test.com",

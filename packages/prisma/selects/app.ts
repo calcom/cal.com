@@ -1,4 +1,4 @@
-import type { Prisma } from "../client";
+import type { Prisma } from "@calcom/prisma/client";
 
 export const safeAppSelect = {
   slug: true,
