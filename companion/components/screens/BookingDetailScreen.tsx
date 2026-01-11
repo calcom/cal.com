@@ -649,30 +649,30 @@ export function BookingDetailScreen({
             {participantsExpanded && (
               <View className="border-t border-[#E5E5EA] px-4 py-2.5">
                 {/* Hosts */}
-                {booking.hosts && booking.hosts.length > 0
-                  ? booking.hosts.map((host, index) => (
-                      <View
-                        key={host.email || `host-${index}`}
-                        className={`flex-row items-center py-2 ${
-                          index > 0 ? "border-t border-[#E5E5EA]" : ""
-                        }`}
-                      >
-                        <Ionicons name="star" size={18} color="#FFD60A" />
-                        <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
-                          {host.name || host.email || "Host"}
-                        </Text>
-                        <Text className="text-[13px] text-[#8E8E93]">Organizer</Text>
-                      </View>
-                    ))
-                  : booking.user && (
-                      <View className="flex-row items-center py-2">
-                        <Ionicons name="star" size={18} color="#FFD60A" />
-                        <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
-                          {booking.user.name || booking.user.email}
-                        </Text>
-                        <Text className="text-[13px] text-[#8E8E93]">Organizer</Text>
-                      </View>
-                    )}
+                {booking.hosts && booking.hosts.length > 0 ? (
+                  booking.hosts.map((host, index) => (
+                    <View
+                      key={host.email || `host-${index}`}
+                      className={`flex-row items-center py-2 ${
+                        index > 0 ? "border-t border-[#E5E5EA]" : ""
+                      }`}
+                    >
+                      <Ionicons name="star" size={18} color="#FFD60A" />
+                      <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
+                        {host.name || host.email || "Host"}
+                      </Text>
+                      <Text className="text-[13px] text-[#8E8E93]">Organizer</Text>
+                    </View>
+                  ))
+                ) : booking.user ? (
+                  <View className="flex-row items-center py-2">
+                    <Ionicons name="star" size={18} color="#FFD60A" />
+                    <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
+                      {booking.user.name || booking.user.email}
+                    </Text>
+                    <Text className="text-[13px] text-[#8E8E93]">Organizer</Text>
+                  </View>
+                ) : null}
 
                 {/* Attendees */}
                 {booking.attendees?.map((attendee, index) => {
