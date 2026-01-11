@@ -3,11 +3,18 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 
-import { buildEventForTeamEventType } from "../../handleNewBooking";
+import { buildEventForTeamEventType } from "../../service/RegularBookingService";
 
 vi.mock("@calcom/lib/server/i18n", () => ({
   getTranslation: vi.fn().mockResolvedValue("translated"),
 }));
+
+vi.mock("@calcom/prisma", () => {
+  return {
+    default: vi.fn(),
+    prisma: {},
+  };
+});
 
 const withTeamSpy = vi.fn().mockReturnThis();
 const withDestinationCalendarSpy = vi.fn().mockReturnThis();
@@ -15,13 +22,15 @@ const withDestinationCalendarSpy = vi.fn().mockReturnThis();
 vi.mock("@calcom/features/CalendarEventBuilder", () => {
   return {
     CalendarEventBuilder: {
-      fromEvent: vi.fn().mockImplementation((evt) => ({
+      fromEvent: vi.fn().mockImplementation((_evt) => ({
         withDestinationCalendar: withDestinationCalendarSpy,
         withTeam: withTeamSpy,
-        build: vi.fn().mockImplementation(() => ({
-          destinationCalendar: [],
-          team: {}, // <- you won’t use this result anyway
-        })),
+        build: vi.fn().mockImplementation(function() {
+          return {
+            destinationCalendar: [],
+            team: {}, // <- you won't use this result anyway
+          };
+        }),
       })),
     },
   };
@@ -65,7 +74,7 @@ describe("buildEventForTeamEventType", () => {
   });
 
   it("filters out the organizer", async () => {
-    const result = await buildEventForTeamEventType({
+    await buildEventForTeamEventType({
       existingEvent: {},
       users: [baseUser({ email: "organizer@example.com" })],
       organizerUser: { email: "organizer@example.com" },
@@ -73,7 +82,7 @@ describe("buildEventForTeamEventType", () => {
     });
 
     const teamArgs = withTeamSpy.mock.calls[0][0];
-    const memberEmails = teamArgs.members.map((m: any) => m.email);
+    const memberEmails = teamArgs.members.map((m: { email: string }) => m.email);
 
     expect(memberEmails).not.toContain("organizer@example.com");
   });
@@ -116,7 +125,7 @@ describe("buildEventForTeamEventType", () => {
     });
 
     const teamArgs = withTeamSpy.mock.calls[0][0];
-    const memberEmails = teamArgs.members.map((m: any) => m.email);
+    const memberEmails = teamArgs.members.map((m: { email: string }) => m.email);
 
     expect(memberEmails).toContain("fixed@example.com");
     expect(memberEmails).toContain("nonfixed@example.com");
@@ -135,7 +144,7 @@ describe("buildEventForTeamEventType", () => {
     });
 
     const teamArgs = withTeamSpy.mock.calls[0][0];
-    const memberEmails = teamArgs.members.map((m: any) => m.email);
+    const memberEmails = teamArgs.members.map((m: { email: string }) => m.email);
 
     expect(memberEmails).toContain("fixed@example.com");
     expect(memberEmails).toContain("nonfixed1@example.com");

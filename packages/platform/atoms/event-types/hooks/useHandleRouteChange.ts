@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import type {
   EventTypeAssignedUsers,
   EventTypeHosts,
-} from "@calcom/features/eventtypes/components/EventType";
-import { checkForEmptyAssignment } from "@calcom/lib/event-types/utils/checkForEmptyAssignment";
+} from "@calcom/features/eventtypes/lib/types";
+import { checkForEmptyAssignment } from "@calcom/features/eventtypes/lib/checkForEmptyAssignment";
 
 export const useHandleRouteChange = ({
   isTeamEventTypeDeleted,

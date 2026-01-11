@@ -65,7 +65,7 @@ export const BookerLayoutSelector = ({
         <Label className={classNames("mb-1 font-semibold", isOuterBorder ? "text-sm" : "text-base")}>
           {title ? title : t("layout")}
         </Label>
-        <p className="text-subtle max-w-full break-words text-sm leading-tight">
+        <p className="text-subtle max-w-full wrap-break-word text-sm leading-tight">
           {description ? description : t("bookerlayout_description")}
         </p>
       </div>
@@ -176,7 +176,7 @@ const BookerLayoutFields = ({
     if (user?.defaultBookerLayouts) onChange(user.defaultBookerLayouts);
   };
   return (
-    <div className={classNames("space-y-5", !isOuterBorder && "border-subtle border-x px-6 py-8")}>
+    <div className={classNames("stack-y-5", !isOuterBorder && "border-subtle border-x px-6 py-8")}>
       <div
         className={classNames(
           "flex flex-col gap-5 transition-opacity sm:flex-row sm:gap-3",

@@ -1,12 +1,13 @@
-import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
-import { getUserAvailabilityService } from "@calcom/lib/di/containers/GetUserAvailability";
-import { isTeamMember } from "@calcom/lib/server/queries/teams";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
+import { isTeamMember } from "@calcom/features/ee/teams/lib/queries";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
+import dayjs from "@calcom/dayjs";
 
 type GetMemberAvailabilityOptions = {
   ctx: {
@@ -32,12 +33,19 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
     user: member.user,
   });
 
+  const dayjsDateFrom = dayjs(input.dateFrom);
+  const dayjsDateTo = dayjs(input.dateTo);
+
+  if (!dayjsDateFrom.isValid() || !dayjsDateTo.isValid()) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid date range" });
+  }
+
   // get availability for this member
   return await userAvailabilityService.getUserAvailability(
     {
       username: username,
-      dateFrom: input.dateFrom,
-      dateTo: input.dateTo,
+      dateFrom: dayjsDateFrom,
+      dateTo: dayjsDateTo,
       returnDateOverrides: true,
       bypassBusyCalendarTimes: false,
     },

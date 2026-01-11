@@ -7,7 +7,7 @@ import type {
   AIPhoneServiceCall,
 } from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
-import type { RetellAIRepository, RetellDynamicVariables } from "../types";
+import type { RetellAIRepository, RetellDynamicVariables, RetellCallListResponse } from "../types";
 
 interface RetellAIServiceInterface {
   updateToolsFromAgentId(
@@ -16,14 +16,16 @@ interface RetellAIServiceInterface {
   ): Promise<void>;
 }
 
+type Dependencies = {
+  retellRepository: RetellAIRepository;
+  agentRepository: AgentRepositoryInterface;
+};
+
 export class CallService {
   private logger = logger.getSubLogger({ prefix: ["CallService"] });
   private retellAIService?: RetellAIServiceInterface;
 
-  constructor(
-    private retellRepository: RetellAIRepository,
-    private agentRepository: AgentRepositoryInterface
-  ) {}
+  constructor(private deps: Dependencies) {}
 
   setRetellAIService(service: RetellAIServiceInterface): void {
     this.retellAIService = service;
@@ -51,7 +53,7 @@ export class CallService {
     const { fromNumber, toNumber, dynamicVariables } = data;
 
     try {
-      return await this.retellRepository.createPhoneCall({
+      return await this.deps.retellRepository.createPhoneCall({
         fromNumber,
         toNumber,
         dynamicVariables,
@@ -95,7 +97,7 @@ export class CallService {
 
     await checkRateLimitAndThrowError({
       rateLimitingType: "core",
-      identifier: `test-call:${userId}`,
+      identifier: `createTestCall:${userId}`,
     });
 
     const toNumber = phoneNumber?.trim();
@@ -106,7 +108,7 @@ export class CallService {
       });
     }
 
-    const agent = await this.agentRepository.findByIdWithCallAccess({
+    const agent = await this.deps.agentRepository.findByIdWithCallAccess({
       id: agentId,
       userId,
     });
@@ -155,6 +157,7 @@ export class CallService {
         EVENT_START_TIME_IN_ATTENDEE_TIMEZONE: "2:00 PM",
         EVENT_END_TIME_IN_ATTENDEE_TIMEZONE: "2:30 PM",
         eventTypeId: eventTypeId.toString(),
+        NUMBER_TO_CALL: toNumber,
       },
     });
 
@@ -163,6 +166,94 @@ export class CallService {
       status: call.call_status,
       message: `Call initiated to ${toNumber} with call_id ${call.call_id}`,
     };
+  }
+
+  async createWebCall({
+    agentId,
+    userId,
+    teamId,
+    timeZone,
+    eventTypeId,
+  }: {
+    agentId: string;
+    userId: number;
+    teamId?: number;
+    timeZone: string;
+    eventTypeId: number;
+  }) {
+    if (!agentId?.trim()) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Agent ID is required and cannot be empty",
+      });
+    }
+
+    await this.validateCreditsForTestCall({ userId, teamId });
+
+    await checkRateLimitAndThrowError({
+      rateLimitingType: "core",
+      identifier: `createWebCall:${userId}`,
+    });
+
+    const agent = await this.deps.agentRepository.findByIdWithCallAccess({
+      id: agentId,
+      userId,
+    });
+
+    if (!agent) {
+      throw new HttpError({
+        statusCode: 404,
+        message: "Agent not found or you don't have permission to use it.",
+      });
+    }
+
+    if (!agent.providerAgentId) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Agent provider ID not found.",
+      });
+    }
+
+    const dynamicVariables = {
+      EVENT_NAME: "Web Call Test with Agent",
+      EVENT_DATE: "Monday, January 15, 2025",
+      EVENT_TIME: "2:00 PM",
+      EVENT_END_TIME: "2:30 PM",
+      TIMEZONE: timeZone,
+      LOCATION: "Web Call",
+      ORGANIZER_NAME: "Cal.com AI Agent",
+      ATTENDEE_NAME: "Test User",
+      ATTENDEE_FIRST_NAME: "Test",
+      ATTENDEE_LAST_NAME: "User",
+      ATTENDEE_EMAIL: "testuser@example.com",
+      ATTENDEE_TIMEZONE: timeZone,
+      ADDITIONAL_NOTES: "This is a test web call to verify the AI phone agent",
+      EVENT_START_TIME_IN_ATTENDEE_TIMEZONE: "2:00 PM",
+      EVENT_END_TIME_IN_ATTENDEE_TIMEZONE: "2:30 PM",
+      NUMBER_TO_CALL: "+919876543210",
+      eventTypeId: eventTypeId.toString(),
+    };
+
+    try {
+      const webCall = await this.deps.retellRepository.createWebCall({
+        agentId: agent.providerAgentId,
+        dynamicVariables,
+      });
+      return {
+        callId: webCall.call_id,
+        accessToken: webCall.access_token,
+        agentId: webCall.agent_id,
+      };
+    } catch (error) {
+      this.logger.error("Failed to create web call in external AI service", {
+        agentId: agent.providerAgentId,
+        error,
+      });
+      throw new HttpError({
+        statusCode: 500,
+        message: "Failed to create web call",
+      });
+    }
   }
 
   private async validateCreditsForTestCall({ userId, teamId }: { userId: number; teamId?: number }) {
@@ -194,6 +285,57 @@ export class CallService {
       throw new HttpError({
         statusCode: 500,
         message: "Unable to validate credits. Please try again.",
+      });
+    }
+  }
+
+  async listCalls({
+    limit = 50,
+    offset: _offset = 0,
+    filters,
+  }: {
+    limit?: number;
+    offset?: number;
+    filters: {
+      fromNumber: string[];
+      toNumber?: string[];
+      startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
+    };
+  }): Promise<RetellCallListResponse> {
+    try {
+      if (filters.fromNumber.length === 0) {
+        this.logger.info("No phone numbers provided");
+        return [];
+      }
+
+      const callsResponse = await this.deps.retellRepository.listCalls({
+        filter_criteria: {
+          from_number: filters.fromNumber,
+          ...(filters?.toNumber && { to_number: filters.toNumber }),
+          ...(filters?.startTimestamp && { start_timestamp: filters.startTimestamp }),
+        },
+        limit,
+        sort_order: "descending",
+      });
+
+      return callsResponse.map((call) => {
+        const { transcript_object: _transcript_object, call_cost: _call_cost, ...filteredCall } = call;
+        return {
+          ...filteredCall,
+          sessionOutcome:
+            call.call_status === "ended" && !call.disconnection_reason?.includes("error")
+              ? "successful"
+              : "unsuccessful",
+        };
+      }) as RetellCallListResponse;
+    } catch (error) {
+      this.logger.error("Failed to list calls", {
+        phoneNumbers: filters?.fromNumber,
+        error,
+      });
+      throw new HttpError({
+        statusCode: 500,
+        message: "Failed to retrieve call history",
       });
     }
   }

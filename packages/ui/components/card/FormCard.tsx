@@ -13,7 +13,7 @@ import { Input } from "../form/inputs/TextField";
 import { Icon } from "../icon";
 import type { IconName } from "../icon";
 
-type Action = { check: () => boolean; fn: () => void };
+type Action = { check: () => boolean; fn: () => void; color?: "destructive" | "minimal"; disabled?: boolean };
 
 type FormCardActionsProps = {
   deleteField?: Action | null;
@@ -25,7 +25,8 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
     label: string;
     icon: IconName;
     onClick: () => void;
-    color?: "destructive" | "minimal";
+    color: "destructive" | "minimal";
+    disabled?: boolean;
   };
 
   const actions: ActionItem[] = [
@@ -37,8 +38,9 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
     deleteField?.fn && {
       label: "Delete",
       icon: "trash",
-      color: "minimal",
       onClick: () => deleteField.fn(),
+      color: deleteField.color ?? "minimal",
+      disabled: deleteField.disabled,
     },
   ].filter((action): action is ActionItem => !!action);
 
@@ -56,6 +58,7 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
         onClick={action.onClick}
         StartIcon={action.icon}
         title={action.label}
+        disabled={action.disabled}
       />
     );
   }
@@ -77,6 +80,7 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
               e.preventDefault();
               action.onClick();
             }}
+            disabled={action.disabled}
             color={action.color}>
             {action.label}
           </DropdownItem>
@@ -102,7 +106,7 @@ export default function FormCard({
   ...restProps
 }: {
   children: React.ReactNode;
-  label: string;
+  label: React.ReactNode;
   isLabelEditable?: boolean;
   onLabelChange?: (label: string) => void;
   deleteField?: Action | null;
@@ -115,7 +119,7 @@ export default function FormCard({
   collapsible?: boolean;
 } & JSX.IntrinsicElements["div"]) {
   className = classNames(
-    "flex items-center group relative w-full rounded-2xl p-1 border border-subtle bg-muted mb-2",
+    "flex items-center group relative w-full rounded-2xl p-1 border border-subtle bg-cal-muted mb-2",
     className
   );
 
@@ -131,7 +135,7 @@ export default function FormCard({
         {moveUp?.check() ? (
           <button
             type="button"
-            className="bg-default text-muted hover:text-emphasis invisible -ml-[13px] mb-1 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
+            className="bg-default text-muted hover:text-emphasis invisible -ml-2 mb-1 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
             onClick={() => moveUp?.fn()}>
             <Icon name="arrow-up" />
           </button>
@@ -139,7 +143,7 @@ export default function FormCard({
         {moveDown?.check() ? (
           <button
             type="button"
-            className="bg-default text-muted hover:text-emphasis invisible -ml-[13px] flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
+            className="bg-default text-muted hover:text-emphasis invisible -ml-2 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
             onClick={() => moveDown?.fn()}>
             <Icon name="arrow-down" />
           </button>
@@ -173,10 +177,14 @@ export default function FormCard({
                 className="text-muted"
               />
             )}
-            {isLabelEditable ? (
-              <Input type="text" value={label} onChange={(e) => onLabelChange?.(e.target.value)} />
+            {typeof label === "string" ? (
+              isLabelEditable ? (
+                <Input type="text" value={label} onChange={(e) => onLabelChange?.(e.target.value)} />
+              ) : (
+                <span className="text-emphasis text-sm font-semibold">{label}</span>
+              )
             ) : (
-              <span className="text-emphasis text-sm font-semibold">{label}</span>
+              label
             )}
             {badge && (
               <Badge className="ml-2" variant={badge.variant}>
@@ -190,6 +198,21 @@ export default function FormCard({
         </div>
         <div className={isCollapsed ? "hidden" : ""}>{children}</div>
       </div>
+    </div>
+  );
+}
+
+export function FormCardBody({
+  children,
+  className = "",
+  ...props
+}: {
+  children: React.ReactNode;
+  className?: string;
+} & React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={`bg-default border-default w-full gap-3 rounded-2xl border p-3 ${className}`} {...props}>
+      {children}
     </div>
   );
 }

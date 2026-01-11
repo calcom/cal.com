@@ -1,11 +1,10 @@
-import type { Prisma } from "@prisma/client";
-
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
+// TODO: Inject.
 export async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
   const bookingRepo = new BookingRepository(prisma);
   const originalBooking = await bookingRepo.findOriginalRescheduledBooking(uid, seatsEventType);
@@ -21,6 +20,5 @@ export async function getOriginalRescheduledBooking(uid: string, seatsEventType?
   return originalBooking;
 }
 
-export type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking> | null;
-
+export type BookingType = Awaited<ReturnType<typeof getOriginalRescheduledBooking>> | null;
 export type OriginalRescheduledBooking = Awaited<ReturnType<typeof getOriginalRescheduledBooking>> | null;

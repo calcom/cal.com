@@ -1,5 +1,5 @@
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
+import { handleResponse } from "@calcom/features/routing-forms/lib/handleResponse";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -29,6 +29,8 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
         select: {
           id: true,
           email: true,
+          timeFormat: true,
+          locale: true,
         },
       },
     },

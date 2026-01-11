@@ -1,6 +1,7 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import "@coss/ui/styles.css";
+@import "../../../config/theme/tokens.css";
+
 @font-face {
   font-family: "Cal Sans";
   src: url("https://cal.com/cal.ttf");
@@ -22,4 +23,14 @@ body,
 :host {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue,
     Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+  /** Tailwind defines this as @property and these are completely ignored if defined inside shadow DOM. - https://stackoverflow.com/questions/78717295/property-not-recognized-in-shadow-dom */
+  /** We avoid loading tailwind outside the shadow DOM as it could potentially affect the user's webpage. So define --tw prefixed properties here as and when used for now */
+  --tw-border-style: solid;
+}
+
+@utility stack-y-* {
+  &> :not([hidden])~ :not([hidden]) {
+    margin-top: --spacing(--value(integer));
+    margin-top: --value([length]);
+  }
 }

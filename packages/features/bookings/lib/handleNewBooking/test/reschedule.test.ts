@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
 
 import {
   createBookingScenario,
@@ -18,7 +18,7 @@ import {
   getMockFailingAppStatus,
   getMockPassingAppStatus,
   getDefaultBookingFields,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import {
   expectWorkflowToBeTriggered,
   expectBookingToBeInDatabase,
@@ -33,9 +33,9 @@ import {
   expectSuccessfulVideoMeetingDeletionInCalendar,
   expectSuccessfulRoundRobinReschedulingEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, expect, beforeEach } from "vitest";
 
@@ -44,7 +44,9 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { resetTestSMS } from "@calcom/lib/testSMS";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
+
+import { getNewBookingHandler } from "./getNewBookingHandler";
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
@@ -66,7 +68,7 @@ describe("handleNewBooking", () => {
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -305,7 +307,7 @@ describe("handleNewBooking", () => {
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -511,7 +513,7 @@ describe("handleNewBooking", () => {
       test(
         `an error in updating a calendar event should not stop the rescheduling - Current behaviour is wrong as the booking is resheduled but no-one is notified of it`,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -698,7 +700,7 @@ describe("handleNewBooking", () => {
           4. Should trigger BOOKING_REQUESTED webhook instead of BOOKING_RESCHEDULED
     `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = getNewBookingHandler();
             const subscriberUrl = "http://my-webhook.example.com";
             const booker = getBooker({
               email: "booker@example.com",
@@ -904,7 +906,7 @@ describe("handleNewBooking", () => {
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = getNewBookingHandler();
             const booker = getBooker({
               email: "booker@example.com",
               name: "Booker",
@@ -1148,7 +1150,7 @@ describe("handleNewBooking", () => {
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = getNewBookingHandler();
             const booker = getBooker({
               email: "booker@example.com",
               name: "Booker",
@@ -1389,7 +1391,7 @@ describe("handleNewBooking", () => {
         4. Should trigger BOOKING_REQUESTED webhook
       `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = getNewBookingHandler();
             const subscriberUrl = "http://my-webhook.example.com";
             const booker = getBooker({
               email: "booker@example.com",
@@ -1599,7 +1601,7 @@ describe("handleNewBooking", () => {
           4. Should trigger BOOKING_RESCHEDULED webhook
     `,
           async ({ emails }) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = getNewBookingHandler();
             const booker = getBooker({
               email: "booker@example.com",
               name: "Booker",
@@ -1857,7 +1859,7 @@ describe("handleNewBooking", () => {
           4. Should update/create necessary video conference links
         `,
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -2009,7 +2011,7 @@ describe("handleNewBooking", () => {
       test(
         "should send correct schedule/cancellation/reassigned emails to hosts when round robin is rescheduled to different host",
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -2168,7 +2170,7 @@ describe("handleNewBooking", () => {
       test(
         "should send rescheduling emails when round robin is rescheduled to same host",
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -2316,7 +2318,7 @@ describe("handleNewBooking", () => {
       test(
         "[Event Type with Both Email and Attendee Phone Number as required fields] should send rescheduling emails when round robin is rescheduled to same host",
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const TEST_ATTENDEE_NUMBER = "+919876543210";
           const booker = getBooker({
             email: "booker@example.com",
@@ -2517,7 +2519,7 @@ describe("handleNewBooking", () => {
       test(
         "should reschedule event with same round robin host",
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -2674,7 +2676,7 @@ describe("handleNewBooking", () => {
       test(
         "should reschedule as per routedTeamMemberIds(instead of same host) even if rescheduleWithSameRoundRobinHost is true but it is a rerouting scenario",
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -2739,6 +2741,17 @@ describe("handleNewBooking", () => {
               apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
             })
           );
+
+          // Ensure the App_RoutingForms_FormResponse exists for the test
+          await prismaMock.app_RoutingForms_FormResponse.create({
+            data: {
+              id: 12323,
+              formId: "test-form", // Assuming a simple string ID for the form
+              responses: {},
+              fields: [], // Assuming fields might be an array
+              // Add any other minimally required fields if the test fails due to their absence
+            },
+          });
 
           mockSuccessfulVideoMeetingCreation({
             metadataLookupKey: "dailyvideo",
@@ -3145,7 +3158,7 @@ describe("handleNewBooking", () => {
     test(
       "should use correct credentials when round robin reschedule changes host - original host credentials for deletion, new host for creation",
       async ({ emails }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -3266,6 +3279,155 @@ describe("handleNewBooking", () => {
         expect(createdBooking.userId).toBe(newHost.id);
         expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T14:00:00.000Z`);
         expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T14:15:00.000Z`);
+      },
+      timeout
+    );
+
+    test(
+      "should set correct booking reference when rescheduling with phone location change",
+      async () => {
+        const handleNewBooking = getNewBookingHandler();
+        const booker = getBooker({
+          email: "test@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+
+        await createBookingScenario(
+          getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_RESCHEDULED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 15,
+                length: 15,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                locations: [
+                  {
+                    type: "phone", // ← Original generic phone location
+                  },
+                ],
+              },
+            ],
+            bookings: [
+              {
+                uid: uidOfBookingToBeRescheduled,
+                eventTypeId: 1,
+                status: BookingStatus.ACCEPTED,
+                startTime: `${plus1DateString}T05:00:00.000Z`,
+                endTime: `${plus1DateString}T05:15:00.000Z`,
+                references: [
+                  getMockBookingReference({
+                    type: "google_calendar",
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-google-meet.example.com",
+                    externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                    credentialId: 1,
+                  }),
+                ],
+                attendees: [
+                  getMockBookingAttendee({
+                    id: 1,
+                    name: booker.name,
+                    email: booker.email,
+                  }),
+                ],
+                // Different location from the one in the new booking
+                location: "+15552234567",
+              },
+            ],
+            organizer,
+            usersApartFromOrganizer: [],
+            apps: [TestData.apps["google-calendar"]],
+          })
+        );
+
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: { uid: "NEW_EVENT_ID" },
+          update: { uid: "UPDATED_EVENT_ID" },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            rescheduleUid: uidOfBookingToBeRescheduled,
+            start: `${plus1DateString}T06:00:00.000Z`,
+            end: `${plus1DateString}T06:15:00.000Z`,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "+15551234567", value: "+15551234567" },
+            },
+          },
+        });
+
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+        });
+
+        logger.silly("Created booking", { createdBooking });
+
+        await expectBookingInDBToBeRescheduledFromTo({
+          from: {
+            uid: uidOfBookingToBeRescheduled,
+          },
+          to: {
+            description: "",
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            uid: createdBooking.uid!,
+            eventTypeId: 1,
+            // Only recurring event can have recurringEventId
+            recurringEventId: null,
+            location: "+15551234567",
+            status: BookingStatus.ACCEPTED,
+            responses: expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            }),
+          },
+        });
+
+        // ✅ THE CRITICAL TEST: Ensure BookingReference has proper values
+        const newBooking = await prismaMock.booking.findFirst({
+          where: {
+            uid: createdBooking.uid,
+          },
+          include: {
+            references: true,
+          },
+        });
+
+        expect(newBooking?.references).toHaveLength(1);
+        const reference = newBooking!.references[0];
+
+        // Valid reference should have uid
+        expect(reference.uid).toBe("UPDATED_EVENT_ID");
       },
       timeout
     );

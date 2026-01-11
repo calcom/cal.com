@@ -16,11 +16,11 @@ describe("getValidRhfFieldName", () => {
   });
 
   // So that user can freely add spaces and any other character iteratively and it gets converted to - and he can add more characters.
-  // We don't really care about a hyphen in the end
-  it("should not remove dashes from start and end.", () => {
-    expect(getValidRhfFieldName("hello-there-")).toEqual("hello-there-");
+  // Trailing dashes are removed to ensure valid field names
+  it("should remove trailing dashes but keep leading dashes.", () => {
+    expect(getValidRhfFieldName("hello-there-")).toEqual("hello-there");
     expect(getValidRhfFieldName("-hello-there")).toEqual("-hello-there");
-    expect(getValidRhfFieldName("$hello-there-")).toEqual("-hello-there-");
+    expect(getValidRhfFieldName("$hello-there-")).toEqual("-hello-there");
   });
 
   it("should not remove underscore from start and end.", () => {
@@ -31,12 +31,27 @@ describe("getValidRhfFieldName", () => {
 
   it("should remove unicode and emoji characters", () => {
     expect(getValidRhfFieldName("Hello 📚🕯️®️ There")).toEqual("Hello---------There");
-    expect(getValidRhfFieldName("📚🕯️®️")).toEqual("-------");
+    // When all characters are emojis/special chars, they become dashes which are then removed
+    expect(getValidRhfFieldName("📚🕯️®️")).toEqual("");
   });
 
   it("should keep numbers as is", () => {
     expect(getValidRhfFieldName("hellothere123")).toEqual("hellothere123");
     expect(getValidRhfFieldName("321hello there123")).toEqual("321hello-there123");
     expect(getValidRhfFieldName("hello$there")).toEqual("hello-there");
+  });
+
+  it("should not modify system field names", () => {
+    // System fields should remain unchanged as they don't contain invalid characters or trailing dashes
+    expect(getValidRhfFieldName("name")).toEqual("name");
+    expect(getValidRhfFieldName("email")).toEqual("email");
+    expect(getValidRhfFieldName("location")).toEqual("location");
+    expect(getValidRhfFieldName("title")).toEqual("title");
+    expect(getValidRhfFieldName("notes")).toEqual("notes");
+    expect(getValidRhfFieldName("guests")).toEqual("guests");
+    expect(getValidRhfFieldName("rescheduleReason")).toEqual("rescheduleReason");
+    expect(getValidRhfFieldName("smsReminderNumber")).toEqual("smsReminderNumber");
+    expect(getValidRhfFieldName("attendeePhoneNumber")).toEqual("attendeePhoneNumber");
+    expect(getValidRhfFieldName("aiAgentCallPhoneNumber")).toEqual("aiAgentCallPhoneNumber");
   });
 });

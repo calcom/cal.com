@@ -1,4 +1,6 @@
-// eslint-disable-next-line no-restricted-imports
+"use client";
+
+
 import debounce from "lodash/debounce";
 import { useState, useEffect } from "react";
 

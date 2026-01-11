@@ -4,10 +4,11 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
-import type { AttendeeInBookingInfo, BookingInfo } from "./smsReminderManager";
+import type { AttendeeInBookingInfo, BookingInfo } from "../types";
 import type { VariablesType } from "./templates/customTemplate";
-import customTemplate from "./templates/customTemplate";
+import customTemplate, { transformBookingResponsesToVariableFormat } from "./templates/customTemplate";
 
 export const bulkShortenLinks = async (links: string[]) => {
   if (!process.env.DUB_API_KEY) {
@@ -73,7 +74,7 @@ export const getSMSMessageWithVariables = async (
     timeZone: timeZone,
     location: evt.location,
     additionalNotes: evt.additionalNotes,
-    responses: evt.responses,
+    responses: transformBookingResponsesToVariableFormat(evt.responses),
     meetingUrl,
     cancelLink,
     rescheduleLink,
@@ -114,12 +115,50 @@ export const getAttendeeToBeUsedInSMS = (
   return attendeeToBeUsedInSMS;
 };
 
+/**
+ * Escapes HTML special characters to prevent XSS when inserting text into HTML.
+ */
+const escapeHtml = (str: string): string =>
+  str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+/**
+ * Replaces cloaked links in HTML content with visible URLs.
+ * This ensures recipients can see the actual destination of links,
+ * helping them identify potentially malicious URLs.
+ *
+ * Transforms: <a href="https://example.com">Click here</a>
+ * Into: <a href="https://example.com">https://example.com</a>
+ *
+ * Also handles nested HTML tags like: <a href="https://example.com"><b>Click here</b></a>
+ */
+export const replaceCloakedLinksInHtml = (html: string): string => {
+  // Match anchor tags with href attribute
+  // Captures: attributes with href, href value, inner content (including nested HTML)
+  const anchorRegex = /<a\s+([^>]*href=["']([^"']+)["'][^>]*)>([\s\S]*?)<\/a>/gi;
+
+  return html.replace(anchorRegex, (match, attributes, href, innerContent) => {
+    // Strip HTML tags from inner content to get plain text for comparison
+    const linkText = innerContent.replace(/<[^>]*>/g, "");
+
+    // If the link text is already the URL (or very similar), keep it as is
+    const normalizedHref = href.toLowerCase().replace(/\/$/, "");
+    const normalizedText = linkText.toLowerCase().trim().replace(/\/$/, "");
+
+    if (normalizedText === normalizedHref || normalizedText === normalizedHref.replace(/^https?:\/\//, "")) {
+      return match;
+    }
+
+    // Replace the link text with the actual URL, escaping HTML to prevent XSS
+    return `<a ${attributes}>${escapeHtml(href)}</a>`;
+  });
+};
+
 export const shouldUseTwilio = (trigger: WorkflowTriggerEvents, scheduledDate: dayjs.Dayjs | null) => {
-  if (
-    trigger === WorkflowTriggerEvents.NEW_EVENT ||
-    trigger === WorkflowTriggerEvents.EVENT_CANCELLED ||
-    trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT
-  ) {
+  if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(trigger)) {
     return true;
   }
 

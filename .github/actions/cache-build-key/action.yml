@@ -1,0 +1,23 @@
+name: Generate cache-build key
+description: "Generate the cache key for production build caching"
+inputs:
+  branch_key:
+    required: true
+    description: "Branch key for cache scoping (e.g., github.head_ref for PRs)"
+outputs:
+  key:
+    description: "The generated cache key"
+    value: ${{ steps.generate-key.outputs.key }}
+runs:
+  using: "composite"
+  steps:
+    - name: Generate cache key
+      id: generate-key
+      shell: bash
+      env:
+        CACHE_NAME: prod-build
+        BRANCH_KEY: ${{ inputs.branch_key }}
+        LOCKFILE_HASH: ${{ hashFiles('yarn.lock') }}
+        SOURCE_HASH: ${{ hashFiles('apps/**/**.[jt]s', 'apps/**/**.[jt]sx', 'apps/**/*.json', 'apps/**/*.css', 'packages/**/**.[jt]s', 'packages/**/**.[jt]sx', 'packages/prisma/schema.prisma', 'packages/prisma/migrations/**/*.sql', '!**/node_modules/**', '!packages/prisma/generated/**', '!packages/prisma/client/**', '!packages/prisma/zod/**', '!packages/kysely/**') }}
+      run: |
+        echo "key=${CACHE_NAME}-${BRANCH_KEY}-${LOCKFILE_HASH}-${SOURCE_HASH}" >> $GITHUB_OUTPUT

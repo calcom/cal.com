@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -30,12 +30,13 @@ beforeEach(() => {
     id: userId,
     email: "test@example.com",
     name: "Test User",
-  });
+  } as any);
   (getAccessibleUsers as any).mockResolvedValue([userId]);
   (retrieveOrgScopedAccessibleUsers as any).mockResolvedValue([userId]);
 
   prismaMock.membership.findMany.mockResolvedValue([
     {
+      // @ts-expect-error Will be fixed by Prisma 6.7.0 upgrade mock changes - which uses vitest-mock-extended
       team: {
         id: 1,
         isOrganization: true,
@@ -48,7 +49,7 @@ beforeEach(() => {
       id: userId,
       email: "test@example.com",
     },
-  ]);
+  ] as any);
 });
 
 afterEach(() => {
