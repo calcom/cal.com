@@ -1,15 +1,20 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
+import { getEventLocationType } from "@calcom/app-store/locations";
+import { getAppFromSlug } from "@calcom/app-store/utils";
+import PhoneInput from "@calcom/features/components/phone-input";
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
-import { Label } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { Label, TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -23,6 +28,10 @@ type HostWithLocationOptions = {
   name: string | null;
   email: string;
   avatarUrl: string | null;
+  defaultConferencingApp: {
+    appSlug?: string;
+    appLink?: string;
+  } | null;
   location: {
     id: number;
     type: string;
@@ -85,6 +94,111 @@ const getLocationFromOptions = (
   return undefined;
 };
 
+type HostLocationDialogProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  locationOption: LocationOption | null;
+  onSave: (location: HostLocation) => void;
+  hostUserId: number;
+  hostData?: HostWithLocationOptions;
+  initialValue?: string;
+};
+
+const HostLocationDialog = ({
+  isOpen,
+  onClose,
+  locationOption,
+  onSave,
+  hostUserId,
+  hostData,
+  initialValue,
+}: HostLocationDialogProps) => {
+  const { t } = useLocale();
+  const eventLocationType = locationOption ? getEventLocationType(locationOption.value) : null;
+
+  const [inputValue, setInputValue] = useState(initialValue || "");
+
+  useEffect(() => {
+    if (isOpen) {
+      setInputValue(initialValue || "");
+    }
+  }, [isOpen, initialValue]);
+
+  const handleSave = () => {
+    if (!locationOption || !eventLocationType) return;
+
+    const credential = hostData?.installedApps.find(
+      (app) =>
+        app.appId === getAppSlugFromLocationType(locationOption.value) || app.type === locationOption.value
+    );
+
+    const location: HostLocation = {
+      userId: hostUserId,
+      eventTypeId: 0,
+      type: locationOption.value,
+      credentialId: credential?.credentialId ?? null,
+    };
+
+    if (eventLocationType.organizerInputType === "text") {
+      if (eventLocationType.defaultValueVariable === "link") {
+        location.link = inputValue;
+      } else if (eventLocationType.defaultValueVariable === "address") {
+        location.address = inputValue;
+      }
+    } else if (eventLocationType.organizerInputType === "phone") {
+      location.phoneNumber = inputValue;
+    }
+
+    onSave(location);
+    setInputValue("");
+    onClose();
+  };
+
+  const handleClose = () => {
+    setInputValue("");
+    onClose();
+  };
+
+  if (!eventLocationType) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent>
+        <DialogHeader title={t("set_location")} />
+        <div className="space-y-4">
+          <div>
+            <Label className="text-default mb-1 block text-sm font-medium">
+              {t(eventLocationType.messageForOrganizer || "")}
+            </Label>
+            {eventLocationType.organizerInputType === "phone" ? (
+              <PhoneInput
+                value={inputValue}
+                onChange={(val) => setInputValue(val || "")}
+                placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+              />
+            ) : (
+              <TextField
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+                type="text"
+              />
+            )}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="button" color="secondary" onClick={handleClose}>
+            {t("cancel")}
+          </Button>
+          <Button type="button" onClick={handleSave} disabled={!inputValue}>
+            {t("save")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const HostLocationRow = ({
   host,
   hostData,
@@ -97,11 +211,25 @@ const HostLocationRow = ({
   onLocationChange: (userId: number, location: HostLocation | null) => void;
 }) => {
   const { t } = useLocale();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [pendingLocationOption, setPendingLocationOption] = useState<LocationOption | null>(null);
 
   const currentLocation = host.location;
-  const selectedOption = currentLocation
-    ? getLocationFromOptions(currentLocation.type, locationOptions)
-    : null;
+
+  const selectedOption = useMemo(() => {
+    if (currentLocation) {
+      return getLocationFromOptions(currentLocation.type, locationOptions);
+    }
+
+    if (hostData?.defaultConferencingApp?.appSlug) {
+      const locationType = getAppFromSlug(hostData.defaultConferencingApp.appSlug)?.appData?.location?.type;
+      if (locationType) {
+        return getLocationFromOptions(locationType, locationOptions);
+      }
+    }
+
+    return getLocationFromOptions("integrations:daily", locationOptions);
+  }, [currentLocation, hostData, locationOptions]);
 
   const hasAppInstalled = useMemo(() => {
     if (!currentLocation?.type) return true;
@@ -129,48 +257,107 @@ const HostLocationRow = ({
   const displayName = hostData?.name || `User ${host.userId}`;
   const avatarUrl = hostData?.avatarUrl || "";
 
+  const currentLocationEventType = currentLocation ? getEventLocationType(currentLocation.type) : null;
+  const hasOrganizerInput = !!currentLocationEventType?.organizerInputType;
+
+  const currentLocationValue = useMemo(() => {
+    if (!currentLocation || !currentLocationEventType) return "";
+    if (currentLocationEventType.defaultValueVariable === "link") {
+      return currentLocation.link || "";
+    }
+    if (currentLocationEventType.defaultValueVariable === "address") {
+      return currentLocation.address || "";
+    }
+    if (currentLocationEventType.organizerInputType === "phone") {
+      return currentLocation.phoneNumber || "";
+    }
+    return "";
+  }, [currentLocation, currentLocationEventType]);
+
+  const handleEditClick = () => {
+    if (selectedOption) {
+      setPendingLocationOption(selectedOption);
+      setIsDialogOpen(true);
+    }
+  };
+
+  const handleLocationSelect = (option: LocationOption | null) => {
+    if (!option) {
+      onLocationChange(host.userId, null);
+      return;
+    }
+
+    const eventLocationType = getEventLocationType(option.value);
+
+    if (eventLocationType?.organizerInputType) {
+      setPendingLocationOption(option);
+      setIsDialogOpen(true);
+      return;
+    }
+
+    const credential = hostData?.installedApps.find(
+      (app) => app.appId === getAppSlugFromLocationType(option.value) || app.type === option.value
+    );
+    onLocationChange(host.userId, {
+      userId: host.userId,
+      eventTypeId: 0,
+      type: option.value,
+      credentialId: credential?.credentialId ?? null,
+    });
+  };
+
+  const handleDialogSave = (location: HostLocation) => {
+    onLocationChange(host.userId, location);
+    setPendingLocationOption(null);
+  };
+
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
+    setPendingLocationOption(null);
+  };
+
   return (
-    <div className="border-subtle flex items-center gap-3 border-b px-3 py-3 last:border-b-0">
-      <Avatar size="sm" imageSrc={avatarUrl} alt={displayName} className="min-w-8" />
-      <div className="min-w-0 flex-1">
-        <div className="text-emphasis truncate text-sm font-medium">{displayName}</div>
-        {hostData?.email && <div className="text-subtle truncate text-xs">{hostData.email}</div>}
+    <>
+      <div className="border-subtle flex items-center gap-3 border-b px-3 py-3 last:border-b-0">
+        <Avatar size="sm" imageSrc={avatarUrl} alt={displayName} className="min-w-8" />
+        <div className="min-w-0 flex-1">
+          <div className="text-emphasis truncate text-sm font-medium">{displayName}</div>
+          {hostData?.email && <div className="text-subtle truncate text-xs">{hostData.email}</div>}
+        </div>
+        <div className="flex items-center gap-2">
+          <LocationSelect
+            placeholder={t("select_location")}
+            options={locationOptions}
+            value={selectedOption}
+            isSearchable={false}
+            className="w-72 text-sm"
+            menuPlacement="auto"
+            onChange={handleLocationSelect}
+          />
+          {hasOrganizerInput && currentLocation && (
+            <Button color="secondary" type="button" StartIcon="pencil" onClick={handleEditClick} />
+          )}
+          {currentLocation && !hasAppInstalled && (
+            <Badge variant="orange" className="whitespace-nowrap">
+              <Icon name="alert" className="mr-1 h-3 w-3" />
+              {t("app_not_installed")}
+            </Badge>
+          )}
+          {currentLocation && hasAppInstalled && matchingCredential && (
+            <Icon name="check" className="text-success h-4 w-4" />
+          )}
+        </div>
       </div>
-      <div className="flex items-center gap-2">
-        <LocationSelect
-          placeholder={t("select_location")}
-          options={locationOptions}
-          value={selectedOption}
-          isSearchable={false}
-          className="w-72 text-sm"
-          menuPlacement="auto"
-          onChange={(option) => {
-            if (!option) {
-              onLocationChange(host.userId, null);
-              return;
-            }
-            const credential = hostData?.installedApps.find(
-              (app) => app.appId === getAppSlugFromLocationType(option.value) || app.type === option.value
-            );
-            onLocationChange(host.userId, {
-              userId: host.userId,
-              eventTypeId: 0,
-              type: option.value,
-              credentialId: credential?.credentialId ?? null,
-            });
-          }}
-        />
-        {currentLocation && !hasAppInstalled && (
-          <Badge variant="orange" className="whitespace-nowrap">
-            <Icon name="alert" className="mr-1 h-3 w-3" />
-            {t("app_not_installed")}
-          </Badge>
-        )}
-        {currentLocation && hasAppInstalled && matchingCredential && (
-          <Icon name="check" className="text-success h-4 w-4" />
-        )}
-      </div>
-    </div>
+      <HostLocationDialog
+        isOpen={isDialogOpen}
+        onClose={handleDialogClose}
+        locationOption={pendingLocationOption}
+        onSave={handleDialogSave}
+        hostUserId={host.userId}
+        hostData={hostData}
+        initialValue={currentLocationValue}
+      />
+    </>
   );
 };
 
@@ -184,20 +371,17 @@ const MassApplySelect = ({
   const { t } = useLocale();
 
   const options = useMemo(() => {
-    return [
-      { value: "", label: t("apply_to_all_hosts") },
-      ...locationOptions.flatMap((group) =>
-        group.options.map((opt) => ({
-          value: opt.value,
-          label: opt.label,
-        }))
-      ),
-    ];
+    return locationOptions.flatMap((group) =>
+      group.options.map((opt) => ({
+        value: opt.value,
+        label: opt.label,
+      }))
+    );
   }, [locationOptions, t]);
 
   return (
     <Select
-      placeholder={t("apply_to_all_hosts")}
+      placeholder={t("select_option_hosts")}
       options={options}
       isSearchable={false}
       className="w-56 text-sm"

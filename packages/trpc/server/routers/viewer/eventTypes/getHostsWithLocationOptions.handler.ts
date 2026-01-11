@@ -2,6 +2,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { PrismaClient } from "@calcom/prisma";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -21,6 +22,10 @@ export type HostWithLocationOptions = {
   name: string | null;
   email: string;
   avatarUrl: string | null;
+  defaultConferencingApp: {
+    appSlug?: string;
+    appLink?: string;
+  } | null;
   location: {
     id: number;
     type: string;
@@ -91,6 +96,7 @@ export const getHostsWithLocationOptionsHandler = async ({
           name: true,
           email: true,
           avatarUrl: true,
+          metadata: true,
           credentials: {
             where: {
               app: {
@@ -127,6 +133,7 @@ export const getHostsWithLocationOptionsHandler = async ({
     name: host.user.name,
     email: host.user.email,
     avatarUrl: host.user.avatarUrl,
+    defaultConferencingApp: userMetadata.parse(host.user.metadata)?.defaultConferencingApp ?? null,
     location: host.location,
     installedApps: enrichedUsers[index].credentials.map((cred) => {
       const appMeta = cred.appId

@@ -1309,15 +1309,21 @@ async function handler(
           userId: organizerUser.id,
           link: hostLocation.link,
         });
-      } else if (
-        hostLocation.type === "inPerson" ||
-        hostLocation.type === "attendeeInPerson" ||
-        hostLocation.type === "phone" ||
-        hostLocation.type === "userPhone"
-      ) {
-        // Static location types that don't need credentials
+      } else if (hostLocation.type === "inPerson") {
+        locationBodyString = hostLocation.address || hostLocation.type;
+        tracingLogger.info("Using per-host in-person location", {
+          userId: organizerUser.id,
+          address: hostLocation.address,
+        });
+      } else if (hostLocation.type === "userPhone") {
+        locationBodyString = hostLocation.phoneNumber || hostLocation.type;
+        tracingLogger.info("Using per-host organizer phone location", {
+          userId: organizerUser.id,
+          phoneNumber: hostLocation.phoneNumber,
+        });
+      } else if (hostLocation.type === "attendeeInPerson" || hostLocation.type === "phone") {
         locationBodyString = hostLocation.type;
-        tracingLogger.info("Using per-host static location", {
+        tracingLogger.info("Using per-host attendee-provided location", {
           userId: organizerUser.id,
           locationType: hostLocation.type,
         });
@@ -1334,7 +1340,7 @@ async function handler(
 
   // If location passed is empty , use default location of event
   // If location of event is not set , use host default
-  if (locationBodyString.trim().length == 0) {
+  if (locationBodyString.trim().length === 0) {
     if (eventType.locations.length > 0) {
       locationBodyString = eventType.locations[0].type;
     } else {
