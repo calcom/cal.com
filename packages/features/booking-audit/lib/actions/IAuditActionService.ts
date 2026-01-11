@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 /**
  * Represents a component that can be interpolated into translations
  * Used with react-i18next Trans component for proper i18n support (RTL, word order, etc.)
@@ -21,19 +19,34 @@ export type TranslationWithParams = {
 };
 
 /**
+ * This is agnostic of the action and is common for all actions
+ */
+export type BaseStoredAuditData = {
+    version: number;
+    fields: Record<string, unknown>;
+};
+
+export type GetDisplayJsonParams = {
+    storedData: BaseStoredAuditData;
+    userTimeZone: string;
+};
+
+export type GetDisplayTitleParams = {
+    storedData: BaseStoredAuditData;
+    userTimeZone: string;
+};
+
+/**
  * Interface for Audit Action Services
  * 
  * Defines the contract that all audit action services must implement.
  * Uses composition with AuditActionServiceHelper to provide common functionality
- * while maintaining type safety and flexibility for versioned schemas.
+ * while maintaining runtime type safety through Zod schema validation.
  * 
- * @template TLatestFieldsSchema - The Zod schema type for the latest version's audit fields (write operations)
- * @template TStoredFieldsSchema - The Zod schema type for all supported versions' audit fields (read operations, union type)
+ * All methods use common base types at the interface level, while implementations
+ * validate to their specific schemas internally.
  */
-export interface IAuditActionService<
-    TLatestFieldsSchema extends z.ZodTypeAny,
-    TStoredFieldsSchema extends z.ZodTypeAny
-> {
+export interface IAuditActionService {
     /**
      * Current version number for this action type
      */
@@ -44,7 +57,7 @@ export interface IAuditActionService<
      * @param fields - Raw input fields (just the audit fields)
      * @returns Parsed data with version wrapper { version, fields }
      */
-    getVersionedData(fields: unknown): { version: number; fields: z.infer<TLatestFieldsSchema> };
+    getVersionedData(fields: unknown): BaseStoredAuditData;
 
     /**
      * Parse stored audit record (includes version wrapper)
@@ -52,7 +65,7 @@ export interface IAuditActionService<
      * @param data - Stored data from database (can be any version)
      * @returns Parsed stored data { version, fields } - version may differ from current VERSION
      */
-    parseStored(data: unknown): { version: number; fields: z.infer<TStoredFieldsSchema> };
+    parseStored(data: unknown): BaseStoredAuditData;
 
     /**
      * Extract version number from stored data
@@ -64,19 +77,34 @@ export interface IAuditActionService<
     /**
      * Get flattened JSON data for display (fields only, no version wrapper)
      * Optional - implement only if custom display formatting is needed
-     * @param storedData - Parsed stored data { version, fields }
+     * @param params - Object containing storedData and userTimeZone
+     * @param params.storedData - Parsed stored data { version, fields }
+     * @param params.userTimeZone - User's timezone for datetime formatting (required)
      * @returns The fields object without version wrapper and we decide what fields to show to the client
      */
-    getDisplayJson?(storedData: { version: number; fields: z.infer<TStoredFieldsSchema> }): unknown;
+    getDisplayJson?(params: GetDisplayJsonParams): Record<string, unknown>;
 
     /**
      * Get the display title for the audit action
      * Returns a translation key with optional interpolation params for dynamic titles
      * (e.g., "Booking reassigned to John Doe" instead of just "Reassignment")
-     * @param storedData - Parsed stored data { version, fields }
+     * @param params - Object containing storedData and userTimeZone
+     * @param params.storedData - Parsed stored data { version, fields }
+     * @param params.userTimeZone - User's timezone for date formatting (required)
      * @returns Translation key with optional interpolation params
      */
-    getDisplayTitle(storedData: { version: number; fields: z.infer<TStoredFieldsSchema> }): Promise<TranslationWithParams>;
+    getDisplayTitle(params: GetDisplayTitleParams): Promise<TranslationWithParams>;
+
+    /**
+     * Returns additional display fields with translation keys for frontend rendering
+     * Optional - implement only if custom display fields are needed
+     * @param storedData - Parsed stored data { version, fields }
+     * @returns Array of field objects with label and value translation keys
+     */
+    getDisplayFields?(storedData: BaseStoredAuditData): Array<{
+        labelKey: string;  // Translation key for field label
+        valueKey: string;  // Translation key for field value
+    }>;
 
     /**
      * Migrate old version data to latest version
@@ -96,6 +124,6 @@ export interface IAuditActionService<
         /**
          * Always set, either migrated or original
          */
-        latestData: z.infer<TLatestFieldsSchema>;
+        latestData: Record<string, unknown>;
     };
 }

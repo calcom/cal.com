@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 
-import Shell from "@calcom/features/shell/Shell";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { PERMISSION_MAP } from "@calcom/platform-constants";
@@ -15,6 +14,8 @@ import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPl
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
+
+import Shell from "~/shell/Shell";
 
 export default function CreateOAuthClient() {
   const router = useRouter();
@@ -66,7 +67,7 @@ export default function CreateOAuthClient() {
           <div className="m-2 md:mx-5">
             <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
               <div className="flex w-full flex-col">
-                <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
+                <h1 className="font-heading text-emphasis mb-1 text-xl leading-5 tracking-wide">
                   {t("oAuth_client_creation_form")}
                 </h1>
                 <p className="text-default text-sm ltr:mr-4 rtl:ml-4">

@@ -48,6 +48,7 @@ export interface BookerLayouts {
 }
 
 export interface ConfirmationPolicy {
+  type?: "always";
   noticeThreshold?: {
     count: number;
     unit: "hours" | "minutes";
@@ -74,6 +75,29 @@ export interface EventTypeColor {
 
 export interface EmailSettings {
   additionalGuestsEmails?: string[];
+}
+
+// Disable Cancelling settings (API V2 format)
+export interface DisableCancelling {
+  disabled: boolean;
+}
+
+// Disable Rescheduling settings (API V2 format)
+export interface DisableRescheduling {
+  disabled: boolean;
+  minutesBefore?: number; // Optional: disable when less than X minutes before
+}
+
+// Cal Video Settings
+export interface CalVideoSettings {
+  disableRecordingForOrganizer?: boolean;
+  disableRecordingForGuests?: boolean;
+  redirectUrlOnExit?: string;
+  enableAutomaticRecordingForOrganizer?: boolean;
+  enableAutomaticTranscription?: boolean;
+  disableTranscriptionForGuests?: boolean;
+  disableTranscriptionForOrganizer?: boolean;
+  sendTranscriptionEmails?: boolean;
 }
 
 // Booking Field Types
@@ -216,9 +240,44 @@ export interface EventType {
     userId: number;
     isFixed: boolean;
   }>;
+  users?: Array<{
+    id: number;
+    name?: string;
+    username?: string;
+    avatarUrl?: string;
+    brandColor?: string | null;
+    darkBrandColor?: string | null;
+    weekStart?: string;
+    metadata?: Record<string, unknown>;
+  }>;
 
   // Metadata
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
+
+  // Booking action settings (API V2 format)
+  disableRescheduling?: DisableRescheduling;
+  disableCancelling?: DisableCancelling;
+  minimumRescheduleNotice?: number;
+  allowReschedulingPastBookings?: boolean;
+  allowReschedulingCancelledBookings?: boolean;
+
+  // Additional properties from API responses
+  hideCalendarEventDetails?: boolean;
+  hideOrganizerEmail?: boolean;
+  customReplyToEmail?: string;
+  color?: {
+    lightThemeHex?: string;
+    darkThemeHex?: string;
+  };
+
+  // Cal Video Settings
+  calVideoSettings?: CalVideoSettings;
+
+  // Interface language (API V2)
+  interfaceLanguage?: string;
+
+  // Optimized slots (API V2)
+  showOptimizedSlots?: boolean;
 }
 
 export interface CreateEventTypeInput {
@@ -279,7 +338,14 @@ export interface CreateEventTypeInput {
   lockTimeZoneToggleOnBookingPage?: boolean;
   successRedirectUrl?: string;
   forwardParamsSuccessRedirect?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
+
+  // API V2 new fields
+  disableCancelling?: DisableCancelling;
+  disableRescheduling?: DisableRescheduling;
+  calVideoSettings?: CalVideoSettings;
+  interfaceLanguage?: string;
+  showOptimizedSlots?: boolean;
 }
 
 export interface GetEventTypesResponse {
