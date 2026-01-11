@@ -1,0 +1,373 @@
+name: Stale Fork PR Migration
+
+on:
+  # Run daily to check for stale fork PRs
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to migrate (optional, bypasses staleness check)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  migrate-stale-fork-prs:
+    name: Migrate Stale Fork PRs to Cal.com Repo
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Find stale fork PRs eligible for migration
+        id: find-prs
+        uses: actions/github-script@v7
+        env:
+          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const manualPrNumber = process.env.INPUT_PR_NUMBER ? parseInt(process.env.INPUT_PR_NUMBER, 10) : null;
+            const ONE_MONTH_MS = 30 * 24 * 60 * 60 * 1000;
+            const now = new Date();
+            
+            // GraphQL query to get open PRs with Stale label
+            const query = `
+              query($owner: String!, $repo: String!, $cursor: String) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequests(states: OPEN, first: 100, after: $cursor) {
+                    pageInfo {
+                      hasNextPage
+                      endCursor
+                    }
+                    nodes {
+                      number
+                      title
+                      body
+                      createdAt
+                      updatedAt
+                      url
+                      isDraft
+                      headRefName
+                      baseRefName
+                      headRepository {
+                        owner {
+                          login
+                        }
+                        name
+                        url
+                      }
+                      author {
+                        login
+                      }
+                      labels(first: 20) {
+                        nodes {
+                          name
+                        }
+                      }
+                      commits(last: 1) {
+                        nodes {
+                          commit {
+                            author {
+                              name
+                              email
+                            }
+                            committedDate
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+            
+            const allPRs = [];
+            let cursor = null;
+            
+            do {
+              const result = await github.graphql(query, { owner, repo, cursor });
+              const { nodes, pageInfo } = result.repository.pullRequests;
+              allPRs.push(...nodes);
+              cursor = pageInfo.hasNextPage ? pageInfo.endCursor : null;
+            } while (cursor);
+            
+            console.log(`Found ${allPRs.length} open PRs`);
+            
+            const eligiblePRs = [];
+            
+            for (const pr of allPRs) {
+              const isTargetPR = manualPrNumber && pr.number === manualPrNumber;
+              const isFork = pr.headRepository?.owner?.login !== owner;
+              const hasStaleLabel = pr.labels.nodes.some(label => label.name.toLowerCase() === 'stale');
+              const hasMigrationLabel = pr.labels.nodes.some(label => label.name === 'devin-fork-migration');
+              
+              // Skip if already being migrated
+              if (hasMigrationLabel && !isTargetPR) {
+                console.log(`PR #${pr.number} already has devin-fork-migration label, skipping`);
+                continue;
+              }
+              
+              // For manual trigger, process regardless of fork/stale status
+              if (isTargetPR) {
+                if (!isFork) {
+                  console.log(`PR #${pr.number} is not from a fork, skipping`);
+                  continue;
+                }
+                console.log(`PR #${pr.number} manually targeted for migration`);
+              } else {
+                // For scheduled runs, only process fork PRs with Stale label
+                if (!isFork) {
+                  continue;
+                }
+                
+                if (!hasStaleLabel) {
+                  continue;
+                }
+              }
+              
+              // Check for author activity in the last month
+              const prAuthor = pr.author?.login;
+              if (!prAuthor) {
+                console.log(`PR #${pr.number} has no author, skipping`);
+                continue;
+              }
+              
+              // Get comments and commits to check for recent author activity
+              let hasRecentAuthorActivity = false;
+              
+              if (!isTargetPR) {
+                // Check comments for author activity
+                const commentsResponse = await github.rest.issues.listComments({
+                  owner,
+                  repo,
+                  issue_number: pr.number,
+                  per_page: 100
+                });
+                
+                const recentAuthorComment = commentsResponse.data.find(comment => {
+                  const commentDate = new Date(comment.created_at);
+                  const isRecent = (now - commentDate) < ONE_MONTH_MS;
+                  const isFromAuthor = comment.user?.login === prAuthor;
+                  return isRecent && isFromAuthor;
+                });
+                
+                if (recentAuthorComment) {
+                  console.log(`PR #${pr.number} has recent comment from author, skipping`);
+                  hasRecentAuthorActivity = true;
+                }
+                
+                // Check commits for author activity
+                if (!hasRecentAuthorActivity) {
+                  const commitsResponse = await github.rest.pulls.listCommits({
+                    owner,
+                    repo,
+                    pull_number: pr.number,
+                    per_page: 100
+                  });
+                  
+                  const recentAuthorCommit = commitsResponse.data.find(commit => {
+                    const commitDate = new Date(commit.commit.committer?.date || commit.commit.author?.date);
+                    const isRecent = (now - commitDate) < ONE_MONTH_MS;
+                    const isFromAuthor = commit.author?.login === prAuthor || commit.committer?.login === prAuthor;
+                    return isRecent && isFromAuthor;
+                  });
+                  
+                  if (recentAuthorCommit) {
+                    console.log(`PR #${pr.number} has recent commit from author, skipping`);
+                    hasRecentAuthorActivity = true;
+                  }
+                }
+                
+                if (hasRecentAuthorActivity) {
+                  continue;
+                }
+              }
+              
+              // Get author info from commits for co-author attribution
+              const lastCommit = pr.commits.nodes[0]?.commit;
+              const authorName = lastCommit?.author?.name || prAuthor;
+              const authorEmail = lastCommit?.author?.email || `${prAuthor}@users.noreply.github.com`;
+              
+              console.log(`PR #${pr.number} is eligible for migration (author: ${prAuthor}, no activity in 1 month)`);
+              
+              eligiblePRs.push({
+                number: pr.number,
+                title: pr.title,
+                body: pr.body,
+                author: prAuthor,
+                author_name: authorName,
+                author_email: authorEmail,
+                head_ref: pr.headRefName,
+                base_ref: pr.baseRefName,
+                html_url: pr.url,
+                fork_owner: pr.headRepository?.owner?.login,
+                fork_repo: pr.headRepository?.name,
+                fork_url: pr.headRepository?.url,
+                is_manual: isTargetPR
+              });
+              
+              if (isTargetPR) break;
+            }
+            
+            // Limit to prevent too many migrations at once
+            const MAX_PRS = 5;
+            if (eligiblePRs.length > MAX_PRS) {
+              console.log(`Warning: Found ${eligiblePRs.length} eligible PRs, limiting to ${MAX_PRS}`);
+              eligiblePRs.length = MAX_PRS;
+            }
+            
+            console.log(`Found ${eligiblePRs.length} PRs eligible for migration`);
+            
+            const fs = require('fs');
+            fs.writeFileSync('/tmp/eligible-prs.json', JSON.stringify(eligiblePRs));
+            
+            core.setOutput('has-eligible-prs', eligiblePRs.length > 0 ? 'true' : 'false');
+            core.setOutput('eligible-count', eligiblePRs.length.toString());
+
+      - name: Create Devin sessions for PR migration
+        if: steps.find-prs.outputs.has-eligible-prs == 'true'
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const eligiblePRs = JSON.parse(fs.readFileSync('/tmp/eligible-prs.json', 'utf8'));
+            const { owner, repo } = context.repo;
+            
+            for (const pr of eligiblePRs) {
+              console.log(`Creating Devin session to migrate PR #${pr.number}: ${pr.title}`);
+              
+              const prompt = `You are migrating a stale fork PR #${pr.number} to the main ${owner}/${repo} repository.
+
+            The original PR author (@${pr.author}) has not been active on this PR for over a month, so we are migrating it to the main repository to complete the work.
+
+            Original PR Details:
+            - PR Number: #${pr.number}
+            - PR Title: ${pr.title}
+            - PR URL: ${pr.html_url}
+            - Original Author: @${pr.author}
+            - Fork Repository: ${pr.fork_owner}/${pr.fork_repo}
+            - Fork Branch: ${pr.head_ref}
+            - Target Branch: ${pr.base_ref}
+
+            Author Info for Co-author Attribution:
+            - Name: ${pr.author_name}
+            - Email: ${pr.author_email}
+
+            Your tasks:
+
+            1. Clone the main repository: ${owner}/${repo}
+            2. Add the fork as a remote and fetch the PR branch:
+               - git remote add fork https://github.com/${pr.fork_owner}/${pr.fork_repo}.git
+               - git fetch fork ${pr.head_ref}
+            3. Create a new branch in the main repo:
+               - Branch name: community/pr-${pr.number}-${pr.head_ref}
+               - git checkout -b community/pr-${pr.number}-${pr.head_ref} origin/${pr.base_ref}
+            4. Cherry-pick or merge the commits from the fork branch:
+               - Get the list of commits from fork/${pr.head_ref} that are not in origin/${pr.base_ref}
+               - Cherry-pick each commit, adding co-author attribution
+               - For each commit, amend to add: "Co-authored-by: ${pr.author_name} <${pr.author_email}>"
+               - Alternatively, if there are many commits, you can squash them into one commit with the co-author trailer
+            5. Run lint and type checks to ensure the code is valid:
+               - yarn lint
+               - yarn type-check:ci
+            6. Fix any issues that arise from the migration (merge conflicts, lint errors, etc.)
+            7. Push the new branch to the main repository:
+               - git push origin community/pr-${pr.number}-${pr.head_ref}
+            8. Create a new PR in the main repository:
+               - Title: ${pr.title}
+               - Base branch: ${pr.base_ref}
+               - Include the original PR description
+               - Add a note at the top explaining this is a migration from fork PR #${pr.number}
+               - Credit the original author @${pr.author} in the PR description
+            9. After successfully creating the new PR:
+               - Close the original fork PR #${pr.number} with a comment explaining the migration
+               - The comment should thank the original author and link to the new PR
+               - Remove the 'devin-fork-migration' label from the original PR
+            10. Remove the 'devin-fork-migration' label from the original PR after completing the migration.
+
+            IMPORTANT - Co-author Attribution:
+            Every commit you create MUST include the co-author trailer to credit the original author:
+            
+            Co-authored-by: ${pr.author_name} <${pr.author_email}>
+
+            This ensures the original contributor gets proper credit for their work even though they are not a member of the ${owner}/${repo} repository.
+
+            Rules and Guidelines:
+            1. Preserve the original author's work as much as possible.
+            2. Follow the existing code style and conventions in the repository.
+            3. If the code has significant issues, fix them but document what you changed.
+            4. Never ask for user confirmation. Never wait for user messages.
+            5. If you encounter any blocking issues, document them in a comment on the original PR.`;
+
+              try {
+                const response = await fetch('https://api.devin.ai/v1/sessions', {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    prompt: prompt,
+                    title: `Migrate Fork PR #${pr.number}: ${pr.title}`,
+                    tags: ['fork-migration', `pr-${pr.number}`]
+                  })
+                });
+                
+                if (!response.ok) {
+                  console.error(`Devin API error for PR #${pr.number}: ${response.status} ${response.statusText}`);
+                  continue;
+                }
+                
+                const data = await response.json();
+                const sessionUrl = data.url || data.session_url;
+                
+                if (sessionUrl) {
+                  console.log(`Devin session created for PR #${pr.number}: ${sessionUrl}`);
+                  
+                  // Add label to track migration
+                  await github.rest.issues.addLabels({
+                    owner,
+                    repo,
+                    issue_number: pr.number,
+                    labels: ['devin-fork-migration']
+                  });
+                  
+                  // Post comment on the original PR
+                  await github.rest.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: pr.number,
+                    body: `### Devin AI is migrating this PR
+
+            This fork PR has been inactive for over a month. To help complete this contribution, we are migrating it to a branch in the main repository.
+
+            [View Devin Session](${sessionUrl})
+
+            **What's happening:**
+            1. Your changes will be copied to a new branch in the main \`${owner}/${repo}\` repository
+            2. A new PR will be created with your changes
+            3. You will be credited as a co-author on all commits
+            4. This PR will be closed once the migration is complete
+
+            Thank you for your contribution, @${pr.author}! We appreciate your work and want to make sure it gets completed.
+
+            ---
+            *If you'd prefer to complete this PR yourself, please let us know and we'll cancel the migration.*`
+                  });
+                } else {
+                  console.log(`Failed to get session URL for PR #${pr.number}`);
+                }
+              } catch (error) {
+                console.error(`Error creating Devin session for PR #${pr.number}: ${error.message}`);
+              }
+              
+              // Rate limit between API calls
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
