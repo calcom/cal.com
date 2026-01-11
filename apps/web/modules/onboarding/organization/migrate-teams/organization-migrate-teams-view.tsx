@@ -81,7 +81,8 @@ export const OrganizationMigrateTeamsView = ({ userEmail }: OrganizationMigrateT
             return {
               id: team.id,
               shouldMove: slugConflictsWithOrg || !!teamToMigrateInStore,
-              newSlug: teamToMigrateInStore?.slug || getSuggestedSlug({ teamSlug: team.slug, orgSlug }),
+              newSlug:
+                teamToMigrateInStore?.slug ?? getSuggestedSlug({ teamSlug: team.slug, orgSlug }) ?? undefined,
             };
           }),
         });
@@ -191,7 +192,6 @@ export const OrganizationMigrateTeamsView = ({ userEmail }: OrganizationMigrateT
                         control={control}
                         render={({ field: { value, onChange } }) => (
                           <CheckboxField
-                            defaultValue={value}
                             checked={value || slugConflictsWithOrg}
                             onChange={onChange}
                             description={currentTeam?.name ?? ""}
