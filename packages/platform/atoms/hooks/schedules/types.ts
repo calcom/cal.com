@@ -11,11 +11,15 @@ export type ScheduleAvailability = {
 
 export type Schedule = {
   id: number;
+  userId: number;
   name: string;
   timeZone: string | null;
 };
 
-export type ScheduleWithAvailability = Schedule & {
+export type ScheduleForList = {
+  id: number;
+  name: string;
+  timeZone: string | null;
   availability: ScheduleAvailability[];
   isDefault: boolean;
 };
@@ -29,7 +33,7 @@ export type DuplicateScheduleHandlerReturn = {
 };
 
 export type GetAvailabilityListHandlerReturn = {
-  schedules: ScheduleWithAvailability[];
+  schedules: ScheduleForList[];
 };
 
 export type CreateScheduleInput = {
