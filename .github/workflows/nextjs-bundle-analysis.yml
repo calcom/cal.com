@@ -68,3 +68,9 @@ jobs:
         with:
           name: bundle
           path: apps/web/.next/analyze/__bundle_analysis.json
+
+      - name: Delete cached build
+        uses: useblacksmith/cache-delete@v1
+        with:
+          key: prod-build-main-
+          prefix: "true"

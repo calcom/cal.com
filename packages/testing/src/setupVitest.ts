@@ -161,3 +161,9 @@ vi.mock("@calcom/app-store/payment.services.generated", () => ({
     "mock-payment-app": Promise.resolve({ PaymentService: MockPaymentService }),
   },
 }));
+
+if (!process.env.INTEGRATION_TESTS) {
+  vi.mock("@calcom/app-store/salesforce/lib/graphql/documents/queries", () => ({
+    GetAccountRecordsForRRSkip: {},
+  }));
+}
