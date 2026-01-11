@@ -7,7 +7,7 @@ import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
-import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -80,7 +80,7 @@ export const PaymentFormComponent = (
         <PaymentElement options={paymentElementOptions} onChange={(_) => onPaymentElementChange()} />
       </div>
       {paymentOption === "HOLD" && (
-        <div className="bg-info mb-5 mt-2 rounded-md p-3">
+        <div className="bg-cal-info mb-5 mt-2 rounded-md p-3">
           <CheckboxField
             description={t("acknowledge_booking_no_show_fee", {
               amount: props.payment.amount / 100,

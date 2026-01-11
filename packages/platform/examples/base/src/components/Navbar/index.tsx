@@ -6,10 +6,10 @@ const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function Navbar({ username }: { username?: string }) {
   return (
-    <nav className="flex h-[75px] w-[100%] items-center justify-between bg-black px-14 py-3 text-white">
-      <div className={`flex h-[100%] items-center text-lg ${poppins.className}`}>
+    <nav className="flex h-[75px] w-full items-center justify-between bg-black px-14 py-3 text-white">
+      <div className={`flex h-full items-center text-lg ${poppins.className}`}>
         <Link href="/">
-          <h1 className="bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] bg-clip-text text-2xl font-bold text-transparent">
+          <h1 className="bg-linear-to-r from-[#8A2387] via-[#E94057] to-[#F27121] bg-clip-text text-2xl font-bold text-transparent">
             CalSync
           </h1>
         </Link>

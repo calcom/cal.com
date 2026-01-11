@@ -47,7 +47,7 @@ export const EditableHeading = function EditableHeading({
             onChange={(e) => onChange && onChange(e.target.value)}
           />
           {!isEditing && isReady && !disabled && (
-            <Icon name="pencil" className="text-subtle group-hover:text-subtle -mt-px ml-1 inline  h-3 w-3" />
+            <Icon name="pencil" className="text-subtle group-hover:text-subtle -mt-px ml-3 inline h-3 w-3" />
           )}
         </label>
       </div>

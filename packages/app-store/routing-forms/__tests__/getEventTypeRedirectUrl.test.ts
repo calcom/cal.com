@@ -11,6 +11,9 @@ describe("getAbsoluteEventTypeRedirectUrl", () => {
     nonOrgTeamslug: null,
     userOrigin: "https://user.cal.com",
     teamOrigin: "https://team.cal.com",
+    user: {
+      username: null,
+    },
   };
 
   const defaultParams = {
@@ -23,14 +26,26 @@ describe("getAbsoluteEventTypeRedirectUrl", () => {
   it("should return WEBAPP_URL for non-migrated user", () => {
     const result = getAbsoluteEventTypeRedirectUrl({
       ...defaultParams,
-      eventTypeRedirectUrl: "user/event",
-      form: { ...defaultForm, nonOrgUsername: "user" },
+      eventTypeRedirectUrl: "old-user/event",
+      form: {
+        ...defaultForm,
+        nonOrgUsername: "old-user",
+        user: { username: "new-user" },
+      },
     });
-    expect(result).toBe(`${WEBAPP_URL}/user/event?`);
+    expect(result).toBe(`${WEBAPP_URL}/old-user/event?`);
   });
 
   it("should return user origin for migrated user", () => {
-    const result = getAbsoluteEventTypeRedirectUrl(defaultParams);
+    const result = getAbsoluteEventTypeRedirectUrl({
+      ...defaultParams,
+      eventTypeRedirectUrl: "user/event",
+      form: {
+        ...defaultForm,
+        nonOrgUsername: "user",
+        user: { username: "user" },
+      },
+    });
     expect(result).toBe("https://user.cal.com/user/event?");
   });
 
@@ -75,5 +90,50 @@ describe("getAbsoluteEventTypeRedirectUrl", () => {
         eventTypeRedirectUrl: "team/",
       })
     ).toThrow("eventTypeRedirectUrl must have username or teamSlug");
+  });
+
+  it("should use '&' separator when redirect URL already contains query parameters", () => {
+    const result = getAbsoluteEventTypeRedirectUrl({
+      ...defaultParams,
+      eventTypeRedirectUrl: "user/event?existing=param",
+      allURLSearchParams: new URLSearchParams("foo=bar"),
+    });
+    expect(result).toBe("https://user.cal.com/user/event?existing=param&foo=bar");
+  });
+
+  it("should merge with '&' when redirect URL already contains multiple query parameters", () => {
+    const result = getAbsoluteEventTypeRedirectUrl({
+      ...defaultParams,
+      eventTypeRedirectUrl: "user/event?existing1=param1&existing2=param2",
+      allURLSearchParams: new URLSearchParams("foo=bar"),
+    });
+    expect(result).toBe("https://user.cal.com/user/event?existing1=param1&existing2=param2&foo=bar");
+  });
+
+  it("should merge with '&' when no URL search params are present", () => {
+    const result = getAbsoluteEventTypeRedirectUrl({
+      ...defaultParams,
+      eventTypeRedirectUrl: "user/event?existing=param",
+      allURLSearchParams: new URLSearchParams(),
+    });
+    expect(result).toBe("https://user.cal.com/user/event?existing=param&");
+  });
+
+  it("should merge when redirect URL ends with '/'", () => {
+    const result = getAbsoluteEventTypeRedirectUrl({
+      ...defaultParams,
+      eventTypeRedirectUrl: "user/event/",
+      allURLSearchParams: new URLSearchParams("foo=bar"),
+    });
+    expect(result).toBe("https://user.cal.com/user/event/?foo=bar");
+  });
+
+  it("should be able to merge when redirect URL ends with '?'", () => {
+    const result = getAbsoluteEventTypeRedirectUrl({
+      ...defaultParams,
+      eventTypeRedirectUrl: "user/event?",
+      allURLSearchParams: new URLSearchParams("foo=bar"),
+    });
+    expect(result).toBe("https://user.cal.com/user/event?&foo=bar");
   });
 });

@@ -95,7 +95,7 @@ export class RetellSDKClient implements RetellAIRepository {
     }
   }
 
-  async createAgent(data: CreateAgentRequest): Promise<RetellAgent> {
+  async createOutboundAgent(data: CreateAgentRequest): Promise<RetellAgent> {
     this.logger.info("Creating agent via SDK", {
       agentName: data.agent_name,
     });
@@ -273,7 +273,6 @@ export class RetellSDKClient implements RetellAIRepository {
   }
 
   async listVoices(): Promise<RetellVoice[]> {
-
     try {
       const response = await this.client.voice.list();
 

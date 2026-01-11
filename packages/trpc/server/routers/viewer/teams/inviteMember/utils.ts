@@ -1,20 +1,21 @@
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import type { TFunction } from "i18next";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { sendTeamInviteEmail } from "@calcom/emails";
+import { sendTeamInviteEmail } from "@calcom/emails/organization-email-service";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
+import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
-import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
@@ -436,7 +437,9 @@ export async function createMemberships({
   try {
     await prisma.membership.createMany({
       data: invitees.flatMap((invitee) => {
-        const organizationRole = invitee?.teams?.[0]?.role;
+        const organizationRole = parentId
+          ? invitee?.teams?.find((membership) => membership.teamId === parentId)?.role
+          : undefined;
         const data = [];
         const createdAt = new Date();
         // membership for the team
@@ -470,6 +473,22 @@ export async function createMemberships({
   }
 }
 
+const createVerificationToken = async (identifier: string, teamId: number) => {
+  const token = randomBytes(32).toString("hex");
+  return prisma.verificationToken.create({
+    data: {
+      identifier,
+      token,
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
+      team: {
+        connect: {
+          id: teamId,
+        },
+      },
+    },
+  });
+};
+
 export async function sendSignupToOrganizationEmail({
   usernameOrEmail,
   team,
@@ -486,26 +505,14 @@ export async function sendSignupToOrganizationEmail({
   isOrg: boolean;
 }) {
   try {
-    const token: string = randomBytes(32).toString("hex");
-
-    await prisma.verificationToken.create({
-      data: {
-        identifier: usernameOrEmail,
-        token,
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
-        team: {
-          connect: {
-            id: teamId,
-          },
-        },
-      },
-    });
+    const verificationToken = await createVerificationToken(usernameOrEmail, teamId);
+    const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
     await sendTeamInviteEmail({
       language: translation,
       from: inviterName || `${team.name}'s admin`,
       to: usernameOrEmail,
       teamName: team.name,
-      joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
+      joinLink: `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=${gettingStartedPath}`,
       isCalcomMember: false,
       isOrg: isOrg,
       parentTeamName: team?.parent?.name,
@@ -642,15 +649,17 @@ export const groupUsersByJoinability = ({
       connectionInfoMap,
     });
 
-    autoJoinStatus.autoAccept
-      ? usersToAutoJoin.push({
-          ...existingUserWithMemberships,
-          ...autoJoinStatus,
-        })
-      : regularUsers.push({
-          ...existingUserWithMemberships,
-          ...autoJoinStatus,
-        });
+    if (autoJoinStatus.autoAccept) {
+      usersToAutoJoin.push({
+        ...existingUserWithMemberships,
+        ...autoJoinStatus,
+      });
+    } else {
+      regularUsers.push({
+        ...existingUserWithMemberships,
+        ...autoJoinStatus,
+      });
+    }
   }
 
   return [usersToAutoJoin, regularUsers];
@@ -712,22 +721,23 @@ export const sendExistingUserTeamInviteEmails = async ({
        * This only changes if the user is a CAL user and has not completed onboarding and has no password
        */
       if (!user.completedOnboarding && !user.password?.hash && user.identityProvider === "CAL") {
-        const token = randomBytes(32).toString("hex");
-        await prisma.verificationToken.create({
-          data: {
+        const verificationToken = await createVerificationToken(user.email, teamId);
+
+        const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=${gettingStartedPath}`;
+        inviteTeamOptions.isCalcomMember = false;
+      } else if (!isAutoJoin) {
+        let verificationToken = await prisma.verificationToken.findFirst({
+          where: {
             identifier: user.email,
-            token,
-            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
-            team: {
-              connect: {
-                id: teamId,
-              },
-            },
+            teamId: teamId,
           },
         });
 
-        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
-        inviteTeamOptions.isCalcomMember = false;
+        if (!verificationToken) {
+          verificationToken = await createVerificationToken(user.email, teamId);
+        }
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/teams?token=${verificationToken.token}&autoAccept=true`;
       }
 
       return sendTeamInviteEmail({
@@ -747,12 +757,6 @@ export const sendExistingUserTeamInviteEmails = async ({
   });
 
   await sendEmails(sendEmailsPromises);
-};
-
-type inviteMemberHandlerInput = {
-  teamId: number;
-  role?: "ADMIN" | "MEMBER" | "OWNER";
-  language: string;
 };
 
 export async function handleExistingUsersInvites({
@@ -985,7 +989,7 @@ export async function handleNewUsersInvites({
 }) {
   const translation = await getTranslation(language, "common");
 
-  await createNewUsersConnectToOrgIfExists({
+  const createdUsers = await createNewUsersConnectToOrgIfExists({
     invitations: invitationsForNewUsers,
     isOrg,
     teamId: teamId,
@@ -995,6 +999,25 @@ export async function handleNewUsersInvites({
     language,
     creationSource,
   });
+
+  // Add auto-accepted users to team event types with assignAllTeamMembers immediately
+  // Only teams have event types with assignAllTeamMembers, not organizations
+  if (!isOrg) {
+    const autoAcceptedUserIds = createdUsers
+      .filter((user) => orgConnectInfoByUsernameOrEmail[user.email].autoAccept)
+      .map((user) => user.id);
+
+    if (autoAcceptedUserIds.length > 0) {
+      const results = await Promise.allSettled(
+        autoAcceptedUserIds.map((userId) => updateNewTeamMemberEventTypes(userId, teamId))
+      );
+      results.forEach((result) => {
+        if (result.status === "rejected") {
+          log.error("Error updating new team member event types for user", result.reason);
+        }
+      });
+    }
+  }
 
   const sendVerifyEmailsPromises = invitationsForNewUsers.map((invitation) => {
     return sendSignupToOrganizationEmail({

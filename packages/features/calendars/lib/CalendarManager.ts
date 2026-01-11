@@ -1,23 +1,24 @@
-// eslint-disable-next-line no-restricted-imports
 import { sortBy } from "lodash";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
+import getCalendarsEvents, {
+  getCalendarsEventsWithTimezones,
+} from "@calcom/features/calendars/lib/getCalendarsEvents";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
-import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/clientAndServer";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
-import getCalendarsEvents from "@calcom/lib/getCalendarsEvents";
-import { getCalendarsEventsWithTimezones } from "@calcom/lib/getCalendarsEvents";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   CalendarEvent,
+  CalendarFetchMode,
   CalendarServiceEvent,
   EventBusyDate,
   IntegrationCalendar,
@@ -34,7 +35,7 @@ export const getCalendarCredentials = (credentials: Array<CredentialForCalendarS
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
-        const calendar = () => getCalendar(credential);
+        const calendar = () => getCalendar(credential, "slots");
         return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
       });
 
@@ -134,7 +135,7 @@ export const getConnectedCalendars = async (
           errorMessage = error.message;
         }
 
-        log.error("getConnectedCalendars failed", errorMessage, safeStringify({ item }));
+        log.error("getConnectedCalendars failed", error, safeStringify({ credentialId: item.credential.id }));
 
         return {
           integration: cleanIntegrationKeys(item.integration),
@@ -236,7 +237,7 @@ export const getBusyCalendarTimes = async (
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
-  shouldServeCache?: boolean,
+  mode?: CalendarFetchMode,
   includeTimeZone?: boolean
 ) => {
   let results: (EventBusyDate & { timeZone?: string })[][] = [];
@@ -274,7 +275,7 @@ export const getBusyCalendarTimes = async (
         startDate,
         endDate,
         selectedCalendars,
-        shouldServeCache
+        mode ?? "slots"
       );
     }
   } catch (e) {
@@ -295,7 +296,7 @@ export const createEvent = async (
   // Some calendar libraries may edit the original event so let's clone it
   const formattedEvent = formatCalEvent(originalEvent);
   const uid: string = getUid(formattedEvent);
-  const calendar = await getCalendar(credential);
+  const calendar = await getCalendar(credential, "booking");
   let success = true;
   let calError: string | undefined = undefined;
 
@@ -365,7 +366,7 @@ export const createEvent = async (
     })
   );
   return {
-    appName: credential.appId || "",
+    appName: credential.appName || credential.appId || "",
     type: credential.type,
     success,
     uid,
@@ -389,7 +390,7 @@ export const updateEvent = async (
   const formattedEvent = formatCalEvent(rawCalEvent);
   const calEvent = processEvent(formattedEvent);
   const uid = getUid(calEvent);
-  const calendar = await getCalendar(credential);
+  const calendar = await getCalendar(credential, "booking");
   let success = false;
   let calError: string | undefined = undefined;
   let calWarnings: string[] | undefined = [];
@@ -450,7 +451,7 @@ export const updateEvent = async (
   }
 
   return {
-    appName: credential.appId || "",
+    appName: credential.appName || credential.appId || "",
     type: credential.type,
     success,
     uid,
@@ -472,7 +473,7 @@ export const deleteEvent = async ({
   event: CalendarEvent;
   externalCalendarId?: string | null;
 }): Promise<unknown> => {
-  const calendar = await getCalendar(credential);
+  const calendar = await getCalendar(credential, "booking");
   log.debug(
     "Deleting calendar event",
     safeStringify({
@@ -499,6 +500,12 @@ export const deleteEvent = async ({
  * Process the calendar event by generating description and removing attendees if needed
  */
 const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
+  if (calEvent.seatsPerTimeSlot){
+    calEvent.responses = null;
+    calEvent.userFieldsResponses = null;
+    calEvent.additionalNotes = null;
+    calEvent.customInputs = null;
+  }
   // Generate the calendar event description
   const calendarEvent: CalendarServiceEvent = {
     ...calEvent,

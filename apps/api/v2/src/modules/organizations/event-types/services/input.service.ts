@@ -8,11 +8,18 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { SchedulingType } from "@calcom/platform-libraries";
+import { slugifyLenient } from "@calcom/platform-libraries";
+import { EventTypeMetadata } from "@calcom/platform-libraries/event-types";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
   HostPriority,
+  EmailSettings_2024_06_14,
 } from "@calcom/platform-types";
+import type { EventType } from "@calcom/prisma/client";
+
+export const HOSTS_REQUIRED_WHEN_SWITCHING_SCHEDULING_TYPE_ERROR =
+  "Hosts required when switching schedulingType. Please provide 'hosts' or set 'assignAllTeamMembers: true' to specify how hosts should be configured for the new scheduling type.";
 
 export type TransformedCreateTeamEventTypeInput = Awaited<
   ReturnType<InstanceType<typeof InputOrganizationsEventTypesService>["transformInputCreateTeamEventType"]>
@@ -36,11 +43,13 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
+    const slugifiedInputEventType = { ...inputEventType, slug: slugifyLenient(inputEventType.slug) };
+
     await this.validateInputLocations(teamId, inputEventType.locations);
     await this.validateHosts(teamId, inputEventType.hosts);
-    await this.validateTeamEventTypeSlug(teamId, inputEventType.slug);
+    await this.validateTeamEventTypeSlug(teamId, slugifiedInputEventType.slug);
 
-    const transformedBody = await this.transformInputCreateTeamEventType(teamId, inputEventType);
+    const transformedBody = await this.transformInputCreateTeamEventType(teamId, slugifiedInputEventType);
 
     await this.inputEventTypesService.validateEventTypeInputs({
       seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
@@ -49,14 +58,16 @@ export class InputOrganizationsEventTypesService {
       eventName: transformedBody.eventName,
     });
 
-    transformedBody.destinationCalendar &&
-      (await this.inputEventTypesService.validateInputDestinationCalendar(
+    if (transformedBody.destinationCalendar) {
+      await this.inputEventTypesService.validateInputDestinationCalendar(
         userId,
         transformedBody.destinationCalendar
-      ));
+      );
+    }
 
-    transformedBody.useEventTypeDestinationCalendarEmail &&
-      (await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId));
+    if (transformedBody.useEventTypeDestinationCalendarEmail) {
+      await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId);
+    }
 
     return transformedBody;
   }
@@ -67,13 +78,21 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: UpdateTeamEventTypeInput_2024_06_14
   ) {
+    const slugifiedInputEventType = inputEventType.slug
+      ? { ...inputEventType, slug: slugifyLenient(inputEventType.slug) }
+      : inputEventType;
+
     await this.validateInputLocations(teamId, inputEventType.locations);
     await this.validateHosts(teamId, inputEventType.hosts);
-    if (inputEventType.slug) {
-      await this.validateTeamEventTypeSlug(teamId, inputEventType.slug);
+    if (slugifiedInputEventType.slug) {
+      await this.validateTeamEventTypeSlug(teamId, slugifiedInputEventType.slug);
     }
 
-    const transformedBody = await this.transformInputUpdateTeamEventType(eventTypeId, teamId, inputEventType);
+    const transformedBody = await this.transformInputUpdateTeamEventType(
+      eventTypeId,
+      teamId,
+      slugifiedInputEventType
+    );
 
     await this.inputEventTypesService.validateEventTypeInputs({
       eventTypeId: eventTypeId,
@@ -83,14 +102,16 @@ export class InputOrganizationsEventTypesService {
       eventName: transformedBody.eventName,
     });
 
-    transformedBody.destinationCalendar &&
-      (await this.inputEventTypesService.validateInputDestinationCalendar(
+    if (transformedBody.destinationCalendar) {
+      await this.inputEventTypesService.validateInputDestinationCalendar(
         userId,
         transformedBody.destinationCalendar
-      ));
+      );
+    }
 
-    transformedBody.useEventTypeDestinationCalendarEmail &&
-      (await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId));
+    if (transformedBody.useEventTypeDestinationCalendarEmail) {
+      await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId);
+    }
 
     return transformedBody;
   }
@@ -110,9 +131,11 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
-    const { hosts, assignAllTeamMembers, locations, ...rest } = inputEventType;
+    const { assignAllTeamMembers, locations, emailSettings, ...rest } = inputEventType;
 
     const eventType = this.inputEventTypesService.transformInputCreateEventType(rest);
+
+    const isManagedEventType = rest.schedulingType === "MANAGED";
 
     const defaultLocations: CreateTeamEventTypeInput_2024_06_14["locations"] = [
       {
@@ -121,21 +144,21 @@ export class InputOrganizationsEventTypesService {
       },
     ];
 
-    const children = await this.getChildEventTypesForManagedEventTypeCreate(inputEventType, teamId);
+    const children = isManagedEventType
+      ? await this.getChildEventTypesForManagedEventTypeCreate(inputEventType, teamId)
+      : undefined;
 
-    const metadata =
-      rest.schedulingType === "MANAGED"
-        ? { managedEventConfig: {}, ...eventType.metadata }
-        : eventType.metadata;
+    let metadata = isManagedEventType
+      ? { managedEventConfig: {}, ...eventType.metadata }
+      : eventType.metadata;
+
+    if (emailSettings) {
+      metadata = this.addEmailSettingsToMetadata(emailSettings, metadata);
+    }
 
     const teamEventType = {
       ...eventType,
-      // note(Lauris): we don't populate hosts for managed event-types because they are handled by the children
-      hosts: !(rest.schedulingType === "MANAGED")
-        ? assignAllTeamMembers
-          ? await this.getAllTeamMembers(teamId, inputEventType.schedulingType)
-          : this.transformInputHosts(hosts, inputEventType.schedulingType)
-        : undefined,
+      hosts: await this.transformInputCreateTeamEventTypeHosts(teamId, inputEventType),
       assignAllTeamMembers,
       locations: this.transformInputTeamLocations(locations || defaultLocations),
       metadata,
@@ -145,12 +168,60 @@ export class InputOrganizationsEventTypesService {
     return teamEventType;
   }
 
+  private async transformInputCreateTeamEventTypeHosts(
+    teamId: number,
+    inputEventType: CreateTeamEventTypeInput_2024_06_14
+  ) {
+    const { hosts, assignAllTeamMembers, schedulingType } = inputEventType;
+
+    // note(Lauris): we don't populate hosts for managed event-types because they are handled by the children - each child managed event type is associated with
+    // a specific user and hosts property is only for team event types e.g round robin and collective.
+    if (schedulingType === "MANAGED") {
+      return undefined;
+    }
+
+    if (assignAllTeamMembers) {
+      return await this.getAllTeamMembers(teamId, inputEventType.schedulingType);
+    }
+    return this.transformInputHosts(hosts, inputEventType.schedulingType);
+  }
+
+  private addEmailSettingsToMetadata(
+    emailSettings: EmailSettings_2024_06_14,
+    metadata: NonNullable<EventTypeMetadata>
+  ) {
+    if (
+      emailSettings?.disableEmailsToAttendees === undefined &&
+      emailSettings?.disableEmailsToHosts === undefined
+    ) {
+      return metadata;
+    }
+
+    const clonedMetadata = structuredClone(metadata);
+
+    if (!clonedMetadata.disableStandardEmails) {
+      clonedMetadata.disableStandardEmails = {};
+    }
+    if (!clonedMetadata.disableStandardEmails.all) {
+      clonedMetadata.disableStandardEmails.all = {};
+    }
+
+    if (emailSettings?.disableEmailsToAttendees !== undefined) {
+      clonedMetadata.disableStandardEmails.all.attendee = emailSettings.disableEmailsToAttendees;
+    }
+    if (emailSettings?.disableEmailsToHosts !== undefined) {
+      clonedMetadata.disableStandardEmails.all.host = emailSettings.disableEmailsToHosts;
+    }
+
+    return clonedMetadata;
+  }
+
   async transformInputUpdateTeamEventType(
     eventTypeId: number,
     teamId: number,
     inputEventType: UpdateTeamEventTypeInput_2024_06_14
   ) {
-    const { hosts, assignAllTeamMembers, locations, ...rest } = inputEventType;
+    const { assignAllTeamMembers, locations, emailSettings, ...rest } = inputEventType;
 
     const eventType = await this.inputEventTypesService.transformInputUpdateEventType(rest, eventTypeId);
     const dbEventType = await this.teamsEventTypesRepository.getTeamEventType(teamId, eventTypeId);
@@ -164,20 +235,54 @@ export class InputOrganizationsEventTypesService {
         ? await this.getChildEventTypesForManagedEventTypeUpdate(eventTypeId, inputEventType, teamId)
         : undefined;
 
+    let metadata = eventType.metadata;
+
+    if (emailSettings) {
+      metadata = this.addEmailSettingsToMetadata(emailSettings, metadata);
+    }
+
     const teamEventType = {
       ...eventType,
       // note(Lauris): we don't populate hosts for managed event-types because they are handled by the children
-      hosts: !children
-        ? assignAllTeamMembers
-          ? await this.getAllTeamMembers(teamId, dbEventType.schedulingType)
-          : this.transformInputHosts(hosts, dbEventType.schedulingType)
-        : undefined,
+      hosts: await this.transformInputUpdateTeamEventTypeHosts(
+        teamId,
+        dbEventType.schedulingType,
+        inputEventType
+      ),
       assignAllTeamMembers,
       children,
       locations: locations ? this.transformInputTeamLocations(locations) : undefined,
+      metadata,
     };
 
     return teamEventType;
+  }
+
+  private async transformInputUpdateTeamEventTypeHosts(
+    teamId: number,
+    dbEventTypeSchedulingType: EventType["schedulingType"],
+    inputEventType: UpdateTeamEventTypeInput_2024_06_14
+  ) {
+    const { hosts, assignAllTeamMembers } = inputEventType;
+
+    if (dbEventTypeSchedulingType === "MANAGED") {
+      // note(Lauris): we don't populate hosts for managed event-types because they are handled by the event type children
+      return undefined;
+    }
+
+    const isSchedulingTypeChanging =
+      inputEventType.schedulingType && inputEventType.schedulingType !== dbEventTypeSchedulingType;
+
+    if (isSchedulingTypeChanging && !assignAllTeamMembers && !hosts) {
+      throw new BadRequestException(HOSTS_REQUIRED_WHEN_SWITCHING_SCHEDULING_TYPE_ERROR);
+    }
+
+    const nextSchedulingType = inputEventType.schedulingType || dbEventTypeSchedulingType;
+    if (assignAllTeamMembers) {
+      return await this.getAllTeamMembers(teamId, nextSchedulingType);
+    }
+
+    return this.transformInputHosts(hosts, nextSchedulingType);
   }
 
   async getChildEventTypesForManagedEventTypeUpdate(
@@ -226,7 +331,7 @@ export class InputOrganizationsEventTypesService {
   }
 
   async getChildEventTypesForManagedEventTypeCreate(
-    inputEventType: UpdateTeamEventTypeInput_2024_06_14,
+    inputEventType: Pick<CreateTeamEventTypeInput_2024_06_14, "assignAllTeamMembers" | "hosts">,
     teamId: number
   ) {
     const ownersIds = await this.getOwnersIdsForManagedEventTypeCreate(teamId, inputEventType);
@@ -242,7 +347,7 @@ export class InputOrganizationsEventTypesService {
 
   async getOwnersIdsForManagedEventTypeCreate(
     teamId: number,
-    inputEventType: UpdateTeamEventTypeInput_2024_06_14
+    inputEventType: Pick<CreateTeamEventTypeInput_2024_06_14, "assignAllTeamMembers" | "hosts">
   ) {
     if (inputEventType.assignAllTeamMembers) {
       return await this.getTeamUsersIds(teamId);

@@ -289,7 +289,7 @@ export class UsersRepository {
         user: true,
       },
     });
-    return profiles.map((profile) => profile.user);
+    return profiles.map((profile: Profile & { user: User }) => profile.user);
   }
 
   async setDefaultConferencingApp(userId: number, appSlug?: string, appLink?: string) {
@@ -407,5 +407,75 @@ export class UsersRepository {
         email: true,
       },
     });
+  }
+
+  async getUserEmailsVerifiedForTeam(teamId: number) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        teams: {
+          some: {
+            teamId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        secondaryEmails: {
+          where: {
+            emailVerified: {
+              not: null,
+            },
+          },
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findVerifiedSecondaryEmail(userId: number, email: string) {
+    return this.dbRead.prisma.secondaryEmail.findUnique({
+      where: {
+        userId_email: {
+          userId: userId,
+          email: email,
+        },
+      },
+      select: {
+        id: true,
+        emailVerified: true,
+      },
+    });
+  }
+
+  async swapPrimaryEmailWithSecondaryEmail(
+    userId: number,
+    secondaryEmailId: number,
+    oldPrimaryEmail: string,
+    oldPrimaryEmailVerified: Date | null,
+    newPrimaryEmail: string
+  ) {
+    const [, updatedUser] = await this.dbWrite.prisma.$transaction([
+      this.dbWrite.prisma.secondaryEmail.update({
+        where: {
+          id: secondaryEmailId,
+          userId: userId,
+        },
+        data: {
+          email: oldPrimaryEmail,
+          emailVerified: oldPrimaryEmailVerified,
+        },
+      }),
+      this.dbWrite.prisma.user.update({
+        where: { id: userId },
+        data: {
+          email: newPrimaryEmail,
+        },
+      }),
+    ]);
+
+    return updatedUser;
   }
 }
