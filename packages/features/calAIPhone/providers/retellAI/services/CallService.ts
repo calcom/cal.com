@@ -95,7 +95,7 @@ export class CallService {
 
     await checkRateLimitAndThrowError({
       rateLimitingType: "core",
-      identifier: `test-call:${userId}`,
+      identifier: `createTestCall:${userId}`,
     });
 
     const toNumber = phoneNumber?.trim();
@@ -184,7 +184,7 @@ export class CallService {
 
     await checkRateLimitAndThrowError({
       rateLimitingType: "core",
-      identifier: `web-call:${userId}`,
+      identifier: `createWebCall:${userId}`,
     });
 
     const agent = await this.deps.agentRepository.findByIdWithCallAccess({

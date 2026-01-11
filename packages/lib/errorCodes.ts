@@ -1,5 +1,6 @@
 export enum ErrorCode {
   // 400 Bad Request - Client errors, invalid input, validation failures
+  BadRequest = "bad_request_error",
   ChargeCardFailure = "couldnt_charge_card_error",
   RequestBodyWithouEnd = "request_body_end_time_internal_error",
   MissingPaymentCredential = "missing_payment_credential_error",
@@ -29,6 +30,7 @@ export enum ErrorCode {
   Forbidden = "forbidden",
 
   // 404 Not Found - Resource does not exist
+  NotFound = "not_found_error",
   EventTypeNotFound = "event_type_not_found_error",
   BookingNotFound = "booking_not_found_error",
   RestrictionScheduleNotFound = "restriction_schedule_not_found_error",
@@ -58,6 +60,7 @@ export enum ErrorCode {
 
 export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
   // 400 Bad Request - Client errors, invalid input, validation failures
+  [ErrorCode.BadRequest]: 400,
   [ErrorCode.ChargeCardFailure]: 400,
   [ErrorCode.RequestBodyWithouEnd]: 400,
   [ErrorCode.MissingPaymentCredential]: 400,
@@ -87,6 +90,7 @@ export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.Forbidden]: 403,
 
   // 404 Not Found - Resource does not exist
+  [ErrorCode.NotFound]: 404,
   [ErrorCode.EventTypeNotFound]: 404,
   [ErrorCode.BookingNotFound]: 404,
   [ErrorCode.RestrictionScheduleNotFound]: 404,

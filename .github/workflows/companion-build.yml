@@ -1,0 +1,44 @@
+name: Companion Builds
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  EXPO_PUBLIC_CAL_API_KEY: ${{ secrets.CI_EXPO_PUBLIC_CAL_API_KEY || vars.CI_EXPO_PUBLIC_CAL_API_KEY || vars.EXPO_PUBLIC_CAL_API_KEY }}
+
+jobs:
+  build:
+    name: Build Companion App & Extension
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3.0
+          cache: true
+          cache-dependency-path: companion/bun.lock
+
+      - name: Install dependencies
+        working-directory: companion
+        run: bun install --frozen-lockfile
+
+      - name: Build Expo web app
+        working-directory: companion
+        env:
+          EXPO_NO_TELEMETRY: 1
+          CI: true
+        run: bunx expo export --platform web
+
+      - name: Build browser extension
+        working-directory: companion
+        run: bun run ext:build

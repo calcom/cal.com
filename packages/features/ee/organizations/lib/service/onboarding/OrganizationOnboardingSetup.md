@@ -63,7 +63,6 @@ NEXT_PUBLIC_HOSTED_CAL_FEATURES=true
 NEXT_PUBLIC_IS_E2E=1
 
 # Organization pricing
-NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS=5
 NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW=37
 ```
 
@@ -74,13 +73,16 @@ The system relies on several computed constants from `@calcom/lib/constants`:
 ### Server-Side Constants
 
 - **`IS_TEAM_BILLING_ENABLED`**: `IS_STRIPE_ENABLED && HOSTED_CAL_FEATURES`
+
   - Determines if billing is globally enabled
   - Used in: `OrganizationOnboardingFactory`
 
 - **`IS_STRIPE_ENABLED`**: `!!(STRIPE_CLIENT_ID && NEXT_PUBLIC_STRIPE_PUBLIC_KEY && STRIPE_PRIVATE_KEY)`
+
   - Checks if Stripe is properly configured
 
 - **`HOSTED_CAL_FEATURES`**: `process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES || !IS_SELF_HOSTED`
+
   - Enables hosted features (including billing)
 
 - **`IS_SELF_HOSTED`**: `!CAL_DOMAINS.some(domain => WEBAPP_HOSTNAME.endsWith(domain))`
@@ -97,6 +99,7 @@ The system relies on several computed constants from `@calcom/lib/constants`:
 ### Scenario 1: Hosted Cal.com (Official)
 
 **Environment:**
+
 ```bash
 # Domain: *.cal.com, *.cal.dev, etc.
 STRIPE_CLIENT_ID=ca_xxx
@@ -105,6 +108,7 @@ STRIPE_PRIVATE_KEY=sk_live_xxx
 ```
 
 **Result:**
+
 - `IS_SELF_HOSTED` = `false`
 - `HOSTED_CAL_FEATURES` = `true`
 - `IS_TEAM_BILLING_ENABLED` = `true`
@@ -113,6 +117,7 @@ STRIPE_PRIVATE_KEY=sk_live_xxx
 ### Scenario 2: Self-Hosted with Billing (Optional)
 
 **Environment:**
+
 ```bash
 # Domain: custom.example.com
 NEXT_PUBLIC_HOSTED_CAL_FEATURES=true
@@ -122,6 +127,7 @@ STRIPE_PRIVATE_KEY=sk_live_xxx
 ```
 
 **Result:**
+
 - `IS_SELF_HOSTED` = `true`
 - `HOSTED_CAL_FEATURES` = `true` (forced)
 - `IS_TEAM_BILLING_ENABLED` = `true`
@@ -130,12 +136,14 @@ STRIPE_PRIVATE_KEY=sk_live_xxx
 ### Scenario 3: Self-Hosted without Billing (Default)
 
 **Environment:**
+
 ```bash
 # Domain: custom.example.com
 # No Stripe configuration
 ```
 
 **Result:**
+
 - `IS_SELF_HOSTED` = `true`
 - `HOSTED_CAL_FEATURES` = `false`
 - `IS_TEAM_BILLING_ENABLED` = `false`
@@ -147,12 +155,14 @@ STRIPE_PRIVATE_KEY=sk_live_xxx
 ### Scenario 4: E2E Testing
 
 **Environment:**
+
 ```bash
 NEXT_PUBLIC_IS_E2E=1
 # Any other configuration
 ```
 
 **Result:**
+
 - All users → **SelfHostedOrganizationOnboardingService**
 - Billing flow is completely bypassed
 
@@ -161,10 +171,15 @@ NEXT_PUBLIC_IS_E2E=1
 The system differentiates between two user roles:
 
 ### Admin Users (`UserPermissionRole.ADMIN`)
+
 - Can create organizations without billing on self-hosted instances
 - Can access self-hosted flow when `IS_TEAM_BILLING_ENABLED` is false
 
 ### Regular Users (`UserPermissionRole.USER`)
+
 - Always require billing flow
 - Cannot create organizations on self-hosted without Stripe configured
+
+```
+
 ```

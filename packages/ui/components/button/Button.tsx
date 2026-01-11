@@ -239,39 +239,32 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     ...passThroughProps
   } = props;
   // Buttons are **always** disabled if we're in a `loading` state
-  const disabled = props.disabled || loading;
-  // If pass an `href`-attr is passed it's `<a>`, otherwise it's a `<button />`
+  const disabled = props.disabled || loading || false;
+  // If pass an `href`-attr is passed it's Link, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
-  const elementType = isLink ? "a" : "button";
-  const element = React.createElement(
-    elementType,
-    {
-      ...passThroughProps,
-      disabled,
-      type: !isLink ? type : undefined,
-      ref: forwardedRef,
-      className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
-      // if we click a disabled button, we prevent going through the click handler
-      onClick: disabled
-        ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-            e.preventDefault();
-          }
-        : props.onClick,
-    },
+  const buttonClassName = classNames(buttonClasses({ color, size, loading, variant }), props.className);
+  const handleClick = disabled
+    ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        e.preventDefault();
+      }
+    : props.onClick;
+
+  const buttonContent = (
     <>
       {CustomStartIcon ||
         (StartIcon && (
           <>
             {variant === "fab" ? (
               <>
-                <Icon name={StartIcon} className="hidden h-4 w-4 stroke-[1.5px]  md:inline-flex" />
-                <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
+                <Icon name={StartIcon} className="hidden h-4 w-4 shrink-0 stroke-[1.5px]  md:inline-flex" />
+                <Icon name="plus" data-testid="plus" className="inline h-6 w-6 shrink-0 md:hidden" />
               </>
             ) : (
               <Icon
                 data-name="start-icon"
                 name={StartIcon}
                 className={classNames(
+                  "shrink-0",
                   loading ? "invisible" : "visible",
                   "button-icon group-[:not(div):active]:translate-y-[0.5px]",
                   variant === "icon" && "h-4 w-4",
@@ -313,13 +306,14 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <>
           {variant === "fab" ? (
             <>
-              <Icon name={EndIcon} className="-mr-1 me-2 ms-2 hidden h-5 w-5 md:inline" />
-              <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
+              <Icon name={EndIcon} className="-mr-1 me-2 ms-2 hidden h-5 w-5 shrink-0 md:inline" />
+              <Icon name="plus" data-testid="plus" className="inline h-6 w-6 shrink-0 md:hidden" />
             </>
           ) : (
             <Icon
               name={EndIcon}
               className={classNames(
+                "shrink-0",
                 loading ? "invisible" : "visible",
                 "group-[:not(div):active]:translate-y-[0.5px]",
                 variant === "icon" && "h-4 w-4",
@@ -332,18 +326,36 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     </>
   );
 
-  return props.href ? (
-    <Link data-testid="link-component" passHref href={props.href} shallow={shallow && shallow} legacyBehavior>
-      {element}
-    </Link>
-  ) : (
+  // Render Link or button separately to avoid type conflicts
+  // Link manages its own anchor element, so we don't pass ref to it
+  if (isLink) {
+    return (
+      <Link
+        {...(passThroughProps as Omit<JSX.IntrinsicElements["a"], "href" | "onClick" | "ref"> & LinkProps)}
+        shallow={shallow && shallow}
+        className={buttonClassName}
+        onClick={handleClick}>
+        {buttonContent}
+      </Link>
+    );
+  }
+
+  return (
     <Wrapper
       data-testid="wrapper"
       tooltip={props.tooltip}
       tooltipSide={tooltipSide}
       tooltipOffset={tooltipOffset}
       tooltipClassName={tooltipClassName}>
-      {element}
+      <button
+        {...(passThroughProps as Omit<JSX.IntrinsicElements["button"], "onClick" | "ref">)}
+        ref={forwardedRef as React.Ref<HTMLButtonElement>}
+        disabled={disabled}
+        type={type as "button" | "submit" | "reset"}
+        className={buttonClassName}
+        onClick={handleClick}>
+        {buttonContent}
+      </button>
     </Wrapper>
   );
 });
