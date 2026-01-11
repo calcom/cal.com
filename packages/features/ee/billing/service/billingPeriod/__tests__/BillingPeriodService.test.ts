@@ -49,7 +49,7 @@ describe("BillingPeriodService", () => {
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: null,
-          pricePerSeat: 100,
+          pricePerSeat: 10000,
           paidSeats: 5,
           subscriptionId: "sub_123",
         },
@@ -70,7 +70,7 @@ describe("BillingPeriodService", () => {
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: null,
-          pricePerSeat: 100,
+          pricePerSeat: 10000,
           paidSeats: 5,
           subscriptionId: "sub_123",
         },
@@ -108,7 +108,7 @@ describe("BillingPeriodService", () => {
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: futureDate,
-          pricePerSeat: 100,
+          pricePerSeat: 10000,
           paidSeats: 5,
           subscriptionId: "sub_123",
         },
@@ -132,7 +132,7 @@ describe("BillingPeriodService", () => {
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: pastDate,
-          pricePerSeat: 100,
+          pricePerSeat: 10000,
           paidSeats: 5,
           subscriptionId: "sub_123",
         },
@@ -153,7 +153,7 @@ describe("BillingPeriodService", () => {
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: null,
-          pricePerSeat: 100,
+          pricePerSeat: 10000,
           paidSeats: 5,
           subscriptionId: "sub_123",
         },
@@ -176,7 +176,7 @@ describe("BillingPeriodService", () => {
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: null,
-          pricePerSeat: 100,
+          pricePerSeat: 10000,
           paidSeats: 5,
           subscriptionId: "sub_123",
         },
@@ -197,7 +197,7 @@ describe("BillingPeriodService", () => {
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: null,
-          pricePerSeat: 100,
+          pricePerSeat: 10000,
           paidSeats: 5,
           subscriptionId: "sub_123",
         },
@@ -221,7 +221,7 @@ describe("BillingPeriodService", () => {
           subscriptionStart: new Date(),
           subscriptionEnd: new Date(),
           subscriptionTrialEnd: futureDate,
-          pricePerSeat: 100,
+          pricePerSeat: 10000,
           paidSeats: 5,
           subscriptionId: "sub_123",
         },
@@ -266,7 +266,7 @@ describe("BillingPeriodService", () => {
           subscriptionStart,
           subscriptionEnd,
           subscriptionTrialEnd: null,
-          pricePerSeat: 100,
+          pricePerSeat: 10000,
           paidSeats: 5,
           subscriptionId: "sub_123",
         },
@@ -281,7 +281,7 @@ describe("BillingPeriodService", () => {
         subscriptionEnd,
         trialEnd: null,
         isInTrial: false,
-        pricePerSeat: 100,
+        pricePerSeat: 10000,
         isOrganization: false,
       });
     });
@@ -299,7 +299,7 @@ describe("BillingPeriodService", () => {
           subscriptionStart,
           subscriptionEnd: new Date("2027-01-01"),
           subscriptionTrialEnd: null,
-          pricePerSeat: 200,
+          pricePerSeat: 20000,
           paidSeats: 10,
           subscriptionId: "sub_456",
         },
@@ -307,7 +307,7 @@ describe("BillingPeriodService", () => {
 
       const result = await service.getBillingPeriodInfo(1);
 
-      expect(result.pricePerSeat).toBe(200);
+      expect(result.pricePerSeat).toBe(20000);
       expect(result.isOrganization).toBe(true);
     });
 
@@ -353,14 +353,14 @@ describe("BillingPeriodService", () => {
       await service.updateBillingPeriod({
         teamId: 1,
         billingPeriod: "ANNUALLY",
-        pricePerSeat: 100,
+        pricePerSeat: 10000,
       });
 
       expect(prisma.teamBilling.update).toHaveBeenCalledWith({
         where: { id: "team-billing-123" },
         data: {
           billingPeriod: "ANNUALLY",
-          pricePerSeat: 100,
+          pricePerSeat: 10000,
         },
       });
     });
@@ -378,14 +378,14 @@ describe("BillingPeriodService", () => {
       await service.updateBillingPeriod({
         teamId: 1,
         billingPeriod: "MONTHLY",
-        pricePerSeat: 50,
+        pricePerSeat: 5000,
       });
 
       expect(prisma.organizationBilling.update).toHaveBeenCalledWith({
         where: { id: "org-billing-456" },
         data: {
           billingPeriod: "MONTHLY",
-          pricePerSeat: 50,
+          pricePerSeat: 5000,
         },
       });
     });
@@ -397,7 +397,7 @@ describe("BillingPeriodService", () => {
         service.updateBillingPeriod({
           teamId: 999,
           billingPeriod: "ANNUALLY",
-          pricePerSeat: 100,
+          pricePerSeat: 10000,
         })
       ).rejects.toThrow("Team 999 not found");
     });
@@ -414,7 +414,7 @@ describe("BillingPeriodService", () => {
         service.updateBillingPeriod({
           teamId: 1,
           billingPeriod: "ANNUALLY",
-          pricePerSeat: 100,
+          pricePerSeat: 10000,
         })
       ).rejects.toThrow("No billing record found for team 1");
     });

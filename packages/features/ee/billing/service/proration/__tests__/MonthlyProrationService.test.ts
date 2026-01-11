@@ -1,5 +1,6 @@
 import { prisma } from "@calcom/prisma";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { IBillingProviderService } from "../../billingProvider/IBillingProviderService";
 
 import { MonthlyProrationService } from "../MonthlyProrationService";
 
@@ -66,6 +67,39 @@ const mockProrationRepository = {
   updateProrationStatus: vi.fn(),
 };
 
+const mockBillingService: IBillingProviderService = {
+  createInvoiceItem: vi.fn().mockResolvedValue({ invoiceItemId: "ii_test_123" }),
+  createInvoice: vi.fn().mockResolvedValue({ invoiceId: "in_test_123" }),
+  finalizeInvoice: vi.fn().mockResolvedValue(undefined),
+  getSubscription: vi.fn().mockResolvedValue({
+    items: [
+      { id: "si_test_123", quantity: 1, price: { unit_amount: 12000, recurring: { interval: "year" } } },
+    ],
+    customer: "cus_test_123",
+    status: "active",
+    current_period_start: 1622505600,
+    current_period_end: 1654041600,
+    trial_end: null,
+  }),
+  handleSubscriptionUpdate: vi.fn().mockResolvedValue(undefined),
+  checkoutSessionIsPaid: vi.fn().mockResolvedValue(true),
+  handleSubscriptionCancel: vi.fn().mockResolvedValue(undefined),
+  handleSubscriptionCreation: vi.fn().mockResolvedValue(undefined),
+  handleEndTrial: vi.fn().mockResolvedValue(undefined),
+  createCustomer: vi.fn().mockResolvedValue({ stripeCustomerId: "cus_test_123" }),
+  createPaymentIntent: vi.fn().mockResolvedValue({ id: "pi_test_123", client_secret: "secret_123" }),
+  createSubscriptionCheckout: vi
+    .fn()
+    .mockResolvedValue({ checkoutUrl: "https://checkout.test", sessionId: "cs_test_123" }),
+  createPrice: vi.fn().mockResolvedValue({ priceId: "price_test_123" }),
+  getPrice: vi.fn().mockResolvedValue(null),
+  getSubscriptionStatus: vi.fn().mockResolvedValue(null),
+  getCheckoutSession: vi.fn().mockResolvedValue(null),
+  getCustomer: vi.fn().mockResolvedValue(null),
+  getSubscriptions: vi.fn().mockResolvedValue(null),
+  updateCustomer: vi.fn().mockResolvedValue(undefined),
+} as IBillingProviderService;
+
 vi.mock("../../../repository/proration/MonthlyProrationTeamRepository", () => ({
   MonthlyProrationTeamRepository: class {
     getTeamWithBilling = mockTeamRepository.getTeamWithBilling;
@@ -87,7 +121,7 @@ describe("MonthlyProrationService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    service = new MonthlyProrationService();
+    service = new MonthlyProrationService(undefined, mockBillingService);
   });
 
   describe("createProrationForTeam", () => {
@@ -112,7 +146,7 @@ describe("MonthlyProrationService", () => {
           subscriptionItemId: "si_123",
           customerId: "cus_123",
           billingPeriod: "ANNUALLY",
-          pricePerSeat: 100,
+          pricePerSeat: 10000,
           subscriptionStart: new Date("2026-01-01"),
           subscriptionEnd: new Date("2027-01-01"),
           paidSeats: 10,
@@ -137,9 +171,6 @@ describe("MonthlyProrationService", () => {
         proratedAmount: 0,
       } as any);
 
-      const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
-      vi.mocked(stripe.subscriptions.update).mockResolvedValue({} as any);
-
       const result = await service.createProrationForTeam({
         teamId: 1,
         monthKey: "2026-01",
@@ -147,7 +178,11 @@ describe("MonthlyProrationService", () => {
 
       expect(result).toBeDefined();
       expect(result?.proratedAmount).toBe(0);
-      expect(stripe.subscriptions.update).toHaveBeenCalled();
+      expect(mockBillingService.handleSubscriptionUpdate).toHaveBeenCalledWith({
+        subscriptionId: "sub_123",
+        subscriptionItemId: "si_123",
+        membershipCount: 10,
+      });
     });
 
     it("should create proration for team with net seat increase", async () => {
@@ -167,7 +202,7 @@ describe("MonthlyProrationService", () => {
           subscriptionItemId: "si_123",
           customerId: "cus_123",
           billingPeriod: "ANNUALLY",
-          pricePerSeat: 100,
+          pricePerSeat: 10000,
           subscriptionStart,
           subscriptionEnd,
           paidSeats: 10,
@@ -177,7 +212,7 @@ describe("MonthlyProrationService", () => {
       mockProrationRepository.createProration.mockResolvedValueOnce({
         id: "proration-123",
         customerId: "cus_123",
-        proratedAmount: 75.41,
+        proratedAmount: 7541,
         netSeatIncrease: 3,
         monthKey: "2026-01",
         teamId: 1,
@@ -191,15 +226,6 @@ describe("MonthlyProrationService", () => {
         status: "INVOICE_CREATED",
       } as any);
 
-      const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
-      vi.mocked(stripe.invoiceItems.create).mockResolvedValue({
-        id: "ii_123",
-      } as any);
-      vi.mocked(stripe.invoices.create).mockResolvedValue({
-        id: "in_123",
-      } as any);
-      vi.mocked(stripe.invoices.finalizeInvoice).mockResolvedValue({} as any);
-
       const result = await service.createProrationForTeam({
         teamId: 1,
         monthKey: "2026-01",
@@ -207,6 +233,9 @@ describe("MonthlyProrationService", () => {
 
       expect(result).toBeDefined();
       expect(mockProrationRepository.createProration).toHaveBeenCalled();
+      expect(mockBillingService.createInvoiceItem).toHaveBeenCalled();
+      expect(mockBillingService.createInvoice).toHaveBeenCalled();
+      expect(mockBillingService.finalizeInvoice).toHaveBeenCalled();
     });
 
     it("should use organization billing for organizations", async () => {
@@ -223,7 +252,7 @@ describe("MonthlyProrationService", () => {
           subscriptionItemId: "si_456",
           customerId: "cus_456",
           billingPeriod: "ANNUALLY",
-          pricePerSeat: 200,
+          pricePerSeat: 20000,
           subscriptionStart: new Date("2026-01-01"),
           subscriptionEnd: new Date("2027-01-01"),
           paidSeats: 10,
@@ -233,7 +262,7 @@ describe("MonthlyProrationService", () => {
       mockProrationRepository.createProration.mockResolvedValueOnce({
         id: "proration-456",
         customerId: "cus_456",
-        proratedAmount: 150,
+        proratedAmount: 15000,
         netSeatIncrease: 3,
         monthKey: "2026-01",
         teamId: 1,
@@ -246,11 +275,6 @@ describe("MonthlyProrationService", () => {
         id: "proration-456",
         status: "INVOICE_CREATED",
       } as any);
-
-      const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
-      vi.mocked(stripe.invoiceItems.create).mockResolvedValue({ id: "ii_456" } as any);
-      vi.mocked(stripe.invoices.create).mockResolvedValue({ id: "in_456" } as any);
-      vi.mocked(stripe.invoices.finalizeInvoice).mockResolvedValue({} as any);
 
       await service.createProrationForTeam({ teamId: 1, monthKey: "2026-01" });
 
@@ -299,13 +323,15 @@ describe("MonthlyProrationService", () => {
 
       mockProrationRepository.updateProrationStatus.mockResolvedValueOnce(undefined);
 
-      const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
-      vi.mocked(stripe.subscriptions.update).mockResolvedValue({} as any);
-
       await service.handleProrationPaymentSuccess("proration-123");
 
       expect(mockProrationRepository.updateProrationStatus).toHaveBeenCalledWith("proration-123", "CHARGED", {
         chargedAt: expect.any(Date),
+      });
+      expect(mockBillingService.handleSubscriptionUpdate).toHaveBeenCalledWith({
+        subscriptionId: "sub_123",
+        subscriptionItemId: "si_123",
+        membershipCount: 13,
       });
     });
   });
@@ -339,7 +365,7 @@ describe("MonthlyProrationService", () => {
         id: "proration-123",
         status: "FAILED",
         customerId: "cus_123",
-        proratedAmount: 100,
+        proratedAmount: 10000,
         netSeatIncrease: 2,
         monthKey: "2026-01",
         teamId: 1,
@@ -349,16 +375,11 @@ describe("MonthlyProrationService", () => {
 
       mockProrationRepository.updateProrationStatus.mockResolvedValueOnce(undefined);
 
-      const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
-      vi.mocked(stripe.invoiceItems.create).mockResolvedValue({ id: "ii_retry" } as any);
-      vi.mocked(stripe.invoices.create).mockResolvedValue({ id: "in_retry" } as any);
-      vi.mocked(stripe.invoices.finalizeInvoice).mockResolvedValue({} as any);
-
       await service.retryFailedProration("proration-123");
 
-      expect(stripe.invoiceItems.create).toHaveBeenCalled();
-      expect(stripe.invoices.create).toHaveBeenCalled();
-      expect(stripe.invoices.finalizeInvoice).toHaveBeenCalled();
+      expect(mockBillingService.createInvoiceItem).toHaveBeenCalled();
+      expect(mockBillingService.createInvoice).toHaveBeenCalled();
+      expect(mockBillingService.finalizeInvoice).toHaveBeenCalled();
     });
 
     it("should throw error if proration not found", async () => {

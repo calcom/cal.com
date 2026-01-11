@@ -9,13 +9,16 @@ import {
   ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
+import { FullScreenModal } from "@/components/FullScreenModal";
 import { BookingListItem } from "@/components/booking-list-item/BookingListItem";
 import { RecurringBookingListItem } from "@/components/booking-list-item/RecurringBookingListItem";
 import { BookingModals } from "@/components/booking-modals/BookingModals";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -123,6 +126,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
     rejectReason,
     setRejectReason,
     showCancelModal,
+    cancelBooking,
     cancelReason,
     setCancelReason,
     handleSubmitCancel,
@@ -370,11 +374,14 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                         },
                         {
                           onSuccess: () => {
-                            Alert.alert("Success", "All remaining bookings have been cancelled.");
+                            showSuccessAlert(
+                              "Success",
+                              "All remaining bookings have been cancelled."
+                            );
                             setIsCancellingAll(false);
                           },
                           onError: () => {
-                            Alert.alert("Error", "Failed to cancel bookings. Please try again.");
+                            showErrorAlert("Error", "Failed to cancel bookings. Please try again.");
                             setIsCancellingAll(false);
                           },
                         }
@@ -405,7 +412,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
       );
 
       if (unconfirmedBookings.length === 0) {
-        Alert.alert("Info", "No unconfirmed bookings to confirm.");
+        showInfoAlert("Info", "No unconfirmed bookings to confirm.");
         return;
       }
 
@@ -448,12 +455,12 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
 
               setIsConfirmingAll(false);
               if (errorCount > 0) {
-                Alert.alert(
+                showInfoAlert(
                   "Partial Success",
                   `Confirmed ${successCount} bookings. Failed to confirm ${errorCount}.`
                 );
               } else {
-                Alert.alert("Success", `All ${successCount} bookings have been confirmed.`);
+                showSuccessAlert("Success", `All ${successCount} bookings have been confirmed.`);
               }
             },
           },
@@ -474,7 +481,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
       );
 
       if (unconfirmedBookings.length === 0) {
-        Alert.alert("Info", "No unconfirmed bookings to reject.");
+        showInfoAlert("Info", "No unconfirmed bookings to reject.");
         return;
       }
 
@@ -539,12 +546,15 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
 
                       setIsDecliningAll(false);
                       if (errorCount > 0) {
-                        Alert.alert(
+                        showInfoAlert(
                           "Partial Success",
                           `Rejected ${successCount} bookings. Failed to reject ${errorCount}.`
                         );
                       } else {
-                        Alert.alert("Success", `All ${successCount} bookings have been rejected.`);
+                        showSuccessAlert(
+                          "Success",
+                          `All ${successCount} bookings have been rejected.`
+                        );
                       }
                     },
                   },
@@ -578,7 +588,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         onMeetingSessionDetails={handleNavigateToMeetingSessionDetails}
         onMarkNoShow={handleNavigateToMarkNoShow}
         onReportBooking={() => {
-          Alert.alert("Report Booking", "Report booking functionality is not yet available");
+          showInfoAlert("Report Booking", "Report booking functionality is not yet available");
         }}
         onCancelBooking={handleCancelBooking}
       />
@@ -612,7 +622,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
           onMeetingSessionDetails={handleNavigateToMeetingSessionDetails}
           onMarkNoShow={handleNavigateToMarkNoShow}
           onReportBooking={() => {
-            Alert.alert("Report Booking", "Report booking functionality is not yet available");
+            showInfoAlert("Report Booking", "Report booking functionality is not yet available");
           }}
           onCancelBooking={handleCancelBooking}
         />
@@ -772,6 +782,73 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         onMarkNoShow={() => {}}
       />
 
+      {/* Web/Extension: Cancel Event Modal */}
+      {Platform.OS === "web" && (
+        <FullScreenModal
+          visible={showCancelModal}
+          animationType="fade"
+          onRequestClose={handleCloseCancelModal}
+        >
+          <View className="flex-1 items-center justify-center bg-black/50 p-4">
+            <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+              <View className="p-6">
+                <View className="flex-row">
+                  {/* Danger icon */}
+                  <View className="mr-3 self-start rounded-full bg-red-50 p-2">
+                    <Ionicons name="alert-circle" size={20} color="#800000" />
+                  </View>
+
+                  {/* Title and description */}
+                  <View className="flex-1">
+                    <Text className="mb-2 text-xl font-semibold text-gray-900">Cancel Event</Text>
+                    <Text className="text-sm leading-5 text-gray-600">
+                      Are you sure you want to cancel "{cancelBooking?.title}"? Cancellation reason
+                      will be shared with guests.
+                    </Text>
+
+                    {/* Reason Input */}
+                    <View className="mt-4">
+                      <Text className="mb-2 text-sm font-medium text-gray-700">
+                        Reason for cancellation
+                      </Text>
+                      <TextInput
+                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900"
+                        placeholder="Why are you cancelling?"
+                        placeholderTextColor="#9CA3AF"
+                        value={cancelReason}
+                        onChangeText={setCancelReason}
+                        multiline
+                        numberOfLines={3}
+                        textAlignVertical="top"
+                        style={{ minHeight: 80 }}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* Buttons */}
+              <View className="flex-row-reverse gap-2 px-6 pb-6 pt-2">
+                <TouchableOpacity
+                  className="rounded-lg px-4 py-2.5"
+                  style={{ backgroundColor: "#111827" }}
+                  onPress={handleSubmitCancel}
+                >
+                  <Text className="text-center text-base font-medium text-white">Cancel Event</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2.5"
+                  onPress={handleCloseCancelModal}
+                >
+                  <Text className="text-center text-base font-medium text-gray-700">Nevermind</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </FullScreenModal>
+      )}
+
       {/* Cancel Event AlertDialog for Android */}
       {Platform.OS === "android" && (
         <AlertDialog open={showCancelModal} onOpenChange={handleCloseCancelModal}>
@@ -864,13 +941,13 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                     { uid: cancelAllGroup.recurringBookingUid, reason },
                     {
                       onSuccess: () => {
-                        Alert.alert("Success", "All remaining bookings have been cancelled.");
+                        showSuccessAlert("Success", "All remaining bookings have been cancelled.");
                         setIsCancellingAll(false);
                         setCancelAllGroup(null);
                         setCancelAllReason("");
                       },
                       onError: () => {
-                        Alert.alert("Error", "Failed to cancel bookings. Please try again.");
+                        showErrorAlert("Error", "Failed to cancel bookings. Please try again.");
                         setIsCancellingAll(false);
                       },
                     }
@@ -968,12 +1045,12 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                   setRejectAllReason("");
 
                   if (errorCount > 0) {
-                    Alert.alert(
+                    showInfoAlert(
                       "Partial Success",
                       `Rejected ${successCount} bookings. Failed to reject ${errorCount}.`
                     );
                   } else {
-                    Alert.alert("Success", `All ${successCount} bookings have been rejected.`);
+                    showSuccessAlert("Success", `All ${successCount} bookings have been rejected.`);
                   }
                 }}
               >
