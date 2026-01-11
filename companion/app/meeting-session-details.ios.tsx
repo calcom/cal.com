@@ -2,11 +2,12 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MeetingSessionDetailsScreenComponent from "@/components/screens/MeetingSessionDetailsScreen";
 import { CalComAPIService } from "@/services/calcom";
 import type { ConferencingSession } from "@/services/types/bookings.types";
+import { showErrorAlert } from "@/utils/alerts";
 
 /**
  * Get the presentation style for the meeting session details sheet
@@ -35,13 +36,13 @@ export default function MeetingSessionDetailsIOS() {
           setSessions(sessionsData);
         })
         .catch(() => {
-          Alert.alert("Error", "Failed to load session details");
+          showErrorAlert("Error", "Failed to load session details");
           router.back();
         })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
-      Alert.alert("Error", "Booking ID is missing");
+      showErrorAlert("Error", "Booking ID is missing");
       router.back();
     }
   }, [uid, router]);

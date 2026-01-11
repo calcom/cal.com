@@ -1,9 +1,10 @@
 import { expect } from "@playwright/test";
 import { createHash, randomBytes } from "node:crypto";
 
+import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
+import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
-import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 
 import { test } from "./lib/fixtures";
 
@@ -417,7 +418,7 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
 
     const url = new URL(page.url());
     expect(url.searchParams.get("error")).toBe("invalid_request");
-    expect(url.searchParams.get("error_description")).toBe("code_challenge required for public clients");
+    expect(url.searchParams.get("error_description")).toBe(OAUTH_ERROR_REASONS["pkce_required"]);
     expect(url.searchParams.get("state")).toBe("1234");
     // Should not contain authorization code
     expect(url.searchParams.get("code")).toBeNull();

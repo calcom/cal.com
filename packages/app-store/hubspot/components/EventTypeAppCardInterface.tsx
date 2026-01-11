@@ -3,6 +3,10 @@ import { useState } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
+import { CrmFieldType } from "@calcom/app-store/_lib/crm-enums";
+import WriteToObjectSettings, {
+  BookingActionEnum,
+} from "@calcom/app-store/_components/crm/WriteToObjectSettings";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -13,6 +17,7 @@ import { Section } from "@calcom/ui/components/section";
 
 import { HubspotRecordEnum } from "../lib/enums";
 import type { appDataSchema } from "../zod";
+import { WhenToWrite } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   app,
@@ -28,6 +33,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const createEventOn = getAppData("createEventOn") ?? HubspotRecordEnum.CONTACT;
   const skipContactCreation = getAppData("skipContactCreation") ?? false;
   const checkForContact = getAppData("checkForContact") ?? false;
+  const onBookingWriteToEventObject = getAppData("onBookingWriteToEventObject") ?? false;
+  const onBookingWriteToEventObjectFields = getAppData("onBookingWriteToEventObjectFields") ?? {};
 
   const recordOptions = [
     { label: t("contact"), value: HubspotRecordEnum.CONTACT },
@@ -120,6 +127,27 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
             </Section.SubSectionHeader>
           </Section.SubSection>
         ) : null}
+
+        <Section.SubSection>
+          <WriteToObjectSettings
+            bookingAction={BookingActionEnum.ON_BOOKING}
+            optionLabel={t("on_booking_write_to_event_object")}
+            optionEnabled={onBookingWriteToEventObject}
+            writeToObjectData={onBookingWriteToEventObjectFields}
+            optionSwitchOnChange={(checked) => {
+              setAppData("onBookingWriteToEventObject", checked);
+            }}
+            updateWriteToObjectData={(data) => setAppData("onBookingWriteToEventObjectFields", data)}
+            supportedFieldTypes={[
+              CrmFieldType.TEXT,
+              CrmFieldType.DATE,
+              CrmFieldType.PHONE,
+              CrmFieldType.CHECKBOX,
+              CrmFieldType.CUSTOM,
+            ]}
+            supportedWriteTriggers={[WhenToWrite.EVERY_BOOKING]}
+          />
+        </Section.SubSection>
       </Section.Content>
     </AppCard>
   );

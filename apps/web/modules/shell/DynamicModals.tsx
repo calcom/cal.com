@@ -1,6 +1,6 @@
 "use client";
 
-import { WelcomeToOrganizationsModal } from "~/ee/organizations/components/WelcomeToOrganizationsModal";
+import { WelcomeToOrganizationsModal } from "@calcom/web/modules/ee/organizations/components/WelcomeToOrganizationsModal";
 
 import { WelcomeToCalcomModal } from "./components/WelcomeToCalcomModal";
 import { GatedFeaturesModal } from "./components/GatedFeaturesModal";
