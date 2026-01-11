@@ -1236,8 +1236,7 @@ describe("Round Robin handleNewBooking", () => {
 
         expect(rescheduledBookingInDb?.references).toHaveLength(0);
         expect(rescheduledBookingInDb?.status).toBe(BookingStatus.PENDING);
-      },
-      { timeout: 10000 }
+      }
     );
   });
 });
