@@ -1,17 +1,13 @@
 import "dotenv/config";
 
 import { IncomingMessage, Server, ServerResponse } from "node:http";
-import process from "node:process";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
-
 import { WinstonModule } from "nest-winston";
 import * as qs from "qs";
-
 import type { AppConfig } from "@/config/type";
-
 import { AppModule } from "./app.module";
 import { bootstrap } from "./bootstrap";
 import { loggerConfig } from "./lib/logger";
