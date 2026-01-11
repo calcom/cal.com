@@ -18,7 +18,7 @@ import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTe
 
 import { describe, test, vi, expect } from "vitest";
 
-import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
+import prisma from "@calcom/prisma";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -1187,7 +1187,7 @@ describe("Round Robin handleNewBooking", () => {
         expect(firstBooking.status).toBe(BookingStatus.PENDING);
 
         // Verify first booking has NO calendar references (no calendar events created)
-        const firstBookingInDb = await prismaMock.booking.findUnique({
+        const firstBookingInDb = await prisma.booking.findUnique({
           where: {
             id: firstBooking.id,
           },
@@ -1225,7 +1225,7 @@ describe("Round Robin handleNewBooking", () => {
 
         // Verify rescheduled booking has NO calendar references (no calendar events created)
         // This is the key fix: rescheduling unconfirmed bookings should NOT create calendar events
-        const rescheduledBookingInDb = await prismaMock.booking.findUnique({
+        const rescheduledBookingInDb = await prisma.booking.findUnique({
           where: {
             id: rescheduledBooking.id,
           },
