@@ -74,16 +74,11 @@ vi.mock("@calcom/lib/logger", () => ({
     })),
   },
 }));
-// Mock routing-forms modules to prevent async import issues during test teardown
 vi.mock("@calcom/features/routing-forms/lib/findFieldValueByIdentifier", () => ({
   findFieldValueByIdentifier: vi.fn(),
 }));
 vi.mock("@calcom/app-store/routing-forms/lib/findFieldValueByIdentifier", () => ({
   findFieldValueByIdentifier: vi.fn(),
-}));
-// Mock CRM services to prevent Salesforce GraphQL client from making fetch calls during test teardown
-vi.mock("@calcom/app-store/crm.apps.generated", () => ({
-  CrmServiceMap: {},
 }));
 
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
