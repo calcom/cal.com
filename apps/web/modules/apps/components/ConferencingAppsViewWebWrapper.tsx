@@ -2,8 +2,6 @@
 
 import { useReducer } from "react";
 
-import { AppList } from "@calcom/web/modules/apps/components/AppList";
-import DisconnectIntegrationModal from "@calcom/web/modules/apps/components/DisconnectIntegrationModal";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -12,6 +10,9 @@ import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+
+import { AppList } from "./AppList";
+import DisconnectIntegrationModal from "./DisconnectIntegrationModal";
 
 export type UpdateUsersDefaultConferencingAppParams = {
   appSlug: string;
