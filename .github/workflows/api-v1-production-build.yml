@@ -68,8 +68,6 @@ jobs:
         with:
           sparse-checkout: .github
       - uses: ./.github/actions/cache-checkout
-        with:
-          mode: restore
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
       - name: Cache API v1 production build
