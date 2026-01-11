@@ -32,7 +32,7 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const manualPrNumber = process.env.INPUT_PR_NUMBER ? parseInt(process.env.INPUT_PR_NUMBER, 10) : null;
-            
+
             const query = `
               query($owner: String!, $repo: String!, $cursor: String) {
                 repository(owner: $owner, name: $repo) {
@@ -66,40 +66,40 @@ jobs:
                 }
               }
             `;
-            
+
             const allPRs = [];
             let cursor = null;
-            
+
             do {
               const result = await github.graphql(query, { owner, repo, cursor });
               const { nodes, pageInfo } = result.repository.pullRequests;
               allPRs.push(...nodes);
               cursor = pageInfo.hasNextPage ? pageInfo.endCursor : null;
             } while (cursor);
-            
+
             console.log(`Found ${allPRs.length} open PRs via GraphQL`);
-            
+
             if (manualPrNumber) {
               console.log(`Manual PR number provided: ${manualPrNumber}`);
             }
-            
+
             const conflictingPRs = [];
             const unknownPRs = [];
-            
+
             function processPR(pr, mergeableStatus) {
               const isTargetPR = manualPrNumber && pr.number === manualPrNumber;
               const isFork = pr.headRepository?.owner?.login !== owner;
-              
+
               if (!isTargetPR && pr.isDraft) {
                 console.log(`PR #${pr.number} is a draft, skipping`);
                 return { skip: true };
               }
-              
+
               if (!isTargetPR && isFork) {
                 console.log(`PR #${pr.number} is from a fork, skipping`);
                 return { skip: true };
               }
-              
+
               if (!isTargetPR) {
                 const hasDevinLabel = pr.labels.nodes.some(label => label.name === 'devin-conflict-resolution');
                 if (hasDevinLabel) {
@@ -107,17 +107,17 @@ jobs:
                   return { skip: true };
                 }
               }
-              
+
               if (mergeableStatus === 'CONFLICTING' || (isTargetPR && mergeableStatus !== 'MERGEABLE')) {
                 const headRepoOwner = pr.headRepository?.owner?.login || owner;
                 const headRepoName = pr.headRepository?.name || repo;
-                
+
                 if (isTargetPR) {
                   console.log(`PR #${pr.number} manually targeted for conflict resolution${isFork ? ' (from fork)' : ''}`);
                 } else {
                   console.log(`PR #${pr.number} has conflicts`);
                 }
-                
+
                 return {
                   conflict: true,
                   data: {
@@ -140,10 +140,10 @@ jobs:
                 return { skip: true };
               }
             }
-            
+
             for (const pr of allPRs) {
               const result = processPR(pr, pr.mergeable);
-              
+
               if (result.conflict) {
                 conflictingPRs.push(result.data);
                 if (result.isTargetPR) break;
@@ -152,10 +152,10 @@ jobs:
                 unknownPRs.push(pr);
               }
             }
-            
+
             if (unknownPRs.length > 0) {
               console.log(`\n${unknownPRs.length} PRs have UNKNOWN mergeable status, retrying via REST API...`);
-              
+
               for (const pr of unknownPRs) {
                 try {
                   const { data } = await github.rest.pulls.get({
@@ -163,7 +163,7 @@ jobs:
                     repo,
                     pull_number: pr.number
                   });
-                  
+
                   let mergeableStatus;
                   if (data.mergeable === true) {
                     mergeableStatus = 'MERGEABLE';
@@ -172,9 +172,9 @@ jobs:
                   } else {
                     mergeableStatus = 'UNKNOWN';
                   }
-                  
+
                   console.log(`PR #${pr.number} retry result: mergeable=${mergeableStatus}`);
-                  
+
                   const result = processPR(pr, mergeableStatus);
                   if (result.conflict) {
                     conflictingPRs.push(result.data);
@@ -187,22 +187,22 @@ jobs:
                 }
               }
             }
-            
+
             if (manualPrNumber && conflictingPRs.length === 0) {
               console.log(`Warning: PR #${manualPrNumber} not found or has no conflicts`);
             }
-            
+
             const MAX_PRS = 15;
             if (conflictingPRs.length > MAX_PRS) {
               console.log(`Warning: Found ${conflictingPRs.length} PRs with conflicts, limiting to ${MAX_PRS} for safety`);
               conflictingPRs.length = MAX_PRS;
             }
-            
+
             console.log(`Found ${conflictingPRs.length} PRs with conflicts that need Devin sessions`);
-            
+
             const fs = require('fs');
             fs.writeFileSync('/tmp/conflicting-prs.json', JSON.stringify(conflictingPRs));
-            
+
             core.setOutput('has-conflicts', conflictingPRs.length > 0 ? 'true' : 'false');
             core.setOutput('conflict-count', conflictingPRs.length.toString());
 
@@ -315,7 +315,7 @@ jobs:
 
             Your tasks:
             ${forkInstructions}
-            
+
             Then:
             1. Resolve all merge conflicts carefully:
                - Review the conflicting changes from both branches
@@ -336,6 +336,7 @@ jobs:
 
             Rules and Guidelines:
             1. Be careful when resolving conflicts - understand the context of both changes.
+               To help with this, try to find the recent PRs associated with the conflicting files to gain more context.
             2. Follow the existing code style and conventions in the repository.
             3. Run lint and type checks before pushing to ensure the code is valid.
             4. If a conflict seems too complex or risky to resolve automatically, explain the situation in a PR comment instead.
@@ -440,6 +441,6 @@ jobs:
               } catch (error) {
                 console.error(`Error handling Devin session for PR #${pr.number}: ${error.message}`);
               }
-              
+
               await new Promise(resolve => setTimeout(resolve, 1000));
             }
