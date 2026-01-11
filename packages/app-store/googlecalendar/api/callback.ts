@@ -15,6 +15,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -71,6 +72,42 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
     oAuth2Client.setCredentials(key);
 
+    const calendar = new calendar_v3.Calendar({
+      auth: oAuth2Client,
+    });
+
+    // Get the primary calendar ID BEFORE creating the credential
+    // to check if this calendar is already connected
+    let primaryCalId: string | null | undefined = null;
+    try {
+      const calendarResponse = await calendar.calendars.get({ calendarId: "primary" });
+      primaryCalId = calendarResponse.data.id;
+    } catch {
+      // If we can't get the primary calendar, proceed without duplicate check
+      // The credential will still be created and user can configure later
+    }
+
+    // Check if this calendar is already connected to prevent duplicates
+    if (primaryCalId) {
+      const existingCalendar = await prisma.selectedCalendar.findFirst({
+        where: {
+          userId: req.session.user.id,
+          externalId: primaryCalId,
+          integration: "google_calendar",
+        },
+      });
+
+      if (existingCalendar) {
+        res.redirect(
+          `${
+            getSafeRedirectUrl(state?.onErrorReturnTo) ??
+            getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+          }?error=account_already_linked`
+        );
+        return;
+      }
+    }
+
     const gcalCredential = await CredentialRepository.create({
       userId: req.session.user.id,
       key,
@@ -82,10 +119,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       ...gcalCredential,
       user: null,
       delegatedTo: null,
-    });
-
-    const calendar = new calendar_v3.Calendar({
-      auth: oAuth2Client,
     });
 
     const primaryCal = await gCalService.getPrimaryCalendar(calendar);

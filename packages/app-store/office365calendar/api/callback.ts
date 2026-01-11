@@ -132,6 +132,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.session?.user?.id) {
+    // Check if this calendar is already connected to prevent duplicates
+    const existingCalendar = await prisma.selectedCalendar.findFirst({
+      where: {
+        userId: req.session.user.id,
+        externalId: defaultCalendar.id,
+        integration: "office365_calendar",
+      },
+    });
+
+    if (existingCalendar) {
+      res.redirect(
+        `${
+          getSafeRedirectUrl(state?.onErrorReturnTo) ??
+          getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
+        }?error=account_already_linked`
+      );
+      return;
+    }
+
     const credential = await prisma.credential.create({
       data: {
         type: "office365_calendar",
