@@ -327,12 +327,11 @@ export function BookingDetailScreen({
   };
 
   return (
-    <View className="flex-1 bg-[#f2f2f7]">
+    <>
       <ScrollView
-        className="flex-1"
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingTop: 16,
           paddingBottom: insets.bottom + 100,
         }}
         showsVerticalScrollIndicator={false}
@@ -642,7 +641,9 @@ export function BookingDetailScreen({
 
                 {booking.cancelledByEmail && (
                   <View
-                    className={`py-2 ${booking.cancellationReason ? "border-t border-[#E5E5EA]" : ""}`}
+                    className={`py-2 ${
+                      booking.cancellationReason ? "border-t border-[#E5E5EA]" : ""
+                    }`}
                   >
                     <Text className="mb-0.5 text-[13px] text-[#8E8E93]">Cancelled by</Text>
                     <Text className="text-[17px] text-black">{booking.cancelledByEmail}</Text>
@@ -675,6 +676,6 @@ export function BookingDetailScreen({
           </View>
         </View>
       )}
-    </View>
+    </>
   );
 }

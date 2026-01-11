@@ -4,8 +4,10 @@ import { Stack } from "expo-router";
 import { Platform, StatusBar, View } from "react-native";
 import LoginScreenComponent from "@/components/LoginScreen";
 import { NetworkStatusBanner } from "@/components/NetworkStatusBanner";
+import { GlobalToast } from "@/components/ui/GlobalToast";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { QueryProvider } from "@/contexts/QueryContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 import "../global.css";
 
 function RootLayoutContent() {
@@ -339,7 +341,10 @@ export default function RootLayout() {
   return (
     <QueryProvider>
       <AuthProvider>
-        <RootLayoutContent />
+        <ToastProvider>
+          <RootLayoutContent />
+          <GlobalToast />
+        </ToastProvider>
       </AuthProvider>
     </QueryProvider>
   );

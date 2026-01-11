@@ -17,7 +17,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import {
-  Alert,
   FlatList,
   KeyboardAvoidingView,
   Modal,
@@ -31,6 +30,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUpdateLocation } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { safeLogError } from "@/utils/safeLogger";
 
 export const LOCATION_TYPES = {
@@ -138,13 +138,13 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
       const trimmedValue = inputValue.trim();
 
       if (!trimmedValue) {
-        Alert.alert("Error", "Please enter a location");
+        showErrorAlert("Error", "Please enter a location");
         return;
       }
 
       if (selectedType === "phone") {
         if (!trimmedValue.startsWith("+")) {
-          Alert.alert(
+          showErrorAlert(
             "Invalid Phone Number",
             "Phone number must include country code (e.g., +1 234-567-8900)"
           );
@@ -173,13 +173,12 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
         },
         {
           onSuccess: () => {
-            Alert.alert("Success", "Location updated successfully", [
-              { text: "OK", onPress: onSuccess },
-            ]);
+            showSuccessAlert("Success", "Location updated successfully");
+            onSuccess();
           },
           onError: (error) => {
             safeLogError("[EditLocationScreen] Failed to update location:", error);
-            Alert.alert("Error", "Failed to update location. Please try again.");
+            showErrorAlert("Error", "Failed to update location. Please try again.");
           },
         }
       );

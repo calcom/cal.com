@@ -2,10 +2,11 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MarkNoShowScreenComponent from "@/components/screens/MarkNoShowScreen";
 import { type Booking, CalComAPIService } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
 
 interface Attendee {
   id?: number | string;
@@ -57,13 +58,13 @@ export default function MarkNoShowIOS() {
           setAttendees(bookingAttendees);
         })
         .catch(() => {
-          Alert.alert("Error", "Failed to load booking details");
+          showErrorAlert("Error", "Failed to load booking details");
           router.back();
         })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
-      Alert.alert("Error", "Booking ID is missing");
+      showErrorAlert("Error", "Booking ID is missing");
       router.back();
     }
   }, [uid, router]);

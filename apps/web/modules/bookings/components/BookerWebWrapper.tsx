@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
-import { useMemo, useCallback, useEffect, useRef } from "react";
+import { useMemo, useCallback, useEffect } from "react";
 import React from "react";
 import { shallow } from "zustand/shallow";
 
@@ -12,7 +12,6 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { useBookerEmbedEvents } from "@calcom/embed-core/src/embed-iframe/react-hooks";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
-import { Booker as BookerComponent } from "@calcom/web/modules/bookings/components/Booker";
 import {
   BookerStoreProvider,
   useInitializeBookerStoreContext,
@@ -32,6 +31,8 @@ import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEv
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { localStorage } from "@calcom/lib/webstorage";
+
+import { Booker as BookerComponent } from "./Booker";
 
 export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;

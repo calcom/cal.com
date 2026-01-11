@@ -327,7 +327,7 @@ export const EditAvailabilityDayScreen = forwardRef<
         <Switch
           value={isEnabled}
           onValueChange={handleToggle}
-          trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+          trackColor={{ false: "#E5E5EA", true: "#000000" }}
           thumbColor="#fff"
         />
       </View>

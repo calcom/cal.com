@@ -14,7 +14,7 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "deploymentTarget": "18.0",
       "bundleIdentifier": "com.cal.companion",
       "infoPlist": {

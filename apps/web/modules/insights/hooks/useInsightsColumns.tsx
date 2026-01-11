@@ -200,7 +200,6 @@ export const useInsightsColumns = ({
                   <ResponseValueCell
                     optionMap={optionMap}
                     values={Array.isArray(result.data) ? result.data : [result.data]}
-                    rowId={info.row.original.id}
                   />
                 )
               );

@@ -2,7 +2,7 @@ import type { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, Platform } from "react-native";
 import type { Booking } from "@/services/calcom";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 
 interface UseBookingActionsParams {
   router: ReturnType<typeof useRouter>;
@@ -158,7 +158,7 @@ export const useBookingActions = ({
         onSuccess: () => {
           setShowRescheduleModal(false);
           setRescheduleBooking(null);
-          Alert.alert("Success", "Booking rescheduled successfully");
+          showSuccessAlert("Success", "Booking rescheduled successfully");
         },
         onError: (error) => {
           showErrorAlert("Error", error.message || "Failed to reschedule booking");
@@ -209,7 +209,7 @@ export const useBookingActions = ({
           onSuccess: () => {
             setShowRescheduleModal(false);
             setRescheduleBooking(null);
-            Alert.alert("Success", "Booking rescheduled successfully");
+            showSuccessAlert("Success", "Booking rescheduled successfully");
             resolve();
           },
           onError: (error) => {
@@ -252,7 +252,7 @@ export const useBookingActions = ({
           setShowCancelModal(false);
           setCancelBooking(null);
           setCancelReason("");
-          Alert.alert("Success", "Event cancelled successfully");
+          showSuccessAlert("Success", "Event cancelled successfully");
         },
         onError: (_error) => {
           console.error("Failed to cancel booking");
@@ -275,8 +275,8 @@ export const useBookingActions = ({
    * Show alert and cancel booking (iOS Alert.prompt pattern, Android opens modal)
    */
   const handleCancelBooking = (booking: Booking) => {
-    // For Android, open the cancel modal with AlertDialog
-    if (Platform.OS === "android") {
+    // For Android and Web, open the cancel modal (AlertDialog on Android, content-modal on Web)
+    if (Platform.OS === "android" || Platform.OS === "web") {
       handleOpenCancelModal(booking);
       return;
     }
@@ -303,7 +303,7 @@ export const useBookingActions = ({
                     { uid: booking.uid, reason: cancellationReason },
                     {
                       onSuccess: () => {
-                        Alert.alert("Success", "Event cancelled successfully");
+                        showSuccessAlert("Success", "Event cancelled successfully");
                       },
                       onError: (_error) => {
                         console.error("Failed to cancel booking");
@@ -336,7 +336,7 @@ export const useBookingActions = ({
             { uid: booking.uid },
             {
               onSuccess: () => {
-                Alert.alert("Success", "Booking confirmed successfully");
+                showSuccessAlert("Success", "Booking confirmed successfully");
               },
               onError: (error) => {
                 showErrorAlert("Error", error.message || "Failed to confirm booking");
@@ -380,7 +380,7 @@ export const useBookingActions = ({
                     { uid: booking.uid, reason: reason || undefined },
                     {
                       onSuccess: () => {
-                        Alert.alert("Success", "Booking declined successfully");
+                        showSuccessAlert("Success", "Booking declined successfully");
                       },
                       onError: (error) => {
                         showErrorAlert("Error", error.message || "Failed to decline booking");
@@ -416,7 +416,7 @@ export const useBookingActions = ({
           setShowRejectModal(false);
           setRejectBooking(null);
           setRejectReason("");
-          Alert.alert("Success", "Booking rejected successfully");
+          showSuccessAlert("Success", "Booking rejected successfully");
         },
         onError: (_error) => {
           showErrorAlert("Error", "Failed to reject booking. Please try again.");
@@ -442,7 +442,7 @@ export const useBookingActions = ({
       { uid: booking.uid },
       {
         onSuccess: () => {
-          Alert.alert("Success", "Booking confirmed successfully");
+          showSuccessAlert("Success", "Booking confirmed successfully");
         },
         onError: (_error) => {
           showErrorAlert("Error", "Failed to confirm booking. Please try again.");

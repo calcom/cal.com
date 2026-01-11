@@ -15,7 +15,7 @@ export class MembershipService {
    * Checks the membership status of a user within a specific team.
    */
   async checkMembership(teamId: number, userId: number): Promise<MembershipCheckResult> {
-    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ teamId, userId });
+    const membership = await this.membershipRepository.findUniqueByUserIdAndTeamId({ teamId, userId });
 
     if (!membership || !membership.accepted) {
       return {

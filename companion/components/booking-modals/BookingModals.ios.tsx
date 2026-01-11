@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } fr
 import { BookingActionsModal } from "@/components/BookingActionsModal";
 import { FullScreenModal } from "@/components/FullScreenModal";
 import type { Booking, EventType } from "@/services/calcom";
+import { showInfoAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -225,7 +226,7 @@ export const BookingModals: React.FC<BookingModalsProps> = ({
           }
         }}
         onReportBooking={() => {
-          Alert.alert("Report Booking", "Report booking functionality is not yet available");
+          showInfoAlert("Report Booking", "Report booking functionality is not yet available");
         }}
         onCancelBooking={onCancel}
       />

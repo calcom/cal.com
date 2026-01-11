@@ -14,7 +14,7 @@ import AssignAllTeamMembers from "@calcom/web/modules/event-types/components/Ass
 import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
 import ChildrenEventTypeSelect from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
 import { EditWeightsForAllTeamMembers } from "@calcom/web/modules/event-types/components/EditWeightsForAllTeamMembers";
-import { sortHosts } from "@calcom/web/modules/event-types/components/HostEditDialogs";
+import { sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import { LearnMoreLink } from "@calcom/web/modules/event-types/components/LearnMoreLink";
 import WeightDescription from "@calcom/web/modules/event-types/components/WeightDescription";
 import type {
