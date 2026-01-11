@@ -410,10 +410,13 @@ jobs:
                     labels: ['devin-conflict-resolution']
                   });
                   
-                  const commentBody = isNewSession
-                    ? `### Devin AI is resolving merge conflicts
+                  const sessionStatusMessage = isNewSession
+                    ? 'A Devin session has been created to automatically resolve them.'
+                    : 'The existing Devin session has been notified to resolve them.';
+                  
+                  const commentBody = `### Devin AI is resolving merge conflicts
 
-            This PR has merge conflicts with the \`${pr.base_ref}\` branch. A Devin session has been created to automatically resolve them.
+            This PR has merge conflicts with the \`${pr.base_ref}\` branch. ${sessionStatusMessage}
 
             [View Devin Session](${sessionUrl})
 
@@ -423,12 +426,7 @@ jobs:
             3. Run lint/type checks to ensure validity
             4. Push the resolved changes
 
-            If you prefer to resolve conflicts manually, you can close the Devin session and handle it yourself.`
-                    : `### Devin AI is resolving merge conflicts
-
-            This PR has new merge conflicts with the \`${pr.base_ref}\` branch. The existing Devin session has been notified to resolve them.
-
-            [View Devin Session](${sessionUrl})`;
+            If you prefer to resolve conflicts manually, you can close the Devin session and handle it yourself.`;
                   
                   await github.rest.issues.createComment({
                     owner,
