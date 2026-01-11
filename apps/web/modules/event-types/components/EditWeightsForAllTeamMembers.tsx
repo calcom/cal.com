@@ -27,7 +27,7 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import {
   useTeamMembersWithSegmentPlatform,
-} from "../../../../../packages/platform/atoms/event-types/hooks/useTeamMembersWithSegmentPlatform";
+} from "@calcom/atoms/event-types/hooks/useTeamMembersWithSegmentPlatform";
 import { useTeamMembersWithSegment } from "@calcom/web/modules/event-types/hooks/useTeamMembersWithSegment";
 
 type TeamMemberItemProps = {
