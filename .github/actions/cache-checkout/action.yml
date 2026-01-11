@@ -17,7 +17,7 @@ runs:
       if: steps.cache-checkout.outputs.cache-hit != 'true'
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.event.pull_request.head.sha }}
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
         fetch-depth: 2
         sparse-checkout-cone-mode: false
         sparse-checkout: |
