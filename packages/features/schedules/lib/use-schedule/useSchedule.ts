@@ -4,10 +4,10 @@ import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
-import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
 
 import { useApiV2AvailableSlots } from "./useApiV2AvailableSlots";
@@ -19,9 +19,7 @@ export type UseScheduleWithCacheArgs = {
   month?: string | null;
   timezone?: string | null;
   selectedDate?: string | null;
-  prefetchNextMonth?: boolean;
   duration?: number | null;
-  monthCount?: number | null;
   dayCount?: number | null;
   rescheduleUid?: string | null;
   isTeamEvent?: boolean;
@@ -29,6 +27,14 @@ export type UseScheduleWithCacheArgs = {
   teamMemberEmail?: string | null;
   useApiV2?: boolean;
   enabled?: boolean;
+  /***
+   * Required when prefetching is needed
+   */
+  bookerLayout?: {
+    layout: string;
+    extraDays: number;
+    columnViewExtraDays: { current: number };
+  };
 };
 
 const getAvailabilityLoadedEventPayload = ({
@@ -51,9 +57,7 @@ export const useSchedule = ({
   eventSlug,
   eventId,
   selectedDate,
-  prefetchNextMonth,
   duration,
-  monthCount,
   dayCount,
   rescheduleUid,
   isTeamEvent,
@@ -61,23 +65,21 @@ export const useSchedule = ({
   teamMemberEmail,
   useApiV2 = false,
   enabled: enabledProp = true,
+  bookerLayout,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
   const [startTime, endTime] = useTimesForSchedule({
     month,
-    monthCount,
     dayCount,
-    prefetchNextMonth,
     selectedDate,
+    bookerLayout,
   });
   const searchParams = useSearchParams();
   const routedTeamMemberIds = searchParams
     ? getRoutedTeamMemberIdsFromSearchParams(new URLSearchParams(searchParams.toString()))
     : null;
   const skipContactOwner = searchParams ? searchParams.get("cal.skipContactOwner") === "true" : false;
-  const _cacheParam = searchParams?.get("cal.cache");
-  const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
   const utils = trpc.useUtils();
   const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
   const queuedFormResponseId = searchParams?.get("cal.queuedFormResponseId");
@@ -101,14 +103,15 @@ export const useSchedule = ({
     startTime,
     // if `prefetchNextMonth` is true, two months are fetched at once.
     endTime,
-    timeZone: timezone!,
+    // We use a placeholder value that is there to keep TS happy, but still invalid to tell us that it shouldn't actually be passed in request(and wouldn't because enabled is false if timezone is nullish)
+    // TODO: Better approach here is to use `skipToken` from react-query which requires an upgrade of react-query
+    timeZone: timezone ?? "PLACEHOLDER_TIMEZONE",
     duration: duration ? `${duration}` : undefined,
     rescheduleUid,
     orgSlug,
     teamMemberEmail,
     routedTeamMemberIds,
     skipContactOwner,
-    _shouldServeCache,
     ...(queuedFormResponseId ? { queuedFormResponseId } : { routingFormResponseId }),
     email,
     // Ensures that connectVersion causes a refresh of the data

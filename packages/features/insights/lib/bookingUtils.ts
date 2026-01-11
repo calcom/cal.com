@@ -1,6 +1,7 @@
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { type ColumnFilter } from "@calcom/features/data-table/lib/types";
 import { isDateRangeFilterValue } from "@calcom/features/data-table/lib/utils";
+import type { FilterType } from "@calcom/types/data-table";
 
 export function extractDateRangeFromColumnFilters(columnFilters?: ColumnFilter[]) {
   if (!columnFilters) throw new Error("No date range filter found");
@@ -9,7 +10,7 @@ export function extractDateRangeFromColumnFilters(columnFilters?: ColumnFilter[]
     if ((filter.id === "startTime" || filter.id === "createdAt") && isDateRangeFilterValue(filter.value)) {
       const dateFilter = filter.value as Extract<
         ColumnFilter["value"],
-        { type: ColumnFilterType.DATE_RANGE }
+        { type: Extract<FilterType, "dr"> }
       >;
       if (dateFilter.data.startDate && dateFilter.data.endDate) {
         return {

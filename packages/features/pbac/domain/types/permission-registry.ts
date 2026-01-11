@@ -34,6 +34,9 @@ export enum CustomAction {
   ReadOrgBookings = "readOrgBookings",
   ReadRecordings = "readRecordings",
   Impersonate = "impersonate",
+  EditUsers = "editUsers",
+  ReadTeamAuditLogs = "readTeamAuditLogs",
+  ReadOrgAuditLogs = "readOrgAuditLogs",
 }
 
 export enum Scope {
@@ -168,6 +171,25 @@ export const getPermissionsForScope = (scope: Scope, isPrivate?: boolean): Permi
   return filteredRegistry as PermissionRegistry;
 };
 
+export const getAllPermissionStringsForScope = (scope: Scope): PermissionString[] => {
+  const registry = getPermissionsForScope(scope);
+  return Object.entries(registry).flatMap(([resource, config]) =>
+    Object.keys(config)
+      .filter((k) => k !== "_resource")
+      .map((action) => `${resource}.${action}` as PermissionString)
+  );
+};
+
+const getPermissionSetForScope = (scope: Scope): Set<PermissionString> => {
+  return new Set(getAllPermissionStringsForScope(scope));
+};
+
+export const isValidPermissionStringForScope = (val: unknown, scope: Scope): val is PermissionString => {
+  if (!isValidPermissionString(val)) return false;
+  const allowed = getPermissionSetForScope(scope);
+  return allowed.has(val as PermissionString);
+};
+
 // Keep in mind these are on a team/organization level, not a user level
 export const PERMISSION_REGISTRY: PermissionRegistry = {
   [Resource.All]: {
@@ -297,6 +319,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_list_members",
       descriptionI18nKey: "pbac_desc_list_team_members",
+      dependsOn: ["team.read"],
       visibleWhen: {
         teamPrivacy: "public", // Only show for public teams
       },
@@ -461,6 +484,22 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_update_bookings",
       dependsOn: ["booking.read"],
     },
+    [CustomAction.ReadTeamAuditLogs]: {
+      description: "View team booking audit logs",
+      category: "booking",
+      i18nKey: "pbac_action_read_team_audit_logs",
+      descriptionI18nKey: "pbac_desc_view_team_booking_audit_logs",
+      scope: [Scope.Team],
+      dependsOn: ["booking.read"],
+    },
+    [CustomAction.ReadOrgAuditLogs]: {
+      description: "View organization booking audit logs",
+      category: "booking",
+      i18nKey: "pbac_action_read_org_audit_logs",
+      descriptionI18nKey: "pbac_desc_view_organization_booking_audit_logs",
+      scope: [Scope.Organization],
+      dependsOn: ["booking.read"],
+    },
   },
   [Resource.Insights]: {
     _resource: {
@@ -514,12 +553,14 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "attributes",
       i18nKey: "pbac_action_read",
       descriptionI18nKey: "pbac_desc_view_organization_attributes",
+      scope: [Scope.Organization],
     },
     [CrudAction.Update]: {
       description: "Update organization attributes",
       category: "attributes",
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_update_organization_attributes",
+      scope: [Scope.Organization],
       dependsOn: ["organization.attributes.read"],
     },
     [CrudAction.Delete]: {
@@ -527,6 +568,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "attributes",
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_organization_attributes",
+      scope: [Scope.Organization],
       dependsOn: ["organization.attributes.read"],
     },
     [CrudAction.Create]: {
@@ -534,7 +576,24 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "attributes",
       i18nKey: "pbac_action_create",
       descriptionI18nKey: "pbac_desc_create_organization_attributes",
+      scope: [Scope.Organization],
       dependsOn: ["organization.attributes.read"],
+    },
+    [CustomAction.EditUsers]: {
+      description: "Edit user attributes",
+      category: "attributes",
+      i18nKey: "pbac_action_edit_users",
+      descriptionI18nKey: "pbac_desc_edit_user_attributes",
+      scope: [Scope.Organization],
+      dependsOn: [
+        "organization.read",
+        "organization.listMembers",
+        "organization.attributes.read",
+        "organization.attributes.update",
+        "organization.attributes.delete",
+        "organization.attributes.create",
+        "organization.changeMemberRole",
+      ],
     },
   },
   [Resource.RoutingForm]: {

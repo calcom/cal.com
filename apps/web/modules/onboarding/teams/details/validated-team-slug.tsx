@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import slugify from "@calcom/lib/slugify";
 import classNames from "@calcom/ui/classNames";
 import { Label, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -73,14 +74,24 @@ export function ValidatedTeamSlug({ value, onChange, onValidationChange }: Valid
     };
   }, [value, validateSlug]);
 
+  const handleBlur = () => {
+    if (value) {
+      const slugified = slugify(value);
+      if (slugified !== value) {
+        onChange(slugified);
+      }
+    }
+  };
+
   const urlPrefix = `${WEBAPP_URL}/team/`;
 
   return (
     <div className="flex w-full flex-col gap-1.5">
-      <Label className="text-emphasis text-sm font-medium leading-4">{t("team_url")}</Label>
+      <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("team_url")}</Label>
       <TextField
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={handleBlur}
         placeholder="acme"
         addOnLeading={urlPrefix}
         addOnSuffix={

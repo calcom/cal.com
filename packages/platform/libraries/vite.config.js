@@ -1,10 +1,14 @@
-/* eslint-disable no-undef */
 // vite.config.ts
 import react from "@vitejs/plugin-react";
-import { resolve } from "path";
-import path from "path";
+import { resolve } from "node:path";
+import path from "node:path"
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // https://vitejs.dev/guide/build.html#library-mode
 export default defineConfig({
@@ -31,7 +35,10 @@ export default defineConfig({
         conferencing: resolve(__dirname, "./conferencing.ts"),
         repositories: resolve(__dirname, "./repositories.ts"),
         bookings: resolve(__dirname, "./bookings.ts"),
+        organizations: resolve(__dirname, "./organizations.ts"),
         "private-links": resolve(__dirname, "./private-links.ts"),
+        pbac: resolve(__dirname, "./pbac.ts"),
+        errors: resolve(__dirname, "./errors.ts"),
       },
       name: "calcom-lib",
       fileName: "calcom-lib",

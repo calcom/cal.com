@@ -2,7 +2,7 @@ export function RoutingSkeleton() {
   return (
     <div className="w-full py-4 lg:py-8">
       <div className="flex w-full flex-col rounded-md">
-        <div className="bg-muted border-muted rounded-2xl border p-2.5">
+        <div className="bg-cal-muted border-muted rounded-2xl border p-2.5">
           {[1, 2, 3].map((index) => (
             <div key={index}>
               {/* Title */}
@@ -25,14 +25,14 @@ export function RoutingSkeleton() {
                   <div className="bg-subtle h-4 w-32 animate-pulse rounded" />
                 </div>
 
-                <div className="bg-muted rounded-xl p-0.5">
+                <div className="bg-cal-muted rounded-xl p-0.5">
                   <div className="flex items-center gap-2 py-1 pl-3">
                     {/* If booker selects */}
                     <div className="bg-subtle h-4 w-32 animate-pulse rounded" />
                     <div className="bg-subtle h-4 w-16 animate-pulse rounded" />
                   </div>
                   <div className="bg-default rounded-[10px] px-3 py-2 ">
-                    <div className="space-y-3">
+                    <div className="stack-y-3">
                       {/* Label Field */}
                       <div className="flex items-center justify-between gap-[10px]">
                         <div className="bg-subtle h-4 w-full animate-pulse rounded" />

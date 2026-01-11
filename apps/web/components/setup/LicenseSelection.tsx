@@ -101,7 +101,7 @@ const LicenseSelection = (
   return (
     <form
       {...rest}
-      className="space-y-6"
+      className="stack-y-6"
       onSubmit={(e) => {
         e.preventDefault();
         if (value === "FREE") {
@@ -119,10 +119,10 @@ const LicenseSelection = (
         <RadioGroup.Item value="FREE" className="h-full">
           <div
             className={classNames(
-              "bg-default h-full cursor-pointer space-y-2 rounded-md border p-4 hover:border-black",
+              "bg-default h-full cursor-pointer stack-y-2 rounded-md border p-4 hover:border-black",
               value === "FREE" && "ring-2 ring-black"
             )}>
-            <h2 className="font-cal text-emphasis text-xl">{t("agplv3_license")}</h2>
+            <h2 className="font-heading text-emphasis text-xl">{t("agplv3_license")}</h2>
             <p className="font-medium text-green-800">{t("free_license_fee")}</p>
             <p className="text-subtle">{t("forever_open_and_free")}</p>
             <ul className="text-subtle ml-4 list-disc text-left text-xs">
@@ -136,10 +136,10 @@ const LicenseSelection = (
         <RadioGroup.Item value="EXISTING" className="h-full">
           <div
             className={classNames(
-              "bg-default h-full cursor-pointer space-y-2 rounded-md border p-4 hover:border-black",
+              "bg-default h-full cursor-pointer stack-y-2 rounded-md border p-4 hover:border-black",
               value === "EXISTING" && "ring-2 ring-black"
             )}>
-            <h2 className="font-cal text-emphasis text-xl">{t("enter_license_key")}</h2>
+            <h2 className="font-heading text-emphasis text-xl">{t("enter_license_key")}</h2>
             <p className="font-medium text-green-800">{t("enter_existing_license")}</p>
             <p className="text-subtle">{t("enter_your_license_key")}</p>
             <p className="text-subtle text-xs">
@@ -158,8 +158,8 @@ const LicenseSelection = (
 
       {value === "EXISTING" && (
         <FormProvider {...formMethods}>
-          <div className="bg-muted space-y-4 rounded-md px-4 py-3">
-            <div className="space-y-4">
+          <div className="bg-cal-muted stack-y-4 rounded-md px-4 py-3">
+            <div className="stack-y-4">
               <div>
                 <Controller
                   name="licenseKey"

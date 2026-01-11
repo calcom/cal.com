@@ -1,5 +1,5 @@
 // TODO: Fix tests (These test were never running due to the vitest workspace config)
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -67,13 +67,20 @@ vi.mock("@calcom/features/webhooks/lib/sendOrSchedulePayload", () => ({
 
 const mockFindOriginalRescheduledBooking = vi.fn();
 vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
-  BookingRepository: vi.fn().mockImplementation(() => ({
+  BookingRepository: vi.fn().mockImplementation(function() { return {
     findOriginalRescheduledBooking: mockFindOriginalRescheduledBooking,
-  })),
+  }; }),
 }));
 
 vi.mock("@calcom/features/watchlist/operations/check-if-users-are-blocked.controller", () => ({
   checkIfUsersAreBlocked: vi.fn().mockResolvedValue(false),
+}));
+
+vi.mock("@calcom/features/watchlist/operations/filter-blocked-users.controller", () => ({
+  filterBlockedUsers: vi.fn().mockImplementation(async (users) => ({
+    eligibleUsers: users,
+    blockedCount: 0,
+  })),
 }));
 
 vi.mock("@calcom/features/di/containers/QualifiedHosts", () => ({
@@ -87,23 +94,25 @@ vi.mock("@calcom/features/di/containers/QualifiedHosts", () => ({
 }));
 
 vi.mock("@calcom/features/bookings/lib/EventManager", () => ({
-  default: vi.fn().mockImplementation(() => ({
-    reschedule: vi.fn().mockResolvedValue({
-      results: [],
-      referencesToCreate: [],
-    }),
-    create: vi.fn().mockResolvedValue({
-      results: [],
-      referencesToCreate: [],
-    }),
-    update: vi.fn().mockResolvedValue({
-      results: [],
-      referencesToCreate: [],
-    }),
-    createAllCalendarEvents: vi.fn().mockResolvedValue([]),
-    updateAllCalendarEvents: vi.fn().mockResolvedValue([]),
-    deleteEventsAndMeetings: vi.fn().mockResolvedValue([]),
-  })),
+  default: vi.fn().mockImplementation(function() {
+    return {
+      reschedule: vi.fn().mockResolvedValue({
+        results: [],
+        referencesToCreate: [],
+      }),
+      create: vi.fn().mockResolvedValue({
+        results: [],
+        referencesToCreate: [],
+      }),
+      update: vi.fn().mockResolvedValue({
+        results: [],
+        referencesToCreate: [],
+      }),
+      createAllCalendarEvents: vi.fn().mockResolvedValue([]),
+      updateAllCalendarEvents: vi.fn().mockResolvedValue([]),
+      deleteEventsAndMeetings: vi.fn().mockResolvedValue([]),
+    };
+  }),
   placeholderCreatedEvent: {
     results: [],
     referencesToCreate: [],
@@ -146,10 +155,10 @@ vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
   },
 }));
 vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn().mockImplementation(() => ({
+  FeaturesRepository: vi.fn().mockImplementation(function() { return {
     checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
     checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
-  })),
+  }; }),
 }));
 
 vi.mock("@calcom/features/webhooks/lib/getWebhooks", () => ({
@@ -161,7 +170,7 @@ vi.mock("@calcom/features/ee/workflows/lib/getAllWorkflows", () => ({
   workflowSelect: {},
 }));
 
-vi.mock("@calcom/trpc/server/routers/viewer/workflows/util", () => ({
+vi.mock("@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType", () => ({
   getAllWorkflowsFromEventType: vi.fn().mockResolvedValue([]),
 }));
 
@@ -245,7 +254,9 @@ describe("POST /api/bookings", () => {
 
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
-        body: {},
+        body: {
+          eventTypeId: 2,
+        },
       });
 
       await handler(req, res);
