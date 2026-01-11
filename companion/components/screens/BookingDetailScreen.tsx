@@ -632,18 +632,17 @@ export function BookingDetailScreen({
 
           {/* Participants Card - iOS Calendar Style (Expandable) */}
           <View className="mb-4 overflow-hidden rounded-xl bg-white">
-            <AppPressable
-              className="flex-row items-center justify-between px-4 py-3.5"
-              onPress={() => setParticipantsExpanded(!participantsExpanded)}
-            >
-              <Text className="text-[17px] text-black">Participants</Text>
-              <View className="flex-row items-center">
-                <Text className="mr-1 text-[17px] text-[#8E8E93]">{totalParticipants}</Text>
-                <Ionicons
-                  name={participantsExpanded ? "chevron-down" : "chevron-forward"}
-                  size={18}
-                  color="#C7C7CC"
-                />
+            <AppPressable onPress={() => setParticipantsExpanded(!participantsExpanded)}>
+              <View className="flex-row items-center justify-between px-4 py-3.5">
+                <Text className="text-[17px] text-black">Participants</Text>
+                <View className="flex-row items-center">
+                  <Text className="mr-1 text-[17px] text-[#8E8E93]">{totalParticipants}</Text>
+                  <Ionicons
+                    name={participantsExpanded ? "chevron-down" : "chevron-forward"}
+                    size={18}
+                    color="#C7C7CC"
+                  />
+                </View>
               </View>
             </AppPressable>
 
