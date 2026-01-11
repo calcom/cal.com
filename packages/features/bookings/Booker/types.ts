@@ -139,8 +139,8 @@ export type useScheduleForEventReturnType = {
   isError: boolean;
   isSuccess: boolean;
   isLoading: boolean;
-  invalidate: (() => void) | undefined;
-  dataUpdatedAt: number | undefined;
+  invalidate: () => Promise<any>;
+  dataUpdatedAt: number;
 };
 
 export type Timezone = (typeof IntlSupportedTimeZones)[number];
