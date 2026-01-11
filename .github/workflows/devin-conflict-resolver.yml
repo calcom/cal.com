@@ -260,9 +260,9 @@ jobs:
               ];
               
               for (const comment of comments.data.reverse()) {
-                const hasDevinSession = sessionPatterns.some(pattern => comment.body.includes(pattern));
+                const hasDevinSession = sessionPatterns.some(pattern => comment.body?.includes(pattern));
                 if (hasDevinSession) {
-                  const match = comment.body.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
+                  const match = comment.body?.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
                   if (match) {
                     const sessionId = match[1];
                     console.log(`Found existing session from comment: ${sessionId}`);
@@ -277,7 +277,6 @@ jobs:
                         console.log(`Session ${sessionId} is not active (status: ${session.status_enum})`);
                       }
                     }
-                    break;
                   }
                 }
               }
