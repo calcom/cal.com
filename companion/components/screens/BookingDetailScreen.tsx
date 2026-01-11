@@ -41,6 +41,7 @@ import { useCancelBooking } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
 import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
+import { openInAppBrowser } from "@/utils/browser";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -108,6 +109,22 @@ const calculateDuration = (startDateString: string, endDateString: string): numb
   const endDate = new Date(endDateString);
   if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return 0;
   return Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60));
+};
+
+const getMeetingUrl = (booking: Booking | null): string | null => {
+  if (!booking) return null;
+
+  const videoCallUrl = booking.responses?.videoCallUrl;
+  if (typeof videoCallUrl === "string" && videoCallUrl.startsWith("http")) {
+    return videoCallUrl;
+  }
+
+  const location = booking.location;
+  if (typeof location === "string" && location.startsWith("http")) {
+    return location;
+  }
+
+  return null;
 };
 
 export interface BookingDetailScreenProps {
@@ -322,6 +339,14 @@ export function BookingDetailScreen({
     });
   }, [booking, router]);
 
+  const meetingUrl = useMemo(() => getMeetingUrl(booking ?? null), [booking]);
+
+  const handleJoinMeeting = useCallback(() => {
+    if (meetingUrl) {
+      openInAppBrowser(meetingUrl, "meeting link");
+    }
+  }, [meetingUrl]);
+
   // Expose action handlers to parent component (for iOS header menu)
   useEffect(() => {
     if (booking && onActionsReady) {
@@ -513,41 +538,51 @@ export function BookingDetailScreen({
           options={{
             headerRight: () => (
               <HeaderButtonWrapper side="right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Pressable className="h-10 w-10 items-center justify-center rounded-full">
-                      <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
+                <View className="flex-row items-center">
+                  {meetingUrl && (
+                    <Pressable
+                      className="mr-2 h-10 w-10 items-center justify-center rounded-full"
+                      onPress={handleJoinMeeting}
+                    >
+                      <Ionicons name="videocam" size={24} color="#000" />
                     </Pressable>
-                  </DropdownMenuTrigger>
+                  )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Pressable className="h-10 w-10 items-center justify-center rounded-full">
+                        <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
+                      </Pressable>
+                    </DropdownMenuTrigger>
 
-                  <DropdownMenuContent
-                    insets={contentInsets}
-                    sideOffset={8}
-                    className="w-52"
-                    align="end"
-                  >
-                    {dropdownActions.map((action, index) => (
-                      <React.Fragment key={action.label}>
-                        {index === destructiveStartIndex && destructiveStartIndex > 0 && (
-                          <DropdownMenuSeparator />
-                        )}
-                        <DropdownMenuItem variant={action.variant} onPress={action.onPress}>
-                          <Ionicons
-                            name={action.icon}
-                            size={18}
-                            color={action.variant === "destructive" ? "#800020" : "#374151"}
-                            style={{ marginRight: 8 }}
-                          />
-                          <UIText
-                            className={action.variant === "destructive" ? "text-destructive" : ""}
-                          >
-                            {action.label}
-                          </UIText>
-                        </DropdownMenuItem>
-                      </React.Fragment>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                    <DropdownMenuContent
+                      insets={contentInsets}
+                      sideOffset={8}
+                      className="w-52"
+                      align="end"
+                    >
+                      {dropdownActions.map((action, index) => (
+                        <React.Fragment key={action.label}>
+                          {index === destructiveStartIndex && destructiveStartIndex > 0 && (
+                            <DropdownMenuSeparator />
+                          )}
+                          <DropdownMenuItem variant={action.variant} onPress={action.onPress}>
+                            <Ionicons
+                              name={action.icon}
+                              size={18}
+                              color={action.variant === "destructive" ? "#800020" : "#374151"}
+                              style={{ marginRight: 8 }}
+                            />
+                            <UIText
+                              className={action.variant === "destructive" ? "text-destructive" : ""}
+                            >
+                              {action.label}
+                            </UIText>
+                          </DropdownMenuItem>
+                        </React.Fragment>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </View>
               </HeaderButtonWrapper>
             ),
           }}
