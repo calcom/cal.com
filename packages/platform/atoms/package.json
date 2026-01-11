@@ -72,6 +72,7 @@
     "./event-types/hooks/useEventTypeForm": "./event-types/hooks/useEventTypeForm.ts",
     "./event-types/hooks/useHandleRouteChange": "./event-types/hooks/useHandleRouteChange.ts",
     "./event-types/hooks/useTabsNavigations": "./event-types/hooks/useTabsNavigations.tsx",
+    "./event-types/hooks/useTeamMembersWithSegmentPlatform": "./event-types/hooks/useTeamMembersWithSegmentPlatform.tsx",
     "./timezone": "./timezone/index.tsx"
   },
   "types": "./dist/index.d.ts",
