@@ -1,17 +1,39 @@
 import { usePathname } from "next/navigation";
 
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
+import { CrmFieldType } from "@calcom/app-store/_lib/crm-enums";
+import WriteToObjectSettings, {
+  BookingActionEnum,
+} from "@calcom/app-store/_components/crm/WriteToObjectSettings";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Switch } from "@calcom/ui/components/form";
+import { Section } from "@calcom/ui/components/section";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
+import type { appDataSchema } from "../zod";
+import { WhenToWrite } from "../zod";
+
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  app,
+  eventType,
+  onAppInstallSuccess,
+}) {
   const pathname = usePathname();
-
+  const { t } = useLocale();
+  const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
   const { enabled, updateEnabled } = useIsAppEnabled(app);
+
+  const ignoreGuests = getAppData("ignoreGuests") ?? false;
+  const skipContactCreation = getAppData("skipContactCreation") ?? false;
+  const onBookingWriteToEventObject = getAppData("onBookingWriteToEventObject") ?? false;
+  const onBookingWriteToEventObjectFields = getAppData("onBookingWriteToEventObjectFields") ?? {};
 
   return (
     <AppCard
+      onAppInstallSuccess={onAppInstallSuccess}
       returnTo={`${WEBAPP_URL}${pathname}?tabName=apps`}
       app={app}
       teamId={eventType.team?.id || undefined}
@@ -19,8 +41,61 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         updateEnabled(e);
       }}
       switchChecked={enabled}
-      hideAppCardOptions
-    />
+      hideSettingsIcon>
+      <Section.Content>
+        <Section.SubSection>
+          <Section.SubSectionHeader
+            icon="user-plus"
+            title={t("hubspot_ignore_guests")}
+            labelFor="ignore-guests">
+            <Switch
+              size="sm"
+              labelOnLeading
+              checked={ignoreGuests}
+              onCheckedChange={(checked) => {
+                setAppData("ignoreGuests", checked);
+              }}
+            />
+          </Section.SubSectionHeader>
+        </Section.SubSection>
+        <Section.SubSection>
+          <Section.SubSectionHeader
+            icon="user-plus"
+            title={t("skip_contact_creation", { appName: "HubSpot" })}
+            labelFor="skip-contact-creation">
+            <Switch
+              size="sm"
+              labelOnLeading
+              checked={skipContactCreation}
+              onCheckedChange={(checked) => {
+                setAppData("skipContactCreation", checked);
+              }}
+            />
+          </Section.SubSectionHeader>
+        </Section.SubSection>
+
+        <Section.SubSection>
+          <WriteToObjectSettings
+            bookingAction={BookingActionEnum.ON_BOOKING}
+            optionLabel={t("on_booking_write_to_event_object")}
+            optionEnabled={onBookingWriteToEventObject}
+            writeToObjectData={onBookingWriteToEventObjectFields}
+            optionSwitchOnChange={(checked) => {
+              setAppData("onBookingWriteToEventObject", checked);
+            }}
+            updateWriteToObjectData={(data) => setAppData("onBookingWriteToEventObjectFields", data)}
+            supportedFieldTypes={[
+              CrmFieldType.TEXT,
+              CrmFieldType.DATE,
+              CrmFieldType.PHONE,
+              CrmFieldType.CHECKBOX,
+              CrmFieldType.CUSTOM,
+            ]}
+            supportedWriteTriggers={[WhenToWrite.EVERY_BOOKING]}
+          />
+        </Section.SubSection>
+      </Section.Content>
+    </AppCard>
   );
 };
 

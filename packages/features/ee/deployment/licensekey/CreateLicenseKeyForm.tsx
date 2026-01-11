@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
@@ -85,7 +85,7 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
       {!stripeCheckoutUrl ? (
         <Form
           form={newLicenseKeyFormMethods}
-          className="space-y-5"
+          className="stack-y-5"
           id="createOrg"
           handleSubmit={(values) => {
             mutation.mutate(values);
@@ -177,7 +177,7 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
             />
           </div>
 
-          <div className="flex flex-wrap gap-2 [&>*]:flex-1">
+          <div className="flex flex-wrap gap-2 *:flex-1">
             <Controller
               name="entityCount"
               control={newLicenseKeyFormMethods.control}
@@ -257,7 +257,7 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
             <TextField className="flex-1" disabled value={stripeCheckoutUrl} />
           </div>
 
-          <div className="mt-4 flex gap-2 [&>*]:flex-1 [&>*]:justify-center">
+          <div className="mt-4 flex gap-2 *:flex-1 *:justify-center">
             <Button
               color="secondary"
               onClick={() => {

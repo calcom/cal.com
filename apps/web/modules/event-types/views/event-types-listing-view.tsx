@@ -9,12 +9,10 @@ import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
-import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
-import { EventTypeDescription } from "@calcom/features/eventtypes/components";
-import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
-import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
-import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
+import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/web/modules/embed/components/EventTypeEmbed";
+import { EventTypeDescription } from "@calcom/web/modules/event-types/components";
+import { DuplicateDialog } from "@calcom/web/modules/event-types/components/DuplicateDialog";
+import { InfiniteSkeletonLoader } from "@calcom/web/modules/event-types/components/SkeletonLoader";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
@@ -27,7 +25,7 @@ import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { localStorage } from "@calcom/lib/webstorage";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -56,6 +54,11 @@ import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { CreateButton } from "@calcom/web/modules/ee/teams/components/createButton/CreateButton";
+import {
+  CreateEventTypeDialog,
+  type ProfileOption,
+} from "@calcom/web/modules/event-types/components/CreateEventTypeDialog";
 
 import { TRPCClientError } from "@trpc/client";
 
@@ -122,7 +125,7 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
       <TextField
         className="max-w-64"
         addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
-        containerClassName="max-w-64 focus:!ring-offset-0 mb-4"
+        containerClassName="max-w-64 focus:ring-offset-0! mb-4"
         type="search"
         value={searchTerm}
         autoComplete="false"
@@ -141,15 +144,17 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
           debouncedSearchTerm={debouncedSearchTerm}
         />
       )}
-      <div className="text-default p-4 text-center" ref={buttonInView.ref}>
-        <Button
-          color="minimal"
-          loading={query.isFetchingNextPage}
-          disabled={!query.hasNextPage}
-          onClick={() => query.fetchNextPage()}>
-          {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
-        </Button>
-      </div>
+      {(query.data?.pages?.[0]?.eventTypes?.length ?? 0) > 0 && (
+        <div className="text-default p-4 text-center" ref={buttonInView.ref}>
+          <Button
+            color="minimal"
+            loading={query.isFetchingNextPage}
+            disabled={!query.hasNextPage}
+            onClick={() => query.fetchNextPage()}>
+            {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
@@ -169,11 +174,12 @@ const Item = ({
   const parsedeventTypeColor = parseEventTypeColor(type.eventTypeColor);
   const eventTypeColor =
     parsedeventTypeColor && parsedeventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
+  const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
 
   const content = () => (
     <div>
       <span
-        className="text-default font-semibold ltr:mr-1 rtl:ml-1"
+        className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
         data-testid={`event-type-title-${type.id}`}>
         {type.title}
       </span>
@@ -184,6 +190,11 @@ const Item = ({
           {`/${group.profile.slug}/${type.slug}`}
         </small>
       ) : null}
+      {!isManagedEventType && type.hidden && (
+        <Badge variant="gray" className="ml-2 sm:hidden">
+          {t("hidden")}
+        </Badge>
+      )}
       {readOnly && (
         <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
           {t("readonly")}
@@ -207,7 +218,7 @@ const Item = ({
           <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
             <div>
               <span
-                className="text-default font-semibold ltr:mr-1 rtl:ml-1"
+                className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
                 data-testid={`event-type-title-${type.id}`}>
                 {type.title}
               </span>
@@ -218,6 +229,11 @@ const Item = ({
                   {`/${group.profile.slug}/${type.slug}`}
                 </small>
               ) : null}
+              {!isManagedEventType && type.hidden && (
+                <Badge variant="gray" className="ml-2 sm:hidden">
+                  {t("hidden")}
+                </Badge>
+              )}
               {readOnly && (
                 <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
                   {t("readonly")}
@@ -268,7 +284,7 @@ export const InfiniteEventTypeList = ({
     },
   });
 
-  const setHiddenMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
+  const setHiddenMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
     onMutate: async (data) => {
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
       const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
@@ -278,13 +294,30 @@ export const InfiniteEventTypeList = ({
       });
 
       if (previousValue) {
-        pages?.forEach((page) => {
-          page?.eventTypes?.forEach((eventType) => {
-            if (eventType.id === data.id) {
-              eventType.hidden = !eventType.hidden;
+        await utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+          {
+            limit: LIMIT,
+            searchQuery: debouncedSearchTerm,
+            group: { teamId: group?.teamId, parentId: group?.parentId },
+          },
+          (oldData) => {
+            if (!oldData) {
+              return {
+                pages: [],
+                pageParams: [],
+              };
             }
-          });
-        });
+            return {
+              ...oldData,
+              pages: oldData.pages.map((page) => ({
+                ...page,
+                eventTypes: page.eventTypes.map((eventType) =>
+                  eventType.id === data.id ? { ...eventType, hidden: !eventType.hidden } : eventType
+                ),
+              })),
+            };
+          }
+        );
       }
 
       return { previousValue };
@@ -478,7 +511,7 @@ export const InfiniteEventTypeList = ({
 
   return (
     <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-md border">
-      <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
+      <ul ref={parent} className="divide-subtle static! w-full divide-y" data-testid="event-types">
         {pages.map((page, pageIdx) => {
           return page?.eventTypes?.map((type, index) => {
             const embedLink = `${group.profile.slug}/${type.slug}`;
@@ -500,7 +533,7 @@ export const InfiniteEventTypeList = ({
               type.schedulingType !== SchedulingType.MANAGED;
             return (
               <li key={type.id}>
-                <div className="hover:bg-muted flex w-full items-center justify-between transition">
+                <div className="hover:bg-cal-muted flex w-full items-center justify-between transition">
                   <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                     {!(firstItem && firstItem.id === type.id) && (
                       <ArrowButton
@@ -612,7 +645,7 @@ export const InfiniteEventTypeList = ({
                                   color="secondary"
                                   StartIcon="ellipsis"
                                   // Unusual practice to use radix state open but for some reason this dropdown and only this dropdown clears the border radius of this button.
-                                  className="ltr:radix-state-open:rounded-r-[--btn-group-radius] rtl:radix-state-open:rounded-l-[--btn-group-radius]"
+                                  className="ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
                                 />
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
@@ -846,17 +879,7 @@ const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTe
   );
 };
 
-const CTA = ({
-  profileOptions,
-}: {
-  profileOptions: {
-    teamId: number | null | undefined;
-    label: string | null;
-    image: string;
-    membershipRole: MembershipRole | null | undefined;
-    slug: string | null;
-  }[];
-}) => {
+const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
   const { t } = useLocale();
 
   if (!profileOptions.length) return null;
@@ -882,12 +905,14 @@ const EmptyEventTypeList = ({
   return (
     <>
       <EmptyScreen
+        Icon="link"
         headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("team_no_event_types")}
+        description={t("new_team_event_type_description")}
+        className="mb-16"
         buttonRaw={
           <Button
             href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
-            variant="button"
-            className="mt-5">
+            variant="button">
             {t("create")}
           </Button>
         }
@@ -951,16 +976,42 @@ type Props = {
 
 export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
   const profileOptions =
-    userEventGroupsData?.profiles
+    userEventGroupsData.profiles
       ?.filter((profile) => !profile.readOnly)
       ?.filter((profile) => !profile.eventTypesLockedByOrg)
+      ?.filter((profile) => {
+        // For personal profiles (teamId is null), always allow creation
+        if (!profile.teamId) {
+          return true;
+        }
+
+        // For team profiles, check if user has eventType.create permission
+        // This will be populated by the server-side PBAC check
+        // Fallback to role-based check (admin/owner) if canCreateEventTypes is not set
+        if (profile.canCreateEventTypes !== undefined) {
+          return profile.canCreateEventTypes;
+        }
+
+        // Fallback: allow admin and owner roles
+        return (
+          profile.membershipRole === MembershipRole.ADMIN || profile.membershipRole === MembershipRole.OWNER
+        );
+      })
       ?.map((profile) => {
+        const permissions = profile.teamId
+          ? userEventGroupsData.teamPermissions[profile.teamId]
+          : {
+              // always can create eventType on personal level
+              canCreateEventType: true,
+            };
+
         return {
           teamId: profile.teamId,
           label: profile.name || profile.slug,
           image: profile.image,
           membershipRole: profile.membershipRole,
           slug: profile.slug,
+          permissions,
         };
       }) ?? [];
 
@@ -979,9 +1030,10 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
      */
     const redirectUrl = localStorage.getItem("onBoardingRedirect");
     localStorage.removeItem("onBoardingRedirect");
-    redirectUrl && router.push(redirectUrl);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (redirectUrl) {
+      router.push(redirectUrl);
+    }
+  }, [router]);
 
   useEffect(() => {
     setShowProfileBanner(

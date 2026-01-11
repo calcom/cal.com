@@ -672,12 +672,15 @@ async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"
   await page.locator('[data-testid="preview-button"]').click();
   const previewTabPage = await previewTabPromise;
   await previewTabPage.waitForLoadState();
+  await previewTabPage.waitForURL((url) => {
+    return url.searchParams.get("overlayCalendar") === "true";
+  });
   await selectFirstAvailableTimeSlotNextMonth(previewTabPage);
   return previewTabPage;
 }
 
 async function saveEventType(page: Page) {
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),
   });
 }

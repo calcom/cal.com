@@ -1,5 +1,5 @@
 import type { Session } from "next-auth";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -22,6 +22,12 @@ const session: Session = {
     email: "test@example.com",
   },
 };
+
+vi.mock("@calcom/prisma", () => {
+  return {
+    prisma: vi.fn(),
+  };
+});
 
 describe("parseTeamId", () => {
   it("should return undefined if no teamId is provided", () => {

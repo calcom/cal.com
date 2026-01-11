@@ -1,9 +1,6 @@
-import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
-import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 
-import { router, mergeRouters } from "../../trpc";
-import app_Basecamp3 from "../apps/basecamp3/_router";
+import { router } from "../../trpc";
 import app_RoutingForms from "../apps/routing-forms/_router";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
 import { publicViewerRouter } from "../publicViewer/_router";
@@ -25,9 +22,12 @@ import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
 import { eventTypesRouter as heavyEventTypesRouter } from "./eventTypes/heavy/_router";
+import { featureOptInRouter } from "./featureOptIn/_router";
 import { filterSegmentsRouter } from "./filterSegments/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
+import { holidaysRouter } from "./holidays/_router";
 import { i18nRouter } from "./i18n/_router";
+import { insightsRouter } from "./insights/_router";
 import { meRouter } from "./me/_router";
 import { oAuthRouter } from "./oAuth/_router";
 import { oooRouter } from "./ooo/_router";
@@ -40,6 +40,7 @@ import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
 import { viewerTeamsRouter } from "./teams/_router";
 import { travelSchedulesRouter } from "./travelSchedules/_router";
+import { userAdminRouter } from "./users/_router";
 import { webhookRouter } from "./webhook/_router";
 import { workflowsRouter } from "./workflows/_router";
 
@@ -54,12 +55,8 @@ export const viewerRouter = router({
   calendars: calendarsRouter,
   calVideo: calVideoRouter,
   credentials: credentialsRouter,
-  eventTypes: mergeRouters(
-    eventTypesRouter,
-    router({
-      heavy: heavyEventTypesRouter,
-    })
-  ),
+  eventTypes: eventTypesRouter,
+  eventTypesHeavy: heavyEventTypesRouter,
   availability: availabilityRouter,
   teams: viewerTeamsRouter,
   timezones: timezonesRouter,
@@ -79,8 +76,8 @@ export const viewerRouter = router({
   // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
   // After that there would just one merge call here for all the apps.
   appRoutingForms: app_RoutingForms,
-  appBasecamp3: app_Basecamp3,
   features: featureFlagRouter,
+  featureOptIn: featureOptInRouter,
   users: userAdminRouter,
   oAuth: oAuthRouter,
   googleWorkspace: googleWorkspaceRouter,
@@ -89,6 +86,7 @@ export const viewerRouter = router({
   routingForms: routingFormsRouter,
   credits: creditsRouter,
   ooo: oooRouter,
+  holidays: holidaysRouter,
   travelSchedules: travelSchedulesRouter,
   aiVoiceAgent: aiVoiceAgentRouter,
   phoneNumber: phoneNumberRouter,

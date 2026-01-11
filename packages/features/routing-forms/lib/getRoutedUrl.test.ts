@@ -1,33 +1,34 @@
 import "@calcom/lib/__mocks__/logger";
 
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import type { GetServerSidePropsContext } from "next";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
+import { PrismaRoutingFormRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { getRoutedUrl } from "./getRoutedUrl";
+import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
+import { handleResponse } from "./handleResponse";
 
 // Mock dependencies
+vi.mock("./getUrlSearchParamsToForward");
+vi.mock("./handleResponse");
 vi.mock("@calcom/lib/checkRateLimitAndThrowError");
-vi.mock("@calcom/app-store/routing-forms/lib/handleResponse");
-vi.mock("@calcom/lib/server/repository/PrismaRoutingFormRepository");
-vi.mock("@calcom/lib/server/repository/user", () => {
+vi.mock("@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository");
+vi.mock("@calcom/features/users/repositories/UserRepository", () => {
   return {
-    UserRepository: vi.fn().mockImplementation(() => ({
+    UserRepository: vi.fn().mockImplementation(function() { return {
       enrichUserWithItsProfile: vi.fn(),
-    })),
+    }; }),
   };
 });
 vi.mock("@calcom/features/ee/organizations/lib/orgDomains");
@@ -36,7 +37,6 @@ vi.mock("@calcom/app-store/routing-forms/lib/getSerializableForm");
 vi.mock("@calcom/app-store/routing-forms/lib/getResponseToStore");
 vi.mock("@calcom/app-store/routing-forms/lib/processRoute");
 vi.mock("@calcom/app-store/routing-forms/lib/substituteVariables");
-vi.mock("@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward");
 vi.mock("@calcom/app-store/routing-forms/getEventTypeRedirectUrl");
 vi.mock("@calcom/app-store/routing-forms/enrichFormWithMigrationData", () => ({
   enrichFormWithMigrationData: vi.fn((form) => form),
@@ -89,12 +89,12 @@ describe("getRoutedUrl", () => {
     const mockEnrichUserWithItsProfile = vi.fn().mockImplementation(async ({ user }) => user);
     const mockUserRepository = vi.mocked(UserRepository);
     if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
-      mockUserRepository.mockImplementation(
-        () =>
-          ({
-            enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-          } as any)
-      );
+      mockUserRepository.mockImplementation(function () {
+        return {
+          enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+      });
     }
     vi.mocked(isAuthorizedToViewFormOnOrgDomain).mockReturnValue(true);
     vi.mocked(getSerializableForm).mockResolvedValue(mockSerializableForm as never);

@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { EmailService } from "@/modules/email/email.service";
 import { GetOrganizationsUsersInput } from "@/modules/organizations/users/index/inputs/get-organization-users.input";
@@ -22,7 +22,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { User, Team, EventType, AttributeOption } from "@calcom/prisma/client";
+import type { User, Team, AttributeOption } from "@calcom/prisma/client";
 
 describe("Organizations Users Endpoints", () => {
   const bio = "I am a bio";
@@ -167,7 +167,7 @@ describe("Organizations Users Endpoints", () => {
 
       await userRepositoryFixture.create({
         email: nonMemberEmail,
-        username: "non-member",
+        username: `non-member-${randomString()}`,
       });
 
       const orgMembers = await Promise.all(
@@ -351,6 +351,7 @@ describe("Organizations Users Endpoints", () => {
         email: `organizations-users-new-member-${randomString()}@api.com`,
         bio,
         metadata,
+        timeZone: "Europe/Rome",
       };
 
       const emailSpy = jest
@@ -367,6 +368,7 @@ describe("Organizations Users Endpoints", () => {
       expect(userData.email).toBe(newOrgUser.email);
       expect(userData.bio).toBe(newOrgUser.bio);
       expect(userData.metadata).toEqual(newOrgUser.metadata);
+      expect(userData.timeZone).toBe(newOrgUser.timeZone);
       expect(emailSpy).toHaveBeenCalledWith({
         usernameOrEmail: newOrgUser.email,
         orgName: org.name,
@@ -375,6 +377,108 @@ describe("Organizations Users Endpoints", () => {
         locale: null,
       });
       createdUser = userData;
+    });
+
+    it("creates a new org user with username and avatarUrl", async () => {
+      const shortRandom = randomString().substring(0, 8);
+      const testUsername = `user${shortRandom}`;
+      const testEmail = `org-user-${shortRandom}@api.com`;
+      const githubAvatarUrl = "https://avatars.githubusercontent.com/u/583231?v=4";
+
+      const newOrgUserWithUsernameAndAvatar: CreateUserInput = {
+        email: testEmail,
+        username: testUsername,
+        avatarUrl: githubAvatarUrl,
+        bio,
+        metadata,
+        timeZone: "America/Sao_Paulo",
+        timeFormat: 24,
+        locale: "pt",
+      };
+
+      const emailSpy = jest
+        .spyOn(EmailService.prototype, "sendSignupToOrganizationEmail")
+        .mockImplementation(() => Promise.resolve());
+
+      const { body } = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/users`)
+        .send(newOrgUserWithUsernameAndAvatar)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json");
+
+      const userData = body.data;
+
+      // Verify response status
+      expect(body.status).toBe(SUCCESS_STATUS);
+
+      // Verify all user fields are correctly set
+      expect(userData.email).toBe(testEmail);
+      expect(userData.username).toBe(testUsername);
+      expect(userData.avatarUrl).toBe(githubAvatarUrl);
+      expect(userData.bio).toBe(bio);
+      expect(userData.metadata).toEqual(metadata);
+      expect(userData.timeZone).toBe("America/Sao_Paulo");
+      expect(userData.timeFormat).toBe(24);
+      expect(userData.locale).toBe("pt");
+
+      // Verify email was sent with correct parameters (using email, not username)
+      expect(emailSpy).toHaveBeenCalledWith({
+        usernameOrEmail: testEmail,
+        orgName: org.name,
+        orgId: org.id,
+        inviterName: userEmail,
+        locale: "pt",
+      });
+
+      // Clean up the created user
+      await userRepositoryFixture.deleteByEmail(testEmail);
+    });
+
+    it("creates a new org user with avatarUrl as base64 image", async () => {
+      const shortRandom = randomString().substring(0, 8);
+      const testEmail = `org-b64-${shortRandom}@api.com`;
+      const base64Avatar =
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+
+      const newOrgUserWithBase64Avatar: CreateUserInput = {
+        email: testEmail,
+        avatarUrl: base64Avatar,
+        bio,
+        metadata,
+      };
+
+      const emailSpy = jest
+        .spyOn(EmailService.prototype, "sendSignupToOrganizationEmail")
+        .mockImplementation(() => Promise.resolve());
+
+      const { body } = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/users`)
+        .send(newOrgUserWithBase64Avatar)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json");
+
+      const userData = body.data;
+
+      // Verify response status
+      expect(body.status).toBe(SUCCESS_STATUS);
+
+      // Verify base64 avatar is accepted and stored
+      expect(userData.email).toBe(testEmail);
+      expect(userData.avatarUrl).toBe(base64Avatar);
+      expect(userData.bio).toBe(bio);
+      expect(userData.metadata).toEqual(metadata);
+
+      // Verify email was sent
+      expect(emailSpy).toHaveBeenCalledWith({
+        usernameOrEmail: testEmail,
+        orgName: org.name,
+        orgId: org.id,
+        inviterName: userEmail,
+        locale: null,
+      });
+
+      // Clean up the created user
+      await userRepositoryFixture.deleteByEmail(testEmail);
     });
 
     it("should delete an org user", async () => {
@@ -414,7 +518,6 @@ describe("Organizations Users Endpoints", () => {
     let user: User;
     let org: Team;
     let team: Team;
-    let managedEventType: EventType;
     let createdUser: User;
 
     beforeAll(async () => {
@@ -480,7 +583,7 @@ describe("Organizations Users Endpoints", () => {
         locations: [],
       });
 
-      managedEventType = await eventTypesRepositoryFixture.createTeamEventType({
+      await eventTypesRepositoryFixture.createTeamEventType({
         schedulingType: "MANAGED",
         team: {
           connect: { id: team.id },
@@ -651,7 +754,6 @@ describe("Organizations Users Endpoints", () => {
         type: "TEXT",
         slug: `test-attribute-2-${randomString()}`,
       });
-      const attributeId = attribute.id;
 
       assignedOption1 = await attributeRepositoryFixture.createOption({
         slug: "option1",

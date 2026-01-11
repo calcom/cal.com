@@ -5,10 +5,10 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "workspace:*"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   },
   "description": "Build AI agents in minutes to automate workflows, save time and grow your business"
 }

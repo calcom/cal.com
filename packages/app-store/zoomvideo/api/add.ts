@@ -1,5 +1,5 @@
 import type { NextApiRequest } from "next";
-import { stringify } from "querystring";
+import { stringify } from "node:querystring";
 
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";

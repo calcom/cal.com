@@ -1,4 +1,4 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 import { MOCK_JWT_TOKEN, setLastCreatedJWT } from "../__mocks__/googleapis";
 
 import { JWT } from "googleapis-common";
@@ -177,7 +177,7 @@ export const createMockJWTInstance = ({
     createGToken: vi.fn(),
   };
 
-  vi.mocked(JWT).mockImplementation(() => {
+  vi.mocked(JWT).mockImplementation(function() {
     setLastCreatedJWT(mockJWTInstance);
     return mockJWTInstance as unknown as JWT;
   });

@@ -16,12 +16,13 @@ export const EventTypeAppCard = (props: {
   eventType: EventTypeForAppCard;
   getAppData: GetAppData;
   setAppData: SetAppData;
+  onAppInstallSuccess?: () => void;
   // For event type apps, get these props from shouldLockDisableProps
   LockedIcon?: JSX.Element | false;
   eventTypeFormMetadata: z.infer<typeof EventTypeMetaDataSchema>;
   disabled?: boolean;
 }) => {
-  const { app, getAppData, setAppData, LockedIcon, disabled } = props;
+  const { app, getAppData, setAppData, LockedIcon, disabled, onAppInstallSuccess } = props;
   return (
     <ErrorBoundary message={`There is some problem with ${app.name} App`}>
       <EventTypeAppContext.Provider value={{ getAppData, setAppData, LockedIcon, disabled }}>
@@ -29,6 +30,7 @@ export const EventTypeAppCard = (props: {
           slug={app.slug === "stripe" ? "stripepayment" : app.slug}
           componentMap={EventTypeAddonMap}
           {...props}
+          onAppInstallSuccess={onAppInstallSuccess}
         />
       </EventTypeAppContext.Provider>
     </ErrorBoundary>

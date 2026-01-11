@@ -1,7 +1,7 @@
 import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 
-import { renderEmail } from "../";
 import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
+import renderEmail from "../src/renderEmail";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeLocationChangeEmail extends AttendeeScheduledEmail {

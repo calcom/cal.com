@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
@@ -11,8 +11,8 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -21,7 +21,6 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import {
@@ -34,13 +33,13 @@ import {
   OrganizerRescheduledEmail,
   OrganizerScheduledEmail,
 } from "@calcom/platform-libraries/emails";
-import {
+import type {
   BookingOutput_2024_08_13,
   CancelBookingInput_2024_08_13,
   CreateBookingInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import type { User, Team } from "@calcom/prisma/client";
 
 // Mock all email sending prototypes
 jest
@@ -73,6 +72,7 @@ type EmailSetup = {
   team: Team;
   member1: User;
   member2: User;
+  member1ApiKey: string;
   collectiveEventType: { id: number };
   roundRobinEventType: { id: number };
 };
@@ -90,25 +90,21 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
   let profileRepositoryFixture: ProfileRepositoryFixture;
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
   let hostsRepositoryFixture: HostsRepositoryFixture;
+  let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
 
   // Setup data for tests
   let emailsEnabledSetup: EmailSetup;
   let emailsDisabledSetup: EmailSetup;
 
-  const authEmail = "team-emails-2024-08-13-user-admin@example.com";
-
   // Utility function to check response data type
-  const responseDataIsBooking = (data: any): data is BookingOutput_2024_08_13 => {
-    return !Array.isArray(data) && typeof data === "object" && data && "id" in data;
+  const responseDataIsBooking = (data: unknown): data is BookingOutput_2024_08_13 => {
+    return !Array.isArray(data) && data !== null && typeof data === "object" && data && "id" in data;
   };
 
   beforeAll(async () => {
-    const moduleRef = await withApiAuth(
-      authEmail,
-      Test.createTestingModule({
-        imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
-      })
-    )
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+    })
       .overrideGuard(PermissionsGuard)
       .useValue({
         canActivate: () => true,
@@ -123,6 +119,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
+    apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
     schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
     // Create a base organization for all tests
@@ -131,11 +128,6 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     // Set up two distinct environments: one with emails enabled, one disabled
     emailsEnabledSetup = await setupTestEnvironment(true);
     emailsDisabledSetup = await setupTestEnvironment(false);
-
-    await userRepositoryFixture.create({
-      email: authEmail,
-      organization: { connect: { id: organization.id } },
-    });
 
     app = moduleRef.createNestApplication();
     bootstrap(app as NestExpressApplication);
@@ -174,10 +166,15 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     const collectiveEvent = await createEventType("COLLECTIVE", team.id, [member1.id, member2.id]);
     const roundRobinEvent = await createEventType("ROUND_ROBIN", team.id, [member1.id, member2.id]);
 
+    // Create API key for member1 to use in authorized tests
+    const { keyString } = await apiKeysRepositoryFixture.createApiKey(member1.id, null);
+    const member1ApiKey = `cal_test_${keyString}`;
+
     return {
       team,
       member1,
       member2,
+      member1ApiKey,
       collectiveEventType: { id: collectiveEvent.id },
       roundRobinEventType: { id: roundRobinEvent.id },
     };
@@ -352,6 +349,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
           : emailsDisabledSetup.member1.id;
       const manualReassignResponse = await request(app.getHttpServer())
         .post(`/v2/bookings/${rescheduledBookingUid}/reassign/${reassignToId}`)
+        .set("Authorization", `Bearer ${emailsDisabledSetup.member1ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
       expect(manualReassignResponse.status).toBe(200);
@@ -360,6 +358,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       // --- 4. Automatic Reassign ---
       const autoReassignResponse = await request(app.getHttpServer())
         .post(`/v2/bookings/${rescheduledBookingUid}/reassign`)
+        .set("Authorization", `Bearer ${emailsDisabledSetup.member1ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
       expect(autoReassignResponse.status).toBe(200);
@@ -485,6 +484,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
 
       const manualReassignResponse = await request(app.getHttpServer())
         .post(`/v2/bookings/${rescheduledBookingUid}/reassign/${reassignToId}`)
+        .set("Authorization", `Bearer ${emailsEnabledSetup.member1ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
       expect(manualReassignResponse.status).toBe(200);
@@ -500,6 +500,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       jest.clearAllMocks();
       const autoReassignResponse = await request(app.getHttpServer())
         .post(`/v2/bookings/${rescheduledBookingUid}/reassign`)
+        .set("Authorization", `Bearer ${emailsEnabledSetup.member1ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
       expect(autoReassignResponse.status).toBe(200);
@@ -524,7 +525,6 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
   afterAll(async () => {
     // Clean up database records
     await teamRepositoryFixture.delete(organization.id);
-    await userRepositoryFixture.deleteByEmail(authEmail);
     await userRepositoryFixture.deleteByEmail(emailsEnabledSetup.member1.email);
     await userRepositoryFixture.deleteByEmail(emailsEnabledSetup.member2.email);
     await userRepositoryFixture.deleteByEmail(emailsDisabledSetup.member1.email);

@@ -1,3 +1,4 @@
+import { BookingPbacGuard } from "@/ee/bookings/2024-08-13/guards/booking-pbac.guard";
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
 import { BookingReferencesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
@@ -11,19 +12,25 @@ import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/se
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import {
+  API_KEY_OR_ACCESS_TOKEN_HEADER,
+  OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import {
   AuthOptionalUser,
   GetOptionalUser,
 } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   Post,
@@ -61,6 +68,7 @@ import {
   RescheduleSeatedBookingInput_2024_08_13,
   GetBookingRecordingsOutput,
   GetBookingTranscriptsOutput,
+  GetBookingVideoSessionsOutput,
 } from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
@@ -82,7 +90,7 @@ import {
 @DocsTags("Bookings")
 @ApiHeader({
   name: "cal-api-version",
-  description: `Must be set to ${VERSION_2024_08_13}`,
+  description: `Must be set to ${VERSION_2024_08_13}. If not set to this value, the endpoint will default to an older version.`,
   example: VERSION_2024_08_13,
   required: true,
   schema: {
@@ -101,6 +109,9 @@ export class BookingsController_2024_08_13 {
 
   @Post("/")
   @UseGuards(OptionalApiAuthGuard)
+  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+  @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Create a booking",
     description: `
@@ -122,6 +133,13 @@ export class BookingsController_2024_08_13 {
       And 2 ways to book and event type belonging to a team:
       1. Provide \`eventTypeId\` in the request body.
       2. Provide \`eventTypeSlug\` and \`teamSlug\` and optionally \`organizationSlug\` if the team with the teamSlug is within an organization.
+
+      If you are creating a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
+      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.
+
+      For event types that have SMS reminders workflow, you need to pass the attendee's phone number in the request body via \`attendee.phoneNumber\` (e.g., "+19876543210" in international format). This is an optional field, but becomes required when SMS reminders are enabled for the event type. For the complete attendee object structure, see the [attendee object](https://cal.com/docs/api-reference/v2/bookings/create-a-booking#body-attendee) documentation.
+
+      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
       `,
   })
   @ApiBody({
@@ -161,7 +179,10 @@ export class BookingsController_2024_08_13 {
   }
 
   @Get("/:bookingUid")
-  @UseGuards(BookingUidGuard)
+  @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
+  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+  @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get a booking",
     description: `\`:bookingUid\` can be
@@ -170,10 +191,19 @@ export class BookingsController_2024_08_13 {
 
       2. uid of one of the recurring booking recurrences
 
-      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).`,
+      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).
+
+      If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
+      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.
+
+      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+      `,
   })
-  async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.getBooking(bookingUid);
+  async getBooking(
+    @Param("bookingUid") bookingUid: string,
+    @GetOptionalUser() user: AuthOptionalUser
+  ): Promise<GetBookingOutput_2024_08_13> {
+    const booking = await this.bookingsService.getBooking(bookingUid, user);
 
     return {
       status: SUCCESS_STATUS,
@@ -182,10 +212,17 @@ export class BookingsController_2024_08_13 {
   }
 
   @Get("/:bookingUid/recordings")
+  // @Pbac(["booking.readRecordings"])
+  @Permissions([BOOKING_READ])
   @UseGuards(BookingUidGuard)
+  // @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get all the recordings for the booking",
-    description: `Fetches all the recordings for the booking \`:bookingUid\``,
+    description: `Fetches all the recordings for the booking \`:bookingUid\`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.
+
+    <Note>cal-api-version: \`2024-08-13\` is required in the request header.</Note>
+    `,
   })
   async getBookingRecordings(@Param("bookingUid") bookingUid: string): Promise<GetBookingRecordingsOutput> {
     const recordings = await this.calVideoService.getRecordings(bookingUid);
@@ -193,14 +230,27 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: recordings,
+      message:
+        "This endpoint will require authentication in a future release. Please update your integration to include valid credentials. See https://cal.com/docs/api-reference/v2/introduction#authentication for details.",
     };
   }
 
   @Get("/:bookingUid/transcripts")
+  // @Pbac(["booking.readRecordings"])
+  @Permissions([BOOKING_READ])
   @UseGuards(BookingUidGuard)
+  // @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary: "Get all the transcripts download links for the booking",
-    description: `Fetches all the transcripts download links for the booking \`:bookingUid\``,
+    summary: "Get Cal Video real time transcript download links for the booking",
+    description: `Fetches all the transcript download links for the booking \`:bookingUid\`
+
+    <Note>
+    Transcripts are generated when clicking "Transcribe" during a Cal Video meeting. Download links are valid for 1 hour only - make a new request to generate fresh links after expiration.
+
+    Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.
+    </Note>
+    `,
   })
   async getBookingTranscripts(@Param("bookingUid") bookingUid: string): Promise<GetBookingTranscriptsOutput> {
     const transcripts = await this.calVideoService.getTranscripts(bookingUid);
@@ -208,6 +258,8 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: transcripts ?? [],
+      message:
+        "This endpoint will require authentication in a future release. Please update your integration to include valid credentials. See https://cal.com/docs/api-reference/v2/introduction#authentication for details.",
     };
   }
 
@@ -215,10 +267,13 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Permissions([BOOKING_READ])
-  @ApiOperation({ summary: "Get all bookings" })
+  @ApiOperation({
+    summary: "Get all bookings",
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
+  })
   async getBookings(
     @Query() queryParams: GetBookingsInput_2024_08_13,
-    @GetUser() user: UserWithProfile
+    @GetUser() user: ApiAuthGuardUser
   ): Promise<GetBookingsOutput_2024_08_13> {
     const profile = this.usersService.getUserMainProfile(user);
 
@@ -236,10 +291,16 @@ export class BookingsController_2024_08_13 {
   }
 
   @Post("/:bookingUid/reschedule")
-  @UseGuards(BookingUidGuard)
+  @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
+  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+  @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reschedule a booking",
-    description: "Reschedule a booking or seated booking",
+    description: `Reschedule a booking or seated booking
+
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
   })
   @ApiBody({
     schema: {
@@ -248,17 +309,20 @@ export class BookingsController_2024_08_13 {
         { $ref: getSchemaPath(RescheduleSeatedBookingInput_2024_08_13) },
       ],
     },
-    description:
-      "Accepts different types of reschedule booking input: Reschedule Booking (Option 1) or Reschedule Seated Booking (Option 2)",
+    description: `Accepts different types of reschedule booking input: Reschedule Booking (Option 1) or Reschedule Seated Booking (Option 2). If you're rescheduling a seated booking as org admin of booking host, pass booking input for Reschedule Booking (Option 1) along with your access token in the request header.
+
+      If you are rescheduling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
+      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.`,
   })
   @ApiExtraModels(RescheduleBookingInput_2024_08_13, RescheduleSeatedBookingInput_2024_08_13)
   async rescheduleBooking(
     @Param("bookingUid") bookingUid: string,
     @Body(new RescheduleBookingInputPipe())
     body: RescheduleBookingInput,
-    @Req() request: Request
+    @Req() request: Request,
+    @GetOptionalUser() user: AuthOptionalUser
   ): Promise<RescheduleBookingOutput_2024_08_13> {
-    const newBooking = await this.bookingsService.rescheduleBooking(request, bookingUid, body);
+    const newBooking = await this.bookingsService.rescheduleBooking(request, bookingUid, body, user);
     await this.bookingsService.billRescheduledBooking(newBooking, bookingUid);
 
     return {
@@ -268,20 +332,32 @@ export class BookingsController_2024_08_13 {
   }
 
   @Post("/:bookingUid/cancel")
-  @UseGuards(BookingUidGuard)
+  @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
+  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+  @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Cancel a booking",
     description: `:bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.
-    
+
+    \nCancelling normal bookings:
+    If the booking is not seated and not recurring, simply pass :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and optionally cancellationReason in the request body \`{"cancellationReason": "Will travel"}\`.
+
     \nCancelling seated bookings:
     It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.
     \n1. As an attendee - provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and seatUid in the request body \`{"seatUid": "123-123-123"}\` . This will remove this particular attendance from the booking.
-    \n2. As the host - host can cancel booking for all attendees aka for every seat. Provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and cancellationReason in the request body \`{"cancellationReason": "Will travel"}\` and \`Authorization: Bearer token\` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.
-    
+    \n2. As the host or org admin of host - host can cancel booking for all attendees aka for every seat, this also applies to org admins. Provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and cancellationReason in the request body \`{"cancellationReason": "Will travel"}\` and \`Authorization: Bearer token\` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.
+
     \nCancelling recurring seated bookings:
     For recurring seated bookings it is not possible to cancel all of them with 1 call
-    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.`,
+    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.
+
+    If you are cancelling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
+    you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.
+
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
   })
   @ApiBody({
     schema: {
@@ -291,16 +367,17 @@ export class BookingsController_2024_08_13 {
       ],
     },
     description:
-      "Accepts different types of cancel booking input: Cancel Booking (Option 1) or Cancel Seated Booking (Option 2)",
+      "Accepts different types of cancel booking input: Cancel Booking (Option 1 which is for normal or recurring bookings) or Cancel Seated Booking (Option 2 which is for seated bookings)",
   })
   @ApiExtraModels(CancelBookingInput_2024_08_13, CancelSeatedBookingInput_2024_08_13)
   async cancelBooking(
     @Req() request: Request,
     @Param("bookingUid") bookingUid: string,
     @Body(new CancelBookingInputPipe())
-    body: CancelBookingInput
+    body: CancelBookingInput,
+    @GetOptionalUser() user: AuthOptionalUser
   ): Promise<CancelBookingOutput_2024_08_13> {
-    const cancelledBooking = await this.bookingsService.cancelBooking(request, bookingUid, body);
+    const cancelledBooking = await this.bookingsService.cancelBooking(request, bookingUid, body, user);
 
     return {
       status: SUCCESS_STATUS,
@@ -315,20 +392,23 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Mark a booking absence",
-    description: "The provided authorization header refers to the owner of the booking.",
-  })
-  async markNoShow(
-    @Param("bookingUid") bookingUid: string,
-    @Body() body: MarkAbsentBookingInput_2024_08_13,
-    @GetUser("id") ownerId: number
-  ): Promise<MarkAbsentBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.markAbsent(bookingUid, ownerId, body);
+    description: `The provided authorization header refers to the owner of the booking.
 
-    return {
-      status: SUCCESS_STATUS,
-      data: booking,
-    };
-  }
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
+  })
+    async markNoShow(
+      @Param("bookingUid") bookingUid: string,
+      @Body() body: MarkAbsentBookingInput_2024_08_13,
+      @GetUser() user: ApiAuthGuardUser
+    ): Promise<MarkAbsentBookingOutput_2024_08_13> {
+      const booking = await this.bookingsService.markAbsent(bookingUid, user.id, body, user.uuid);
+
+      return {
+        status: SUCCESS_STATUS,
+        data: booking,
+      };
+    }
 
   @Post("/:bookingUid/reassign")
   @HttpCode(HttpStatus.OK)
@@ -337,14 +417,16 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reassign a booking to auto-selected host",
-    description:
-      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
+    description: `Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.
+
+       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+      `,
   })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
-    @GetUser() user: UserWithProfile
+    @GetUser() reassignedByUser: ApiAuthGuardUser
   ): Promise<ReassignBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.reassignBooking(bookingUid, user);
+    const booking = await this.bookingsService.reassignBooking(bookingUid, reassignedByUser);
 
     return {
       status: SUCCESS_STATUS,
@@ -359,19 +441,21 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reassign a booking to a specific host",
-    description:
-      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
+    description: `Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.
+
+      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+      `,
   })
   async reassignBookingToUser(
     @Param("bookingUid") bookingUid: string,
     @Param("userId") userId: number,
-    @GetUser("id") reassignedById: number,
+    @GetUser() reassignedByUser: ApiAuthGuardUser,
     @Body() body: ReassignToUserBookingInput_2024_08_13
   ): Promise<ReassignBookingOutput_2024_08_13> {
     const booking = await this.bookingsService.reassignBookingToUser(
       bookingUid,
       userId,
-      reassignedById,
+      reassignedByUser,
       body
     );
 
@@ -388,11 +472,14 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Confirm a booking",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description: `The provided authorization header refers to the owner of the booking.
+
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
   })
   async confirmBooking(
     @Param("bookingUid") bookingUid: string,
-    @GetUser() user: UserWithProfile
+    @GetUser() user: ApiAuthGuardUser
   ): Promise<GetBookingOutput_2024_08_13> {
     const booking = await this.bookingsService.confirmBooking(bookingUid, user);
 
@@ -409,12 +496,15 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Decline a booking",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description: `The provided authorization header refers to the owner of the booking.
+
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
   })
   async declineBooking(
     @Param("bookingUid") bookingUid: string,
     @Body() body: DeclineBookingInput_2024_08_13,
-    @GetUser() user: UserWithProfile
+    @GetUser() user: ApiAuthGuardUser
   ): Promise<GetBookingOutput_2024_08_13> {
     const booking = await this.bookingsService.declineBooking(bookingUid, user, body.reason);
 
@@ -430,8 +520,10 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get 'Add to Calendar' links for a booking",
-    description:
-      "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.",
+    description: `Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.
+
+      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+      `,
   })
   @HttpCode(HttpStatus.OK)
   async getCalendarLinks(@Param("bookingUid") bookingUid: string): Promise<CalendarLinksOutput_2024_08_13> {
@@ -450,6 +542,7 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get booking references",
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
   })
   @HttpCode(HttpStatus.OK)
   async getBookingReferences(
@@ -466,6 +559,27 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: bookingReferences,
+    };
+  }
+
+  @Get("/:bookingUid/conferencing-sessions")
+  @HttpCode(HttpStatus.OK)
+  @Pbac(["booking.readRecordings"])
+  @Permissions([BOOKING_READ])
+  @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Get Video Meeting Sessions. Only supported for Cal Video",
+    description: `Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.
+
+    <Note>cal-api-version: \`2024-08-13\` is required in the request header.</Note>`,
+  })
+  async getVideoSessions(@Param("bookingUid") bookingUid: string): Promise<GetBookingVideoSessionsOutput> {
+    const sessions = await this.calVideoService.getVideoSessions(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: sessions,
     };
   }
 }

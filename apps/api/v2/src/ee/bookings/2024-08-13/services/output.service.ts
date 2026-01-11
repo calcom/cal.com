@@ -1,4 +1,4 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import {
   defaultBookingMetadata,
   defaultBookingResponses,
@@ -13,16 +13,18 @@ import { z } from "zod";
 
 import { bookingMetadataSchema } from "@calcom/platform-libraries";
 import {
-  BookingOutput_2024_08_13,
-  CreateRecurringSeatedBookingOutput_2024_08_13,
-  CreateSeatedBookingOutput_2024_08_13,
   GetRecurringSeatedBookingOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-  ReassignBookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   SeatedAttendee,
+  BookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
-import { Booking, BookingSeat } from "@calcom/prisma/client";
+import type {
+  CreateRecurringSeatedBookingOutput_2024_08_13,
+  CreateSeatedBookingOutput_2024_08_13,
+  ReassignBookingOutput_2024_08_13,
+} from "@calcom/platform-types";
+import type { Booking, BookingSeat } from "@calcom/prisma/client";
 
 export const bookingResponsesSchema = z
   .object({
@@ -102,14 +104,8 @@ export class OutputBookingsService_2024_08_13 {
     );
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const rescheduledToInfo = databaseBooking.rescheduled
-      ? await this.getRescheduledToInfo(databaseBooking.uid)
-      : undefined;
-
-    const rescheduledToUid = rescheduledToInfo?.uid;
-    const rescheduledByEmail = databaseBooking.rescheduled
-      ? rescheduledToInfo?.rescheduledBy
-      : databaseBooking.rescheduledBy;
+    const rescheduledToUid = await this.getRescheduledToUid(databaseBooking);
+    const rescheduledByEmail = await this.getRescheduledByEmail(databaseBooking);
 
     const booking = {
       id: databaseBooking.id,
@@ -118,9 +114,8 @@ export class OutputBookingsService_2024_08_13 {
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
-      cancellationReason:
-        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
-      cancelledByEmail: databaseBooking.status === "CANCELLED" ? databaseBooking.cancelledBy : undefined,
+      cancellationReason: databaseBooking.cancellationReason || "",
+      cancelledByEmail: databaseBooking.cancelledBy || "",
       reschedulingReason: bookingResponses?.rescheduledReason,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
@@ -165,6 +160,23 @@ export class OutputBookingsService_2024_08_13 {
     };
   }
 
+  private async getRescheduledToUid(databaseBooking: DatabaseBooking) {
+    if (!databaseBooking.rescheduled) return undefined;
+    const rescheduledTo = await this.bookingsRepository.getByFromReschedule(databaseBooking.uid);
+    return rescheduledTo?.uid;
+  }
+
+  private async getRescheduledByEmail(databaseBooking: DatabaseBooking) {
+    if (databaseBooking.rescheduled) {
+      return databaseBooking.rescheduledBy;
+    }
+    if (databaseBooking.fromReschedule) {
+      const previousBooking = await this.bookingsRepository.getByUid(databaseBooking.fromReschedule);
+      return previousBooking?.rescheduledBy ?? databaseBooking.rescheduledBy;
+    }
+    return databaseBooking.rescheduledBy;
+  }
+
   getUserDefinedMetadata(databaseMetadata: DatabaseMetadata) {
     if (databaseMetadata === null) return {};
 
@@ -191,17 +203,17 @@ export class OutputBookingsService_2024_08_13 {
   }
 
   async getOutputRecurringBookings(bookingsIds: number[]) {
-    const transformed = [];
-
-    for (const bookingId of bookingsIds) {
-      const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUserAndEvent(bookingId);
+    const databaseBookings = await this.bookingsRepository.getByIdsWithAttendeesAndUserAndEvent(bookingsIds);
+    
+    const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
+    
+    const transformed = bookingsIds.map(bookingId => {
+      const databaseBooking = bookingsMap.get(bookingId);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
       }
-
-      transformed.push(this.getOutputRecurringBooking(databaseBooking));
-    }
-
+      return this.getOutputRecurringBooking(databaseBooking);
+    });
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }
 
@@ -224,9 +236,8 @@ export class OutputBookingsService_2024_08_13 {
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
-      cancellationReason:
-        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
-      cancelledByEmail: databaseBooking.status === "CANCELLED" ? databaseBooking.cancelledBy : undefined,
+      cancellationReason: databaseBooking.cancellationReason || "",
+      cancelledByEmail: databaseBooking.cancelledBy || "",
       reschedulingReason: bookingResponses?.rescheduledReason,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
@@ -266,12 +277,11 @@ export class OutputBookingsService_2024_08_13 {
 
   async getOutputCreateSeatedBooking(
     databaseBooking: DatabaseBooking,
-    seatUid: string
+    seatUid: string,
+    userIsEventTypeAdminOrOwner: boolean
   ): Promise<CreateSeatedBookingOutput_2024_08_13> {
-    const getSeatedBookingOutput = await this.getOutputSeatedBooking(
-      databaseBooking,
-      !!databaseBooking.eventType?.seatsShowAttendees
-    );
+    const showAttendees = userIsEventTypeAdminOrOwner || !!databaseBooking.eventType?.seatsShowAttendees;
+    const getSeatedBookingOutput = await this.getOutputSeatedBooking(databaseBooking, showAttendees);
     return { ...getSeatedBookingOutput, seatUid };
   }
 
@@ -281,14 +291,8 @@ export class OutputBookingsService_2024_08_13 {
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const rescheduledToInfo = databaseBooking.rescheduled
-      ? await this.getRescheduledToInfo(databaseBooking.uid)
-      : undefined;
-
-    const rescheduledToUid = rescheduledToInfo?.uid;
-    const rescheduledByEmail = databaseBooking.rescheduled
-      ? rescheduledToInfo?.rescheduledBy
-      : databaseBooking.rescheduledBy;
+    const rescheduledToUid = await this.getRescheduledToUid(databaseBooking);
+    const rescheduledByEmail = await this.getRescheduledByEmail(databaseBooking);
 
     const booking = {
       id: databaseBooking.id,
@@ -297,8 +301,7 @@ export class OutputBookingsService_2024_08_13 {
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
-      cancellationReason:
-        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
+      cancellationReason: databaseBooking.cancellationReason || "",
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
@@ -359,22 +362,25 @@ export class OutputBookingsService_2024_08_13 {
   }
 
   async getOutputRecurringSeatedBookings(bookingsIds: number[], showAttendees: boolean) {
-    const transformed = [];
-
-    for (const bookingId of bookingsIds) {
-      const databaseBooking =
-        await this.bookingsRepository.getByIdWithAttendeesWithBookingSeatAndUserAndEvent(bookingId);
+    const databaseBookings = await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(bookingsIds);
+    
+    const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
+    
+    const transformed = bookingsIds.map(bookingId => {
+      const databaseBooking = bookingsMap.get(bookingId);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
       }
-
-      transformed.push(this.getOutputRecurringSeatedBooking(databaseBooking, showAttendees));
-    }
+      return this.getOutputRecurringSeatedBooking(databaseBooking, showAttendees);
+    });
 
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }
 
-  async getOutputCreateRecurringSeatedBookings(bookings: { uid: string; seatUid: string }[]) {
+  async getOutputCreateRecurringSeatedBookings(
+    bookings: { uid: string; seatUid: string }[],
+    userIsEventTypeAdminOrOwner: boolean
+  ) {
     const transformed = [];
 
     for (const booking of bookings) {
@@ -383,7 +389,13 @@ export class OutputBookingsService_2024_08_13 {
       if (!databaseBooking) {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
-      transformed.push(this.getOutputCreateRecurringSeatedBooking(databaseBooking, booking.seatUid));
+      transformed.push(
+        this.getOutputCreateRecurringSeatedBooking(
+          databaseBooking,
+          booking.seatUid,
+          userIsEventTypeAdminOrOwner
+        )
+      );
     }
 
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
@@ -391,11 +403,13 @@ export class OutputBookingsService_2024_08_13 {
 
   getOutputCreateRecurringSeatedBooking(
     databaseBooking: DatabaseBooking,
-    seatUid: string
+    seatUid: string,
+    userIsEventTypeAdminOrOwner: boolean
   ): CreateRecurringSeatedBookingOutput_2024_08_13 {
+    const showAttendees = userIsEventTypeAdminOrOwner || !!databaseBooking.eventType?.seatsShowAttendees;
     const getRecurringSeatedBookingOutput = this.getOutputRecurringSeatedBooking(
       databaseBooking,
-      !!databaseBooking.eventType?.seatsShowAttendees
+      showAttendees
     );
     return { ...getRecurringSeatedBookingOutput, seatUid };
   }
@@ -414,8 +428,7 @@ export class OutputBookingsService_2024_08_13 {
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
-      cancellationReason:
-        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
+      cancellationReason: databaseBooking.cancellationReason || "",
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,

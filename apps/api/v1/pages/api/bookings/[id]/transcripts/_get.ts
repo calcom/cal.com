@@ -1,8 +1,8 @@
 import type { NextApiRequest } from "next";
 
+import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/features/conferencing/lib/videoClient";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import type { PartialReference } from "@calcom/types/EventManager";
 
@@ -44,6 +44,7 @@ export async function getHandler(req: NextApiRequest) {
 
   const booking = await prisma.booking.findUnique({
     where: { id },
+    // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
     include: { references: true },
   });
 

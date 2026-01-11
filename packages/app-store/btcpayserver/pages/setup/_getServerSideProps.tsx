@@ -1,10 +1,12 @@
 import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 
 import { btcpayCredentialKeysSchema } from "../../lib/btcpayCredentialKeysSchema";
-import type { IBTCPaySetupProps } from "./index";
+
+export type IBTCPaySetupProps = z.infer<typeof btcpayCredentialKeysSchema>;
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   try {
