@@ -1,4 +1,5 @@
 import { TeamRepository } from "@calcom/ee/teams/repositories/TeamRepository";
+import { trackSeatAdditions } from "@calcom/features/ee/billing/helpers/trackSeatChanges";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
@@ -91,7 +92,7 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
   const membershipData = filteredUserIds.flatMap((userId) =>
     input.teamIds.map((teamId) => {
       const userMembership = usersInOrganization.find((membership) => membership.userId === userId);
-      const accepted = userMembership && userMembership.accepted;
+      const accepted = userMembership?.accepted;
       return {
         createdAt: new Date(),
         userId,
@@ -109,6 +110,36 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
   membershipData.forEach(async ({ userId, teamId }) => {
     await updateNewTeamMemberEventTypes(userId, teamId);
   });
+
+  // Track seat additions for monthly proration
+  // Since these are org members being added to org sub-teams, we track against the parent org
+  if (membershipData.length > 0 && user.organizationId) {
+    // Group memberships by team to track each team's additions
+    const membershipsByTeam = membershipData.reduce(
+      (acc, membership) => {
+        if (!acc[membership.teamId]) {
+          acc[membership.teamId] = [];
+        }
+        acc[membership.teamId].push(membership.userId);
+        return acc;
+      },
+      {} as Record<number, number[]>
+    );
+
+    // Track seat additions for each team against the parent org billing
+    for (const [teamId, userIds] of Object.entries(membershipsByTeam)) {
+      await trackSeatAdditions({
+        billingEntityId: user.organizationId, // Bill against parent org
+        userIds,
+        triggeredBy: user.id,
+        metadata: {
+          source: "addMembersToTeams",
+          teamId: Number(teamId),
+          bulkOperation: true,
+        },
+      });
+    }
+  }
 
   return {
     success: true,

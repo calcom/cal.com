@@ -1,19 +1,19 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import type Stripe from "stripe";
-import { z } from "zod";
-
 import {
   getBillingProviderService,
   getTeamBillingServiceFactory,
 } from "@calcom/features/ee/billing/di/containers/Billing";
+import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import type Stripe from "stripe";
+import { z } from "zod";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
@@ -94,7 +94,11 @@ async function getHandler(req: NextRequest) {
 
   if (checkoutSession && subscription) {
     const billingProviderService = getBillingProviderService();
-    const { subscriptionStart } = billingProviderService.extractSubscriptionDates(subscription);
+    const { subscriptionStart, subscriptionEnd, subscriptionTrialEnd } =
+      billingProviderService.extractSubscriptionDates(subscription);
+
+    const { billingPeriod, pricePerSeat, paidSeats } = extractBillingDataFromStripeSubscription(subscription);
+
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
     const teamBillingService = teamBillingServiceFactory.init(team);
     await teamBillingService.saveTeamBilling({
@@ -106,6 +110,11 @@ async function getHandler(req: NextRequest) {
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.TEAM,
       subscriptionStart,
+      subscriptionEnd,
+      subscriptionTrialEnd,
+      billingPeriod,
+      pricePerSeat,
+      paidSeats,
     });
   }
 

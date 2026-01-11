@@ -1,6 +1,9 @@
 import { randomBytes } from "node:crypto";
 
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { getBillingEntityId } from "@calcom/features/ee/billing/helpers/trackSeatChanges";
+import { BillingPeriodService } from "@calcom/features/ee/billing/service/billingPeriod/BillingPeriodService";
+import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
@@ -169,6 +172,19 @@ export class TeamService {
     }
 
     await Promise.all(deleteMembershipPromises);
+
+    const billingPeriodService = new BillingPeriodService();
+    const seatTracker = new SeatChangeTrackingService();
+
+    for (const teamId of teamIds) {
+      const shouldTrack = await billingPeriodService.shouldApplyMonthlyProration(teamId);
+      if (shouldTrack) {
+        for (const userId of userIds) {
+          await seatTracker.logSeatRemoval({ teamId, userId });
+        }
+      }
+    }
+
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
     const teamBillingServices = await teamBillingServiceFactory.findAndInitMany(teamIds);
     const teamBillingPromises = teamBillingServices.map((teamBillingService) =>
@@ -216,6 +232,19 @@ export class TeamService {
           );
         }
       } else throw e;
+    }
+
+    const billingPeriodService = new BillingPeriodService();
+    const shouldTrack = await billingPeriodService.shouldApplyMonthlyProration(verificationToken.teamId);
+
+    if (shouldTrack) {
+      const seatTracker = new SeatChangeTrackingService();
+      await seatTracker.logSeatAddition({
+        teamId: verificationToken.teamId,
+        userId,
+        triggeredBy: userId,
+        metadata: { invitationToken: token },
+      });
     }
 
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
@@ -277,6 +306,26 @@ export class TeamService {
     }
 
     await updateNewTeamMemberEventTypes(userId, teamId);
+
+    // Track seat addition for billing (if on annual plan with proration)
+    const billingEntityId = getBillingEntityId(team);
+    const billingPeriodService = new BillingPeriodService();
+    const shouldTrack = await billingPeriodService.shouldApplyMonthlyProration(billingEntityId);
+
+    if (shouldTrack) {
+      const seatTracker = new SeatChangeTrackingService();
+      await seatTracker.logSeatAddition({
+        teamId: billingEntityId,
+        userId,
+        triggeredBy: userId,
+        metadata: { source: "acceptTeamMembership" },
+      });
+    }
+
+    // Update Stripe subscription quantity (will be skipped for annual plans with proration)
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = await teamBillingServiceFactory.findAndInit(teamId);
+    await teamBillingService.updateQuantity();
   }
   static async leaveTeamMembership({ userId, teamId }: { userId: number; teamId: number }) {
     try {
@@ -296,6 +345,28 @@ export class TeamService {
           },
         });
       }
+
+      const team = membership.team;
+
+      // Track seat removal for billing (if on annual plan with proration)
+      const billingEntityId = getBillingEntityId(team);
+      const billingPeriodService = new BillingPeriodService();
+      const shouldTrack = await billingPeriodService.shouldApplyMonthlyProration(billingEntityId);
+
+      if (shouldTrack) {
+        const seatTracker = new SeatChangeTrackingService();
+        await seatTracker.logSeatRemoval({
+          teamId: billingEntityId,
+          userId,
+          triggeredBy: userId,
+          metadata: { source: "leaveTeamMembership" },
+        });
+      }
+
+      // Update Stripe subscription quantity (will be skipped for annual plans with proration)
+      const teamBillingServiceFactory = getTeamBillingServiceFactory();
+      const teamBillingService = await teamBillingServiceFactory.findAndInit(teamId);
+      await teamBillingService.updateQuantity();
     } catch (e) {
       console.log(e);
     }

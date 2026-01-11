@@ -9,6 +9,8 @@ const handlers = {
   "customer.subscription.deleted": () => import("./_customer.subscription.deleted"),
   "customer.subscription.updated": () => import("./_customer.subscription.updated"),
   "invoice.paid": () => import("./_invoice.paid"),
+  "invoice.payment_succeeded": () => import("./_invoice.payment_succeeded"),
+  "invoice.payment_failed": () => import("./_invoice.payment_failed"),
   "checkout.session.completed": () => import("./_checkout.session.completed"),
 };
 

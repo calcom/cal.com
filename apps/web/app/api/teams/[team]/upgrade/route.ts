@@ -1,3 +1,12 @@
+import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
+import prisma from "@calcom/prisma";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import type { Params } from "app/_types";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
@@ -6,18 +15,8 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
-import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import stripe from "@calcom/features/ee/payments/server/stripe";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
-import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 const querySchema = z.object({
-  team: z.string().transform((val) => parseInt(val)),
+  team: z.string().transform((val) => parseInt(val, 10)),
   session_id: z.string().min(1),
 });
 
@@ -77,6 +76,46 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
           return NextResponse.json({ message }, { status: statusCode });
         }
       }
+
+      const { billingPeriod, pricePerSeat, paidSeats } =
+        extractBillingDataFromStripeSubscription(subscription);
+
+      const subscriptionStart = subscription.current_period_start
+        ? new Date(subscription.current_period_start * 1000)
+        : null;
+      const subscriptionEnd = subscription.current_period_end
+        ? new Date(subscription.current_period_end * 1000)
+        : null;
+      const subscriptionTrialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
+
+      await prisma.teamBilling.upsert({
+        where: { teamId: team.id },
+        create: {
+          teamId: team.id,
+          subscriptionId: subscription.id,
+          subscriptionItemId: subscription.items.data[0].id,
+          customerId:
+            typeof checkoutSession.customer === "string"
+              ? checkoutSession.customer
+              : checkoutSession.customer?.id || "",
+          status: "ACTIVE",
+          planName: "TEAM",
+          billingPeriod,
+          pricePerSeat: pricePerSeat ?? null,
+          subscriptionStart,
+          subscriptionEnd,
+          subscriptionTrialEnd,
+          paidSeats: paidSeats ?? null,
+        },
+        update: {
+          billingPeriod,
+          pricePerSeat: pricePerSeat ?? null,
+          subscriptionStart,
+          subscriptionEnd,
+          subscriptionTrialEnd,
+          paidSeats: paidSeats ?? null,
+        },
+      });
     }
 
     if (!metadata) {

@@ -1,19 +1,18 @@
-import { type TFunction } from "i18next";
-
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { getBillingEntityId, trackSeatAdditions } from "@calcom/features/ee/billing/helpers/trackSeatChanges";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { isOrganisationOwner } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { isOrganisationOwner } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
+import type { TFunction } from "i18next";
 
 import type { TInviteMemberInputSchema } from "./inviteMember.schema";
 import type { TeamWithParent } from "./types";
@@ -50,18 +49,21 @@ function getOrgConnectionInfoGroupedByUsernameOrEmail({
   team: Pick<TeamWithParent, "parentId" | "id">;
   isOrg: boolean;
 }) {
-  return uniqueInvitations.reduce((acc, invitation) => {
-    return {
-      ...acc,
-      [invitation.usernameOrEmail]: getOrgConnectionInfo({
-        orgVerified: orgState.orgVerified,
-        orgAutoAcceptDomain: orgState.autoAcceptEmailDomain,
-        email: invitation.usernameOrEmail,
-        team,
-        isOrg: isOrg,
-      }),
-    };
-  }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
+  return uniqueInvitations.reduce(
+    (acc, invitation) => {
+      return {
+        ...acc,
+        [invitation.usernameOrEmail]: getOrgConnectionInfo({
+          orgVerified: orgState.orgVerified,
+          orgAutoAcceptDomain: orgState.autoAcceptEmailDomain,
+          email: invitation.usernameOrEmail,
+          team,
+          isOrg: isOrg,
+        }),
+      };
+    },
+    {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>
+  );
 }
 
 function getInvitationsForNewUsers({
@@ -137,6 +139,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     // TODO: Remove `input` and instead pass the required fields directly
     language: string;
     inviterName: string | null;
+    inviterId?: number;
     orgSlug: string | null;
     invitations: {
       usernameOrEmail: string;
@@ -149,7 +152,15 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     isDirectUserAction?: boolean;
   } & TargetTeam
 ) => {
-  const { inviterName, orgSlug, invitations, language, creationSource, isDirectUserAction = true } = data;
+  const {
+    inviterName,
+    inviterId,
+    orgSlug,
+    invitations,
+    language,
+    creationSource,
+    isDirectUserAction = true,
+  } = data;
   const myLog = log.getSubLogger({ prefix: ["inviteMembers"] });
   const translation = await getTranslation(language ?? "en", "common");
   const team = "team" in data ? data.team : await getTeamOrThrow(data.teamId);
@@ -233,10 +244,29 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
   const teamBillingService = teamBillingServiceFactory.init(team);
   await teamBillingService.updateQuantity();
 
+  const totalInvitedUsers = invitableExistingUsers.length + invitationsForNewUsers.length;
+  if (totalInvitedUsers > 0) {
+    const billingEntityId = getBillingEntityId(team);
+    const invitedUserIds: number[] = [...invitableExistingUsers.map((user) => user.id)];
+
+    if (invitedUserIds.length > 0 && inviterId) {
+      await trackSeatAdditions({
+        billingEntityId,
+        userIds: invitedUserIds,
+        triggeredBy: inviterId,
+        metadata: {
+          source: "inviteMember",
+          creationSource,
+          isDirectUserAction,
+        },
+      });
+    }
+  }
+
   return {
     // TODO: Better rename it to invitations only maybe?
     usernameOrEmail:
-      invitations.length == 1
+      invitations.length === 1
         ? invitations[0].usernameOrEmail
         : invitations.map((invitation) => invitation.usernameOrEmail),
     numUsersInvited: invitableExistingUsers.length + invitationsForNewUsers.length,
@@ -298,6 +328,7 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
   });
   const result = await inviteMembersWithNoInviterPermissionCheck({
     inviterName: inviter.name,
+    inviterId: inviter.id,
     team,
     language: input.language,
     creationSource,
