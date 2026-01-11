@@ -108,12 +108,6 @@ jobs:
                 }
               }
 
-              if (commitsResponse.data.length > 0) {
-                const lastCommit = commitsResponse.data[commitsResponse.data.length - 1];
-                authorName = lastCommit.commit.author?.name || prAuthor;
-                authorEmail = lastCommit.commit.author?.email || `${prAuthor}@users.noreply.github.com`;
-              }
-
               if (hasRecentAuthorActivity) {
                 if (!maintainerCanModify) {
                   core.setFailed(`Cannot complete this fork PR: the fork owner has not enabled "Allow edits from maintainers". PR author needs to enable this setting.`);
