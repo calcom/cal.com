@@ -8,7 +8,7 @@ import type {
 } from "@calcom/platform-types";
 
 import http from "../lib/http";
-import type { GetAvailableSlotsResponse } from "./types";
+import type { GetAvailableSlotsResponse } from "../booker/types";
 
 export const QUERY_KEY = "get-available-slots";
 
