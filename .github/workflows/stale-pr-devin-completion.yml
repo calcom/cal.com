@@ -67,7 +67,7 @@ jobs:
             let authorName = prAuthor;
             let authorEmail = `${prAuthor}@users.noreply.github.com`;
 
-            if (isFork && !maintainerCanModify) {
+            if (isFork) {
               let hasRecentAuthorActivity = false;
 
               const commentsResponse = await github.rest.issues.listComments({
@@ -88,14 +88,14 @@ jobs:
                 hasRecentAuthorActivity = true;
               }
 
-              if (!hasRecentAuthorActivity) {
-                const commitsResponse = await github.rest.pulls.listCommits({
-                  owner,
-                  repo,
-                  pull_number: prNumber,
-                  per_page: 100
-                });
+              const commitsResponse = await github.rest.pulls.listCommits({
+                owner,
+                repo,
+                pull_number: prNumber,
+                per_page: 100
+              });
 
+              if (!hasRecentAuthorActivity) {
                 const recentAuthorCommit = commitsResponse.data.find(commit => {
                   const commitDate = new Date(commit.commit.committer?.date || commit.commit.author?.date);
                   const isRecent = (now - commitDate) < ONE_MONTH_MS;
@@ -106,21 +106,23 @@ jobs:
                 if (recentAuthorCommit) {
                   hasRecentAuthorActivity = true;
                 }
+              }
 
-                if (commitsResponse.data.length > 0) {
-                  const lastCommit = commitsResponse.data[commitsResponse.data.length - 1];
-                  authorName = lastCommit.commit.author?.name || prAuthor;
-                  authorEmail = lastCommit.commit.author?.email || `${prAuthor}@users.noreply.github.com`;
-                }
+              if (commitsResponse.data.length > 0) {
+                const lastCommit = commitsResponse.data[commitsResponse.data.length - 1];
+                authorName = lastCommit.commit.author?.name || prAuthor;
+                authorEmail = lastCommit.commit.author?.email || `${prAuthor}@users.noreply.github.com`;
               }
 
               if (hasRecentAuthorActivity) {
-                core.setFailed(`Cannot complete this fork PR: the fork owner has not enabled "Allow edits from maintainers" and has been active recently. PR author needs to enable this setting or we need to wait for 1 month of inactivity to migrate.`);
-                return;
+                if (!maintainerCanModify) {
+                  core.setFailed(`Cannot complete this fork PR: the fork owner has not enabled "Allow edits from maintainers". PR author needs to enable this setting.`);
+                  return;
+                }
+              } else {
+                shouldMigrate = true;
+                console.log(`Fork PR #${prNumber} author has been inactive for 1 month - will migrate to main repo`);
               }
-
-              shouldMigrate = true;
-              console.log(`Fork PR #${prNumber} author has been inactive for 1 month - will migrate to main repo`);
             }
 
             const headRepoFullName = pr.head.repo.full_name;
@@ -242,7 +244,7 @@ jobs:
         run: |
           FULL_PROMPT="You are migrating a stale fork PR #${PR_NUMBER} to the main ${REPO_NAME} repository.
 
-          The original PR author (@${PR_AUTHOR}) has not been active on this PR for over a month and has not enabled 'Allow edits from maintainers', so we are migrating it to the main repository to complete the work.
+          The original PR author (@${PR_AUTHOR}) has not been active on this PR for over a month, so we are migrating it to the main repository to complete the work.
 
           Original PR Details:
           - PR Number: #${PR_NUMBER}
@@ -258,34 +260,13 @@ jobs:
 
           Your tasks:
 
-          1. Clone the main repository: ${REPO_NAME}
-          2. Add the fork as a remote and fetch the PR branch:
-             - git remote add fork https://github.com/${HEAD_REPO_FULL_NAME}.git
-             - git fetch fork ${PR_BRANCH}
-          3. Create a new branch in the main repo:
-             - Branch name: community/pr-${PR_NUMBER}-${PR_BRANCH}
-             - git checkout -b community/pr-${PR_NUMBER}-${PR_BRANCH} origin/${BASE_BRANCH}
-          4. Cherry-pick or merge the commits from the fork branch:
-             - Get the list of commits from fork/${PR_BRANCH} that are not in origin/${BASE_BRANCH}
-             - Cherry-pick each commit, adding co-author attribution
-             - For each commit, amend to add: \"Co-authored-by: ${AUTHOR_NAME} <${AUTHOR_EMAIL}>\"
-             - Alternatively, if there are many commits, you can squash them into one commit with the co-author trailer
-          5. Run lint and type checks to ensure the code is valid:
-             - yarn lint
-             - yarn type-check:ci
-          6. Fix any issues that arise from the migration (merge conflicts, lint errors, etc.)
-          7. Push the new branch to the main repository:
-             - git push origin community/pr-${PR_NUMBER}-${PR_BRANCH}
-          8. Create a new PR in the main repository:
-             - Title: ${PR_TITLE}
-             - Base branch: ${BASE_BRANCH}
-             - Include the original PR description
-             - Add a note at the top explaining this is a migration from fork PR #${PR_NUMBER}
-             - Credit the original author @${PR_AUTHOR} in the PR description
-          9. After successfully creating the new PR:
-             - Close the original fork PR #${PR_NUMBER} with a comment explaining the migration
-             - The comment should thank the original author and link to the new PR
-             - Remove the 'stale' label from the original PR
+          1. Clone the main repository and fetch the fork's PR branch
+          2. Create a new branch named community/pr-${PR_NUMBER}-${PR_BRANCH} based on ${BASE_BRANCH}
+          3. Apply the commits from the fork branch to your new branch, adding co-author attribution to each commit
+          4. Run lint and type checks to ensure the code is valid, fixing any issues that arise
+          5. Push the new branch and create a new PR in the main repository with the same title and description, crediting the original author @${PR_AUTHOR}
+          6. Close the original fork PR #${PR_NUMBER} with a comment thanking the author and linking to the new PR
+          7. Remove the 'stale' label from the original PR
 
           IMPORTANT - Co-author Attribution:
           Every commit you create MUST include the co-author trailer to credit the original author:
