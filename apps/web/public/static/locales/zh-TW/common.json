@@ -4017,7 +4017,7 @@
   "blocked_by_system_admin": "封鎖者（系統管理員）",
   "add_to_system_blocklist": "新增至系統封鎖清單",
   "remove_from_system_blocklist": "從系統封鎖清單中移除",
-  "add_people_to_system_blocklist": "平台全域封鎖所有使用者和團隊的電子郵件與網域",
+  "add_people_to_system_blocklist": "全平台封鎖所有使用者和團隊的電子郵件與網域",
   "remove_value_from_system_blocklist": "從系統封鎖清單中移除 {{value}}？",
   "remove_value_from_system_blocklist_description": "這將為所有使用者和團隊解除該項目的封鎖。此操作無法復原。",
   "system_wide": "全系統",
