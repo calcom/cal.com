@@ -837,9 +837,23 @@ describe("handleNewBooking", () => {
                   email: booker.email,
                   name: booker.name,
                 }),
-                // Unconfirmed bookings should not have calendar references
-                // Calendar events are only created when isConfirmedByDefault is true
-                references: [],
+                references: [
+                  {
+                    type: appStoreMetadata.dailyvideo.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-dailyvideo.example.com",
+                  },
+                  {
+                    type: appStoreMetadata.googlecalendar.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASSWORD",
+                    meetingUrl: "https://UNUSED_URL",
+                    externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                  },
+                ],
               },
             });
 
@@ -1518,9 +1532,23 @@ describe("handleNewBooking", () => {
                   email: booker.email,
                   name: booker.name,
                 }),
-                // Unconfirmed bookings should not have calendar references
-                // Calendar events are only created when isConfirmedByDefault is true
-                references: [],
+                references: [
+                  {
+                    type: appStoreMetadata.dailyvideo.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-dailyvideo.example.com",
+                  },
+                  {
+                    type: appStoreMetadata.googlecalendar.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASSWORD",
+                    meetingUrl: "https://UNUSED_URL",
+                    externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                  },
+                ],
               },
             });
 
