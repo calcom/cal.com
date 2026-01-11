@@ -725,13 +725,15 @@ export function BookingDetailScreen({
           </View>
 
           {/* Notes Card (if available) */}
-          {booking.description && (
+          {booking.eventType?.description && (
             <View className="mb-4 overflow-hidden rounded-xl bg-white">
               <View className="px-4 py-3.5">
                 <Text className="mb-1.5 text-[13px] font-medium uppercase tracking-wide text-[#8E8E93]">
                   Notes
                 </Text>
-                <Text className="text-[17px] leading-6 text-black">{booking.description}</Text>
+                <Text className="text-[17px] leading-6 text-black">
+                  {booking.eventType?.description}
+                </Text>
               </View>
             </View>
           )}
