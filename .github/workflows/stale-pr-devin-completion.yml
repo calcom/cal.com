@@ -64,8 +64,6 @@ jobs:
             const prAuthor = pr.user.login;
 
             let shouldMigrate = false;
-            let authorName = prAuthor;
-            let authorEmail = `${prAuthor}@users.noreply.github.com`;
 
             if (isFork) {
               let hasRecentAuthorActivity = false;
@@ -133,8 +131,6 @@ jobs:
             core.setOutput('head_repo_clone_url', headRepoCloneUrl);
             core.setOutput('maintainer_can_modify', maintainerCanModify);
             core.setOutput('should_migrate', shouldMigrate);
-            core.setOutput('author_name', authorName);
-            core.setOutput('author_email', authorEmail);
 
             console.log(`PR #${prNumber}: "${pr.title}"`);
             console.log(`Author: ${prAuthor}`);
@@ -232,8 +228,6 @@ jobs:
           PR_BRANCH: ${{ steps.pr.outputs.pr_branch }}
           BASE_BRANCH: ${{ steps.pr.outputs.base_branch }}
           HEAD_REPO_FULL_NAME: ${{ steps.pr.outputs.head_repo_full_name }}
-          AUTHOR_NAME: ${{ steps.pr.outputs.author_name }}
-          AUTHOR_EMAIL: ${{ steps.pr.outputs.author_email }}
           REPO_NAME: ${{ github.repository }}
         run: |
           FULL_PROMPT="You are migrating a stale fork PR #${PR_NUMBER} to the main ${REPO_NAME} repository.
@@ -248,29 +242,21 @@ jobs:
           - Fork Branch: ${PR_BRANCH}
           - Target Branch: ${BASE_BRANCH}
 
-          Author Info for Co-author Attribution:
-          - Name: ${AUTHOR_NAME}
-          - Email: ${AUTHOR_EMAIL}
-
           Your tasks:
 
           1. Clone the main repository and fetch the fork's PR branch
           2. Create a new branch named community/pr-${PR_NUMBER}-${PR_BRANCH} based on ${BASE_BRANCH}
-          3. Apply the commits from the fork branch to your new branch, adding co-author attribution to each commit
+          3. Cherry-pick the commits from the fork branch to preserve the original author attribution (git cherry-pick preserves authorship automatically)
           4. Run lint and type checks to ensure the code is valid, fixing any issues that arise
           5. Push the new branch and create a new PR in the main repository with the same title and description, crediting the original author @${PR_AUTHOR}
           6. Close the original fork PR #${PR_NUMBER} with a comment thanking the author and linking to the new PR
           7. Remove the 'stale' label from the original PR
 
-          IMPORTANT - Co-author Attribution:
-          Every commit you create MUST include the co-author trailer to credit the original author:
-
-          Co-authored-by: ${AUTHOR_NAME} <${AUTHOR_EMAIL}>
-
-          This ensures the original contributor gets proper credit for their work even though they are not a member of the ${REPO_NAME} repository.
+          IMPORTANT - Preserving Original Authorship:
+          Use git cherry-pick to apply commits from the fork branch. This automatically preserves the original author information on each commit, so @${PR_AUTHOR} will be credited as the author of their commits even though they are not a member of the ${REPO_NAME} repository. GitHub will properly attribute the commits to them.
 
           Rules and Guidelines:
-          1. Preserve the original author's work as much as possible.
+          1. Preserve the original author's work and authorship as much as possible.
           2. Follow the existing code style and conventions in the repository.
           3. If the code has significant issues, fix them but document what you changed.
           4. Never ask for user confirmation. Never wait for user messages.
@@ -324,7 +310,7 @@ jobs:
             **What's happening:**
             1. Your changes will be copied to a new branch in the main \`${owner}/${repo}\` repository
             2. A new PR will be created with your changes
-            3. You will be credited as a co-author on all commits
+            3. You will remain the author of your commits (full attribution preserved)
             4. This PR will be closed once the migration is complete
 
             Thank you for your contribution, @${prAuthor}! We appreciate your work and want to make sure it gets completed.
