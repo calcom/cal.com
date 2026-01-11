@@ -604,30 +604,30 @@ export function BookingDetailScreen({
               {booking.title}
             </Text>
 
-            {(eventTypeSlug || durationFormatted) && (
+            {eventTypeSlug || durationFormatted ? (
               <View className="mb-3 flex-row items-center">
-                {eventTypeSlug && (
+                {eventTypeSlug ? (
                   <Text className="text-[15px] text-[#8E8E93]">{eventTypeSlug}</Text>
-                )}
-                {eventTypeSlug && durationFormatted && (
+                ) : null}
+                {eventTypeSlug && durationFormatted ? (
                   <Text className="mx-2 text-[15px] text-[#C7C7CC]">•</Text>
-                )}
-                {durationFormatted && (
+                ) : null}
+                {durationFormatted ? (
                   <View className="rounded-full bg-[#E5E5EA] px-2.5 py-1">
                     <Text className="text-[13px] font-medium text-[#636366]">
                       {durationFormatted}
                     </Text>
                   </View>
-                )}
+                ) : null}
               </View>
-            )}
+            ) : null}
 
             <Text className="mb-0.5 text-[17px] text-black">{dateFormatted}</Text>
             <Text className="mb-0.5 text-[17px] text-black">{timeFormatted}</Text>
 
-            {isRecurring && (
+            {isRecurring ? (
               <Text className="mt-0.5 text-[17px] text-[#800020]">Repeats weekly</Text>
-            )}
+            ) : null}
           </View>
 
           {/* Participants Card - iOS Calendar Style (Expandable) */}
@@ -646,7 +646,7 @@ export function BookingDetailScreen({
               </View>
             </AppPressable>
 
-            {participantsExpanded && (
+            {participantsExpanded ? (
               <View className="border-t border-[#E5E5EA] px-4 py-2.5">
                 {/* Hosts */}
                 {booking.hosts && booking.hosts.length > 0 ? (
@@ -690,11 +690,11 @@ export function BookingDetailScreen({
                       <Text className="ml-2.5 flex-1 text-[15px] text-black" numberOfLines={1}>
                         {attendee.name || attendee.email}
                       </Text>
-                      {statusIcon.label && (
+                      {statusIcon.label ? (
                         <Text className="text-[13px]" style={{ color: statusIcon.color }}>
                           {statusIcon.label}
                         </Text>
-                      )}
+                      ) : null}
                     </View>
                   );
                 })}
@@ -720,11 +720,11 @@ export function BookingDetailScreen({
                   </View>
                 ))}
               </View>
-            )}
+            ) : null}
           </View>
 
           {/* Notes Card (if available) */}
-          {booking.description && (
+          {booking.description ? (
             <View className="mb-4 overflow-hidden rounded-xl bg-white">
               <View className="px-4 py-3.5">
                 <Text className="mb-1.5 text-[13px] font-medium uppercase tracking-wide text-[#8E8E93]">
@@ -733,7 +733,7 @@ export function BookingDetailScreen({
                 <Text className="text-[17px] leading-6 text-black">{booking.description}</Text>
               </View>
             </View>
-          )}
+          ) : null}
         </ScrollView>
 
         {/* Booking Actions Modal */}
@@ -755,7 +755,7 @@ export function BookingDetailScreen({
         />
 
         {/* Cancelling overlay */}
-        {isCancelling && (
+        {isCancelling ? (
           <View className="absolute inset-0 items-center justify-center bg-black/50">
             <View className="rounded-2xl bg-white px-8 py-6">
               <ActivityIndicator size="large" color="#000" />
@@ -764,7 +764,7 @@ export function BookingDetailScreen({
               </Text>
             </View>
           </View>
-        )}
+        ) : null}
       </View>
 
       {/* Web/Extension: Cancel Event Modal */}
