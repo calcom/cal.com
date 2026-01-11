@@ -631,7 +631,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               form="availability-form"
               loading={isSaving}
               disabled={isLoading || !isDirty}
-              >
+            >
               {t("save")}
             </Button>
             <Button
