@@ -31,6 +31,7 @@ import {
   Delete,
   Query,
   NotFoundException,
+  ParseIntPipe,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
 
@@ -83,9 +84,7 @@ export class OAuthClientUsersController {
     @Param("clientId") oAuthClientId: string,
     @Body() body: CreateManagedUserInput
   ): Promise<CreateManagedUserOutput> {
-    this.logger.log(
-      `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client with ID ${oAuthClientId}`
-    );
+    this.logger.log(`Creating user for OAuth Client ${oAuthClientId}`);
     const client = await this.oauthRepository.getOAuthClient(oAuthClientId);
     if (!client) {
       throw new NotFoundException(`OAuth Client with ID ${oAuthClientId} not found`);
@@ -111,7 +110,7 @@ export class OAuthClientUsersController {
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async getUserById(
     @Param("clientId") clientId: string,
-    @Param("userId") userId: number
+    @Param("userId", ParseIntPipe) userId: number
   ): Promise<GetManagedUserOutput> {
     const user = await this.validateManagedUserOwnership(clientId, userId);
 
@@ -127,12 +126,12 @@ export class OAuthClientUsersController {
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async updateUser(
     @Param("clientId") clientId: string,
-    @Param("userId") userId: number,
+    @Param("userId", ParseIntPipe) userId: number,
     @Body() body: UpdateManagedUserInput,
     @GetOrgId() organizationId: number
   ): Promise<GetManagedUserOutput> {
     await this.validateManagedUserOwnership(clientId, userId);
-    this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
+    this.logger.log(`Updating user ${userId} for OAuth Client ${clientId}`);
 
     const user = await this.oAuthClientUsersService.updateOAuthClientUser(
       clientId,
@@ -153,7 +152,7 @@ export class OAuthClientUsersController {
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async deleteUser(
     @Param("clientId") clientId: string,
-    @Param("userId") userId: number
+    @Param("userId", ParseIntPipe) userId: number
   ): Promise<GetManagedUserOutput> {
     const user = await this.validateManagedUserOwnership(clientId, userId);
     await this.userRepository.delete(userId);
@@ -174,7 +173,7 @@ export class OAuthClientUsersController {
   })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async forceRefresh(
-    @Param("userId") userId: number,
+    @Param("userId", ParseIntPipe) userId: number,
     @Param("clientId") oAuthClientId: string
   ): Promise<KeysResponseDto> {
     this.logger.log(`Forcing new access tokens for managed user with ID ${userId}`);

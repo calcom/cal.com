@@ -40,7 +40,7 @@ type EventTypeRelations = {
   destinationCalendar?: DestinationCalendar | null;
   calVideoSettings?: CalVideoSettings | null;
 };
-export type DatabaseEventType = Omit<EventType, "allowReschedulingCancelledBookings"> & EventTypeRelations;
+export type DatabaseEventType = EventType & EventTypeRelations;
 
 type Input = Pick<
   DatabaseEventType,
@@ -92,6 +92,16 @@ type Input = Pick<
   | "calVideoSettings"
   | "hidden"
   | "bookingRequiresAuthentication"
+  | "maxActiveBookingsPerBooker"
+  | "maxActiveBookingPerBookerOfferReschedule"
+  | "disableCancelling"
+  | "disableRescheduling"
+  | "minimumRescheduleNotice"
+  | "canSendCalVideoTranscriptionEmails"
+  | "interfaceLanguage"
+  | "allowReschedulingPastBookings"
+  | "allowReschedulingCancelledBookings"
+  | "showOptimizedSlots"
 >;
 
 @Injectable()
@@ -132,6 +142,14 @@ export class OutputEventTypesService_2024_06_14 {
       calVideoSettings,
       hidden,
       bookingRequiresAuthentication,
+      disableCancelling,
+      disableRescheduling,
+      minimumRescheduleNotice,
+      canSendCalVideoTranscriptionEmails,
+      interfaceLanguage,
+      allowReschedulingPastBookings,
+      allowReschedulingCancelledBookings,
+      showOptimizedSlots,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -165,6 +183,16 @@ export class OutputEventTypesService_2024_06_14 {
       periodEndDate: databaseEventType.periodEndDate,
     } as TransformFutureBookingsLimitSchema_2024_06_14);
     const destinationCalendar = this.transformDestinationCalendar(databaseEventType.destinationCalendar);
+    const bookerActiveBookingsLimit = this.transformBookerActiveBookingsLimit(databaseEventType);
+    const disableReschedulingOutput = this.transformDisableRescheduling(
+      disableRescheduling,
+      minimumRescheduleNotice
+    );
+    const disableCancellingOutput = this.transformDisableCancelling(disableCancelling);
+    const calVideoSettingsOutput = this.transformCalVideoSettings(
+      calVideoSettings,
+      canSendCalVideoTranscriptionEmails
+    );
 
     return {
       id,
@@ -207,12 +235,38 @@ export class OutputEventTypesService_2024_06_14 {
       useDestinationCalendarEmail: useEventTypeDestinationCalendarEmail,
       hideCalendarEventDetails,
       hideOrganizerEmail,
-      calVideoSettings,
+      calVideoSettings: calVideoSettingsOutput,
       hidden,
       bookingRequiresAuthentication,
+      bookerActiveBookingsLimit,
+      disableCancelling: disableCancellingOutput,
+      disableRescheduling: disableReschedulingOutput,
+      interfaceLanguage,
+      allowReschedulingPastBookings,
+      allowReschedulingCancelledBookings,
+      showOptimizedSlots,
     };
   }
 
+  transformBookerActiveBookingsLimit(databaseEventType: Input) {
+    const noMaxActiveBookingsPerBooker =
+      !databaseEventType.maxActiveBookingsPerBooker && databaseEventType.maxActiveBookingsPerBooker !== 0;
+    const noMaxActiveBookingPerBookerOfferReschedule =
+      !databaseEventType.maxActiveBookingPerBookerOfferReschedule;
+
+    if (noMaxActiveBookingsPerBooker && noMaxActiveBookingPerBookerOfferReschedule) {
+      return {
+        disabled: true,
+      };
+    }
+
+    return {
+      maximumActiveBookings: databaseEventType.maxActiveBookingsPerBooker ?? undefined,
+      offerReschedule: databaseEventType.maxActiveBookingPerBookerOfferReschedule ?? undefined,
+    };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transformLocations(locationDb: any) {
     if (!locationDb) return [];
 
@@ -239,6 +293,7 @@ export class OutputEventTypesService_2024_06_14 {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transformBookingFields(bookingFields: any) {
     if (!bookingFields) return [];
 
@@ -273,6 +328,7 @@ export class OutputEventTypesService_2024_06_14 {
     return this.transformBookingFields(defaultBookingFields);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transformRecurringEvent(recurringEvent: any) {
     if (!recurringEvent) return null;
     const recurringEventParsed = parseRecurringEvent(recurringEvent);
@@ -280,6 +336,7 @@ export class OutputEventTypesService_2024_06_14 {
     return transformRecurrenceInternalToApi(recurringEventParsed);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transformMetadata(metadata: any) {
     if (!metadata) return {};
     return EventTypeMetaDataSchema.parse(metadata);
@@ -301,6 +358,7 @@ export class OutputEventTypesService_2024_06_14 {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transformIntervalLimits(bookingLimits: any) {
     const bookingLimitsParsed = parseBookingLimit(bookingLimits);
     return transformIntervalLimitsInternalToApi(bookingLimitsParsed);
@@ -327,6 +385,7 @@ export class OutputEventTypesService_2024_06_14 {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transformEventTypeColor(eventTypeColor: any) {
     if (!eventTypeColor) return undefined;
     const parsedeventTypeColor = parseEventTypeColor(eventTypeColor);
@@ -365,6 +424,42 @@ export class OutputEventTypesService_2024_06_14 {
     return {
       ...eventType,
       bookingFields: visibleBookingFields,
+    };
+  }
+
+  transformDisableRescheduling(
+    disableRescheduling: boolean | null | undefined,
+    minimumRescheduleNotice: number | null | undefined
+  ) {
+    // If disableRescheduling is true, rescheduling is always disabled
+    if (disableRescheduling === true) {
+      return { disabled: true };
+    }
+
+    // If minimumRescheduleNotice is set, rescheduling is conditionally disabled
+    if (minimumRescheduleNotice && minimumRescheduleNotice > 0) {
+      return { disabled: false, minutesBefore: minimumRescheduleNotice };
+    }
+
+    // Otherwise rescheduling is not disabled
+    return { disabled: false };
+  }
+
+  transformDisableCancelling(disableCancelling: boolean | null | undefined) {
+    return { disabled: disableCancelling === true };
+  }
+
+  transformCalVideoSettings(
+    calVideoSettings: CalVideoSettings | null | undefined,
+    canSendCalVideoTranscriptionEmails: boolean | null | undefined
+  ) {
+    if (!calVideoSettings && canSendCalVideoTranscriptionEmails === undefined) {
+      return undefined;
+    }
+
+    return {
+      ...calVideoSettings,
+      sendTranscriptionEmails: canSendCalVideoTranscriptionEmails ?? true,
     };
   }
 }

@@ -1,7 +1,7 @@
 import { ShellMainAppDirBackButton } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDirBackButton";
 import classNames from "classnames";
 
-import type { LayoutProps } from "@calcom/features/shell/Shell";
+import type { LayoutProps } from "~/shell/Shell";
 
 // Copied from `ShellMain` but with a different `ShellMainAppDirBackButton` import
 // for client/server component separation
@@ -27,7 +27,7 @@ export function ShellMainAppDir(props: LayoutProps) {
                 {props.heading && (
                   <h3
                     className={classNames(
-                      "font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
+                      "font-heading text-emphasis max-w-28 sm:max-w-72 md:max-w-80 inline truncate text-lg tracking-wide sm:text-xl md:block xl:max-w-full",
                       props.smallHeading ? "text-base" : "text-xl"
                     )}>
                     {props.heading}
@@ -46,7 +46,7 @@ export function ShellMainAppDir(props: LayoutProps) {
                     props.backPath
                       ? "relative"
                       : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
-                    "flex-shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
+                    "shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
                   )}>
                   {props.CTA}
                 </div>

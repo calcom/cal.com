@@ -1,7 +1,7 @@
 // !IMPORTANT! changes to this file requires publishing new version of platform libraries in order for the changes to be applied to APIV2
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import type { GetServerSidePropsContext } from "next";
-import { stringify } from "querystring";
+import { stringify } from "node:querystring";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
@@ -10,23 +10,24 @@ import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-sto
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import { getServerTimingHeader } from "@calcom/app-store/routing-forms/lib/getServerTimingHeader";
-import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
+import { PrismaRoutingFormRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+
 import { TRPCError } from "@trpc/server";
 
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
-import { HttpError } from "@calcom/lib/http-error";
+import { handleResponse } from "./handleResponse";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 const querySchema = z
@@ -52,8 +53,7 @@ export function hasEmbedPath(pathWithQuery: string) {
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
-// We have fetchCrm as configurable temporarily to allow us to test the CRM logic in the APIV2. Soon after we would hardcode it to true
-const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">, fetchCrm = false) => {
+const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">, fetchCrm = true) => {
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
   const pageProps = {
@@ -181,7 +181,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
         },
       };
     }
-  
+
     log.error("Error handling the response", safeStringify(e));
     throw new Error("Error handling the response");
   }

@@ -1,4 +1,4 @@
-import type { IncomingMessage } from "http";
+import type { IncomingMessage } from "node:http";
 
 import { IS_PRODUCTION, WEBSITE_URL, SINGLE_ORG_SLUG } from "@calcom/lib/constants";
 import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
@@ -15,8 +15,8 @@ const log = logger.getSubLogger({
  */
 export function getOrgSlug(hostname: string, forcedSlug?: string) {
   if (forcedSlug) {
-    if (process.env.NEXT_PUBLIC_IS_E2E) {
-      log.debug("Using provided forcedSlug in E2E", {
+    if (process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE) {
+      log.debug("Using provided forcedSlug in E2E/Integration Test mode", {
         forcedSlug,
       });
       return forcedSlug;

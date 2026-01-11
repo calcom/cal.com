@@ -2,13 +2,14 @@
 
 import { useRouter } from "next/navigation";
 
-import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
+
+import Shell from "~/shell/Shell";
 
 export type OrgUpgradeBannerProps = {
   data: RouterOutputs["viewer"]["me"]["getUserTopBanners"]["orgUpgradeBanner"];
@@ -31,7 +32,7 @@ export default function UpgradePage() {
 
   return (
     <Shell>
-      <div className="max-w-screen-lg">
+      <div className="max-w-(--breakpoint-lg)">
         {doesUserHaveOrgToUpgrade.data ? (
           <EmptyScreen
             headline={t("your_upgrade_is_here")}

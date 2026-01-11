@@ -20,7 +20,7 @@ export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser>
       <form
         id="wizard-step-1"
         name="wizard-step-1"
-        className="space-y-4"
+        className="stack-y-4"
         onSubmit={(e) => {
           e.preventDefault();
           props.onSuccess();
@@ -106,7 +106,7 @@ export const AdminUser = (props: {
 
   return (
     <FormProvider {...formMethods}>
-      <form id="wizard-step-1" name="wizard-step-1" className="space-y-4" onSubmit={onSubmit}>
+      <form id="wizard-step-1" name="wizard-step-1" className="stack-y-4" onSubmit={onSubmit}>
         <div>
           <Controller
             name="username"

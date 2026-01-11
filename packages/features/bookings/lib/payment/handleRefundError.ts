@@ -1,4 +1,4 @@
-import { sendOrganizerPaymentRefundFailedEmail } from "@calcom/emails";
+import { sendOrganizerPaymentRefundFailedEmail } from "@calcom/emails/billing-email-service";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const handleRefundError = async (opts: { event: CalendarEvent; reason: string; paymentId: string }) => {

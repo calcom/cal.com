@@ -34,7 +34,7 @@ interface PasswordViewProps {
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="border-subtle space-y-6 border-x px-4 py-8 sm:px-6">
+      <div className="border-subtle stack-y-6 border-x px-4 py-8 sm:px-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -167,7 +167,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
       {user && user.identityProvider !== IdentityProvider.CAL && !user.passwordAdded ? (
         <div className="border-subtle rounded-b-xl border border-t-0">
           <div className="px-4 py-6 sm:px-6">
-            <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
+            <h2 className="font-heading text-emphasis text-lg leading-6">
               {t("account_managed_by_identity_provider", {
                 provider: IdentityProvider[user.identityProvider],
               })}
@@ -265,7 +265,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                           : timeoutOptions[1]
                       }
                       isSearchable={false}
-                      className="block h-[36px] !w-auto min-w-0 flex-none rounded-md text-sm"
+                      className="block h-[36px] w-auto! min-w-0 flex-none rounded-md text-sm"
                       onChange={(event) => {
                         setSessionTimeout(event?.value);
                       }}

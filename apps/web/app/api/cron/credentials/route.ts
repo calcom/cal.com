@@ -6,11 +6,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 
