@@ -163,15 +163,15 @@ export default function EventTypeDetail() {
   const [showScheduleDropdown, setShowScheduleDropdown] = useState(false);
   const [schedulesLoading, setSchedulesLoading] = useState(false);
   const [scheduleDetailsLoading, setScheduleDetailsLoading] = useState(false);
-    const [initialScheduleId, setInitialScheduleId] = useState<number | null>(null);
-    const hasAutoSelectedScheduleRef = useRef(false);
+  const [initialScheduleId, setInitialScheduleId] = useState<number | null>(null);
+  const hasAutoSelectedScheduleRef = useRef(false);
 
-    // Reset auto-selection ref when event type id changes (e.g., navigation reuse)
-    useEffect(() => {
-      hasAutoSelectedScheduleRef.current = false;
-    }, [id]);
+  // Reset auto-selection ref when event type id changes (e.g., navigation reuse)
+  useEffect(() => {
+    hasAutoSelectedScheduleRef.current = false;
+  }, []);
 
-    const [isHidden, setIsHidden] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const [selectedTimezone, setSelectedTimezone] = useState("");
   const [showTimezoneDropdown, setShowTimezoneDropdown] = useState(false);
   const [conferencingOptions, setConferencingOptions] = useState<ConferencingOption[]>([]);

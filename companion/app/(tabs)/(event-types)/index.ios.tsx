@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { EventTypeListItem } from "@/components/event-type-list-item/EventTypeListItem";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { EventTypeListSkeleton } from "@/components/event-type-list-item/EventTypeListItemSkeleton";
 import {
   useCreateEventType,
   useDeleteEventType,
@@ -321,9 +321,22 @@ export default function EventTypesIOS() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-        <LoadingSpinner size="large" />
-      </View>
+      <>
+        <Stack.Header
+          style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
+          blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
+        >
+          <Stack.Header.Title large>Event Types</Stack.Header.Title>
+        </Stack.Header>
+        <ScrollView
+          style={{ backgroundColor: "white" }}
+          contentContainerStyle={{ paddingBottom: 120, paddingTop: 16 }}
+          showsVerticalScrollIndicator={false}
+          contentInsetAdjustmentBehavior="automatic"
+        >
+          <EventTypeListSkeleton />
+        </ScrollView>
+      </>
     );
   }
 
@@ -476,11 +489,13 @@ export default function EventTypesIOS() {
       <ScrollView
         style={{ backgroundColor: "white" }}
         contentContainerStyle={{ paddingBottom: 120 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >
-        {filteredEventTypes.length === 0 && searchQuery.trim() !== "" ? (
+        {refreshing ? (
+          <EventTypeListSkeleton />
+        ) : filteredEventTypes.length === 0 && searchQuery.trim() !== "" ? (
           <View className="flex-1 items-center justify-center bg-gray-50 p-5 pt-20">
             <EmptyScreen
               icon="search-outline"

@@ -5,7 +5,7 @@
  */
 
 import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
-import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
+import { buttonStyle } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Alert, Platform, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -222,7 +222,9 @@ export function RecurringTab({
                         { label: "year", value: "yearly" },
                       ]}
                       selectedValue={frequencyToLabel[recurringFrequency] || recurringFrequency}
-                      onSelect={(val) => setRecurringFrequency(val as any)}
+                      onSelect={(val) =>
+                        setRecurringFrequency(val as "weekly" | "monthly" | "yearly")
+                      }
                     />
                   </View>
                 ) : (

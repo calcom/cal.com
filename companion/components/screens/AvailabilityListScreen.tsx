@@ -14,10 +14,10 @@ import {
 } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
 import { AvailabilityListItem } from "@/components/availability-list-item/AvailabilityListItem";
+import { AvailabilityListSkeleton } from "@/components/availability-list-item/AvailabilityListItemSkeleton";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { FullScreenModal } from "@/components/FullScreenModal";
 import { Header } from "@/components/Header";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,7 +39,6 @@ import {
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { offlineAwareRefresh } from "@/utils/network";
-import { shadows } from "@/utils/shadows";
 
 export interface AvailabilityListScreenProps {
   searchQuery: string;
@@ -60,18 +59,10 @@ export function AvailabilityListScreen({
   const [showActionsModal, setShowActionsModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   // Use React Query hooks
-  const {
-    data: schedules = [],
-    isLoading: loading,
-    isFetching,
-    error: queryError,
-    refetch,
-  } = useSchedules();
-
-  // Show refresh indicator when fetching
-  const refreshing = isFetching && !loading;
+  const { data: schedules = [], isLoading: loading, error: queryError, refetch } = useSchedules();
 
   const { mutate: createScheduleMutation, isPending: creating } = useCreateSchedule();
   const { mutate: deleteScheduleMutation, isPending: deleting } = useDeleteSchedule();
@@ -100,7 +91,12 @@ export function AvailabilityListScreen({
   // Data only refreshes on mutations (create/update/delete) or manual pull-to-refresh.
 
   // Handle pull-to-refresh (offline-aware)
-  const onRefresh = () => offlineAwareRefresh(refetch);
+  const onRefresh = async () => {
+    setIsManualRefreshing(true);
+    await offlineAwareRefresh(refetch).finally(() => {
+      setIsManualRefreshing(false);
+    });
+  };
 
   const handleSearch = (query: string) => {
     onSearchChange(query);
@@ -255,8 +251,8 @@ export function AvailabilityListScreen({
     return (
       <View className="flex-1 bg-[#f8f9fa]">
         <Header />
-        <View className="flex-1 items-center justify-center p-5">
-          <LoadingSpinner size="large" />
+        <View className="flex-1 px-2 pt-4 md:px-4">
+          <AvailabilityListSkeleton iosStyle={Platform.OS === "ios"} />
         </View>
       </View>
     );
@@ -323,7 +319,7 @@ export function AvailabilityListScreen({
             padding: 20,
             paddingBottom: 90,
           }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          refreshControl={<RefreshControl refreshing={isManualRefreshing} onRefresh={onRefresh} />}
           contentInsetAdjustmentBehavior="automatic"
         >
           <EmptyScreen
@@ -349,7 +345,9 @@ export function AvailabilityListScreen({
               padding: 20,
               paddingBottom: 90,
             }}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            refreshControl={
+              <RefreshControl refreshing={isManualRefreshing} onRefresh={onRefresh} />
+            }
           >
             <EmptyScreen
               icon="search-outline"
@@ -361,29 +359,33 @@ export function AvailabilityListScreen({
 
         {/* Schedules list */}
         <Activity mode={showList ? "visible" : "hidden"}>
-          <FlatList
-            className="flex-1 rounded-lg border border-[#E5E5EA] bg-white"
-            contentContainerStyle={{
-              paddingBottom: 90,
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-            }}
-            data={filteredSchedules}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item, index }) => (
-              <AvailabilityListItem
-                item={item}
-                index={index}
-                handleSchedulePress={handleSchedulePress}
-                onDuplicate={handleDuplicate}
-                onDelete={handleDelete}
-                onSetAsDefault={handleSetAsDefault}
-              />
-            )}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            showsVerticalScrollIndicator={false}
-            contentInsetAdjustmentBehavior="automatic"
-          />
+          {isManualRefreshing ? (
+            <AvailabilityListSkeleton iosStyle={Platform.OS === "ios"} />
+          ) : (
+            <FlatList
+              className="flex-1 rounded-lg border border-[#E5E5EA] bg-white"
+              contentContainerStyle={{
+                paddingBottom: 90,
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+              }}
+              data={filteredSchedules}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item, index }) => (
+                <AvailabilityListItem
+                  item={item}
+                  index={index}
+                  handleSchedulePress={handleSchedulePress}
+                  onDuplicate={handleDuplicate}
+                  onDelete={handleDelete}
+                  onSetAsDefault={handleSetAsDefault}
+                />
+              )}
+              refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
+              showsVerticalScrollIndicator={false}
+              contentInsetAdjustmentBehavior="automatic"
+            />
+          )}
         </Activity>
       </Activity>
 
