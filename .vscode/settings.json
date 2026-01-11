@@ -10,6 +10,6 @@
   "spellright.documentTypes": ["markdown", "typescript", "typescriptreact"],
   "tailwindCSS.classFunctions": ["cva"],
   "[typescript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
+    "editor.defaultFormatter": "biomejs.biome"
   }
 }
