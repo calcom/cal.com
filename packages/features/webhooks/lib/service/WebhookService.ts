@@ -1,4 +1,4 @@
-import { createHmac } from "crypto";
+import { createHmac } from "node:crypto";
 
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
@@ -100,6 +100,7 @@ export class WebhookService implements IWebhookService {
       headers: {
         "Content-Type": contentType,
         "X-Cal-Signature-256": signature,
+        "X-Cal-Webhook-Version": subscriber.version,
       },
       redirect: "manual",
       body,

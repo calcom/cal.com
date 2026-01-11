@@ -2,10 +2,10 @@ import { v4 as uuidv4 } from "uuid";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
+import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import prisma from "@calcom/prisma";
 import type { User as PrismaUser } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
@@ -140,7 +140,13 @@ export class ProfileRepository {
       bufferTime: user.bufferTime,
     };
   }
-
+  /**
+   * Parses a Universal Profile ID (upId) into a lookup target.
+   * - "usr-{id}" → { type: User, id }
+   * - "prof-{uuid}" → { type: Profile, uid } (no `id`)
+   * - "{numericId}" → { type: Profile, id } (legacy)
+   * For profiles, always check for `uid` first; `id` may be undefined.
+   */
   static getLookupTarget(upId: UpId) {
     if (upId.trim() === "") {
       return {
@@ -903,6 +909,22 @@ export class ProfileRepository {
       },
       select: profileSelect,
     });
+  }
+
+  /**
+   * Returns the first organization ID the user belongs to, or null if none.
+   * Used for org-specific blocking on personal events.
+   *
+   * TODO: When we support checking against multiple orgs, update this to return
+   * all org IDs and check if user is blocked in ANY of them.
+   */
+  static async findFirstOrganizationIdForUser({ userId }: { userId: number }): Promise<number | null> {
+    const profile = await prisma.profile.findFirst({
+      where: { userId },
+      select: { organizationId: true },
+    });
+
+    return profile?.organizationId ?? null;
   }
 
   static async findManyForOrg({ organizationId }: { organizationId: number }) {
