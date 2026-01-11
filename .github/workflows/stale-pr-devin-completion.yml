@@ -112,10 +112,7 @@ jobs:
           3. Add the upstream remote: git remote add upstream https://github.com/${REPO_NAME}.git
 
           IMPORTANT - Pushing to Fork PRs:
-          Since this is a fork PR, you need to use the DEVIN_ACTIONS_PAT secret for authentication when pushing.
-          Before pushing, configure git to use the PAT:
-          git remote set-url origin https://x-access-token:\${DEVIN_ACTIONS_PAT}@github.com/${HEAD_REPO_FULL_NAME}.git
-          Then push your changes normally: git push origin ${PR_BRANCH}"
+          Since this is a fork PR, you need to use the DEVIN_ACTIONS_PAT secret for authentication when pushing. Configure git to use this PAT for authentication before pushing your changes to the fork."
           else
             CLONE_INSTRUCTIONS="Clone the repository ${REPO_NAME} and check out the branch: ${PR_BRANCH}"
           fi

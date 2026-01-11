@@ -231,10 +231,7 @@ jobs:
             - Fetch upstream and merge: git fetch upstream && git merge upstream/${pr.base_ref}
             
             IMPORTANT - Pushing to Fork PRs:
-            Since this is a fork PR, you need to use the DEVIN_ACTIONS_PAT secret for authentication when pushing.
-            Before pushing, configure git to use the PAT:
-            git remote set-url origin https://x-access-token:\${DEVIN_ACTIONS_PAT}@github.com/${pr.head_repo_owner}/${pr.head_repo_name}.git
-            Then push your changes normally: git push origin ${pr.head_ref}` : `
+            Since this is a fork PR, you need to use the DEVIN_ACTIONS_PAT secret for authentication when pushing. Configure git to use this PAT for authentication before pushing your changes to the fork.` : `
             - Clone the repository: ${owner}/${repo}
             - Check out the PR branch: ${pr.head_ref}
             - Merge the base branch: git merge origin/${pr.base_ref}`;
