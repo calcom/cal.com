@@ -89,6 +89,13 @@ jobs:
             }
             
             // PR was not created through Devin - check for existing Devin session from PR comments
+            // Look for any Devin session comment (cubic review, conflict resolution, stale PR completion, etc.)
+            const devinSessionPatterns = [
+              'Devin AI is addressing Cubic AI',
+              'Devin AI is resolving merge conflicts',
+              'Devin AI is completing this stale PR'
+            ];
+            
             const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -97,10 +104,12 @@ jobs:
             
             let sessionId = null;
             for (const comment of comments.data.reverse()) {
-              if (comment.body.includes('Devin AI is addressing Cubic AI')) {
+              const hasDevinSession = devinSessionPatterns.some(pattern => comment.body.includes(pattern));
+              if (hasDevinSession) {
                 const match = comment.body.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
                 if (match) {
                   sessionId = match[1];
+                  console.log(`Found existing Devin session from comment: ${sessionId}`);
                   break;
                 }
               }
