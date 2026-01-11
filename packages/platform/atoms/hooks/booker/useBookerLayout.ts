@@ -78,7 +78,7 @@ export const useBookerLayout = (
 
   const hideEventTypeDetailsParam = getQueryParam("hideEventTypeDetails");
   const hideEventTypeDetails = isEmbed
-    ? embedUiConfig.hideEventTypeDetails
+    ? (embedUiConfig.hideEventTypeDetails ?? false)
     : typeof hideEventTypeDetailsParam === "string"
     ? hideEventTypeDetailsParam === "true"
     : false;

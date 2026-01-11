@@ -145,7 +145,7 @@ export const BookEventForm = ({
               severity="info"
               title={rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
               message={getError({
-                globalError: errors.formErrors,
+                globalError: errors.formErrors as FieldError | undefined,
                 dataError: errors.dataErrors,
                 t,
                 responseVercelIdHeader,

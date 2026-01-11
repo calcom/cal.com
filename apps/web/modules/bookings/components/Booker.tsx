@@ -238,7 +238,7 @@ const BookerComponent = ({
   }, [slot, setSelectedTimeslot]);
 
   const onSubmit = (timeSlot?: string) =>
-    renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
+    renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail();
 
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
@@ -251,7 +251,7 @@ const BookerComponent = ({
           // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
           if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
             // Ensures that user has latest available slots when they want to re-choose from the slots
-            schedule?.invalidate();
+            schedule.invalidate?.();
           }
           if (seatedEventData.bookingUid) {
             setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });

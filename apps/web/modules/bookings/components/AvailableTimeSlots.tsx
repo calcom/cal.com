@@ -134,7 +134,7 @@ export const AvailableTimeSlots = ({
       // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
       if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
         // Ensures that user has latest available slots when they are about to confirm the booking by filling up the details
-        schedule?.invalidate();
+        schedule?.invalidate?.();
       }
       setTentativeSelectedTimeslots([]);
       // note(Lauris): setting setSeatedEventData before setSelectedTimeslot so that in useSlots we have seated event data available
