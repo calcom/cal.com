@@ -247,15 +247,21 @@ jobs:
                 }
               }
               
-              // Check PR comments for existing Devin session
+              // Check PR comments for existing Devin session (conflict resolution or Cubic AI review)
               const comments = await github.rest.issues.listComments({
                 owner,
                 repo,
                 issue_number: prNumber
               });
               
+              const sessionPatterns = [
+                'Devin AI is resolving merge conflicts',
+                'Devin AI is addressing Cubic AI'
+              ];
+              
               for (const comment of comments.data.reverse()) {
-                if (comment.body.includes('Devin AI is resolving merge conflicts')) {
+                const hasDevinSession = sessionPatterns.some(pattern => comment.body.includes(pattern));
+                if (hasDevinSession) {
                   const match = comment.body.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
                   if (match) {
                     const sessionId = match[1];
