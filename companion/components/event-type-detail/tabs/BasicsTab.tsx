@@ -211,7 +211,7 @@ function SettingRow({
             value={value}
             onValueChange={onValueChange}
             trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS === "android" ? "#FFFFFF" : undefined}
+            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
           />
         </View>
       </View>
