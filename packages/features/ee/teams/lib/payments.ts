@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getDubCustomer } from "@calcom/features/auth/lib/dub";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
 import {
   IS_PRODUCTION,
   ORGANIZATION_SELF_SERVE_PRICE,
@@ -96,8 +97,12 @@ export const generateTeamCheckoutSession = async ({
     },
     subscription_data: {
       trial_period_days: 14, // Add a 14-day trial
+      metadata: {
+        ...(isOnboarding && { source: "onboarding" }),
+      },
     },
     metadata: {
+      type: CHECKOUT_SESSION_TYPES.TEAM_CREATION,
       teamName,
       teamSlug,
       userId,

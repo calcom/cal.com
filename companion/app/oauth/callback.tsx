@@ -1,12 +1,23 @@
-import React, { useEffect } from "react";
-import { View, Text, ActivityIndicator } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect } from "react";
+import { ActivityIndicator, Platform, Text, View } from "react-native";
+import { useAuth } from "@/contexts";
+import { safeLogError } from "@/utils/safeLogger";
 
 export default function OAuthCallback() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const auth = useAuth();
 
   useEffect(() => {
+    if (Platform.OS === "android") {
+      if (auth.userInfo) {
+        router.replace("/");
+      }
+    }
+
+    if (Platform.OS !== "web") return;
+
     // Extract code, state, and error parameters from URL
     const code = params.code as string;
     const state = params.state as string;
@@ -16,7 +27,7 @@ export default function OAuthCallback() {
     // Handle OAuth error response
     if (error) {
       const errorMessage = errorDescription || error || "OAuth authorization failed";
-      console.error("OAuth error:", error, errorDescription);
+      safeLogError("OAuth error occurred", { error, errorDescription });
 
       if (typeof window !== "undefined") {
         if (window.opener) {
@@ -35,7 +46,7 @@ export default function OAuthCallback() {
             window.localStorage.setItem(`oauth_callback_error_${state}`, errorMessage);
             window.localStorage.setItem(`oauth_callback_error_code_${state}`, error);
           }
-          router.replace("/(tabs)");
+          router.replace("/");
         }
       }
       return;
@@ -61,11 +72,11 @@ export default function OAuthCallback() {
           window.close();
         } else {
           // Redirect to main app
-          router.replace("/(tabs)");
+          router.replace("/");
         }
       }
     } else {
-      console.error("No authorization code or state in OAuth callback");
+      safeLogError("No authorization code or state in OAuth callback", { code, state });
 
       // Handle error case
       if (typeof window !== "undefined") {
@@ -79,11 +90,11 @@ export default function OAuthCallback() {
           );
           window.close();
         } else {
-          router.replace("/(tabs)");
+          router.replace("/");
         }
       }
     }
-  }, [params, router]);
+  }, [params, router, auth.userInfo]);
 
   return (
     <View className="flex-1 items-center justify-center bg-white">
