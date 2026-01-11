@@ -206,7 +206,7 @@ jobs:
             core.setOutput('has-conflicts', conflictingPRs.length > 0 ? 'true' : 'false');
             core.setOutput('conflict-count', conflictingPRs.length.toString());
 
-      - name: Create Devin sessions for conflicting PRs
+      - name: Handle Devin sessions for conflicting PRs
         if: steps.check-prs.outputs.has-conflicts == 'true'
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
@@ -219,8 +219,81 @@ jobs:
             const conflictingPRs = JSON.parse(fs.readFileSync('/tmp/conflicting-prs.json', 'utf8'));
             const { owner, repo } = context.repo;
             
+            async function checkSessionStatus(sessionId) {
+              const response = await fetch(`https://api.devin.ai/v1/sessions/${sessionId}`, {
+                headers: {
+                  'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+              
+              if (!response.ok) {
+                console.log(`Failed to fetch session ${sessionId}: ${response.status}`);
+                return null;
+              }
+              
+              return await response.json();
+            }
+            
+            async function findExistingSession(prNumber, prBody) {
+              // First check if PR was created through Devin
+              const prSessionMatch = prBody?.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
+              if (prSessionMatch) {
+                const sessionId = prSessionMatch[1];
+                console.log(`PR #${prNumber} was created by Devin session: ${sessionId}`);
+                const session = await checkSessionStatus(sessionId);
+                if (session) {
+                  return { sessionId, sessionUrl: `https://app.devin.ai/sessions/${sessionId}`, isFromPrBody: true };
+                }
+              }
+              
+              // Check PR comments for existing Devin session (conflict resolution or Cubic AI review)
+              const comments = await github.rest.issues.listComments({
+                owner,
+                repo,
+                issue_number: prNumber
+              });
+              
+              const sessionPatterns = [
+                'Devin AI is resolving merge conflicts',
+                'Devin AI is addressing Cubic AI'
+              ];
+              
+              for (const comment of comments.data.reverse()) {
+                const hasDevinSession = sessionPatterns.some(pattern => comment.body?.includes(pattern));
+                if (hasDevinSession) {
+                  const match = comment.body?.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
+                  if (match) {
+                    const sessionId = match[1];
+                    console.log(`Found existing session from comment: ${sessionId}`);
+                    
+                    const session = await checkSessionStatus(sessionId);
+                    if (session) {
+                      const activeStatuses = ['working', 'blocked', 'resumed'];
+                      if (activeStatuses.includes(session.status_enum)) {
+                        console.log(`Session ${sessionId} is active (status: ${session.status_enum})`);
+                        return { sessionId, sessionUrl: `https://app.devin.ai/sessions/${sessionId}`, isFromPrBody: false };
+                      } else {
+                        console.log(`Session ${sessionId} is not active (status: ${session.status_enum})`);
+                      }
+                    }
+                  }
+                }
+              }
+              
+              return null;
+            }
+            
             for (const pr of conflictingPRs) {
-              console.log(`Creating Devin session for PR #${pr.number}: ${pr.title}${pr.is_fork ? ' (fork)' : ''}`);
+              console.log(`Processing PR #${pr.number}: ${pr.title}${pr.is_fork ? ' (fork)' : ''}`);
+              
+              const { data: prDetails } = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: pr.number
+              });
+              
+              const existingSession = await findExistingSession(pr.number, prDetails.body);
               
               const forkInstructions = pr.is_fork ? `
             IMPORTANT: This PR is from a fork. The contributor has enabled "Allow edits from maintainers".
@@ -232,7 +305,7 @@ jobs:
             - Check out the PR branch: ${pr.head_ref}
             - Merge the base branch (${pr.base_ref}) using standard git merge`;
               
-              const prompt = `You are resolving merge conflicts on PR #${pr.number} in repository ${owner}/${repo}.
+              const conflictResolutionInstructions = `You are resolving merge conflicts on PR #${pr.number} in repository ${owner}/${repo}.
 
             PR Title: ${pr.title}
             PR URL: ${pr.html_url}
@@ -271,29 +344,64 @@ jobs:
             7. CRITICAL: Never reproduce or recreate changes from the target branch. Your merge commit should ONLY contain conflict resolutions. If you find yourself manually copying file contents from ${pr.base_ref} or creating changes that mirror what's already in ${pr.base_ref}, you are doing it wrong. Use git's merge functionality properly - it handles bringing in changes automatically.`;
 
               try {
-                const response = await fetch('https://api.devin.ai/v1/sessions', {
-                  method: 'POST',
-                  headers: {
-                    'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-                    prompt: prompt,
-                    title: `Resolve Conflicts: PR #${pr.number}`,
-                    tags: ['conflict-resolution', `pr-${pr.number}`]
-                  })
-                });
+                let sessionUrl;
+                let isNewSession = false;
                 
-                if (!response.ok) {
-                  console.error(`Devin API error for PR #${pr.number}: ${response.status} ${response.statusText}`);
-                  continue;
+                if (existingSession) {
+                  console.log(`Sending message to existing session ${existingSession.sessionId} for PR #${pr.number}`);
+                  
+                  const message = `PR #${pr.number} has new merge conflicts that need to be resolved.
+
+            ${conflictResolutionInstructions}
+
+            Continue working on the same PR branch and push your fixes.`;
+                  
+                  const response = await fetch(`https://api.devin.ai/v1/sessions/${existingSession.sessionId}/message`, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message })
+                  });
+                  
+                  if (!response.ok) {
+                    console.error(`Failed to send message to session ${existingSession.sessionId}: ${response.status}`);
+                    continue;
+                  }
+                  
+                  sessionUrl = existingSession.sessionUrl;
+                  console.log(`Message sent to existing session for PR #${pr.number}`);
+                } else {
+                  console.log(`Creating new Devin session for PR #${pr.number}`);
+                  
+                  const response = await fetch('https://api.devin.ai/v1/sessions', {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      prompt: conflictResolutionInstructions,
+                      title: `Resolve Conflicts: PR #${pr.number}`,
+                      tags: ['conflict-resolution', `pr-${pr.number}`]
+                    })
+                  });
+                  
+                  if (!response.ok) {
+                    console.error(`Devin API error for PR #${pr.number}: ${response.status} ${response.statusText}`);
+                    continue;
+                  }
+                  
+                  const data = await response.json();
+                  sessionUrl = data.url || data.session_url;
+                  isNewSession = true;
                 }
                 
-                const data = await response.json();
-                const sessionUrl = data.url || data.session_url;
-                
                 if (sessionUrl) {
-                  console.log(`Devin session created for PR #${pr.number}: ${sessionUrl}`);
+                  if (isNewSession) {
+                    console.log(`Devin session created for PR #${pr.number}: ${sessionUrl}`);
+                  }
                   
                   await github.rest.issues.addLabels({
                     owner,
@@ -302,13 +410,13 @@ jobs:
                     labels: ['devin-conflict-resolution']
                   });
                   
-                  await github.rest.issues.createComment({
-                    owner,
-                    repo,
-                    issue_number: pr.number,
-                    body: `### Devin AI is resolving merge conflicts
+                  const sessionStatusMessage = isNewSession
+                    ? 'A Devin session has been created to automatically resolve them.'
+                    : 'The existing Devin session has been notified to resolve them.';
+                  
+                  const commentBody = `### Devin AI is resolving merge conflicts
 
-            This PR has merge conflicts with the \`${pr.base_ref}\` branch. A Devin session has been created to automatically resolve them.
+            This PR has merge conflicts with the \`${pr.base_ref}\` branch. ${sessionStatusMessage}
 
             [View Devin Session](${sessionUrl})
 
@@ -318,13 +426,19 @@ jobs:
             3. Run lint/type checks to ensure validity
             4. Push the resolved changes
 
-            If you prefer to resolve conflicts manually, you can close the Devin session and handle it yourself.`
+            If you prefer to resolve conflicts manually, you can close the Devin session and handle it yourself.`;
+                  
+                  await github.rest.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: pr.number,
+                    body: commentBody
                   });
                 } else {
                   console.log(`Failed to get session URL for PR #${pr.number}`);
                 }
               } catch (error) {
-                console.error(`Error creating Devin session for PR #${pr.number}: ${error.message}`);
+                console.error(`Error handling Devin session for PR #${pr.number}: ${error.message}`);
               }
               
               await new Promise(resolve => setTimeout(resolve, 1000));
