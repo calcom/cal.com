@@ -128,6 +128,7 @@ export function EventTypeTabs(eventTypeId: number) {
       <EventTypeSettings
         id={eventTypeId}
         allowDelete={true}
+        tabs={["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]}
         onSuccess={(eventType) => {
           console.log("EventType settings updated successfully", eventType);
         }}
@@ -135,11 +136,24 @@ export function EventTypeTabs(eventTypeId: number) {
           console.log("Form state changed:", formState);
           // Access form data: formState.isDirty, formState.dirtyFields, formState.values
         }}
-        customClassNames={{ atomsWrapper: "!w-[70vw] !m-auto" }}
+        customClassNames={{ atomsWrapper: "w-[70vw]! m-auto!" }}
       />
     </>
   );
 }
+```
+
+To show only specific tabs, remove the ones you don't want from the array:
+
+```js
+// Example: Show only setup, limits, and availability tabs
+<EventTypeSettings
+  id={eventTypeId}
+  tabs={["setup", "limits", "availability"]}
+  onSuccess={(eventType) => {
+    console.log("EventType settings updated successfully", eventType);
+  }}
+/>
 ```
 
 If the `eventTypeId` is of a team event type id, then only the owner or admin of the team can update the event type settings. That means
@@ -176,7 +190,7 @@ Below is a list of props that can be passed to the event type settings atom.
 | Name         | Required | Description                                                                                               |
 |:--------------|:----------|:-----------------------------------------------------------------------------------------------------------|
 | id | Yes       | The event type id obtained at the time of event type creation     
-| tabs | No       | The tabs you want the event type settings to display                                                  |  
+| tabs | No       | Array of tabs to display in the event type settings. Possible values: `["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]`. Remove any tabs you don't want to show. |  
 | onSuccess | No       | Callback function that triggers when the event type is successfully updated                                              |
 | onError   | No       | Callback function to handles errors at the time of event type update |
 | onFormStateChange | No       | Callback function that triggers when the form state changes, providing access to isDirty, dirtyFields, and current form values |

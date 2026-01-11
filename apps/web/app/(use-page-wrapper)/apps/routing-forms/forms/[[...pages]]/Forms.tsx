@@ -1,23 +1,20 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
-import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { ShellMain } from "@calcom/features/shell/Shell";
-import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { ArrowButton } from "@calcom/ui/components/arrow-button";
 import { Badge } from "@calcom/ui/components/badge";
@@ -37,6 +34,12 @@ import {
   FormActionsProvider,
 } from "@calcom/web/components/apps/routing-forms/FormActions";
 
+import { useHasPaidPlan } from "~/billing/hooks/useHasPaidPlan";
+import SkeletonLoaderTeamList from "~/ee/teams/components/SkeletonloaderTeamList";
+import { CreateButtonWithTeamsList } from "~/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import { ShellMain } from "~/shell/Shell";
+import { UpgradeTip } from "~/shell/UpgradeTip";
+
 function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {
   const { t } = useLocale();
   return (
@@ -45,6 +48,11 @@ function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNe
       data-testid="new-routing-form"
       createFunction={(teamId) => {
         setNewFormDialogState({ action: "new", target: teamId ? String(teamId) : "" });
+        posthog.capture("new_routing_form_button_clicked", { teamId });
+      }}
+      withPermission={{
+        permission: "routingForm.create",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
       }}
     />
   );
@@ -156,7 +164,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
           background="/tips/routing-forms"
           isParentLoading={<SkeletonLoaderTeamList />}
           buttons={
-            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+            <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
                 <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                   {t("upgrade")}
@@ -274,7 +282,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       action="edit"
                                       routingForm={form}
                                       color="minimal"
-                                      className="!flex"
+                                      className="flex!"
                                       StartIcon="pencil">
                                       {t("edit")}
                                     </FormAction>

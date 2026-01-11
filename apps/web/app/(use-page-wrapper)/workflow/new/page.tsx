@@ -130,7 +130,7 @@ const Page = async ({ searchParams }: PageProps) => {
       throw error;
     }
 
-    console.error("Failed to create Cal AI workflow:", error);
+    console.error("Failed to create Cal.ai workflow:", error);
     redirect("/workflows?error=failed-to-create-workflow");
   }
 };

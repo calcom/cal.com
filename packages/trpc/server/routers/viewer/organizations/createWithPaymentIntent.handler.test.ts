@@ -1,10 +1,9 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
-import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import { ORGANIZATION_SELF_SERVE_MIN_SEATS, ORGANIZATION_SELF_SERVE_PRICE } from "@calcom/lib/constants";
+import { ORGANIZATION_SELF_SERVE_PRICE } from "@calcom/lib/constants";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -15,39 +14,94 @@ import { createHandler } from "./createWithPaymentIntent.handler";
 vi.stubEnv("STRIPE_PRIVATE_KEY", "test-stripe-private-key");
 vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "test-stripe-org-monthly-price-id");
 vi.stubEnv("STRIPE_ORG_PRODUCT_ID", "test-stripe-org-product-id");
-vi.stubEnv("NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS", "30");
 vi.stubEnv("NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW", "37");
 
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const STRIPE_ORG_PRODUCT_ID = process.env.STRIPE_ORG_PRODUCT_ID!;
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 
 const STRIPE_ORG_MONTHLY_PRICE_ID = process.env.STRIPE_ORG_MONTHLY_PRICE_ID!;
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 
-const checkoutSessionsCreate = vi.fn();
-const pricesCreate = vi.fn();
-const customersCreate = vi.fn();
+const mockSharedStripe = vi.hoisted(() => ({
+  prices: {
+    create: vi.fn(),
+    retrieve: vi.fn().mockResolvedValue({ id: "price_123", unit_amount: 1000 }),
+  },
+  customers: {
+    create: vi.fn(),
+  },
+  subscriptions: {
+    cancel: vi.fn(),
+    retrieve: vi.fn(),
+    update: vi.fn(),
+  },
+  checkout: {
+    sessions: {
+      create: vi.fn(),
+      retrieve: vi.fn(),
+    },
+  },
+  paymentIntents: {
+    create: vi.fn(),
+  },
+}));
 
-function MockStripe() {
-  return {
-    checkout: {
-      sessions: {
-        create: checkoutSessionsCreate,
-      },
+vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => {
+  type FakeBillingProvider = {
+    createCustomer(args: {
+      email: string;
+      metadata?: Record<string, unknown>;
+    }): Promise<{ stripeCustomerId: string }>;
+    createPrice(args: {
+      amount: number;
+      productId: string;
+      currency: string;
+      interval: "month" | "year";
+      nickname?: string;
+      metadata?: Record<string, unknown>;
+    }): Promise<{ priceId: string }>;
+    createSubscriptionCheckout(args: {
+      customerId: string;
+      successUrl: string;
+      cancelUrl: string;
+      priceId: string;
+      quantity: number;
+      metadata?: Record<string, unknown>;
+    }): Promise<{ checkoutUrl: string; sessionId: string }>;
+  };
+
+  const fake: FakeBillingProvider = {
+    async createCustomer({ email, metadata }) {
+      const res = await mockSharedStripe.customers.create({ email, metadata });
+      return { stripeCustomerId: res.id };
     },
-    prices: {
-      create: pricesCreate,
+    async createPrice({ amount, productId, currency, interval, nickname, metadata }) {
+      const res = await mockSharedStripe.prices.create({
+        unit_amount: amount,
+        currency,
+        product: productId,
+        recurring: { interval },
+        nickname,
+        metadata,
+      });
+      return { priceId: res.id };
     },
-    customers: {
-      create: customersCreate,
+    async createSubscriptionCheckout({ customerId, successUrl, cancelUrl, priceId, quantity, metadata }) {
+      const res = await mockSharedStripe.checkout.sessions.create({
+        customer: customerId,
+        line_items: [{ price: priceId, quantity }],
+        mode: "subscription",
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        metadata,
+      });
+      return { checkoutUrl: res.url, sessionId: res.id };
     },
   };
-}
 
-vi.mock("stripe", () => ({
-  default: vi.fn(),
-}));
+  return {
+    getBillingProviderService: () =>
+      fake as unknown as import("@calcom/features/ee/billing/service/billingProvider/StripeBillingService").StripeBillingService,
+  };
+});
 
 const mockInput = {
   onboardingId: "test-onboarding-id",
@@ -121,7 +175,7 @@ async function createOrganizationOnboarding(data: {
       orgOwnerEmail: data.orgOwnerEmail,
       createdById: data.createdById,
       stripeSubscriptionId: data.stripeSubscriptionId,
-      seats: parseInt(data.seats ?? ORGANIZATION_SELF_SERVE_MIN_SEATS),
+      seats: parseInt(data.seats ?? "1"),
       pricePerSeat: parseFloat(data.pricePerSeat ?? ORGANIZATION_SELF_SERVE_PRICE),
       billingPeriod: data.billingPeriod ?? "MONTHLY",
     },
@@ -137,9 +191,7 @@ function expectStripePriceCreated({
   product: string;
   recurring: { interval: string };
 }) {
-  // @ts-expect-error We don't care about arguments to Stripe
-  const stripe = new Stripe();
-  expect(stripe.prices.create).toHaveBeenCalledWith(
+  expect(mockSharedStripe.prices.create).toHaveBeenCalledWith(
     expect.objectContaining({
       // Multiply by 100 is requirement of Stripe.
       unit_amount: amount * 100,
@@ -151,9 +203,7 @@ function expectStripePriceCreated({
 }
 
 function expectStripePriceNotCreated() {
-  // @ts-expect-error We don't care about arguments to Stripe
-  const stripe = new Stripe();
-  expect(stripe.prices.create).not.toHaveBeenCalled();
+  expect(mockSharedStripe.prices.create).not.toHaveBeenCalled();
 }
 
 function expectStripeSubscriptionCreated({
@@ -165,8 +215,7 @@ function expectStripeSubscriptionCreated({
   priceId: string;
   quantity: number;
 }) {
-  // @ts-expect-error We don't care about arguments to Stripe
-  expect(new Stripe().checkout.sessions.create).toHaveBeenCalledWith(
+  expect(mockSharedStripe.checkout.sessions.create).toHaveBeenCalledWith(
     expect.objectContaining({
       customer: customerId,
       line_items: [
@@ -181,7 +230,7 @@ function expectStripeSubscriptionCreated({
 
 let lastCreatedCustomerId = "null";
 let lastCreatedPriceId = "null";
-let lastCreatedSessionId = "null";
+let _lastCreatedSessionId = "null";
 const STRIPE_CHECKOUT_URL = `https://stripe.com/checkout`;
 
 describe("createWithPaymentIntent handler", () => {
@@ -191,18 +240,17 @@ describe("createWithPaymentIntent handler", () => {
     await prismock.reset();
     mockStripe();
     function mockStripe() {
-      // @ts-expect-error Not all props are defined on MockStripe
-      vi.mocked(Stripe).mockImplementation(MockStripe);
-      checkoutSessionsCreate.mockImplementation(() => {
+      // Set up the shared Stripe instance mock implementations
+      mockSharedStripe.checkout.sessions.create.mockImplementation(() => {
         const sessionId = `test-session-id-${uuidv4()}`;
-        lastCreatedSessionId = sessionId;
+        _lastCreatedSessionId = sessionId;
         return {
           url: STRIPE_CHECKOUT_URL,
           id: sessionId,
         };
       });
 
-      pricesCreate.mockImplementation(() => {
+      mockSharedStripe.prices.create.mockImplementation(() => {
         const priceId = `test-price-id-${uuidv4()}`;
         lastCreatedPriceId = priceId;
         return {
@@ -210,7 +258,7 @@ describe("createWithPaymentIntent handler", () => {
         };
       });
 
-      customersCreate.mockImplementation(() => {
+      mockSharedStripe.customers.create.mockImplementation(() => {
         const customerId = `test-customer-id-${uuidv4()}`;
         lastCreatedCustomerId = customerId;
         return {
@@ -472,7 +520,7 @@ describe("createWithPaymentIntent handler", () => {
       });
 
       const pricePerSeat = ORGANIZATION_SELF_SERVE_PRICE;
-      const seats = ORGANIZATION_SELF_SERVE_MIN_SEATS;
+      const seats = 5; // Using a test value, no longer enforcing minimum
       await createOrganizationOnboarding({
         id: mockInput.onboardingId,
         name: mockInput.name,

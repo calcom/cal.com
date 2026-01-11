@@ -1,10 +1,10 @@
 "use client";
 
-import { ChartCard } from "@calcom/features/insights/components/ChartCard";
+import { ChartCard } from "@calcom/web/modules/insights/components/ChartCard";
 import {
   RoutingFunnelContent,
   legend,
-} from "@calcom/features/insights/components/routing/RoutingFunnelContent";
+} from "@calcom/web/modules/insights/components/routing/RoutingFunnelContent";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 // Random sample data for playground testing
@@ -56,7 +56,7 @@ const sampleRoutingFunnelData = [
 export default function RoutingFunnelPlayground() {
   const { t } = useLocale();
   return (
-    <div className="space-y-6 p-6">
+    <div className="stack-y-6 p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Routing Funnel Playground</h1>
         <p className="mt-2 text-gray-600">

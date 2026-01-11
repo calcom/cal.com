@@ -29,7 +29,7 @@ export const DestinationCalendarSettings = (
       )}>
       <DestinationCalendarSettingsHeading classNames={props.classNamesObject?.header} />
       <div className="border-t">
-        <div className="border-subtle flex w-full flex-col space-y-3 border-y-0 p-6">
+        <div className="border-subtle flex w-full flex-col stack-y-3 border-y-0 p-6">
           <div>
             <Label className="text-default mb-0 font-medium">{t("add_events_to")}</Label>
             <DestinationCalendarSelector {...props} />

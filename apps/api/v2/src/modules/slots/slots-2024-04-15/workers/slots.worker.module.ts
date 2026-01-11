@@ -2,7 +2,7 @@
 // Needed if ConfigService is used anywhere
 import appConfig from "@/config/app";
 import { AvailableSlotsModule } from "@/lib/modules/available-slots.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { PrismaWorkerModule } from "@/modules/prisma/prisma-worker.module";
 import { Module, Logger } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { SentryModule } from "@sentry/nestjs/setup";
@@ -15,7 +15,7 @@ import { SentryModule } from "@sentry/nestjs/setup";
       isGlobal: true,
       load: [appConfig],
     }),
-    PrismaModule,
+    PrismaWorkerModule,
     AvailableSlotsModule,
   ],
   providers: [Logger],

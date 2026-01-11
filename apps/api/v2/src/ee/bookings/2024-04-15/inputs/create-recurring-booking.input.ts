@@ -21,7 +21,7 @@ export class CreateRecurringBookingInput_2024_04_15 extends CreateBookingInput_2
 
   @IsOptional()
   @ApiPropertyOptional({ type: [Object] })
-  allRecurringDates?: Record<string, string>[];
+  allRecurringDates?: { start: string; end: string | undefined }[];
 
   @IsOptional()
   @IsNumber()
