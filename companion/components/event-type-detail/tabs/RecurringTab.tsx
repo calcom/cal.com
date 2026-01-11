@@ -4,13 +4,10 @@
  * iOS Settings style with grouped rows and section headers.
  */
 
-import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
-import { buttonStyle } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Alert, Platform, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
-
 import { openInAppBrowser } from "@/utils/browser";
+import { RecurringTabIOSPicker } from "./RecurringTabIOSPicker";
 
 interface RecurringTabProps {
   recurringEnabled: boolean;
@@ -112,47 +109,11 @@ function SettingRow({
             value={value}
             onValueChange={onValueChange}
             trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS === "android" ? "#FFFFFF" : undefined}
+            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
           />
         </View>
       </View>
     </View>
-  );
-}
-
-// iOS Native Picker trigger component
-function IOSPickerTrigger({
-  options,
-  selectedValue,
-  onSelect,
-}: {
-  options: { label: string; value: string }[];
-  selectedValue: string;
-  onSelect: (value: string) => void;
-}) {
-  return (
-    <Host matchContents>
-      <ContextMenu
-        modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
-        activationMethod="singlePress"
-      >
-        <ContextMenu.Items>
-          {options.map((opt) => (
-            <Button
-              key={opt.value}
-              systemImage={selectedValue === opt.label ? "checkmark" : undefined}
-              onPress={() => onSelect(opt.value)}
-              label={opt.label}
-            />
-          ))}
-        </ContextMenu.Items>
-        <ContextMenu.Trigger>
-          <HStack>
-            <Image systemName="chevron.up.chevron.down" color="primary" size={13} />
-          </HStack>
-        </ContextMenu.Trigger>
-      </ContextMenu>
-    </Host>
   );
 }
 
@@ -215,7 +176,7 @@ export function RecurringTab({
                     <Text className="mr-1 text-[17px] text-[#8E8E93]">
                       {frequencyToLabel[recurringFrequency] || recurringFrequency}
                     </Text>
-                    <IOSPickerTrigger
+                    <RecurringTabIOSPicker
                       options={[
                         { label: "week", value: "weekly" },
                         { label: "month", value: "monthly" },

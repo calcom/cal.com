@@ -5,12 +5,10 @@
  * Matches the beautiful styling from AvailabilityDetailScreen.
  */
 
-import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
-import { buttonStyle } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
 import type { Schedule } from "@/services/calcom";
+import { AvailabilityTabIOSPicker } from "./AvailabilityTabIOSPicker";
 
 interface DaySchedule {
   day: string;
@@ -103,7 +101,11 @@ function NavigationRow({
                   {value}
                 </Text>
               ) : null}
-              <IOSPickerTrigger options={options} selectedValue={value || ""} onSelect={onSelect} />
+              <AvailabilityTabIOSPicker
+                options={options}
+                selectedValue={value || ""}
+                onSelect={onSelect}
+              />
             </>
           ) : (
             <TouchableOpacity
@@ -123,42 +125,6 @@ function NavigationRow({
         </View>
       </View>
     </View>
-  );
-}
-
-// iOS Native Picker trigger component
-function IOSPickerTrigger({
-  options,
-  selectedValue,
-  onSelect,
-}: {
-  options: { label: string; value: string }[];
-  selectedValue: string;
-  onSelect: (value: string) => void;
-}) {
-  return (
-    <Host matchContents>
-      <ContextMenu
-        modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
-        activationMethod="singlePress"
-      >
-        <ContextMenu.Items>
-          {options.map((opt) => (
-            <Button
-              key={opt.value}
-              systemImage={selectedValue === opt.label ? "checkmark" : undefined}
-              onPress={() => onSelect(opt.value)}
-              label={opt.label}
-            />
-          ))}
-        </ContextMenu.Items>
-        <ContextMenu.Trigger>
-          <HStack>
-            <Image systemName="chevron.up.chevron.down" color="primary" size={13} />
-          </HStack>
-        </ContextMenu.Trigger>
-      </ContextMenu>
-    </Host>
   );
 }
 
