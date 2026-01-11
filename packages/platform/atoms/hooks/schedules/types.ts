@@ -1,4 +1,4 @@
-export type ScheduleAvailability = {
+type ScheduleAvailability = {
   id: number;
   userId: number | null;
   eventTypeId: number | null;
@@ -9,14 +9,14 @@ export type ScheduleAvailability = {
   scheduleId: number | null;
 };
 
-export type Schedule = {
+type Schedule = {
   id: number;
   userId: number;
   name: string;
   timeZone: string | null;
 };
 
-export type ScheduleWithAvailability = Omit<Schedule, "userId"> & {
+type ScheduleWithAvailability = Omit<Schedule, "userId"> & {
   availability: ScheduleAvailability[];
   isDefault: boolean;
 };
