@@ -90,6 +90,10 @@ jobs:
               const isTargetPR = manualPrNumber && pr.number === manualPrNumber;
               const isFork = pr.headRepository?.owner?.login !== owner;
               
+              if (manualPrNumber && !isTargetPR) {
+                return { skip: true };
+              }
+              
               if (!isTargetPR && !isManualTrigger && pr.isDraft) {
                 console.log(`PR #${pr.number} is a draft, skipping`);
                 return { skip: true };
