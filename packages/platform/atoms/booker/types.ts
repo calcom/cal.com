@@ -11,9 +11,16 @@ import type {
   ApiSuccessResponseWithoutData,
   RoutingFormSearchParams,
 } from "@calcom/platform-types";
-import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 
 import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
+
+export type Slot = {
+  time: string;
+  userIds?: number[];
+  attendees?: number;
+  bookingUid?: string;
+  users?: string[];
+};
 
 // Type that includes only the data values from BookerStore (excluding functions)
 export type BookerStoreValues = Omit<
