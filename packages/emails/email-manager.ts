@@ -500,7 +500,8 @@ export const sendDeclinedEmailsAndSMS = async (
 export const sendCancelledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   eventNameObject: Pick<EventNameObjectType, "eventName">,
-  eventTypeMetadata?: EventTypeMetadata
+  eventTypeMetadata?: EventTypeMetadata,
+  workflowSuppressEmails?: { attendee?: boolean; host?: boolean }
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
@@ -515,7 +516,7 @@ export const sendCancelledEmailsAndSMS = async (
     );
   }
 
-  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+  if (!eventTypeDisableHostEmail(eventTypeMetadata) && !workflowSuppressEmails?.host) {
     emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent })));
 
     if (calendarEvent.team?.members) {
@@ -527,7 +528,10 @@ export const sendCancelledEmailsAndSMS = async (
     }
   }
 
-  if (!shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.CANCELLATION)) {
+  if (
+    !shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.CANCELLATION) &&
+    !workflowSuppressEmails?.attendee
+  ) {
     emailsToSend.push(
       ...calendarEvent.attendees.map((attendee) => {
         return sendEmail(

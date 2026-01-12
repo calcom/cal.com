@@ -14,6 +14,7 @@ import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/pa
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import { hasCancellationWorkflowsForRecipients } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
@@ -416,6 +417,8 @@ async function handler(input: CancelBookingInput) {
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
 
+  const workflowSuppressEmails = hasCancellationWorkflowsForRecipients(workflows);
+
   const creditService = new CreditService();
 
   await sendCancelledReminders({
@@ -692,7 +695,8 @@ async function handler(input: CancelBookingInput) {
       await sendCancelledEmailsAndSMS(
         evt,
         { eventName: bookingToDelete?.eventType?.eventName },
-        bookingToDelete?.eventType?.metadata as EventTypeMetadata
+        bookingToDelete?.eventType?.metadata as EventTypeMetadata,
+        workflowSuppressEmails
       );
   } catch (error) {
     log.error("Error deleting event", error);
