@@ -480,7 +480,7 @@ async function createOrganizationAndAddMembersAndTeams({
 
   const { organizationSettings, ...restOrgData } = orgData;
 
-  // Create organization with those users as members
+  // Step 1: Create organization (team) with just metadata and organizationSettings
   const orgInDb = await prisma.team.create({
     data: {
       ...restOrgData,
@@ -490,55 +490,73 @@ async function createOrganizationAndAddMembersAndTeams({
           : {}),
         isOrganization: true,
       },
-      orgProfiles: {
-        create: orgMembersInDb.map((member) => ({
-          uid: uuid(),
-          username: member.orgProfile.username,
-          movedFromUser: {
-            connect: {
-              id: member.id,
-            },
-          },
-          user: {
-            connect: {
-              id: member.id,
-            },
-          },
-        })),
-      },
       organizationSettings: {
         create: {
           ...organizationSettings,
         },
       },
-      members: {
-        create: orgMembersInDb.map((member) => ({
-          user: {
-            connect: {
-              id: member.id,
-            },
-          },
-          role: member.orgMembership.role || "MEMBER",
-          accepted: member.orgMembership.accepted,
-        })),
-      },
     },
     select: {
       id: true,
-      members: true,
-      orgProfiles: true,
     },
   });
 
-  const orgMembersInDBWithProfileId = await Promise.all(
-    orgMembersInDb.map(async (member) => ({
-      ...member,
-      profile: {
-        ...member.orgProfile,
-        id: orgInDb.orgProfiles.find((p) => p.userId === member.id)?.id,
-      },
-    }))
-  );
+  // Step 2: Create org profiles in batches to avoid large transactions
+  const profileBatchSize = 50;
+  for (let i = 0; i < orgMembersInDb.length; i += profileBatchSize) {
+    const batch = orgMembersInDb.slice(i, i + profileBatchSize);
+    await Promise.all(
+      batch.map((member) =>
+        prisma.profile.create({
+          data: {
+            uid: uuid(),
+            username: member.orgProfile.username,
+            organizationId: orgInDb.id,
+            userId: member.id,
+            movedFromUser: {
+              connect: {
+                id: member.id,
+              },
+            },
+          },
+        })
+      )
+    );
+  }
+
+  // Step 3: Create memberships using createMany for better performance
+  const membershipBatchSize = 100;
+  for (let i = 0; i < orgMembersInDb.length; i += membershipBatchSize) {
+    const batch = orgMembersInDb.slice(i, i + membershipBatchSize);
+    await prisma.membership.createMany({
+      data: batch.map((member) => ({
+        teamId: orgInDb.id,
+        userId: member.id,
+        role: member.orgMembership.role || "MEMBER",
+        accepted: member.orgMembership.accepted ?? false,
+      })),
+    });
+  }
+
+  // Step 4: Fetch created profiles to rebuild orgMembersInDBWithProfileId
+  const createdProfiles = await prisma.profile.findMany({
+    where: {
+      organizationId: orgInDb.id,
+      userId: { in: orgMembersInDb.map((m) => m.id) },
+    },
+    select: {
+      id: true,
+      userId: true,
+    },
+  });
+
+  const orgMembersInDBWithProfileId = orgMembersInDb.map((member) => ({
+    ...member,
+    profile: {
+      ...member.orgProfile,
+      id: createdProfiles.find((p) => p.userId === member.id)?.id,
+    },
+  }));
 
   // For each member create one event
   for (const member of orgMembersInDBWithProfileId) {
