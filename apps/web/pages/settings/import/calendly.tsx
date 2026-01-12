@@ -2,14 +2,11 @@ import { CalendlyOAuthProvider } from "@onehash/calendly";
 // import { Meta, SkeletonContainer } from "@calcom/ui/components";
 import { useRouter } from "next/navigation";
 import type { GetServerSidePropsContext } from "next/types";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { IntegrationProvider } from "@calcom/prisma/client";
-
-import useCalendlyImport from "@lib/hooks/useCalendlyImport";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { code } = context.query;
@@ -108,42 +105,15 @@ async function handleOAuthRedirect({ code, userId }: { code: string; userId: num
   }
 }
 
-const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: string }) => {
-  const { importFromCalendly, importing, handleChangeNotifyUsers, sendCampaignEmails } =
-    useCalendlyImport(userId);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
-  const { t } = useLocale();
-
+const CalendlyImportComponent = ({ code }: { code?: string }) => {
   const router = useRouter();
 
   useEffect(() => {
-    if (code) importFromCalendly(); //.then(() => router.replace("/event-types"));
-    else checkIfAuthorized(userId);
-  }, [userId, code]);
-
-  const checkIfAuthorized = async (userId: number) => {
-    try {
-      setLoading(true);
-      if (!userId) return;
-      const res = await fetch(`/api/import/calendly/auth?userId=${userId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        console.error("error", data);
-        return;
-      }
-      const data = await res.json();
-      setIsAuthorized(data.authorized);
-    } catch (e) {
-    } finally {
-      setLoading(false);
+    if (code) {
+      //then redirect to settings/others/import with the redirected param
+      router.replace(`/settings/others/import?redirected=${encodeURIComponent(true)}`);
     }
-  };
+  }, [code]);
 
   return <div>Redirecting...</div>;
 };

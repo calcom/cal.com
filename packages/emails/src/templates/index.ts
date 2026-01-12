@@ -45,3 +45,5 @@ export { AttendeeAddGuestsEmail } from "./AttendeeAddGuestsEmail";
 export { OrganizationAdminNoSlotsEmail } from "./OrganizationAdminNoSlots";
 export { BookingExportEmail } from "./BookingExportEmail";
 export { PaymentNotProcessableEmail } from "./PaymentNotProcessableEmail";
+export { ImportDataEmail } from "./ImportDataEmail";
+export { CalendlyCampaignEmail } from "./CalendlyCampaignEmail";
