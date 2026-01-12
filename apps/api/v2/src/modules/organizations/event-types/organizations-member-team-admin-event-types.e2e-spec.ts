@@ -206,6 +206,10 @@ describe("Organizations Event Types Endpoints", () => {
         accepted: true,
       });
 
+      await eventTypesRepositoryFixture.deleteAllUserEventTypes(teammate1.id);
+      await eventTypesRepositoryFixture.deleteAllUserEventTypes(teammate2.id);
+      await eventTypesRepositoryFixture.deleteAllTeamEventTypes(team.id);
+
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
