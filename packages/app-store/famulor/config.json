@@ -1,0 +1,17 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Famulor",
+  "slug": "famulor",
+  "type": "famulor_automation",
+  "logo": "icon-dark.svg",
+  "url": "https://docs.famulor.io/ai-assistants/cal-com-scheduling",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "Famulor",
+  "email": "support@famulor.io",
+  "description": "Enable your AI assistant to seamlessly schedule meetings and appointments using [Cal.com](https://cal.com) integration. Famulor.io AI assistants can check availability and book meetings directly during calls.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}
+
