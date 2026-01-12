@@ -1784,7 +1784,7 @@ model OAuthClient {
   rejectionReason String?
   isTrusted       Boolean                   @default(false)
   accessCodes     AccessCode[]
-  approvalStatus  OAuthClientApprovalStatus @default(PENDING)
+  approvalStatus  OAuthClientApprovalStatus @default(APPROVED)
   userId          Int?
   user            User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt       DateTime                  @default(now())
