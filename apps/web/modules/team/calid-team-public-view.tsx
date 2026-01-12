@@ -13,14 +13,18 @@ import { Icon, type IconName } from "@calid/features/ui/components/icon";
 import classNames from "classnames";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
+import { getPlaceholderHeader } from "@calcom/lib/defaultHeaderImage";
+import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
-import useTheme from "@calcom/lib/hooks/useTheme";
+import { useGetTheme } from "@calcom/lib/hooks/useTheme";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -45,8 +49,33 @@ function getIconParamsFromMetadata(metadata: any): IconParams {
 }
 
 export type PageProps = inferSSRProps<typeof getCalIdServerSideProps>;
-function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
-  useTheme(team.theme);
+function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: PageProps) {
+  useBrandColors({
+    brandColor: team.brandColor,
+    darkBrandColor: team.darkBrandColor,
+    theme: team.theme,
+  });
+
+  const { resolvedTheme } = useGetTheme();
+  const [isThemeReady, setIsThemeReady] = useState(false);
+
+  // Wait for theme to be resolved before showing buttons to prevent color flash
+  useEffect(() => {
+    if (
+      resolvedTheme ||
+      (typeof window !== "undefined" && document.documentElement.classList.contains("dark"))
+    ) {
+      setIsThemeReady(true);
+    } else if (typeof window !== "undefined") {
+      // If no resolvedTheme yet, check if it's light mode (default)
+      // In light mode, we can show immediately since there's no flash
+      const isDarkMode = document.documentElement.classList.contains("dark");
+      if (!isDarkMode) {
+        setIsThemeReady(true);
+      }
+    }
+  }, [resolvedTheme]);
+
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const showMembers = useToggleQuery("members");
@@ -65,6 +94,25 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
       collectPageParameters("/team/[slug]", { isTeamBooking: true })
     );
   }, [telemetry, pathname]);
+
+  useEffect(() => {
+    if (team.faviconUrl) {
+      const faviconUrl = getBrandLogoUrl({ faviconUrl: team.faviconUrl }, true);
+      const defaultFavicons = document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]');
+      defaultFavicons.forEach((link) => {
+        link.rel = "icon";
+        link.href = faviconUrl;
+        link.type = "image/png";
+      });
+      if (defaultFavicons.length === 0) {
+        const link: HTMLLinkElement = document.createElement("link");
+        link.rel = "icon";
+        link.href = faviconUrl;
+        link.type = "image/png";
+        document.head.appendChild(link);
+      }
+    }
+  }, [team.faviconUrl]);
 
   if (considerUnpublished) {
     const teamSlug = team.slug || metadata?.requestedSlug;
@@ -118,29 +166,33 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                 <div className="pl-12">
                   <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
                 </div>
-                <Link
-                  key={type.id}
-                  prefetch={false}
-                  href={{
-                    pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
-                    query: queryParamsToForward,
-                  }}
-                  passHref
-                  onClick={async () => {
-                    sdkActionManager?.fire("eventTypeSelected", {
-                      eventType: type,
-                    });
-                  }}>
-                  <Button
-                    variant="button"
-                    brandColor={team.brandColor}
-                    darkBrandColor={team.darkBrandColor}
-                    type="button"
-                    size="base"
-                    className="h-8 flex-shrink-0">
-                    {t("schedule")}
-                  </Button>
-                </Link>
+                {isThemeReady ? (
+                  <Link
+                    key={type.id}
+                    prefetch={false}
+                    href={{
+                      pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
+                      query: queryParamsToForward,
+                    }}
+                    passHref
+                    onClick={async () => {
+                      sdkActionManager?.fire("eventTypeSelected", {
+                        eventType: type,
+                      });
+                    }}>
+                    <Button
+                      variant="button"
+                      brandColor={team.brandColor}
+                      darkBrandColor={team.darkBrandColor}
+                      type="button"
+                      size="base"
+                      className="h-8 flex-shrink-0">
+                      {t("schedule")}
+                    </Button>
+                  </Link>
+                ) : (
+                  <div className="h-8 w-20 flex-shrink-0" /> // Placeholder to prevent layout shift
+                )}
               </div>
             </div>
           </div>
@@ -192,11 +244,18 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
     );
 
   const profileImageSrc = getDefaultAvatar(team.logoUrl, team.name);
+  const metadataHeaderUrl =
+    headerUrl ?? (isPrismaObjOrUndefined(team?.metadata)?.headerUrl as string | null | undefined) ?? null;
+  const resolvedHeader = getPlaceholderHeader(metadataHeaderUrl, team.name);
 
   return (
     <div className="bg-default flex min-h-screen w-full flex-col">
       <main className="bg-default h-full w-full">
-        <div className="border-subtle bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4">
+        <div
+          className="border-subtle bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4"
+          style={{
+            backgroundImage: resolvedHeader ? `url(${resolvedHeader})` : undefined,
+          }}>
           <Avatar
             size="xl"
             imageSrc={profileImageSrc}
@@ -283,9 +342,15 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
           </>
         )}
 
-        <div key="logo" className="mb-8 flex w-full justify-center [&_img]:h-[32px]">
-          <Branding size="xs" />
-        </div>
+        {team.bannerUrl ? (
+          <div key="logo" className="mb-8 flex w-full justify-center [&_img]:h-[32px]">
+            <Branding size="xs" bannerUrl={getBrandLogoUrl({ bannerUrl: team.bannerUrl })} />
+          </div>
+        ) : (
+          <div key="logo" className="mb-8 flex w-full justify-center [&_img]:h-[32px]">
+            <Branding size="xs" />
+          </div>
+        )}
       </main>
     </div>
   );

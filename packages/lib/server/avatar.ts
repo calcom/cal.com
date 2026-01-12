@@ -107,12 +107,14 @@ export const uploadLogo = async ({
   logo: data,
   isBanner = false,
   isFavicon = false,
+  isHeader = false,
 }: {
   userId?: number;
   teamId?: number;
   logo: string;
   isBanner?: boolean;
   isFavicon?: boolean;
+  isHeader?: boolean;
 }): Promise<string | null> => {
   if (data === "delete") {
     await prisma.avatar.deleteMany({
@@ -121,6 +123,7 @@ export const uploadLogo = async ({
         userId: userId ?? 0,
         isBanner,
         isFavicon,
+        isHeader,
       },
     });
     return null;
@@ -134,7 +137,7 @@ export const uploadLogo = async ({
           userId: userId ?? 0,
           isBanner,
           isFavicon,
-          isHeader: false,
+          isHeader,
         },
       },
       create: {
@@ -144,7 +147,7 @@ export const uploadLogo = async ({
         objectKey,
         isBanner,
         isFavicon,
-        isHeader: false,
+        isHeader,
       },
       update: {
         data,

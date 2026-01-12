@@ -25,6 +25,9 @@ export const ZUpdateCalidTeamSchema = z.object({
   brandColor: z.string().optional(),
   darkBrandColor: z.string().optional(),
   bookingFrequency: intervalLimitsType.optional(),
+  bannerUrl: z.string().nullable().optional(),
+  faviconUrl: z.string().nullable().optional(),
+  metadata: z.record(z.unknown()).optional(),
 });
 
 export type ZUpdateCalidTeamInput = z.infer<typeof ZUpdateCalidTeamSchema>;

@@ -260,9 +260,9 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
           name: calIdTeam.name,
           username: null, // CalIdTeams don't have username context
           weekStart: "Sunday",
-          brandColor: null,
-          darkBrandColor: null,
-          theme: null,
+          brandColor: calIdTeam.brandColor,
+          darkBrandColor: calIdTeam.darkBrandColor,
+          theme: calIdTeam.theme,
           bookerLayouts: null,
         },
         users: eventHostsUserData,
@@ -315,6 +315,9 @@ const getCalIdTeamWithEventsData = async (teamSlug: string, meetingSlug: string)
         name: true,
         slug: true,
         bannerUrl: true,
+        brandColor: true,
+        darkBrandColor: true,
+        theme: true,
         eventTypes: {
           where: {
             slug: meetingSlug,
