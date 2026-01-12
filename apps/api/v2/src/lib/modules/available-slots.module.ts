@@ -14,6 +14,7 @@ import { BusyTimesService } from "@/lib/services/busy-times.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
 import { FilterHostsService } from "@/lib/services/filter-hosts.service";
 import { NoSlotsNotificationService } from "@/lib/services/no-slots-notification.service";
+import { OrgMembershipLookupService } from "@/lib/services/org-membership-lookup.service";
 import { QualifiedHostsService } from "@/lib/services/qualified-hosts.service";
 import { UserAvailabilityService } from "@/lib/services/user-availability.service";
 import { PrismaWorkerModule } from "@/modules/prisma/prisma-worker.module";
@@ -42,6 +43,7 @@ import { Module } from "@nestjs/common";
     FilterHostsService,
     QualifiedHostsService,
     NoSlotsNotificationService,
+    OrgMembershipLookupService,
   ],
   exports: [AvailableSlotsService],
 })

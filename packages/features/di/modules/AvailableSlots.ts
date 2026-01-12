@@ -21,4 +21,5 @@ availableSlotsModule.bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE).toClass(AvailableSl
   featuresRepo: DI_TOKENS.FEATURES_REPOSITORY,
   qualifiedHostsService: DI_TOKENS.QUALIFIED_HOSTS_SERVICE,
   noSlotsNotificationService: DI_TOKENS.NO_SLOTS_NOTIFICATION_SERVICE,
+  orgMembershipLookup: DI_TOKENS.ORG_MEMBERSHIP_LOOKUP,
 } satisfies Record<keyof IAvailableSlotsService, symbol>);
