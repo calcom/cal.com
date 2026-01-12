@@ -1,7 +1,7 @@
 name: Devin PR Conflict Resolver
 
 on:
-  pull_request:
+  pull_request_target:
     types: [labeled]
   workflow_dispatch:
     inputs:
@@ -20,7 +20,7 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     # Only run when devin-conflict-resolution label is added, or on manual dispatch
     if: |
-      (github.event_name == 'pull_request' && github.event.label.name == 'devin-conflict-resolution') ||
+      (github.event_name == 'pull_request_target' && github.event.label.name == 'devin-conflict-resolution') ||
       github.event_name == 'workflow_dispatch'
     steps:
       - name: Get PR details
