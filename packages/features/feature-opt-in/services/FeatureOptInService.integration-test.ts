@@ -6,7 +6,7 @@ import type { FeatureId } from "@calcom/features/flags/config";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 
-import type { FeatureOptInServiceInterface } from "./FeatureOptInServiceInterface";
+import type { IFeatureOptInService } from "./IFeatureOptInService";
 
 // Helper to generate unique identifiers per test
 const uniqueId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -32,7 +32,7 @@ interface TestEntities {
   team: { id: number };
   team2: { id: number };
   featuresRepository: FeaturesRepository;
-  service: FeatureOptInServiceInterface;
+  service: IFeatureOptInService;
   createdFeatures: string[];
   setupFeature: (enabled?: boolean) => Promise<FeatureId>;
 }

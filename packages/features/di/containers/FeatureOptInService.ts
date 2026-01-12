@@ -1,11 +1,11 @@
-import type { FeatureOptInServiceInterface } from "@calcom/features/feature-opt-in/services/FeatureOptInServiceInterface";
+import type { IFeatureOptInService } from "@calcom/features/feature-opt-in/services/IFeatureOptInService";
 
 import { createContainer } from "../di";
 import { moduleLoader as featureOptInServiceModuleLoader } from "../modules/FeatureOptInService";
 
 const featureOptInServiceContainer = createContainer();
 
-export function getFeatureOptInService(): FeatureOptInServiceInterface {
+export function getFeatureOptInService(): IFeatureOptInService {
   featureOptInServiceModuleLoader.loadModule(featureOptInServiceContainer);
-  return featureOptInServiceContainer.get<FeatureOptInServiceInterface>(featureOptInServiceModuleLoader.token);
+  return featureOptInServiceContainer.get<IFeatureOptInService>(featureOptInServiceModuleLoader.token);
 }

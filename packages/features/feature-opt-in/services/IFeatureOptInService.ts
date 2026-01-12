@@ -13,7 +13,7 @@ export type ResolvedFeatureState = {
   userAutoOptIn: boolean;
 };
 
-export interface FeatureOptInServiceInterface {
+export interface IFeatureOptInService {
   resolveFeatureStatesAcrossTeams(input: {
     userId: number;
     orgId: number | null;
