@@ -9,8 +9,8 @@ import {
   X_CAL_PLATFORM_EMBED,
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
-
-import { BadRequestException, ValidationError, ValidationPipe, VersioningType } from "@nestjs/common";
+import type { ValidationError } from "@nestjs/common";
+import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import cookieParser from "cookie-parser";
 import { Request } from "express";
