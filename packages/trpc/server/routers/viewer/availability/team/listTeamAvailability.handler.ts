@@ -71,13 +71,19 @@ async function getTeamMembers({
   });
 
   const userRepo = new UserRepository(prisma);
+  const users = memberships.map((membership) => membership.user);
+  const enrichedUsers = await userRepo.enrichUsersWithTheirProfileExcludingOrgMetadata(users);
+  const enrichedUserMap = new Map<number, (typeof enrichedUsers)[0]>();
+  enrichedUsers.forEach((enrichedUser) => {
+    enrichedUserMap.set(enrichedUser.id, enrichedUser);
+  });
   const membershipWithUserProfile = [];
   for (const membership of memberships) {
+    const enrichedUser = enrichedUserMap.get(membership.user.id);
+    if (!enrichedUser) continue;
     membershipWithUserProfile.push({
       ...membership,
-      user: await userRepo.enrichUserWithItsProfile({
-        user: membership.user,
-      }),
+      user: enrichedUser,
     });
   }
 

@@ -1,4 +1,4 @@
-import { randomBytes, createHash } from "crypto";
+import { randomBytes, createHash } from "node:crypto";
 import { totp } from "otplib";
 
 import {
@@ -56,7 +56,7 @@ export const sendEmailVerification = async ({
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: hashEmail(email),
+    identifier: `sendEmailVerification:${hashEmail(email)}`,
   });
 
   await prisma.verificationToken.create({

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import incompleteBookingActionFunctions from "@calcom/app-store/routing-forms/lib/incompleteBooking/actionFunctions";
+import { DEFAULT_WEBHOOK_VERSION, WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import prisma from "@calcom/prisma";
 
@@ -23,6 +24,7 @@ export const ZTriggerFormSubmittedNoEventWebhookPayloadSchema = z.object({
     appId: z.string().nullable(),
     payloadTemplate: z.string().nullable(),
     secret: z.string().nullable(),
+    version: z.nativeEnum(WebhookVersion).optional(),
   }),
   responseId: z.number(),
   responses: z.any(),
@@ -55,7 +57,12 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
     secretKey: webhook.secret,
     triggerEvent: "FORM_SUBMITTED_NO_EVENT",
     createdAt: new Date().toISOString(),
-    webhook,
+    webhook: {
+      subscriberUrl: webhook.subscriberUrl,
+      appId: webhook.appId,
+      payloadTemplate: webhook.payloadTemplate,
+      version: webhook.version ?? DEFAULT_WEBHOOK_VERSION,
+    },
     data: {
       formId: form.id,
       formName: form.name,

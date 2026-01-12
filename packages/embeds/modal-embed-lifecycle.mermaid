@@ -1,0 +1,109 @@
+sequenceDiagram
+    participant Parent as Parent (User Page)
+    participant Embed as Embed (iframe)
+    participant Store as EmbedStore(iframe)
+    participant UI as UI Components(iframe)
+    
+    Note over Parent: embed.js loads
+    
+    alt CTA clicked or Cal.modal() called
+        Parent->>Parent: Check for existing modal
+        alt Modal exists & can reuse
+            Parent->>Parent: Reopen modal (state: "reopened")
+            Note over Parent: May use connect() or reload
+        else Create new modal
+            Parent->>Parent: Create cal-modal-box
+            Parent->>Parent: Create iframe (hidden)
+            Parent->>Parent: Set state="loading"
+            Parent->>Parent: Show loader
+        end
+    end
+    
+    Note over Embed: background: transparent
+    Note over Embed: body tag hidden
+    Note over Embed: iframe webpage starts rendering
+    
+    Note over Store: EmbedStore pre-initialized<br/>State: NOT_INITIALIZED
+    Store->>Store: Initialize UI config & theme
+    
+    Note over Parent: Process URL params for prefill
+    Parent->>Store: Set prefill data from URL
+    
+    Embed->>Parent: __iframeReady event
+    Note right of Embed: Purpose: Signals iframe is ready<br/>to receive messages from parent<br/>Action: Makes iframe visible<br/>(unless prerendering),<br/>processes queued commands
+    Note over Parent: Sets iframeReady flag
+    Note over Parent: Makes iframe visible (unless prerendering)
+    Note over Store: Set state to INITIALIZED
+    
+    Store->>UI: Apply theme & cssVarsPerTheme
+    
+    Embed->>Parent: __dimensionChanged event
+    Note right of Embed: Purpose: Keeps iframe size<br/>matched to content<br/>Triggers: Content size changes,<br/>page finishes loading
+    Note over Parent: Adjust iframe dimensions
+    Note over Store: Update providedCorrectHeightToParent
+    
+    Embed->>Parent: __windowLoadComplete event
+    Note right of Embed: Purpose: Signals page fully loaded<br/>Ensures dimension calculations<br/>are reliable
+    
+    alt isBookerPage with skeleton
+        Note over Embed: Wait for slotsDone state
+    end
+    
+    Embed->>Parent: linkReady event
+    Note right of Embed: Purpose: Signals iframe content<br/>is fully ready for interaction<br/>Requirements: Height known,<br/>slots loaded (if skeleton)
+    Note over Parent: Remove loader
+    Note over Parent: Set state="loaded"
+    Note over Parent: Make iframe visible
+    
+    Parent->>Embed: parentKnowsIframeReady event
+    Note right of Parent: Purpose: Parent acknowledges<br/>iframe readiness<br/>Action: Makes body visible,<br/>sets renderState completed
+    Note over Embed: Makes body visible
+    Note over Store: renderState: "completed"
+    
+    loop Dimension Monitoring
+        Embed->>Embed: Monitor content size changes
+        alt Dimensions Changed
+            Embed->>Parent: __dimensionChanged event
+            Note right of Embed: Purpose: Maintain proper sizing<br/>as content changes
+            Parent->>Parent: Adjust iframe size
+        end
+    end
+    
+    alt Route Changes
+        UI->>Store: Update UI state
+        Store->>Parent: __routeChanged event
+        Note right of Store: Purpose: Notifies parent of<br/>navigation within embed<br/>Action: Handle navigation
+        Note over Parent: Handle navigation
+    end
+    
+    alt Booker Events (Tracking)
+        UI->>Store: Update viewId on linkReady
+        UI->>Parent: bookerViewed event
+        Note right of UI: Purpose: Tracks first view of booker<br/>on first modal open<br/>Includes: Event info, slots status<br/>Not fired during prerendering
+        UI->>Parent: bookerReady event
+        Note right of UI: Purpose: Signals booker view is loaded<br/>and slots are ready for interaction<br/>Includes: Event identification<br/>Only fires for booker pages
+        alt User closes and reopens modal
+            UI->>Parent: bookerReopened event
+            Note right of UI: Purpose: Tracks when booker is<br/>reopened after being closed<br/>Distinguishes from first view
+        end
+        alt Full reload scenario
+            Parent->>Embed: __reloadInitiated method
+            Note right of Parent: Purpose: Notify iframe that<br/>fullReload is happening<br/>Action: Set reloadInitiated flag
+            Note over Store: reloadInitiated: true
+            UI->>Parent: bookerReloaded event
+            Note right of UI: Purpose: Tracks when booker is<br/>reloaded (full page reload)<br/>Distinguishes from reopen
+            Note over Store: Reset reloadInitiated flag
+        end
+    end
+    
+    alt Close Request
+        Embed->>Parent: __closeIframe event
+        Note right of Embed: Purpose: Request to close modal<br/>from within iframe<br/>Action: Set state="closed"
+        Note over Parent: Set state="closed"
+    end
+    
+    alt Error Handling
+        Embed->>Parent: linkFailed event
+        Note right of Embed: Purpose: Signals page load error<br/>Includes: Error code, URL info<br/>Action: Show error state
+        Note over Parent: Set state="failed"
+    end

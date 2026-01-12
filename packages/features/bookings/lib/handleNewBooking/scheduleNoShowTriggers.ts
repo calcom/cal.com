@@ -95,6 +95,7 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
               secret: null,
               time: 15,
               timeUnit: "MINUTE",
+              version: "2021-10-20",
             },
           },
           { scheduledAt, referenceUid: booking.uid }
@@ -157,6 +158,7 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
               secret: null,
               time: 15,
               timeUnit: "MINUTE",
+              version: "2021-10-20",
             },
           },
           { scheduledAt, referenceUid: booking.uid }

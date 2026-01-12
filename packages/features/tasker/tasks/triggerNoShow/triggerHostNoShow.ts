@@ -7,9 +7,11 @@ import { calculateMaxStartTime, sendWebhookPayload, prepareNoShowTrigger, log } 
 
 const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTheCall: Host[]) => {
   try {
+    let noShowHost = booking.noShowHost;
     await Promise.allSettled(
       hostsThatDidntJoinTheCall.map((host) => {
         if (booking?.user?.id === host.id) {
+          noShowHost = true;
           return prisma.booking.update({
             where: {
               uid: booking.uid,
@@ -29,8 +31,11 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
         return Promise.resolve();
       })
     );
+    const updatedAttendees = await prisma.attendee.findMany({ where: { bookingId: booking.id } });
+    return { noShowHost, attendees: updatedAttendees };
   } catch (error) {
     log.error("Error marking hosts as no show in booking", error);
+    return null;
   }
 };
 
@@ -49,13 +54,17 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
 
   const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
 
-  // Skip webhook for automatic tracking mode
+  const updatedData = await markHostsAsNoShowInBooking(booking, hostsThatDidntJoinTheCall);
+  const bookingWithUpdatedData = updatedData
+    ? { ...booking, noShowHost: updatedData.noShowHost, attendees: updatedData.attendees }
+    : booking;
+
   if (!isAutomaticTrackingOnly) {
     const hostsNoShowPromises = hostsThatDidntJoinTheCall.map((host) => {
       return sendWebhookPayload(
         webhook,
         WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-        booking,
+        bookingWithUpdatedData,
         maxStartTime,
         participants,
         originalRescheduledBooking,
@@ -65,7 +74,4 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
 
     await Promise.all(hostsNoShowPromises);
   }
-
-  // Always mark hosts as no-show in the database
-  await markHostsAsNoShowInBooking(booking, hostsThatDidntJoinTheCall);
 }
