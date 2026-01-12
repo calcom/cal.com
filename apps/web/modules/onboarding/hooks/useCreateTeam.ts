@@ -56,7 +56,7 @@ export function useCreateTeam(options: UseCreateTeamOptions = {}) {
       if (result.team) {
         // Store the teamId and redirect to invite flow after team creation
         setTeamId(result.team.id);
-        router.push(`${redirectBasePath}/invite?teamId=${result.team.id}`);
+        router.push(`${redirectBasePath}/invite/email?teamId=${result.team.id}`);
       }
     } catch (error) {
       console.error("Failed to create team:", error);
