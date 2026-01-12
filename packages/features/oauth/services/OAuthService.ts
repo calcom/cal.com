@@ -1,16 +1,18 @@
-import { randomBytes } from "crypto";
-import jwt from "jsonwebtoken";
-
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
-import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
+import { randomBytes } from "node:crypto";
+import process from "node:process";
+import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import type { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
+import type { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
+import type { RefreshTokenRepository } from "@calcom/features/oauth/repositories/RefreshTokenRepository";
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { verifyCodeChallenge } from "@calcom/lib/pkce";
+import { prisma } from "@calcom/prisma";
 import type { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
+import jwt from "jsonwebtoken";
 
-export interface OAuth2Client {
+interface OAuth2Client {
   clientId: string;
   redirectUri: string;
   name: string;
@@ -19,22 +21,11 @@ export interface OAuth2Client {
   clientType: OAuthClientType;
 }
 
-export interface OAuth2Tokens {
+interface OAuth2Tokens {
   accessToken: string;
   tokenType: string;
   refreshToken: string;
   expiresIn: number;
-}
-
-export interface AuthorizeResult {
-  redirectUrl: string;
-  authorizationCode: string;
-  client: OAuth2Client;
-}
-
-export interface OAuthError {
-  error: string;
-  errorDescription?: string;
 }
 
 interface DecodedRefreshToken {
@@ -51,16 +42,19 @@ export class OAuthService {
   private readonly accessCodeRepository: AccessCodeRepository;
   private readonly teamsRepository: TeamRepository;
   private readonly oAuthClientRepository: OAuthClientRepository;
+  private readonly refreshTokenRepository: RefreshTokenRepository;
   constructor(
-    private readonly deps: {
+    readonly deps: {
       oAuthClientRepository: OAuthClientRepository;
       accessCodeRepository: AccessCodeRepository;
       teamsRepository: TeamRepository;
+      refreshTokenRepository: RefreshTokenRepository;
     }
   ) {
     this.accessCodeRepository = deps.accessCodeRepository;
     this.teamsRepository = deps.teamsRepository;
     this.oAuthClientRepository = deps.oAuthClientRepository;
+    this.refreshTokenRepository = deps.refreshTokenRepository;
   }
 
   async getClient(clientId: string): Promise<OAuth2Client> {
@@ -130,10 +124,15 @@ export class OAuthService {
 
     const authorizationCode = this.generateAuthorizationCodeString();
 
+    let finalUserId: number | undefined = userId;
+    if (teamSlug) {
+      finalUserId = undefined;
+    }
+
     await this.accessCodeRepository.create({
       code: authorizationCode,
       clientId,
-      userId: teamSlug ? undefined : userId,
+      userId: finalUserId,
       teamId,
       scopes,
       codeChallenge,
@@ -219,6 +218,7 @@ export class OAuthService {
     };
   }
 
+  // biome-ignore lint/complexity/noExcessiveLinesPerFunction: Token exchange requires multiple validation steps
   async exchangeCodeForTokens(
     clientId: string,
     code: string,
@@ -256,6 +256,11 @@ export class OAuthService {
       throw new ErrorWithCode(ErrorCode.BadRequest, pkceError.error, { reason: pkceError.reason });
     }
 
+    const userId = accessCode.userId;
+    if (!userId) {
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "user_id_required" });
+    }
+
     const tokens = this.createTokens({
       clientId,
       userId: accessCode.userId,
@@ -265,9 +270,30 @@ export class OAuthService {
       codeChallengeMethod: accessCode.codeChallengeMethod,
     });
 
+    // Store refresh token in database if PlatformOAuthClient exists
+    const platformOAuthClientId = await this.findPlatformOAuthClientId(clientId, userId);
+    if (platformOAuthClientId) {
+      const refreshTokenExpiresAt = new Date();
+      refreshTokenExpiresAt.setDate(refreshTokenExpiresAt.getDate() + 30); // 30 days
+
+      try {
+        await this.refreshTokenRepository.create({
+          secret: tokens.refreshToken,
+          userId,
+          platformOAuthClientId,
+          expiresAt: refreshTokenExpiresAt,
+        });
+      } catch (error) {
+        // If storage fails, log but don't fail the request
+        // This allows graceful degradation for OAuth clients without PlatformOAuthClient
+        console.error("Failed to store refresh token in database:", error);
+      }
+    }
+
     return tokens;
   }
 
+  // biome-ignore lint/complexity/noExcessiveLinesPerFunction: Token refresh requires validation, DB check, and rotation
   async refreshAccessToken(
     clientId: string,
     refreshToken: string,
@@ -295,12 +321,58 @@ export class OAuthService {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "client_id_mismatch" });
     }
 
+    const userId = decodedToken.userId;
+    if (!userId) {
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "user_id_required" });
+    }
+
+    // Check if refresh token exists in database (Solution 1: DELETE on Refresh)
+    const platformOAuthClientId = await this.findPlatformOAuthClientId(clientId, userId);
+    if (platformOAuthClientId) {
+      const existingToken = await this.refreshTokenRepository.findBySecret(refreshToken);
+
+      if (!existingToken) {
+        // Token not found in database - it was already used or revoked
+        throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", {
+          reason: "refresh_token_already_used",
+        });
+      }
+
+      // Verify token belongs to correct user and client
+      if (existingToken.userId !== userId || existingToken.platformOAuthClientId !== platformOAuthClientId) {
+        throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", {
+          reason: "refresh_token_mismatch",
+        });
+      }
+    }
+
     const tokens = this.createTokens({
       clientId,
       userId: decodedToken.userId,
       teamId: decodedToken.teamId,
       scopes: decodedToken.scope,
     });
+
+    // Delete old refresh token and store new one in database (Solution 1: DELETE on Refresh)
+    if (platformOAuthClientId) {
+      const refreshTokenExpiresAt = new Date();
+      refreshTokenExpiresAt.setDate(refreshTokenExpiresAt.getDate() + 30); // 30 days
+
+      try {
+        await this.refreshTokenRepository.deleteAndCreate(refreshToken, {
+          secret: tokens.refreshToken,
+          userId,
+          platformOAuthClientId,
+          expiresAt: refreshTokenExpiresAt,
+        });
+      } catch (error) {
+        // Token rotation must succeed to prevent reuse attacks
+        console.error("Failed to rotate refresh token in database:", error);
+        throw new ErrorWithCode(ErrorCode.InternalServerError, "server_error", {
+          reason: "token_rotation_failed",
+        });
+      }
+    }
 
     return tokens;
   }
@@ -419,6 +491,138 @@ export class OAuthService {
       return null;
     }
   }
+
+  /**
+   * Finds or creates PlatformOAuthClient ID for a given OAuthClient ID.
+   * Since OAuthClient and PlatformOAuthClient are separate systems,
+   * we try to find a PlatformOAuthClient by matching the ID.
+   * If not found and userId is provided, we create one using the user's organization.
+   * Returns null if no PlatformOAuthClient can be found or created.
+   */
+  // biome-ignore lint/complexity/noExcessiveLinesPerFunction: Complex logic for finding/creating PlatformOAuthClient with fallbacks
+  private async findPlatformOAuthClientId(
+    oauthClientId: string,
+    userId?: number | null
+  ): Promise<string | null> {
+    try {
+      // Try to find PlatformOAuthClient by ID matching OAuthClient ID
+      let platformClient = await prisma.platformOAuthClient.findUnique({
+        where: {
+          id: oauthClientId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (platformClient) {
+        return platformClient.id;
+      }
+
+      // If not found and we have a userId, try to create one using user's organization
+      if (userId) {
+        // Get user's organization
+        let userOrg = await prisma.membership.findFirst({
+          where: {
+            userId,
+            team: {
+              isOrganization: true,
+            },
+          },
+          select: {
+            teamId: true,
+          },
+        });
+
+        // If user doesn't have an organization, create a default one
+        if (!userOrg) {
+          const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { username: true, name: true },
+          });
+
+          if (user) {
+            // Create a default organization for the user
+            const defaultOrg = await prisma.team.create({
+              data: {
+                name: `${user.name || user.username || "User"}'s Organization`,
+                slug: `org-${userId}-${Date.now()}`,
+                isOrganization: true,
+                members: {
+                  create: {
+                    userId,
+                    role: "OWNER",
+                    accepted: true,
+                  },
+                },
+              },
+              select: {
+                id: true,
+              },
+            });
+
+            userOrg = { teamId: defaultOrg.id };
+          }
+        }
+
+        if (userOrg) {
+          // Get OAuthClient details for creating PlatformOAuthClient
+          const oauthClient = await prisma.oAuthClient.findUnique({
+            where: {
+              clientId: oauthClientId,
+            },
+            select: {
+              name: true,
+              redirectUri: true,
+            },
+          });
+
+          if (oauthClient) {
+            // Create PlatformOAuthClient with same ID as OAuthClient
+            // Generate a secret for PlatformOAuthClient (required field)
+            const platformSecret = randomBytes(32).toString("hex");
+
+            try {
+              platformClient = await prisma.platformOAuthClient.create({
+                data: {
+                  id: oauthClientId, // Use same ID as OAuthClient
+                  name: oauthClient.name,
+                  secret: platformSecret,
+                  permissions: 0, // Default permissions
+                  redirectUris: [oauthClient.redirectUri],
+                  organizationId: userOrg.teamId,
+                },
+                select: {
+                  id: true,
+                },
+              });
+
+              return platformClient.id;
+            } catch {
+              // If creation fails (e.g., ID already exists), try to find it again
+              platformClient = await prisma.platformOAuthClient.findUnique({
+                where: {
+                  id: oauthClientId,
+                },
+                select: {
+                  id: true,
+                },
+              });
+
+              if (platformClient) {
+                return platformClient.id;
+              }
+            }
+          }
+        }
+      }
+
+      return null;
+    } catch {
+      // If lookup fails, return null (graceful degradation)
+      return null;
+    }
+  }
 }
 
 export type OAuthErrorReason =
@@ -434,7 +638,10 @@ export type OAuthErrorReason =
   | "pkce_verification_failed"
   | "invalid_refresh_token"
   | "client_id_mismatch"
-  | "encryption_key_missing";
+  | "encryption_key_missing"
+  | "user_id_required"
+  | "refresh_token_already_used"
+  | "refresh_token_mismatch";
 
 // Mapping of OAuth error reasons to descriptive messages, keeping previous messages for compatibility
 export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
@@ -451,4 +658,18 @@ export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
   invalid_refresh_token: "invalid_grant",
   client_id_mismatch: "invalid_grant",
   encryption_key_missing: "CALENDSO_ENCRYPTION_KEY is not set",
+  user_id_required: "User ID is required for token operations",
+  refresh_token_already_used: "Refresh token has already been used",
+  refresh_token_mismatch: "Refresh token does not match user or client",
 };
+
+export interface AuthorizeResult {
+  redirectUrl: string;
+  authorizationCode: string;
+  client: OAuth2Client;
+}
+
+export interface OAuthError {
+  error: string;
+  errorDescription?: string;
+}
