@@ -1,41 +1,70 @@
 import {
-  transformLocationsInternalToApi,
-  transformBookingFieldsInternalToApi,
-  InternalLocationSchema,
-  SystemField,
-  CustomField,
-  transformIntervalLimitsInternalToApi,
-  transformFutureBookingLimitsInternalToApi,
-  transformRecurrenceInternalToApi,
-  transformBookerLayoutsInternalToApi,
-  transformRequiresConfirmationInternalToApi,
-  transformEventTypeColorsInternalToApi,
-  transformSeatsInternalToApi,
-  InternalLocation,
-  BookingFieldSchema,
-} from "@/ee/event-types/event-types_2024_06_14/transformers";
-import { Injectable } from "@nestjs/common";
-
-import {
-  userMetadata,
+  getBookingFieldsWithSystemFields,
   parseBookingLimit,
   parseRecurringEvent,
-  getBookingFieldsWithSystemFields,
+  userMetadata,
 } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema, parseEventTypeColor } from "@calcom/platform-libraries/event-types";
+import { getBookerBaseUrlSync } from "@calcom/platform-libraries/organizations";
 import type {
-  TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
-  NoticeThresholdTransformedSchema,
   EventTypeOutput_2024_06_14,
-  OutputUnknownLocation_2024_06_14,
-  OutputUnknownBookingField_2024_06_14,
+  NoticeThresholdTransformedSchema,
   OutputBookingField_2024_06_14,
+  OutputUnknownBookingField_2024_06_14,
+  OutputUnknownLocation_2024_06_14,
+  TransformFutureBookingsLimitSchema_2024_06_14,
 } from "@calcom/platform-types";
-import type { EventType, User, Schedule, DestinationCalendar, CalVideoSettings } from "@calcom/prisma/client";
+import type {
+  CalVideoSettings,
+  DestinationCalendar,
+  EventType,
+  Prisma,
+  Schedule,
+  Team,
+} from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  BookingFieldSchema,
+  CustomField,
+  InternalLocation,
+  InternalLocationSchema,
+  SystemField,
+  transformBookerLayoutsInternalToApi,
+  transformBookingFieldsInternalToApi,
+  transformEventTypeColorsInternalToApi,
+  transformFutureBookingLimitsInternalToApi,
+  transformIntervalLimitsInternalToApi,
+  transformLocationsInternalToApi,
+  transformRecurrenceInternalToApi,
+  transformRequiresConfirmationInternalToApi,
+  transformSeatsInternalToApi,
+} from "@/ee/event-types/event-types_2024_06_14/transformers";
+
+type UserProfile = {
+  username: string | null;
+  organizationId: number | null;
+  organization: { id: number; slug: string | null; name: string; isPlatform: boolean } | null;
+};
+
+type EventTypeUser = {
+  id: number;
+  name: string | null;
+  username: string | null;
+  avatarUrl: string | null;
+  brandColor: string | null;
+  darkBrandColor: string | null;
+  weekStart: string;
+  metadata: Prisma.JsonValue;
+  organizationId: number | null;
+  organization?: { slug: string | null } | null;
+  movedToProfile?: UserProfile | null;
+  profiles?: UserProfile[];
+};
 
 type EventTypeRelations = {
-  users: User[];
+  users: EventTypeUser[];
   schedule: Schedule | null;
   destinationCalendar?: DestinationCalendar | null;
   calVideoSettings?: CalVideoSettings | null;
@@ -106,6 +135,8 @@ type Input = Pick<
 
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
+  constructor(private readonly configService: ConfigService) {}
+
   getResponseEventType(
     ownerId: number,
     databaseEventType: Input,
@@ -184,6 +215,7 @@ export class OutputEventTypesService_2024_06_14 {
     } as TransformFutureBookingsLimitSchema_2024_06_14);
     const destinationCalendar = this.transformDestinationCalendar(databaseEventType.destinationCalendar);
     const bookerActiveBookingsLimit = this.transformBookerActiveBookingsLimit(databaseEventType);
+    const bookingUrl = this.buildBookingUrl(databaseEventType.users[0], slug);
     const disableReschedulingOutput = this.transformDisableRescheduling(
       disableRescheduling,
       minimumRescheduleNotice
@@ -239,6 +271,7 @@ export class OutputEventTypesService_2024_06_14 {
       hidden,
       bookingRequiresAuthentication,
       bookerActiveBookingsLimit,
+      bookingUrl,
       disableCancelling: disableCancellingOutput,
       disableRescheduling: disableReschedulingOutput,
       interfaceLanguage,
@@ -342,7 +375,7 @@ export class OutputEventTypesService_2024_06_14 {
     return EventTypeMetaDataSchema.parse(metadata);
   }
 
-  transformUsers(users: User[]) {
+  transformUsers(users: EventTypeUser[]) {
     return users.map((user) => {
       const metadata = user.metadata ? userMetadata.parse(user.metadata) : {};
       return {
@@ -403,6 +436,34 @@ export class OutputEventTypesService_2024_06_14 {
       seatsShowAttendees: !!seatsShowAttendees,
       seatsShowAvailabilityCount: !!seatsShowAvailabilityCount,
     });
+  }
+
+  buildBookingUrl(user: EventTypeUser | undefined, slug: string): string {
+    if (!user) {
+      return "";
+    }
+
+    const profile = this.getUserMainProfile(user);
+    const username = profile?.username ?? user.username;
+
+    if (!username) {
+      return "";
+    }
+
+    const orgSlug = profile?.organization?.slug ?? null;
+    const webAppUrl = this.configService.get<string>("app.baseUrl", "https://app.cal.com");
+    const baseUrl = orgSlug ? getBookerBaseUrlSync(orgSlug) : webAppUrl;
+    const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
+
+    return `${normalizedBaseUrl}/${username}/${slug}`;
+  }
+
+  private getUserMainProfile(user: EventTypeUser): UserProfile | undefined {
+    return (
+      user.movedToProfile ||
+      user.profiles?.find((p) => p.organizationId === user.organizationId) ||
+      user.profiles?.[0]
+    );
   }
 
   getResponseEventTypesWithoutHiddenFields(
