@@ -5,10 +5,7 @@
  * Uses native iOS ContextMenu for pickers on iOS, Modal-based dropdowns on Android/Web.
  */
 
-import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
-import { buttonStyle } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import {
   Alert,
   type Animated,
@@ -19,6 +16,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { LimitsTabIOSPicker } from "./LimitsTabIOSPicker";
 
 interface FrequencyLimit {
   id: number;
@@ -146,47 +145,11 @@ function SettingRow({
             value={value}
             onValueChange={onValueChange}
             trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS === "android" ? "#FFFFFF" : undefined}
+            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
           />
         </View>
       </View>
     </View>
-  );
-}
-
-// iOS Native Picker using ContextMenu - only renders the chevron trigger
-function IOSPickerTrigger({
-  options,
-  selectedValue,
-  onSelect,
-}: {
-  options: string[];
-  selectedValue: string;
-  onSelect: (value: string) => void;
-}) {
-  return (
-    <Host matchContents>
-      <ContextMenu
-        modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
-        activationMethod="singlePress"
-      >
-        <ContextMenu.Items>
-          {options.map((opt) => (
-            <Button
-              key={opt}
-              systemImage={selectedValue === opt ? "checkmark" : undefined}
-              onPress={() => onSelect(opt)}
-              label={opt}
-            />
-          ))}
-        </ContextMenu.Items>
-        <ContextMenu.Trigger>
-          <HStack>
-            <Image systemName="chevron.up.chevron.down" color="primary" size={13} />
-          </HStack>
-        </ContextMenu.Trigger>
-      </ContextMenu>
-    </Host>
   );
 }
 
@@ -234,7 +197,7 @@ function PickerNavigationRow({
           {Platform.OS === "ios" ? (
             <>
               <Text className="mr-2 text-[17px] text-[#8E8E93]">{value}</Text>
-              <IOSPickerTrigger options={options} selectedValue={value} onSelect={onSelect} />
+              <LimitsTabIOSPicker options={options} selectedValue={value} onSelect={onSelect} />
             </>
           ) : (
             <TouchableOpacity
@@ -350,7 +313,7 @@ export function LimitsTab(props: LimitsTabProps) {
               {Platform.OS === "ios" ? (
                 <View className="flex-row items-center">
                   <Text className="mr-1 text-[17px] text-[#8E8E93]">{props.minimumNoticeUnit}</Text>
-                  <IOSPickerTrigger
+                  <LimitsTabIOSPicker
                     options={TIME_UNIT_OPTIONS}
                     selectedValue={props.minimumNoticeUnit}
                     onSelect={props.setMinimumNoticeUnit}
@@ -439,7 +402,7 @@ export function LimitsTab(props: LimitsTabProps) {
                   {Platform.OS === "ios" ? (
                     <View className="flex-row items-center">
                       <Text className="mr-1 text-[17px] text-[#8E8E93]">{limit.unit}</Text>
-                      <IOSPickerTrigger
+                      <LimitsTabIOSPicker
                         options={FREQUENCY_UNIT_OPTIONS}
                         selectedValue={limit.unit}
                         onSelect={(value: string) =>
@@ -501,7 +464,7 @@ export function LimitsTab(props: LimitsTabProps) {
                   {Platform.OS === "ios" ? (
                     <View className="flex-row items-center">
                       <Text className="mr-1 text-[17px] text-[#8E8E93]">{limit.unit}</Text>
-                      <IOSPickerTrigger
+                      <LimitsTabIOSPicker
                         options={DURATION_UNIT_OPTIONS}
                         selectedValue={limit.unit}
                         onSelect={(value: string) =>

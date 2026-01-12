@@ -5,10 +5,7 @@
  * Uses native iOS pickers via ContextMenu and grouped rows for consistency.
  */
 
-import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
-import { buttonStyle } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { useState } from "react";
 import {
   Alert,
@@ -24,6 +21,7 @@ import {
 
 import { showInfoAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
+import { IOSPickerTrigger } from "./IOSPickerTrigger";
 
 // Interface language options matching API V2 enum
 const interfaceLanguageOptions = [
@@ -161,7 +159,7 @@ function SettingRow({
             value={value}
             onValueChange={onValueChange}
             trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS === "android" ? "#FFFFFF" : undefined}
+            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
           />
         </View>
       </View>
@@ -226,42 +224,6 @@ function NavigationRow({
         </View>
       </View>
     </View>
-  );
-}
-
-// iOS Native Picker trigger component
-function IOSPickerTrigger({
-  options,
-  selectedValue,
-  onSelect,
-}: {
-  options: { label: string; value: string }[];
-  selectedValue: string;
-  onSelect: (value: string) => void;
-}) {
-  return (
-    <Host matchContents>
-      <ContextMenu
-        modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered")]}
-        activationMethod="singlePress"
-      >
-        <ContextMenu.Items>
-          {options.map((opt) => (
-            <Button
-              key={opt.value}
-              systemImage={selectedValue === opt.label ? "checkmark" : undefined}
-              onPress={() => onSelect(opt.value)}
-              label={opt.label}
-            />
-          ))}
-        </ContextMenu.Items>
-        <ContextMenu.Trigger>
-          <HStack>
-            <Image systemName="chevron.up.chevron.down" color="primary" size={13} />
-          </HStack>
-        </ContextMenu.Trigger>
-      </ContextMenu>
-    </Host>
   );
 }
 
