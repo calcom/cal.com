@@ -18,11 +18,11 @@ COPY . .
 
 RUN yarn install
 RUN yarn workspace @calcom/api-v2 run generate-schemas
-RUN yarn workspace @calcom/platform-libraries run build
 RUN yarn workspace @calcom/platform-constants run build
 RUN yarn workspace @calcom/platform-enums run build
 RUN yarn workspace @calcom/platform-utils run build
 RUN yarn workspace @calcom/platform-types run build
+RUN yarn workspace @calcom/platform-libraries run build
 RUN yarn workspace @calcom/trpc run build:server
 RUN yarn workspace @calcom/api-v2 run build
 
