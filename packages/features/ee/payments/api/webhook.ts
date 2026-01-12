@@ -3,7 +3,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import { getAppActor } from "@calcom/app-store/_utils/getAppActor";
+import {
+  eventTypeMetaDataSchemaWithTypedApps,
+  eventTypeAppMetadataOptionalSchema,
+} from "@calcom/app-store/zod-utils";
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails/email-manager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
@@ -14,10 +18,12 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -30,7 +36,7 @@ export const config = {
   },
 };
 
-export async function handleStripePaymentSuccess(event: Stripe.Event) {
+export async function handleStripePaymentSuccess(event: Stripe.Event, traceContext: TraceContext) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
   const payment = await prisma.payment.findFirst({
     where: {
@@ -48,10 +54,15 @@ export async function handleStripePaymentSuccess(event: Stripe.Event) {
   }
   if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
-  await handlePaymentSuccess(payment.id, payment.bookingId);
+  await handlePaymentSuccess({
+    paymentId: payment.id,
+    bookingId: payment.bookingId,
+    appSlug: "stripe",
+    traceContext,
+  });
 }
 
-const handleSetupSuccess = async (event: Stripe.Event) => {
+const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContext) => {
   const setupIntent = event.data.object as Stripe.SetupIntent;
   const payment = await prisma.payment.findFirst({
     where: {
@@ -62,6 +73,10 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
   if (!payment?.data || !payment?.id) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
   const { booking, user, evt, eventType } = await getBooking(payment.bookingId);
+
+  const updatedTraceContext = distributedTracing.updateTrace(traceContext, {
+    bookingId: booking.id,
+  });
 
   const bookingData: Prisma.BookingUpdateInput = {
     paid: true,
@@ -118,6 +133,8 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
   // If the card information was already captured in the same customer. Delete the previous payment method
 
   if (!requiresConfirmation) {
+    const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+    const actor = getAppActor({ appSlug: "stripe", bookingId: booking.id, apps });
     await handleConfirmation({
       user: { ...user, credentials: allCredentials },
       evt,
@@ -126,6 +143,9 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       booking,
       paid: true,
       platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
+      traceContext: updatedTraceContext,
+      actionSource: "WEBHOOK",
+      actor,
     });
   } else if (areEmailsEnabled) {
     await sendOrganizerRequestEmail({ ...evt }, eventType.metadata);
@@ -133,7 +153,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
   }
 };
 
-type WebhookHandler = (event: Stripe.Event) => Promise<void>;
+type WebhookHandler = (event: Stripe.Event, traceContext: TraceContext) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handleStripePaymentSuccess,
@@ -163,6 +183,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
+    const traceContext = distributedTracing.createTrace(`stripe_webhook`, {
+      meta: {
+        eventType: event.type,
+        eventId: event.id,
+      },
+    });
+
     // bypassing this validation for e2e tests
     // in order to successfully confirm the payment
     if (!event.account && !process.env.NEXT_PUBLIC_IS_E2E) {
@@ -171,7 +198,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const handler = webhookHandlers[event.type];
     if (handler) {
-      await handler(event);
+      await handler(event, traceContext);
     } else {
       /** Not really an error, just letting Stripe know that the webhook was received but unhandled */
       throw new HttpCode({
@@ -180,11 +207,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
   } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+    const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
-    res.status(err.statusCode ?? 500).send({
+    res.status(err.statusCode).send({
       message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.stack,
+      stack: IS_PRODUCTION ? undefined : err.cause?.stack,
     });
     return;
   }

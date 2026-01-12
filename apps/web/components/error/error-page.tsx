@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { useLayoutEffect } from "react";
 
 import "@calcom/embed-core/src/embed-iframe";
 import { HttpError } from "@calcom/lib/http-error";
@@ -59,11 +59,19 @@ export const ErrorPage: React.FC<Props> = (props) => {
     window.location.reload();
     props.reset?.();
   };
+
+  // useLayoutEffect runs synchronously before browser paint, ensuring it's set early
+  useLayoutEffect(() => {
+    if (statusCode && typeof window !== "undefined") {
+      window.CalComPageStatus = statusCode.toString();
+    }
+  }, [statusCode]);
+
   return (
     <>
       <div className="bg-subtle flex h-screen">
         <div className="rtl: bg-default m-auto rounded-md p-10 text-right ltr:text-left">
-          <h1 className="font-cal text-emphasis text-6xl">{statusCode}</h1>
+          <h1 className="font-heading text-emphasis text-6xl">{statusCode}</h1>
           <h2 className="text-emphasis mt-6 max-w-2xl text-2xl font-medium">
             It&apos;s not you, it&apos;s us.
           </h2>
@@ -76,7 +84,7 @@ export const ErrorPage: React.FC<Props> = (props) => {
             <p className="text-default mb-4 max-w-2xl text-sm">
               Please provide the following text when contacting support to better help you:
             </p>
-            <pre className="bg-emphasis text-emphasis w-full max-w-2xl whitespace-normal break-words rounded-md p-4">
+            <pre className="bg-emphasis text-emphasis w-full max-w-2xl whitespace-normal wrap-break-word rounded-md p-4">
               {message}
             </pre>
           </div>

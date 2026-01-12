@@ -26,9 +26,11 @@ describe("CallService", () => {
     const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
     const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
 
-    vi.mocked(CreditService).mockImplementation(() => ({
-      hasAvailableCredits: vi.fn().mockResolvedValue(true),
-    }));
+    vi.mocked(CreditService).mockImplementation(function () {
+      return {
+        hasAvailableCredits: vi.fn().mockResolvedValue(true),
+      };
+    });
 
     vi.mocked(checkRateLimitAndThrowError).mockResolvedValue(undefined);
 
@@ -207,7 +209,7 @@ describe("CallService", () => {
 
       expect(checkRateLimitAndThrowError).toHaveBeenCalledWith({
         rateLimitingType: "core",
-        identifier: "test-call:1",
+        identifier: "createTestCall:1",
       });
     });
 
@@ -224,7 +226,7 @@ describe("CallService", () => {
 
       expect(checkRateLimitAndThrowError).toHaveBeenCalledWith({
         rateLimitingType: "core",
-        identifier: "test-call:42",
+        identifier: "createTestCall:42",
       });
     });
 
@@ -233,9 +235,11 @@ describe("CallService", () => {
       mocks.mockRetellRepository.createPhoneCall.mockResolvedValue(createMockCall());
 
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
-      vi.mocked(CreditService).mockImplementation(() => ({
-        getAllCredits: vi.fn().mockRejectedValue(new TestError("Credit service unavailable")),
-      }));
+      vi.mocked(CreditService).mockImplementation(function () {
+        return {
+          getAllCredits: vi.fn().mockRejectedValue(new TestError("Credit service unavailable")),
+        };
+      });
 
       await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
         "Unable to validate credits. Please try again."
@@ -247,9 +251,11 @@ describe("CallService", () => {
       mocks.mockRetellRepository.createPhoneCall.mockResolvedValue(createMockCall());
 
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
-      vi.mocked(CreditService).mockImplementation(() => ({
-        hasAvailableCredits: vi.fn().mockResolvedValue(false),
-      }));
+      vi.mocked(CreditService).mockImplementation(function () {
+        return {
+          hasAvailableCredits: vi.fn().mockResolvedValue(false),
+        };
+      });
 
       await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
         "Insufficient credits to make test call. Please purchase more credits."
@@ -261,9 +267,11 @@ describe("CallService", () => {
       mocks.mockRetellRepository.createPhoneCall.mockResolvedValue(createMockCall());
 
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
-      vi.mocked(CreditService).mockImplementation(() => ({
-        hasAvailableCredits: vi.fn().mockResolvedValue(false),
-      }));
+      vi.mocked(CreditService).mockImplementation(function () {
+        return {
+          hasAvailableCredits: vi.fn().mockResolvedValue(false),
+        };
+      });
 
       await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
         "Insufficient credits to make test call. Please purchase more credits."

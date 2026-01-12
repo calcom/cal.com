@@ -63,7 +63,7 @@ export default function Header({
             )}
             <div>
               {title ? (
-                <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
+                <h1 className="font-heading text-emphasis mb-1 text-xl leading-5 tracking-wide">
                   {title}
                 </h1>
               ) : (
@@ -76,7 +76,7 @@ export default function Header({
               )}
             </div>
           </div>
-          <div className={classNames("flex-shrink-0", ctaClassName)}>{CTA}</div>
+          <div className={classNames("shrink-0", ctaClassName)}>{CTA}</div>
         </div>
       </header>
       <Suspense fallback={<Icon name="loader" className="mx-auto my-5 animate-spin" />}>{children}</Suspense>

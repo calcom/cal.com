@@ -4,6 +4,7 @@ import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-stor
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails/email-manager";
 import { updateMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import type { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
@@ -31,6 +32,7 @@ async function cancelAttendeeSeat(
       payloadTemplate: string | null;
       appId: string | null;
       secret: string | null;
+      version: WebhookVersion;
     }[];
     evt: CalendarEvent;
     eventTypeInfo: EventTypeInfo;
@@ -94,16 +96,28 @@ async function cancelAttendeeSeat(
         });
 
         if (credential) {
+          const videoCallReference = bookingToDelete.references.find((reference) =>
+            reference.type.includes("_video")
+          );
+
+          if (videoCallReference) {
+            evt.videoCallData = {
+              type: videoCallReference.type,
+              id: videoCallReference.meetingId,
+              password: videoCallReference?.meetingPassword,
+              url: videoCallReference.meetingUrl,
+            };
+          }
           const updatedEvt = {
             ...evt,
             attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
             calendarDescription: getRichDescription(evt),
           };
-          if (reference.type.includes("_video")) {
+          if (reference.type.includes("_video") && reference.type !== "google_meet_video") {
             integrationsToUpdate.push(updateMeeting(credential, updatedEvt, reference));
           }
           if (reference.type.includes("_calendar")) {
-            const calendar = await getCalendar(credential);
+            const calendar = await getCalendar(credential, "booking");
             if (calendar) {
               integrationsToUpdate.push(
                 calendar?.updateEvent(reference.uid, updatedEvt, reference.externalCalendarId)

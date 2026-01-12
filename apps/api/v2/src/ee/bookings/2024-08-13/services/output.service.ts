@@ -25,7 +25,6 @@ import type {
   ReassignBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 import type { Booking, BookingSeat } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
 
 export const bookingResponsesSchema = z
   .object({
@@ -94,6 +93,10 @@ type DatabaseMetadata = z.infer<typeof bookingMetadataSchema>;
 export class OutputBookingsService_2024_08_13 {
   constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) {}
 
+  private getDisplayEmail(email: string): string {
+    return email.replace(/\+[a-zA-Z0-9]{25}/, "");
+  }
+
   async getOutputBooking(databaseBooking: DatabaseBooking) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
@@ -105,14 +108,8 @@ export class OutputBookingsService_2024_08_13 {
     );
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const rescheduledToInfo = databaseBooking.rescheduled
-      ? await this.getRescheduledToInfo(databaseBooking.uid)
-      : undefined;
-
-    const rescheduledToUid = rescheduledToInfo?.uid;
-    const rescheduledByEmail = databaseBooking.rescheduled
-      ? rescheduledToInfo?.rescheduledBy
-      : databaseBooking.rescheduledBy;
+    const rescheduledToUid = await this.getRescheduledToUid(databaseBooking);
+    const rescheduledByEmail = await this.getRescheduledByEmail(databaseBooking);
 
     const booking = {
       id: databaseBooking.id,
@@ -121,9 +118,8 @@ export class OutputBookingsService_2024_08_13 {
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
-      cancellationReason:
-        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
-      cancelledByEmail: databaseBooking.status === "CANCELLED" ? databaseBooking.cancelledBy : undefined,
+      cancellationReason: databaseBooking.cancellationReason || "",
+      cancelledByEmail: databaseBooking.cancelledBy || "",
       reschedulingReason: bookingResponses?.rescheduledReason,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
@@ -135,6 +131,7 @@ export class OutputBookingsService_2024_08_13 {
       attendees: databaseBooking.attendees.map((attendee) => ({
         name: attendee.name,
         email: attendee.email,
+        displayEmail: this.getDisplayEmail(attendee.email),
         timeZone: attendee.timeZone,
         language: attendee.locale,
         absent: !!attendee.noShow,
@@ -157,6 +154,25 @@ export class OutputBookingsService_2024_08_13 {
     // note(Lauris): I don't know why plainToClass erases bookings responses and metadata so attaching manually
     bookingTransformed.bookingFieldsResponses = bookingResponses;
     bookingTransformed.metadata = this.getUserDefinedMetadata(metadata);
+
+    if (
+      bookingTransformed.bookingFieldsResponses?.email &&
+      typeof bookingTransformed.bookingFieldsResponses.email === "string"
+    ) {
+      bookingTransformed.bookingFieldsResponses.displayEmail = this.getDisplayEmail(
+        bookingTransformed.bookingFieldsResponses.email
+      );
+    }
+
+    if (
+      bookingTransformed.bookingFieldsResponses?.guests &&
+      Array.isArray(bookingTransformed.bookingFieldsResponses.guests)
+    ) {
+      bookingTransformed.bookingFieldsResponses.displayGuests = bookingTransformed.bookingFieldsResponses.guests.map(
+        (guest: string) => this.getDisplayEmail(guest)
+      );
+    }
+
     return bookingTransformed;
   }
 
@@ -166,6 +182,23 @@ export class OutputBookingsService_2024_08_13 {
       uid: rescheduledTo?.uid,
       rescheduledBy: rescheduledTo?.rescheduledBy,
     };
+  }
+
+  private async getRescheduledToUid(databaseBooking: DatabaseBooking) {
+    if (!databaseBooking.rescheduled) return undefined;
+    const rescheduledTo = await this.bookingsRepository.getByFromReschedule(databaseBooking.uid);
+    return rescheduledTo?.uid;
+  }
+
+  private async getRescheduledByEmail(databaseBooking: DatabaseBooking) {
+    if (databaseBooking.rescheduled) {
+      return databaseBooking.rescheduledBy;
+    }
+    if (databaseBooking.fromReschedule) {
+      const previousBooking = await this.bookingsRepository.getByUid(databaseBooking.fromReschedule);
+      return previousBooking?.rescheduledBy ?? databaseBooking.rescheduledBy;
+    }
+    return databaseBooking.rescheduledBy;
   }
 
   getUserDefinedMetadata(databaseMetadata: DatabaseMetadata) {
@@ -183,28 +216,30 @@ export class OutputBookingsService_2024_08_13 {
         id: "unknown",
         name: "unknown",
         email: "unknown",
+        displayEmail: "unknown",
         username: "unknown",
       };
     }
 
     return {
       ...user,
+      displayEmail: this.getDisplayEmail(user.email),
       username: user.username || "unknown",
     };
   }
 
   async getOutputRecurringBookings(bookingsIds: number[]) {
-    const transformed = [];
-
-    for (const bookingId of bookingsIds) {
-      const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUserAndEvent(bookingId);
+    const databaseBookings = await this.bookingsRepository.getByIdsWithAttendeesAndUserAndEvent(bookingsIds);
+    
+    const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
+    
+    const transformed = bookingsIds.map(bookingId => {
+      const databaseBooking = bookingsMap.get(bookingId);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
       }
-
-      transformed.push(this.getOutputRecurringBooking(databaseBooking));
-    }
-
+      return this.getOutputRecurringBooking(databaseBooking);
+    });
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }
 
@@ -227,10 +262,8 @@ export class OutputBookingsService_2024_08_13 {
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
-      cancellationReason:
-        databaseBooking.status === BookingStatus.CANCELLED ? databaseBooking.cancellationReason : undefined,
-      cancelledByEmail:
-        databaseBooking.status === BookingStatus.CANCELLED ? databaseBooking.cancelledBy : undefined,
+      cancellationReason: databaseBooking.cancellationReason || "",
+      cancelledByEmail: databaseBooking.cancelledBy || "",
       reschedulingReason: bookingResponses?.rescheduledReason,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
@@ -242,6 +275,7 @@ export class OutputBookingsService_2024_08_13 {
       attendees: databaseBooking.attendees.map((attendee) => ({
         name: attendee.name,
         email: attendee.email,
+        displayEmail: this.getDisplayEmail(attendee.email),
         timeZone: attendee.timeZone,
         language: attendee.locale,
         absent: !!attendee.noShow,
@@ -265,6 +299,25 @@ export class OutputBookingsService_2024_08_13 {
     // note(Lauris): I don't know why plainToClass erases bookings responses and metadata so attaching manually
     bookingTransformed.bookingFieldsResponses = bookingResponses;
     bookingTransformed.metadata = this.getUserDefinedMetadata(metadata);
+
+    if (
+      bookingTransformed.bookingFieldsResponses?.email &&
+      typeof bookingTransformed.bookingFieldsResponses.email === "string"
+    ) {
+      bookingTransformed.bookingFieldsResponses.displayEmail = this.getDisplayEmail(
+        bookingTransformed.bookingFieldsResponses.email
+      );
+    }
+
+    if (
+      bookingTransformed.bookingFieldsResponses?.guests &&
+      Array.isArray(bookingTransformed.bookingFieldsResponses.guests)
+    ) {
+      bookingTransformed.bookingFieldsResponses.displayGuests = bookingTransformed.bookingFieldsResponses.guests.map(
+        (guest: string) => this.getDisplayEmail(guest)
+      );
+    }
+
     return bookingTransformed;
   }
 
@@ -284,14 +337,8 @@ export class OutputBookingsService_2024_08_13 {
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const rescheduledToInfo = databaseBooking.rescheduled
-      ? await this.getRescheduledToInfo(databaseBooking.uid)
-      : undefined;
-
-    const rescheduledToUid = rescheduledToInfo?.uid;
-    const rescheduledByEmail = databaseBooking.rescheduled
-      ? rescheduledToInfo?.rescheduledBy
-      : databaseBooking.rescheduledBy;
+    const rescheduledToUid = await this.getRescheduledToUid(databaseBooking);
+    const rescheduledByEmail = await this.getRescheduledByEmail(databaseBooking);
 
     const booking = {
       id: databaseBooking.id,
@@ -300,8 +347,7 @@ export class OutputBookingsService_2024_08_13 {
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
-      cancellationReason:
-        databaseBooking.status === BookingStatus.CANCELLED ? databaseBooking.cancellationReason : undefined,
+      cancellationReason: databaseBooking.cancellationReason || "",
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
@@ -337,6 +383,7 @@ export class OutputBookingsService_2024_08_13 {
           const attendeeData = {
             name: attendee.name,
             email: attendee.email,
+            displayEmail: this.getDisplayEmail(attendee.email),
             timeZone: attendee.timeZone,
             language: attendee.locale,
             absent: !!attendee.noShow,
@@ -362,17 +409,17 @@ export class OutputBookingsService_2024_08_13 {
   }
 
   async getOutputRecurringSeatedBookings(bookingsIds: number[], showAttendees: boolean) {
-    const transformed = [];
-
-    for (const bookingId of bookingsIds) {
-      const databaseBooking =
-        await this.bookingsRepository.getByIdWithAttendeesWithBookingSeatAndUserAndEvent(bookingId);
+    const databaseBookings = await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(bookingsIds);
+    
+    const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
+    
+    const transformed = bookingsIds.map(bookingId => {
+      const databaseBooking = bookingsMap.get(bookingId);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
       }
-
-      transformed.push(this.getOutputRecurringSeatedBooking(databaseBooking, showAttendees));
-    }
+      return this.getOutputRecurringSeatedBooking(databaseBooking, showAttendees);
+    });
 
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }
@@ -428,8 +475,7 @@ export class OutputBookingsService_2024_08_13 {
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
-      cancellationReason:
-        databaseBooking.status === BookingStatus.CANCELLED ? databaseBooking.cancellationReason : undefined,
+      cancellationReason: databaseBooking.cancellationReason || "",
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
@@ -466,6 +512,7 @@ export class OutputBookingsService_2024_08_13 {
           const attendeeData = {
             name: attendee.name,
             email: attendee.email,
+            displayEmail: this.getDisplayEmail(attendee.email),
             timeZone: attendee.timeZone,
             language: attendee.locale,
             absent: !!attendee.noShow,
@@ -498,6 +545,9 @@ export class OutputBookingsService_2024_08_13 {
         id: databaseBooking?.user?.id || 0,
         name: databaseBooking?.user?.name || "unknown",
         email: databaseBooking?.user?.email || "unknown",
+        displayEmail: databaseBooking?.user?.email
+          ? this.getDisplayEmail(databaseBooking.user.email)
+          : "unknown",
       },
     };
   }

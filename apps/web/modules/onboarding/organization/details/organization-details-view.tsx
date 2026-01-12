@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import posthog from "posthog-js";
+import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -67,6 +68,10 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
       return;
     }
 
+    posthog.capture("onboarding_organization_details_continue_clicked", {
+      has_bio: !!organizationBio,
+    });
+
     // Save to store
     setOrganizationDetails({
       name: organizationName,
@@ -83,7 +88,16 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
         title={t("onboarding_org_details_title")}
         subtitle={t("onboarding_org_details_subtitle")}
         footer={
-          <div className="flex w-full items-center justify-end gap-4">
+          <div className="flex w-full items-center justify-between gap-4">
+            <Button
+              color="minimal"
+              className="rounded-[10px]"
+              onClick={() => {
+                posthog.capture("onboarding_organization_details_back_clicked");
+                router.push("/onboarding/getting-started");
+              }}>
+              {t("back")}
+            </Button>
             <Button
               color="primary"
               className="rounded-[10px]"
@@ -95,14 +109,11 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
         }>
         {/* Form */}
         <div className="relative flex">
-          {/* Scrollable content container */}
-          <div className="relative h-full w-full gap-6 px-2 py-2">
-            {/* Top fade overlay */}
-
+          <div className="relative h-full w-full gap-6 py-2 pr-2">
             <div className="flex w-full flex-col gap-4 rounded-xl">
               {/* Organization Name */}
               <div className="flex w-full flex-col gap-1.5">
-                <Label className="text-emphasis text-sm font-medium leading-4">
+                <Label className="text-emphasis mb-0 text-sm font-medium leading-4">
                   {t("organization_name")}
                 </Label>
                 <TextField
@@ -121,7 +132,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
 
               {/* Organization Bio */}
               <div className="flex w-full flex-col gap-1.5">
-                <Label className="text-emphasis text-sm font-medium leading-4">
+                <Label className="text-emphasis mb-0 text-sm font-medium leading-4">
                   {t("onboarding_org_bio_label")}
                 </Label>
                 <TextArea
@@ -129,7 +140,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
                   onChange={(e) => setOrganizationBio(e.target.value)}
                   placeholder={t("onboarding_org_bio_placeholder")}
                   rows={4}
-                  className="border-default rounded-lg border px-2 py-2 text-sm leading-tight"
+                  className="border-default max-h-[200px] rounded-lg border px-2 py-2 text-sm leading-tight"
                 />
               </div>
             </div>

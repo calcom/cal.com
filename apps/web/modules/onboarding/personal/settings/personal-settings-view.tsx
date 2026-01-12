@@ -26,9 +26,14 @@ import { useOnboardingStore } from "../../store/onboarding-store";
 type PersonalSettingsViewProps = {
   userEmail: string;
   userName?: string;
+  fromTeamOnboarding?: boolean;
 };
 
-export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsViewProps) => {
+export const PersonalSettingsView = ({
+  userEmail,
+  userName,
+  fromTeamOnboarding = false,
+}: PersonalSettingsViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.get.useQuery();
@@ -110,7 +115,6 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
 
   return (
     <>
-      <OnboardingContinuationPrompt />
       <OnboardingLayout userEmail={userEmail} currentStep={1} totalSteps={2}>
         {/* Left column - Main content */}
         <OnboardingCard
@@ -118,12 +122,14 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
           subtitle={t("personal_details_subtitle")}
           footer={
             <div className="flex w-full items-center justify-end gap-4">
-              <Button
-                color="minimal"
-                className="rounded-[10px]"
-                onClick={() => router.push("/onboarding/getting-started")}>
-                {t("back")}
-              </Button>
+              {!fromTeamOnboarding && (
+                <Button
+                  color="minimal"
+                  className="rounded-[10px]"
+                  onClick={() => router.push("/onboarding/getting-started")}>
+                  {t("back")}
+                </Button>
+              )}
               <Button
                 type="submit"
                 form="personal-settings-form"
@@ -184,6 +190,7 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
               {/* Username */}
               <div className="flex w-full flex-col gap-1.5">
                 <UsernameAvailabilityField
+                  disabled
                   onSuccessMutation={async () => {
                     // Refetch user to get updated username and save to store
                     const updatedUser = await utils.viewer.me.get.fetch();

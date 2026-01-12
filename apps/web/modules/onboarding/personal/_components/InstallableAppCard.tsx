@@ -37,12 +37,9 @@ export const InstallableAppCard = ({
         </span>
       )}
       {app.logo && <img src={app.logo} alt={app.name} className="h-9 w-9 rounded-md" />}
-      <p
-        className="text-default line-clamp-1 break-words text-left text-sm font-medium leading-none"
-        title={app.name}>
+      <p className="text-default line-clamp-1 break-words text-left text-sm font-medium" title={app.name}>
         {app.name}
       </p>
-      <p className="text-subtle line-clamp-2 text-left text-xs leading-tight">{app.description}</p>
       <InstallAppButtonWithoutPlanCheck
         type={app.type}
         options={installOptions}

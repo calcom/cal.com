@@ -179,13 +179,13 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
           </div>
 
           <div className="mb-2 flex flex-col gap-2 text-center">
-            <h2 className="font-cal text-emphasis text-2xl leading-none">{t("upload_csv_file")}</h2>
+            <h2 className="font-heading text-emphasis text-2xl leading-none">{t("upload_csv_file")}</h2>
             <p className="text-default text-sm leading-normal">{t("upload_csv_description")}</p>
           </div>
 
           <div className="mb-2 flex flex-col gap-3">
             {/* Download template */}
-            <div className="bg-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
+            <div className="bg-cal-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
               <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-2 shadow-sm">
                 <Icon name="download" className="text-emphasis" style={{ width: 16, height: 16 }} />
               </div>
@@ -199,7 +199,7 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
             </div>
 
             {/* File upload */}
-            <div className="bg-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
+            <div className="bg-cal-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
               <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-2 shadow-sm">
                 <Icon name="upload" className="text-emphasis" style={{ width: 16, height: 16 }} />
               </div>
@@ -227,7 +227,7 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
           </div>
         </div>
 
-        <div className="bg-muted border-subtle mt-6 flex items-center justify-between rounded-b-2xl border-t px-8 py-6">
+        <div className="bg-cal-muted border-subtle mt-6 flex items-center justify-between rounded-b-2xl border-t px-8 py-6">
           <Button color="minimal" onClick={handleClose} disabled={isUploading}>
             {t("cancel")}
           </Button>
