@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 
 import { getWebhookVersionLabel, getWebhookVersionDocsUrl } from "@calcom/features/webhooks/lib/constants";
@@ -9,6 +10,7 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -37,6 +39,7 @@ export default function WebhookListItem(props: {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { webhook } = props;
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
     async onSuccess() {
@@ -46,28 +49,23 @@ export default function WebhookListItem(props: {
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
+      setDeleteDialogOpen(false);
+    },
+    onError() {
+      showToast(t("something_went_wrong"), "error");
+      setDeleteDialogOpen(false);
     },
   });
   const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
     async onSuccess(data) {
       if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
       revalidateWebhooksList();
-      // TODO: Better success message
       showToast(t(data?.active ? "enabled" : "disabled"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
   });
-
-  const onDeleteWebhook = () => {
-    // TODO: Confimation dialog before deleting
-    deleteWebhook.mutate({
-      id: webhook.id,
-      eventTypeId: webhook.eventTypeId || undefined,
-      teamId: webhook.teamId || undefined,
-    });
-  };
 
   return (
     <div
@@ -149,7 +147,8 @@ export default function WebhookListItem(props: {
               color="destructive"
               StartIcon="trash"
               variant="icon"
-              onClick={onDeleteWebhook}
+              onClick={() => setDeleteDialogOpen(true)}
+              disabled={deleteWebhook.isPending}
             />
           )}
 
@@ -170,7 +169,11 @@ export default function WebhookListItem(props: {
 
               {props.permissions.canDeleteWebhook && (
                 <DropdownMenuItem>
-                  <DropdownItem StartIcon="trash" color="destructive" onClick={onDeleteWebhook}>
+                  <DropdownItem
+                    StartIcon="trash"
+                    color="destructive"
+                    onClick={() => setDeleteDialogOpen(true)}
+                    disabled={deleteWebhook.isPending}>
                     {t("delete")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -179,6 +182,26 @@ export default function WebhookListItem(props: {
           </Dropdown>
         </div>
       )}
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <ConfirmationDialogContent
+          variety="danger"
+          title={t("delete_webhook")}
+          confirmBtnText={t("confirm_delete_webhook")}
+          loadingText={t("confirm_delete_webhook")}
+          isPending={deleteWebhook.isPending}
+          onConfirm={() => {
+            deleteWebhook.mutate({
+              id: webhook.id,
+              eventTypeId: webhook.eventTypeId || undefined,
+              teamId: webhook.teamId || undefined,
+            });
+          }}>
+          <div className="mt-2">
+            <p className="text-subtle text-sm">{t("delete_webhook_confirmation_message")}</p>
+          </div>
+        </ConfirmationDialogContent>
+      </Dialog>
     </div>
   );
 }
