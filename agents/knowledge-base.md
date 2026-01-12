@@ -736,83 +736,186 @@ The main reason for doing so is that Dayjs uses a useful, but highly risky plugi
 
 We use a Dependency Injection pattern powered by `@evyweb/ioctopus` to manage service and repository dependencies. This pattern ensures proper dependency management, testability, and consistent instantiation of services throughout the codebase.
 
+We use the **moduleLoader pattern** which provides type-safe dependency injection. This ensures that if a service adds a new dependency, TypeScript will catch missing dependencies at build time rather than runtime.
+
 ### Core Concepts
 
-The DI system consists of three main components:
+The DI system consists of four main components:
 
-**Tokens** (`packages/features/di/tokens.ts`): Unique symbols that identify each service or repository in the DI container. Every injectable class needs a corresponding token.
+**Tokens**: Unique symbols that identify each service or repository in the DI container. Every injectable class needs a corresponding token. Tokens should be defined in a `tokens.ts` file within the feature's `di/` directory.
 
-**Modules** (`packages/features/di/modules/*.ts`): Define how classes are instantiated and what dependencies they require. Modules bind tokens to class implementations.
+**Modules** (`.module.ts` files): Define how classes are instantiated and what dependencies they require using the `bindModuleToClassOnToken` function. Each module exports a `moduleLoader` object that knows how to load itself and its dependencies.
 
-**Containers** (`packages/features/di/containers/*.ts`): Assemble modules together and expose getter functions that consumers use to obtain service instances.
+**Containers** (`.container.ts` files): Create a container instance and expose getter functions that consumers use to obtain service instances. Containers use the moduleLoader to automatically load all required dependencies.
+
+**`bindModuleToClassOnToken`**: A type-safe function that binds a class to a token and declares its dependencies. TypeScript ensures the declared dependencies match what the class constructor expects.
 
 ### How It Works
 
-Here's the flow using `BusyTimesService` as an example:
+Here's the complete flow for creating a DI-enabled service:
 
-**Step 1: Define the service class with constructor injection**
+**Step 1: Create tokens in the feature's di directory**
 
 ```typescript
-// packages/features/busyTimes/services/getBusyTimes.ts
-export interface IBusyTimesService {
+// packages/features/myfeature/di/tokens.ts
+export const MY_FEATURE_DI_TOKENS = {
+  MY_SERVICE: Symbol("MyService"),
+  MY_SERVICE_MODULE: Symbol("MyServiceModule"),
+};
+```
+
+Then import these tokens in the central tokens file:
+
+```typescript
+// packages/features/di/tokens.ts
+import { MY_FEATURE_DI_TOKENS } from "@calcom/features/myfeature/di/tokens";
+
+export const DI_TOKENS = {
+  // ...existing tokens
+  ...MY_FEATURE_DI_TOKENS,
+};
+```
+
+**Step 2: Define the service class with constructor injection**
+
+For services with multiple dependencies, use a dependencies interface:
+
+```typescript
+// packages/features/myfeature/services/MyService.ts
+export interface IMyServiceDeps {
   bookingRepo: BookingRepository;
+  userRepo: UserRepository;
 }
 
-export class BusyTimesService {
-  constructor(public readonly dependencies: IBusyTimesService) {}
+export class MyService {
+  constructor(private deps: IMyServiceDeps) {}
 
-  async getBusyTimes(params: {...}) {
-    // Use dependencies via this.dependencies.bookingRepo
-    const bookings = await this.dependencies.bookingRepo.findAllExistingBookingsForEventTypeBetween({...});
-    // ...
+  async doSomething() {
+    const bookings = await this.deps.bookingRepo.findMany({...});
+    const user = await this.deps.userRepo.findById({...});
   }
 }
 ```
 
-**Step 2: Create a module that binds the service to its token**
+For services/repositories with a single dependency, pass it directly:
 
 ```typescript
-// packages/features/di/modules/BusyTimes.ts
-import { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
-import { createModule } from "../di";
-import { DI_TOKENS } from "../tokens";
+// packages/features/myfeature/repositories/MyRepository.ts
+export class MyRepository {
+  constructor(private prismaClient: PrismaClient) {}
 
-export const busyTimesModule = createModule();
-busyTimesModule.bind(DI_TOKENS.BUSY_TIMES_SERVICE).toClass(BusyTimesService, {
-  bookingRepo: DI_TOKENS.BOOKING_REPOSITORY,
-} satisfies Record<keyof IBusyTimesService, symbol>);
-```
-
-**Step 3: Create a container that loads all required modules and exposes a getter**
-
-```typescript
-// packages/features/di/containers/BusyTimes.ts
-import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
-import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { prismaModule } from "@calcom/features/di/modules/Prisma";
-import { createContainer } from "../di";
-import { bookingRepositoryModule } from "../modules/Booking";
-import { busyTimesModule } from "../modules/BusyTimes";
-
-const container = createContainer();
-container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
-container.load(DI_TOKENS.BOOKING_REPOSITORY_MODULE, bookingRepositoryModule);
-container.load(DI_TOKENS.BUSY_TIMES_SERVICE_MODULE, busyTimesModule);
-
-export function getBusyTimesService() {
-  return container.get<BusyTimesService>(DI_TOKENS.BUSY_TIMES_SERVICE);
+  async findById(id: string) {
+    return this.prismaClient.myModel.findUnique({ where: { id } });
+  }
 }
 ```
 
-**Step 4: Use the service via the container's getter function**
+**Step 3: Create a module file with moduleLoader**
+
+```typescript
+// packages/features/myfeature/di/MyService.module.ts
+import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
+import { MyService } from "@calcom/features/myfeature/services/MyService";
+
+import { moduleLoader as bookingRepositoryModuleLoader } from "./BookingRepository.module";
+import { moduleLoader as userRepositoryModuleLoader } from "./UserRepository.module";
+import { MY_FEATURE_DI_TOKENS } from "./tokens";
+
+const thisModule = createModule();
+const token = MY_FEATURE_DI_TOKENS.MY_SERVICE;
+const moduleToken = MY_FEATURE_DI_TOKENS.MY_SERVICE_MODULE;
+
+const loadModule = bindModuleToClassOnToken({
+  module: thisModule,
+  moduleToken,
+  token,
+  classs: MyService,
+  // For multiple dependencies, use depsMap:
+  depsMap: {
+    bookingRepo: bookingRepositoryModuleLoader,
+    userRepo: userRepositoryModuleLoader,
+  },
+});
+
+export const moduleLoader: ModuleLoader = {
+  token,
+  loadModule,
+};
+
+export type { MyService };
+```
+
+For a single dependency, use `dep` instead of `depsMap`:
+
+```typescript
+// packages/features/myfeature/di/MyRepository.module.ts
+import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
+import { MyRepository } from "@calcom/features/myfeature/repositories/MyRepository";
+
+import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
+import { MY_FEATURE_DI_TOKENS } from "./tokens";
+
+const thisModule = createModule();
+const token = MY_FEATURE_DI_TOKENS.MY_REPOSITORY;
+const moduleToken = MY_FEATURE_DI_TOKENS.MY_REPOSITORY_MODULE;
+
+const loadModule = bindModuleToClassOnToken({
+  module: thisModule,
+  moduleToken,
+  token,
+  classs: MyRepository,
+  // For single dependency, use dep:
+  dep: prismaModuleLoader,
+});
+
+export const moduleLoader: ModuleLoader = {
+  token,
+  loadModule,
+};
+
+export type { MyRepository };
+```
+
+**Step 4: Create a container that uses the moduleLoader**
+
+```typescript
+// packages/features/myfeature/di/MyService.container.ts
+import { createContainer } from "@calcom/features/di/di";
+
+import { type MyService, moduleLoader as myServiceModuleLoader } from "./MyService.module";
+
+const myServiceContainer = createContainer();
+
+export function getMyService(): MyService {
+  myServiceModuleLoader.loadModule(myServiceContainer);
+  return myServiceContainer.get<MyService>(myServiceModuleLoader.token);
+}
+```
+
+**Step 5: Use the service via the container's getter function**
 
 ```typescript
 // Anywhere in the codebase
-import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import { getMyService } from "@calcom/features/myfeature/di/MyService.container";
 
-const busyTimesService = getBusyTimesService();
-const busyTimes = await busyTimesService.getBusyTimes({...});
+const myService = getMyService();
+await myService.doSomething();
 ```
+
+### Why moduleLoader Is Type-Safe
+
+The `bindModuleToClassOnToken` function in `packages/features/di/di.ts` uses TypeScript generics to infer the required dependencies from the class constructor:
+
+```typescript
+depsMap: Record<
+  keyof (TClass extends new (deps: infer TDeps) => any ? TDeps : never),
+  ModuleLoader
+>
+```
+
+This means if `MyService` adds a new constructor dependency (e.g., `eventTypeRepo`), TypeScript will error because `depsMap` is missing that key. The error happens at build time, not runtime.
+
+The `loadModule` function also automatically loads all dependencies recursively, so you don't need to manually track the dependency chain.
 
 ### Common Mistakes to Avoid
 
@@ -825,10 +928,6 @@ Static methods bypass the DI system entirely, making the code harder to test and
 export class BookingRepository {
   static async findById(id: string) {
     return prisma.booking.findUnique({ where: { id } });
-  }
-
-  static async create(data: BookingCreateInput) {
-    return prisma.booking.create({ data });
   }
 }
 
@@ -844,10 +943,6 @@ export class BookingRepository {
   async findById(id: string) {
     return this.prismaClient.booking.findUnique({ where: { id } });
   }
-
-  async create(data: BookingCreateInput) {
-    return this.prismaClient.booking.create({ data });
-  }
 }
 
 // Usage (correct - via DI container)
@@ -861,23 +956,19 @@ Even if you define a class with constructor injection, manually calling `new` by
 
 ```typescript
 // ❌ Bad - Manual instantiation bypasses DI
-import { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
+import { MyService } from "@calcom/features/myfeature/services/MyService";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import prisma from "@calcom/prisma";
 
-// Wrong: manually creating instances
 const bookingRepo = new BookingRepository(prisma);
-const busyTimesService = new BusyTimesService({ bookingRepo });
-const busyTimes = await busyTimesService.getBusyTimes({...});
+const myService = new MyService({ bookingRepo });
 ```
 
 ```typescript
 // ✅ Good - Use the DI container's getter function
-import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import { getMyService } from "@calcom/features/myfeature/di/MyService.container";
 
-// Correct: let the container manage instantiation
-const busyTimesService = getBusyTimesService();
-const busyTimes = await busyTimesService.getBusyTimes({...});
+const myService = getMyService();
 ```
 
 **Mistake 3: Importing Prisma directly in a service instead of using repository injection**
@@ -897,153 +988,53 @@ export class MyService {
 
 ```typescript
 // ✅ Good - Service depends on repository via DI
-export interface IMyService {
+export interface IMyServiceDeps {
   bookingRepo: BookingRepository;
 }
 
 export class MyService {
-  constructor(public readonly dependencies: IMyService) {}
+  constructor(private deps: IMyServiceDeps) {}
 
   async doSomething() {
-    const bookings = await this.dependencies.bookingRepo.findMany({...});
+    const bookings = await this.deps.bookingRepo.findMany({...});
   }
 }
 ```
 
-### Adding a New Service to the DI System
+**Mistake 4: Manual module loading in containers (not type-safe)**
 
-When creating a new service or repository that should use DI:
-
-1. **Add tokens** to `packages/features/di/tokens.ts`:
-   ```typescript
-   export const DI_TOKENS = {
-     // ...existing tokens
-     MY_SERVICE: Symbol("MyService"),
-     MY_SERVICE_MODULE: Symbol("MyServiceModule"),
-   };
-   ```
-
-2. **Create the service class** with a dependencies interface and constructor injection.
-
-3. **Create a module** in `packages/features/di/modules/MyService.ts` that binds the service to its token.
-
-4. **Create a container** in `packages/features/di/containers/MyService.ts` that loads all required modules and exports a getter function.
-
-5. **Use the getter function** everywhere you need the service - never manually instantiate.
-
-### The moduleLoader Pattern (Type-Safe DI)
-
-The basic DI pattern shown above has a limitation: if a service adds a new dependency, TypeScript won't catch that you forgot to load it in the container. The **moduleLoader pattern** solves this by making dependency declarations type-safe at build time.
-
-**The Problem with Manual Module Loading**
+Don't manually call `container.load()` for each dependency. This is not type-safe and can lead to runtime errors if you forget to load a dependency.
 
 ```typescript
-// ❌ Not type-safe - if FeatureOptInService adds a new dependency, TS won't catch the missing load()
+// ❌ Bad - Manual module loading is not type-safe
 const container = createContainer();
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
-container.load(DI_TOKENS.FEATURES_REPOSITORY_MODULE, featuresRepositoryModule);
-container.load(DI_TOKENS.FEATURE_OPT_IN_SERVICE_MODULE, featureOptInServiceModule);
+container.load(DI_TOKENS.BOOKING_REPOSITORY_MODULE, bookingRepositoryModule);
+container.load(DI_TOKENS.MY_SERVICE_MODULE, myServiceModule);
+// If MyService adds a new dependency, TypeScript won't catch the missing load()
 
-export function getFeatureOptInService() {
-  return container.get<FeatureOptInService>(DI_TOKENS.FEATURE_OPT_IN_SERVICE);
+export function getMyService() {
+  return container.get<MyService>(DI_TOKENS.MY_SERVICE);
 }
 ```
 
-**The moduleLoader Pattern Solution**
-
-Instead, each module exports a `moduleLoader` object that knows its own dependencies. The `bindModuleToClassOnToken` function uses TypeScript generics to ensure the `depsMap` matches exactly what the class constructor expects.
-
-**Step 1: Create a module file with moduleLoader**
-
 ```typescript
-// packages/features/oauth/di/OAuthService.module.ts
-import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
-import { OAuthService } from "@calcom/features/oauth/services/OAuthService";
+// ✅ Good - Use moduleLoader for type-safe dependency loading
+import { moduleLoader as myServiceModuleLoader } from "./MyService.module";
 
-import { moduleLoader as accessCodeRepositoryModuleLoader } from "./AccessCodeRepository.module";
-import { moduleLoader as oAuthClientRepositoryModuleLoader } from "./OAuthClientRepository.module";
-import { moduleLoader as teamRepositoryModuleLoader } from "./TeamRepository.module";
-import { OAUTH_DI_TOKENS } from "./tokens";
+const container = createContainer();
 
-const thisModule = createModule();
-const token = OAUTH_DI_TOKENS.OAUTH_SERVICE;
-const moduleToken = OAUTH_DI_TOKENS.OAUTH_SERVICE_MODULE;
-
-const loadModule = bindModuleToClassOnToken({
-  module: thisModule,
-  moduleToken,
-  token,
-  classs: OAuthService,
-  depsMap: {
-    // TypeScript ensures these keys match OAuthService constructor's dependency interface
-    oAuthClientRepository: oAuthClientRepositoryModuleLoader,
-    accessCodeRepository: accessCodeRepositoryModuleLoader,
-    teamsRepository: teamRepositoryModuleLoader,
-  },
-});
-
-export const moduleLoader: ModuleLoader = {
-  token,
-  loadModule,
-};
-
-export type { OAuthService };
-```
-
-**Step 2: Create a simple container that uses the moduleLoader**
-
-```typescript
-// packages/features/oauth/di/OAuthService.container.ts
-import { createContainer } from "@calcom/features/di/di";
-
-import { type OAuthService, moduleLoader as oAuthServiceModuleLoader } from "./OAuthService.module";
-
-const oAuthServiceContainer = createContainer();
-
-export function getOAuthService(): OAuthService {
-  oAuthServiceModuleLoader.loadModule(oAuthServiceContainer);
-  return oAuthServiceContainer.get<OAuthService>(oAuthServiceModuleLoader.token);
+export function getMyService(): MyService {
+  myServiceModuleLoader.loadModule(container); // Automatically loads all dependencies
+  return container.get<MyService>(myServiceModuleLoader.token);
 }
 ```
-
-**Why This Is Type-Safe**
-
-The `bindModuleToClassOnToken` function in `packages/features/di/di.ts` uses TypeScript generics to infer the required dependencies from the class constructor:
-
-```typescript
-depsMap: Record<
-  keyof (TClass extends new (deps: infer TDeps) => any ? TDeps : never),
-  ModuleLoader
->
-```
-
-This means if `OAuthService` adds a new constructor dependency (e.g., `userRepository`), TypeScript will error because `depsMap` is missing that key. The error happens at build time, not runtime.
-
-**Key Benefits of moduleLoader Pattern**
-
-- **Build-time safety**: TypeScript catches missing dependencies before runtime
-- **Automatic recursive loading**: The `loadModule` function automatically loads all dependencies recursively
-- **Self-documenting**: Each module declares its own dependencies, making the dependency graph explicit
-- **Simpler containers**: Containers just call `moduleLoader.loadModule()` instead of manually loading each dependency
-
-**Convention: Expose tokens from the feature package**
-
-When using the moduleLoader pattern, expose tokens from the feature package itself rather than adding them to the central `packages/features/di/tokens.ts`:
-
-```typescript
-// packages/features/oauth/di/tokens.ts
-export const OAUTH_DI_TOKENS = {
-  OAUTH_SERVICE: Symbol("OAuthService"),
-  OAUTH_SERVICE_MODULE: Symbol("OAuthServiceModule"),
-  // ... other tokens for this feature
-};
-```
-
-Then import these tokens in the central tokens file if needed for cross-feature dependencies.
 
 ### Why Use DI?
 
+- **Build-time safety**: TypeScript catches missing dependencies before runtime when using the moduleLoader pattern
 - **Testability**: Dependencies can be easily mocked in tests by providing alternative implementations
 - **Consistency**: All instances are created the same way with proper dependencies
 - **Maintainability**: Changing a dependency only requires updating the module binding, not every usage site
-- **Explicit dependencies**: The dependency graph is clear and documented in the module definitions
+- **Automatic dependency resolution**: The moduleLoader automatically loads all dependencies recursively
+- **Self-documenting**: Each module declares its own dependencies, making the dependency graph explicit
