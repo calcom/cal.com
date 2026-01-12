@@ -57,19 +57,8 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
   }
 
   try {
-    const teams = await MembershipRepository.findAllAcceptedTeamMemberships(ctx.user.id);
-
-    const team = teams.find((t) => t.id === teamId);
-
-    if (!team) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Team not found or you don't have permission",
-      });
-    }
-
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
-    const teamBillingService = teamBillingServiceFactory.init(team);
+    const teamBillingService = await teamBillingServiceFactory.findAndInit(teamId);
 
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
