@@ -449,6 +449,7 @@ export default function EventTypes() {
               />
               <TouchableOpacity
                 className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+                style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}
                 onPress={handleCreateNew}
               >
                 <Ionicons name="add" size={18} color="#fff" />
@@ -513,6 +514,7 @@ export default function EventTypes() {
             />
             <TouchableOpacity
               className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+              style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}
               onPress={handleCreateNew}
             >
               <Ionicons name="add" size={18} color="#fff" />

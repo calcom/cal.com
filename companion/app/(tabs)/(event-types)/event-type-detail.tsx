@@ -1259,7 +1259,10 @@ export default function EventTypeDetail() {
         {/* Tab Navigation Dropdown Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <AppPressable className="flex-row items-center gap-1 px-2 py-2">
+            <AppPressable
+              className="flex-row items-center gap-1 px-2 py-2"
+              style={{ flexDirection: "row", alignItems: "center" }}
+            >
               <Text className="text-[16px] font-semibold text-[#000000]" numberOfLines={1}>
                 {tabs.find((tab) => tab.id === activeTab)?.label ?? "Basics"}
               </Text>
