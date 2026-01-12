@@ -5,6 +5,7 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { getAttributeSyncFieldMappingService } from "@calcom/features/ee/integration-attribute-sync/di/AttributeSyncFieldMappingService.container";
 
 const log = logger.getSubLogger({ prefix: ["[salesforce/user-sync]"] });
 
@@ -85,30 +86,48 @@ export default async function handler(
     return res.status(400).json({ error: "Invalid user" });
   }
 
+  const organizationId = user.profiles[0].organizationId;
+
   const integrationAttributeSyncService = getIntegrationAttributeSyncService();
 
   const integrationAttributeSyncs =
     await integrationAttributeSyncService.getAllByCredentialId(credential.id);
 
   const attributeSyncRuleService = getAttributeSyncRuleService();
+  const attributeSyncFieldMappingService =
+    getAttributeSyncFieldMappingService();
 
-  await Promise.allSettled(
+  const results = await Promise.allSettled(
     integrationAttributeSyncs.map(async (sync) => {
+      // Only check rule if one exists - skip sync only if rule returns false
       if (sync.attributeSyncRule) {
         const shouldSyncApplyToUser =
           await attributeSyncRuleService.shouldSyncApplyToUser({
             user: {
               id: user.id,
-              organizationId: user.profiles[0].organizationId,
+              organizationId,
             },
             attributeSyncRule: sync.attributeSyncRule.rule,
           });
 
         if (!shouldSyncApplyToUser) return;
       }
+
+      // Salesforce multi-select picklists use `;` as separator, convert to `,` for the service
+      const integrationFields = Object.fromEntries(
+        Object.entries(changedFields as Record<string, unknown>)
+          .filter(([, value]) => value != null)
+          .map(([key, value]) => [key, String(value).replaceAll(";", ",")])
+      );
+
+      await attributeSyncFieldMappingService.syncIntegrationFieldsToAttributes({
+        userId: user.id,
+        organizationId,
+        syncFieldMappings: sync.syncFieldMappings,
+        integrationFields,
+      });
     })
   );
-  // TODO: Sync changedFields to Cal.com user
 
   return res.status(200).json({ success: true });
 }
