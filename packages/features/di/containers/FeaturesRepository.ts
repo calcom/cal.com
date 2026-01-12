@@ -1,14 +1,9 @@
-import { prismaModule } from "@calcom/features/di/modules/Prisma";
-import { DI_TOKENS } from "@calcom/features/di/tokens";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-
 import { createContainer } from "../di";
-import { featuresRepositoryModule } from "../modules/FeaturesRepository";
+import { type FeaturesRepository, moduleLoader as featuresRepositoryModuleLoader } from "../modules/FeaturesRepository";
 
-const container = createContainer();
-container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
-container.load(DI_TOKENS.FEATURES_REPOSITORY_MODULE, featuresRepositoryModule);
+const featuresRepositoryContainer = createContainer();
 
-export function getFeaturesRepository() {
-  return container.get<FeaturesRepository>(DI_TOKENS.FEATURES_REPOSITORY);
+export function getFeaturesRepository(): FeaturesRepository {
+  featuresRepositoryModuleLoader.loadModule(featuresRepositoryContainer);
+  return featuresRepositoryContainer.get<FeaturesRepository>(featuresRepositoryModuleLoader.token);
 }

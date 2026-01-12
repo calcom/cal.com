@@ -1,16 +1,24 @@
-import { DI_TOKENS } from "@calcom/features/di/tokens";
+import { FLAGS_DI_TOKENS } from "@calcom/features/flags/di/tokens";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
-import { type Container, createModule } from "../di";
+import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "../di";
+import { moduleLoader as prismaModuleLoader } from "./Prisma";
 
-export const featuresRepositoryModule = createModule();
-const token = DI_TOKENS.FEATURES_REPOSITORY;
-const moduleToken = DI_TOKENS.FEATURES_REPOSITORY_MODULE;
-featuresRepositoryModule.bind(token).toClass(FeaturesRepository, [DI_TOKENS.PRISMA_CLIENT]);
+const thisModule = createModule();
+const token = FLAGS_DI_TOKENS.FEATURES_REPOSITORY;
+const moduleToken = FLAGS_DI_TOKENS.FEATURES_REPOSITORY_MODULE;
 
-export const moduleLoader = {
+const loadModule = bindModuleToClassOnToken({
+  module: thisModule,
+  moduleToken,
   token,
-  loadModule: (container: Container) => {
-    container.load(moduleToken, featuresRepositoryModule);
-  },
+  classs: FeaturesRepository,
+  dep: prismaModuleLoader,
+});
+
+export const moduleLoader: ModuleLoader = {
+  token,
+  loadModule,
 };
+
+export type { FeaturesRepository };
