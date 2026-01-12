@@ -83,7 +83,7 @@ async function run(): Promise<void> {
 // -----------------------------------------------------------------------------
 export default async (req: Request, res: Response): Promise<void> => {
   logger.log("VERCEL SERVERLESS HANDLER", process.env.VERCEL);
-  logger.log("REDIS", process.env.REDIS_URL);
+  logger.log("REDIS configured:", !!process.env.REDIS_URL);
   try {
     const server = await NestServer.getInstance();
 
