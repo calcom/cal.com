@@ -1,0 +1,44 @@
+---
+title: OAuth
+description: Authorize apps and platform integrations with Cal.com accounts.
+icon: "key"
+---
+
+Cal.com OAuth lets your app request access to a user's Cal.com account and call API v2 on their behalf.
+For a high-level overview, see the help article: https://cal.com/help/apps-and-integrations/oauth.
+
+## Get an OAuth client
+- Platform customers can create a client in the dashboard: https://app.cal.com/settings/platform/oauth-clients/create.
+- If you do not yet have a platform subscription, start here: https://app.cal.com/settings/platform/new.
+
+## OAuth flow (API v2)
+1. Authorize the user (requires an active Cal.com session):
+   `POST https://api.cal.com/v2/oauth/{clientId}/authorize` with body `{"redirectUri":"https://your.app/oauth/callback"}`.
+   The response is a 302 redirect to your `redirectUri` with `code=...`.
+2. Exchange the code for tokens:
+   `POST https://api.cal.com/v2/oauth/{clientId}/exchange` with header `Authorization: Bearer <code>`
+   and body `{"clientSecret":"<client secret>"}`.
+3. Refresh tokens:
+   `POST https://api.cal.com/v2/oauth/{clientId}/refresh` with header
+   `x-cal-secret-key: <client secret>` and body `{"refreshToken":"<refresh token>"}`.
+
+Access tokens are valid for 60 minutes and refresh tokens for 1 year. Store them server-side.
+
+## Manage clients and users
+Use API v2 to create and manage OAuth clients and managed users:
+- `POST /v2/oauth-clients`
+- `GET /v2/oauth-clients`
+- `PATCH /v2/oauth-clients/{clientId}`
+- `DELETE /v2/oauth-clients/{clientId}`
+- `POST /v2/oauth-clients/{clientId}/users`
+
+See the full [API reference](/api-reference/v2).
+
+## Badges
+Use the official "Continue with Cal.com" badge in your auth UI:
+
+<img src="https://app.cal.com/continue-with-calcom-coss-ui.svg" alt="Continue with Cal.com" />
+
+```html
+<img src="https://app.cal.com/continue-with-calcom-coss-ui.svg" alt="Continue with Cal.com" />
+```
