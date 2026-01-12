@@ -13,6 +13,7 @@ export enum Resource {
   Availability = "availability",
   OutOfOffice = "ooo",
   Watchlist = "watchlist",
+  PhoneNumber = "phoneNumber",
 }
 
 export enum CrudAction {
@@ -768,4 +769,40 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       dependsOn: ["watchlist.read"],
     },
   },
+  [Resource.PhoneNumber]: {
+    _resource: {
+      i18nKey: "pbac_resource_AI_phone_number",
+    },
+    [CrudAction.Create]: {
+      description: "Create phone numbers",
+      category: "phoneNumber",
+      i18nKey: "pbac_action_create",
+      descriptionI18nKey: "pbac_desc_create_phone_numbers",
+      scope: [],
+      dependsOn: ["phoneNumber.read"],
+    },
+    [CrudAction.Read]: {
+      description: "View phone numbers",
+      category: "phoneNumber",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_phone_numbers",
+      scope: [],
+    },
+    [CrudAction.Update]: {
+      description: "Update phone numbers",
+      category: "phoneNumber",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_phone_numbers",
+      scope: [],
+      dependsOn: ["phoneNumber.read"],
+    },
+    [CrudAction.Delete]: {
+      description: "Delete phone numbers",
+      category: "phoneNumber",
+      i18nKey: "pbac_action_delete",
+      descriptionI18nKey: "pbac_desc_delete_phone_numbers",
+      scope: [],
+      dependsOn: ["phoneNumber.read"],
+    },
+  }
 };

@@ -12,35 +12,15 @@ import type {
  * This adapter provides a clean abstraction layer between provider and application
  */
 export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepositoryInterface {
-  async findByPhoneNumberAndUserId(params: {
-    phoneNumber: string;
-    userId: number;
-  }): Promise<PhoneNumberData | null> {
+
+  async findByPhoneNumber(phoneNumber: string): Promise<PhoneNumberData | null> {
     const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
-    return await phoneNumberRepo.findByPhoneNumberAndUserId(params);
+    return await phoneNumberRepo.findByPhoneNumber(phoneNumber);
   }
 
-  async findByPhoneNumberAndTeamId(params: {
-    phoneNumber: string;
-    teamId: number;
-    userId: number;
-  }): Promise<PhoneNumberData | null> {
+  async findById(id: number): Promise<PhoneNumberData | null> {
     const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
-    return await phoneNumberRepo.findByPhoneNumberAndTeamId(params);
-  }
-
-  async findByIdAndUserId(params: { id: number; userId: number }): Promise<PhoneNumberData | null> {
-    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
-    return await phoneNumberRepo.findByIdAndUserId(params);
-  }
-
-  async findByIdWithTeamAccess(params: {
-    id: number;
-    teamId: number;
-    userId: number;
-  }): Promise<PhoneNumberData | null> {
-    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
-    return await phoneNumberRepo.findByIdWithTeamAccess(params);
+    return await phoneNumberRepo.findById(id);
   }
 
   async createPhoneNumber(params: {

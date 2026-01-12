@@ -1,16 +1,17 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 
-import type { TrpcSessionUser } from "../../../types";
 import type { TImportInputSchema } from "./import.schema";
 
 type ImportHandlerOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: {
+      id: number;
+    };
   };
   input: TImportInputSchema;
 };
 
-export const importHandler = async ({ ctx, input }: ImportHandlerOptions) => {
+export const importHandler = async ({ ctx: { user: loggedInUser }, input }: ImportHandlerOptions) => {
   const {
     phoneNumber,
     terminationUri,
@@ -28,7 +29,7 @@ export const importHandler = async ({ ctx, input }: ImportHandlerOptions) => {
     sip_trunk_auth_username: sipTrunkAuthUsername,
     sip_trunk_auth_password: sipTrunkAuthPassword,
     nickname,
-    userId: ctx.user.id,
+    userId: loggedInUser.id,
     teamId,
     agentId,
   });

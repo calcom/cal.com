@@ -1,21 +1,20 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 
-import type { TrpcSessionUser } from "../../../types";
 import type { TDeleteInputSchema } from "./delete.schema";
 
 type DeleteHandlerOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: { id: number };
   };
   input: TDeleteInputSchema;
 };
 
-export const deleteHandler = async ({ ctx, input }: DeleteHandlerOptions) => {
+export const deleteHandler = async ({ ctx: { user: loggedInUser }, input }: DeleteHandlerOptions) => {
   const aiService = createDefaultAIPhoneServiceProvider();
 
   await aiService.deletePhoneNumber({
     phoneNumber: input.phoneNumber,
-    userId: ctx.user.id,
+    userId: loggedInUser.id,
     teamId: input.teamId,
     deleteFromDB: true,
   });

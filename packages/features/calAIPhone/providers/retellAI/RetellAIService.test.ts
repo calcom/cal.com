@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+import type { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 
 import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInterface";
 import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";
@@ -72,6 +73,7 @@ describe("RetellAIService", () => {
   let mockAgentRepository: AgentRepositoryInterface;
   let mockPhoneNumberRepository: PhoneNumberRepositoryInterface;
   let mockTransactionManager: TransactionInterface;
+  let mockPermissionService: PermissionCheckService;
   let mockTransaction: vi.Mock;
 
   beforeEach(async () => {
@@ -115,12 +117,23 @@ describe("RetellAIService", () => {
       findByPhoneNumberAndTeamId: vi.fn(),
       findByIdAndUserId: vi.fn(),
       findByIdWithTeamAccess: vi.fn(),
+      findByPhoneNumber: vi.fn(),
+      findById: vi.fn(),
       createPhoneNumber: vi.fn(),
       deletePhoneNumber: vi.fn(),
       updateSubscriptionStatus: vi.fn(),
       updateAgents: vi.fn(),
     };
     mockPhoneNumberRepository = phoneNumberRepository as unknown as PhoneNumberRepositoryInterface;
+
+    mockPermissionService = {
+      checkPermissions: vi.fn().mockResolvedValue(true),
+      checkPermission: vi.fn().mockResolvedValue(true),
+      getUserPermissions: vi.fn().mockResolvedValue([]),
+      getResourcePermissions: vi.fn().mockResolvedValue([]),
+      getTeamIdsWithPermission: vi.fn().mockResolvedValue([]),
+      getTeamIdsWithPermissions: vi.fn().mockResolvedValue([]),
+    } as unknown as PermissionCheckService;
 
     // Mock transaction manager
     const transactionManager = {
@@ -156,7 +169,8 @@ describe("RetellAIService", () => {
       mockRepository,
       mockAgentRepository,
       mockPhoneNumberRepository,
-      mockTransactionManager
+      mockTransactionManager,
+      mockPermissionService
     );
   });
 
@@ -263,7 +277,7 @@ describe("RetellAIService", () => {
 
   describe("deletePhoneNumber", () => {
     it("should throw error if phone number is active", async () => {
-      mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue({
+      mockPhoneNumberRepository.findByPhoneNumber.mockResolvedValue({
         id: 1,
         phoneNumber: "+1234567890",
         subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
@@ -288,7 +302,7 @@ describe("RetellAIService", () => {
     });
 
     it("should throw error if phone number is cancelled", async () => {
-      mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue({
+      mockPhoneNumberRepository.findByPhoneNumber.mockResolvedValue({
         id: 1,
         phoneNumber: "+1234567890",
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
@@ -313,7 +327,7 @@ describe("RetellAIService", () => {
     });
 
     it("should delete from both DB and provider when deleteFromDB is true", async () => {
-      mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue({
+      mockPhoneNumberRepository.findByPhoneNumber.mockResolvedValue({
         id: 1,
         phoneNumber: "+1234567890",
         subscriptionStatus: PhoneNumberSubscriptionStatus.INCOMPLETE,
@@ -647,11 +661,11 @@ describe("RetellAIService", () => {
       const { getPhoneNumberMonthlyPriceId } = await import("@calcom/app-store/stripepayment/lib/utils");
       const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
 
-      (getPhoneNumberMonthlyPriceId as any).mockReturnValue("price_123");
-      (getStripeCustomerIdFromUserId as any).mockResolvedValue("cus_123");
-      (stripe.checkout.sessions.create as any).mockResolvedValue({
+      vi.mocked(getPhoneNumberMonthlyPriceId).mockReturnValue("price_123");
+      vi.mocked(getStripeCustomerIdFromUserId).mockResolvedValue("cus_123");
+      vi.mocked(stripe.checkout.sessions.create).mockResolvedValue({
         url: "https://checkout.stripe.com/session",
-      });
+      } as never);
 
       const result = await service.generatePhoneNumberCheckoutSession({
         userId: 1,
@@ -667,7 +681,7 @@ describe("RetellAIService", () => {
 
     it("should throw error if price ID not configured", async () => {
       const { getPhoneNumberMonthlyPriceId } = await import("@calcom/app-store/stripepayment/lib/utils");
-      (getPhoneNumberMonthlyPriceId as any).mockReturnValue(null);
+      vi.mocked(getPhoneNumberMonthlyPriceId).mockReturnValue(null);
 
       await expect(
         service.generatePhoneNumberCheckoutSession({
@@ -681,7 +695,7 @@ describe("RetellAIService", () => {
     it("should cancel subscription successfully", async () => {
       const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
 
-      mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue({
+      mockPhoneNumberRepository.findById.mockResolvedValue({
         id: 1,
         phoneNumber: "+14155551234",
         stripeSubscriptionId: "sub_123",
@@ -695,7 +709,7 @@ describe("RetellAIService", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      (stripe.subscriptions.cancel as any).mockResolvedValue({});
+      vi.mocked(stripe.subscriptions.cancel).mockResolvedValue({} as never);
 
       const result = await service.cancelPhoneNumberSubscription({
         phoneNumberId: 1,
@@ -716,7 +730,7 @@ describe("RetellAIService", () => {
 
   describe("updatePhoneNumberWithAgents", () => {
     it("should update phone number with agents", async () => {
-      mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue({
+      mockPhoneNumberRepository.findByPhoneNumber.mockResolvedValue({
         id: 1,
         phoneNumber: "+14155551234",
         stripeSubscriptionId: null,
@@ -851,14 +865,11 @@ describe("RetellAIService", () => {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
 
       const mockHasAvailableCredits = vi.fn().mockResolvedValue(true);
-      (CreditService as any).mockImplementation(function() {
-        return {
-          hasAvailableCredits: mockHasAvailableCredits,
-        };
-      });
+      vi.mocked(CreditService).mockImplementation(() => ({
+        hasAvailableCredits: mockHasAvailableCredits,
+      }) as never);
 
-      // Mock rate limiting like the working example
-      vi.mocked(checkRateLimitAndThrowError).mockResolvedValueOnce(undefined as any);
+      vi.mocked(checkRateLimitAndThrowError).mockResolvedValueOnce(undefined);
       mockAgentRepository.findByIdWithCallAccess.mockResolvedValue({
         id: "1",
         name: "Test Agent",
@@ -933,13 +944,10 @@ describe("RetellAIService", () => {
     it("should handle null/undefined credits gracefully", async () => {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
 
-      // Mock credit service to return false (no credits)
       const mockHasAvailableCredits = vi.fn().mockResolvedValue(false);
-      (CreditService as any).mockImplementation(function() {
-        return {
-          hasAvailableCredits: mockHasAvailableCredits,
-        };
-      });
+      vi.mocked(CreditService).mockImplementation(() => ({
+        hasAvailableCredits: mockHasAvailableCredits,
+      }) as never);
 
       await expect(
         service.createTestCall({
@@ -956,15 +964,12 @@ describe("RetellAIService", () => {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
 
-      // Mock sufficient credits to get past credit check
       const mockHasAvailableCredits = vi.fn().mockResolvedValue(true);
-      (CreditService as any).mockImplementation(function() {
-        return {
-          hasAvailableCredits: mockHasAvailableCredits,
-        };
-      });
+      vi.mocked(CreditService).mockImplementation(() => ({
+        hasAvailableCredits: mockHasAvailableCredits,
+      }) as never);
 
-      (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
+      vi.mocked(checkRateLimitAndThrowError).mockResolvedValue(undefined);
 
       await expect(
         service.createTestCall({
@@ -980,15 +985,12 @@ describe("RetellAIService", () => {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
 
-      // Mock sufficient credits
       const mockHasAvailableCredits = vi.fn().mockResolvedValue(true);
-      (CreditService as any).mockImplementation(function() {
-        return {
-          hasAvailableCredits: mockHasAvailableCredits,
-        };
-      });
+      vi.mocked(CreditService).mockImplementation(() => ({
+        hasAvailableCredits: mockHasAvailableCredits,
+      }) as never);
 
-      (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
+      vi.mocked(checkRateLimitAndThrowError).mockResolvedValue(undefined);
       mockAgentRepository.findByIdWithCallAccess.mockResolvedValue(null);
 
       await expect(
@@ -1006,15 +1008,12 @@ describe("RetellAIService", () => {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
 
-      // Mock sufficient credits
       const mockHasAvailableCredits = vi.fn().mockResolvedValue(true);
-      (CreditService as any).mockImplementation(function() {
-        return {
-          hasAvailableCredits: mockHasAvailableCredits,
-        };
-      });
+      vi.mocked(CreditService).mockImplementation(() => ({
+        hasAvailableCredits: mockHasAvailableCredits,
+      }) as never);
 
-      (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
+      vi.mocked(checkRateLimitAndThrowError).mockResolvedValue(undefined);
       mockAgentRepository.findByIdWithCallAccess.mockResolvedValue({
         id: "1",
         name: "Test Agent",

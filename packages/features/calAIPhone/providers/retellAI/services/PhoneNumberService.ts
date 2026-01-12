@@ -1,6 +1,6 @@
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+import { MembershipRole, PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import { AIPhoneServiceProviderType } from "../../../interfaces/AIPhoneService.interface";
 import type {
@@ -13,12 +13,14 @@ import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumbe
 import type { TransactionInterface } from "../../interfaces/TransactionInterface";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
 import type { RetellAIRepository } from "../types";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 
 type Dependencies = {
   retellRepository: RetellAIRepository;
   agentRepository: AgentRepositoryInterface;
   phoneNumberRepository: PhoneNumberRepositoryInterface;
   transactionManager: TransactionInterface;
+  permissionService: PermissionCheckService;
 };
 
 export class PhoneNumberService {
@@ -37,7 +39,18 @@ export class PhoneNumberService {
 
     const { userId, agentId, teamId, ...rest } = data;
 
-    await this.validateTeamPermissions(userId, teamId);
+    if (teamId && !await this.deps.permissionService.checkPermission({
+      userId,
+      teamId,
+      permission: "phoneNumber.create",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
+    })) {
+      throw new HttpError({
+        statusCode: 403,
+        message: `Insufficient permission to import phone numbers for team ${teamId}.`
+      });
+    }
+
     const agent = await this.validateAgentPermissions(userId, agentId);
 
     const transactionState = {
@@ -122,21 +135,32 @@ export class PhoneNumberService {
       });
     }
 
-    const phoneNumberToDelete = teamId
-      ? await this.deps.phoneNumberRepository.findByPhoneNumberAndTeamId({
-          phoneNumber,
-          teamId,
-          userId,
-        })
-      : await this.deps.phoneNumberRepository.findByPhoneNumberAndUserId({
-          phoneNumber,
-          userId,
-        });
+    if (teamId && !await this.deps.permissionService.checkPermission({
+      userId,
+      teamId,
+      permission: "phoneNumber.delete",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
+    })) {
+      throw new HttpError({
+        statusCode: 403,
+        message: `Insufficient permission to delete phone numbers for team ${teamId}.`
+      });
+    }
 
+    const phoneNumberToDelete = await this.deps.phoneNumberRepository.findByPhoneNumber(phoneNumber)
     if (!phoneNumberToDelete) {
       throw new HttpError({
         statusCode: 404,
-        message: "Phone number not found or you don't have permission to delete it.",
+      });
+    }
+
+    if (
+      (!teamId && phoneNumberToDelete.userId !== userId) || 
+      (teamId && phoneNumberToDelete.teamId !== teamId)
+    ) {
+      throw new HttpError({
+        statusCode: 403,
+        message: `Insufficient permission to delete phone number ${phoneNumber}.`
       });
     }
 
@@ -249,21 +273,32 @@ export class PhoneNumberService {
       });
     }
 
-    const phoneNumberRecord = teamId
-      ? await this.deps.phoneNumberRepository.findByPhoneNumberAndTeamId({
-          phoneNumber,
-          teamId,
-          userId,
-        })
-      : await this.deps.phoneNumberRepository.findByPhoneNumberAndUserId({
-          phoneNumber,
-          userId,
-        });
+    if (teamId && !await this.deps.permissionService.checkPermission({
+      userId,
+      teamId,
+      permission: "phoneNumber.update",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
+    })) {
+      throw new HttpError({
+        statusCode: 403,
+        message: `Insufficient permission to update phone numbers for team ${teamId}.`
+      });
+    }
 
+    const phoneNumberRecord = await this.deps.phoneNumberRepository.findByPhoneNumber(phoneNumber);
     if (!phoneNumberRecord) {
       throw new HttpError({
         statusCode: 404,
-        message: "Phone number not found or you don't have permission to update it.",
+      });
+    }
+
+    if (
+      (!teamId && phoneNumberRecord.userId !== userId) || 
+      (teamId && phoneNumberRecord.teamId !== teamId)
+    ) {
+      throw new HttpError({
+        statusCode: 403,
+        message: `Insufficient permission to update phone number ${phoneNumber}.`
       });
     }
 
@@ -296,21 +331,6 @@ export class PhoneNumberService {
     });
 
     return { message: "Phone number updated successfully" };
-  }
-
-  private async validateTeamPermissions(userId: number, teamId?: number) {
-    if (teamId) {
-      const canManage = await this.deps.agentRepository.canManageTeamResources({
-        userId,
-        teamId,
-      });
-      if (!canManage) {
-        throw new HttpError({
-          statusCode: 403,
-          message: "You don't have permission to import phone numbers for this team.",
-        });
-      }
-    }
   }
 
   private async validateAgentPermissions(userId: number, agentId?: string | null) {
