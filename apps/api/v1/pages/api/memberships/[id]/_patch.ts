@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 
 import {
   membershipEditBodySchema,
@@ -47,6 +47,7 @@ export async function patchHandler(req: NextApiRequest) {
     where: { userId_teamId },
     data: {
       ...data,
+      bookingLimits: data.bookingLimits === null ? Prisma.JsonNull : data.bookingLimits,
       updatedAt: new Date(),
     },
   };

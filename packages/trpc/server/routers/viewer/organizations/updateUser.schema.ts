@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+import { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { assignUserToAttributeSchema } from "../attributes/assignUserToAttribute.schema";
@@ -18,6 +19,7 @@ export const ZUpdateUserInputSchema = z.object({
   ),
   timeZone: timeZoneSchema,
   attributeOptions: assignUserToAttributeSchema.optional(),
+  bookingLimits: intervalLimitsType.optional(),
 });
 
 export type TUpdateUserInputSchema = z.infer<typeof ZUpdateUserInputSchema>;
