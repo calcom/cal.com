@@ -1,5 +1,6 @@
 import { getIntegrationAttributeSyncService } from "@calcom/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
 import {
+  CredentialNotFoundError,
   DuplicateAttributeWithinSyncError,
   DuplicateAttributeAcrossSyncsError,
 } from "@calcom/ee/integration-attribute-sync/services/IntegrationAttributeSyncService";
@@ -37,7 +38,7 @@ const createAttributeSyncHandler = async ({
       org.id
     );
   } catch (error) {
-    if (error instanceof Error && error.message === "Credential not found") {
+    if (error instanceof CredentialNotFoundError) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Credential not found",

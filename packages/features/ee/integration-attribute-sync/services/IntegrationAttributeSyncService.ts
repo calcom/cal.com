@@ -30,6 +30,13 @@ export class UnauthorizedAttributeError extends Error {
   }
 }
 
+export class CredentialNotFoundError extends Error {
+  constructor() {
+    super("Credential not found");
+    this.name = "CredentialNotFoundError";
+  }
+}
+
 interface IIntegrationAttributeSyncServiceDeps {
   credentialRepository: CredentialRepository;
   integrationAttributeSyncRepository: IIntegrationAttributeSyncRepository;
@@ -113,7 +120,7 @@ export class IntegrationAttributeSyncService {
     });
 
     if (!credential) {
-      throw new Error("Credential not found");
+      throw new CredentialNotFoundError();
     }
 
     const parsedRule = attributeSyncRuleSchema.parse(input.rule);

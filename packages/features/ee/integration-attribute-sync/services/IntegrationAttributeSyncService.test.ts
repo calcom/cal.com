@@ -392,13 +392,11 @@ describe("IntegrationAttributeSyncService", () => {
       mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue(["attr-valid"]);
       mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
 
-      try {
-        await service.updateIncludeRulesAndMappings(formData);
-        expect.fail("Should have thrown an error");
-      } catch (error) {
+      await expect(service.updateIncludeRulesAndMappings(formData)).rejects.toSatisfy((error) => {
         expect(error).toBeInstanceOf(UnauthorizedAttributeError);
         expect((error as UnauthorizedAttributeError).attributeIds).toEqual(["attr-invalid-1", "attr-invalid-2"]);
-      }
+        return true;
+      });
     });
 
     it("should pass validation when all attributes belong to organization", async () => {

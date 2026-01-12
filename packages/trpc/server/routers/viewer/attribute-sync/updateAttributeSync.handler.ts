@@ -20,7 +20,15 @@ const updateAttributeSyncHandler = async ({
   ctx,
   input,
 }: UpdateAttributeSyncOptions) => {
-  const currentUserOrgId = ctx.user.organizationId;
+  const org = ctx.user.organization;
+
+  if (!org?.id) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You need to be part of an organization to use this feature",
+    });
+  }
+
   const integrationAttributeSyncService = getIntegrationAttributeSyncService();
 
   // Verify the sync exists and belongs to the user's organization
@@ -29,7 +37,7 @@ const updateAttributeSyncHandler = async ({
 
   if (!integrationAttributeSync) throw new TRPCError({ code: "NOT_FOUND" });
 
-  if (integrationAttributeSync.organizationId !== currentUserOrgId) {
+  if (integrationAttributeSync.organizationId !== org.id) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 

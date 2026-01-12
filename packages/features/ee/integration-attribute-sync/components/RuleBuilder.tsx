@@ -8,6 +8,7 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import {
   formatConditionValue,
+  generateConditionId,
   getConditionTypeOptions,
   getDefaultAttributeCondition,
   getDefaultTeamCondition,
@@ -16,6 +17,7 @@ import {
   getTeamOperatorOptions,
   isArrayOperator,
   isTeamCondition,
+  type TAttributeSyncRuleConditionWithId,
 } from "../lib/ruleHelpers";
 import {
   ConditionIdentifierEnum,
@@ -26,6 +28,13 @@ import {
   type RuleOperatorEnum,
   type TAttributeSyncRuleCondition,
 } from "../repositories/IIntegrationAttributeSyncRepository";
+
+const ensureConditionHasId = (condition: TAttributeSyncRuleCondition): TAttributeSyncRuleConditionWithId => {
+  if ("_id" in condition && condition._id) {
+    return condition as TAttributeSyncRuleConditionWithId;
+  }
+  return { ...condition, _id: generateConditionId() } as TAttributeSyncRuleConditionWithId;
+};
 
 interface RuleBuilderProps {
   value: IAttributeSyncRule;
@@ -455,17 +464,20 @@ export const RuleBuilder = ({
             {t("attribute_sync_no_conditions")}
           </div>
         ) : (
-          value.conditions.map((condition, index) => (
-            <ConditionComponent
-              key={index}
-              condition={condition}
-              onChange={(newCondition) => handleConditionChange(index, newCondition)}
-              onRemove={() => handleRemoveCondition(index)}
-              teamOptions={teamOptions}
-              attributes={attributes}
-              isLoading={isLoading}
-            />
-          ))
+          value.conditions.map((condition, index) => {
+            const conditionWithId = ensureConditionHasId(condition);
+            return (
+              <ConditionComponent
+                key={conditionWithId._id}
+                condition={conditionWithId}
+                onChange={(newCondition) => handleConditionChange(index, newCondition)}
+                onRemove={() => handleRemoveCondition(index)}
+                teamOptions={teamOptions}
+                attributes={attributes}
+                isLoading={isLoading}
+              />
+            );
+          })
         )}
       </div>
 
