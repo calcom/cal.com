@@ -18,6 +18,7 @@ import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTe
 
 import { describe, test, vi, expect } from "vitest";
 
+import prisma from "@calcom/prisma";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -1086,7 +1087,7 @@ describe("Round Robin handleNewBooking", () => {
       });
     });
   });
-  
+
   describe("Round Robin with maxRoundRobinHosts", () => {
     const createBooker = () =>
       getBooker({
@@ -1234,5 +1235,149 @@ describe("Round Robin handleNewBooking", () => {
       expect(createdBooking).toBeDefined();
       expect(createdBooking.luckyUsers).toHaveLength(1);
     });
+  });
+
+  describe("Round Robin with requiresConfirmation", () => {
+    test(
+      "should not create calendar events for unconfirmed round robin bookings on first booking and reschedule",
+      async () => {
+        const handleNewBooking = getNewBookingHandler();
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const roundRobinHost1 = getOrganizer({
+          name: "RR Host 1",
+          email: "rrhost1@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: TestData.apps["google-calendar"].type,
+            externalId: "rrhost1@google-calendar.com",
+          },
+        });
+
+        const roundRobinHost2 = getOrganizer({
+          name: "RR Host 2",
+          email: "rrhost2@example.com",
+          id: 102,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: TestData.apps["google-calendar"].type,
+            externalId: "rrhost2@google-calendar.com",
+          },
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 15,
+                length: 15,
+                requiresConfirmation: true,
+                schedulingType: SchedulingType.ROUND_ROBIN,
+                users: [
+                  {
+                    id: 101,
+                  },
+                  {
+                    id: 102,
+                  },
+                ],
+                hosts: [
+                  { userId: 101, isFixed: false },
+                  { userId: 102, isFixed: false },
+                ],
+                schedule: TestData.schedules.IstWorkHours,
+              },
+            ],
+            organizer: roundRobinHost1,
+            usersApartFromOrganizer: [roundRobinHost2],
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          })
+        );
+
+        mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            uid: "MOCK_ID",
+            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          },
+        });
+
+        const firstBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            user: roundRobinHost1.name,
+            start: `${plus1DateString}T05:00:00.000Z`,
+            end: `${plus1DateString}T05:15:00.000Z`,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+          },
+        });
+
+        const firstBooking = await handleNewBooking({
+          bookingData: firstBookingData,
+        });
+
+        expect(firstBooking.status).toBe(BookingStatus.PENDING);
+
+        const firstBookingInDb = await prisma.booking.findUnique({
+          where: {
+            id: firstBooking.id,
+          },
+          include: {
+            references: true,
+          },
+        });
+
+        expect(firstBookingInDb?.references).toHaveLength(0);
+        expect(firstBookingInDb?.status).toBe(BookingStatus.PENDING);
+
+        const rescheduleBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            user: roundRobinHost2.name,
+            rescheduleUid: firstBooking.uid,
+            start: `${plus1DateString}T06:00:00.000Z`,
+            end: `${plus1DateString}T06:15:00.000Z`,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            rescheduledBy: booker.email,
+          },
+        });
+
+        const rescheduledBooking = await handleNewBooking({
+          bookingData: rescheduleBookingData,
+        });
+
+        expect(rescheduledBooking.status).toBe(BookingStatus.PENDING);
+
+        const rescheduledBookingInDb = await prisma.booking.findUnique({
+          where: {
+            id: rescheduledBooking.id,
+          },
+          include: {
+            references: true,
+          },
+        });
+
+        expect(rescheduledBookingInDb?.references).toHaveLength(0);
+        expect(rescheduledBookingInDb?.status).toBe(BookingStatus.PENDING);
+      }
+    );
   });
 });
