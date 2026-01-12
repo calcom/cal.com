@@ -255,7 +255,55 @@ import { TRPCError } from "@trpc/server";
 
 ### packages/features Import Restrictions
 
-Files in `packages/features/**` should NOT import from `trpc`. This keeps the features package decoupled from the tRPC layer, making the code more reusable and testable. Use `ErrorWithCode` for error handling in these files, and let the tRPC middleware handle the conversion.
+Files in `packages/features/**` should NOT import from `@calcom/trpc`. This keeps the features package decoupled from the tRPC layer, making the code more reusable and testable. Use `ErrorWithCode` for error handling in these files, and let the tRPC middleware handle the conversion.
+
+**Architecture: packages/features vs apps/web/modules**
+
+The `packages/features` package should contain only framework-agnostic code:
+- Repositories (data access layer)
+- Services (business logic)
+- Core utilities and helpers
+- Types and interfaces
+
+Web-specific code, particularly anything that uses tRPC, should live in `apps/web/modules/...`. This includes:
+- React hooks that use tRPC queries/mutations
+- tRPC-specific utilities
+- Web-only UI components that depend on tRPC
+
+**Example:**
+
+If you have a feature called `feature-opt-in`:
+
+```
+packages/features/feature-opt-in/
+├── repository/
+│   └── FeatureOptInRepository.ts    # Data access - OK here
+├── service/
+│   └── FeatureOptInService.ts       # Business logic - OK here
+└── types.ts                          # Types - OK here
+
+apps/web/modules/feature-opt-in/
+└── hooks/
+    └── useFeatureOptIn.ts           # tRPC hook - MUST be here, not in packages/features
+```
+
+```typescript
+// ❌ Bad - tRPC hook in packages/features
+// packages/features/feature-opt-in/hooks/useFeatureOptIn.ts
+import { trpc } from "@calcom/trpc/react";
+export function useFeatureOptIn() {
+  return trpc.viewer.featureOptIn.useQuery();
+}
+
+// ✅ Good - tRPC hook in apps/web/modules
+// apps/web/modules/feature-opt-in/hooks/useFeatureOptIn.ts
+import { trpc } from "@calcom/trpc/react";
+export function useFeatureOptIn() {
+  return trpc.viewer.featureOptIn.useQuery();
+}
+```
+
+This separation ensures that `packages/features` remains portable and can be used by other apps (like `apps/api/v2`) without pulling in web-specific dependencies like tRPC React hooks.
 
 ## Basic Performance Guidelines
 
@@ -371,6 +419,28 @@ export interface BookingDTO {
   status: "PENDING" | "CONFIRMED" | "CANCELLED";
 }
 ```
+
+### DTO Location and Naming
+
+**Location**: All DTOs go in `packages/lib/dto/`
+
+**Naming conventions**:
+- Base entity: `{Entity}Dto` (e.g., `BookingDto`)
+- With relations: `{Entity}With{Relations}Dto` (e.g., `BookingWithAttendeesDto`)
+- For specific projections: `{Entity}For{Purpose}Dto` (e.g., `BookingForConfirmationDto`)
+- Avoid: `{Entity}Dto2`, `{Entity}DtoForHandler`, or other use-case-specific names
+
+**Enum/union pattern** – use string literal unions to stay ORM-agnostic:
+
+```typescript
+// ✅ Good - ORM-agnostic string literal union
+export type BookingStatusDto = "CANCELLED" | "ACCEPTED" | "REJECTED" | "PENDING";
+
+// ❌ Bad - importing Prisma enum
+import { BookingStatus } from "@calcom/prisma/client";
+```
+
+**Type safety** – never use `as any` in DTO mapping functions. If types don't align, fix the mapping explicitly.
 
 ### Prisma boundaries
 
@@ -660,4 +730,8 @@ When doing logic that depends on Browser locale, use i18n.language (prefer to de
 
 Note that with Date, you’re dealing with System time, so it’s not suited to everywhere (such as in the Booker, where instead we’ll likely migrate to Temporal) - but in most cases the above are suitable.
 
-The main reason for doing so is that Dayjs uses a useful, but highly risky plugin system, which has led us to create `@calcom/dayjs` - this is heavy however, because it pre-loads ALL plugins, including locale handling. It’s a non-ideal solution to a problem that unfortunately exists due to Dayjs.
+The main reason for doing so is that Dayjs uses a useful, but highly risky plugin system, which has led us to create `@calcom/dayjs` - this is heavy however, because it pre-loads ALL plugins, including locale handling. It's a non-ideal solution to a problem that unfortunately exists due to Dayjs.
+
+## Dependency Injection (DI) Pattern
+
+See [di-pattern.md](./di-pattern.md) for the complete guide on using the type-safe moduleLoader pattern for dependency injection.

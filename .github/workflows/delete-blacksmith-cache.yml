@@ -1,0 +1,43 @@
+name: Delete Blacksmith Cache
+on:
+  workflow_dispatch:
+    inputs:
+      cache_key:
+        description: "Blacksmith Cache Key to Delete"
+        required: true
+        type: string
+  pull_request:
+    types: [closed]
+
+jobs:
+  manually-delete-blacksmith-cache:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: useblacksmith/cache-delete@v1
+        with:
+          key: ${{ inputs.cache_key }}
+
+  delete-cache-build-on-pr-close:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    env:
+      CACHE_NAME: prod-build
+    steps:
+      - name: Delete cache-build cache
+        uses: useblacksmith/cache-delete@v1
+        with:
+          key: ${{ env.CACHE_NAME }}-${{ github.event.pull_request.head.ref }}
+          prefix: "true"
+
+  delete-git-checkout-cache-on-pr-close:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Delete git-checkout cache
+        uses: useblacksmith/cache-delete@v1
+        with:
+          key: git-checkout-${{ github.event.pull_request.head.ref }}-
+          prefix: "true"
