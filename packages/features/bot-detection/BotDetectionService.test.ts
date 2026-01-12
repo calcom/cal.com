@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 
 import { BotDetectionService } from "./BotDetectionService";
@@ -75,7 +77,7 @@ describe("BotDetectionService", () => {
       expect(mockEventTypeRepository.getTeamIdByEventTypeId).not.toHaveBeenCalled();
     });
 
-    it("should throw HttpError with 400 status for invalid eventTypeId", async () => {
+    it("should throw ErrorWithCode for invalid eventTypeId", async () => {
       process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER = "1";
 
       await expect(
@@ -83,21 +85,21 @@ describe("BotDetectionService", () => {
           eventTypeId: "3823346KiEg1Zk6') OR 370=(SELECT 370 FROM PG_SLEEP(15))--" as unknown as number,
           headers: mockHeaders,
         })
-      ).rejects.toThrow(HttpError);
+      ).rejects.toThrow(ErrorWithCode);
 
       await expect(
         botDetectionService.checkBotDetection({
           eventTypeId: -1,
           headers: mockHeaders,
         })
-      ).rejects.toThrow(HttpError);
+      ).rejects.toThrow(ErrorWithCode);
 
       await expect(
         botDetectionService.checkBotDetection({
           eventTypeId: 1.5,
           headers: mockHeaders,
         })
-      ).rejects.toThrow(HttpError);
+      ).rejects.toThrow(ErrorWithCode);
 
       try {
         await botDetectionService.checkBotDetection({
@@ -105,8 +107,8 @@ describe("BotDetectionService", () => {
           headers: mockHeaders,
         });
       } catch (error) {
-        expect(error).toBeInstanceOf(HttpError);
-        expect((error as HttpError).statusCode).toBe(400);
+        expect(error).toBeInstanceOf(ErrorWithCode);
+        expect((error as ErrorWithCode).code).toBe(ErrorCode.BadRequest);
       }
     });
 
