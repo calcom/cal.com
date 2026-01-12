@@ -23,6 +23,13 @@ export class DuplicateAttributeAcrossSyncsError extends Error {
   }
 }
 
+export class UnauthorizedAttributeError extends Error {
+  constructor(public attributeIds: string[]) {
+    super("One or more attributes do not belong to this organization");
+    this.name = "UnauthorizedAttributeError";
+  }
+}
+
 interface IIntegrationAttributeSyncServiceDeps {
   credentialRepository: CredentialRepository;
   integrationAttributeSyncRepository: IIntegrationAttributeSyncRepository;
@@ -59,6 +66,23 @@ export class IntegrationAttributeSyncService {
       if (existingSet.has(mapping.attributeId)) {
         throw new DuplicateAttributeAcrossSyncsError(mapping.attributeId);
       }
+    }
+  }
+
+  private async validateAttributeOwnership(
+    organizationId: number,
+    attributeIds: string[]
+  ): Promise<void> {
+    const validAttributeIds =
+      await this.deps.integrationAttributeSyncRepository.getAttributeIdsByOrganization(
+        organizationId,
+        attributeIds
+      );
+
+    if (validAttributeIds.length !== attributeIds.length) {
+      const validSet = new Set(validAttributeIds);
+      const invalidIds = attributeIds.filter((id) => !validSet.has(id));
+      throw new UnauthorizedAttributeError(invalidIds);
     }
   }
 
@@ -110,6 +134,9 @@ export class IntegrationAttributeSyncService {
       input.syncFieldMappings
     );
 
+    const attributeIds = input.syncFieldMappings.map((m) => m.attributeId);
+    await this.validateAttributeOwnership(organizationId, attributeIds);
+
     return this.deps.integrationAttributeSyncRepository.create({
       name: input.name,
       organizationId,
@@ -132,6 +159,9 @@ export class IntegrationAttributeSyncService {
       syncFieldMappings,
       data.id
     );
+
+    const attributeIds = syncFieldMappings.map((m) => m.attributeId);
+    await this.validateAttributeOwnership(data.organizationId, attributeIds);
 
     const existingFieldMappings =
       await this.deps.integrationAttributeSyncRepository.getSyncFieldMappings(

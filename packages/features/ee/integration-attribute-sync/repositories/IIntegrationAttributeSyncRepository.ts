@@ -127,6 +127,7 @@ export interface IIntegrationAttributeSyncRepository {
   getById(id: string): Promise<IntegrationAttributeSync | null>;
   getSyncFieldMappings(integrationAttributeSyncId: string): Promise<AttributeSyncFieldMapping[]>;
   getMappedAttributeIdsByOrganization(organizationId: number, excludeSyncId?: string): Promise<string[]>;
+  getAttributeIdsByOrganization(organizationId: number, attributeIds: string[]): Promise<string[]>;
   create(params: IIntegrationAttributeSyncCreateParams): Promise<IntegrationAttributeSync>;
   updateTransactionWithRuleAndMappings(params: IIntegrationAttributeSyncUpdateParams): Promise<void>;
   deleteById(id: string): Promise<void>;
