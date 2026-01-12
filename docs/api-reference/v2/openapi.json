@@ -13291,6 +13291,7 @@
       "patch": {
         "operationId": "MeController_updateMe",
         "summary": "Update my profile",
+        "description": "Updates the authenticated user's profile. Email changes require verification and the primary email stays unchanged until verification completes, unless the new email is already a verified secondary email or the user is platform-managed.",
         "parameters": [
           {
             "name": "Authorization",
@@ -31758,7 +31759,7 @@
             "example": "America/Los_Angeles"
           }
         },
-"required": [
+        "required": [
           "id",
           "name",
           "email",
@@ -31862,7 +31863,7 @@
             "example": "+1234567890"
           }
         },
-"required": [
+        "required": [
           "name",
           "email",
           "displayEmail",
@@ -32296,7 +32297,7 @@
             }
           }
         },
-"required": [
+        "required": [
           "name",
           "email",
           "displayEmail",
@@ -33399,7 +33400,7 @@
             "description": "Clean email for display purposes"
           }
         },
-"required": [
+        "required": [
           "id",
           "name",
           "email",
