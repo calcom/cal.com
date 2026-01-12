@@ -10,7 +10,7 @@ import {
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
 import type { ValidationError } from "@nestjs/common";
-import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
+import { BadRequestException, Logger, ValidationPipe, VersioningType } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import cookieParser from "cookie-parser";
 import { Request } from "express";
@@ -20,6 +20,8 @@ import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
 import { CalendarServiceExceptionFilter } from "./filters/calendar-service-exception.filter";
 import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
+
+const logger: Logger = new Logger("Bootstrap");
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
   try {
@@ -80,7 +82,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
 
     return app;
   } catch (error) {
-    console.error("❌ Error starting NestJS app:", error);
-    process.exit(1);
+    logger.error("Error starting NestJS app:", error);
+    throw error;
   }
 };
