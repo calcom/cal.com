@@ -38,8 +38,6 @@
     "../../dayjs",
     "../../prisma/zod-utils.ts",
     "../../prisma/zod",
-    "../../trpc/server/routers/viewer/slots",
-    "../../trpc/server/types",
     "../../features/eventtypes",
     "../../features/schedules",
     "../../features/bookings/Booker",

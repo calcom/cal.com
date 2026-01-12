@@ -337,17 +337,17 @@
                 "patterns": [
                   {
                     "group": [
-                      "@calcom/trpc/react",
-                      "@calcom/trpc/react/**"
+                      "@calcom/trpc",
+                      "@calcom/trpc/**"
                     ],
-                    "message": "atoms package should not import from @calcom/trpc/react."
+                    "message": "atoms package should not import from @calcom/trpc."
                   },
                   {
                     "group": [
-                      "../../trpc/react",
-                      "../../trpc/react/**"
+                      "../../trpc",
+                      "../../trpc/**"
                     ],
-                    "message": "atoms package should not import from trpc/react."
+                    "message": "atoms package should not import from trpc."
                   }
                 ]
               }
