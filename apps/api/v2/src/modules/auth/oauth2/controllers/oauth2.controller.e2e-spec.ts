@@ -4,7 +4,7 @@ import { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test, TestingModule } from "@nestjs/testing";
-import * as nextAuthJwt from "next-auth/jwt";
+import { getToken } from "next-auth/jwt";
 import request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuth2ClientRepositoryFixture } from "test/fixtures/repository/oauth2-client.repository.fixture";
@@ -24,7 +24,7 @@ import { UsersModule } from "@/modules/users/users.module";
 jest.mock("next-auth/jwt", () => ({
   getToken: jest.fn(),
 }));
-const mockGetToken = nextAuthJwt.getToken as jest.MockedFunction<typeof nextAuthJwt.getToken>;
+const mockGetToken = getToken as jest.MockedFunction<typeof getToken>;
 
 describe("OAuth2 Controller Endpoints", () => {
   describe("User Not Authenticated", () => {
