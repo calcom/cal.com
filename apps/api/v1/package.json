@@ -8,7 +8,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
+    "clean": "rimraf .turbo node_modules .next",
     "dev": "PORT=3003 next dev",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
