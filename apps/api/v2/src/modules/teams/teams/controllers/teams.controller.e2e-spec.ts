@@ -1,5 +1,19 @@
-import { bootstrap } from "@/bootstrap";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { slugify } from "@calcom/platform-libraries";
+import { TeamOutputDto } from "@calcom/platform-types";
+import { User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import Stripe from "stripe";
+import request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { CreateTeamInput } from "@/modules/teams/teams/inputs/create-team.input";
 import { UpdateTeamDto } from "@/modules/teams/teams/inputs/update-team.input";
@@ -7,22 +21,6 @@ import { CreateTeamOutput } from "@/modules/teams/teams/outputs/teams/create-tea
 import { GetTeamOutput } from "@/modules/teams/teams/outputs/teams/get-team.output";
 import { GetTeamsOutput } from "@/modules/teams/teams/outputs/teams/get-teams.output";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import Stripe from "stripe";
-
-import { User } from "@calcom/prisma/client";
-import * as request from "supertest";
-import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { slugify } from "@calcom/platform-libraries";
-import { TeamOutputDto } from "@calcom/platform-types";
 
 describe("Teams endpoint", () => {
   let app: INestApplication;

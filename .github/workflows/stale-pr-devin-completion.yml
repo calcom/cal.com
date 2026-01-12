@@ -61,11 +61,7 @@ jobs:
             const isFork = pr.head.repo.fork || pr.head.repo.full_name !== pr.base.repo.full_name;
             const maintainerCanModify = pr.maintainer_can_modify;
             const canProceed = !isFork || maintainerCanModify;
-
-            if (!canProceed) {
-              core.setFailed(`Cannot complete this fork PR: the fork owner has not enabled "Allow edits from maintainers". PR author needs to enable this setting.`);
-              return;
-            }
+            const needsMaintainerAccess = isFork && !maintainerCanModify;
 
             const headRepoFullName = pr.head.repo.full_name;
             const headRepoCloneUrl = pr.head.repo.clone_url;
@@ -79,6 +75,7 @@ jobs:
             core.setOutput('head_repo_clone_url', headRepoCloneUrl);
             core.setOutput('maintainer_can_modify', maintainerCanModify);
             core.setOutput('can_proceed', canProceed);
+            core.setOutput('needs_maintainer_access', needsMaintainerAccess);
 
             console.log(`PR #${prNumber}: "${pr.title}"`);
             console.log(`Author: ${pr.user.login}`);
@@ -86,6 +83,64 @@ jobs:
             console.log(`Is fork: ${isFork}`);
             console.log(`Head repo: ${headRepoFullName}`);
             console.log(`Maintainer can modify: ${maintainerCanModify}`);
+            console.log(`Needs maintainer access: ${needsMaintainerAccess}`);
+
+      - name: Request maintainer access for fork PR
+        if: steps.pr.outputs.needs_maintainer_access == 'true'
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          PR_AUTHOR: ${{ steps.pr.outputs.pr_author }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = parseInt(process.env.PR_NUMBER);
+            const prAuthor = process.env.PR_AUTHOR;
+            const { owner, repo } = context.repo;
+
+            const comments = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: prNumber
+            });
+
+            const alreadyRequested = comments.data.some(comment => 
+              comment.body?.includes('### Maintainer Access Needed')
+            );
+
+            if (!alreadyRequested) {
+              const commentBody = [
+                '### Maintainer Access Needed',
+                '',
+                `Hi @${prAuthor}! Thanks for your contribution to Cal.com.`,
+                '',
+                `We'd like to help complete this stale PR, but we noticed that "Allow edits from maintainers" isn't enabled. We need this setting to push updates to your PR branch.`,
+                '',
+                '**Could you please enable this setting?** Here\'s how:',
+                '1. Scroll down to the bottom of this PR page',
+                '2. In the right sidebar, check the box that says **"Allow edits and access to secrets by maintainers"**',
+                '',
+                'This allows us to push commits directly to your PR branch, which helps us:',
+                '- Complete any remaining work on your PR',
+                '- Fix merge conflicts and make small adjustments',
+                '- Get your contribution merged faster',
+                '',
+                'Once you\'ve enabled this setting, we\'ll be able to help finish up this PR. If you have any concerns about enabling this setting, feel free to let us know!'
+              ].join('\n');
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body: commentBody
+              });
+
+              console.log(`Posted maintainer access request comment on PR #${prNumber}`);
+            } else {
+              console.log(`Maintainer access already requested on PR #${prNumber}`);
+            }
+
+            core.setFailed(`Cannot complete this fork PR: the fork owner has not enabled "Allow edits from maintainers". A comment has been posted requesting access.`);
 
       - name: Create Devin session
         if: steps.pr.outputs.can_proceed == 'true'

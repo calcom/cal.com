@@ -730,4 +730,8 @@ When doing logic that depends on Browser locale, use i18n.language (prefer to de
 
 Note that with Date, you’re dealing with System time, so it’s not suited to everywhere (such as in the Booker, where instead we’ll likely migrate to Temporal) - but in most cases the above are suitable.
 
-The main reason for doing so is that Dayjs uses a useful, but highly risky plugin system, which has led us to create `@calcom/dayjs` - this is heavy however, because it pre-loads ALL plugins, including locale handling. It’s a non-ideal solution to a problem that unfortunately exists due to Dayjs.
+The main reason for doing so is that Dayjs uses a useful, but highly risky plugin system, which has led us to create `@calcom/dayjs` - this is heavy however, because it pre-loads ALL plugins, including locale handling. It's a non-ideal solution to a problem that unfortunately exists due to Dayjs.
+
+## Dependency Injection (DI) Pattern
+
+See [di-pattern.md](./di-pattern.md) for the complete guide on using the type-safe moduleLoader pattern for dependency injection.

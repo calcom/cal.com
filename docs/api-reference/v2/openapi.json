@@ -13291,6 +13291,7 @@
       "patch": {
         "operationId": "MeController_updateMe",
         "summary": "Update my profile",
+        "description": "Updates the authenticated user's profile. Email changes require verification and the primary email stays unchanged until verification completes, unless the new email is already a verified secondary email or the user is platform-managed.",
         "parameters": [
           {
             "name": "Authorization",
@@ -15535,6 +15536,31 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -31726,7 +31752,7 @@
             "example": "America/Los_Angeles"
           }
         },
-"required": [
+        "required": [
           "id",
           "name",
           "email",
@@ -31830,7 +31856,7 @@
             "example": "+1234567890"
           }
         },
-"required": [
+        "required": [
           "name",
           "email",
           "displayEmail",
@@ -32264,7 +32290,7 @@
             }
           }
         },
-"required": [
+        "required": [
           "name",
           "email",
           "displayEmail",
@@ -33367,7 +33393,7 @@
             "description": "Clean email for display purposes"
           }
         },
-"required": [
+        "required": [
           "id",
           "name",
           "email",

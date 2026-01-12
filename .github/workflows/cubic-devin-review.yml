@@ -150,7 +150,9 @@ jobs:
           
           MESSAGE="New Cubic AI review feedback has been submitted on PR #${{ github.event.pull_request.number }}.
 
-          Please address the following additional issues:
+          IMPORTANT: Before fixing any issue, check the individual Cubic comment on the PR for that issue's confidence score. The confidence score appears as 'Fix confidence (alpha): X/10' in each comment. Note that the (alpha) may or not be there. Don't be picky about that text. But only fix issues where the confidence score is 9/10 or higher. If you cannot find a confidence score for an issue, skip it.
+
+          Here are the issues identified by Cubic AI:
 
           ${CUBIC_PROMPT}
 
@@ -181,8 +183,8 @@ jobs:
           Your tasks:
           1. Clone the repository ${{ github.repository }} locally.
           2. Check out the PR branch and review the current code.
-          3. Read and understand the Cubic AI review feedback below.
-          4. Address each issue identified by Cubic AI by making the necessary code changes.
+          3. Read the Cubic AI review feedback below AND check each individual Cubic comment on the PR for the confidence score.
+          4. IMPORTANT: Only fix issues where the confidence score is 9/10 or higher. The confidence score appears as 'Fix confidence (alpha): X/10' in each Cubic comment. If you cannot find a confidence score for an issue, skip it.
           5. Commit your changes with clear commit messages referencing the issues fixed.
           6. Push your changes to the PR branch.
 
