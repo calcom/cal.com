@@ -18,6 +18,7 @@ export const getWebhookPayloadForBooking = ({
     id: number;
     eventTypeId: number | null;
     userId: number | null;
+    oneTimePassword?: string | null;
   };
   evt: CalendarEvent;
 }) => {
@@ -34,6 +35,7 @@ export const getWebhookPayloadForBooking = ({
     ...evt,
     ...eventTypeInfo,
     bookingId: booking.id,
+    oneTimePassword: booking.oneTimePassword,
   };
 
   return payload;

@@ -99,6 +99,7 @@ export async function getBooking(bookingId: number) {
       paid: true,
       destinationCalendar: true,
       status: true,
+      oneTimePassword: true,
       user: {
         select: {
           id: true,

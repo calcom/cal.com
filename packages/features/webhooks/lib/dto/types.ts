@@ -80,6 +80,7 @@ export interface BookingRequestedDTO extends BaseEventDTO {
     id: number;
     eventTypeId: number | null;
     userId: number | null;
+    oneTimePassword?: string | null;
   };
 }
 
@@ -573,6 +574,7 @@ export type EventPayloadType = CalendarEvent &
     bookingId?: number;
     status?: string;
     smsReminderNumber?: string;
+    oneTimePassword?: string | null;
     rescheduleId?: number;
     rescheduleUid?: string;
     rescheduleStartTime?: string;
