@@ -24,6 +24,12 @@ jobs:
       github.event.label.name == 'stale'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/actions/check-devin-session
+          sparse-checkout-cone-mode: false
+
       - name: Get PR details
         id: pr
         uses: actions/github-script@v7
@@ -142,8 +148,61 @@ jobs:
 
             core.setFailed(`Cannot complete this fork PR: the fork owner has not enabled "Allow edits from maintainers". A comment has been posted requesting access.`);
 
-      - name: Create Devin session
+      - name: Check for existing Devin session
         if: steps.pr.outputs.can_proceed == 'true'
+        id: check-session
+        uses: ./.github/actions/check-devin-session
+        with:
+          pr_number: ${{ steps.pr.outputs.pr_number }}
+          pr_body: ${{ github.event.pull_request.body }}
+          devin_api_key: ${{ secrets.DEVIN_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          session_patterns: '["Devin AI is completing this stale PR", "Devin AI is resolving merge conflicts", "Devin AI is addressing Cubic AI"]'
+          max_session_age_days: "7"
+
+      - name: Send message to existing Devin session
+        if: steps.pr.outputs.can_proceed == 'true' && steps.check-session.outputs.has_valid_session == 'true'
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+          SESSION_ID: ${{ steps.check-session.outputs.session_id }}
+          SESSION_URL: ${{ steps.check-session.outputs.session_url }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          PR_TITLE: ${{ steps.pr.outputs.pr_title }}
+          PR_AUTHOR: ${{ steps.pr.outputs.pr_author }}
+          PR_BRANCH: ${{ steps.pr.outputs.pr_branch }}
+        run: |
+          MESSAGE="This stale PR #${PR_NUMBER} needs to be completed.
+
+          PR Title: ${PR_TITLE}
+          PR Branch: ${PR_BRANCH}
+          Original Author: @${PR_AUTHOR}
+
+          Please continue working on this PR:
+          1. Review the current state and any feedback
+          2. Complete any unfinished work
+          3. Fix any linting or type errors
+          4. Push your changes to the PR branch
+          5. Remove the 'stale' label if work is completed
+
+          Continue working on the same PR branch and push your fixes."
+
+          HTTP_CODE=$(curl -s -o /tmp/devin-response.json -w "%{http_code}" -X POST "https://api.devin.ai/v1/sessions/${SESSION_ID}/message" \
+            -H "Authorization: Bearer ${DEVIN_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg message "$MESSAGE" '{message: $message}')")
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "Failed to send message to Devin session: HTTP $HTTP_CODE"
+            cat /tmp/devin-response.json
+            exit 1
+          fi
+
+          echo "Message sent to existing session successfully"
+          echo "SESSION_URL=$SESSION_URL" >> $GITHUB_ENV
+          echo "EXISTING_SESSION=true" >> $GITHUB_ENV
+
+      - name: Create Devin session
+        if: steps.pr.outputs.can_proceed == 'true' && steps.check-session.outputs.has_valid_session != 'true'
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
@@ -230,15 +289,22 @@ jobs:
         env:
           PR_AUTHOR: ${{ steps.pr.outputs.pr_author }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          EXISTING_SESSION: ${{ env.EXISTING_SESSION }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const sessionUrl = process.env.SESSION_URL;
             const prAuthor = process.env.PR_AUTHOR;
             const prNumber = process.env.PR_NUMBER;
+            const isExistingSession = process.env.EXISTING_SESSION === 'true';
+            
+            const message = isExistingSession
+              ? `### Devin AI is completing this stale PR\n\nThis PR by @${prAuthor} has been marked as stale. The existing Devin session has been notified to complete the remaining work.\n\n[View Devin Session](${sessionUrl})\n\n---\n*Devin will review the PR, address any feedback, and push updates to complete this PR.*`
+              : `### Devin AI is completing this stale PR\n\nThis PR by @${prAuthor} has been marked as stale. A Devin session has been created to complete the remaining work.\n\n[View Devin Session](${sessionUrl})\n\n---\n*Devin will review the PR, address any feedback, and push updates to complete this PR.*`;
+            
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: parseInt(prNumber),
-              body: `### Devin AI is completing this stale PR\n\nThis PR by @${prAuthor} has been marked as stale. A Devin session has been created to complete the remaining work.\n\n[View Devin Session](${sessionUrl})\n\n---\n*Devin will review the PR, address any feedback, and push updates to complete this PR.*`
+              body: message
             });

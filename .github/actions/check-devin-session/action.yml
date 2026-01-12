@@ -1,0 +1,191 @@
+name: "Check Devin Session"
+description: "Find and validate existing Devin sessions for a PR, handling session age limits"
+
+inputs:
+  pr_number:
+    description: "Pull request number"
+    required: true
+  pr_body:
+    description: "Pull request body content"
+    required: false
+    default: ""
+  devin_api_key:
+    description: "Devin API key"
+    required: true
+  github_token:
+    description: "GitHub token for API calls"
+    required: true
+  session_patterns:
+    description: "JSON array of patterns to search for in PR comments"
+    required: false
+    default: '[]'
+  max_session_age_days:
+    description: "Maximum age in days for a session to be considered reusable"
+    required: false
+    default: "7"
+
+outputs:
+  session_id:
+    description: "Found session ID (empty if none found or session too old)"
+    value: ${{ steps.check-session.outputs.session_id }}
+  session_url:
+    description: "Session URL (empty if none found or session too old)"
+    value: ${{ steps.check-session.outputs.session_url }}
+  has_valid_session:
+    description: "Whether a valid, reusable session was found"
+    value: ${{ steps.check-session.outputs.has_valid_session }}
+  session_status:
+    description: "Status of the found session"
+    value: ${{ steps.check-session.outputs.session_status }}
+  is_session_too_old:
+    description: "Whether the found session is too old to reuse"
+    value: ${{ steps.check-session.outputs.is_session_too_old }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check for existing Devin session
+      id: check-session
+      uses: actions/github-script@v7
+      env:
+        DEVIN_API_KEY: ${{ inputs.devin_api_key }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+        PR_BODY: ${{ inputs.pr_body }}
+        SESSION_PATTERNS: ${{ inputs.session_patterns }}
+        MAX_SESSION_AGE_DAYS: ${{ inputs.max_session_age_days }}
+      with:
+        github-token: ${{ inputs.github_token }}
+        script: |
+          const prNumber = parseInt(process.env.PR_NUMBER, 10);
+          const prBody = process.env.PR_BODY || '';
+          const sessionPatterns = JSON.parse(process.env.SESSION_PATTERNS || '[]');
+          const maxSessionAgeDays = parseInt(process.env.MAX_SESSION_AGE_DAYS, 10) || 7;
+          
+          async function getSessionDetails(sessionId) {
+            const response = await fetch(`https://api.devin.ai/v1/sessions/${sessionId}`, {
+              headers: {
+                'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (!response.ok) {
+              console.log(`Failed to fetch session ${sessionId}: ${response.status}`);
+              return null;
+            }
+            
+            return await response.json();
+          }
+          
+          function isSessionTooOld(session) {
+            if (!session.created_at) {
+              console.log('Session has no created_at field, assuming it may be old');
+              return true;
+            }
+            
+            const createdAt = new Date(session.created_at);
+            const now = new Date();
+            const ageInDays = (now - createdAt) / (1000 * 60 * 60 * 24);
+            
+            console.log(`Session created at: ${createdAt.toISOString()}`);
+            console.log(`Session age: ${ageInDays.toFixed(2)} days (max: ${maxSessionAgeDays})`);
+            
+            return ageInDays > maxSessionAgeDays;
+          }
+          
+          function isSessionActive(session) {
+            const activeStatuses = ['working', 'blocked', 'resumed'];
+            return activeStatuses.includes(session.status_enum);
+          }
+          
+          async function findSessionFromPrBody() {
+            const match = prBody.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
+            if (match) {
+              const sessionId = match[1];
+              console.log(`Found session in PR body: ${sessionId}`);
+              return { sessionId, source: 'pr_body' };
+            }
+            return null;
+          }
+          
+          async function findSessionFromComments() {
+            if (sessionPatterns.length === 0) {
+              console.log('No session patterns provided, skipping comment search');
+              return null;
+            }
+            
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            });
+            
+            for (const comment of comments.data.reverse()) {
+              const hasDevinSession = sessionPatterns.some(pattern => 
+                comment.body?.includes(pattern)
+              );
+              
+              if (hasDevinSession) {
+                const match = comment.body?.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
+                if (match) {
+                  console.log(`Found session in comment: ${match[1]}`);
+                  return { sessionId: match[1], source: 'comment' };
+                }
+              }
+            }
+            
+            return null;
+          }
+          
+          let sessionInfo = await findSessionFromPrBody();
+          if (!sessionInfo) {
+            sessionInfo = await findSessionFromComments();
+          }
+          
+          if (!sessionInfo) {
+            console.log('No existing Devin session found');
+            core.setOutput('session_id', '');
+            core.setOutput('session_url', '');
+            core.setOutput('has_valid_session', 'false');
+            core.setOutput('session_status', '');
+            core.setOutput('is_session_too_old', 'false');
+            return;
+          }
+          
+          const session = await getSessionDetails(sessionInfo.sessionId);
+          
+          if (!session) {
+            console.log(`Could not fetch session details for ${sessionInfo.sessionId}`);
+            core.setOutput('session_id', '');
+            core.setOutput('session_url', '');
+            core.setOutput('has_valid_session', 'false');
+            core.setOutput('session_status', '');
+            core.setOutput('is_session_too_old', 'false');
+            return;
+          }
+          
+          const sessionUrl = `https://app.devin.ai/sessions/${sessionInfo.sessionId}`;
+          const tooOld = isSessionTooOld(session);
+          const active = isSessionActive(session);
+          
+          console.log(`Session ${sessionInfo.sessionId}:`);
+          console.log(`  Status: ${session.status_enum}`);
+          console.log(`  Active: ${active}`);
+          console.log(`  Too old: ${tooOld}`);
+          console.log(`  Source: ${sessionInfo.source}`);
+          
+          const hasValidSession = active && !tooOld;
+          
+          core.setOutput('session_id', sessionInfo.sessionId);
+          core.setOutput('session_url', sessionUrl);
+          core.setOutput('has_valid_session', hasValidSession ? 'true' : 'false');
+          core.setOutput('session_status', session.status_enum);
+          core.setOutput('is_session_too_old', tooOld ? 'true' : 'false');
+          
+          if (hasValidSession) {
+            console.log(`Valid session found: ${sessionUrl}`);
+          } else if (tooOld) {
+            console.log(`Session is too old (>${maxSessionAgeDays} days), will create new session`);
+          } else {
+            console.log(`Session is not active (status: ${session.status_enum}), will create new session`);
+          }
