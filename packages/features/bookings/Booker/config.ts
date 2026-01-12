@@ -45,6 +45,12 @@ type ResizeAnimationConfig = {
   };
 };
 
+type TabletResizeAnimationConfig = {
+  [key in BookerLayout]?: {
+    [key in BookerState | "default"]?: React.CSSProperties;
+  };
+};
+
 /**
  * This configuration is used to animate the grid container for the booker.
  * The object is structured as following:
@@ -123,6 +129,39 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
   },
 };
 
+/**
+ * Tablet-specific grid configurations for the booker.
+ * These override the default configurations when the viewport is tablet-sized (768px - 1024px).
+ * The tablet layout uses a 2+1 grid: first row has meta and details side by side,
+ * second row has main (calendar) and timeslots side by side.
+ */
+export const tabletResizeAnimationConfig: TabletResizeAnimationConfig = {
+  month_view: {
+    default: {
+      width: "100%",
+      minHeight: "450px",
+      height: "auto",
+      gridTemplateAreas: `
+      "meta details"
+      "main main"
+      `,
+      gridTemplateColumns: "1fr 1fr",
+      gridTemplateRows: "auto 1fr",
+    },
+    selecting_time: {
+      width: "100%",
+      minHeight: "450px",
+      height: "auto",
+      gridTemplateAreas: `
+      "meta details"
+      "main timeslots"
+      `,
+      gridTemplateColumns: "1fr 1fr",
+      gridTemplateRows: "auto 1fr",
+    },
+  },
+};
+
 export const getBookerSizeClassNames = (
   layout: BookerLayout,
   bookerState: BookerState,
@@ -163,13 +202,17 @@ export const getBookerSizeClassNames = (
  * Based on that ref this hook animates the size of the booker element with framer motion.
  * It also takes into account the prefers-reduced-motion setting, to not animate when that's set.
  */
-export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerState) => {
+export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerState, isTablet = false) => {
   const prefersReducedMotion = useReducedMotion();
   const [animationScope, animate] = useAnimate();
   const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
-  ``;
+
   useEffect(() => {
-    const animationConfig = resizeAnimationConfig[layout][state] || resizeAnimationConfig[layout].default;
+    const tabletConfig = tabletResizeAnimationConfig[layout];
+    const useTabletLayout = isTablet && tabletConfig;
+    const animationConfig = useTabletLayout
+      ? tabletConfig[state] || tabletConfig.default
+      : resizeAnimationConfig[layout][state] || resizeAnimationConfig[layout].default;
 
     if (!animationScope.current) return;
 
@@ -211,7 +254,7 @@ export const useBookerResizeAnimation = (layout: BookerLayout, state: BookerStat
         ease: cubicBezier(0.4, 0, 0.2, 1),
       });
     }
-  }, [animate, isEmbed, animationScope, layout, prefersReducedMotion, state]);
+  }, [animate, isEmbed, animationScope, layout, prefersReducedMotion, state, isTablet]);
 
   return animationScope;
 };

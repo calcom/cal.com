@@ -99,6 +99,7 @@ const BookerComponent = ({
     extraDays,
     columnViewExtraDays,
     isMobile,
+    isTablet,
     layout,
     hideEventTypeDetails,
     isEmbed,
@@ -136,7 +137,7 @@ const BookerComponent = ({
   const nextSlots =
     Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1], "day")) + addonDays;
 
-  const animationScope = useBookerResizeAnimation(layout, bookerState);
+  const animationScope = useBookerResizeAnimation(layout, bookerState, isTablet);
 
   const timeslotsRef = useRef<HTMLDivElement>(null);
   const isQuickAvailabilityCheckFeatureEnabled = useIsQuickAvailabilityCheckFeatureEnabled();
@@ -416,26 +417,27 @@ const BookerComponent = ({
                     src={orgBannerUrl}
                   />
                 )}
-                {!hideEventTypeDetails && (
-                  <EventMeta
-                    selectedTimeslot={selectedTimeslot}
-                    classNames={{
-                      eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
-                      eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
-                      eventMetaTimezoneSelect:
-                        customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
-                    }}
-                    event={event.data}
-                    isPending={event.isPending}
-                    isPlatform={isPlatform}
-                    isPrivateLink={!!hashedLink}
-                    locale={userLocale}
-                    timeZones={timeZones}
-                    roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
-                    hideEventTypeDetails={hideEventTypeDetails}>
-                    {eventMetaChildren}
-                  </EventMeta>
-                )}
+                  {!hideEventTypeDetails && (
+                    <EventMeta
+                      selectedTimeslot={selectedTimeslot}
+                      classNames={{
+                        eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
+                        eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
+                        eventMetaTimezoneSelect:
+                          customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
+                      }}
+                      event={event.data}
+                      isPending={event.isPending}
+                      isPlatform={isPlatform}
+                      isPrivateLink={!!hashedLink}
+                      locale={userLocale}
+                      timeZones={timeZones}
+                      roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
+                      hideEventTypeDetails={hideEventTypeDetails}
+                      variant={isTablet && layout === BookerLayouts.MONTH_VIEW ? "header" : "full"}>
+                      {eventMetaChildren}
+                    </EventMeta>
+                  )}
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3">
@@ -451,6 +453,32 @@ const BookerComponent = ({
                   )}
               </BookerSection>
             </StickyOnDesktop>
+
+            {isTablet && layout === BookerLayouts.MONTH_VIEW && !hideEventTypeDetails && (
+              <BookerSection
+                key="details"
+                area="details"
+                className="relative z-10 flex w-full flex-col [grid-area:details]">
+                <EventMeta
+                  selectedTimeslot={selectedTimeslot}
+                  classNames={{
+                    eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
+                    eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
+                    eventMetaTimezoneSelect:
+                      customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
+                  }}
+                  event={event.data}
+                  isPending={event.isPending}
+                  isPlatform={isPlatform}
+                  isPrivateLink={!!hashedLink}
+                  locale={userLocale}
+                  timeZones={timeZones}
+                  roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
+                  hideEventTypeDetails={hideEventTypeDetails}
+                  variant="details"
+                />
+              </BookerSection>
+            )}
 
             <BookerSection
               key="book-event-form"
