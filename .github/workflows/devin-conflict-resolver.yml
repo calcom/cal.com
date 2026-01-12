@@ -349,7 +349,7 @@ jobs:
                
                Step A: Count files changed in your merge commit:
                \`\`\`
-               FILE_COUNT=$(git diff --name-only HEAD^1...HEAD | wc -l)
+               FILE_COUNT=$(git diff --name-only HEAD^2...HEAD | wc -l)
                echo "Files changed in merge commit: $FILE_COUNT"
                \`\`\`
                
@@ -360,7 +360,7 @@ jobs:
                
                Step C: Compare your merge to the original PR:
                \`\`\`
-               git diff --stat HEAD^1...HEAD
+               git diff --stat HEAD^2...HEAD
                \`\`\`
                - This should show ONLY the files that had conflicts, plus any files from ${pr.base_ref} that were merged in
                - If you see hundreds of files or files unrelated to the original PR conflicts, STOP
