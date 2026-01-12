@@ -1596,7 +1596,7 @@ model BookingSeat {
   data                  Json?
   metadata              Json?
   calIdWorkflowInsights CalIdWorkflowInsights[]
-  createdAt    DateTime? @default(now())
+  createdAt             DateTime?               @default(now())
 
   @@index([bookingId])
   @@index([attendeeId])
