@@ -107,13 +107,16 @@ export class WorkflowReminderRepository {
 
   findByIdIncludeStepAndWorkflow(id: number) {
     return this.prismaClient.workflowReminder.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
       include: {
         workflowStep: {
           include: {
-            workflow: true,
+            workflow: {
+              include: {
+                // Include team branding for {ORG_LOGO}, {ORG_NAME}, {BRAND_COLOR} variables
+                team: { select: { logoUrl: true, brandColor: true, name: true } },
+              },
+            },
           },
         },
       },

@@ -77,6 +77,9 @@ export const DYNAMIC_TEXT_VARIABLES = [
   "attendee_timezone",
   "event_start_time_in_attendee_timezone",
   "event_end_time_in_attendee_timezone",
+  "org_logo",
+  "org_name",
+  "brand_color",
 ];
 
 export const FORMATTED_DYNAMIC_TEXT_VARIABLES = [
