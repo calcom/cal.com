@@ -28772,12 +28772,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"min-document@npm:^2.19.0":
-  version: 2.19.0
-  resolution: "min-document@npm:2.19.0"
+"min-document@npm:2.19.1":
+  version: 2.19.1
+  resolution: "min-document@npm:2.19.1"
   dependencies:
     dom-walk: "npm:^0.1.0"
-  checksum: 10/4e45a0686c81cc04509989235dc6107e2678a59bb48ce017d3c546d7d9a18d782e341103e66c78081dd04544704e2196e529905c41c2550bca069b69f95f07c8
+  checksum: 10/a52f1b77574f316603600dd87f35a0ef9c2fdb0373d0faff07895c893b8012766fc74f52a722ecd8a3656ce8edfbd7a308d7b69a7c20d53b05aea25f3261de2e
   languageName: node
   linkType: hard
 
