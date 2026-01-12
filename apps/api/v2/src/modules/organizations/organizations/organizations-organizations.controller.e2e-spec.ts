@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { getEnv } from "@/env";
 import { sha256Hash, stripApiKey } from "@/lib/api-key";

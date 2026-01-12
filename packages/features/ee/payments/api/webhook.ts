@@ -3,7 +3,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import { getAppActor } from "@calcom/app-store/_utils/getAppActor";
+import {
+  eventTypeMetaDataSchemaWithTypedApps,
+  eventTypeAppMetadataOptionalSchema,
+} from "@calcom/app-store/zod-utils";
 import {
   sendAttendeeRequestEmailAndSMS,
   sendOrganizerRequestEmail,
@@ -63,7 +67,12 @@ export async function handleStripePaymentSuccess(
   if (!payment?.bookingId)
     throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
-  await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
+  await handlePaymentSuccess({
+    paymentId: payment.id,
+    bookingId: payment.bookingId,
+    appSlug: "stripe",
+    traceContext,
+  });
 }
 
 const handleSetupSuccess = async (
@@ -147,6 +156,8 @@ const handleSetupSuccess = async (
   // If the card information was already captured in the same customer. Delete the previous payment method
 
   if (!requiresConfirmation) {
+    const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+    const actor = getAppActor({ appSlug: "stripe", bookingId: booking.id, apps });
     await handleConfirmation({
       user: { ...user, credentials: allCredentials },
       evt,
@@ -158,6 +169,8 @@ const handleSetupSuccess = async (
         ? getPlatformParams(platformOAuthClient)
         : undefined,
       traceContext: updatedTraceContext,
+      actionSource: "WEBHOOK",
+      actor,
     });
   } else if (areEmailsEnabled) {
     await sendOrganizerRequestEmail({ ...evt }, eventType.metadata);
