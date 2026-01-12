@@ -201,6 +201,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.attendees[0]).toEqual({
               name: body.attendee.name,
               email: body.attendee.email,
+              displayEmail: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -276,6 +277,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstAttendee).toEqual({
               name: createdSeatedBooking.attendees[0].name,
               email: createdSeatedBooking.attendees[0].email,
+              displayEmail: createdSeatedBooking.attendees[0].displayEmail,
               timeZone: createdSeatedBooking.attendees[0].timeZone,
               language: createdSeatedBooking.attendees[0].language,
               absent: false,
@@ -291,6 +293,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondAttendee).toEqual({
               name: body.attendee.name,
               email: body.attendee.email,
+              displayEmail: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -418,6 +421,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.attendees[0]).toEqual({
               name: attendee?.name,
               email: attendee?.email,
+              displayEmail: attendee?.displayEmail,
               timeZone: attendee?.timeZone,
               language: attendee?.language,
               absent: false,
@@ -841,6 +845,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 expect(data.attendees[0]).toEqual({
                   name: body.attendee.name,
                   email: body.attendee.email,
+                  displayEmail: body.attendee.email,
                   timeZone: body.attendee.timeZone,
                   language: body.attendee.language,
                   absent: false,
