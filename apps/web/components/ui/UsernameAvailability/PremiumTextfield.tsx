@@ -15,7 +15,7 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/app-router";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Label, Input } from "@calcom/ui/components/form";

@@ -1,6 +1,6 @@
 "use client";
 
-import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/app-router";
 
 import { createTRPCReact } from "@trpc/react-query";
 

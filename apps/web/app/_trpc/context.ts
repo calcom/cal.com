@@ -4,7 +4,7 @@ import { cookies, headers } from "next/headers";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { createCallerFactory } from "@calcom/trpc/server/trpc";
-import type { TRPCContext } from "@calcom/trpc/types/server/createContext";
+import type { TRPCContext } from "@calcom/trpc/server/createContext";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

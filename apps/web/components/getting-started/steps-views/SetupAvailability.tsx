@@ -4,7 +4,7 @@ import Schedule from "@calcom/features/schedules/components/Schedule";
 import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/app-router";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 

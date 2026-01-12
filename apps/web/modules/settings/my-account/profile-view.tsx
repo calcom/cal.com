@@ -24,7 +24,7 @@ import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/app-router";
 import { Alert } from "@calcom/ui/components/alert";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
