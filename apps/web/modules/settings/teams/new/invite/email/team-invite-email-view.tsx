@@ -160,7 +160,8 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
                     color="minimal"
                     className="rounded-[10px]"
                     onClick={handleSkip}
-                    disabled={isSubmitting}>
+                    disabled={isSubmitting}
+                    data-testid="skip-invite-button">
                     {t("onboarding_skip_for_now")}
                   </Button>
                   <Button

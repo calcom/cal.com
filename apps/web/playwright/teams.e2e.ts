@@ -139,11 +139,11 @@ test.describe("Teams - NonOrg", () => {
 
       const uniqueName = "test-unique-team-name";
 
-      // Go directly to the create team page
+      // Go directly to the create team page (new onboarding-v3 style flow)
       await page.goto("/settings/teams/new");
       await page.waitForLoadState("networkidle");
-      // Fill input[name="name"]
-      await page.locator('input[name="name"]').fill(uniqueName);
+      // Fill team name input
+      await page.locator('[data-testid="team-name-input"]').fill(uniqueName);
       await page.click("[type=submit]");
 
       // cleanup
@@ -163,22 +163,22 @@ test.describe("Teams - NonOrg", () => {
       // Click text=Create Team
       await page.locator("text=Create Team").click();
       await page.waitForLoadState("networkidle");
-      // Fill input[name="name"]
-      await page.locator('input[name="name"]').fill(uniqueName);
-      // Click text=Continue
+      // Fill team name input (new onboarding-v3 style flow)
+      await page.locator('[data-testid="team-name-input"]').fill(uniqueName);
+      // Click Continue
       await page.click("[type=submit]");
       // TODO: Figure out a way to make this more reliable
       // eslint-disable-next-line playwright/no-conditional-in-test
       if (IS_TEAM_BILLING_ENABLED) await fillStripeTestCheckout(page);
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members.*$/i);
-      // Wait for the page to fully load and the publish button to be visible
+      // Wait for the invite email page
+      await page.waitForURL(/\/settings\/teams\/new\/invite\/email.*$/i);
       await page.waitForLoadState("networkidle");
-      const publishButton = page.locator("[data-testid=publish-button]");
-      await publishButton.waitFor({ state: "visible", timeout: 10000 });
-      await publishButton.click();
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/event-type*$/i);
-      await page.locator("[data-testid=handle-later-button]").click();
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      // Skip the invite step
+      const skipButton = page.locator("[data-testid=skip-invite-button]");
+      await skipButton.waitFor({ state: "visible", timeout: 10000 });
+      await skipButton.click();
+      // Wait for redirect to teams page
+      await page.waitForURL(/\/teams$/i);
     });
 
     await test.step("Can access user and team with same slug", async () => {
