@@ -3,10 +3,8 @@
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
-import Shell from "@calcom/features/shell/Shell";
-import { WebhookForm } from "@calcom/features/webhooks/components";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { DEFAULT_WEBHOOK_VERSION } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -18,6 +16,9 @@ import {
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
+
+import Shell from "~/shell/Shell";
+import { WebhookForm } from "~/webhooks/components";
 
 export default function EditOAuthClientWebhooks() {
   const { t } = useLocale();
@@ -47,7 +48,7 @@ export default function EditOAuthClientWebhooks() {
           <div className="m-2 md:mx-5">
             <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
               <div className="flex w-full flex-col">
-                <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
+                <h1 className="font-heading text-emphasis mb-1 text-xl leading-5 tracking-wide">
                   {t("webhook_update_form")}
                 </h1>
                 <p className="text-default text-sm ltr:mr-4 rtl:ml-4">

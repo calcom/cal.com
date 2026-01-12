@@ -128,7 +128,7 @@ import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
 import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
-import { makeGuestActor } from "../types/actor";
+import { makeGuestActor } from "@calcom/features/booking-audit/lib/makeActor";
 
 const translator = short();
 
@@ -605,9 +605,9 @@ async function handler(
     userId: userId ?? null,
     eventType: eventType
       ? {
-          seatsPerTimeSlot: eventType.seatsPerTimeSlot,
-          minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
-        }
+        seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+        minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
+      }
       : null,
   });
 
@@ -795,7 +795,8 @@ async function handler(
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
-  const shouldServeCache = false;
+  // Use "booking" mode to bypass cache for booking confirmation
+  const calendarFetchMode = "booking" as const;
 
   tracingLogger.info(
     `Booking eventType ${eventTypeId} started`,
@@ -1002,7 +1003,7 @@ async function handler(
                   originalRescheduledBooking: originalRescheduledBooking ?? null,
                 },
                 tracingLogger,
-                shouldServeCache
+                calendarFetchMode
               );
             }
           }
@@ -1017,7 +1018,7 @@ async function handler(
                 originalRescheduledBooking,
               },
               tracingLogger,
-              shouldServeCache
+              calendarFetchMode
             );
           }
         }
@@ -1036,7 +1037,7 @@ async function handler(
               originalRescheduledBooking,
             },
             tracingLogger,
-            shouldServeCache
+            calendarFetchMode
           );
         } else {
           availableUsers = [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[];
@@ -1065,7 +1066,7 @@ async function handler(
                 originalRescheduledBooking,
               },
               tracingLogger,
-              shouldServeCache
+              calendarFetchMode
             );
           } else {
             availableUsers = [...additionalFallbackRRUsers, ...fixedUsers] as IsFixedAwareUser[];
@@ -1178,7 +1179,7 @@ async function handler(
                       originalRescheduledBooking,
                     },
                     tracingLogger,
-                    shouldServeCache
+                    calendarFetchMode
                   );
                 }
               }
@@ -1437,9 +1438,9 @@ async function handler(
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
     ? {
-        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-        conferenceCredentialId: undefined,
-      }
+      bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+      conferenceCredentialId: undefined,
+    }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   tracingLogger.info("locationBodyString", locationBodyString);
@@ -1485,8 +1486,8 @@ async function handler(
   const destinationCalendar = eventType.destinationCalendar
     ? [eventType.destinationCalendar]
     : organizerUser.destinationCalendar
-    ? [organizerUser.destinationCalendar]
-    : null;
+      ? [organizerUser.destinationCalendar]
+      : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
@@ -2108,14 +2109,14 @@ async function handler(
     }
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
-          evt,
-          originalRescheduledBooking.uid,
-          undefined,
-          changedOrganizer,
-          previousHostDestinationCalendar,
-          isBookingRequestedReschedule,
-          skipDeleteEventsAndMeetings
-        )
+        evt,
+        originalRescheduledBooking.uid,
+        undefined,
+        changedOrganizer,
+        previousHostDestinationCalendar,
+        isBookingRequestedReschedule,
+        skipDeleteEventsAndMeetings
+      )
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -2416,8 +2417,8 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-      }
+      videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+    }
     : undefined;
 
   const bookingCreatedPayload = buildBookingCreatedPayload({
@@ -2429,25 +2430,53 @@ async function handler(
     organizationId: eventOrganizationId,
   });
 
-  const bookingRescheduledPayload: BookingRescheduledPayload = {
-    ...bookingCreatedPayload,
-    oldBooking: originalRescheduledBooking
-      ? {
-          startTime: originalRescheduledBooking.startTime,
-          endTime: originalRescheduledBooking.endTime,
-        }
-      : undefined,
-  };
-
   const bookingEventHandler = deps.bookingEventHandler;
+  // TODO: Identify action source correctly
+  const actionSource = 'WEBAPP';
+  // TODO: We need to check session in booking flow and accordingly create USER actor if applicable.
+  const auditActor = makeGuestActor({ email: bookerEmail, name: fullName });
 
-  // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
   if (originalRescheduledBooking) {
-    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
+    const bookingRescheduledPayload: BookingRescheduledPayload = {
+      ...bookingCreatedPayload,
+      oldBooking: {
+        uid: originalRescheduledBooking.uid,
+        startTime: originalRescheduledBooking.startTime,
+        endTime: originalRescheduledBooking.endTime,
+      },
+    };
+    await bookingEventHandler.onBookingRescheduled({
+      payload: bookingRescheduledPayload,
+      actor: auditActor,
+      auditData: {
+        startTime: {
+          old: bookingRescheduledPayload.oldBooking?.startTime.toISOString() ?? null,
+          new: bookingRescheduledPayload.booking.startTime.toISOString(),
+        },
+        endTime: {
+          old: bookingRescheduledPayload.oldBooking?.endTime.toISOString() ?? null,
+          new: bookingRescheduledPayload.booking.endTime.toISOString(),
+        },
+        rescheduledToUid: {
+          old: null,
+          new: bookingRescheduledPayload.booking.uid,
+        },
+      },
+      source: actionSource,
+      operationId: null,
+    });
   } else {
-    // TODO: We need to check session in booking flow and accordingly create USER actor if applicable.
-    const auditActor = makeGuestActor({ email: bookerEmail, name: fullName });
-    await bookingEventHandler.onBookingCreated(bookingCreatedPayload, auditActor);
+    await bookingEventHandler.onBookingCreated({
+      payload: bookingCreatedPayload,
+      actor: auditActor,
+      auditData: {
+        startTime: bookingCreatedPayload.booking.startTime.getTime(),
+        endTime: bookingCreatedPayload.booking.endTime.getTime(),
+        status: bookingCreatedPayload.booking.status,
+      },
+      source: actionSource,
+      operationId: null,
+    });
   }
 
   const webhookData: EventPayloadType = {
@@ -2512,9 +2541,9 @@ async function handler(
         ...eventType,
         metadata: eventType.metadata
           ? {
-              ...eventType.metadata,
-              apps: eventType.metadata?.apps as Prisma.JsonValue,
-            }
+            ...eventType.metadata,
+            apps: eventType.metadata?.apps as Prisma.JsonValue,
+          }
           : {},
       },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
@@ -2852,7 +2881,7 @@ async function handler(
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) {}
+  constructor(private readonly deps: IBookingServiceDependencies) { }
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
     return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);

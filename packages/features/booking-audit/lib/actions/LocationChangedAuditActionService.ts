@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams } from "./IAuditActionService";
 import { getTranslation } from "@calcom/lib/server/i18n";
 /**
  * Location Changed Audit Action Service
@@ -15,8 +15,7 @@ const fieldsSchemaV1 = z.object({
     location: StringChangeSchema,
 });
 
-export class LocationChangedAuditActionService
-    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
+export class LocationChangedAuditActionService implements IAuditActionService {
     readonly VERSION = 1;
     public static readonly TYPE = "LOCATION_CHANGED" as const;
     private static dataSchemaV1 = z.object({
@@ -60,8 +59,8 @@ export class LocationChangedAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle({ storedData }: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone?: string }): Promise<TranslationWithParams> {
-        const { fields } = storedData;
+    async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
+        const { fields } = this.parseStored(storedData);
         // TODO: Ideally we want to translate the location label to the user's locale
         // We currently don't accept requesting user's translate fn here, fix it later.
         const t = await getTranslation("en", "common");

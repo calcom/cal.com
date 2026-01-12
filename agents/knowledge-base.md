@@ -255,7 +255,55 @@ import { TRPCError } from "@trpc/server";
 
 ### packages/features Import Restrictions
 
-Files in `packages/features/**` should NOT import from `trpc`. This keeps the features package decoupled from the tRPC layer, making the code more reusable and testable. Use `ErrorWithCode` for error handling in these files, and let the tRPC middleware handle the conversion.
+Files in `packages/features/**` should NOT import from `@calcom/trpc`. This keeps the features package decoupled from the tRPC layer, making the code more reusable and testable. Use `ErrorWithCode` for error handling in these files, and let the tRPC middleware handle the conversion.
+
+**Architecture: packages/features vs apps/web/modules**
+
+The `packages/features` package should contain only framework-agnostic code:
+- Repositories (data access layer)
+- Services (business logic)
+- Core utilities and helpers
+- Types and interfaces
+
+Web-specific code, particularly anything that uses tRPC, should live in `apps/web/modules/...`. This includes:
+- React hooks that use tRPC queries/mutations
+- tRPC-specific utilities
+- Web-only UI components that depend on tRPC
+
+**Example:**
+
+If you have a feature called `feature-opt-in`:
+
+```
+packages/features/feature-opt-in/
+├── repository/
+│   └── FeatureOptInRepository.ts    # Data access - OK here
+├── service/
+│   └── FeatureOptInService.ts       # Business logic - OK here
+└── types.ts                          # Types - OK here
+
+apps/web/modules/feature-opt-in/
+└── hooks/
+    └── useFeatureOptIn.ts           # tRPC hook - MUST be here, not in packages/features
+```
+
+```typescript
+// ❌ Bad - tRPC hook in packages/features
+// packages/features/feature-opt-in/hooks/useFeatureOptIn.ts
+import { trpc } from "@calcom/trpc/react";
+export function useFeatureOptIn() {
+  return trpc.viewer.featureOptIn.useQuery();
+}
+
+// ✅ Good - tRPC hook in apps/web/modules
+// apps/web/modules/feature-opt-in/hooks/useFeatureOptIn.ts
+import { trpc } from "@calcom/trpc/react";
+export function useFeatureOptIn() {
+  return trpc.viewer.featureOptIn.useQuery();
+}
+```
+
+This separation ensures that `packages/features` remains portable and can be used by other apps (like `apps/api/v2`) without pulling in web-specific dependencies like tRPC React hooks.
 
 ## Basic Performance Guidelines
 
@@ -371,6 +419,28 @@ export interface BookingDTO {
   status: "PENDING" | "CONFIRMED" | "CANCELLED";
 }
 ```
+
+### DTO Location and Naming
+
+**Location**: All DTOs go in `packages/lib/dto/`
+
+**Naming conventions**:
+- Base entity: `{Entity}Dto` (e.g., `BookingDto`)
+- With relations: `{Entity}With{Relations}Dto` (e.g., `BookingWithAttendeesDto`)
+- For specific projections: `{Entity}For{Purpose}Dto` (e.g., `BookingForConfirmationDto`)
+- Avoid: `{Entity}Dto2`, `{Entity}DtoForHandler`, or other use-case-specific names
+
+**Enum/union pattern** – use string literal unions to stay ORM-agnostic:
+
+```typescript
+// ✅ Good - ORM-agnostic string literal union
+export type BookingStatusDto = "CANCELLED" | "ACCEPTED" | "REJECTED" | "PENDING";
+
+// ❌ Bad - importing Prisma enum
+import { BookingStatus } from "@calcom/prisma/client";
+```
+
+**Type safety** – never use `as any` in DTO mapping functions. If types don't align, fix the mapping explicitly.
 
 ### Prisma boundaries
 
@@ -660,4 +730,210 @@ When doing logic that depends on Browser locale, use i18n.language (prefer to de
 
 Note that with Date, you’re dealing with System time, so it’s not suited to everywhere (such as in the Booker, where instead we’ll likely migrate to Temporal) - but in most cases the above are suitable.
 
-The main reason for doing so is that Dayjs uses a useful, but highly risky plugin system, which has led us to create `@calcom/dayjs` - this is heavy however, because it pre-loads ALL plugins, including locale handling. It’s a non-ideal solution to a problem that unfortunately exists due to Dayjs.
+The main reason for doing so is that Dayjs uses a useful, but highly risky plugin system, which has led us to create `@calcom/dayjs` - this is heavy however, because it pre-loads ALL plugins, including locale handling. It's a non-ideal solution to a problem that unfortunately exists due to Dayjs.
+
+## Dependency Injection (DI) Pattern
+
+We use a Dependency Injection pattern powered by `@evyweb/ioctopus` to manage service and repository dependencies. This pattern ensures proper dependency management, testability, and consistent instantiation of services throughout the codebase.
+
+### Core Concepts
+
+The DI system consists of three main components:
+
+**Tokens** (`packages/features/di/tokens.ts`): Unique symbols that identify each service or repository in the DI container. Every injectable class needs a corresponding token.
+
+**Modules** (`packages/features/di/modules/*.ts`): Define how classes are instantiated and what dependencies they require. Modules bind tokens to class implementations.
+
+**Containers** (`packages/features/di/containers/*.ts`): Assemble modules together and expose getter functions that consumers use to obtain service instances.
+
+### How It Works
+
+Here's the flow using `BusyTimesService` as an example:
+
+**Step 1: Define the service class with constructor injection**
+
+```typescript
+// packages/features/busyTimes/services/getBusyTimes.ts
+export interface IBusyTimesService {
+  bookingRepo: BookingRepository;
+}
+
+export class BusyTimesService {
+  constructor(public readonly dependencies: IBusyTimesService) {}
+
+  async getBusyTimes(params: {...}) {
+    // Use dependencies via this.dependencies.bookingRepo
+    const bookings = await this.dependencies.bookingRepo.findAllExistingBookingsForEventTypeBetween({...});
+    // ...
+  }
+}
+```
+
+**Step 2: Create a module that binds the service to its token**
+
+```typescript
+// packages/features/di/modules/BusyTimes.ts
+import { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
+import { createModule } from "../di";
+import { DI_TOKENS } from "../tokens";
+
+export const busyTimesModule = createModule();
+busyTimesModule.bind(DI_TOKENS.BUSY_TIMES_SERVICE).toClass(BusyTimesService, {
+  bookingRepo: DI_TOKENS.BOOKING_REPOSITORY,
+} satisfies Record<keyof IBusyTimesService, symbol>);
+```
+
+**Step 3: Create a container that loads all required modules and exposes a getter**
+
+```typescript
+// packages/features/di/containers/BusyTimes.ts
+import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
+import { prismaModule } from "@calcom/features/di/modules/Prisma";
+import { createContainer } from "../di";
+import { bookingRepositoryModule } from "../modules/Booking";
+import { busyTimesModule } from "../modules/BusyTimes";
+
+const container = createContainer();
+container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
+container.load(DI_TOKENS.BOOKING_REPOSITORY_MODULE, bookingRepositoryModule);
+container.load(DI_TOKENS.BUSY_TIMES_SERVICE_MODULE, busyTimesModule);
+
+export function getBusyTimesService() {
+  return container.get<BusyTimesService>(DI_TOKENS.BUSY_TIMES_SERVICE);
+}
+```
+
+**Step 4: Use the service via the container's getter function**
+
+```typescript
+// Anywhere in the codebase
+import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+
+const busyTimesService = getBusyTimesService();
+const busyTimes = await busyTimesService.getBusyTimes({...});
+```
+
+### Common Mistakes to Avoid
+
+**Mistake 1: Creating a repository or service class with all static methods**
+
+Static methods bypass the DI system entirely, making the code harder to test and breaking the dependency chain.
+
+```typescript
+// ❌ Bad - Static methods bypass DI
+export class BookingRepository {
+  static async findById(id: string) {
+    return prisma.booking.findUnique({ where: { id } });
+  }
+
+  static async create(data: BookingCreateInput) {
+    return prisma.booking.create({ data });
+  }
+}
+
+// Usage (wrong - no DI)
+const booking = await BookingRepository.findById("123");
+```
+
+```typescript
+// ✅ Good - Instance methods with constructor injection
+export class BookingRepository {
+  constructor(private prismaClient: PrismaClient) {}
+
+  async findById(id: string) {
+    return this.prismaClient.booking.findUnique({ where: { id } });
+  }
+
+  async create(data: BookingCreateInput) {
+    return this.prismaClient.booking.create({ data });
+  }
+}
+
+// Usage (correct - via DI container)
+const bookingRepo = getBookingRepository();
+const booking = await bookingRepo.findById("123");
+```
+
+**Mistake 2: Manually instantiating a class instead of using the DI container**
+
+Even if you define a class with constructor injection, manually calling `new` bypasses the DI system and its benefits.
+
+```typescript
+// ❌ Bad - Manual instantiation bypasses DI
+import { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import prisma from "@calcom/prisma";
+
+// Wrong: manually creating instances
+const bookingRepo = new BookingRepository(prisma);
+const busyTimesService = new BusyTimesService({ bookingRepo });
+const busyTimes = await busyTimesService.getBusyTimes({...});
+```
+
+```typescript
+// ✅ Good - Use the DI container's getter function
+import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+
+// Correct: let the container manage instantiation
+const busyTimesService = getBusyTimesService();
+const busyTimes = await busyTimesService.getBusyTimes({...});
+```
+
+**Mistake 3: Importing Prisma directly in a service instead of using repository injection**
+
+Services should depend on repositories, not directly on Prisma. This maintains proper separation of concerns.
+
+```typescript
+// ❌ Bad - Service imports Prisma directly
+import prisma from "@calcom/prisma";
+
+export class MyService {
+  async doSomething() {
+    const bookings = await prisma.booking.findMany({...}); // Wrong!
+  }
+}
+```
+
+```typescript
+// ✅ Good - Service depends on repository via DI
+export interface IMyService {
+  bookingRepo: BookingRepository;
+}
+
+export class MyService {
+  constructor(public readonly dependencies: IMyService) {}
+
+  async doSomething() {
+    const bookings = await this.dependencies.bookingRepo.findMany({...});
+  }
+}
+```
+
+### Adding a New Service to the DI System
+
+When creating a new service or repository that should use DI:
+
+1. **Add tokens** to `packages/features/di/tokens.ts`:
+   ```typescript
+   export const DI_TOKENS = {
+     // ...existing tokens
+     MY_SERVICE: Symbol("MyService"),
+     MY_SERVICE_MODULE: Symbol("MyServiceModule"),
+   };
+   ```
+
+2. **Create the service class** with a dependencies interface and constructor injection.
+
+3. **Create a module** in `packages/features/di/modules/MyService.ts` that binds the service to its token.
+
+4. **Create a container** in `packages/features/di/containers/MyService.ts` that loads all required modules and exports a getter function.
+
+5. **Use the getter function** everywhere you need the service - never manually instantiate.
+
+### Why Use DI?
+
+- **Testability**: Dependencies can be easily mocked in tests by providing alternative implementations
+- **Consistency**: All instances are created the same way with proper dependencies
+- **Maintainability**: Changing a dependency only requires updating the module binding, not every usage site
+- **Explicit dependencies**: The dependency graph is clear and documented in the module definitions

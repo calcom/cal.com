@@ -468,6 +468,19 @@ export class TeamRepository {
     });
   }
 
+  async findOrganizationIdBySlug({ slug }: { slug: string }): Promise<number | null> {
+    const org = await this.prismaClient.team.findFirst({
+      where: {
+        slug,
+        isOrganization: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return org?.id ?? null;
+  }
+
   async isSlugAvailableForUpdate({
     slug,
     teamId,
@@ -556,7 +569,7 @@ export class TeamRepository {
       FROM "Membership" m
       INNER JOIN "User" u ON m."userId" = u.id
       LEFT JOIN "Role" r ON m."customRoleId" = r.id
-      LEFT JOIN "TeamFeatures" f ON m."teamId" = f."teamId" AND f."featureId" = 'pbac'
+      LEFT JOIN "TeamFeatures" f ON m."teamId" = f."teamId" AND f."featureId" = 'pbac' AND f.enabled = true
       WHERE m."teamId" = ${teamId}
         AND m."accepted" = true
         AND (
@@ -595,6 +608,23 @@ export class TeamRepository {
         id: { in: teamIds },
         NOT: {
           parentId: orgId, // Finds any team whose orgId is NOT the target ID
+        },
+      },
+    });
+  }
+
+  async findTeamBySlugWithAdminRole(teamSlug: string, userId: number) {
+    return this.prismaClient.team.findFirst({
+      select: { id: true },
+      where: {
+        slug: teamSlug,
+        members: {
+          some: {
+            userId,
+            role: {
+              in: ["OWNER", "ADMIN"],
+            },
+          },
         },
       },
     });

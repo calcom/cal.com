@@ -155,6 +155,7 @@ const commons = {
   createdAt: null,
   updatedAt: null,
   rrHostSubsetEnabled: false,
+  enablePerHostLocations: false,
 };
 
 export const dynamicEvent = {

@@ -2,6 +2,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { PrismaClient } from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -105,11 +106,7 @@ export const getHostsWithLocationOptionsHandler = async ({
                 },
               },
             },
-            select: {
-              id: true,
-              appId: true,
-              type: true,
-            },
+            select: credentialForCalendarServiceSelect,
           },
         },
       },
