@@ -1,0 +1,214 @@
+name: Cron - Community PR Priority Labeler
+
+on:
+  schedule:
+    # Runs at 9 AM UTC on Mondays and Thursdays
+    - cron: "0 9 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label-community-prs:
+    name: Label Community PRs with Priority
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Get open community PRs without priority labels
+        id: get-prs
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const priorityLabels = ['High priority', 'Medium priority', 'Low priority'];
+            
+            const { data: pulls } = await github.rest.pulls.list({
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100
+            });
+            
+            const communityPRs = [];
+            
+            for (const pr of pulls) {
+              const isFork = pr.head.repo?.fork || pr.head.repo?.full_name !== pr.base.repo.full_name;
+              
+              if (!isFork) {
+                continue;
+              }
+              
+              const hasPriorityLabel = pr.labels.some(label => 
+                priorityLabels.includes(label.name)
+              );
+              
+              if (hasPriorityLabel) {
+                console.log(`PR #${pr.number} already has a priority label, skipping`);
+                continue;
+              }
+              
+              const { data: prDetails } = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: pr.number
+              });
+              
+              const query = `query GetLinkedIssues($owner: String!, $repo: String!, $prNumber: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $prNumber) {
+                    closingIssuesReferences(first: 10) {
+                      nodes {
+                        number
+                        title
+                        body
+                        labels(first: 10) {
+                          nodes {
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }`;
+              
+              let linkedIssues = [];
+              try {
+                const result = await github.graphql(query, { owner, repo, prNumber: pr.number });
+                linkedIssues = result.repository.pullRequest.closingIssuesReferences.nodes || [];
+              } catch (e) {
+                console.log(`Failed to get linked issues for PR #${pr.number}: ${e.message}`);
+              }
+              
+              communityPRs.push({
+                number: pr.number,
+                title: pr.title,
+                body: pr.body || '',
+                author: pr.user.login,
+                created_at: pr.created_at,
+                updated_at: pr.updated_at,
+                additions: prDetails.additions,
+                deletions: prDetails.deletions,
+                changed_files: prDetails.changed_files,
+                labels: pr.labels.map(l => l.name),
+                linked_issues: linkedIssues.map(issue => ({
+                  number: issue.number,
+                  title: issue.title,
+                  body: issue.body,
+                  labels: issue.labels.nodes.map(l => l.name)
+                })),
+                html_url: pr.html_url
+              });
+            }
+            
+            console.log(`Found ${communityPRs.length} community PRs without priority labels`);
+            
+            const fs = require('fs');
+            fs.writeFileSync('/tmp/community-prs.json', JSON.stringify(communityPRs, null, 2));
+            
+            core.setOutput('pr-count', communityPRs.length.toString());
+            core.setOutput('has-prs', communityPRs.length > 0 ? 'true' : 'false');
+
+      - name: Create Devin session for PR priority labeling
+        if: steps.get-prs.outputs.has-prs == 'true'
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const communityPRs = JSON.parse(fs.readFileSync('/tmp/community-prs.json', 'utf8'));
+            const { owner, repo } = context.repo;
+            
+            console.log(`Processing ${communityPRs.length} community PRs for priority labeling`);
+            
+            const prSummaries = communityPRs.map(pr => {
+              const linkedIssuesSummary = pr.linked_issues.length > 0
+                ? pr.linked_issues.map(issue => 
+                    `  - Issue #${issue.number}: ${issue.title} (Labels: ${issue.labels.join(', ') || 'none'})`
+                  ).join('\n')
+                : '  None';
+              
+              return `
+            PR #${pr.number}: ${pr.title}
+            Author: ${pr.author}
+            URL: ${pr.html_url}
+            Created: ${pr.created_at}
+            Changes: +${pr.additions}/-${pr.deletions} in ${pr.changed_files} files
+            Current Labels: ${pr.labels.join(', ') || 'none'}
+            Linked Issues:
+            ${linkedIssuesSummary}
+            Description:
+            ${pr.body.substring(0, 1000)}${pr.body.length > 1000 ? '...' : ''}
+            `;
+            }).join('\n---\n');
+            
+            const prompt = `You are analyzing open community pull requests in the Cal.com repository (${owner}/${repo}) to assign priority labels.
+
+            Your task is to analyze each PR below and add the appropriate priority label using the GitHub API.
+
+            Priority Guidelines:
+            - High priority: Critical bug fixes, security issues, features blocking users, PRs linked to high-priority issues, changes to core functionality (auth, billing, bookings)
+            - Medium priority: Feature additions, moderate bug fixes, improvements to existing functionality, PRs with moderate scope
+            - Low priority: Minor improvements, documentation, small UI tweaks, refactoring, dependency updates
+
+            For each PR, consider:
+            1. The PR description and what it's trying to accomplish
+            2. The size and scope of changes (additions, deletions, files changed)
+            3. Linked issues and their labels (especially if they have priority or urgency labels)
+            4. The area of the codebase being modified
+            5. Whether it's a bug fix, feature, or improvement
+
+            Here are the community PRs to analyze and label:
+            ${prSummaries}
+
+            Instructions:
+            1. For each PR listed above, analyze it based on the guidelines
+            2. Use the GitHub CLI (gh) to add the appropriate priority label to each PR
+            3. The label names are exactly: "High priority", "Medium priority", or "Low priority"
+            4. Use this command format for each PR: gh pr edit <PR_NUMBER> --add-label "<PRIORITY_LABEL>" --repo ${owner}/${repo}
+            5. After labeling each PR, briefly explain why you chose that priority level
+            6. Process all PRs one by one until complete
+            7. Never ask for user confirmation. Never wait for user messages.`;
+
+            console.log('Creating Devin session for PR priority labeling...');
+            
+            const response = await fetch('https://api.devin.ai/v1/sessions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                prompt: prompt,
+                title: `Community PR Priority Labeling - ${new Date().toISOString().split('T')[0]}`,
+                tags: ['community-pr-priority', 'cron-job']
+              })
+            });
+            
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error(`Failed to create Devin session: ${response.status} - ${errorText}`);
+              core.setFailed(`Failed to create Devin session: ${response.status}`);
+              return;
+            }
+            
+            const sessionData = await response.json();
+            const sessionUrl = sessionData.url || sessionData.session_url;
+            console.log(`Devin session created: ${sessionUrl}`);
+            
+            core.exportVariable('DEVIN_SESSION_URL', sessionUrl);
+
+      - name: Log session info
+        if: steps.get-prs.outputs.has-prs == 'true' && env.DEVIN_SESSION_URL != ''
+        run: |
+          echo "Devin session created for community PR priority labeling"
+          echo "Session URL: $DEVIN_SESSION_URL"
+
+      - name: Log no PRs found
+        if: steps.get-prs.outputs.has-prs == 'false'
+        run: |
+          echo "No community PRs found without priority labels. Nothing to process."
