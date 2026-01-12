@@ -45,6 +45,7 @@ const createMockBillingProviderService = (): IBillingProviderService => ({
   getPrice: vi.fn(),
   getCheckoutSession: vi.fn(),
   createCheckoutSession: vi.fn(),
+  getPaymentIntentFailureReason: vi.fn(),
 });
 
 const createMockTeamBillingDataRepository = (): ITeamBillingDataRepository => ({

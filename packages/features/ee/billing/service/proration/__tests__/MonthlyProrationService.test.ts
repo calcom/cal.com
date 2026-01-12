@@ -98,6 +98,7 @@ const mockBillingService: IBillingProviderService = {
   getCustomer: vi.fn().mockResolvedValue(null),
   getSubscriptions: vi.fn().mockResolvedValue(null),
   updateCustomer: vi.fn().mockResolvedValue(undefined),
+  getPaymentIntentFailureReason: vi.fn().mockResolvedValue(null),
 } as IBillingProviderService;
 
 vi.mock("../../../repository/proration/MonthlyProrationTeamRepository", () => ({

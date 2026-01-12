@@ -48,6 +48,7 @@ describe("TeamBillingService", () => {
       checkoutSessionIsPaid: vi.fn(),
       getSubscriptionStatus: vi.fn(),
       handleEndTrial: vi.fn(),
+      getPaymentIntentFailureReason: vi.fn(),
     } as IBillingProviderService;
 
     mockTeamBillingDataRepository = {

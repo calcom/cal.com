@@ -40,6 +40,7 @@ const mockBillingService: IBillingProviderService = {
   getCustomer: vi.fn().mockResolvedValue(null),
   getSubscriptions: vi.fn().mockResolvedValue(null),
   updateCustomer: vi.fn().mockResolvedValue(undefined),
+  getPaymentIntentFailureReason: vi.fn().mockResolvedValue(null),
 } as IBillingProviderService;
 
 describe("MonthlyProrationService Integration Tests", () => {

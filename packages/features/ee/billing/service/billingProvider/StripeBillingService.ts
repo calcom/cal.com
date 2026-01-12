@@ -5,6 +5,8 @@ import logger from "@calcom/lib/logger";
 import { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
 import type { IBillingProviderService } from "./IBillingProviderService";
 
+const log = logger.getSubLogger({ prefix: ["StripeBillingService"] });
+
 export class StripeBillingService implements IBillingProviderService {
   constructor(private stripe: Stripe) {}
 
@@ -270,6 +272,16 @@ export class StripeBillingService implements IBillingProviderService {
 
   async finalizeInvoice(invoiceId: string) {
     await this.stripe.invoices.finalizeInvoice(invoiceId);
+  }
+
+  async getPaymentIntentFailureReason(paymentIntentId: string) {
+    try {
+      const paymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
+      return paymentIntent.last_payment_error?.message ?? null;
+    } catch (error) {
+      log.warn("Failed to retrieve payment intent failure reason", { paymentIntentId, error });
+      return null;
+    }
   }
 
   async getSubscription(subscriptionId: string) {

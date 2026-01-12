@@ -83,6 +83,8 @@ export interface IBillingProviderService {
 
   finalizeInvoice(invoiceId: string): Promise<void>;
 
+  getPaymentIntentFailureReason(paymentIntentId: string): Promise<string | null>;
+
   // Subscription queries
   getSubscription(subscriptionId: string): Promise<{
     items: Array<{
