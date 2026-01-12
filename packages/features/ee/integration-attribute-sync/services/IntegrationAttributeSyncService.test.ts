@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 
 import { enabledAppSlugs } from "../constants";
 import type { IIntegrationAttributeSyncRepository } from "../repositories/IIntegrationAttributeSyncRepository";
@@ -18,6 +19,9 @@ describe("IntegrationAttributeSyncService", () => {
     updateTransactionWithRuleAndMappings: ReturnType<typeof vi.fn>;
     deleteById: ReturnType<typeof vi.fn>;
   };
+  let mockTeamRepository: {
+    findTeamsNotBelongingToOrgByIds: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -34,10 +38,15 @@ describe("IntegrationAttributeSyncService", () => {
       deleteById: vi.fn(),
     };
 
+    mockTeamRepository = {
+      findTeamsNotBelongingToOrgByIds: vi.fn().mockResolvedValue([]),
+    };
+
     service = new IntegrationAttributeSyncService({
       credentialRepository: mockCredentialRepository as unknown as CredentialRepository,
       integrationAttributeSyncRepository:
         mockIntegrationAttributeSyncRepository as unknown as IIntegrationAttributeSyncRepository,
+      teamRepository: mockTeamRepository as unknown as TeamRepository,
     });
   });
 
@@ -336,6 +345,99 @@ describe("IntegrationAttributeSyncService", () => {
       await service.deleteById(syncId);
 
       expect(mockIntegrationAttributeSyncRepository.deleteById).toHaveBeenCalledWith(syncId);
+    });
+  });
+
+  describe("team validation", () => {
+    describe("updateIncludeRulesAndMappings", () => {
+      const baseFormData = {
+        id: "sync-123",
+        name: "Test Sync",
+        credentialId: 1,
+        enabled: true,
+        organizationId: 123,
+        ruleId: "rule-123",
+        syncFieldMappings: [],
+      };
+
+      it("should throw error when team IDs do not belong to organization", async () => {
+        const formData = {
+          ...baseFormData,
+          rule: {
+            operator: "AND" as const,
+            conditions: [
+              {
+                identifier: "teamId" as const,
+                operator: "equals" as const,
+                value: [1, 2, 3],
+              },
+            ],
+          },
+        };
+
+        mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([{ id: 2 }, { id: 3 }]);
+
+        await expect(service.updateIncludeRulesAndMappings(formData)).rejects.toThrow(
+          "Teams do not belong to this organization: 2, 3"
+        );
+
+        expect(mockTeamRepository.findTeamsNotBelongingToOrgByIds).toHaveBeenCalledWith({
+          teamIds: [1, 2, 3],
+          orgId: 123,
+        });
+      });
+
+      it("should not validate teams when no team conditions in rule", async () => {
+        const formData = {
+          ...baseFormData,
+          rule: {
+            operator: "OR" as const,
+            conditions: [
+              {
+                identifier: "attributeId" as const,
+                attributeId: "attr-123",
+                operator: "in" as const,
+                value: ["option-1"],
+              },
+            ],
+          },
+        };
+
+        mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
+        mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+
+        await service.updateIncludeRulesAndMappings(formData);
+
+        expect(mockTeamRepository.findTeamsNotBelongingToOrgByIds).not.toHaveBeenCalled();
+      });
+
+      it("should proceed when all team IDs belong to organization", async () => {
+        const formData = {
+          ...baseFormData,
+          rule: {
+            operator: "AND" as const,
+            conditions: [
+              {
+                identifier: "teamId" as const,
+                operator: "equals" as const,
+                value: [1, 2],
+              },
+            ],
+          },
+        };
+
+        mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
+        mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
+        mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+
+        await service.updateIncludeRulesAndMappings(formData);
+
+        expect(mockTeamRepository.findTeamsNotBelongingToOrgByIds).toHaveBeenCalledWith({
+          teamIds: [1, 2],
+          orgId: 123,
+        });
+        expect(mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings).toHaveBeenCalled();
+      });
     });
   });
 });
