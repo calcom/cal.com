@@ -134,7 +134,7 @@ describe("MonthlyProrationService Integration Tests", () => {
     expect(seatChanges.every((sc) => sc.processedInProrationId === proration?.id)).toBe(true);
   });
 
-  it("should skip proration for team with no net change", async () => {
+  it("should create a $0 proration for team with no net change", async () => {
     const seatTracker = new SeatChangeTrackingService();
     const prorationService = new MonthlyProrationService(undefined, mockBillingService);
 
@@ -157,13 +157,20 @@ describe("MonthlyProrationService Integration Tests", () => {
       monthKey,
     });
 
-    expect(proration).toBeNull();
+    expect(proration).toBeDefined();
+    expect(proration?.netSeatIncrease).toBe(0);
+    expect(proration?.seatsAdded).toBe(2);
+    expect(proration?.seatsRemoved).toBe(2);
+    expect(proration?.proratedAmount).toBe(0);
+    expect(proration?.status).toBe("CHARGED");
+    expect(proration?.invoiceItemId).toBeNull();
 
     const prorations = await prisma.monthlyProration.findMany({
       where: { teamId: testTeam.id, monthKey },
     });
 
-    expect(prorations).toHaveLength(0);
+    expect(prorations).toHaveLength(1);
+    expect(prorations[0]?.id).toBe(proration?.id);
   });
 
   it("should process multiple teams in batch", async () => {
