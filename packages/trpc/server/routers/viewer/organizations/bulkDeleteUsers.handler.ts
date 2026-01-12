@@ -9,6 +9,8 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TBulkUsersDelete } from "./bulkDeleteUsers.schema.";
+import { TeamService } from "@calcom/ee/teams/services/teamService";
+import logger from "@calcom/lib/logger";
 
 type BulkDeleteUsersHandler = {
   ctx: {
@@ -55,6 +57,22 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
   if (!permissions[CustomAction.Remove]) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
+
+  const teamIdsForEachUserIdInOrg: Record<string, number[] | undefined> = {}
+
+  await Promise.all(input.userIds.map(async (userId) => {
+    return TeamService.getTeamsToBeRemovedFrom({
+      userId,
+      teamId: currentUserOrgId,
+      isOrg: true,
+    }).then((data) => {
+      teamIdsForEachUserIdInOrg[userId] = data;
+    }).catch((error) => {
+      logger.error(`Failed to get teamIds for userId: ${userId} in org: ${currentUserOrgId}`, {
+        error
+      })
+    })
+  }))
 
   // Loop over all users in input.userIds and remove all memberships for the organization including child teams
   const deleteMany = prisma.membership.deleteMany({
@@ -137,6 +155,18 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     removeManagedEventTypes,
     removeHostAssignment,
   ]);
+
+  await Promise.all(input.userIds.map(async (userId) => {
+    const teamIdsToDeleteFrom = teamIdsForEachUserIdInOrg[userId];
+    if(teamIdsToDeleteFrom === undefined) {
+      return;
+    }
+    return TeamService.deleteFilterSegmentForRemovedMembership({
+      userId,
+      teamIds: teamIdsToDeleteFrom,
+      teamParentId: null,
+    })
+  }))
 
   const teamBillingServiceFactory = getTeamBillingServiceFactory();
   const teamBillingService = await teamBillingServiceFactory.findAndInit(currentUserOrgId);

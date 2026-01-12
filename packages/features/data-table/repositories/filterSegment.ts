@@ -5,8 +5,9 @@ import {
   ZColumnSizing,
   ZColumnVisibility,
 } from "@calcom/features/data-table/lib/types";
+import type { ActiveFilters } from "@calcom/features/data-table/lib/types";
 import { prisma } from "@calcom/prisma";
-import type { UserFilterSegmentPreference } from "@calcom/prisma/client";
+import { Prisma, type UserFilterSegmentPreference } from "@calcom/prisma/client";
 
 import type { TCreateFilterSegmentInputSchema, TUpdateFilterSegmentInputSchema } from "./filterSegment.type";
 
@@ -140,6 +141,19 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
     };
   }
 
+  async findByUserIds(userIds: number[]) {
+    return prisma.filterSegment.findMany({
+      select: {
+        id: true,
+        userId: true,
+        activeFilters: true,
+      },
+      where: {
+        userId: { in: userIds },
+        AND: [{ activeFilters: { not: [] } }, { activeFilters: { not: Prisma.DbNull } }],
+      },
+    });
+  }
   async create({ userId, input }: { userId: number; input: TCreateFilterSegmentInputSchema }) {
     const { scope, teamId, ...filterData } = input;
 
@@ -300,6 +314,20 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
     };
 
     return parsedSegment;
+  }
+
+  async updateActiveFilters({ id, activeFilters }: { id: number; activeFilters: ActiveFilters }) {
+    return prisma.filterSegment.update({
+      where: {
+        id,
+      },
+      data: {
+        activeFilters,
+      },
+      select: {
+        id: true,
+      }
+    });
   }
 
   async delete({ userId, id }: { userId: number; id: number }) {
