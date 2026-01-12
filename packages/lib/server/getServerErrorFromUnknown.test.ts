@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import { ZodError } from "zod";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ERROR_CODE_TO_HTTP_STATUS } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -9,35 +10,20 @@ import { HttpError } from "../http-error";
 import { TracedError } from "../tracing/error";
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
 
-const test400Codes = [
-  ErrorCode.RequestBodyWithouEnd,
-  ErrorCode.MissingPaymentCredential,
-  ErrorCode.MissingPaymentAppId,
-  ErrorCode.AvailabilityNotFoundInSchedule,
-  ErrorCode.CancelledBookingsCannotBeRescheduled,
-  ErrorCode.BookingTimeOutOfBounds,
-  ErrorCode.BookingNotAllowedByRestrictionSchedule,
-  ErrorCode.BookerLimitExceeded,
-  ErrorCode.BookerLimitExceededReschedule,
-  ErrorCode.ChargeCardFailure,
-];
+function getErrorCodesForStatus(statusCode: number): ErrorCode[] {
+  return Object.entries(ERROR_CODE_TO_HTTP_STATUS)
+    .filter(([, status]) => status === statusCode)
+    .map(([errorCode]) => errorCode as ErrorCode);
+}
 
-const test404Codes = [
-  ErrorCode.EventTypeNotFound,
-  ErrorCode.BookingNotFound,
-  ErrorCode.RestrictionScheduleNotFound,
-];
-
-const test409Codes = [
-  ErrorCode.NoAvailableUsersFound,
-  ErrorCode.FixedHostsUnavailableForBooking,
-  ErrorCode.RoundRobinHostsUnavailableForBooking,
-  ErrorCode.AlreadySignedUpForBooking,
-  ErrorCode.BookingSeatsFull,
-  ErrorCode.NotEnoughAvailableSeats,
-  ErrorCode.BookingConflict,
-  ErrorCode.PaymentCreationFailure,
-];
+const test400Codes = getErrorCodesForStatus(400);
+const test401Codes = getErrorCodesForStatus(401);
+const test402Codes = getErrorCodesForStatus(402);
+const test403Codes = getErrorCodesForStatus(403);
+const test404Codes = getErrorCodesForStatus(404);
+const test409Codes = getErrorCodesForStatus(409);
+const test500Codes = getErrorCodesForStatus(500);
+const test503Codes = getErrorCodesForStatus(503);
 
 describe("getServerErrorFromUnknown", () => {
   test("should handle a StripeInvalidRequestError", () => {
@@ -117,6 +103,80 @@ describe("getServerErrorFromUnknown", () => {
 
     expect(result.statusCode).toBe(500);
     expect(result.message).toBe("OAuth client creation failed");
+  });
+
+  test("should handle ErrorWithCode with undefined message", () => {
+    const error = new ErrorWithCode(ErrorCode.Unauthorized, undefined);
+    const result = getServerErrorFromUnknown(error);
+
+    expect(result.statusCode).toBe(401);
+    expect(result.message).toBe("");
+  });
+
+  test("should handle ErrorWithCode with empty message", () => {
+    const error = new ErrorWithCode(ErrorCode.InvalidInput, "");
+    const result = getServerErrorFromUnknown(error);
+
+    expect(result.statusCode).toBe(422);
+    expect(result.message).toBe("");
+  });
+
+  test("should handle ErrorWithCode with complex data object", () => {
+    const complexData = {
+      userId: 123,
+      eventTypeId: 456,
+      metadata: { source: "api", version: "v1" },
+      timestamps: [new Date("2024-01-01"), new Date("2024-01-02")],
+    };
+
+    const error = new ErrorWithCode(ErrorCode.EventTypeNotFound, "Event type not found", complexData);
+    const result = getServerErrorFromUnknown(error);
+
+    expect(result.statusCode).toBe(404);
+    expect(result.message).toBe("Event type not found");
+    expect(result.data).toEqual(complexData);
+    expect(result.cause).toBe(error);
+  });
+
+  test("should handle string error", () => {
+    const result = getServerErrorFromUnknown("Simple string error");
+
+    expect(result.statusCode).toBe(500);
+    expect(result.message).toBe("Simple string error");
+  });
+
+  test("should handle null/undefined errors", () => {
+    const nullResult = getServerErrorFromUnknown(null);
+    const undefinedResult = getServerErrorFromUnknown(undefined);
+
+    expect(nullResult.statusCode).toBe(500);
+    expect(undefinedResult.statusCode).toBe(500);
+    expect(nullResult.message).toContain("Unhandled error of type");
+    expect(undefinedResult.message).toContain("Unhandled error of type");
+  });
+
+  test("should handle existing HttpError passthrough", () => {
+    const originalError = new HttpError({
+      statusCode: 418,
+      message: "I'm a teapot",
+      url: "/api/coffee",
+      method: "BREW",
+    });
+
+    const result = getServerErrorFromUnknown(originalError);
+
+    expect(result.statusCode).toBe(418);
+    expect(result.message).toBe("I'm a teapot");
+    expect(result.url).toBe("/api/coffee");
+    expect(result.method).toBe("BREW");
+  });
+
+  test("should handle SyntaxError", () => {
+    const syntaxError = new SyntaxError("Unexpected token");
+    const result = getServerErrorFromUnknown(syntaxError);
+
+    expect(result.statusCode).toBe(500);
+    expect(result.message).toBe("Unexpected error, please reach out for our customer support.");
   });
 });
 
@@ -218,6 +278,38 @@ test400Codes.forEach((errorCode) => {
     const error = new ErrorWithCode(errorCode, `Test message for ${errorCode}`);
     const result = getServerErrorFromUnknown(error);
     expect(result.statusCode).toBe(400);
+    expect(result.message).toBe(`Test message for ${errorCode}`);
+    expect(result).toBeInstanceOf(HttpError);
+  });
+});
+
+test401Codes.forEach((errorCode) => {
+  test(`${errorCode} should return 401 Unauthorized`, () => {
+    const error = new ErrorWithCode(errorCode, `Test message for ${errorCode}`);
+    const result = getServerErrorFromUnknown(error);
+    expect(result.statusCode).toBe(401);
+    expect(result.message).toBe(`Test message for ${errorCode}`);
+    expect(result).toBeInstanceOf(HttpError);
+  });
+});
+
+test402Codes.forEach((errorCode) => {
+  test(`${errorCode} should return 402 Payment Required`, () => {
+    const error = new ErrorWithCode(errorCode, `Test message for ${errorCode}`);
+    const result = getServerErrorFromUnknown(error);
+    expect(result.statusCode).toBe(402);
+    expect(result.message).toBe(`Test message for ${errorCode}`);
+    expect(result).toBeInstanceOf(HttpError);
+  });
+});
+
+test403Codes.forEach((errorCode) => {
+  test(`${errorCode} should return 403 Forbidden`, () => {
+    const error = new ErrorWithCode(errorCode, `Test message for ${errorCode}`);
+    const result = getServerErrorFromUnknown(error);
+    expect(result.statusCode).toBe(403);
+    expect(result.message).toBe(`Test message for ${errorCode}`);
+    expect(result).toBeInstanceOf(HttpError);
   });
 });
 
@@ -226,6 +318,8 @@ test404Codes.forEach((errorCode) => {
     const error = new ErrorWithCode(errorCode, `Test message for ${errorCode}`);
     const result = getServerErrorFromUnknown(error);
     expect(result.statusCode).toBe(404);
+    expect(result.message).toBe(`Test message for ${errorCode}`);
+    expect(result).toBeInstanceOf(HttpError);
   });
 });
 
@@ -234,5 +328,27 @@ test409Codes.forEach((errorCode) => {
     const error = new ErrorWithCode(errorCode, `Test message for ${errorCode}`);
     const result = getServerErrorFromUnknown(error);
     expect(result.statusCode).toBe(409);
+    expect(result.message).toBe(`Test message for ${errorCode}`);
+    expect(result).toBeInstanceOf(HttpError);
+  });
+});
+
+test500Codes.forEach((errorCode) => {
+  test(`${errorCode} should return 500 Internal Server Error`, () => {
+    const error = new ErrorWithCode(errorCode, `Test message for ${errorCode}`);
+    const result = getServerErrorFromUnknown(error);
+    expect(result.statusCode).toBe(500);
+    expect(result.message).toBe(`Test message for ${errorCode}`);
+    expect(result).toBeInstanceOf(HttpError);
+  });
+});
+
+test503Codes.forEach((errorCode) => {
+  test(`${errorCode} should return 503 Service Unavailable`, () => {
+    const error = new ErrorWithCode(errorCode, `Test message for ${errorCode}`);
+    const result = getServerErrorFromUnknown(error);
+    expect(result.statusCode).toBe(503);
+    expect(result.message).toBe(`Test message for ${errorCode}`);
+    expect(result).toBeInstanceOf(HttpError);
   });
 });

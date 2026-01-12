@@ -81,6 +81,9 @@ export { getTranslation };
 export { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRobinReassignment";
 export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/roundRobinManualReassignment";
 
+export { ErrorCode, getHttpStatusForErrorCode } from "@calcom/lib/errorCodes";
+export { ErrorWithCode } from "@calcom/lib/errors";
+
 export { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 
 export type TeamQuery = Prisma.TeamGetPayload<{

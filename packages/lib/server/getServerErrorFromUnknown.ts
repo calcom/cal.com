@@ -2,6 +2,7 @@ import type { ZodIssue } from "zod";
 import { ZodError } from "zod";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { getHttpStatusForErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -124,55 +125,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
 export function getHttpStatusCode(cause: Error | ErrorWithCode): number {
   const errorCode = cause instanceof ErrorWithCode ? cause.code : cause.message;
 
-  switch (errorCode) {
-    // Generic HTTP error codes
-    case ErrorCode.BadRequest:
-      return 400;
-    case ErrorCode.Unauthorized:
-      return 401;
-    case ErrorCode.Forbidden:
-      return 403;
-    case ErrorCode.NotFound:
-      return 404;
-    case ErrorCode.InternalServerError:
-      return 500;
-
-    // Domain-specific error codes
-    // 400 Bad Request
-    case ErrorCode.RequestBodyWithouEnd:
-    case ErrorCode.MissingPaymentCredential:
-    case ErrorCode.MissingPaymentAppId:
-    case ErrorCode.AvailabilityNotFoundInSchedule:
-    case ErrorCode.CancelledBookingsCannotBeRescheduled:
-    case ErrorCode.BookingTimeOutOfBounds:
-    case ErrorCode.BookingNotAllowedByRestrictionSchedule:
-    case ErrorCode.BookerLimitExceeded:
-    case ErrorCode.BookerLimitExceededReschedule:
-    case ErrorCode.EventTypeNoHosts:
-    case ErrorCode.RequestBodyInvalid:
-    case ErrorCode.ChargeCardFailure:
-      return 400;
-    // 409 Conflict
-    case ErrorCode.NoAvailableUsersFound:
-    case ErrorCode.FixedHostsUnavailableForBooking:
-    case ErrorCode.RoundRobinHostsUnavailableForBooking:
-    case ErrorCode.AlreadySignedUpForBooking:
-    case ErrorCode.BookingSeatsFull:
-    case ErrorCode.NotEnoughAvailableSeats:
-    case ErrorCode.BookingConflict:
-    case ErrorCode.PaymentCreationFailure:
-      return 409;
-    // 404 Not Found
-    case ErrorCode.EventTypeNotFound:
-    case ErrorCode.BookingNotFound:
-    case ErrorCode.RestrictionScheduleNotFound:
-      return 404;
-    case ErrorCode.UnableToSubscribeToThePlatform:
-    case ErrorCode.UpdatingOauthClientError:
-    case ErrorCode.CreatingOauthClientError:
-    default:
-      return 500;
-  }
+  return getHttpStatusForErrorCode(errorCode as ErrorCode);
 }
 
 function getHttpError<T extends Error>({

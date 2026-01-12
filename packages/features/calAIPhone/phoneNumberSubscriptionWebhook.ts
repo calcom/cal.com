@@ -6,6 +6,8 @@ import { z } from "zod";
 import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -41,26 +43,23 @@ async function handler(request: NextRequest) {
 async function getCheckoutSession(sessionId: string) {
   const session = await stripe.checkout.sessions.retrieve(sessionId, { expand: ["subscription"] });
   if (!session) {
-    throw new HttpError({ statusCode: 404, message: "Checkout session not found" });
+    throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Checkout session not found");
   }
   return session;
 }
 
 function validateAndExtractMetadata(session: Stripe.Checkout.Session): CheckoutSessionMetadata {
   if (session.payment_status !== "paid") {
-    throw new HttpError({ statusCode: 402, message: "Payment required" });
+    throw new ErrorWithCode(ErrorCode.PaymentRequired, "Payment required");
   }
   if (!session.subscription) {
-    throw new HttpError({ statusCode: 400, message: "No subscription found in checkout session" });
+    throw new ErrorWithCode(ErrorCode.ResourceNotFound, "No subscription found in checkout session");
   }
 
   const result = checkoutSessionMetadataSchema.safeParse(session.metadata);
   if (!result.success) {
     log.error(`Invalid checkout session metadata: ${safeStringify(result.error.issues)}`);
-    throw new HttpError({
-      statusCode: 400,
-      message: "Invalid checkout session metadata",
-    });
+    throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Invalid checkout session metadata");
   }
 
   return result.data;

@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 
 import { BotDetectionService } from "./BotDetectionService";
 
@@ -106,7 +107,7 @@ describe("BotDetectionService", () => {
       expect(checkBotId).not.toHaveBeenCalled();
     });
 
-    it("should throw HttpError when a bot is detected", async () => {
+    it("should throw ErrorWithCode when a bot is detected", async () => {
       process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER = "1";
       vi.mocked(mockEventTypeRepository.getTeamIdByEventTypeId).mockResolvedValue({
         teamId: 456,
@@ -129,14 +130,18 @@ describe("BotDetectionService", () => {
           eventTypeId: 123,
           headers: mockHeaders,
         })
-      ).rejects.toThrow(HttpError);
+      ).rejects.toThrow(ErrorWithCode);
 
-      await expect(
-        botDetectionService.checkBotDetection({
+      const error = await botDetectionService
+        .checkBotDetection({
           eventTypeId: 123,
           headers: mockHeaders,
         })
-      ).rejects.toThrow("Access denied");
+        .catch((e) => e);
+
+      expect(error).toBeInstanceOf(ErrorWithCode);
+      expect(error.code).toBe(ErrorCode.Forbidden);
+      expect(error.message).toBe("Access denied");
     });
 
     it("should pass when a human is detected", async () => {
