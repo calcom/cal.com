@@ -17,12 +17,13 @@ import prisma from "@calcom/prisma";
 import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/CrmService";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { PrismaTrackingRepository } from "@calcom/lib/server/repository/PrismaTrackingRepository";
 
 import { CrmFieldType, DateFieldType } from "../../_lib/crm-enums";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { PrismaTrackingRepository } from "@calcom/lib/server/repository/PrismaTrackingRepository";
+import { metadata as appMeta } from "../_metadata";
 import type { HubspotToken } from "../api/callback";
 import type { appDataSchema } from "../zod";
 
@@ -343,6 +344,19 @@ export default class HubspotCalendarService implements CRM {
     return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
   };
 
+  private hubspotUpdateMeetingOutcome = async (
+    uid: string,
+    outcome: "SCHEDULED" | "COMPLETED" | "CANCELED" | "RESCHEDULED" | "NO_SHOW"
+  ) => {
+    const simplePublicObjectInput: SimplePublicObjectInput = {
+      properties: {
+        hs_meeting_outcome: outcome,
+      },
+    };
+
+    return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
+  };
+
   private hubspotArchiveMeeting = async (uid: string) => {
     return this.hubspotClient.crm.objects.meetings.basicApi.archive(uid);
   };
@@ -563,7 +577,46 @@ export default class HubspotCalendarService implements CRM {
     return this.appOptions;
   }
 
-  async handleAttendeeNoShow() {
-    console.log("Not implemented");
+  async handleAttendeeNoShow(bookingUid: string, attendees: { email: string; noShow: boolean }[]) {
+    const auth = await this.auth;
+    await auth.getToken();
+
+    if (attendees.length === 0) {
+      this.log.warn(`No attendees provided for bookingUid ${bookingUid}`);
+      return;
+    }
+
+    const allNoShow = attendees.every((attendee) => attendee.noShow === true);
+    const meetingOutcome = allNoShow ? "NO_SHOW" : "COMPLETED";
+
+    const hubspotMeetings = await prisma.bookingReference.findMany({
+      where: {
+        type: appMeta.type,
+        booking: {
+          uid: bookingUid,
+        },
+        deleted: null,
+      },
+      select: {
+        uid: true,
+      },
+    });
+
+    if (hubspotMeetings.length === 0) {
+      this.log.warn(`No HubSpot meetings found for bookingUid ${bookingUid}`);
+      return;
+    }
+
+    for (const meeting of hubspotMeetings) {
+      try {
+        await this.hubspotUpdateMeetingOutcome(meeting.uid, meetingOutcome);
+        this.log.debug(`Updated HubSpot meeting ${meeting.uid} outcome to ${meetingOutcome}`);
+      } catch (error) {
+        this.log.error(
+          `Failed to update HubSpot meeting ${meeting.uid} outcome to ${meetingOutcome}`,
+          error
+        );
+      }
+    }
   }
 }
