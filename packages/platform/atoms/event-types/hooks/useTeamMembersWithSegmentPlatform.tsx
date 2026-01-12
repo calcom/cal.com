@@ -10,12 +10,11 @@ import type {
   TeamMemberDto,
   FindTeamMembersMatchingAttributeOutputDto,
 } from "@calcom/platform-types";
-import { trpc } from "@calcom/trpc/react";
 
 import { useAtomsContext } from "../../hooks/useAtomsContext";
 import http from "../../lib/http";
 
-interface UseTeamMembersWithSegmentProps {
+export interface UseTeamMembersWithSegmentProps {
   initialTeamMembers: TeamMember[];
   assignRRMembersUsingSegment: boolean;
   teamId?: number;
@@ -24,7 +23,7 @@ interface UseTeamMembersWithSegmentProps {
   value: Host[];
 }
 
-const useProcessTeamMembersData = ({
+export const useProcessTeamMembersData = ({
   initialTeamMembers,
   assignRRMembersUsingSegment,
   matchingTeamMembersWithResult,
@@ -92,39 +91,6 @@ export const useTeamMembersWithSegmentPlatform = ({
     },
     enabled: isInit && !!teamId && !!orgId,
   });
-
-  const { teamMembers, localWeightsInitialValues } = useProcessTeamMembersData({
-    initialTeamMembers,
-    assignRRMembersUsingSegment,
-    matchingTeamMembersWithResult,
-    value,
-  });
-
-  return {
-    teamMembers,
-    localWeightsInitialValues,
-    isPending,
-  };
-};
-
-export const useTeamMembersWithSegment = ({
-  initialTeamMembers,
-  assignRRMembersUsingSegment,
-  teamId,
-  queryValue,
-  value,
-}: UseTeamMembersWithSegmentProps) => {
-  const { data: matchingTeamMembersWithResult, isPending } =
-    trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery(
-      {
-        teamId: teamId || 0,
-        attributesQueryValue: queryValue as AttributesQueryValue,
-        _enablePerf: true,
-      },
-      {
-        enabled: assignRRMembersUsingSegment && !!queryValue && !!teamId,
-      }
-    );
 
   const { teamMembers, localWeightsInitialValues } = useProcessTeamMembersData({
     initialTeamMembers,
