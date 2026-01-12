@@ -58,14 +58,14 @@ export const OnboardingCard = ({
           {/* Card Header */}
           <div className="mb-2 flex w-full gap-1.5 py-2  md:mb-0 md:py-4">
             <div className="flex w-full flex-col gap-2">
-              <h1 className="font-heading text-xl leading-6">{title}</h1>
+              <h1 className="font-cal text-xl font-semibold leading-6">{title}</h1>
               <p className="text-subtle text-sm leading-tight">{subtitle}</p>
             </div>
           </div>
 
           {/* Content */}
           <div
-            className={`flex h-full min-h-0 w-full flex-1 flex-col gap-4 @container-[size] ${
+            className={`flex h-full min-h-0 w-full flex-1 flex-col gap-4 [container-type:size] ${
               floatingFooter ? "pb-10" : ""
             }`}>
             {isLoading ? (
