@@ -1,5 +1,4 @@
-import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
-import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
@@ -8,9 +7,10 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import { getScheduleListItemData } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 import { AvailabilitySliderTable } from "@calcom/web/modules/timezone-buddy/components/AvailabilitySliderTable";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -30,15 +30,45 @@ export const generateMetadata = async () => {
 };
 
 const getCachedAvailabilities = unstable_cache(
-  async (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
-    const availabilityCaller = await createRouterCaller(
-      availabilityRouter,
-      await getTRPCContext(headers, cookies)
-    );
-    return await availabilityCaller.list();
+  async (userId: number) => {
+    const schedules = await prisma.schedule.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+        name: true,
+        availability: true,
+        timeZone: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+    });
+
+    if (schedules.length === 0) {
+      return {
+        schedules: [],
+      };
+    }
+
+    let defaultScheduleId: number | null;
+    try {
+      const scheduleRepository = new ScheduleRepository(prisma);
+      defaultScheduleId = await scheduleRepository.getDefaultScheduleId(userId);
+    } catch {
+      defaultScheduleId = null;
+    }
+
+    return {
+      schedules: schedules.map((schedule) => ({
+        ...schedule,
+        isDefault: schedule.id === defaultScheduleId,
+      })),
+    };
   },
   ["viewer.availability.list"],
-  { revalidate: 3600 } // Cache for 1 hour
+  { revalidate: 3600, tags: ["viewer.availability.list"] }
 );
 
 const Page = async ({ searchParams: _searchParams }: PageProps) => {
@@ -51,7 +81,7 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
     return redirect("/auth/login");
   }
 
-  const cachedAvailabilities = await getCachedAvailabilities(_headers, _cookies);
+  const cachedAvailabilities = await getCachedAvailabilities(session.user.id);
 
   // Transform the data to ensure startTime, endTime, and date are Date objects
   // This is because the data is cached and as a result the data is converted to a string

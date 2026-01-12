@@ -1,6 +1,5 @@
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
-import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
-import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
@@ -9,7 +8,14 @@ import { redirect } from "next/navigation";
 import { checkOnboardingRedirect } from "@calcom/features/auth/lib/onboardingUtils";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { EventGroupBuilder } from "@calcom/trpc/server/routers/viewer/eventTypes/usecases/EventGroupBuilder";
+import { EventTypeGroupFilter } from "@calcom/trpc/server/routers/viewer/eventTypes/utils/EventTypeGroupFilter";
+import { ProfilePermissionProcessor } from "@calcom/trpc/server/routers/viewer/eventTypes/usecases/ProfilePermissionProcessor";
+import { TeamAccessUseCase } from "@calcom/trpc/server/routers/viewer/eventTypes/teamAccessUseCase";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -26,22 +32,75 @@ export const generateMetadata = async () =>
 
 const getCachedEventGroups = unstable_cache(
   async (
-    headers: ReadonlyHeaders,
-    cookies: ReadonlyRequestCookies,
+    userId: number,
+    userUpId: string,
     filters?: {
       teamIds?: number[] | undefined;
       userIds?: number[] | undefined;
       upIds?: string[] | undefined;
     }
   ) => {
-    const eventTypesCaller = await createRouterCaller(
-      eventTypesRouter,
-      await getTRPCContext(headers, cookies)
+    // Initialize dependencies
+    const dependencies = {
+      membershipRepository: MembershipRepository,
+      profileRepository: ProfileRepository,
+      teamAccessUseCase: new TeamAccessUseCase(),
+    };
+
+    // Build event groups
+    const eventGroupBuilder = new EventGroupBuilder(dependencies);
+    const { eventTypeGroups, teamPermissionsMap } = await eventGroupBuilder.buildEventGroups({
+      userId,
+      userUpId,
+      filters,
+    });
+
+    const filteredEventTypeGroups = new EventTypeGroupFilter(eventTypeGroups, teamPermissionsMap)
+      .has("eventType.read")
+      .get();
+
+    // Process profiles with permissions
+    const profileProcessor = new ProfilePermissionProcessor();
+    const profiles = profileProcessor.processProfiles(eventTypeGroups, teamPermissionsMap);
+
+    const permissionCheckService = new PermissionCheckService();
+
+    const teamIdsToCheck = filteredEventTypeGroups
+      .map((group) => group.teamId)
+      .filter((teamId): teamId is number => teamId !== null && teamId !== undefined);
+
+    const teamPermissionChecks = teamIdsToCheck.map(async (teamId) => {
+      const canCreateEventType = await permissionCheckService.checkPermission({
+        userId,
+        teamId: teamId,
+        permission: "eventType.create",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+      return {
+        teamId,
+        permissions: {
+          canCreateEventType,
+        },
+      };
+    });
+
+    const teamPermissionsArray = await Promise.all(teamPermissionChecks);
+    const teamPermissions = teamPermissionsArray.reduce(
+      (acc, item) => {
+        acc[item.teamId] = item.permissions;
+        return acc;
+      },
+      {} as Record<number, { canCreateEventType: boolean }>
     );
-    return await eventTypesCaller.getUserEventGroups({ filters });
+
+    return {
+      eventTypeGroups: filteredEventTypeGroups,
+      profiles,
+      teamPermissions,
+    };
   },
   ["viewer.eventTypes.getUserEventGroups"],
-  { revalidate: 3600 } // seconds
+  { revalidate: 3600, tags: ["viewer.eventTypes.getUserEventGroups"] }
 );
 
 const Page = async ({ searchParams }: PageProps) => {
@@ -67,7 +126,11 @@ const Page = async ({ searchParams }: PageProps) => {
 
   const t = await getTranslate();
   const filters = getTeamsFiltersFromQuery(_searchParams);
-  const userEventGroupsData = await getCachedEventGroups(_headers, _cookies, filters);
+  const userEventGroupsData = await getCachedEventGroups(
+    session.user.id,
+    session.user.profile.upId,
+    filters
+  );
 
   return (
     <ShellMainAppDir
