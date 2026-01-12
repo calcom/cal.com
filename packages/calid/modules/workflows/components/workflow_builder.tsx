@@ -116,6 +116,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const user = userQuery.data;
   const utils = trpc.useUtils();
 
+  const isAWhatsappAction = (action) =>
+    action === WorkflowActions.WHATSAPP_ATTENDEE || action === WorkflowActions.WHATSAPP_NUMBER;
+
+  const currentPhone = (phoneNumberId) => whatsAppPhones?.find((e) => e.id === phoneNumberId);
+
   // Form setup with real schema validation
   const form = useForm<FormValues>({
     mode: "onBlur",
@@ -788,6 +793,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
       const updated = currentSteps.map((step) => {
         if (step.id === stepId) {
           const updatedStep = { ...step, [field]: value };
+
+          if (field === "metaTemplatePhoneNumberId") {
+            const phone = whatsAppPhones?.find((p) => p.id === value);
+            updatedStep.senderName = phone?.displayName ?? "Cal ID";
+          }
 
           if (
             field === "metaTemplateName" &&
@@ -1846,10 +1856,31 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                         </div>
                                       )}
 
+                                      {isWhatsappAction(step.action) && step.metaTemplatePhoneNumberId && (
+                                        <div className="bg-default rounded-md">
+                                          <div>
+                                            <div className="py-2 flex flex-row items-center">
+                                              <Label>Whatsapp Business Account ID</Label>
+                                              <span title="This is the WhatsApp Business Account ID associated with the selected phone number and your Cal ID account." className="ml-2 flex h-4 w-4 items-center justify-center text-gray-500">
+                                                <Icon name="info" className="h-4 w-4" />
+                                              </span>
+                                            </div>
+                                            <Input
+                                              type="text"
+                                              disabled={true}
+                                              value={currentPhone(step.metaTemplatePhoneNumberId)?.wabaId}
+                                              onChange={(e) =>
+                                                updateAction(step.id, "senderName", e.target.value)
+                                              }
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
+
                                       {/* Sender Name for WhatsApp and Email */}
                                       {(isWhatsappAction(step.action) || isEmailAction(step.action)) && (
                                         <div className="bg-default rounded-md">
-                                          <div className="pt-4">
+                                          <div>
                                             <Label>
                                               {isWhatsappAction(step.action)
                                                 ? t("sender_name")
@@ -1857,9 +1888,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                             </Label>
                                             <Input
                                               type="text"
-                                              disabled={readOnly}
+                                              disabled={readOnly || isAWhatsappAction(step.action)}
                                               placeholder={SENDER_NAME}
-                                              value={step.senderName || ""}
+                                              value={
+                                                (isAWhatsappAction(step.action)
+                                                  ? currentPhone(step.metaTemplatePhoneNumberId)
+                                                      ?.displayName ?? "Cal ID"
+                                                  : step.senderName) || ""
+                                              }
                                               onChange={(e) =>
                                                 updateAction(step.id, "senderName", e.target.value)
                                               }

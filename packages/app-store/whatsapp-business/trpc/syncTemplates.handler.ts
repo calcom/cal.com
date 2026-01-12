@@ -48,10 +48,10 @@ export const syncTemplatesHandler = async ({
   input,
 }: SyncTemplatesHandlerOptions): Promise<SyncTemplatesResponse> => {
   const identifier = ctx.user.id;
-  // await checkRateLimitAndThrowError({
-  //   identifier: `template.sync:${identifier}`,
-  //   rateLimitingType: "template.sync",
-  // });
+  await checkRateLimitAndThrowError({
+    identifier: `template.sync:${identifier}`,
+    rateLimitingType: "template.sync",
+  });
 
   const { phoneNumberId } = input;
   return await syncTemplateByPhoneNumberId(phoneNumberId);

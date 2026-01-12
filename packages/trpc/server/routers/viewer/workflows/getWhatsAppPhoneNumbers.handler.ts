@@ -2,8 +2,6 @@ import { PrismaClient } from "@prisma/client";
 
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-import { TRPCError } from "@trpc/server";
-
 import { TCalidGetWhatsAppPhoneNumbersInput } from "./getWhatsAppPhoneNumbers.schema";
 
 type GetOptions = {
@@ -32,13 +30,16 @@ export const getWhatsAppPhoneNumbersHandler = async ({ ctx, input }: GetOptions)
     },
   });
 
-  return phones.map((phone) => ({
-    id: phone.phoneNumberId,
-    phoneNumber: phone.phoneNumber,
-    credentialId: phone.credentialId,
-    wabaId: phone.wabaId,
-    isDefault: false,
-    isValid: !phone.credential.invalid,
-    templates: phone.templates || [],
-  }));
+  return phones.map((phone) => {
+    return {
+      id: phone.phoneNumberId,
+      displayName: phone.displayName ?? "NA",
+      phoneNumber: phone.phoneNumber,
+      credentialId: phone.credentialId,
+      wabaId: phone.wabaId,
+      isDefault: false,
+      isValid: !phone.credential.invalid,
+      templates: phone.templates || [],
+    };
+  });
 };
