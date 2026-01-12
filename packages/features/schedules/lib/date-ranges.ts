@@ -326,7 +326,11 @@ export function buildDateRanges({
     (ranges) => ranges.filter((range) => range.start.valueOf() !== range.end.valueOf())
   );
 
-  return { dateRanges: dateRanges.flat(), oooExcludedDateRanges: oooExcludedDateRanges.flat() };
+
+  return {
+    dateRanges: mergeDateRanges(dateRanges.flat()),
+    oooExcludedDateRanges: mergeDateRanges(oooExcludedDateRanges.flat()),
+  };
 }
 
 export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
@@ -463,5 +467,31 @@ export function mergeOverlappingRanges(ranges: { start: Date; end: Date }[]): { 
       mergedRanges.push(currentRange);
     }
   }
+  return mergedRanges;
+}
+
+export function mergeDateRanges(ranges: DateRange[]): DateRange[] {
+  if (ranges.length === 0) return [];
+
+  const sortedRanges = [...ranges].sort((a, b) => a.start.valueOf() - b.start.valueOf());
+
+  const mergedRanges: DateRange[] = [sortedRanges[0]];
+
+  for (let i = 1; i < sortedRanges.length; i++) {
+    const lastMergedRange = mergedRanges[mergedRanges.length - 1];
+    const currentRange = sortedRanges[i];
+
+    if (currentRange.start.valueOf() <= lastMergedRange.end.valueOf()) {
+      if (currentRange.end.valueOf() > lastMergedRange.end.valueOf()) {
+        mergedRanges[mergedRanges.length - 1] = {
+          start: lastMergedRange.start,
+          end: currentRange.end,
+        };
+      }
+    } else {
+      mergedRanges.push(currentRange);
+    }
+  }
+
   return mergedRanges;
 }
