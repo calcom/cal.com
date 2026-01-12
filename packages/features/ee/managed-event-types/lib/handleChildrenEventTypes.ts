@@ -176,6 +176,10 @@ export default async function handleChildrenEventTypes({
   const unlockedEventTypeValues = allManagedEventTypePropsZod
     .pick(unlockedManagedEventTypePropsForZod)
     .parse(eventType);
+
+  const { unlockedFields: parentUnlockedFields } = managedEventTypeValues.metadata?.managedEventConfig ?? {};
+  const isHiddenFieldUnlocked = parentUnlockedFields?.hidden === true;
+
   // Calculate if there are new/existent/deleted children users for which the event type needs to be created/updated/deleted
   const previousUserIds = oldEventType.children?.flatMap((ch) => ch.userId ?? []);
   const currentUserIds = children?.map((ch) => ch.owner.id);
@@ -223,7 +227,9 @@ export default async function handleChildrenEventTypes({
         onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
         userId,
         parentId,
-        hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+        hidden: isHiddenFieldUnlocked
+          ? (children?.find((ch) => ch.owner.id === userId)?.hidden ?? false)
+          : (eventType.hidden ?? false),
         /**
          * RR Segment isn't applicable for managed event types.
          */
@@ -290,8 +296,8 @@ export default async function handleChildrenEventTypes({
             key === "afterBufferTime"
               ? "afterEventBuffer"
               : key === "beforeBufferTime"
-              ? "beforeEventBuffer"
-              : key;
+                ? "beforeEventBuffer"
+                : key;
           // @ts-expect-error Element implicitly has any type
           acc[filteredKey] = true;
           return acc;
@@ -330,7 +336,9 @@ export default async function handleChildrenEventTypes({
           data: {
             ...updatePayloadFiltered,
             rrHostSubsetEnabled: false,
-            hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+            hidden: isHiddenFieldUnlocked
+              ? (children?.find((ch) => ch.owner.id === userId)?.hidden ?? false)
+              : (eventType.hidden ?? false),
             ...("schedule" in unlockedFieldProps ? {} : { scheduleId: eventType.scheduleId || null }),
             restrictionScheduleId: null,
             useBookerTimezone: false,

@@ -11,8 +11,8 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { Select } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { Select, Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
@@ -44,11 +44,13 @@ export const ChildrenEventTypeSelect = ({
   options = [],
   value = [],
   customClassNames,
+  isHiddenFieldLocked = false,
   ...props
 }: Omit<Props<ChildrenEventType, true>, "value" | "onChange"> & {
   value?: ChildrenEventType[];
   onChange: (value: readonly ChildrenEventType[]) => void;
   customClassNames?: ChildrenEventTypeSelectCustomClassNames;
+  isHiddenFieldLocked?: boolean;
 }) => {
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
@@ -138,10 +140,15 @@ export const ChildrenEventTypeSelect = ({
                 <div className={classNames("flex flex-row items-center gap-2")}>
                   <Tooltip
                     className={customClassNames?.selectedChildrenList?.listItem?.showOnProfileTooltip}
-                    content={t("show_eventtype_on_profile")}>
-                    <div className="self-center rounded-md p-2">
+                    content={
+                      isHiddenFieldLocked ? t("locked_by_team_admin") : t("show_eventtype_on_profile")
+                    }>
+                    <div className="flex items-center self-center rounded-md p-2">
+                      {isHiddenFieldLocked && <Icon name="lock" className="text-subtle mr-2 h-4 w-4" />}
                       <Switch
                         name="Hidden"
+                        data-testid={`child-event-hidden-switch-${children.owner.id}`}
+                        disabled={isHiddenFieldLocked}
                         checked={!children.hidden}
                         onCheckedChange={(checked) => {
                           const newData = value.map((item) =>

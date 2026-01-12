@@ -478,6 +478,252 @@ describe("handleChildrenEventTypes", () => {
     });
   });
 
+  describe("Hidden field propagation", () => {
+    it("Uses parent's hidden value when hidden field is locked (default)", async () => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const {
+        schedulingType,
+        id,
+        teamId,
+        timeZone,
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
+        autoTranslateDescriptionEnabled,
+        autoTranslateInstantMeetingTitleEnabled,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
+        ...evType
+      } = mockFindFirstEventType({
+        id: 123,
+        hidden: true, // Parent is hidden
+        metadata: { managedEventConfig: {} }, // No unlockedFields means hidden is locked
+        locations: [],
+      });
+
+      setupTransactionMock();
+
+      const createdEventType = {
+        ...evType,
+        id: 123,
+        userId: 4,
+        schedulingType,
+        teamId,
+        timeZone,
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
+        autoTranslateDescriptionEnabled,
+        autoTranslateInstantMeetingTitleEnabled,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
+      };
+      prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
+
+      await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }], // Child says false, but parent is locked
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // Verify the child event type was created with parent's hidden value (true), not the per-child value (false)
+      expect(prismaMock.eventType.createManyAndReturn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.arrayContaining([
+            expect.objectContaining({
+              hidden: true, // Should use parent's value since hidden is locked
+              userId: 4,
+            }),
+          ]),
+        })
+      );
+    });
+
+    it("Uses per-child hidden value when hidden field is unlocked", async () => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const {
+        schedulingType,
+        id,
+        teamId,
+        timeZone,
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
+        autoTranslateDescriptionEnabled,
+        autoTranslateInstantMeetingTitleEnabled,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
+        ...evType
+      } = mockFindFirstEventType({
+        id: 123,
+        hidden: true, // Parent is hidden
+        metadata: { managedEventConfig: { unlockedFields: { hidden: true } } }, // hidden is unlocked
+        locations: [],
+      });
+
+      setupTransactionMock();
+
+      const createdEventType = {
+        ...evType,
+        id: 123,
+        userId: 4,
+        schedulingType,
+        teamId,
+        timeZone,
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
+        autoTranslateDescriptionEnabled,
+        autoTranslateInstantMeetingTitleEnabled,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
+      };
+      prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
+
+      await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }], // Child says false
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // Verify the child event type was created with the per-child hidden value (false)
+      expect(prismaMock.eventType.createManyAndReturn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.arrayContaining([
+            expect.objectContaining({
+              hidden: false, // Should use per-child value since hidden is unlocked
+              userId: 4,
+            }),
+          ]),
+        })
+      );
+    });
+
+    it("Propagates parent's hidden value to existing children when field is locked", async () => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const {
+        schedulingType,
+        id,
+        teamId,
+        timeZone,
+        locations,
+        parentId,
+        userId,
+        scheduleId,
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
+        assignRRMembersUsingSegment,
+        autoTranslateInstantMeetingTitleEnabled,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
+        ..._evType
+      } = mockFindFirstEventType({
+        hidden: true, // Parent is hidden
+        metadata: { managedEventConfig: {} }, // No unlockedFields means hidden is locked
+        locations: [],
+      });
+
+      await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }], // Child says false
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // Verify the child event type was updated with parent's hidden value (true)
+      expect(prismaMock.eventType.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            hidden: true, // Should use parent's value since hidden is locked
+          }),
+          where: {
+            userId_parentId: {
+              userId: 4,
+              parentId: 1,
+            },
+          },
+        })
+      );
+    });
+
+    it("Uses per-child hidden value for existing children when field is unlocked", async () => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const {
+        schedulingType,
+        id,
+        teamId,
+        timeZone,
+        locations,
+        parentId,
+        userId,
+        scheduleId,
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
+        assignRRMembersUsingSegment,
+        autoTranslateInstantMeetingTitleEnabled,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
+        ...evType
+      } = mockFindFirstEventType({
+        hidden: true, // Parent is hidden
+        metadata: { managedEventConfig: { unlockedFields: { hidden: true } } }, // hidden is unlocked
+        locations: [],
+      });
+
+      await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }], // Child says false
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // Verify the child event type was updated with per-child hidden value (false)
+      expect(prismaMock.eventType.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            hidden: false, // Should use per-child value since hidden is unlocked
+          }),
+          where: {
+            userId_parentId: {
+              userId: 4,
+              parentId: 1,
+            },
+          },
+        })
+      );
+    });
+  });
+
   describe("Workflows", () => {
     it("Links workflows to new and existing assigned members", async () => {
       const {

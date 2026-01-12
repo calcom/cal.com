@@ -86,12 +86,14 @@ const ChildrenEventTypesList = ({
   value,
   onChange,
   customClassNames,
+  isHiddenFieldLocked = false,
   ...rest
 }: {
   value: ReturnType<typeof mapMemberToChildrenOption>[];
   onChange?: (options: ReturnType<typeof mapMemberToChildrenOption>[]) => void;
   options?: Options<ReturnType<typeof mapMemberToChildrenOption>>;
   customClassNames?: ChildrenEventTypeSelectCustomClassNames;
+  isHiddenFieldLocked?: boolean;
 } & Omit<Partial<ComponentProps<typeof ChildrenEventTypeSelect>>, "onChange" | "value">) => {
   const { t } = useLocale();
   return (
@@ -113,6 +115,7 @@ const ChildrenEventTypesList = ({
           options={options.filter((opt) => !value.find((val) => val.owner.id.toString() === opt.value))}
           controlShouldRenderValue={false}
           customClassNames={customClassNames}
+          isHiddenFieldLocked={isHiddenFieldLocked}
           {...rest}
         />
       </div>
@@ -567,11 +570,13 @@ const ChildrenEventTypes = ({
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   customClassNames,
+  isHiddenFieldLocked = false,
 }: {
   childrenEventTypeOptions: ReturnType<typeof mapMemberToChildrenOption>[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: ChildrenEventTypesCustomClassNames;
+  isHiddenFieldLocked?: boolean;
 }) => {
   const { setValue } = useFormContext<FormValues>();
   return (
@@ -596,6 +601,7 @@ const ChildrenEventTypes = ({
                 options={childrenEventTypeOptions}
                 onChange={onChange}
                 customClassNames={customClassNames?.childrenEventTypesList}
+                isHiddenFieldLocked={isHiddenFieldLocked}
               />
             )}
           />
@@ -779,6 +785,10 @@ export const EventTeamAssignmentTab = ({
     getValues("assignAllTeamMembers") ?? false
   );
 
+  const metadata = getValues("metadata");
+  const unlockedFields = metadata?.managedEventConfig?.unlockedFields;
+  const isHiddenFieldLocked = isManagedEventType && !unlockedFields?.hidden;
+
   const resetRROptions = () => {
     setValue("assignRRMembersUsingSegment", false, { shouldDirty: true });
     setValue("assignAllTeamMembers", false, { shouldDirty: true });
@@ -957,6 +967,7 @@ export const EventTeamAssignmentTab = ({
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           childrenEventTypeOptions={childrenEventTypeOptions}
           customClassNames={customClassNames?.childrenEventTypes}
+          isHiddenFieldLocked={isHiddenFieldLocked}
         />
       )}
     </div>
