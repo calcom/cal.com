@@ -128,14 +128,8 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
       <p
-        className="text-default mt-2 grow text-sm"
+        className="text-default mt-2 grow text-sm line-clamp-3"
         dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(app.description) }}
-        style={{
-          overflow: "hidden",
-          display: "-webkit-box",
-          WebkitBoxOrient: "vertical",
-          WebkitLineClamp: "3",
-        }}
       />
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
