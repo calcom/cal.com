@@ -22,9 +22,7 @@ import { CalendarServiceExceptionFilter } from "./filters/calendar-service-excep
 import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
-  if (!process.env.VERCEL) {
-    app.enableShutdownHooks();
-  }
+  app.enableShutdownHooks();
   app.enableVersioning({
     type: VersioningType.CUSTOM,
     extractor: (request: unknown) => {
