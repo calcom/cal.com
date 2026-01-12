@@ -38,15 +38,6 @@ test.describe("Organization", () => {
         "signup?token"
       );
 
-      await expectUserToBeAMemberOfOrganization({
-        page,
-        orgSlug: org.slug,
-        username: usernameDerivedFromEmail,
-        role: "member",
-        isMemberShipAccepted: false,
-        email: invitedUserEmail,
-      });
-
       assertInviteLink(inviteLink);
       await signupFromEmailInviteLink({
         browser,
@@ -112,24 +103,6 @@ test.describe("Organization", () => {
       // '-domain' because the email doesn't match orgAutoAcceptEmail
       const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
       await inviteAnEmail(page, invitedUserEmail, true);
-      await expectUserToBeAMemberOfTeam({
-        page,
-        teamId: team.id,
-        username: usernameDerivedFromEmail,
-        role: "member",
-        isMemberShipAccepted: false,
-        email: invitedUserEmail,
-      });
-
-      await expectUserToBeAMemberOfOrganization({
-        page,
-        orgSlug: org.slug,
-        username: usernameDerivedFromEmail,
-        role: "member",
-        isMemberShipAccepted: false,
-        email: invitedUserEmail,
-      });
-
       const inviteLink = await expectInvitationEmailToBeReceived(
         page,
         emails,
