@@ -516,7 +516,7 @@ describe("EmailWorkflowService", () => {
         email: "organizer@example.com",
         timeZone: "UTC",
         language: { locale: "en" },
-        timeFormat: 12,
+        timeFormat: "h:mma",
       },
       attendees: [
         {
