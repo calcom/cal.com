@@ -19,7 +19,6 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
-
 export { slugify } from "@calcom/lib/slugify";
 export { slugifyLenient } from "@calcom/lib/slugify-lenient";
 export { getBookingForReschedule };
@@ -53,7 +52,10 @@ export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/f
 
 export { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 
-export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
+export type {
+  BookingCreateBody,
+  BookingResponse,
+} from "@calcom/features/bookings/types";
 
 export { MINUTES_TO_BOOK, ENABLE_ASYNC_TASKER } from "@calcom/lib/constants";
 
@@ -67,7 +69,11 @@ export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
 
-export { userMetadata, bookingMetadataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
+export {
+  userMetadata,
+  bookingMetadataSchema,
+  teamMetadataSchema,
+} from "@calcom/prisma/zod-utils";
 
 export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 
@@ -145,5 +151,3 @@ export { OAuthService } from "@calcom/features/oauth/services/OAuthService";
 
 export { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 export type { OrgMembershipLookup } from "@calcom/trpc/server/routers/viewer/slots/util";
-
-export { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
