@@ -75,6 +75,41 @@ describe("BotDetectionService", () => {
       expect(mockEventTypeRepository.getTeamIdByEventTypeId).not.toHaveBeenCalled();
     });
 
+    it("should throw HttpError with 400 status for invalid eventTypeId", async () => {
+      process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER = "1";
+
+      await expect(
+        botDetectionService.checkBotDetection({
+          eventTypeId: "3823346KiEg1Zk6') OR 370=(SELECT 370 FROM PG_SLEEP(15))--" as unknown as number,
+          headers: mockHeaders,
+        })
+      ).rejects.toThrow(HttpError);
+
+      await expect(
+        botDetectionService.checkBotDetection({
+          eventTypeId: -1,
+          headers: mockHeaders,
+        })
+      ).rejects.toThrow(HttpError);
+
+      await expect(
+        botDetectionService.checkBotDetection({
+          eventTypeId: 1.5,
+          headers: mockHeaders,
+        })
+      ).rejects.toThrow(HttpError);
+
+      try {
+        await botDetectionService.checkBotDetection({
+          eventTypeId: -1,
+          headers: mockHeaders,
+        });
+      } catch (error) {
+        expect(error).toBeInstanceOf(HttpError);
+        expect((error as HttpError).statusCode).toBe(400);
+      }
+    });
+
     it("should return early if event type has no teamId", async () => {
       process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER = "1";
       vi.mocked(mockEventTypeRepository.getTeamIdByEventTypeId).mockResolvedValue({
