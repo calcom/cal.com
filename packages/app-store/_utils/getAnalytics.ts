@@ -16,14 +16,14 @@ export const getAnalyticsService = async ({
 
   const analyticsName = analyticsType.split("_")[0];
 
-  const analyticsAppImportFn = AnalyticsServiceMap[analyticsName as keyof typeof AnalyticsServiceMap];
+  const analyticsAppGetter = AnalyticsServiceMap[analyticsName as keyof typeof AnalyticsServiceMap];
 
-  if (!analyticsAppImportFn) {
+  if (!analyticsAppGetter) {
     log.warn(`analytics app not implemented`);
     return null;
   }
 
-  const analyticsApp = await analyticsAppImportFn;
+  const analyticsApp = await analyticsAppGetter();
 
   const AnalyticsService = analyticsApp.default;
 

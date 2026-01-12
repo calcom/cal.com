@@ -10,12 +10,14 @@ export const getCrm = async (credential: CredentialPayload, appOptions: any) => 
 
   const crmName = crmType.split("_")[0];
 
-  const crmServiceImportFn = await CrmServiceMap[crmName as keyof typeof CrmServiceMap];
+  const crmServiceGetter = CrmServiceMap[crmName as keyof typeof CrmServiceMap];
 
-  if (!crmServiceImportFn) {
+  if (!crmServiceGetter) {
     log.warn(`crm of type ${crmType} is not implemented`);
     return null;
   }
+
+  const crmServiceImportFn = await crmServiceGetter();
 
   const CrmService = crmServiceImportFn.default;
 

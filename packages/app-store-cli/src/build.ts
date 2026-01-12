@@ -105,8 +105,7 @@ function generateFiles() {
             "config.json"
           )}`;
           throw new Error(
-            `${prefix}: ${
-              error instanceof Error ? error.message : String(error)
+            `${prefix}: ${error instanceof Error ? error.message : String(error)
             }`
           );
         }
@@ -142,19 +141,19 @@ function generateFiles() {
 
   type ImportConfig =
     | {
+      fileToBeImported: string;
+      importName?: string;
+    }
+    | [
+      {
         fileToBeImported: string;
         importName?: string;
+      },
+      {
+        fileToBeImported: string;
+        importName: string;
       }
-    | [
-        {
-          fileToBeImported: string;
-          importName?: string;
-        },
-        {
-          fileToBeImported: string;
-          importName: string;
-        }
-      ];
+    ];
 
   /**
    * If importConfig is an array, only 2 items are allowed. First one is the main one and second one is the fallback
@@ -252,8 +251,10 @@ function generateFiles() {
                 )}")),`
               );
             } else {
+              // Use lazy getter function to defer the import until actually needed
+              // This prevents all ~110 app modules from being compiled on first page load
               output.push(
-                `"${key}": import("${getModulePath(
+                `"${key}": () => import("${getModulePath(
                   app.path,
                   chosenConfig.fileToBeImported
                 )}"),`
