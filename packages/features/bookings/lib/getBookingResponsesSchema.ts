@@ -24,6 +24,26 @@ const ensureValidPhoneNumber = (value: string) => {
   // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
   return value.replace(/^ +/, "+");
 };
+
+/**
+ * Checks if a booker email matches an email/domain entry.
+ * Supports three formats:
+ * - Full email: "user@example.com" - matches exactly
+ * - Domain with @ prefix: "@example.com" - matches any email ending with "@example.com"
+ * - Domain without @ prefix: "example.com" - matches any email ending with "@example.com"
+ */
+const doesEmailMatchEntry = (bookerEmail: string, entry: string): boolean => {
+  if (entry.startsWith("@")) {
+    const domain = entry.slice(1);
+    return bookerEmail.endsWith("@" + domain);
+  }
+
+  if (entry.includes("@")) {
+    return bookerEmail.toLowerCase() === entry.toLowerCase();
+  }
+
+  return bookerEmail.endsWith("@" + entry);
+};
 export const getBookingResponsesPartialSchema = ({ bookingFields, view, translateFn }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
 
@@ -208,19 +228,7 @@ function preprocess<T extends z.ZodType>({
             const excludedEmails =
               bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
 
-            const match = excludedEmails.find((excludedEntry) => {
-              // If starts with "@", treat as domain (e.g., "@gmail.com")
-              if (excludedEntry.startsWith("@")) {
-                const domain = excludedEntry.slice(1);
-                return bookerEmail.endsWith("@" + domain);
-              }
-              // If contains "@" but doesn't start with "@", treat as full email (e.g., "anik@cal.com")
-              if (excludedEntry.includes("@")) {
-                return bookerEmail.toLowerCase() === excludedEntry.toLowerCase();
-              }
-              // Otherwise, treat as domain (e.g., "gmail.com")
-              return bookerEmail.endsWith("@" + excludedEntry);
-            });
+            const match = excludedEmails.find((excludedEntry) => doesEmailMatchEntry(bookerEmail, excludedEntry));
             if (match) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -232,19 +240,9 @@ function preprocess<T extends z.ZodType>({
                 ?.split(",")
                 .map((domain) => domain.trim())
                 .filter(Boolean) || [];
-            const requiredEmailsMatch = requiredEmails.find((requiredEntry) => {
-              // If starts with "@", treat as domain (e.g., "@gmail.com")
-              if (requiredEntry.startsWith("@")) {
-                const domain = requiredEntry.slice(1);
-                return bookerEmail.endsWith("@" + domain);
-              }
-              // If contains "@" but doesn't start with "@", treat as full email (e.g., "user@hotmail.com")
-              if (requiredEntry.includes("@")) {
-                return bookerEmail.toLowerCase() === requiredEntry.toLowerCase();
-              }
-              // Otherwise, treat as domain (e.g., "gmail.com")
-              return bookerEmail.endsWith("@" + requiredEntry);
-            });
+            const requiredEmailsMatch = requiredEmails.find((requiredEntry) =>
+              doesEmailMatchEntry(bookerEmail, requiredEntry)
+            );
             if (requiredEmails.length > 0 && !requiredEmailsMatch) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
