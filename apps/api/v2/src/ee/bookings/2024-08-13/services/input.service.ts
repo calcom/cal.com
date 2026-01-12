@@ -598,8 +598,15 @@ export class InputBookingsService_2024_08_13 {
       );
     }
 
+    // preserve the original booking duration instead of using the default event type length
+    // this ensures that bookings with non-default durations (from multi-duration event types) are preserved on reschedule
+    const originalDurationInMinutes = DateTime.fromJSDate(booking.endTime).diff(
+      DateTime.fromJSDate(booking.startTime),
+      "minutes"
+    ).minutes;
+
     const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(attendee.timeZone);
-    const endTime = startTime.plus({ minutes: eventType.length });
+    const endTime = startTime.plus({ minutes: originalDurationInMinutes });
 
     return {
       start: startTime.toISO(),
@@ -664,8 +671,15 @@ export class InputBookingsService_2024_08_13 {
       bookingResponses.attendeePhoneNumber = attendee.phoneNumber || undefined;
     }
 
+    // preserve the original booking duration instead of using the default event type length
+    // this ensures that bookings with non-default durations (from multi-duration event types) are preserved on reschedule
+    const originalDurationInMinutes = DateTime.fromJSDate(booking.endTime).diff(
+      DateTime.fromJSDate(booking.startTime),
+      "minutes"
+    ).minutes;
+
     const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(attendee.timeZone);
-    const endTime = startTime.plus({ minutes: eventType.length });
+    const endTime = startTime.plus({ minutes: originalDurationInMinutes });
     return {
       start: startTime.toISO(),
       end: endTime.toISO(),
