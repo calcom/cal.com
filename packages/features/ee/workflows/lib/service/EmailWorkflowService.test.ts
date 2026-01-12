@@ -4,7 +4,6 @@ import type { BookingSeatRepository } from "@calcom/features/bookings/repositori
 import type { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import {
   SchedulingType,
-  TimeUnit,
   WorkflowActions,
   WorkflowTemplates,
   WorkflowTriggerEvents,
@@ -164,22 +163,7 @@ describe("EmailWorkflowService", () => {
   });
 
   describe("generateParametersToBuildEmailWorkflowContent - EMAIL_HOST", () => {
-    const mockCommonScheduleFunctionParams = {
-      triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
-      timeSpan: {
-        time: 24,
-        timeUnit: TimeUnit.HOUR,
-      },
-      workflowStepId: 1,
-      template: WorkflowTemplates.REMINDER,
-      userId: 1,
-      teamId: null,
-      seatReferenceUid: undefined,
-      verifiedAt: new Date(),
-      creditCheckFn: vi.fn().mockResolvedValue(true),
-    };
-
-    const baseMockEvt: Partial<CalendarEvent> = {
+    const baseMockEvt:Partial<CalendarEvent> = {
       uid: "booking-123",
       bookerUrl: "https://cal.com",
       title: "Test Meeting",
@@ -222,38 +206,19 @@ describe("EmailWorkflowService", () => {
     test("should send to organizer and team members for ROUND_ROBIN scheduling type", async () => {
       // Note: For ROUND_ROBIN, the CalendarEventBuilder filters team members to only include
       // those assigned to the booking. EmailWorkflowService sends to all team members in evt.team.members.
-      const mockEvt: Partial<CalendarEvent> = {
-        ...baseMockEvt,
-        schedulingType: SchedulingType.ROUND_ROBIN,
-        team: {
-          id: 1,
-          name: "Test Team",
-          members: [
-            {
-              id: 1,
-              name: "Team Member 1",
-              email: "team1@example.com",
-              timeZone: "UTC",
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              language: { locale: "en", translate: (() => "") as any },
-            },
-            {
-              id: 2,
-              name: "Team Member 2",
-              email: "team2@example.com",
-              timeZone: "UTC",
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              language: { locale: "en", translate: (() => "") as any },
-            },
-          ],
-        },
-      };
+      const teamMemberEmails = ["team1@example.com", "team2@example.com"];
 
       const result = await emailWorkflowService.generateParametersToBuildEmailWorkflowContent({
-        evt: mockEvt as CalendarEvent,
+        isFormTrigger: false,
+        bookerUrl: baseMockEvt.bookerUrl!,
+        bookingUid: baseMockEvt.uid,
+        organizerEmail: baseMockEvt.organizer!.email,
+        attendeeEmails: baseMockEvt.attendees!.map((a) => a.email),
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        teamMemberEmails,
+        sendToEmail: mockWorkflowStep.sendTo ?? undefined,
         workflowStep: mockWorkflowStep,
-        workflow: { userId: 1 },
-        commonScheduleFunctionParams: mockCommonScheduleFunctionParams,
+        workflowUserId: 1,
         hideBranding: false,
       });
 
@@ -266,38 +231,19 @@ describe("EmailWorkflowService", () => {
     });
 
     test("should send to organizer and team members for COLLECTIVE scheduling type", async () => {
-      const mockEvt: Partial<CalendarEvent> = {
-        ...baseMockEvt,
-        schedulingType: SchedulingType.COLLECTIVE,
-        team: {
-          id: 1,
-          name: "Test Team",
-          members: [
-            {
-              id: 1,
-              name: "Team Member 1",
-              email: "team1@example.com",
-              timeZone: "UTC",
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              language: { locale: "en", translate: (() => "") as any },
-            },
-            {
-              id: 2,
-              name: "Team Member 2",
-              email: "team2@example.com",
-              timeZone: "UTC",
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              language: { locale: "en", translate: (() => "") as any },
-            },
-          ],
-        },
-      };
+      const teamMemberEmails = ["team1@example.com", "team2@example.com"];
 
       const result = await emailWorkflowService.generateParametersToBuildEmailWorkflowContent({
-        evt: mockEvt as CalendarEvent,
+        isFormTrigger: false,
+        bookerUrl: baseMockEvt.bookerUrl!,
+        bookingUid: baseMockEvt.uid,
+        organizerEmail: baseMockEvt.organizer!.email,
+        attendeeEmails: baseMockEvt.attendees!.map((a) => a.email),
+        schedulingType: SchedulingType.COLLECTIVE,
+        teamMemberEmails,
+        sendToEmail: mockWorkflowStep.sendTo ?? undefined,
         workflowStep: mockWorkflowStep,
-        workflow: { userId: 1 },
-        commonScheduleFunctionParams: mockCommonScheduleFunctionParams,
+        workflowUserId: 1,
         hideBranding: false,
       });
 
@@ -308,17 +254,17 @@ describe("EmailWorkflowService", () => {
     });
 
     test("should send to organizer only when team is undefined for COLLECTIVE", async () => {
-      const mockEvt: Partial<CalendarEvent> = {
-        ...baseMockEvt,
-        schedulingType: SchedulingType.COLLECTIVE,
-        team: undefined,
-      } as Partial<CalendarEvent>;
-
       const result = await emailWorkflowService.generateParametersToBuildEmailWorkflowContent({
-        evt: mockEvt as CalendarEvent,
+        isFormTrigger: false,
+        bookerUrl: baseMockEvt.bookerUrl!,
+        bookingUid: baseMockEvt.uid,
+        organizerEmail: baseMockEvt.organizer!.email,
+        attendeeEmails: baseMockEvt.attendees!.map((a) => a.email),
+        schedulingType: SchedulingType.COLLECTIVE,
+        teamMemberEmails: [], // team is undefined
+        sendToEmail: mockWorkflowStep.sendTo ?? undefined,
         workflowStep: mockWorkflowStep,
-        workflow: { userId: 1 },
-        commonScheduleFunctionParams: mockCommonScheduleFunctionParams,
+        workflowUserId: 1,
         hideBranding: false,
       });
 
@@ -327,21 +273,17 @@ describe("EmailWorkflowService", () => {
     });
 
     test("should send to organizer only when team members array is empty for COLLECTIVE", async () => {
-      const mockEvt: Partial<CalendarEvent> = {
-        ...baseMockEvt,
-        schedulingType: SchedulingType.COLLECTIVE,
-        team: {
-          id: 1,
-          name: "Test Team",
-          members: [],
-        },
-      };
-
       const result = await emailWorkflowService.generateParametersToBuildEmailWorkflowContent({
-        evt: mockEvt as CalendarEvent,
+        isFormTrigger: false,
+        bookerUrl: baseMockEvt.bookerUrl!,
+        bookingUid: baseMockEvt.uid,
+        organizerEmail: baseMockEvt.organizer!.email,
+        attendeeEmails: baseMockEvt.attendees!.map((a) => a.email),
+        schedulingType: SchedulingType.COLLECTIVE,
+        teamMemberEmails: [], // empty team members array
+        sendToEmail: mockWorkflowStep.sendTo ?? undefined,
         workflowStep: mockWorkflowStep,
-        workflow: { userId: 1 },
-        commonScheduleFunctionParams: mockCommonScheduleFunctionParams,
+        workflowUserId: 1,
         hideBranding: false,
       });
 
@@ -350,30 +292,17 @@ describe("EmailWorkflowService", () => {
     });
 
     test("should send to organizer only for other scheduling types (e.g., null)", async () => {
-      const mockEvt: Partial<CalendarEvent> = {
-        ...baseMockEvt,
-        schedulingType: null,
-        team: {
-          id: 1,
-          name: "Test Team",
-          members: [
-            {
-              id: 1,
-              name: "Team Member 1",
-              email: "team1@example.com",
-              timeZone: "UTC",
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              language: { locale: "en", translate: (() => "") as any },
-            },
-          ],
-        },
-      } as Partial<CalendarEvent>;
-
       const result = await emailWorkflowService.generateParametersToBuildEmailWorkflowContent({
-        evt: mockEvt as CalendarEvent,
+        isFormTrigger: false,
+        bookerUrl: baseMockEvt.bookerUrl!,
+        bookingUid: baseMockEvt.uid,
+        organizerEmail: baseMockEvt.organizer!.email,
+        attendeeEmails: baseMockEvt.attendees!.map((a) => a.email),
+        schedulingType: null, // not ROUND_ROBIN or COLLECTIVE
+        teamMemberEmails: ["team1@example.com"], // has team members but schedulingType is null
+        sendToEmail: mockWorkflowStep.sendTo ?? undefined,
         workflowStep: mockWorkflowStep,
-        workflow: { userId: 1 },
-        commonScheduleFunctionParams: mockCommonScheduleFunctionParams,
+        workflowUserId: 1,
         hideBranding: false,
       });
 
@@ -383,21 +312,6 @@ describe("EmailWorkflowService", () => {
   });
 
   describe("generateParametersToBuildEmailWorkflowContent - Form Data", () => {
-    const mockCommonScheduleFunctionParams = {
-      triggerEvent: WorkflowTriggerEvents.FORM_SUBMITTED,
-      timeSpan: {
-        time: null,
-        timeUnit: null,
-      },
-      workflowStepId: 1,
-      template: WorkflowTemplates.REMINDER,
-      userId: 1,
-      teamId: null,
-      seatReferenceUid: undefined,
-      verifiedAt: new Date(),
-      creditCheckFn: vi.fn().mockResolvedValue(true),
-    };
-
     const mockFormData = {
       responses: {
         "contact person": {
@@ -433,16 +347,21 @@ describe("EmailWorkflowService", () => {
       };
 
       const result = await emailWorkflowService.generateParametersToBuildEmailWorkflowContent({
+        isFormTrigger: true,
         formData: mockFormData,
+        bookerUrl: undefined,
+        bookingUid: undefined,
+        organizerEmail: "",
+        attendeeEmails: [],
+        teamMemberEmails: [],
+        schedulingType: null,
+        sendToEmail: mockWorkflowStep.sendTo ?? undefined,
         workflowStep: mockWorkflowStep,
-        workflow: { userId: 1 },
-        commonScheduleFunctionParams: mockCommonScheduleFunctionParams,
+        workflowUserId: 1,
         hideBranding: false,
       });
 
       expect(result.sendTo).toEqual(["recipient@example.com"]);
-      expect(result.formData).toEqual(mockFormData);
-      expect(result.evt).toBeUndefined();
     });
 
     test("should work with EMAIL_ATTENDEE action and formData (no evt)", async () => {
@@ -461,17 +380,22 @@ describe("EmailWorkflowService", () => {
       };
 
       const result = await emailWorkflowService.generateParametersToBuildEmailWorkflowContent({
+        isFormTrigger: true,
         formData: mockFormData,
+        bookerUrl: undefined,
+        bookingUid: undefined,
+        organizerEmail: "",
+        attendeeEmails: [],
+        teamMemberEmails: [],
+        schedulingType: null,
+        sendToEmail: mockWorkflowStep.sendTo ?? undefined,
         workflowStep: mockWorkflowStep,
-        workflow: { userId: 1 },
-        commonScheduleFunctionParams: mockCommonScheduleFunctionParams,
+        workflowUserId: 1,
         hideBranding: false,
       });
 
       // Should extract email from formData responses
       expect(result.sendTo).toEqual(["jane@example.com"]);
-      expect(result.formData).toEqual(mockFormData);
-      expect(result.evt).toBeUndefined();
     });
 
     test("should throw error if neither evt nor formData is provided", async () => {
@@ -491,9 +415,17 @@ describe("EmailWorkflowService", () => {
 
       await expect(
         emailWorkflowService.generateParametersToBuildEmailWorkflowContent({
+          isFormTrigger: true, // form trigger but no formData
+          bookerUrl: undefined,
+          bookingUid: undefined,
+          organizerEmail: "",
+          attendeeEmails: [],
+          teamMemberEmails: [],
+          schedulingType: null,
+          sendToEmail: mockWorkflowStep.sendTo ?? undefined,
           workflowStep: mockWorkflowStep,
-          workflow: { userId: 1 },
-          commonScheduleFunctionParams: mockCommonScheduleFunctionParams,
+          workflowUserId: 1,
+          formData: undefined, // no formData provided
           hideBranding: false,
         })
       ).rejects.toThrow("Either evt or formData must be provided");
