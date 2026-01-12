@@ -12,6 +12,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 import { EmailInviteForm } from "~/onboarding/components/EmailInviteForm";
 import { OnboardingCard } from "~/onboarding/components/OnboardingCard";
 import { OnboardingLayout } from "~/onboarding/components/OnboardingLayout";
@@ -109,7 +110,8 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
           })),
           i18n.language
         );
-        // Invalidate teams query to refresh the list
+        // Invalidate both server-side cache and client-side tRPC cache
+        await revalidateTeamsList();
         await utils.viewer.teams.list.invalidate();
         resetOnboardingPreservingPlan();
         router.replace("/teams");
@@ -120,6 +122,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
       }
     } else {
       // No invites, skip to teams page
+      await revalidateTeamsList();
       await utils.viewer.teams.list.invalidate();
       resetOnboardingPreservingPlan();
       router.replace("/teams");
@@ -128,6 +131,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
 
   const handleSkip = async () => {
     setTeamInvites([]);
+    await revalidateTeamsList();
     await utils.viewer.teams.list.invalidate();
     resetOnboardingPreservingPlan();
     router.replace("/teams");
