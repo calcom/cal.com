@@ -14,7 +14,7 @@ export type DuplicateScheduleHandlerReturn = {
 };
 
 export type GetAvailabilityListHandlerReturn = {
-  schedules: Omit<Schedule, "userId"> & {
+  schedules: (Omit<Schedule, "userId"> & {
     availability: {
       id: number;
       userId: number | null;
@@ -26,7 +26,7 @@ export type GetAvailabilityListHandlerReturn = {
       scheduleId: number | null;
     }[];
     isDefault: boolean;
-  }[];
+  })[];
 };
 
 export type CreateScheduleInput = {
