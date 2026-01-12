@@ -55,7 +55,7 @@
     },
     "./add-members-switch/AddMembersWithSwitchPlatformWrapper": "./add-members-switch/AddMembersWithSwitchPlatformWrapper.tsx",
     "./availability/AvailabilitySettings": "./availability/AvailabilitySettings.tsx",
-    "./booker": "./booker/index.ts",
+    "./booker/types": "./booker/types.ts",
     "./selected-calendars/SelectedCalendarsSettings": "./selected-calendars/SelectedCalendarsSettings.tsx",
     "./components/ui/shell": "./src/components/ui/shell.tsx",
     "./dist/index.ts": "./index.ts",
