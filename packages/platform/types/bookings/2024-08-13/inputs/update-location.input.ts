@@ -114,7 +114,7 @@ export class UpdateBookingLocationInput_2024_08_13 {
   @ValidateUpdateBookingLocation_2024_08_13()
   @ApiPropertyOptional({
     description:
-      "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+      "The new location for the booking. Supported location types are: `address` (organizer-defined address), `link` (organizer-defined URL), `phone` (organizer-defined phone), `attendeeAddress` (attendee-provided address), `attendeePhone` (attendee-provided phone), and `attendeeDefined` (free-form attendee location). Each location type requires a `type` field and its corresponding value field.",
     oneOf: [
       { $ref: getSchemaPath(UpdateInputAddressLocation_2024_08_13) },
       { $ref: getSchemaPath(UpdateBookingInputAttendeeAddressLocation_2024_08_13) },
