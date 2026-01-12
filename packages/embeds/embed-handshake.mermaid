@@ -1,0 +1,92 @@
+sequenceDiagram
+    participant Parent as Parent Page<br/>(embed.ts)
+    participant PM as postMessage
+    participant Iframe as Iframe<br/>(embed-iframe.ts)
+    participant Store as EmbedStore
+    
+    Note over Parent,Store: PHASE 1: Iframe Creation
+    
+    Parent->>Parent: Create iframe element
+    Note over Parent: iframe.style.visibility = "hidden"
+    Parent->>Parent: Set iframe src with embed params
+    Note over Parent: iframeReady = false<br/>iframeDoQueue = []
+    
+    Note over Iframe: Iframe starts loading
+    Note over Iframe: body tag hidden<br/>background: transparent
+    
+    Note over Parent,Store: PHASE 2: Handshake Initiation
+    
+    Iframe->>Store: main() called on load
+    Store->>Store: Initialize embedStore<br/>state: NOT_INITIALIZED
+    Store->>Store: Parse URL params<br/>(theme, layout, colorScheme)
+    
+    alt Iframe is in top window (not embedded)
+        Iframe->>Iframe: showPageAsNonEmbed()
+        Note over Iframe: Skip embed initialization
+    else Iframe is embedded properly
+        Iframe->>Store: initializeAndSetupEmbed()
+        Store->>Store: state: INITIALIZED<br/>renderState: "inProgress"
+        
+        Note over Parent,Store: PHASE 3: __iframeReady Event
+        
+        Iframe->>PM: fire("__iframeReady", { isPrerendering })
+        PM->>Parent: postMessage({ originator: "CAL",<br/>type: "__iframeReady", ... })
+        
+        Note over Parent: Received __iframeReady
+        Parent->>Parent: iframeReady = true
+        
+        alt Not prerendering
+            Parent->>Parent: iframe.style.visibility = ""
+            Note over Parent: Iframe becomes visible
+        end
+        
+        Note over Parent,Store: PHASE 4: parentKnowsIframeReady Response
+        
+        Parent->>PM: doInIframe({ method: "parentKnowsIframeReady" })
+        PM->>Iframe: postMessage({ originator: "CAL",<br/>method: "parentKnowsIframeReady" })
+        
+        Note over Iframe: Received parentKnowsIframeReady
+        Iframe->>Iframe: Wait for isLinkReady()
+        Iframe->>Iframe: makeBodyVisible()
+        Note over Iframe: body.style.visibility = "visible"
+        Store->>Store: renderState: "completed"
+        
+        alt Is prerendering
+            Iframe->>PM: fire("linkPrerendered")
+            PM->>Parent: linkPrerendered event
+        else Normal load
+            Iframe->>PM: fire("linkReady")
+            PM->>Parent: linkReady event
+        end
+        
+        Note over Parent,Store: PHASE 5: Queue Flush
+        
+        Parent->>Parent: Process iframeDoQueue
+        
+        loop For each queued command
+            Parent->>PM: doInIframe(queuedCommand)
+            PM->>Iframe: postMessage({ method, arg })
+            Iframe->>Store: interfaceWithParent[method](arg)
+        end
+        
+        Parent->>Parent: iframeDoQueue = []
+        Note over Parent: Handshake complete<br/>Communication established
+    end
+    
+    Note over Parent,Store: ONGOING: Bi-directional Communication
+    
+    rect rgb(240, 248, 255)
+        Note over Parent,Store: Parent → Iframe (Commands)
+        Parent->>PM: doInIframe({ method: "ui", arg: uiConfig })
+        PM->>Iframe: postMessage({ method: "ui", arg: {...} })
+        Iframe->>Store: methods.ui(uiConfig)
+        Note over Store: Apply styles, theme, etc.
+    end
+    
+    rect rgb(255, 248, 240)
+        Note over Parent,Store: Iframe → Parent (Events)
+        Iframe->>PM: fire("__dimensionChanged", { height, width })
+        PM->>Parent: postMessage with event data
+        Parent->>Parent: Adjust iframe dimensions
+    end
+

@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!card_creation_options) return res.status(400).json({ message: "Missing card_creation_options" });
 
-  const URL = `${WEBAPP_URL}/api/integrations/intercom/get?url=${card_creation_options.submit_booking_url}`;
+  const URL = `${WEBAPP_URL}/api/integrations/intercom/get?url=${encodeURIComponent(card_creation_options.submit_booking_url)}`;
 
   const canvasData: NewCanvas = {
     canvas: {

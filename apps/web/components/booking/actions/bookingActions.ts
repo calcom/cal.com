@@ -1,3 +1,4 @@
+import { isWithinMinimumRescheduleNotice } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { ActionType } from "@calcom/ui/components/table";
 
@@ -46,7 +47,7 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
   if ((isPending && !showPendingPayment) || (showPendingPayment && booking.paid)) {
     actions.push({
       id: "confirm",
-      bookingId: booking.id,
+      bookingUid: booking.uid,
       label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
       icon: "check" as const,
       disabled: false, // This would be controlled by mutation state in the component
@@ -64,17 +65,15 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
 }
 
 export function getCancelEventAction(context: BookingActionContext): ActionType {
-  const { booking, isTabRecurring, isRecurring, getSeatReferenceUid, t } = context;
-  const seatReferenceUid = getSeatReferenceUid();
+  const { booking, isTabRecurring, isRecurring, t } = context;
 
   return {
     id: "cancel",
     label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
-    href: `/booking/${booking.uid}?cancel=true${isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-      }${booking.seatsReferences.length && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
     icon: "circle-x",
     color: "destructive",
     disabled: isActionDisabled("cancel", context),
+    bookingUid: booking.uid,
   };
 }
 
@@ -109,17 +108,28 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
   } = context;
   const seatReferenceUid = getSeatReferenceUid();
 
+  const isReassignableRoundRobin =
+    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    (!booking.eventType.hostGroups || booking.eventType.hostGroups.length <= 1);
+  const isManagedChildEvent = booking.eventType.parentId != null;
+  const isReassignable = isReassignableRoundRobin || isManagedChildEvent;
+
   const actions: (ActionType | null)[] = [
     {
       id: "reschedule",
       icon: "clock",
       label: t("reschedule_booking"),
-      href: `/reschedule/${booking.uid}${booking.seatsReferences.length && isAttendee && seatReferenceUid
-        ? `?seatReferenceUid=${seatReferenceUid}`
-        : ""
-        }`,
-      disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+      href: `/reschedule/${booking.uid}${
+        booking.seatsReferences.length && isAttendee && seatReferenceUid
+          ? `?seatReferenceUid=${seatReferenceUid}`
+          : ""
+      }`,
+      disabled: isActionDisabled("reschedule", {
+        ...context,
+        booking,
+        isBookingInPast,
+        isDisabledRescheduling,
+      }),
     },
     {
       id: "reschedule_request",
@@ -127,17 +137,20 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
       label: t("send_reschedule_request"),
       disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
-        isDisabledRescheduling ||
-        booking.seatsReferences.length > 0,
+        isActionDisabled("reschedule_request", {
+          ...context,
+          booking,
+          isBookingInPast,
+          isDisabledRescheduling,
+        }) || booking.seatsReferences.length > 0,
     },
     isBookingFromRoutingForm
       ? {
-        id: "reroute",
-        label: t("reroute"),
-        icon: "waypoints",
-        disabled: false,
-      }
+          id: "reroute",
+          label: t("reroute"),
+          icon: "waypoints",
+          disabled: false,
+        }
       : null,
     {
       id: "change_location",
@@ -148,20 +161,18 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
     booking.eventType?.disableGuests
       ? null
       : {
-        id: "add_members",
-        label: t("additional_guests"),
-        icon: "user-plus",
-        disabled: false,
-      },
-    // Reassign if round robin with no or one host groups
-    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-      (!booking.eventType.hostGroups || booking.eventType.hostGroups?.length <= 1)
+          id: "add_members",
+          label: t("additional_guests"),
+          icon: "user-plus",
+          disabled: false,
+        },
+    isReassignable
       ? {
-        id: "reassign",
-        label: t("reassign"),
-        icon: "users",
-        disabled: false,
-      }
+          id: "reassign",
+          label: t("reassign"),
+          icon: "users",
+          disabled: false,
+        }
       : null,
   ];
 
@@ -187,11 +198,11 @@ export function getAfterEventActions(context: BookingActionContext): ActionType[
     ...getVideoOptionsActions(context),
     booking.status === BookingStatus.ACCEPTED && booking.paid && booking.payment[0]?.paymentOption === "HOLD"
       ? {
-        id: "charge_card",
-        label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
-        icon: "credit-card",
-        disabled: cardCharged,
-      }
+          id: "charge_card",
+          label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
+          icon: "credit-card",
+          disabled: cardCharged,
+        }
       : null,
     {
       id: "no_show",
@@ -227,13 +238,30 @@ export function shouldShowIndividualReportButton(context: BookingActionContext):
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
-
-  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isHost } = context;
+  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isAttendee, isHost } =
+    context;
 
   switch (actionId) {
     case "reschedule":
     case "reschedule_request":
-      return (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling;
+      // Only apply minimum reschedule notice restriction if user is NOT the organizer
+      // If user is an attendee (or not authenticated), apply the restriction
+      const isUserOrganizer =
+        !isAttendee &&
+        booking.loggedInUser?.userId &&
+        booking.user?.id &&
+        booking.loggedInUser.userId === booking.user.id;
+      const isWithinMinimumNotice =
+        !isUserOrganizer &&
+        isWithinMinimumRescheduleNotice(
+          new Date(booking.startTime),
+          booking.eventType.minimumRescheduleNotice ?? null
+        );
+      return (
+        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
+        isDisabledRescheduling ||
+        isWithinMinimumNotice
+      );
     case "cancel":
       if (isHost && !isBookingInPast) return false;
       return isDisabledCancelling || isBookingInPast;

@@ -1,4 +1,3 @@
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { setShowNewOrgModalFlag } from "@calcom/features/ee/organizations/hooks/useWelcomeModal";
@@ -10,7 +9,6 @@ import { showToast } from "@calcom/ui/components/toast";
 import type { OnboardingState } from "../store/onboarding-store";
 
 export const useSubmitOnboarding = () => {
-  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const flags = useFlagMap();
@@ -94,7 +92,9 @@ export const useSubmitOnboarding = () => {
   const skipToPersonal = (resetOnboarding: () => void) => {
     resetOnboarding();
     const gettingStartedPath = flags["onboarding-v3"] ? "/onboarding/personal/settings" : "/getting-started";
-    router.push(gettingStartedPath);
+    // Use window.location.href for a full page reload to ensure JWT callback runs
+    // without trigger="update", which will call autoMergeIdentities() and fetch org data
+    window.location.href = gettingStartedPath;
   };
 
   return {

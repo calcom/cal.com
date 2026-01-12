@@ -1,6 +1,6 @@
 import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import { resolve } from "path";
+import path from "node:path"
+import { resolve } from "node:path";
 import { defineConfig, loadEnv } from "vite";
 import dts from "vite-plugin-dts";
 
@@ -58,7 +58,7 @@ export default defineConfig(({ mode }) => {
         entry: [resolve(__dirname, "index.ts")],
         name: "CalAtoms",
         fileName: "cal-atoms",
-        
+        formats: ["es"],
       },
       rollupOptions: {
         external: [
@@ -71,8 +71,10 @@ export default defineConfig(({ mode }) => {
           "react-dom/client",
           "@prisma/client",
           "react/jsx-dev-runtime",
-        , "react-awesome-query-builder", "react-awesome-query-builder", "react-awesome-query-builder"],
+          "@trigger.dev/sdk",
+        ],
         output: {
+          format: "esm",
           globals: {
             react: "React",
             "react-dom": "ReactDOM",
@@ -83,9 +85,6 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        fs: resolve("../../../node_modules/rollup-plugin-node-builtins"),
-        path: resolve("../../../node_modules/rollup-plugin-node-builtins"),
-        os: resolve("../../../node_modules/rollup-plugin-node-builtins"),
         "@": path.resolve(__dirname, "./src"),
         "@calcom/lib/markdownToSafeHTML": path.resolve(__dirname, "./lib/markdownToSafeHTML"),
         "@calcom/lib/hooks/useLocale": path.resolve(__dirname, "./lib/useLocale"),

@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
@@ -335,6 +335,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -388,6 +389,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -441,6 +443,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: orgUserEmail,
+                displayEmail: orgUserEmail,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -494,6 +497,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: orgUserEmail2,
+                displayEmail: orgUserEmail2,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,

@@ -8,7 +8,6 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { TeamInviteEmailView } from "~/onboarding/teams/invite/email/team-invite-email-view";
-import { TeamInviteView } from "~/onboarding/teams/invite/team-invite-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -34,7 +33,7 @@ const ServerPage = async () => {
     return <TeamInviteEmailView userEmail={userEmail} />;
   }
 
-  return <TeamInviteView userEmail={userEmail} />;
+  return <TeamInviteEmailView userEmail={userEmail} />;
 };
 
 export default ServerPage;

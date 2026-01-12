@@ -36,12 +36,13 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
   userName,
 }) => {
   const parsedMetaData = EventTypeMetaDataSchema.safeParse(metadata);
-  const durations =
-    parsedMetaData.success &&
-    parsedMetaData.data?.multipleDuration &&
-    Boolean(parsedMetaData.data?.multipleDuration.length)
-      ? [length, ...parsedMetaData.data?.multipleDuration?.filter((duration) => duration !== length)].sort()
-      : [length];
+  const multipleDuration = parsedMetaData.success && parsedMetaData.data?.multipleDuration 
+    ? parsedMetaData.data.multipleDuration 
+    : [];
+
+  const durations = multipleDuration.length > 0
+    ? [length, ...multipleDuration.filter((duration) => duration !== length)].sort()
+    : [length];
   return (
     <div
       data-testid={`select-event-type-${id}`}
@@ -50,7 +51,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
       <input
         id={`${id}`}
         checked={selected}
-        className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+        className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-cal checked:border-transparent checked:bg-gray-800 border ring-offset-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
         type="checkbox"
       />
       <label htmlFor={`${id}`} className="cursor-pointer text-sm">
@@ -64,7 +65,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
           {Boolean(description) && (
             <div
               className="text-subtle line-clamp-4 wrap-break-word text-sm sm:max-w-[650px] [&>*:not(:first-child)]:hidden [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-              // eslint-disable-next-line react/no-danger
+               
               dangerouslySetInnerHTML={{
                 __html: markdownToSafeHTML(description),
               }}

@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { BOOKING_REASSIGN_PERMISSION_ERROR } from "@/ee/bookings/2024-08-13/services/bookings.service";
@@ -492,6 +492,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             id: teamUser2.id,
             name: teamUser2.name,
             email: teamUser2.email,
+            displayEmail: teamUser2.email,
           });
 
           const reassigned = await bookingsRepositoryFixture.getByUid(roundRobinBooking.uid);
@@ -532,6 +533,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             id: teamUser1.id,
             name: teamUser1.name,
             email: teamUser1.email,
+            displayEmail: teamUser1.email,
           });
 
           const reassigned = await bookingsRepositoryFixture.getByUid(roundRobinBooking.uid);

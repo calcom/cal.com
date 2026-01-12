@@ -508,7 +508,7 @@ export class InsightsRoutingBaseService {
         END) <= date_trunc(${dayjsPeriod}, ${endDate}::timestamp)
       ),
       all_users AS (
-        SELECT unnest(ARRAY[${Prisma.join(users.map((u) => u.id))}]) as user_id
+        SELECT unnest(ARRAY[${Prisma.join(users.map((u) => u.id))}]::integer[]) as user_id
       ),
        paginated_periods AS (
          SELECT date as period_start
