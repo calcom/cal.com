@@ -401,4 +401,20 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
             action: CancelledAuditActionService.TYPE,
         });
     }
+
+    async queueBulkRejectedAudit(params: {
+        bookings: Array<{
+            bookingUid: string;
+            data: z.infer<typeof RejectedAuditActionService.latestFieldsSchema>;
+        }>;
+        actor: Actor;
+        organizationId: number | null;
+        source: ActionSource;
+        operationId?: string | null;
+    }): Promise<void> {
+        await this.queueBulkTask({
+            ...params,
+            action: RejectedAuditActionService.TYPE,
+        });
+    }
 }

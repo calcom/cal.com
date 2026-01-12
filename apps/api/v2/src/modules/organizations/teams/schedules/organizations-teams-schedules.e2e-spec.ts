@@ -1,13 +1,14 @@
-import { bootstrap } from "@/bootstrap";
-import { AppModule } from "@/app.module";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type {
+  ApiSuccessResponse,
+  GetSchedulesOutput_2024_06_11,
+  ScheduleOutput_2024_06_11,
+} from "@calcom/platform-types";
+import type { EventType, Schedule, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -18,14 +19,12 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type {
-  GetSchedulesOutput_2024_06_11,
-  ApiSuccessResponse,
-  ScheduleOutput_2024_06_11,
-} from "@calcom/platform-types";
-import type { User, Team, Schedule, EventType } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Organizations Teams Schedules Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {

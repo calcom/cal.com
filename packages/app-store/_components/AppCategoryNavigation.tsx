@@ -28,17 +28,37 @@ const AppCategoryNavigation = ({
   useQueryParam?: boolean;
 }) => {
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
-  const appCategories = useMemo(() => getAppCategories(baseURL, useQueryParam), [baseURL, useQueryParam]);
+  const appCategories = useMemo(
+    () => getAppCategories(baseURL, useQueryParam),
+    [baseURL, useQueryParam]
+  );
 
   return (
-    <div className={cs("flex flex-col xl:flex-row xl:space-x-6", classNames?.root ?? className)}>
+    <div
+      className={cs(
+        "flex flex-col xl:flex-row xl:space-x-6",
+        classNames?.root ?? className
+      )}
+    >
       <div className="hidden xl:block">
-        <VerticalTabs tabs={appCategories} sticky linkShallow itemClassname={classNames?.verticalTabsItem} />
+        <VerticalTabs
+          tabs={appCategories}
+          sticky
+          linkShallow
+          itemClassname={classNames?.verticalTabsItem}
+        />
       </div>
       <div className="block xl:hidden">
-        <HorizontalTabs tabs={appCategories} linkShallow />
+        <HorizontalTabs
+          tabs={appCategories}
+          linkShallow
+          scrollActiveTabIntoView
+        />
       </div>
-      <main className={classNames?.container ?? containerClassname} ref={animationRef}>
+      <main
+        className={classNames?.container ?? containerClassname}
+        ref={animationRef}
+      >
         {children}
       </main>
     </div>
