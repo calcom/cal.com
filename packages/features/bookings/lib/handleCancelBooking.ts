@@ -40,7 +40,7 @@ import prisma from "@calcom/prisma";
 import type { Prisma, PrismaClient, WorkflowReminder } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { bookingMetadataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema, bookingCancelInput, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -56,6 +56,7 @@ import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
 import { buildActorEmail, getUniqueIdentifier, makeGuestActor, makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
+import { allowDisablingAttendeeCancellationEmails, allowDisablingHostCancellationEmails } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -413,6 +414,7 @@ async function handler(input: CancelBookingInput) {
   );
   await Promise.all(promises);
 
+  const eventTypeMetadata = EventTypeMetaDataSchema.parse(bookingToDelete.eventType?.metadata || {});
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
 
@@ -687,12 +689,33 @@ async function handler(input: CancelBookingInput) {
   }
 
   try {
+    let isHostCancellationEmailDisabled = false;
+    let isAttendeeCancellationEmailDisabled = false;
+
+    if(workflows) {
+      isHostCancellationEmailDisabled = 
+        eventTypeMetadata?.disableStandardEmails?.cancellation?.host || false;
+      
+      isAttendeeCancellationEmailDisabled = 
+        eventTypeMetadata?.disableStandardEmails?.cancellation?.attendee || false;
+
+      if(isHostCancellationEmailDisabled) {
+        isHostCancellationEmailDisabled = allowDisablingHostCancellationEmails(workflows);
+      }
+
+      if(isAttendeeCancellationEmailDisabled) {
+        isAttendeeCancellationEmailDisabled = allowDisablingAttendeeCancellationEmails(workflows);
+      }
+    }
+
     // TODO: if emails fail try to requeue them
     if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
       await sendCancelledEmailsAndSMS(
         evt,
         { eventName: bookingToDelete?.eventType?.eventName },
-        bookingToDelete?.eventType?.metadata as EventTypeMetadata
+        bookingToDelete?.eventType?.metadata as EventTypeMetadata,
+        isHostCancellationEmailDisabled,
+        isAttendeeCancellationEmailDisabled,
       );
   } catch (error) {
     log.error("Error deleting event", error);

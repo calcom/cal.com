@@ -25,3 +25,22 @@ export function allowDisablingAttendeeConfirmationEmails(workflows: WorkflowWith
       )
   );
 }
+
+export function allowDisablingHostCancellationEmails(workflows: WorkflowWithStepsAndTrigger[]) {
+  return !!workflows.find(
+    (workflow) =>
+      workflow.trigger === WorkflowTriggerEvents.EVENT_CANCELLED &&
+      !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_HOST)
+  );
+}
+
+export function allowDisablingAttendeeCancellationEmails(workflows: WorkflowWithStepsAndTrigger[]) {
+  return !!workflows.find(
+    (workflow) =>
+      workflow.trigger === WorkflowTriggerEvents.EVENT_CANCELLED &&
+      !!workflow.steps.find(
+        (step) =>
+          step.action === WorkflowActions.EMAIL_ATTENDEE || step.action === WorkflowActions.SMS_ATTENDEE
+      )
+  );
+}

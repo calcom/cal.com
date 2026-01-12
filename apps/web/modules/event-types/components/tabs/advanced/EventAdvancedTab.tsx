@@ -17,7 +17,9 @@ import DestinationCalendarSelector from "@calcom/features/calendars/DestinationC
 import { TimezoneSelect as WebTimezoneSelect } from "@calcom/features/components/timezone-select";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import {
+  allowDisablingAttendeeCancellationEmails,
   allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostCancellationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { MultiplePrivateLinksController } from "@calcom/web/modules/event-types/components";
@@ -1491,6 +1493,52 @@ export const EventAdvancedTab = ({
                 descriptionClassName={customClassNames?.emailNotifications?.description}
                 title={t("disable_host_confirmation_emails")}
                 description={t("disable_host_confirmation_emails_description")}
+                checked={value}
+                onCheckedChange={(e) => onChange(e)}
+              />
+            </>
+          )}
+        />
+      )}
+
+      {allowDisablingAttendeeCancellationEmails(workflows) && (
+        <Controller
+          name="metadata.disableStandardEmails.cancellation.attendee"
+          render={({ field: { value, onChange } }) => (
+            <>
+              <SettingsToggle
+                labelClassName={classNames("text-sm", customClassNames?.emailNotifications?.label)}
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName={classNames(
+                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                  customClassNames?.emailNotifications?.container
+                )}
+                title={t("disable_attendees_cancellation_emails")}
+                description={t("disable_attendees_cancellation_emails_description")}
+                descriptionClassName={customClassNames?.emailNotifications?.description}
+                checked={value}
+                onCheckedChange={(e) => onChange(e)}
+              />
+            </>
+          )}
+        />
+      )}
+      {allowDisablingHostCancellationEmails(workflows) && (
+        <Controller
+          name="metadata.disableStandardEmails.cancellation.host"
+          defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
+          render={({ field: { value, onChange } }) => (
+            <>
+              <SettingsToggle
+                labelClassName={classNames("text-sm", customClassNames?.emailNotifications?.label)}
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName={classNames(
+                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                  customClassNames?.emailNotifications?.container
+                )}
+                descriptionClassName={customClassNames?.emailNotifications?.description}
+                title={t("disable_host_cancellation_emails")}
+                description={t("disable_host_cancellation_emails_description")}
                 checked={value}
                 onCheckedChange={(e) => onChange(e)}
               />

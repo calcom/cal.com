@@ -500,7 +500,9 @@ export const sendDeclinedEmailsAndSMS = async (
 export const sendCancelledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   eventNameObject: Pick<EventNameObjectType, "eventName">,
-  eventTypeMetadata?: EventTypeMetadata
+  eventTypeMetadata?: EventTypeMetadata,
+  hostEmailDisabled?: boolean,
+  attendeeEmailDisabled?: boolean,
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
@@ -515,7 +517,7 @@ export const sendCancelledEmailsAndSMS = async (
     );
   }
 
-  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+  if (!hostEmailDisabled && !eventTypeDisableHostEmail(eventTypeMetadata)) {
     emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent })));
 
     if (calendarEvent.team?.members) {
@@ -527,7 +529,10 @@ export const sendCancelledEmailsAndSMS = async (
     }
   }
 
-  if (!shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.CANCELLATION)) {
+  if (
+    !attendeeEmailDisabled 
+    && !shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.CANCELLATION)
+  ) {
     emailsToSend.push(
       ...calendarEvent.attendees.map((attendee) => {
         return sendEmail(
