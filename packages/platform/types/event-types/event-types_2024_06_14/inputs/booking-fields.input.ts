@@ -342,8 +342,11 @@ export class PhoneFieldInput_2024_06_14 {
   slug!: string;
 
   @IsString()
-  @DocsProperty()
-  label!: string;
+  @IsOptional()
+  @DocsPropertyOptional({
+    description: "Label for the phone field. If not provided, the default translated label will be used.",
+  })
+  label?: string;
 
   @IsBoolean()
   @DocsProperty()
@@ -351,7 +354,7 @@ export class PhoneFieldInput_2024_06_14 {
 
   @IsString()
   @IsOptional()
-  @DocsProperty()
+  @DocsPropertyOptional()
   placeholder?: string;
 
   @IsBoolean()
@@ -367,7 +370,7 @@ export class PhoneFieldInput_2024_06_14 {
 
   @IsBoolean()
   @IsOptional()
-  @DocsProperty({
+  @DocsPropertyOptional({
     description:
       "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
   })
