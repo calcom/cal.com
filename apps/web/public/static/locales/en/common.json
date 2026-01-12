@@ -1,4 +1,5 @@
 {
+  "select_whatsapp_template": "Select whatsapp template",
   "workflow_status":"Workflow status",
   "workflow_reminders":"Workflow automations",
   "pw_check_least_char": "At least 7 characters",
