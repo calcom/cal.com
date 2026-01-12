@@ -147,7 +147,7 @@ export default function EventTypeDetail() {
   const [eventDescription, setEventDescription] = useState(description || "");
   const [eventSlug, setEventSlug] = useState(slug || "");
   const [eventDuration, setEventDuration] = useState(duration || "30");
-  const [username, setUsername] = useState("username");
+  const [username, _setUsername] = useState("username");
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
   const [locations, setLocations] = useState<LocationItem[]>([]);
   const [_locationAddress, setLocationAddress] = useState("");
@@ -177,6 +177,7 @@ export default function EventTypeDetail() {
   const [conferencingOptions, setConferencingOptions] = useState<ConferencingOption[]>([]);
   const [conferencingLoading, setConferencingLoading] = useState(false);
   const [eventTypeData, setEventTypeData] = useState<EventType | null>(null);
+  const [bookingUrl, setBookingUrl] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [beforeEventBuffer, setBeforeEventBuffer] = useState("No buffer time");
   const [afterEventBuffer, setAfterEventBuffer] = useState("No buffer time");
@@ -456,6 +457,7 @@ export default function EventTypeDetail() {
     if (eventType.description) setEventDescription(eventType.description);
     if (eventType.lengthInMinutes) setEventDuration(eventType.lengthInMinutes.toString());
     if (eventType.hidden !== undefined) setIsHidden(eventType.hidden);
+    if (eventType.bookingUrl) setBookingUrl(eventType.bookingUrl);
 
     // Load schedule ID - this will be used by fetchSchedules to select the correct schedule
     if (eventType.scheduleId) {
@@ -853,18 +855,6 @@ export default function EventTypeDetail() {
     fetchConferencingOptions();
   }, [fetchConferencingOptions, fetchEventTypeData]);
 
-  useEffect(() => {
-    const fetchUsername = async () => {
-      try {
-        const userUsername = await CalComAPIService.getUsername();
-        setUsername(userUsername);
-      } catch (error) {
-        safeLogError("Failed to fetch username:", error);
-      }
-    };
-    fetchUsername();
-  }, []);
-
   const formatTime = (time: string) => {
     // Handle different time formats that might come from the API
     // Extract conditionals outside try/catch for React Compiler
@@ -945,29 +935,19 @@ export default function EventTypeDetail() {
   };
 
   const handlePreview = async () => {
-    const eventTypeSlug = eventSlug || "preview";
-    let link: string;
-    try {
-      link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-    } catch (error) {
-      safeLogError("Failed to generate preview link:", error);
-      showErrorAlert("Error", "Failed to generate preview link. Please try again.");
+    if (!bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available. Please save the event type first.");
       return;
     }
-    await openInAppBrowser(link, "event type preview");
+    await openInAppBrowser(bookingUrl, "event type preview");
   };
 
   const handleCopyLink = async () => {
-    const eventTypeSlug = eventSlug || "event-link";
-    let link: string;
-    try {
-      link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-    } catch (error) {
-      safeLogError("Failed to copy link:", error);
-      showErrorAlert("Error", "Failed to copy link. Please try again.");
+    if (!bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available. Please save the event type first.");
       return;
     }
-    await Clipboard.setStringAsync(link);
+    await Clipboard.setStringAsync(bookingUrl);
     showSuccessAlert("Success", "Link copied!");
   };
 
@@ -1433,6 +1413,7 @@ export default function EventTypeDetail() {
               onUpdateLocation={handleUpdateLocation}
               locationOptions={getLocationOptionsForDropdown()}
               conferencingLoading={conferencingLoading}
+              bookingUrl={bookingUrl}
             />
           ) : null}
 

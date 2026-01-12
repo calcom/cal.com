@@ -37,6 +37,7 @@ interface BasicsTabProps {
   onUpdateLocation: (locationId: string, updates: Partial<LocationItem>) => void;
   locationOptions: LocationOptionGroup[];
   conferencingLoading: boolean;
+  bookingUrl?: string;
 }
 
 // Section header
@@ -253,7 +254,22 @@ export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
             <Text className="mb-2 text-[13px] text-[#6D6D72]">URL</Text>
             <View className="flex-row items-center overflow-hidden rounded-lg bg-[#F2F2F7]">
               <Text className="bg-[#E5E5EA] px-3 py-2 text-[15px] text-[#666]">
-                cal.com/{props.username}/
+                {(() => {
+                  // Parse bookingUrl to get domain prefix (e.g., "i.cal.com/" or "cal.com/username/")
+                  if (props.bookingUrl) {
+                    try {
+                      const url = new URL(props.bookingUrl);
+                      // Get path without the last segment (slug)
+                      const pathParts = url.pathname.split("/").filter(Boolean);
+                      pathParts.pop(); // Remove slug
+                      const prefix = pathParts.length > 0 ? `/${pathParts.join("/")}/` : "/";
+                      return `${url.hostname}${prefix}`;
+                    } catch {
+                      // fallback
+                    }
+                  }
+                  return `cal.com/${props.username}/`;
+                })()}
               </Text>
               <TextInput
                 className="flex-1 px-3 py-2 text-[17px] text-black"

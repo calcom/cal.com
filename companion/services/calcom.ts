@@ -318,18 +318,6 @@ async function getUserProfile(): Promise<UserProfile> {
   return _userProfilePromise;
 }
 
-// Get cached username or fetch if not available
-async function getUsername(): Promise<string> {
-  const profile = await getUserProfile();
-  return profile.username;
-}
-
-// Build shareable link for event type
-async function buildEventTypeLink(eventTypeSlug: string): Promise<string> {
-  const username = await getUsername();
-  return `https://cal.com/${username}/${eventTypeSlug}`;
-}
-
 // Clear cached profile (useful for logout)
 function clearUserProfile(): void {
   _userProfile = null;
@@ -1672,8 +1660,6 @@ export const CalComAPIService = {
   getCurrentUser,
   updateUserProfile,
   getUserProfile,
-  getUsername,
-  buildEventTypeLink,
   clearUserProfile,
   testRawBookingsAPI,
   deleteEventType,
