@@ -99,6 +99,7 @@ export default defineConfig({
     setupFiles: ["./packages/testing/src/setupVitest.ts"],
     include: getTestInclude(),
     exclude: getTestExclude(),
+    pool: "forks",
     server: {
       deps: {
         inline: [/@calcom\/.*/],

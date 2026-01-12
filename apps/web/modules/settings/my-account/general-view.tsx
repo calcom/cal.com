@@ -239,7 +239,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                           <div className="text-subtle">{schedule.timeZone.replace(/_/g, " ")}</div>
                         </div>
                         <Button
-                          color="secondary"
+                          color="destructive"
                           className="ml-auto"
                           variant="icon"
                           StartIcon="trash-2"

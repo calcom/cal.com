@@ -1,5 +1,6 @@
 import { Button, ContextMenu, Host, HStack, Image as SwiftUIImage } from "@expo/ui/swift-ui";
-import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
+import * as Haptics from "expo-haptics";
+import { buttonStyle, controlSize, fixedSize, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
@@ -168,7 +169,10 @@ export default function EventTypesIOS() {
                 console.error("Failed to delete event type", message);
                 if (__DEV__) {
                   const stack = deleteError instanceof Error ? deleteError.stack : undefined;
-                  console.debug("[EventTypes] deleteEventType failed", { message, stack });
+                  console.debug("[EventTypes] deleteEventType failed", {
+                    message,
+                    stack,
+                  });
                 }
                 showErrorAlert("Error", "Failed to delete event type. Please try again.");
               },
@@ -233,6 +237,7 @@ export default function EventTypesIOS() {
   };
 
   const handleOpenCreateModal = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     // Use native iOS Alert.prompt for a native look
     Alert.prompt(
       "Add a new event type",
@@ -539,24 +544,21 @@ export default function EventTypesIOS() {
       {/* Floating Action Button for New Event Type with Glass UI Menu */}
       <View className="absolute right-6" style={{ bottom: 100 }}>
         <Host matchContents>
-          <ContextMenu
-            modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"), padding()]}
-            activationMethod="singlePress"
+          <Button
+            onPress={handleOpenCreateModal}
+            modifiers={[
+              buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"),
+              padding(),
+              controlSize("large"),
+            ]}
           >
-            <ContextMenu.Items>
-              <Button systemImage="link" onPress={handleOpenCreateModal} label="New Event Type" />
-            </ContextMenu.Items>
-            <ContextMenu.Trigger>
-              <HStack modifiers={[frame({ width: 35, height: 40 })]}>
-                <SwiftUIImage
-                  systemName="plus"
-                  color="primary"
-                  size={28}
-                  // modifiers={[frame({ width: 56, height: 56 })]}
-                />
-              </HStack>
-            </ContextMenu.Trigger>
-          </ContextMenu>
+            <SwiftUIImage
+              systemName="plus"
+              color="primary"
+              size={24}
+              modifiers={[frame({ height: 24, width: 17 })]}
+            />
+          </Button>
         </Host>
       </View>
     </>

@@ -1,5 +1,6 @@
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useRef } from "react";
+import { Platform } from "react-native";
 import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingByUid } from "@/hooks/useBookings";
@@ -225,57 +226,59 @@ export default function BookingDetail() {
         }}
       />
 
-      <Stack.Header style={{ shadowColor: "transparent" }}>
-        <Stack.Header.Title>Booking Details</Stack.Header.Title>
+      {Platform.OS === "ios" && (
+        <Stack.Header style={{ shadowColor: "transparent" }}>
+          <Stack.Header.Title>Booking Details</Stack.Header.Title>
 
-        {/* Header right and left API only works on iOS ATM see: https://docs.expo.dev/versions/unversioned/sdk/router/#stackheaderright */}
-        <Stack.Header.Right>
-          <Stack.Header.Menu>
-            <Stack.Header.Label>Actions</Stack.Header.Label>
-            <Stack.Header.Icon sf="ellipsis" />
+          {/* Header right and left API only works on iOS ATM see: https://docs.expo.dev/versions/unversioned/sdk/router/#stackheaderright */}
+          <Stack.Header.Right>
+            <Stack.Header.Menu>
+              <Stack.Header.Label>Actions</Stack.Header.Label>
+              <Stack.Header.Icon sf="ellipsis" />
 
-            {/* Edit Event Section */}
-            <Stack.Header.Menu inline title="Edit Event">
-              {bookingActionsSections.editEvent.map((action) => (
-                <Stack.Header.MenuAction
-                  key={action.id}
-                  icon={action.icon}
-                  onPress={action.onPress}
-                >
-                  {action.label}
-                </Stack.Header.MenuAction>
-              ))}
+              {/* Edit Event Section */}
+              <Stack.Header.Menu inline title="Edit Event">
+                {bookingActionsSections.editEvent.map((action) => (
+                  <Stack.Header.MenuAction
+                    key={action.id}
+                    icon={action.icon}
+                    onPress={action.onPress}
+                  >
+                    {action.label}
+                  </Stack.Header.MenuAction>
+                ))}
+              </Stack.Header.Menu>
+
+              {/* After Event Section */}
+              <Stack.Header.Menu inline title="After Event">
+                {bookingActionsSections.afterEvent.map((action) => (
+                  <Stack.Header.MenuAction
+                    key={action.id}
+                    icon={action.icon}
+                    onPress={action.onPress}
+                  >
+                    {action.label}
+                  </Stack.Header.MenuAction>
+                ))}
+              </Stack.Header.Menu>
+
+              {/* Danger Zone Submenu */}
+              <Stack.Header.Menu inline title="Danger Zone">
+                {bookingActionsSections.standalone.map((action) => (
+                  <Stack.Header.MenuAction
+                    key={action.id}
+                    icon={action.icon}
+                    onPress={action.onPress}
+                    destructive
+                  >
+                    {action.label}
+                  </Stack.Header.MenuAction>
+                ))}
+              </Stack.Header.Menu>
             </Stack.Header.Menu>
-
-            {/* After Event Section */}
-            <Stack.Header.Menu inline title="After Event">
-              {bookingActionsSections.afterEvent.map((action) => (
-                <Stack.Header.MenuAction
-                  key={action.id}
-                  icon={action.icon}
-                  onPress={action.onPress}
-                >
-                  {action.label}
-                </Stack.Header.MenuAction>
-              ))}
-            </Stack.Header.Menu>
-
-            {/* Danger Zone Submenu */}
-            <Stack.Header.Menu inline title="Danger Zone">
-              {bookingActionsSections.standalone.map((action) => (
-                <Stack.Header.MenuAction
-                  key={action.id}
-                  icon={action.icon}
-                  onPress={action.onPress}
-                  destructive
-                >
-                  {action.label}
-                </Stack.Header.MenuAction>
-              ))}
-            </Stack.Header.Menu>
-          </Stack.Header.Menu>
-        </Stack.Header.Right>
-      </Stack.Header>
+          </Stack.Header.Right>
+        </Stack.Header>
+      )}
 
       <BookingDetailScreen
         booking={booking}
