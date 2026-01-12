@@ -33,6 +33,7 @@ export class BookingGuestsService_2024_08_13 {
       ctx: { user },
       input: { bookingId: booking.id, guests: input.guests },
       emailsEnabled,
+      actionSource: "API_V2",
     });
     if (res.message === "Guests added") {
       return await this.bookingsService.getBooking(bookingUid, user);
