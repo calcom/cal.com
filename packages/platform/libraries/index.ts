@@ -145,3 +145,5 @@ export { OAuthService } from "@calcom/features/oauth/services/OAuthService";
 
 export { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 export type { OrgMembershipLookup } from "@calcom/trpc/server/routers/viewer/slots/util";
+
+export { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
