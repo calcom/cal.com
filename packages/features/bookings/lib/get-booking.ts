@@ -1,10 +1,8 @@
-import type { Prisma } from "@prisma/client";
-import type { z } from "zod";
-
 import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import slugify from "@calcom/lib/slugify";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 type BookingSelect = {
   description: true;
@@ -62,9 +60,11 @@ async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boo
       location: true,
       eventTypeId: true,
       status: true,
+      userId: true,
       eventType: {
         select: {
           disableRescheduling: true,
+          minimumRescheduleNotice: true,
         },
       },
       attendees: {
@@ -101,7 +101,7 @@ async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boo
   return booking;
 }
 
-export type GetBookingType = Prisma.PromiseReturnType<typeof getBooking>;
+export type GetBookingType = Awaited<ReturnType<typeof getBooking>>;
 
 export const getBookingWithResponses = <
   T extends Prisma.BookingGetPayload<{
@@ -115,10 +115,8 @@ export const getBookingWithResponses = <
 ) => {
   return {
     ...booking,
-    responses: isSeatedEvent
-      ? bookingResponsesDbSchema.parse(booking.responses || {})
-      : bookingResponsesDbSchema.parse(booking.responses || getResponsesFromOldBooking(booking)),
-  } as Omit<T, "responses"> & { responses: z.infer<typeof bookingResponsesDbSchema> };
+    responses: isSeatedEvent ? booking.responses : booking.responses || getResponsesFromOldBooking(booking),
+  } as Omit<T, "responses"> & { responses: Record<string, any> };
 };
 
 export default getBooking;
@@ -236,6 +234,7 @@ export const getBookingForSeatedEvent = async (uid: string) => {
       startTime: true,
       endTime: true,
       status: true,
+      userId: true,
       attendees: {
         select: {
           id: true,
@@ -275,6 +274,7 @@ export const getBookingForSeatedEvent = async (uid: string) => {
     location: null,
     eventType: {
       disableRescheduling: false,
+      minimumRescheduleNotice: null,
     },
     // mask attendee emails for seated events
     attendees: booking.attendees.map((attendee) => ({

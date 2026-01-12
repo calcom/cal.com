@@ -2,8 +2,8 @@ import type { NextRequest } from "next/server";
 import { Retell } from "retell-sdk";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
-import type { CalAiPhoneNumber, User, Team } from "@calcom/prisma/client";
+import type { CalAiPhoneNumber, User, Team, Agent } from "@calcom/prisma/client";
+import { CreditUsageType } from "@calcom/prisma/enums";
 
 import { POST } from "../route";
 
@@ -25,6 +25,7 @@ type RetellWebhookBody = {
     from_number?: string;
     to_number?: string;
     direction?: "inbound" | "outbound";
+    call_type?: string;
     call_status?: string;
     start_timestamp?: number;
     end_timestamp?: number;
@@ -71,18 +72,35 @@ vi.mock("retell-sdk", () => ({
 
 const mockHasAvailableCredits = vi.fn();
 const mockChargeCredits = vi.fn();
+const mockSendCreditBalanceLimitReachedEmails = vi.fn();
+const mockSendCreditBalanceLowWarningEmails = vi.fn();
 
 vi.mock("@calcom/features/ee/billing/credit-service", () => ({
-  CreditService: vi.fn().mockImplementation(() => ({
+  CreditService: vi.fn().mockImplementation(function() { return {
     hasAvailableCredits: mockHasAvailableCredits,
     chargeCredits: mockChargeCredits,
-  })),
+  }; }),
 }));
 
-vi.mock("@calcom/lib/server/repository/PrismaPhoneNumberRepository", () => ({
-  PrismaPhoneNumberRepository: {
-    findByPhoneNumber: vi.fn(),
-  },
+vi.mock("@calcom/emails/email-manager", () => ({
+  sendCreditBalanceLimitReachedEmails: (...args: unknown[]) =>
+    mockSendCreditBalanceLimitReachedEmails(...args),
+  sendCreditBalanceLowWarningEmails: (...args: unknown[]) => mockSendCreditBalanceLowWarningEmails(...args),
+}));
+
+const mockFindByPhoneNumber = vi.fn();
+const mockFindByProviderAgentId = vi.fn();
+
+vi.mock("@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository", () => ({
+  PrismaPhoneNumberRepository: vi.fn().mockImplementation(function() { return {
+    findByPhoneNumber: mockFindByPhoneNumber,
+  }; }),
+}));
+
+vi.mock("@calcom/features/calAIPhone/repositories/PrismaAgentRepository", () => ({
+  PrismaAgentRepository: vi.fn().mockImplementation(function() { return {
+    findByProviderAgentId: mockFindByProviderAgentId,
+  }; }),
 }));
 
 vi.mock("next/server", () => ({
@@ -188,7 +206,7 @@ describe("Retell AI Webhook Handler", () => {
       team: null,
     };
 
-    vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+    mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
 
     mockHasAvailableCredits.mockResolvedValue(true);
     mockChargeCredits.mockResolvedValue(undefined);
@@ -222,6 +240,7 @@ describe("Retell AI Webhook Handler", () => {
         credits: 58, // 120 seconds = 2 minutes * $0.29 = $0.58 = 58 credits
         callDuration: 120,
         externalRef: "retell:test-call-id",
+        creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
       })
     );
   });
@@ -247,7 +266,7 @@ describe("Retell AI Webhook Handler", () => {
       user: null,
     };
 
-    vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockTeamPhoneNumber);
+    mockFindByPhoneNumber.mockResolvedValue(mockTeamPhoneNumber);
 
     mockHasAvailableCredits.mockResolvedValue(true);
     mockChargeCredits.mockResolvedValue(undefined);
@@ -279,6 +298,7 @@ describe("Retell AI Webhook Handler", () => {
         credits: 87, // 180 seconds = 3 minutes * $0.29 = $0.87 = 87 credits
         callDuration: 180,
         externalRef: "retell:test-call-id",
+        creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
       })
     );
   });
@@ -306,12 +326,12 @@ describe("Retell AI Webhook Handler", () => {
     const response = await callPOST(request);
 
     expect(response.status).toBe(200);
-    expect(PrismaPhoneNumberRepository.findByPhoneNumber).not.toHaveBeenCalled();
+    expect(mockFindByPhoneNumber).not.toHaveBeenCalled();
   });
 
   it("should handle phone number not found", async () => {
     vi.mocked(Retell.verify).mockReturnValue(true);
-    vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(null);
+    mockFindByPhoneNumber.mockResolvedValue(null);
 
     const body: RetellWebhookBody = {
       event: "call_analyzed",
@@ -357,7 +377,7 @@ describe("Retell AI Webhook Handler", () => {
       team: null,
     };
 
-    vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+    mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
 
     mockHasAvailableCredits.mockResolvedValue(false);
 
@@ -432,7 +452,7 @@ describe("Retell AI Webhook Handler", () => {
         team: null,
       };
 
-      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
       mockHasAvailableCredits.mockResolvedValue(true);
       mockChargeCredits.mockResolvedValue(undefined);
 
@@ -462,6 +482,7 @@ describe("Retell AI Webhook Handler", () => {
           credits: expectedCredits,
           callDuration: durationSeconds,
           externalRef: expect.stringMatching(/^retell:test-call-/),
+          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
         })
       );
     }
@@ -486,7 +507,7 @@ describe("Retell AI Webhook Handler", () => {
       user: { id: 42, email: "u@example.com", name: "U" },
       team: null,
     };
-    vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+    mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
     mockHasAvailableCredits.mockResolvedValue(true);
     mockChargeCredits.mockResolvedValue(undefined);
 
@@ -508,7 +529,12 @@ describe("Retell AI Webhook Handler", () => {
     const response = await callPOST(createMockRequest(body, "valid-signature"));
     expect(response.status).toBe(200);
     expect(mockChargeCredits).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: 42, credits: 61, callDuration: 125 }) // 125s = 2.083 minutes * $0.29 = $0.604 = 61 credits (rounded up)
+      expect.objectContaining({
+        userId: 42,
+        credits: 61,
+        callDuration: 125,
+        creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
+      }) // 125s = 2.083 minutes * $0.29 = $0.604 = 61 credits (rounded up)
     );
   });
 
@@ -536,7 +562,7 @@ describe("Retell AI Webhook Handler", () => {
         user: { id: 1, email: "test@example.com", name: "Test User" },
         team: null,
       };
-      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
       mockChargeCredits.mockResolvedValue({ userId: 1 });
 
       const body: RetellWebhookBody = {
@@ -565,6 +591,7 @@ describe("Retell AI Webhook Handler", () => {
           credits: 29, // 60 seconds = 1 minute * $0.29 = $0.29 = 29 credits
           callDuration: 60,
           externalRef: "retell:test-idempotency-call",
+          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
         })
       );
     });
@@ -588,7 +615,7 @@ describe("Retell AI Webhook Handler", () => {
         user: { id: 1, email: "test@example.com", name: "Test User" },
         team: null,
       };
-      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
 
       const body: RetellWebhookBody = {
         event: "call_analyzed",
@@ -653,7 +680,7 @@ describe("Retell AI Webhook Handler", () => {
         user: { id: 1, email: "test@example.com", name: "Test User" },
         team: null,
       };
-      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
 
       // Mock chargeCredits to throw an error
       mockChargeCredits.mockRejectedValue(new Error("Credit service error"));
@@ -681,6 +708,192 @@ describe("Retell AI Webhook Handler", () => {
       const data = await response.json();
       expect(data.success).toBe(false);
       expect(data.message).toContain("Error charging credits for Retell AI call");
+    });
+  });
+
+  describe("Web Call Tests", () => {
+    const mockAgent: Pick<
+      Agent,
+      | "id"
+      | "name"
+      | "providerAgentId"
+      | "enabled"
+      | "userId"
+      | "teamId"
+      | "createdAt"
+      | "updatedAt"
+      | "inboundEventTypeId"
+    > = {
+      id: "agent-123",
+      name: "Test Agent",
+      providerAgentId: "agent_5e3e0d29d692172c2c24d8f9a7",
+      enabled: true,
+      userId: 1,
+      teamId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      inboundEventTypeId: null,
+    };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.mocked(Retell.verify).mockReturnValue(true);
+    });
+
+    it("should process web call with valid agent and charge credits", async () => {
+      mockFindByProviderAgentId.mockResolvedValue(mockAgent);
+      mockChargeCredits.mockResolvedValue(undefined);
+
+      const body: RetellWebhookBody = {
+        event: "call_analyzed",
+        call: {
+          call_id: "call_bcd94f5a50832873a5fd68cb1aa",
+          call_type: "web_call",
+          agent_id: "agent_5e3e0d29d692172c2c24d8f9a7",
+          call_status: "ended",
+          start_timestamp: 1757673314024,
+          end_timestamp: 1757673321010,
+          call_cost: {
+            total_duration_seconds: 7,
+            combined_cost: 1.3416667,
+          },
+        },
+      };
+
+      const request = createMockRequest(body, "valid-signature");
+      const response = await callPOST(request);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.success).toBe(true);
+
+      expect(mockFindByProviderAgentId).toHaveBeenCalledWith({
+        providerAgentId: "agent_5e3e0d29d692172c2c24d8f9a7",
+      });
+
+      expect(mockChargeCredits).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 1,
+          teamId: undefined,
+          credits: 4, // 7 seconds = 0.117 minutes * $0.29 = $0.034 = 4 credits (rounded up)
+          callDuration: 7,
+          externalRef: "retell:call_bcd94f5a50832873a5fd68cb1aa",
+          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
+        })
+      );
+    });
+
+    it("should handle web call with team agent", async () => {
+      const teamAgent = { ...mockAgent, userId: 2, teamId: 10, inboundEventTypeId: null };
+      mockFindByProviderAgentId.mockResolvedValue(teamAgent);
+      mockChargeCredits.mockResolvedValue(undefined);
+
+      const body: RetellWebhookBody = {
+        event: "call_analyzed",
+        call: {
+          call_id: "web-call-team",
+          call_type: "web_call",
+          agent_id: "agent_team_123",
+          call_status: "ended",
+          start_timestamp: 1757673314024,
+          call_cost: {
+            total_duration_seconds: 60,
+            combined_cost: 2.0,
+          },
+        },
+      };
+
+      const request = createMockRequest(body, "valid-signature");
+      const response = await callPOST(request);
+
+      expect(response.status).toBe(200);
+      expect(mockChargeCredits).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 2,
+          teamId: 10,
+          credits: 29, // 60 seconds = 1 minute * $0.29 = 29 credits
+          callDuration: 60,
+          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
+        })
+      );
+    });
+
+    it("should handle web call without from_number", async () => {
+      mockFindByProviderAgentId.mockResolvedValue(mockAgent);
+      mockChargeCredits.mockResolvedValue(undefined);
+
+      const body: RetellWebhookBody = {
+        event: "call_analyzed",
+        call: {
+          call_id: "web-call-no-phone",
+          agent_id: "agent_5e3e0d29d692172c2c24d8f9a7",
+          call_status: "ended",
+          start_timestamp: 1757673314024,
+          call_cost: {
+            total_duration_seconds: 30,
+            combined_cost: 1.0,
+          },
+        },
+      };
+
+      const request = createMockRequest(body, "valid-signature");
+      const response = await callPOST(request);
+
+      expect(response.status).toBe(200);
+      expect(mockFindByProviderAgentId).toHaveBeenCalled();
+      expect(mockFindByPhoneNumber).not.toHaveBeenCalled();
+      expect(mockChargeCredits).toHaveBeenCalled();
+    });
+
+    it("should handle web call with missing agent_id", async () => {
+      const body: RetellWebhookBody = {
+        event: "call_analyzed",
+        call: {
+          call_id: "web-call-no-agent",
+          call_type: "web_call",
+          call_status: "ended",
+          call_cost: {
+            total_duration_seconds: 30,
+            combined_cost: 1.0,
+          },
+        },
+      };
+
+      const request = createMockRequest(body, "valid-signature");
+      const response = await callPOST(request);
+
+      expect(response.status).toBe(200);
+      expect(mockFindByProviderAgentId).not.toHaveBeenCalled();
+      expect(mockChargeCredits).not.toHaveBeenCalled();
+    });
+
+    it("should handle web call with agent not found", async () => {
+      mockFindByProviderAgentId.mockResolvedValue(null);
+
+      const body: RetellWebhookBody = {
+        event: "call_analyzed",
+        call: {
+          call_id: "web-call-no-agent-found",
+          call_type: "web_call",
+          agent_id: "non-existent-agent",
+          call_status: "ended",
+          start_timestamp: 1757673314024,
+          call_cost: {
+            total_duration_seconds: 30,
+            combined_cost: 1.0,
+          },
+          // Web calls don't have from_number, to_number, direction
+        },
+      };
+
+      const request = createMockRequest(body, "valid-signature");
+      const response = await callPOST(request);
+
+      expect(response.status).toBe(200);
+      expect(mockFindByProviderAgentId).toHaveBeenCalledWith({
+        providerAgentId: "non-existent-agent",
+      });
+      expect(mockChargeCredits).not.toHaveBeenCalled();
     });
   });
 });

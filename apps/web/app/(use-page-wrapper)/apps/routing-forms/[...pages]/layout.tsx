@@ -1,7 +1,23 @@
 import type { ReactNode } from "react";
 
 import FormProvider from "./FormProvider";
+import { RoutingFormAuthGuard } from "./RoutingFormAuthGuard";
 
-export default async function Layout({ children }: { children: ReactNode }) {
-  return <FormProvider>{children}</FormProvider>;
+interface LayoutProps {
+  children: ReactNode;
+  params: Promise<{ pages: string[] }>;
+}
+
+export default async function Layout({ children, params }: LayoutProps) {
+  const { pages } = await params;
+  const isPublic = pages?.[0] === "routing-link";
+  if (isPublic) {
+    return <FormProvider>{children}</FormProvider>;
+  }
+
+  return (
+    <RoutingFormAuthGuard>
+      <FormProvider>{children}</FormProvider>
+    </RoutingFormAuthGuard>
+  );
 }

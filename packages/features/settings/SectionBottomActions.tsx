@@ -14,7 +14,7 @@ const SectionBottomActions = ({
   return (
     <div
       className={classNames(
-        "border-subtle bg-muted flex rounded-b-lg border px-6 py-4",
+        "border-subtle bg-cal-muted flex rounded-b-lg border px-6 py-4",
         align === "end" && "justify-end",
         className
       )}>

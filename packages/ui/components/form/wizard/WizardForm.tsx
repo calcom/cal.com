@@ -46,7 +46,7 @@ export function WizardForm({
   defaultStep = 1,
   disableNavigation = false,
 }: WizardFormProps) {
-  const { currentStep, maxSteps, nextStep, prevStep, isFirstStep, isLastStep } = useWizardState(
+  const { currentStep, maxSteps, nextStep, goToStep, prevStep, isFirstStep, isLastStep } = useWizardState(
     defaultStep,
     steps.length
   );
@@ -61,7 +61,7 @@ export function WizardForm({
     <div className="mx-auto mt-4 print:w-full" data-testid="wizard-form">
       <div className={classNames("overflow-hidden md:mb-2 md:w-[700px]", containerClassname)}>
         <div className="px-6 py-5">
-          <h1 className="font-cal text-emphasis text-2xl" data-testid="step-title">
+          <h1 className="font-heading text-emphasis text-2xl" data-testid="step-title">
             {currentStepData.title}
           </h1>
           <p className="text-subtle text-sm" data-testid="step-description">
@@ -71,10 +71,9 @@ export function WizardForm({
             <Steps
               maxSteps={maxSteps}
               currentStep={currentStep}
-              nextStep={nextStep}
+              navigateToStep={goToStep}
               stepLabel={stepLabel}
               data-testid="wizard-step-component"
-              disableNavigation={disableNavigation}
             />
           )}
         </div>

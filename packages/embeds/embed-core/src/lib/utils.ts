@@ -79,6 +79,7 @@ function listKnownConfigProps() {
     "ui.color-scheme",
     "theme",
     "cal.embed.pageType",
+    "ui.autoscroll",
   ];
   return knownConfigProps;
 }

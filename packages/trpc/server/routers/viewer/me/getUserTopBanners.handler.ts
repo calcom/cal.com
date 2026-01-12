@@ -1,5 +1,8 @@
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
-import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/server";
+import {
+  getCalendarCredentials,
+  getConnectedCalendars,
+} from "@calcom/features/calendars/lib/CalendarManager";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";

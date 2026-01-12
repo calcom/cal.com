@@ -4,7 +4,7 @@ import { Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
 import { getConnectedApps, ConnectedApps } from "@calcom/platform-libraries/app-store";
-import { PrismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class ConferencingAtomsService {

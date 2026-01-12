@@ -2,7 +2,7 @@ import { Resource } from "@calcom/features/pbac/domain/types/permission-registry
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 

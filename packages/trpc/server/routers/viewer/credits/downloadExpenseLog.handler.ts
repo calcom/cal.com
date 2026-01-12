@@ -1,5 +1,7 @@
-import { CreditsRepository } from "@calcom/lib/server/repository/credits";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { CreditsRepository } from "@calcom/features/credits/repositories/CreditsRepository";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -20,15 +22,25 @@ const headers = [
   "Number of Segments",
   "Call Duration",
   "External Ref",
+  "Phone Number",
+  "Email",
 ];
 
 export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseLogOptions) => {
   const { teamId, startDate, endDate } = input;
 
   if (teamId) {
-    const adminMembership = await MembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
+    const team = await TeamService.fetchTeamOrThrow(teamId);
 
-    if (!adminMembership) {
+    const permissionService = new PermissionCheckService();
+    const hasManageBillingPermission = await permissionService.checkPermission({
+      userId: ctx.user.id,
+      teamId,
+      permission: team.isOrganization ? "organization.manageBilling" : "team.manageBilling",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (!hasManageBillingPermission) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
       });
@@ -52,6 +64,8 @@ export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseL
     log.creditType,
     log.bookingUid ?? "",
     log.smsSegments?.toString() ?? "-",
+    log.phoneNumber ?? "",
+    log.email ?? "",
     log.callDuration?.toString() ?? "-",
     log.externalRef ?? "-",
   ]);

@@ -17,6 +17,7 @@ const cvaCardTypeByVariant = cva("", {
       basic: "",
       ProfileCard: "",
       SidebarCard: "",
+      NewLaunchSidebarCard: "",
     },
     structure: {
       image: "",
@@ -35,7 +36,7 @@ const cvaCardTypeByVariant = cva("", {
     {
       variant: "basic",
       structure: "card",
-      className: "p-5",
+      className: "p-5 bg-default",
     },
     {
       variant: "basic",
@@ -57,7 +58,7 @@ const cvaCardTypeByVariant = cva("", {
     {
       variant: "ProfileCard",
       structure: "card",
-      className: "w-80 p-4 hover:bg-subtle",
+      className: "w-80 p-4 hover:bg-subtle bg-default",
     },
     {
       variant: "ProfileCard",
@@ -79,17 +80,39 @@ const cvaCardTypeByVariant = cva("", {
     {
       variant: "SidebarCard",
       structure: "card",
-      className: "w-full p-3 border border-subtle",
+      className: "w-full p-3 border border-subtle bg-default",
     },
     {
       variant: "SidebarCard",
       structure: "title",
-      className: "text-sm font-cal",
+      className: "text-sm font-heading",
     },
     {
       variant: "SidebarCard",
       structure: "description",
       className: "text-xs text-default line-clamp-2",
+    },
+
+    // Style for NewLaunchSidebarCard Variant Types
+    {
+      variant: "NewLaunchSidebarCard",
+      structure: "image",
+      className: "w-9 h-auto rounded-full mb-4s",
+    },
+    {
+      variant: "NewLaunchSidebarCard",
+      structure: "card",
+      className: "w-full p-3 border border-subtle bg-launch-dark text-white",
+    },
+    {
+      variant: "NewLaunchSidebarCard",
+      structure: "title",
+      className: "text-sm font-heading text-white",
+    },
+    {
+      variant: "NewLaunchSidebarCard",
+      structure: "description",
+      className: "text-xs text-white",
     },
   ],
 });
@@ -110,12 +133,16 @@ export interface BaseCardProps extends CVACardType {
     "data-testid"?: string;
   };
   learnMore?: {
-    href: string;
+    href?: string;
     text: string;
+    onClick?: (event: React.MouseEvent<HTMLElement>) => void;
   };
   mediaLink?: string;
+  mediaLinkOnClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   thumbnailUrl?: string;
   structure?: string;
+  coverPhoto?: string;
+  buttonClassName?: string;
 }
 
 export function Card({
@@ -130,14 +157,17 @@ export function Card({
   mediaLink,
   thumbnailUrl,
   learnMore,
+  coverPhoto,
+  buttonClassName,
+  mediaLinkOnClick,
 }: BaseCardProps) {
-  const LinkComponent = learnMore && learnMore.href.startsWith("https") ? "a" : Link;
+  const LinkComponent = learnMore?.href?.startsWith("https") ? "a" : Link;
   return (
     <div
       className={classNames(
         containerProps?.className,
-        cvaCardTypeByVariant({ variant, structure: "card" }),
-        "bg-default border-subtle text-default flex flex-col justify-between rounded-md border"
+        "border-subtle text-default bg-default flex flex-col justify-between rounded-md border",
+        cvaCardTypeByVariant({ variant, structure: "card" })
       )}
       data-testid="card-container"
       {...containerProps}>
@@ -158,8 +188,8 @@ export function Card({
         <h5
           title={title}
           className={classNames(
-            cvaCardTypeByVariant({ variant, structure: "title" }),
-            "text-emphasis line-clamp-1 font-bold leading-5"
+            "text-emphasis line-clamp-1 font-bold leading-5",
+            cvaCardTypeByVariant({ variant, structure: "title" })
           )}>
           {title}
         </h5>
@@ -171,15 +201,15 @@ export function Card({
           </p>
         )}
       </div>
-      {variant === "SidebarCard" && (
+      {variant === "SidebarCard" && mediaLink && (
         <a
-          onClick={actionButton?.onClick}
+          onClick={mediaLinkOnClick}
           target="_blank"
-          rel="noreferrer"
+          rel="noreferrer noopener"
           href={mediaLink}
           data-testid={actionButton?.["data-testid"]}
           className="group relative my-3 flex aspect-video items-center overflow-hidden rounded">
-          <div className="absolute inset-0 bg-black bg-opacity-50 transition group-hover:bg-opacity-40" />
+          <div className="absolute inset-0 bg-black/50 transition group-hover:bg-black/40" />
           <svg
             className="text-inverted absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 transform rounded-full shadow-lg transition-all hover:-mt-px"
             viewBox="0 0 32 32"
@@ -201,6 +231,9 @@ export function Card({
           <img alt="play feature video" src={thumbnailUrl} />
         </a>
       )}
+      {variant === "NewLaunchSidebarCard" && coverPhoto && (
+        <img alt="cover" className="mt-3 w-full" src={coverPhoto} />
+      )}
 
       {/* TODO: this should be CardActions https://mui.com/material-ui/api/card-actions/ */}
       {variant === "basic" && actionButton && (
@@ -216,21 +249,35 @@ export function Card({
         </div>
       )}
 
-      {variant === "SidebarCard" && (
+      {(variant === "SidebarCard" || variant === "NewLaunchSidebarCard") && (
         <div className="mt-2 flex items-center justify-between">
           {learnMore && (
-            <LinkComponent
-              href={learnMore.href}
-              onClick={actionButton?.onClick}
-              target="_blank"
-              rel="noreferrer"
-              className="text-default text-xs font-medium">
-              {learnMore.text}
-            </LinkComponent>
+            <>
+              {learnMore.href ? (
+                <LinkComponent
+                  href={learnMore.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={learnMore.onClick}
+                  className={classNames("text-default text-xs font-medium cursor-pointer", buttonClassName)}>
+                  {learnMore.text}
+                </LinkComponent>
+              ) : learnMore.onClick ? (
+                <button type="button"
+                  color="minimal"
+                  onClick={learnMore.onClick}
+                  className={classNames("cursor-pointer text-default text-xs font-medium", buttonClassName)}>
+                  {learnMore.text}
+                </button>
+              ) : undefined}
+            </>
           )}
           {actionButton?.child && (
             <button
-              className="text-default hover:text-emphasis p-0 text-xs font-normal"
+              className={classNames(
+                "text-default hover:text-emphasis p-0 text-xs font-normal cursor-pointer",
+                buttonClassName
+              )}
               color="minimal"
               data-testid={actionButton?.["data-testid"]}
               onClick={actionButton?.onClick}>

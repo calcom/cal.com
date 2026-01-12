@@ -1,4 +1,4 @@
-import { bootstrap } from "@/app";
+import { bootstrap } from "@/bootstrap";
 import { AppModule } from "@/app.module";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
@@ -12,7 +12,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
@@ -37,7 +36,7 @@ import {
   RescheduleBookingInput_2024_08_13,
   CancelBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import type { User, Team } from "@calcom/prisma/client";
 
 jest.spyOn(AttendeeScheduledEmail.prototype as any, "getHtml").mockImplementation(async function () {
   return "<html><body>Mocked Email Content</body></html>";
@@ -178,6 +177,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.attendees[0]).toEqual({
               name: body.attendee.name,
               email: body.attendee.email,
+              displayEmail: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,

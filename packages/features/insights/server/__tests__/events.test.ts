@@ -1,3 +1,5 @@
+import "@calcom/testing/lib/__mocks__/prisma";
+
 import { describe, expect, it } from "vitest";
 
 import dayjs from "@calcom/dayjs";

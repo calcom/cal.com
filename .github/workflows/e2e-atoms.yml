@@ -1,4 +1,4 @@
-name: Atoms E2E Tests
+name: E2E Atoms
 
 on:
   workflow_call:
@@ -13,24 +13,28 @@ env:
   ATOMS_E2E_API_URL: ${{ secrets.ATOMS_E2E_API_URL }}
   ATOMS_E2E_ORG_ID: ${{ secrets.ATOMS_E2E_ORG_ID }}
   ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED: ${{ secrets.ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED }}
+  ATOMS_E2E_APPLE_ID: ${{ secrets.ATOMS_E2E_APPLE_ID }}
+  ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE: ${{ secrets.ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE }}
   DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
   DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
 
 jobs:
   e2e-atoms:
     timeout-minutes: 15
-    name: Atoms E2E Tests
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    name: E2E Atoms
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
-      - name: Run Atoms E2E Tests
+      - name: Run E2E Atoms Tests
         working-directory: packages/platform/examples/base
         run: yarn test:e2e
       - name: Upload Test Results
