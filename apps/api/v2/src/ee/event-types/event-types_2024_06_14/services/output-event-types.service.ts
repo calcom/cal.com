@@ -41,12 +41,14 @@ import type {
   SelectedCalendar,
 } from "@calcom/prisma/client";
 
+type SelectedCalendarFields = Pick<SelectedCalendar, "id" | "eventTypeId" | "userId" | "integration" | "externalId">;
+
 type EventTypeRelations = {
   users: User[];
   schedule: Schedule | null;
   destinationCalendar?: DestinationCalendar | null;
   calVideoSettings?: CalVideoSettings | null;
-  selectedCalendars?: SelectedCalendar[];
+  selectedCalendars?: SelectedCalendarFields[];
 };
 export type DatabaseEventType = EventType & EventTypeRelations;
 
@@ -486,7 +488,7 @@ export class OutputEventTypesService_2024_06_14 {
     };
   }
 
-  transformSelectedCalendars(selectedCalendars: SelectedCalendar[] | undefined) {
+  transformSelectedCalendars(selectedCalendars: SelectedCalendarFields[] | undefined) {
     if (!selectedCalendars || selectedCalendars.length === 0) {
       return undefined;
     }
